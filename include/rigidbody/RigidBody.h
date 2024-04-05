@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
 #include <hydrate/GridFwd.h>
 #include <fitter/FitterFwd.h>
 #include <data/Molecule.h>
@@ -8,18 +9,8 @@
 #include <memory>
 
 namespace rigidbody {
-	namespace detail {
-		struct BestConf {
-			BestConf();
-			BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::record::Water> waters, double chi2) noexcept;
-			~BestConf();
-			std::shared_ptr<grid::Grid> grid;
-			std::vector<data::record::Water> waters;
-			double chi2;	
-		};
-	}
-
 	class RigidBody : public data::Molecule {
+		friend rigidbody::sequencer::Sequencer;
 		public:
 			RigidBody(data::Molecule&& protein);
 
@@ -50,6 +41,14 @@ namespace rigidbody {
 			 * @brief Get the constraint manager for this rigid body.
 			 */
 			std::shared_ptr<constraints::ConstraintManager> get_constraint_manager() const;
+
+			void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
+
+			void set_body_select_manager(std::shared_ptr<rigidbody::selection::BodySelectStrategy> body_selector);
+
+			void set_transform_manager(std::shared_ptr<rigidbody::transform::TransformStrategy> transform);
+
+			void set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters);
 
 		protected:
 			std::shared_ptr<constraints::ConstraintManager> constraints = nullptr;

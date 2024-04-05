@@ -56,7 +56,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--save_exv", settings::grid::save_exv, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::save_exv)->group("Hidden");
     CLI11_PARSE(app, argc, argv);
 
-    console::print_info("Running AUSAXS" + constants::version);
+    console::print_info("Running AUSAXS " + std::string(constants::version));
 
     //###################//
     //### PARSE INPUT ###//

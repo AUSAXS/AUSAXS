@@ -4,31 +4,43 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/RigidBodyManager.h>
+#include <rigidbody/detail/BestConf.h>
+#include <rigidbody/RigidBody.h>
+#include <fitter/LinearFitter.h>
+#include <data/record/Water.h>
+#include <hydrate/Grid.h>
 #include <io/ExistingFile.h>
-
-#include <iostream>
 
 using namespace rigidbody::sequencer;
 
-template<typename T> requires std::is_base_of_v<data::Molecule, std::decay_t<T>>
-Sequencer::Sequencer(const io::ExistingFile& saxs, T&& rigidbody) {
-    rigidbody::sequencer::rigidbody = std::make_unique<RigidBodyManager>(saxs, std::forward<T>(rigidbody));
+Sequencer::Sequencer(const io::ExistingFile& saxs, observer_ptr<RigidBody> rigidbody) : LoopElement(this, 1), rigidbody(rigidbody) {
+    rigidbody->generate_new_hydration();
+    rigidbody->prepare_fitter(saxs);
+    best = std::make_unique<detail::BestConf>(std::make_shared<grid::Grid>(*rigidbody->get_grid()), rigidbody->get_waters(), rigidbody->fitter->fit_chi2_only());
 }
+
 Sequencer::~Sequencer() = default;
 
-std::shared_ptr<fitter::Fit> Sequencer::execute() {
-    std::cout << "Sequencer::execute()" << std::endl;
-    rigidbody->initialize();
-    for (auto& loop : elements) {
-        loop->run();
-    }
-    return rigidbody->get_fit();
+observer_ptr<rigidbody::RigidBody> Sequencer::_get_rigidbody() const {
+    return rigidbody;
 }
 
-template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, data::Molecule&& protein);
-template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, const data::Molecule& protein);
-template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, data::Molecule& protein);
-template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, rigidbody::RigidBody&& protein);
-template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, const rigidbody::RigidBody& protein);
-template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, rigidbody::RigidBody& protein);
+observer_ptr<rigidbody::detail::BestConf> Sequencer::_get_best_conf() const {
+    return best.get();
+}
+
+observer_ptr<const Sequencer> Sequencer::_get_sequencer() const {
+    return this;
+}
+
+bool Sequencer::_optimize_step() const {
+    return rigidbody->optimize_step(*best);
+}
+
+std::shared_ptr<fitter::Fit> Sequencer::execute() {
+    for (auto& e : elements) {
+        e->run();
+    }
+    rigidbody->update_fitter(rigidbody->fitter);
+    return rigidbody->fitter->fit();
+}

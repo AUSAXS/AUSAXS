@@ -4,12 +4,13 @@
 #include <rigidbody/sequencer/LoopElementCallback.h>
 #include <rigidbody/sequencer/GenericElement.h>
 #include <rigidbody/transform/TransformStrategy.h>
+#include <utility/observer_ptr.h>
 
 namespace rigidbody {
     namespace sequencer {
         class TransformElement : public LoopElementCallback, public GenericElement {
             public:
-                TransformElement(LoopElement* owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
+                TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
                 ~TransformElement();
 
                 void run() override;

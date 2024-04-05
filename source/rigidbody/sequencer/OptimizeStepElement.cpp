@@ -1,5 +1,10 @@
 #include <rigidbody/sequencer/OptimizeStepElement.h>
-#include <rigidbody/sequencer/RigidBodyManager.h>
+#include <rigidbody/sequencer/LoopElement.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/detail/BestConf.h>
+#include <rigidbody/RigidBody.h>
+#include <settings/GeneralSettings.h>
+#include <utility/Console.h>
 
 #include <iostream>
 
@@ -9,7 +14,9 @@ namespace rigidbody::sequencer {
     OptimizeStepElement::~OptimizeStepElement() = default;
 
     void OptimizeStepElement::run() {
-        std::cout << "OptimizeStepElement::run()" << std::endl;
-        rigidbody->optimize_step();
+        if (owner->_get_sequencer()->_optimize_step() && settings::general::verbose) {
+            std::cout << "Iteration " << LoopElement::global_counter << " of " << LoopElement::total_loop_count << std::endl;
+            console::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(owner->_get_best_conf()->chi2));
+        }
     }
 }

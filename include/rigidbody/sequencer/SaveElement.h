@@ -8,26 +8,15 @@
 
 namespace rigidbody {
     namespace sequencer {
-        enum class SaveFormat {XYZ, PDB};
-
-        class SaveElement : public LoopElementCallback {
+        class SaveElement : public LoopElementCallback, public GenericElement {
             public:
-                SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner);
-                SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, SaveFormat fmt);
+                SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, const io::File& path);
                 ~SaveElement() override;
 
-                /**
-                 * @brief Save the current structure as a pdb file. 
-                 * 
-                 * @arg path The save location. For ease of use a unique number will automatically be added as a suffix. 
-                 *           Leave empty to save at a default location. 
-                 */
-                void write_pdb(const io::File& path = "");
+                void run() override;
 
-                /**
-                 * @brief Append the current structure to the animated xyz file. 
-                 */
-                void write_xyz();
+            private:
+                io::File path;
         };
     }
 }
