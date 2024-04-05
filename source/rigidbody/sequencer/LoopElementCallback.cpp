@@ -11,30 +11,30 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::sequencer;
 
-LoopElementCallback::LoopElementCallback(LoopElement* caller) : caller(caller) {}
+LoopElementCallback::LoopElementCallback(LoopElement* caller) : owner(caller) {}
 
 LoopElementCallback::~LoopElementCallback() = default;
 
 LoopElement& LoopElementCallback::loop(unsigned int repeats) {
-    return caller->loop(repeats);
+    return owner->loop(repeats);
 }
 
-ParameterElement& LoopElementCallback::parameter_strategy(settings::rigidbody::ParameterGenerationStrategyChoice strategy) {
-    return caller->parameter_strategy(strategy);
+ParameterElement& LoopElementCallback::parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy) {
+    return owner->parameter_strategy(std::move(strategy));
 }
 
-BodySelectElement& LoopElementCallback::body_select_strategy(settings::rigidbody::BodySelectStrategyChoice strategy) {
-    return caller->body_select_strategy(strategy);
+BodySelectElement& LoopElementCallback::LoopElementCallback::body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) {
+    return owner->body_select_strategy(std::move(strategy));
 }
 
-TransformElement& LoopElementCallback::transform_strategy(settings::rigidbody::TransformationStrategyChoice strategy) {
-    return caller->transform_strategy(strategy);
+TransformElement& LoopElementCallback::transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) {
+    return owner->transform_strategy(std::move(strategy));
 }
 
 void LoopElementCallback::execute() {
-    caller->execute();
+    owner->execute();
 }
 
 LoopElement& LoopElementCallback::end() {
-    return caller->end();
+    return owner->end();
 }

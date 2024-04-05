@@ -23,9 +23,9 @@ LoopElement::LoopElement(LoopElement* owner, unsigned int repeats) : owner(owner
 
 LoopElement::~LoopElement() = default;
 
-void LoopElement::execute() {
+std::shared_ptr<fitter::Fit> LoopElement::execute() {
     std::cout << "LoopElement::execute()" << std::endl;
-    owner->execute(); // propagate upwards to the main Sequencer
+    return owner->execute(); // propagate upwards to the main Sequencer
 }
 
 LoopElement& LoopElement::loop(unsigned int repeats) {
@@ -34,21 +34,21 @@ LoopElement& LoopElement::loop(unsigned int repeats) {
     return ref;
 }
 
-ParameterElement& LoopElement::parameter_strategy(settings::rigidbody::ParameterGenerationStrategyChoice strategy) {
+ParameterElement& LoopElement::parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy) {
     std::cout << "LoopElement::parameter_strategy()" << std::endl;
-    elements.push_back(std::make_unique<ParameterElement>(this, strategy));
+    elements.push_back(std::make_unique<ParameterElement>(this, std::move(strategy)));
     return *static_cast<ParameterElement*>(elements.back().get());
 }
 
-BodySelectElement& LoopElement::body_select_strategy(settings::rigidbody::BodySelectStrategyChoice strategy) {
+BodySelectElement& LoopElement::body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) {
     std::cout << "LoopElement::body_select_strategy()" << std::endl;
-    elements.push_back(std::make_unique<BodySelectElement>(this, strategy));
+    elements.push_back(std::make_unique<BodySelectElement>(this, std::move(strategy)));
     return *static_cast<BodySelectElement*>(elements.back().get());
 }
 
-TransformElement& LoopElement::transform_strategy(settings::rigidbody::TransformationStrategyChoice strategy) {
+TransformElement& LoopElement::transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) {
     std::cout << "LoopElement::transform_strategy()" << std::endl;
-    elements.push_back(std::make_unique<TransformElement>(this, strategy));
+    elements.push_back(std::make_unique<TransformElement>(this, std::move(strategy)));
     return *static_cast<TransformElement*>(elements.back().get());
 }
 

@@ -21,19 +21,31 @@ using namespace rigidbody::sequencer;
 
 std::unique_ptr<RigidBodyManager> rigidbody::sequencer::rigidbody;
 
-template<typename T> requires std::is_same_v<std::decay_t<T>, data::Molecule>
+template<typename T> requires std::is_base_of_v<data::Molecule, std::decay_t<T>>
 RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, T&& rigidbody) : RigidBody(std::forward<T>(rigidbody)) {
-    prepare_fitter(saxs);
     initialize();
+    prepare_fitter(saxs);
 }
-template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, data::Molecule&& rigidbody);
-template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, const data::Molecule& rigidbody);
 RigidBodyManager::~RigidBodyManager() = default;
+
+void RigidBodyManager::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
+    this->constraints = constraints;
+}
+
+void RigidBodyManager::set_body_select_manager(std::shared_ptr<rigidbody::selection::BodySelectStrategy> body_selector) {
+    this->body_selector = body_selector;
+}
+
+void RigidBodyManager::set_transform_manager(std::shared_ptr<rigidbody::transform::TransformStrategy> transform) {
+    this->transform = transform;
+}
+
+void RigidBodyManager::set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters) {
+    this->parameter_generator = parameters;
+}
 
 void RigidBodyManager::initialize() {
     rigidbody->generate_new_hydration();
-
-    // save the best configuration in a simple struct
     best = detail::BestConf(std::make_shared<grid::Grid>(*rigidbody->get_grid()), get_waters(), fitter->fit_chi2_only());
 }
 
@@ -41,8 +53,13 @@ void RigidBodyManager::optimize_step() {
     RigidBody::optimize_step(best);
 }
 
-void RigidBodyManager::set_managers(const settings::rigidbody::BodySelectStrategyChoice& body_selector, const settings::rigidbody::TransformationStrategyChoice& transform, const settings::rigidbody::ParameterGenerationStrategyChoice& parameters) {
-    this->body_selector = rigidbody::factory::create_selection_strategy(rigidbody.get(), body_selector);
-    this->transform = rigidbody::factory::create_transform_strategy(rigidbody.get(), transform);
-    this->parameter_generator = rigidbody::factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3, parameters);
+std::shared_ptr<fitter::Fit> RigidBodyManager::get_fit() const {
+    return fitter->get_fit();
 }
+
+template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, data::Molecule&& rigidbody);
+template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, const data::Molecule& rigidbody);
+template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, data::Molecule& rigidbody);
+template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, rigidbody::RigidBody&& rigidbody);
+template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, const rigidbody::RigidBody& rigidbody);
+template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, rigidbody::RigidBody& rigidbody);

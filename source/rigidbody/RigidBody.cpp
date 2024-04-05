@@ -99,10 +99,10 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measure
 
 #include <rigidbody/sequencer/Sequencer.h>
 std::shared_ptr<fitter::Fit> RigidBody::optimize_sequence(const io::ExistingFile& measurement_path) {
-    sequencer::Sequencer(measurement_path, *this)
-        .parameter_strategy(settings::rigidbody::parameter_generation_strategy)
-        .body_select_strategy(settings::rigidbody::body_select_strategy)
-        .transform_strategy(settings::rigidbody::transform_strategy)
+    return sequencer::Sequencer(measurement_path, *this)
+        .parameter_strategy(rigidbody::factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3))
+        .body_select_strategy(rigidbody::factory::create_selection_strategy(this))
+        .transform_strategy(rigidbody::factory::create_transform_strategy(this))
         .loop(settings::rigidbody::iterations)
     .execute();
 }

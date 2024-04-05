@@ -6,5 +6,4 @@ namespace rigidbody::sequencer {
     class BodySelectElement;
     class TransformElement;
     class LoopElement;
-    class DecayElement;
 }

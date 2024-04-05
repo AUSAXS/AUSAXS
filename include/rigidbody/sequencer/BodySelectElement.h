@@ -4,18 +4,19 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/LoopElementCallback.h>
 #include <rigidbody/sequencer/GenericElement.h>
+#include <rigidbody/selection/BodySelectStrategy.h>
 
 namespace rigidbody {
     namespace sequencer {
         class BodySelectElement : public LoopElementCallback, public GenericElement {
             public:
-                BodySelectElement(LoopElement* owner);
-                BodySelectElement(LoopElement* owner, settings::rigidbody::BodySelectStrategyChoice strategy);
+                BodySelectElement(LoopElement* owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
                 ~BodySelectElement();
 
                 void run() override;
 
-                settings::rigidbody::BodySelectStrategyChoice strategy;
+            private:
+                std::shared_ptr<rigidbody::selection::BodySelectStrategy> strategy;
         };
     }
 }

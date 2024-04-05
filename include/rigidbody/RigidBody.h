@@ -54,9 +54,9 @@ namespace rigidbody {
 		protected:
 			std::shared_ptr<constraints::ConstraintManager> constraints = nullptr;
 			std::shared_ptr<fitter::Fit> calibration = nullptr;
-			std::unique_ptr<selection::BodySelectStrategy> body_selector;
-			std::unique_ptr<transform::TransformStrategy> transform;
-			std::unique_ptr<parameter::ParameterGenerationStrategy> parameter_generator;
+			std::shared_ptr<selection::BodySelectStrategy> body_selector;
+			std::shared_ptr<transform::TransformStrategy> transform;
+			std::shared_ptr<parameter::ParameterGenerationStrategy> parameter_generator;
 			std::shared_ptr<fitter::LinearFitter> fitter;
 
 			/**

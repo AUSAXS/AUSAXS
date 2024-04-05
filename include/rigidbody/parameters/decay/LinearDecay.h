@@ -2,7 +2,7 @@
 
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 
-namespace rigidbody::parameters::decay {
+namespace rigidbody::parameter::decay {
     /**
      * @brief A DecayStrategy that decays the factor linearly.
      */
@@ -15,7 +15,7 @@ namespace rigidbody::parameters::decay {
             LinearDecay(unsigned int max_iterations);
             ~LinearDecay();
 
-            double get_factor() override;
+            double next() override;
         
         private:
             /**

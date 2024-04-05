@@ -1,9 +1,9 @@
 #pragma once
 
-#include <settings/RigidBodySettings.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/GenericElement.h>
+#include <fitter/FitterFwd.h>
 
 #include <memory>
 #include <vector>
@@ -20,7 +20,7 @@ namespace rigidbody {
                 LoopElement(LoopElement* owner, unsigned int repeats);
                 virtual ~LoopElement();
 
-                virtual void execute();
+                virtual std::shared_ptr<fitter::Fit> execute();
 
                 /**
                  * @brief Create a nested loop.
@@ -30,17 +30,17 @@ namespace rigidbody {
                 /**
                  * @brief Set the parameter strategy.
                  */
-                ParameterElement& parameter_strategy(settings::rigidbody::ParameterGenerationStrategyChoice strategy);
+                ParameterElement& parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
 
                 /**
                  * @brief Set the body selection strategy.
                  */
-                BodySelectElement& body_select_strategy(settings::rigidbody::BodySelectStrategyChoice strategy);
+                BodySelectElement& body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
 
                 /**
                  * @brief Set the transformation strategy.
                  */
-                TransformElement& transform_strategy(settings::rigidbody::TransformationStrategyChoice strategy);
+                TransformElement& transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
 
                 /**
                  * @brief Perform a single optimization step.
