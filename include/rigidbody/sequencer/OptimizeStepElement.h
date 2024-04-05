@@ -10,5 +10,10 @@ namespace rigidbody::sequencer {
             ~OptimizeStepElement() override;
 
             void run() override;
+
+            OptimizeStepElement& save_on_improvement(const io::File& path);
+
+        private:
+            std::vector<std::unique_ptr<GenericElement>> elements;
     };
 }

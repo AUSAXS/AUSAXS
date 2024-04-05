@@ -113,13 +113,25 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measure
 #include <rigidbody/sequencer/All.h>
 std::shared_ptr<fitter::Fit> RigidBody::optimize_sequence(const io::ExistingFile& measurement_path) {
     return sequencer::Sequencer(measurement_path, this)
-        .parameter_strategy(rigidbody::factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3))
-        .body_select_strategy(rigidbody::factory::create_selection_strategy(this))
-        .transform_strategy(rigidbody::factory::create_transform_strategy(this))
+        .parameter_strategy(rigidbody::factory::create_parameter_strategy(
+            settings::rigidbody::iterations, 
+            5, 
+            constants::pi/3, 
+            settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly
+        ))
+        .loop(100)
+            .optimize()
+                .save_on_improvement(settings::general::output + "trajectory.xyz")
+        .end()
+        .parameter_strategy(rigidbody::factory::create_parameter_strategy(
+            200, 
+            5, 
+            constants::pi/3, 
+            settings::rigidbody::ParameterGenerationStrategyChoice::Simple
+        ))
         .loop(settings::rigidbody::iterations)
             .optimize()
-            .every(10)
-                .save(settings::general::output + "trajectory.xyz")
+                .save_on_improvement(settings::general::output + "trajectory.xyz")
             .end()
         .end()
     .execute();

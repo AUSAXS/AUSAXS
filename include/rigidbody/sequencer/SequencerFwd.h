@@ -9,4 +9,5 @@ namespace rigidbody::sequencer {
     class LoopElement;
     class EveryNStepElement;
     class SaveElement;
+    class OptimizeStepElement;
 }

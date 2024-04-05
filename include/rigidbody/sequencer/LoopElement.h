@@ -46,7 +46,7 @@ namespace rigidbody {
                 /**
                  * @brief Perform a single optimization step.
                  */
-                LoopElement& optimize();
+                OptimizeStepElement& optimize();
 
                 /**
                  * @brief End the current loop.

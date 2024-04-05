@@ -21,7 +21,7 @@ namespace rigidbody::sequencer {
 
             ParameterElement& decay_strategy(std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> strategy);
 
-        private: 
+        private:
             std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy;
     };
 }

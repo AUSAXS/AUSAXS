@@ -7,3 +7,4 @@
 #include <rigidbody/sequencer/TransformElement.h>
 #include <rigidbody/sequencer/EveryNStepElement.h>
 #include <rigidbody/sequencer/SaveElement.h>
+#include <rigidbody/sequencer/OptimizeStepElement.h>
