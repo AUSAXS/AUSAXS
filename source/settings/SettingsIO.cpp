@@ -9,7 +9,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 
 #include <fstream>
-#include <filesystem>
 
 void settings::detail::parse_option(const std::string& name, const std::vector<std::string>& value) {
     if (!settings::io::detail::ISettingRef::stored_settings.contains(name)) {

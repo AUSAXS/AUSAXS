@@ -2,6 +2,7 @@
 
 #include <settings/RigidBodySettings.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/RigidbodyFwd.h>
 
 namespace rigidbody {
     namespace sequencer {
@@ -28,17 +29,17 @@ namespace rigidbody {
                 /**
                  * @brief Set the parameter strategy.
                  */
-                ParameterElement& parameter_strategy(settings::rigidbody::ParameterGenerationStrategyChoice strategy);
+                ParameterElement& parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
 
                 /**
                  * @brief Set the body selection strategy.
                  */
-                BodySelectElement& body_select_strategy(settings::rigidbody::BodySelectStrategyChoice strategy);
+                BodySelectElement& body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
 
                 /**
                  * @brief Set the transformation strategy.
                  */
-                TransformElement& transform_strategy(settings::rigidbody::TransformationStrategyChoice strategy);
+                TransformElement& transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
 
                 /**
                  * @brief End the current loop.
@@ -50,8 +51,7 @@ namespace rigidbody {
                  */
                 void execute();
 
-            private: 
-                LoopElement* caller;
+                LoopElement* owner;
         };
     }
 }

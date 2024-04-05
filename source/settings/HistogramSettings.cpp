@@ -14,6 +14,7 @@ double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;
 bool settings::hist::use_foxs_method = false;
 bool settings::hist::weighted_bins = true;
+bool settings::hist::fit_excluded_volume = false;
 
 namespace settings::axes::io {
     settings::io::SettingSection axes_settings("Axes", {
@@ -25,7 +26,9 @@ namespace settings::axes::io {
 
 settings::hist::HistogramManagerChoice settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
 settings::io::SettingSection hist_settings("Histogram", {
-    settings::io::create(settings::hist::histogram_manager, "histogram_manager")
+    settings::io::create(settings::hist::histogram_manager, "histogram_manager"),
+    settings::io::create(settings::hist::weighted_bins, "weighted_bins"),
+    settings::io::create(settings::hist::fit_excluded_volume, "fit_excluded_volume")
 });
 
 template<> std::string settings::io::detail::SettingRef<settings::hist::HistogramManagerChoice>::get() const {

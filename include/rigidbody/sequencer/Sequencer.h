@@ -3,7 +3,6 @@
 #include <rigidbody/sequencer/LoopElement.h>
 #include <rigidbody/sequencer/BodySelectElement.h>
 #include <rigidbody/sequencer/ConstraintIteratorElement.h>
-#include <rigidbody/sequencer/DecayElement.h>
 #include <rigidbody/sequencer/ParameterElement.h>
 #include <rigidbody/sequencer/TransformElement.h>
 #include <data/Molecule.h>
@@ -16,7 +15,7 @@ namespace rigidbody {
                 Sequencer(const io::ExistingFile& saxs, T&& protein);
                 ~Sequencer();
 
-                void execute() override;
+                std::shared_ptr<fitter::Fit> execute() override;
         };
     }
 }

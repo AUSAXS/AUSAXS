@@ -15,15 +15,20 @@ template<typename T> requires std::is_base_of_v<data::Molecule, std::decay_t<T>>
 Sequencer::Sequencer(const io::ExistingFile& saxs, T&& rigidbody) {
     rigidbody::sequencer::rigidbody = std::make_unique<RigidBodyManager>(saxs, std::forward<T>(rigidbody));
 }
-template Sequencer::Sequencer(const io::ExistingFile& saxs, data::Molecule&& protein);
-template Sequencer::Sequencer(const io::ExistingFile& saxs, const data::Molecule& protein);
-template Sequencer::Sequencer(const io::ExistingFile& saxs, rigidbody::RigidBody&& protein);
-template Sequencer::Sequencer(const io::ExistingFile& saxs, const rigidbody::RigidBody& protein);
 Sequencer::~Sequencer() = default;
 
-void Sequencer::execute() {
+std::shared_ptr<fitter::Fit> Sequencer::execute() {
     std::cout << "Sequencer::execute()" << std::endl;
+    rigidbody->initialize();
     for (auto& loop : elements) {
         loop->run();
     }
+    return rigidbody->get_fit();
 }
+
+template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, data::Molecule&& protein);
+template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, const data::Molecule& protein);
+template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, data::Molecule& protein);
+template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, rigidbody::RigidBody&& protein);
+template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, const rigidbody::RigidBody& protein);
+template rigidbody::sequencer::Sequencer::Sequencer(const io::ExistingFile& saxs, rigidbody::RigidBody& protein);

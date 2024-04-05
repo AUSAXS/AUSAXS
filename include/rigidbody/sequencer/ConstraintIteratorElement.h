@@ -1,16 +1,14 @@
 #pragma once
 
-#include <rigidbody/sequencer/LoopElement.h>
+#include <rigidbody/sequencer/LoopElementCallback.h>
 
 namespace rigidbody::sequencer {
     /**
      * @brief Iterates over all constraints in the body.
      */
-    class ConstraintIteratorElement : public LoopElement {
+    class ConstraintIteratorElement : public LoopElementCallback {
         public:
-            using LoopElement::LoopElement;
+            using LoopElementCallback::LoopElementCallback;
             ~ConstraintIteratorElement() = default;
-
-            void execute() override;
     };
 }

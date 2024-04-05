@@ -10,7 +10,7 @@ namespace rigidbody {
     namespace sequencer {
         enum class SaveFormat {XYZ, PDB};
 
-        class SaveElement : public LoopElementCallback, public GenericElement {
+        class SaveElement : public LoopElementCallback {
             public:
                 SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner);
                 SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, SaveFormat fmt);
@@ -26,11 +26,8 @@ namespace rigidbody {
 
                 /**
                  * @brief Append the current structure to the animated xyz file. 
-                 * 
-                 * @arg path The save location. If the file already exists, the current state will be added. 
-                 *           Leave empty to save at a default location. 
                  */
-                void write_xyz(const io::File& path = "");
+                void write_xyz();
         };
     }
 }

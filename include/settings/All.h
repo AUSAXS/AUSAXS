@@ -10,3 +10,4 @@
 #include <settings/MoleculeSettings.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/SettingsIO.h>
+#include <settings/SettingsValidation.h>
