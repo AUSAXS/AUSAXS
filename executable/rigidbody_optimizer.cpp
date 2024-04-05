@@ -13,6 +13,7 @@
 #include <io/File.h>
 #include <plots/All.h>
 #include <settings/All.h>
+#include <rigidbody/sequencer/All.h>
 
 #include <vector>
 #include <string>
@@ -41,7 +42,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, "Decides whether the protein will be centered. Default: true.");
     CLI11_PARSE(app, argc, argv);
 
-    console::print_info("Running AUSAXS" + constants::version);
+    console::print_info("Running AUSAXS " + std::string(constants::version));
 
     //###################//
     //### PARSE INPUT ###//
@@ -98,7 +99,7 @@ int main(int argc, char const *argv[]) {
     }
 
     rigidbody.save(settings::general::output + "initial.pdb");
-    rigidbody.optimize_sequence(mfile);    
+    rigidbody.optimize_sequence(mfile);
     rigidbody.save(settings::general::output + "optimized.pdb");
 
     std::shared_ptr<fitter::Fit> res;

@@ -4,16 +4,14 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/sequencer/TransformElement.h>
-#include <rigidbody/sequencer/RigidBodyManager.h>
-
-#include <iostream>
+#include <rigidbody/sequencer/LoopElement.h>
+#include <rigidbody/RigidBody.h>
 
 using namespace rigidbody::sequencer;
 
-TransformElement::TransformElement(LoopElement* owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
+TransformElement::TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
 TransformElement::~TransformElement() = default;
 
 void TransformElement::run() {
-    std::cout << "TransformElement::apply()" << std::endl;
-    rigidbody->set_transform_manager(strategy);
+    owner->_get_rigidbody()->set_transform_manager(strategy);
 }

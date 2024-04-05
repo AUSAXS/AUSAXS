@@ -5,11 +5,12 @@
 #include <rigidbody/sequencer/GenericElement.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
+#include <utility/observer_ptr.h>
 
 namespace rigidbody::sequencer {
     class ParameterElement : public LoopElementCallback, public GenericElement {
         public:
-            ParameterElement(LoopElement* owner, std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
+            ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
             ~ParameterElement() override;
 
             void run() override;

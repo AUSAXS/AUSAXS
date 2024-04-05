@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/RigidBody.h>
+#include <rigidbody/detail/BestConf.h>
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
@@ -36,10 +37,6 @@ using namespace rigidbody;
 using namespace rigidbody::constraints;
 using namespace rigidbody::parameter;
 
-rigidbody::detail::BestConf::BestConf() = default;
-rigidbody::detail::BestConf::BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::record::Water> waters, double chi2) noexcept : grid(std::move(grid)), waters(std::move(waters)), chi2(chi2) {}
-rigidbody::detail::BestConf::~BestConf() = default;
-
 RigidBody::~RigidBody() = default;
 
 RigidBody::RigidBody(data::Molecule&& protein) : data::Molecule(std::move(protein)) {
@@ -55,6 +52,22 @@ void RigidBody::initialize() {
     body_selector = factory::create_selection_strategy(this);
     transform = factory::create_transform_strategy(this);
     constraints = std::make_shared<ConstraintManager>(this);
+}
+
+void RigidBody::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
+    this->constraints = constraints;
+}
+
+void RigidBody::set_body_select_manager(std::shared_ptr<rigidbody::selection::BodySelectStrategy> body_selector) {
+    this->body_selector = body_selector;
+}
+
+void RigidBody::set_transform_manager(std::shared_ptr<rigidbody::transform::TransformStrategy> transform) {
+    this->transform = transform;
+}
+
+void RigidBody::set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters) {
+    this->parameter_generator = parameters;
 }
 
 std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measurement_path) {
@@ -81,11 +94,11 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measure
     for (unsigned int i = 0; i < settings::rigidbody::iterations; i++) {
         if (optimize_step(best)) [[unlikely]] {
             trajectory.write_frame(this);
-            std::cout << "\rIteration " << i << std::endl;
+            std::cout << "Iteration " << i << std::endl;
             console::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(best.chi2));
         } else [[likely]] {
             if (i % 10 == 0 && settings::general::verbose) {
-                std::cout << "\rIteration " << i << "          " << std::flush;
+                std::cout << "Iteration " << i << "          " << std::flush;
             }
         }
     }
@@ -97,13 +110,18 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measure
     return fit;
 }
 
-#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/All.h>
 std::shared_ptr<fitter::Fit> RigidBody::optimize_sequence(const io::ExistingFile& measurement_path) {
-    return sequencer::Sequencer(measurement_path, *this)
+    return sequencer::Sequencer(measurement_path, this)
         .parameter_strategy(rigidbody::factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3))
         .body_select_strategy(rigidbody::factory::create_selection_strategy(this))
         .transform_strategy(rigidbody::factory::create_transform_strategy(this))
         .loop(settings::rigidbody::iterations)
+            .optimize()
+            .every(10)
+                .save(settings::general::output + "trajectory.xyz")
+            .end()
+        .end()
     .execute();
 }
 

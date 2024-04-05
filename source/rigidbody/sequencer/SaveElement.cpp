@@ -1,34 +1,28 @@
 #include <rigidbody/sequencer/SaveElement.h>
-#include <rigidbody/sequencer/RigidBodyManager.h>
+#include <rigidbody/sequencer/LoopElement.h>
+#include <rigidbody/RigidBody.h>
 #include <settings/GeneralSettings.h>
 #include <io/XYZWriter.h>
 
+#include <unordered_map>
+
 using namespace rigidbody::sequencer;
 
-SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner) : LoopElementCallback(owner) {};
-SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, SaveFormat fmt) : LoopElementCallback(owner) {
-    switch (fmt) {
-        case SaveFormat::PDB: 
-            write_pdb();
-            break;
-        case SaveFormat::XYZ:
-            write_xyz();
-            break;
-    }
-}
+SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, const io::File& path) : LoopElementCallback(owner), path(path) {}
 SaveElement::~SaveElement() = default;
 
-void SaveElement::write_pdb(const io::File& path) {
+void SaveElement::run() {
     static int counter = 0;
-    if (path.path().empty()) {
-        io::File path = settings::general::output + "models/" + std::to_string(counter) + ".pdb";
-        rigidbody->save(path);
+    static std::unordered_map<std::string, io::XYZWriter> writers;
+    if (auto ext = path.extension(); ext == ".pdb") {
+        owner->_get_rigidbody()->save(path.append(std::to_string(counter++)));
+    } else if (ext == ".xyz") {
+        auto p = path.path(); 
+        if (!writers.contains(p)) {
+            writers.emplace(p, path);
+        }
+        writers.at(p).write_frame(owner->_get_rigidbody());
     } else {
-        rigidbody->save(path);
+        throw std::runtime_error("SaveElement::run: Unknown file format: \"" + ext + "\"");
     }
-}
-
-void SaveElement::write_xyz() {
-    static io::XYZWriter writer(settings::general::output + "animated.xyz");
-    writer.write_frame(rigidbody.get());
 }

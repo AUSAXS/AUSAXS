@@ -3,6 +3,7 @@
 #include <settings/RigidBodySettings.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
+#include <io/IOFwd.h>
 
 namespace rigidbody {
     namespace sequencer {
@@ -47,9 +48,16 @@ namespace rigidbody {
                 LoopElement& end();
 
                 /**
-                 * @brief Execute this entire sequence. This is the last method that should be called.
+                 * @brief Perform the subroutines for every n iterations of this loop.
                  */
-                void execute();
+                EveryNStepElement& every(unsigned int n);
+
+                /**
+                 * @brief Save the current state of the system.
+                 *
+                 * @param path The path to save the state to. The extension of the file will determine the format.
+                 */
+                LoopElement& save(const io::File& path);
 
                 LoopElement* owner;
         };

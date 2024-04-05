@@ -21,11 +21,15 @@ using namespace rigidbody::sequencer;
 
 std::unique_ptr<RigidBodyManager> rigidbody::sequencer::rigidbody;
 
-template<typename T> requires std::is_base_of_v<data::Molecule, std::decay_t<T>>
-RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, T&& rigidbody) : RigidBody(std::forward<T>(rigidbody)) {
-    initialize();
+template<typename T> requires (std::is_base_of_v<data::Molecule, std::decay_t<T>> && !std::is_lvalue_reference_v<T>)
+RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, T&& rigidbody) : RigidBody(std::move(rigidbody)) {
+    generate_new_hydration();
     prepare_fitter(saxs);
+    best = detail::BestConf(std::make_shared<grid::Grid>(*get_grid()), get_waters(), fitter->fit_chi2_only());
 }
+template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, data::Molecule&& rigidbody);
+template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, rigidbody::RigidBody&& rigidbody);
+
 RigidBodyManager::~RigidBodyManager() = default;
 
 void RigidBodyManager::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
@@ -44,22 +48,15 @@ void RigidBodyManager::set_parameter_manager(std::shared_ptr<rigidbody::paramete
     this->parameter_generator = parameters;
 }
 
-void RigidBodyManager::initialize() {
-    rigidbody->generate_new_hydration();
-    best = detail::BestConf(std::make_shared<grid::Grid>(*rigidbody->get_grid()), get_waters(), fitter->fit_chi2_only());
+bool RigidBodyManager::optimize_step() {
+    return RigidBody::optimize_step(best);
 }
 
-void RigidBodyManager::optimize_step() {
-    RigidBody::optimize_step(best);
+const rigidbody::detail::BestConf& RigidBodyManager::get_best_conf() const {
+    return best;
 }
 
-std::shared_ptr<fitter::Fit> RigidBodyManager::get_fit() const {
-    return fitter->get_fit();
+std::shared_ptr<fitter::Fit> RigidBodyManager::get_fit() {
+    update_fitter(fitter);
+    return fitter->fit();
 }
-
-template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, data::Molecule&& rigidbody);
-template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, const data::Molecule& rigidbody);
-template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, data::Molecule& rigidbody);
-template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, rigidbody::RigidBody&& rigidbody);
-template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, const rigidbody::RigidBody& rigidbody);
-template RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, rigidbody::RigidBody& rigidbody);

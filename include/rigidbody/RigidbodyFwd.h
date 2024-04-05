@@ -2,6 +2,7 @@
 
 namespace rigidbody {
     class RigidBody;
+    namespace detail{struct BestConf;}
     namespace transform {class TransformStrategy;}
     namespace selection {class BodySelectStrategy;}
     namespace constraints {class ConstraintManager;}

@@ -31,10 +31,14 @@ TransformElement& LoopElementCallback::transform_strategy(std::unique_ptr<rigidb
     return owner->transform_strategy(std::move(strategy));
 }
 
-void LoopElementCallback::execute() {
-    owner->execute();
-}
-
 LoopElement& LoopElementCallback::end() {
     return owner->end();
+}
+
+LoopElement& LoopElementCallback::save(const io::File& path) {
+    return owner->save(path);
+}
+
+EveryNStepElement& LoopElementCallback::every(unsigned int n) {
+    return owner->every(n);
 }

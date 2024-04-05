@@ -3,7 +3,9 @@
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/GenericElement.h>
+#include <utility/observer_ptr.h>
 #include <fitter/FitterFwd.h>
+#include <io/IOFwd.h>
 
 #include <memory>
 #include <vector>
@@ -13,11 +15,10 @@ namespace rigidbody {
         /**
          * @brief A loop element is a sequence element that repeats whatever is inside it a number of times.
          */
-        class LoopElement {
+        class LoopElement : public GenericElement {
+            friend class OptimizeStepElement;
             public:
-                LoopElement();
-                LoopElement(LoopElement* owner);
-                LoopElement(LoopElement* owner, unsigned int repeats);
+                LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats);
                 virtual ~LoopElement();
 
                 virtual std::shared_ptr<fitter::Fit> execute();
@@ -53,15 +54,38 @@ namespace rigidbody {
                 LoopElement& end();
 
                 /**
+                 * @brief Save the current state of the system.
+                 *
+                 * @param path The path to save the state to. The extension of the file will determine the format.
+                 */
+                LoopElement& save(const io::File& path);
+
+                /**
+                 * @brief Perform the subroutines for every n iterations of this loop.
+                 */
+                EveryNStepElement& every(unsigned int n);
+
+                /**
                  * @brief Run an iteration of this loop. 
                  */
-                void run();
+                void run() override;
 
-                LoopElement* owner;
+                virtual observer_ptr<RigidBody> _get_rigidbody() const;
+
+                virtual observer_ptr<detail::BestConf> _get_best_conf() const;
+
+                virtual observer_ptr<const Sequencer> _get_sequencer() const;
+
+                observer_ptr<LoopElement> _get_owner() const;
+
             protected: 
                 unsigned int iterations = 1;
-                std::vector<std::unique_ptr<LoopElement>> inner_loops;
                 std::vector<std::unique_ptr<GenericElement>> elements;
+
+            private:
+                observer_ptr<LoopElement> owner;
+                inline static unsigned int total_loop_count = 1;
+                inline static unsigned int global_counter = 0;
         };
     }
 }

@@ -10,11 +10,11 @@
 namespace rigidbody::sequencer {
     class RigidBodyManager : public RigidBody {
         public:
-            template<typename T> requires std::is_base_of_v<data::Molecule, std::decay_t<T>>
+            template<typename T> requires (std::is_base_of_v<data::Molecule, std::decay_t<T>> && !std::is_lvalue_reference_v<T>)
             RigidBodyManager(const io::ExistingFile& saxs, T&& rigidbody);
             ~RigidBodyManager();
 
-            void optimize_step();
+            bool optimize_step();
 
             void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
 
@@ -24,9 +24,9 @@ namespace rigidbody::sequencer {
 
             void set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters);
 
-            void initialize();
+            const detail::BestConf& get_best_conf() const;
 
-            std::shared_ptr<fitter::Fit> get_fit() const;
+            std::shared_ptr<fitter::Fit> get_fit();
 
         private:
             detail::BestConf best;
