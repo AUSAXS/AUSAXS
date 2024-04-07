@@ -8,6 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 #include <io/ExistingFile.h>
 
+#include <stdexcept>
+
 namespace constants {
     filetypes::detail::FileType::FileType(std::vector<std::string> extensions) {
         for (auto& ext : extensions) {
