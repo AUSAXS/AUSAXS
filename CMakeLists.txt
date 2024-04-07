@@ -108,7 +108,7 @@ elseif (UNIX AND NOT APPLE)
 	endif()
 else()
 	find_package(CURL REQUIRED)
-	set(LIBS -lgcc -lstdc++ -static CURL::libcurl)
+	set(LIBS -lstdc++ -static CURL::libcurl)
 endif()
 
 
