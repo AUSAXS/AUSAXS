@@ -16,7 +16,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
             name: "Ubuntu latest with gcc"
@@ -37,13 +36,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Install curl
-      #   if: matrix.os == 'ubuntu-latest'
-      #   run: sudo apt-get install libcurl4-openssl-dev
+      - name: Install curl
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install libcurl4-openssl-dev
 
-      # - name: Install curl
-      #   if: matrix.os == 'macos-latest'
-      #   run: brew install curl-openssl
+      - name: Install curl
+        if: matrix.os == 'macos-latest'
+        run: brew install curl-openssl
 
       - name: Install curl
         if: matrix.os == 'windows-latest'
@@ -54,18 +55,11 @@ jobs:
         id: cpu-cores
 
       - name: Build the library
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
-          cmake --build build --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
-
-      - name: Build the library
-        if: matrix.os == 'windows-latest'
-        run: |
-          mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
-          cmake --build build --target ausaxs --config Release -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -S . -B build
+          cmake --build build --target --config $BUILD_TYPE ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -75,6 +69,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Build the tests
         run: cmake --build build --target tests -j $(nproc)
