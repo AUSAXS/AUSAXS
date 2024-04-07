@@ -13,6 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
             name: "Ubuntu latest with gcc"
