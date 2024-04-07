@@ -21,9 +21,9 @@ std::string utility::remove_spaces(std::string s) {
     return s;
 }
 
-std::vector<std::string> utility::split(const std::string& str, char delimiter) {
+std::vector<std::string> utility::split(std::string_view str, char delimiter) {
     std::string token;
-    std::stringstream ss(str);
+    std::stringstream ss((std::string(str)));
     std::vector<std::string> tokens;
     while(std::getline(ss, token, delimiter)) {
         tokens.push_back(token);
@@ -31,7 +31,7 @@ std::vector<std::string> utility::split(const std::string& str, char delimiter) 
     return tokens;
 }
 
-std::vector<std::string> utility::split(const std::string& str, const std::string& delimiters) {
+std::vector<std::string> utility::split(std::string_view str, std::string_view delimiters) {
     std::vector<std::string> tokens;
 
     auto is_delimiter = [&delimiters] (char c) {
@@ -53,7 +53,7 @@ std::vector<std::string> utility::split(const std::string& str, const std::strin
         }
 
         // add token to vector
-        tokens.push_back(str.substr(start, i-start));
+        tokens.push_back(std::string(str.substr(start, i-start)));
         start = ++i;
 
         // skip consecutive delimiters
@@ -67,12 +67,12 @@ std::vector<std::string> utility::split(const std::string& str, const std::strin
 
     // add last token to vector
     if (start < str.size()) {
-        tokens.push_back(str.substr(start));
+        tokens.push_back(std::string(str.substr(start)));
     }
     return tokens;
 }
 
-std::string utility::join(std::vector<std::string> v, const std::string& separator) {
+std::string utility::join(std::vector<std::string> v, std::string_view separator) {
     std::string s;
     for (unsigned int i = 0; i < v.size(); i++) {
         s += v[i];
@@ -83,7 +83,7 @@ std::string utility::join(std::vector<std::string> v, const std::string& separat
     return s;
 }
 
-std::string utility::remove_all(const std::string& s, const std::string& remove) {
+std::string utility::remove_all(std::string_view s, std::string_view remove) {
     std::string new_s;
     for (auto c : s) {
         if (remove.find(c) == std::string::npos) {
@@ -93,7 +93,7 @@ std::string utility::remove_all(const std::string& s, const std::string& remove)
     return new_s;
 }
 
-std::string utility::to_lowercase(const std::string& s) {
+std::string utility::to_lowercase(std::string_view s) {
     std::string new_s;
     for (auto c : s) {
         new_s += std::tolower(c);
