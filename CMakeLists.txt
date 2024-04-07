@@ -20,7 +20,7 @@ if (WIN32)
 			/wd4267 # disable size_t --> int, unsigned int conversions
 			/wd4244 # disable double --> float,int conversions
 			"$<$STREQUAL:${ARCH},x86-64>:/arch:AVX"
-			"$<$STREQUAL:${ARCH},ARM64>:/arch:armv8.0"
+			"$<$STREQUAL:${ARCH},arm64>:/arch:armv8.0"
 		)
 		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -33,13 +33,22 @@ if (WIN32)
 			"$<$<CONFIG:RELEASE>:-march=${ARCH}>"
 		)
 	endif()
-elseif (UNIX)
+elseif (UNIX AND NOT APPLE)
 	add_compile_options(
 		-Ofast -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
 		"$<$<CONFIG:RELEASE>:-march=${ARCH}>"
+	)
+else()
+	add_compile_options(
+		-Ofast -pipe
+		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
+		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
+		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64 -mavx>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},arm64>>:-arch=arm64>"
 	)
 endif()
 
