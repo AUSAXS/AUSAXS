@@ -76,6 +76,8 @@ namespace rigidbody {
 
                 virtual observer_ptr<const Sequencer> _get_sequencer() const;
 
+                std::vector<std::unique_ptr<GenericElement>>& _get_elements();
+
                 observer_ptr<LoopElement> _get_owner() const;
 
             protected: 
