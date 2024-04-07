@@ -6,6 +6,9 @@ on:
 permissions:
   checks: write
 
+env:
+  BUILD_TYPE: Release
+
 jobs:
   build:
     name: ${{matrix.name}}
@@ -20,20 +23,15 @@ jobs:
             compiler: gcc
             target: Linux
 
-          - os: windows-latest
-            name: "Windows latest with msvc"
-            compiler: msvc
-            target: Windows
+          # - os: windows-latest
+          #   name: "Windows latest with msvc"
+          #   compiler: msvc
+          #   target: Windows
 
           - os: macos-latest
             name: "MacOS latest with clang"
             compiler: clang
             target: MacOS
-
-        # for debugging purposes
-        exclude:
-          - os: windows-latest
-          - os: ubuntu-latest
 
     steps: 
       - name: Checkout code
