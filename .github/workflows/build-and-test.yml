@@ -21,19 +21,25 @@ jobs:
           #   name: "Ubuntu latest with gcc"
           #   c_compiler: gcc
           #   cpp_compiler: g++
-          #   target: Linux
+          #   arch: x86-64
 
           # - os: windows-latest
           #   name: "Windows latest with msvc"
           #   c_compiler: cl
           #   cpp_compiler: cl
-          #   target: Windows
+          #   arch: x86-64
 
-          - os: macos-latest
-            name: "MacOS latest with clang"
+          - os: macos-latest-large
+            name: "MacOS x86 latest with clang"
             c_compiler: $(brew --prefix llvm@15)/bin/clang
             cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            target: MacOS
+            arch: x86-64
+
+          - os: macos-latest
+            name: "MacOS ARM64 latest with clang"
+            c_compiler: $(brew --prefix llvm@15)/bin/clang
+            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+            arch: ARM64
 
     steps: 
       - name: Checkout code
@@ -61,7 +67,7 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }}
           cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Upload artifact

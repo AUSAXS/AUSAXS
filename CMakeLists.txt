@@ -6,6 +6,7 @@ project(AUSAXS VERSION 1.0)
 option(GUI "Enable GUI executables" ON)
 option(DLIB "Download and use the dlib minimizers" ON)
 option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" FALSE)
+set(ARCH "native" CACHE STRING "Target architecture. Default: native")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -18,6 +19,8 @@ if (WIN32)
 			/fp:fast /constexpr:steps10000000000 /Zm500 
 			/wd4267 # disable size_t --> int, unsigned int conversions
 			/wd4244 # disable double --> float,int conversions
+			"$<$STREQUAL:${ARCH},x86-64>:/arch:AVX"
+			"$<$STREQUAL:${ARCH},ARM64>:/arch:armv8.0"
 		)
 		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -27,7 +30,7 @@ if (WIN32)
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-			"$<$<CONFIG:RELEASE>:-march=x86-64>"
+			"$<$<CONFIG:RELEASE>:-march=${ARCH}>"
 		)
 	endif()
 elseif (UNIX)
@@ -36,7 +39,7 @@ elseif (UNIX)
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-		"$<$<CONFIG:RELEASE>:-march=x86-64>"
+		"$<$<CONFIG:RELEASE>:-march=${ARCH}>"
 	)
 endif()
 
