@@ -17,19 +17,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            name: "Ubuntu latest with gcc"
-            compiler: gcc
-            target: Linux
+          # - os: ubuntu-latest
+          #   name: "Ubuntu latest with gcc"
+          #   cc: gcc
+          #   cxx: g++
+          #   target: Linux
 
           # - os: windows-latest
           #   name: "Windows latest with msvc"
-          #   compiler: msvc
+          #   cc: cl
+          #   cxx: cl
           #   target: Windows
 
           - os: macos-latest
             name: "MacOS latest with clang"
-            compiler: clang
+            cc: $(brew --prefix llvm@15)/bin/clang
+            cxx: $(brew --prefix llvm@15)/bin/clang++
             target: MacOS
 
     steps: 
@@ -66,20 +69,17 @@ jobs:
         with:
           name: libs
           path: build/lib/*
+      
+      - name: Build tests
+        if: matrix.os == 'ubuntu-latest'
+        run: cmake --build build --target tests -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Build the tests
-        run: cmake --build build --target tests -j $(nproc)
-
-      - name: Run the tests
+      - name: Run tests
+        if: matrix.os == 'ubuntu-latest'
         run: ctest --output-on-failure --test-dir build/test
 
       - name: Generate test report
         uses: mikepenz/action-junit-report@v4
-        if: success() || failure()
+        if: matrix.os == 'ubuntu-latest' && (success() || failure())
         with:
           report_paths: build/test/reports/*.xml
-
