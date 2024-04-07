@@ -14,7 +14,7 @@ jobs:
     name: ${{matrix.name}}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
@@ -37,15 +37,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # - name: Install curl
+      #   if: matrix.os == 'ubuntu-latest'
+      #   run: sudo apt-get install libcurl4-openssl-dev
+
+      # - name: Install curl
+      #   if: matrix.os == 'macos-latest'
+      #   run: brew install curl-openssl
+
       - name: Install curl
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install libcurl4-openssl-dev
-
-      - name: Install prerequisites
-        if: matrix.os == 'macos-latest'
-        run: brew install curl-openssl
-
-      - name: Install prerequisites
         if: matrix.os == 'windows-latest'
         run: choco install curl
 
