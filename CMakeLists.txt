@@ -40,7 +40,7 @@ elseif (APPLE)
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
 		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64 -mavx>"
-		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},arm64>>:-arch=arm64>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},arm64>>:-arch arm64>"
 	)
 elseif (UNIX)
 	add_compile_options(
@@ -112,17 +112,16 @@ if (WIN32)
 	find_package(CURL REQUIRED)
 	set(LIBS -static CURL::libcurl)
 	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
-elseif (UNIX AND NOT APPLE)
+elseif (APPLE)
+	find_package(CURL REQUIRED)
+	set(LIBS -lstdc++ -static CURL::libcurl)
+elseif(UNIX)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl)
 	endif()
-else()
-	find_package(CURL REQUIRED)
-	set(LIBS -lstdc++ -static CURL::libcurl)
 endif()
-
 
 ############################################
 ##                Doxygen                 ##
