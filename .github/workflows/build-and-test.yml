@@ -40,7 +40,7 @@ jobs:
             name: "MacOS ARM64 latest with clang"
             c_compiler: $(brew --prefix llvm@15)/bin/clang
             cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            arch: arm64
+            arch: native
 
     steps: 
       - name: Checkout code
