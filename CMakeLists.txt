@@ -100,12 +100,15 @@ if (WIN32)
 	find_package(CURL REQUIRED)
 	set(LIBS -static CURL::libcurl)
 	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
-elseif (UNIX)
+elseif (UNIX AND NOT APPLE)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl)
 	endif()
+else()
+	find_package(CURL REQUIRED)
+	set(LIBS -static CURL::libcurl)
 endif()
 
 
