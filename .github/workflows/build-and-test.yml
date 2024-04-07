@@ -8,46 +8,46 @@ permissions:
 
 jobs:
   build:
-    name: ${{matrix.config.name}}
-    runs-on: ${{ matrix.config.os }}
+    name: ${{matrix.name}}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
-        config:
-          - name: "Ubuntu latest with gcc"
-            os: ubuntu-latest
+        include:
+          - os: ubuntu-latest
+            name: "Ubuntu latest with gcc"
             compiler: gcc
             target: Linux
 
-          - name: "Windows latest with msvc"
-            os: windows-latest
+          - os: windows-latest
+            name: "Windows latest with msvc"
             compiler: msvc
             target: Windows
 
-          - name: "MacOS latest with clang"
-            os: macos-latest
+          - os: macos-latest
+            name: "MacOS latest with clang"
             compiler: clang
             target: MacOS
 
-            # for debugging purposes
-            exclude:
-              - os: windows-latest
-              - os: ubuntu-latest
+        # for debugging purposes
+        exclude:
+          - os: windows-latest
+          - os: ubuntu-latest
 
     steps: 
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install curl
-        if: ${{ matrix.config.os }} == 'ubuntu-latest'
+        if: ${{ matrix.os }} == 'ubuntu-latest'
         run: sudo apt-get install libcurl4-openssl-dev
 
       - name: Install prerequisites
-        if: ${{ matrix.config.os }} == 'macos-latest'
+        if: ${{ matrix.os }} == 'macos-latest'
         run: brew install curl-openssl
 
       - name: Install prerequisites
-        if: ${{ matrix.config.os }} == 'windows-latest'
+        if: ${{ matrix.os }} == 'windows-latest'
         run: choco install curl
 
       - name: Get number of cores
@@ -55,14 +55,14 @@ jobs:
         id: cpu-cores
 
       - name: Build the library
-        if: ${{ matrix.config.os }} == 'ubuntu-latest' || ${{ matrix.config.os }} == 'macos-latest'
+        if: ${{ matrix.os }} == 'ubuntu-latest' || ${{ matrix.os }} == 'macos-latest'
         run: |
           mkdir build
           cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
           cmake --build build --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Build the library
-        if: ${{ matrix.config.os }} == 'windows-latest'
+        if: ${{ matrix.os }} == 'windows-latest'
         run: |
           mkdir build
           cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
