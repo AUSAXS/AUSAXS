@@ -29,17 +29,18 @@ jobs:
           #   cpp_compiler: cl
           #   arch: x86-64
 
-          - os: macos-latest-large
-            name: "MacOS x86 latest with clang"
-            c_compiler: $(brew --prefix llvm@15)/bin/clang
-            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            arch: x86-64
+#	   no money :(
+#          - os: macos-latest-large
+#            name: "MacOS x86 latest with clang"
+#            c_compiler: $(brew --prefix llvm@15)/bin/clang
+#            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+#            arch: x86-64
 
           - os: macos-latest
             name: "MacOS ARM64 latest with clang"
             c_compiler: $(brew --prefix llvm@15)/bin/clang
             cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            arch: native
+            arch: arm64
 
     steps: 
       - name: Checkout code
