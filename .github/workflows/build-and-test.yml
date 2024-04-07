@@ -59,7 +59,7 @@ jobs:
         run: |
           mkdir build
           cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -S . -B build
-          cmake --build build --target --config $BUILD_TYPE ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
