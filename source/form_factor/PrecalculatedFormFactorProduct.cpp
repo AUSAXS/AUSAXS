@@ -28,7 +28,7 @@ constexpr form_factor::storage::atomic::table_t generate_table() {
     return table;
 }
 
-constexpr auto ff_table = generate_table();
+auto ff_table = generate_table();
 const PrecalculatedFormFactorProduct& form_factor::storage::atomic::get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept {
     return ff_table.index(i, j);
 }

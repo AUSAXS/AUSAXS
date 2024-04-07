@@ -19,37 +19,37 @@ jobs:
         include:
           # - os: ubuntu-latest
           #   name: "Ubuntu latest with gcc"
-          #   cc: gcc
-          #   cxx: g++
+          #   c_compiler: gcc
+          #   cpp_compiler: g++
           #   target: Linux
 
           # - os: windows-latest
           #   name: "Windows latest with msvc"
-          #   cc: cl
-          #   cxx: cl
+          #   c_compiler: cl
+          #   cpp_compiler: cl
           #   target: Windows
 
           - os: macos-latest
             name: "MacOS latest with clang"
-            cc: $(brew --prefix llvm@15)/bin/clang
-            cxx: $(brew --prefix llvm@15)/bin/clang++
+            c_compiler: $(brew --prefix llvm@15)/bin/clang
+            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
             target: MacOS
 
     steps: 
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install curl
+      - name: Install curl (ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install libcurl4-openssl-dev
 
-      - name: Install curl
+      - name: Install curl (macos)
         if: matrix.os == 'macos-latest'
         run: brew install curl-openssl
 
-      - name: Install curl
+      - name: Install curl (windows)
         if: matrix.os == 'windows-latest'
         run: choco install curl
 
@@ -61,7 +61,7 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -S . -B build
+          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Upload artifact
@@ -70,15 +70,15 @@ jobs:
           name: libs
           path: build/lib/*
       
-      - name: Build tests
+      - name: Build tests (ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: cmake --build build --target tests -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
-      - name: Run tests
+      - name: Run tests (ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: ctest --output-on-failure --test-dir build/test
 
-      - name: Generate test report
+      - name: Generate test report (ubuntu)
         uses: mikepenz/action-junit-report@v4
         if: matrix.os == 'ubuntu-latest' && (success() || failure())
         with:

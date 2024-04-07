@@ -12,6 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
 
+#include <stdexcept>
+
 void curl::download(const std::string& url, const io::File& path) {
     CURL *curl;
     CURLcode res = CURLE_FAILED_INIT;
