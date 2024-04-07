@@ -1,0 +1,91 @@
+name: Compile & test
+
+on:
+  - workflow_dispatch
+
+permissions:
+  checks: write
+
+jobs:
+  build:
+    name: ${{matrix.config.name}}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        config:
+          - name: "Ubuntu latest with gcc"
+            os: ubuntu-latest
+            compiler: gcc
+            target: Linux
+
+          - name: "Windows latest with msvc"
+            os: windows-latest
+            compiler: msvc
+            target: Windows
+
+          - name: "MacOS latest with clang"
+            os: macos-latest
+            compiler: clang
+            target: MacOS
+
+            # for debugging purposes
+            exclude:
+              - os: windows-latest
+              - os: ubuntu-latest
+
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install curl
+        if: ${{ matrix.config.os }} == 'ubuntu-latest'
+        run: sudo apt-get install libcurl4-openssl-dev
+
+      - name: Install prerequisites
+        if: ${{ matrix.config.os }} == 'macos-latest'
+        run: brew install curl-openssl
+
+      - name: Install prerequisites
+        if: ${{ matrix.config.os }} == 'windows-latest'
+        run: choco install curl
+
+      - name: Get number of cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
+
+      - name: Build the library
+        if: ${{ matrix.config.os }} == 'ubuntu-latest' || ${{ matrix.config.os }} == 'macos-latest'
+        run: |
+          mkdir build
+          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
+          cmake --build build --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+
+      - name: Build the library
+        if: ${{ matrix.config.os }} == 'windows-latest'
+        run: |
+          mkdir build
+          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
+          cmake --build build --target ausaxs --config Release -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libs
+          path: build/lib/*
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build the tests
+        run: cmake --build build --target tests -j $(nproc)
+
+      - name: Run the tests
+        run: ctest --output-on-failure --test-dir build/test
+
+      - name: Generate test report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure()
+        with:
+          report_paths: build/test/reports/*.xml
+
