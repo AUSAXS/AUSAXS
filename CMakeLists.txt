@@ -97,7 +97,6 @@ include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include
 if (WIN32)
 	add_compile_definitions("CURL_STATICLIB")
 	find_package(CURL REQUIRED)
-	find_package(OpenSSL COMPONENTS SSL REQUIRED)
 	set(LIBS -static CURL::libcurl)
 	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
 elseif (UNIX)
