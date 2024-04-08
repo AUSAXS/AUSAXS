@@ -3,11 +3,20 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <io/IOFwd.h>
 
+#include <unordered_map>
+
 namespace rigidbody::sequencer {
+    enum class ElementType;
+
     class SequenceParser {
         public:
             SequenceParser() = default;
 
-            Sequencer parse(const io::ExistingFile& file);
+            std::unique_ptr<Sequencer> parse(const io::ExistingFile& config, const io::ExistingFile& saxs, observer_ptr<RigidBody> rigidbody);
+        private:
+            std::vector<observer_ptr<LoopElement>> loop_stack;
+
+            template<ElementType T>
+            std::unique_ptr<GenericElement> parse_arguments(const std::unordered_map<std::string, std::string>& args);
     };
 }

@@ -16,7 +16,7 @@ std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strateg
     return create_selection_strategy(body, settings::rigidbody::body_select_strategy);
 }
 
-std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(const rigidbody::RigidBody* body, const settings::rigidbody::BodySelectStrategyChoice& choice) {
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(const rigidbody::RigidBody* body, settings::rigidbody::BodySelectStrategyChoice choice) {
     switch (choice) {
         case settings::rigidbody::BodySelectStrategyChoice::RandomSelect:
             return std::make_unique<RandomSelect>(body);
