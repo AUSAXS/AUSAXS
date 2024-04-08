@@ -7,11 +7,11 @@
 namespace hist::detail {
     // Simple typedef for clarity.
     template<bool use_weighted_distribution>
-    using PartialHistogram = GenericDistribution1D<use_weighted_distribution>::type;
+    using PartialHistogram = typename GenericDistribution1D<use_weighted_distribution>::type;
 
     // Simple typedef for clarity.
     template<bool use_weighted_distribution>
-    using HydrationHistogram = GenericDistribution1D<use_weighted_distribution>::type;
+    using HydrationHistogram = typename GenericDistribution1D<use_weighted_distribution>::type;
 
     /**
      * @brief We also define the MasterHistogram type, which is identical to a PartialHistogram. 

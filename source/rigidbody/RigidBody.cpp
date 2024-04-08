@@ -111,30 +111,33 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measure
 }
 
 #include <rigidbody/sequencer/All.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
 std::shared_ptr<fitter::Fit> RigidBody::optimize_sequence(const io::ExistingFile& measurement_path) {
-    return sequencer::Sequencer(measurement_path, this)
-        .parameter_strategy(rigidbody::factory::create_parameter_strategy(
-            settings::rigidbody::iterations, 
-            5, 
-            constants::pi/3, 
-            settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly
-        ))
-        .loop(100)
-            .optimize()
-                .save_on_improvement(settings::general::output + "trajectory.xyz")
-        .end()
-        .parameter_strategy(rigidbody::factory::create_parameter_strategy(
-            200, 
-            5, 
-            constants::pi/3, 
-            settings::rigidbody::ParameterGenerationStrategyChoice::Simple
-        ))
-        .loop(settings::rigidbody::iterations)
-            .optimize()
-                .save_on_improvement(settings::general::output + "trajectory.xyz")
-            .end()
-        .end()
-    .execute();
+    return sequencer::SequenceParser().parse("test.txt", measurement_path, this)->execute();
+
+    // return sequencer::Sequencer(measurement_path, this)
+    //     .parameter_strategy(rigidbody::factory::create_parameter_strategy(
+    //         settings::rigidbody::iterations, 
+    //         5, 
+    //         constants::pi/3, 
+    //         settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly
+    //     ))
+    //     .loop(100)
+    //         .optimize()
+    //             .save_on_improvement(settings::general::output + "trajectory.xyz")
+    //     .end()
+    //     .parameter_strategy(rigidbody::factory::create_parameter_strategy(
+    //         200, 
+    //         5, 
+    //         constants::pi/3, 
+    //         settings::rigidbody::ParameterGenerationStrategyChoice::Simple
+    //     ))
+    //     .loop(settings::rigidbody::iterations)
+    //         .optimize()
+    //             .save_on_improvement(settings::general::output + "trajectory.xyz")
+    //         .end()
+    //     .end()
+    // .execute();
 }
 
 bool RigidBody::optimize_step(detail::BestConf& best) {

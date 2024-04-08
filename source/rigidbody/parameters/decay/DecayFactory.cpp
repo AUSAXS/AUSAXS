@@ -13,7 +13,7 @@ std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::
     return create_decay_strategy(iterations, settings::rigidbody::decay_strategy);
 }
 
-std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(unsigned int iterations, const settings::rigidbody::DecayStrategyChoice& choice) {
+std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(unsigned int iterations, settings::rigidbody::DecayStrategyChoice choice) {
     switch (choice) {
         case settings::rigidbody::DecayStrategyChoice::Linear:
             return std::make_unique<rigidbody::parameter::decay::LinearDecay>(iterations);
