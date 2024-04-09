@@ -14,13 +14,15 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace rigidbody::constraints;
 
 ConstraintManager::ConstraintManager(data::Molecule* protein) : protein(protein), overlap_constraint(protein) {
-    auto generator = factory::generate_constraints(this);
-    distance_constraints = generator->generate();
-    generate_constraint_map();
+    generate_constraints(factory::generate_constraints(this));
 }
 
 ConstraintManager::~ConstraintManager() = default;
 
+void ConstraintManager::generate_constraints(std::unique_ptr<ConstraintGenerationStrategy> generator) {
+    distance_constraints = generator->generate();
+    generate_constraint_map();
+}
 
 void ConstraintManager::add_constraint(DistanceConstraint&& constraint) {
     distance_constraints.push_back(std::move(constraint));

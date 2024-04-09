@@ -9,7 +9,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::sequencer;
 
-LoadExistingElement::LoadExistingElement(observer_ptr<Sequencer> owner, observer_ptr<RigidBody> rigidbody) : owner(owner), rigidbody(rigidbody) {}
+LoadExistingElement::LoadExistingElement(observer_ptr<Sequencer> owner, observer_ptr<RigidBody> rigidbody) : owner(owner), rigidbody(rigidbody) {
+    owner->_set_active_body(rigidbody);
+}
 
 void LoadExistingElement::run() {
     owner->_get_rigidbody() = rigidbody;

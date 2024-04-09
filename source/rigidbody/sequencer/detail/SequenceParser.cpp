@@ -12,6 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/SaveElement.h>
 #include <rigidbody/sequencer/setup/LoadElement.h>
 #include <rigidbody/sequencer/setup/ConstraintElement.h>
+#include <rigidbody/sequencer/setup/AutoConstraintsElement.h>
 
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
@@ -34,6 +35,7 @@ using namespace rigidbody::sequencer;
 enum class rigidbody::sequencer::ElementType {
     LoadElement,
     Constraint,
+    AutomaticConstraint,
     LoopBegin,
     LoopEnd,
     Parameter,
@@ -49,6 +51,7 @@ ElementType get_type(std::string_view line) {
     static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
         {ElementType::LoadElement, {"load", "open"}},
         {ElementType::Constraint, {"constraint"}},
+        {ElementType::AutomaticConstraint, {"auto_constraints", "generate_constraints"}},
         {ElementType::LoopBegin, {"loop"}},
         {ElementType::LoopEnd, {"end"}},
         {ElementType::Parameter, {"parameter"}},
@@ -93,31 +96,84 @@ settings::rigidbody::ParameterGenerationStrategyChoice get_parameter_strategy(st
     throw except::invalid_argument("SequenceParser::get_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::string>& args) {
-    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"load\". Expected at least one argument.");}
-    std::vector<std::string> paths;
-    for (const auto& [key, value] : args) {
-        paths.push_back(value);
-    }
-    return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths);
+settings::rigidbody::ConstraintGenerationStrategyChoice get_constraint_strategy(std::string_view line) {
+    if (line == "none") {return settings::rigidbody::ConstraintGenerationStrategyChoice::None;}
+    if (line == "linear") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;}
+    if (line == "volumetric") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric;}
+    throw except::invalid_argument("SequenceParser::get_constraint_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::AutomaticConstraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"auto_constraints\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    return std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(loop_stack.front()), get_constraint_strategy(args.begin()->second[0]));
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    enum class Args {paths, splits, names};
+    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
+        {Args::paths, {"path", "paths", "load", "anonymous"}},
+        {Args::splits, {"splits", "split"}},
+        {Args::names, {"names", "name"}}
+    };
+    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"load\". Expected at least one argument.");}
+
+    std::vector<std::string> paths, names;
+    std::vector<int> splits;
+
+    std::string current_arg;
+    for (const auto& name : valid_args[Args::paths]) {
+        if (args.contains(name)) {
+            current_arg = name;
+            paths = args.at(name);
+            break;
+        }
+    }
+    if (current_arg.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"paths\".");}
+
+    for (const auto& name : valid_args[Args::splits]) {
+        if (args.contains(name)) {
+            for (const auto& split : args.at(name)) {
+                try {
+                    splits.push_back(std::stoi(split));
+                } catch (std::invalid_argument& e) {
+                    throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for splits: \"" + split + "\".");
+                }
+            }
+            break;
+        }
+    }
+
+    for (const auto& name : valid_args[Args::names]) {
+        if (args.contains(name)) {
+            names = args.at(name);
+            break;
+        }
+    }
+
+    if (!splits.empty()) {
+        if (paths.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Splits can only be used with a single path.");}
+        return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths[0], splits, names);
+    }
+    return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths, names);
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"constraint\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     return nullptr;
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"loop\". Expected 1, but got " + std::to_string(args.size()) + ".");}
 
     int iterations;
     try {
-        iterations = std::stoi(args.begin()->second);
+        iterations = std::stoi(args.begin()->second[0]);
     } catch (std::invalid_argument& e) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for loop iterations: \"" + args.begin()->second + "\".");
+        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for loop iterations: \"" + args.begin()->second[0] + "\".");
     }
     return std::make_unique<LoopElement>(
         loop_stack.back(), 
@@ -126,7 +182,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loo
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Parameter>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Parameter>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     enum class Args {iterations, angstroms, radians, strategy, decay_strategy};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
         {Args::iterations, {"iterations", "decay_over"}},
@@ -147,7 +203,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
         for (const auto& name : valid_args[Args::iterations]) {
             if (args.contains(name)) {
                 current_arg = name;
-                iterations = std::stoi(args.at(name));
+                iterations = std::stoi(args.at(name)[0]);
                 break;
             }
         }
@@ -161,7 +217,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
         for (const auto& name : valid_args[Args::angstroms]) {
             if (args.contains(name)) {
                 current_arg = name;
-                angstroms = std::stoi(args.at(name));
+                angstroms = std::stoi(args.at(name)[0]);
                 break;
             }
         }
@@ -175,7 +231,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
         for (const auto& name : valid_args[Args::radians]) {
             if (args.contains(name)) {
                 current_arg = name;
-                radians = std::stod(args.at(name));
+                radians = std::stod(args.at(name)[0]);
                 break;
             }
         }
@@ -188,7 +244,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     for (const auto& name : valid_args[Args::strategy]) {
         if (args.contains(name)) {
             current_arg = name;
-            strategy = get_parameter_strategy(args.at(name));
+            strategy = get_parameter_strategy(args.at(name)[0]);
             break;
         }
     }
@@ -198,7 +254,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     for (const auto& name : valid_args[Args::decay_strategy]) {
         if (args.contains(name)) {
             current_arg = name;
-            decay_strategy = get_decay_strategy(args.at(name));
+            decay_strategy = get_decay_strategy(args.at(name)[0]);
             break;
         }
     }
@@ -216,9 +272,9 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::BodySelect>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::BodySelect>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"body_select\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    settings::rigidbody::BodySelectStrategyChoice strategy = get_body_select_strategy(args.begin()->second);
+    settings::rigidbody::BodySelectStrategyChoice strategy = get_body_select_strategy(args.begin()->second[0]);
     return std::make_unique<BodySelectElement>(
         loop_stack.back(),
         rigidbody::factory::create_selection_strategy(
@@ -229,16 +285,16 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Bod
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopEnd>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopEnd>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 0) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"end\". Expected 0, but got " + std::to_string(args.size()) + ".");}
     return nullptr;
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Transform>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Transform>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"transform\". Expected 1, but got " + std::to_string(args.size()) + ".");}
 
-    settings::rigidbody::TransformationStrategyChoice strategy = get_transform_strategy(args.begin()->second);
+    settings::rigidbody::TransformationStrategyChoice strategy = get_transform_strategy(args.begin()->second[0]);
     return std::make_unique<TransformElement>(
         loop_stack.back(),
         rigidbody::factory::create_transform_strategy(
@@ -249,31 +305,31 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Tra
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OptimizeStep>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OptimizeStep>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 0) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"optimize_step\". Expected 0, but got " + std::to_string(args.size()) + ".");}
     return std::make_unique<OptimizeStepElement>(loop_stack.back());
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::EveryNStep>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::EveryNStep>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"every_n_step\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    return std::make_unique<EveryNStepElement>(loop_stack.back(), std::stoi(args.begin()->second));
+    return std::make_unique<EveryNStepElement>(loop_stack.back(), std::stoi(args.begin()->second[0]));
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Save>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Save>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    return std::make_unique<SaveElement>(loop_stack.back(), args.begin()->second);
+    return std::make_unique<SaveElement>(loop_stack.back(), args.begin()->second[0]);
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SaveOnImprove>(const std::unordered_map<std::string, std::string>& args) {
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SaveOnImprove>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save_on_improve\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     auto last_element_cast = dynamic_cast<OptimizeStepElement*>(loop_stack.back()->_get_elements().back().get());
     if (last_element_cast == nullptr) {
         throw except::invalid_argument("SequenceParser::parse_arguments: \"save_on_improve\" must be called after an \"optimize_step\" element.");
     }
-    last_element_cast->save_on_improvement(args.begin()->second);
+    last_element_cast->save_on_improvement(args.begin()->second[0]);
     return nullptr;
 }
 
@@ -291,7 +347,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
         if (line.empty()) {continue;}
         std::cout << line << std::endl;
 
-        std::unordered_map<std::string, std::string> args;
+        std::unordered_map<std::string, std::vector<std::string>> args;
         auto tokens = utility::split(line, " \t");
         if (line.find_first_of("{[(") != std::string::npos) {
             // parse args in the next lines
@@ -300,20 +356,27 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
             while (argline.find_first_of("]})") == std::string::npos) {
                 if (argline.empty()) {continue;}
                 auto sub_tokens = utility::split(argline, " \t");
-                if (sub_tokens.size() != 2) {throw except::invalid_argument("SequenceParser::parse: Invalid argument line \"" + argline + "\".");}
-                args[sub_tokens[0]] = sub_tokens[1];
+                args[sub_tokens[0]] = std::vector<std::string>(sub_tokens.begin()+1, sub_tokens.end());
                 std::getline(in, argline);
                 if (in.eof()) {throw except::io_error("SequenceParser::parse: Unescaped argument list starting in line \"" + line + "\".");}
             }
         } else if (tokens.size() == 2) {
             // allow for a single anonymous argument
-            args["anonymous"] = tokens[1];
+            args["anonymous"] = {tokens[1]};
         }
 
         for (const auto& [key, value] : args) {
-            std::cout << "\t" << key << " = " << value << std::endl;
+            std::cout << "\t" << key << " = " << value[0] << std::endl;
         }
         switch (get_type(tokens[0])) {
+            case ElementType::Constraint:
+                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::Constraint>(args));
+                break;
+
+            case ElementType::AutomaticConstraint:
+                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::AutomaticConstraint>(args));
+                break;
+
             case ElementType::LoopBegin:
                 loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::LoopBegin>(args));
                 loop_stack.push_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));

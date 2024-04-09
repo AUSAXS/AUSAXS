@@ -9,7 +9,7 @@ namespace rigidbody::constraints {
      * This constraint can be used to link different bodies such that any transformation applied to one will also be applied to the other.
      * This is principially equivalent to the DistanceConstraint, except this constraint does not affect the chi2. 
      */
-    class LinkConstraint : public Constraint {
+    class FixedConstraint : public Constraint {
         public: 
             /**
              * @brief Create a new constraint between the center of mass of two bodies.
@@ -20,9 +20,9 @@ namespace rigidbody::constraints {
              * @param ibody1 The index of the first body.
              * @param ibody2 The index of the second body.
              */
-            LinkConstraint(observer_ptr<data::Molecule> protein, unsigned int ibody1, unsigned int ibody2);
+            FixedConstraint(observer_ptr<data::Molecule> protein, unsigned int ibody1, unsigned int ibody2);
 
-            virtual ~LinkConstraint() override = default;
+            virtual ~FixedConstraint() override = default;
 
             /**
              * @brief Evaluate this constraint for the current positions. 

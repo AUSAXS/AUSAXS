@@ -12,7 +12,8 @@
 namespace rigidbody::sequencer {
     class LoadElement : public GenericElement {
         public:
-            LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& path);
+            LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {});
+            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {});
             ~LoadElement() override = default;
 
             void run() override;

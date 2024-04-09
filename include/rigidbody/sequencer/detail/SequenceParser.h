@@ -17,6 +17,6 @@ namespace rigidbody::sequencer {
             std::vector<observer_ptr<LoopElement>> loop_stack;
 
             template<ElementType T>
-            std::unique_ptr<GenericElement> parse_arguments(const std::unordered_map<std::string, std::string>& args);
+            std::unique_ptr<GenericElement> parse_arguments(const std::unordered_map<std::string, std::vector<std::string>>& args);
     };
 }
