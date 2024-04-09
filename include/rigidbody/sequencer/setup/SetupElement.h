@@ -5,8 +5,9 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <vector>
 #include <string>
+#include <vector>
+#include <unordered_map>
 
 namespace rigidbody::sequencer {
     /**
@@ -22,9 +23,27 @@ namespace rigidbody::sequencer {
 
             SetupElement& load_existing(observer_ptr<RigidBody> rigidbody);
 
-            SetupElement& constraint();
+            SetupElement& distance_constraint();
+
+            SetupElement& fixed_constraint();
+
+            SetupElement& generate_linear_constraints();
+
+            SetupElement& generate_volumetric_constraints();
+
+            /**
+             * @brief Get the name identifiers of all loaded bodies.
+             */
+            std::unordered_map<std::string, unsigned int>& _get_body_names();
+
+            /**
+             * @brief Set the currently active body for the setup.
+             *        The currently active setup body will not influence the optimization in any way.
+             */
+            void _set_active_body(observer_ptr<RigidBody> body);
 
         private:
-            std::vector<std::string> body_names;
+            std::unordered_map<std::string, unsigned int> body_names;
+            observer_ptr<RigidBody> active_body;
     };
 }

@@ -44,6 +44,8 @@ int main(int argc, char const *argv[]) {
 
     console::print_info("Running AUSAXS " + std::string(constants::version));
 
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+
     //###################//
     //### PARSE INPUT ###//
     //###################//
