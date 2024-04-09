@@ -86,7 +86,7 @@ namespace rigidbody {
 
             private:
                 observer_ptr<LoopElement> owner;
-                inline static unsigned int total_loop_count = 1;
+                inline static unsigned int total_loop_count = 0;
                 inline static unsigned int global_counter = 0;
         };
     }

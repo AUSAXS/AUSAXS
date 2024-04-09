@@ -15,7 +15,17 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace rigidbody::sequencer;
 
 LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {
-    total_loop_count *= repeats;
+    if (iterations == 1) {return;}
+    int this_will_run = iterations;
+    auto next_owner = _get_owner();
+    int escape_counter = 0;
+    while (dynamic_cast<Sequencer*>(next_owner) == nullptr) {
+        if (++escape_counter < 100) {throw std::runtime_error("LoopElement::LoopElement: owner chain too long");}
+        if (next_owner == nullptr) {break;}
+        this_will_run *= next_owner->iterations;
+        next_owner = next_owner->_get_owner();
+    }
+    total_loop_count += this_will_run;
 }
 
 LoopElement::~LoopElement() = default;

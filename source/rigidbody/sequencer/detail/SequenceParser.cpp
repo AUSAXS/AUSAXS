@@ -42,15 +42,22 @@ enum class rigidbody::sequencer::ElementType {
 };
 
 ElementType get_type(std::string_view line) {
-    if (line.starts_with("loop")) {return ElementType::LoopBegin;}
-    if (line.starts_with("end")) {return ElementType::LoopEnd;}
-    if (line.starts_with("parameter")) {return ElementType::Parameter;}
-    if (line.starts_with("select")) {return ElementType::BodySelect;}
-    if (line.starts_with("transform")) {return ElementType::Transform;}
-    if (line.starts_with("optimize_step")) {return ElementType::OptimizeStep;}
-    if (line.starts_with("every_n_step")) {return ElementType::EveryNStep;}
-    if (line.starts_with("save")) {return ElementType::Save;}
-    if (line.starts_with("save_on_improve")) {return ElementType::SaveOnImprove;}
+    static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
+        {ElementType::LoopBegin, {"loop"}},
+        {ElementType::LoopEnd, {"end"}},
+        {ElementType::Parameter, {"parameter"}},
+        {ElementType::BodySelect, {"selection", "body_selection"}},
+        {ElementType::Transform, {"transform"}},
+        {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
+        {ElementType::EveryNStep, {"every", "for_every"}},
+        {ElementType::Save, {"save", "write"}},
+        {ElementType::SaveOnImprove, {"save_on_improve", "write_on_improve"}}
+    };
+    for (const auto& [type, prefixes] : type_map) {
+        for (const auto& prefix : prefixes) {
+            if (line.starts_with(prefix)) {return type;}
+        }
+    }
     throw except::invalid_argument("SequenceParser::get_type: Unknown element type \"" + std::string(line) + "\".");
 }
 
@@ -76,7 +83,7 @@ settings::rigidbody::DecayStrategyChoice get_decay_strategy(std::string_view lin
 settings::rigidbody::ParameterGenerationStrategyChoice get_parameter_strategy(std::string_view line) {
     if (line == "rotate_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}
     if (line == "translate_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly;}
-    if (line == "both") {return settings::rigidbody::ParameterGenerationStrategyChoice::Simple;}
+    if (line == "both" || line == "rotate_and_translate") {return settings::rigidbody::ParameterGenerationStrategyChoice::Simple;}
     throw except::invalid_argument("SequenceParser::get_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
@@ -189,8 +196,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::BodySelect>(const std::unordered_map<std::string, std::string>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"body_select\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-
-    settings::rigidbody::BodySelectStrategyChoice strategy = get_body_select_strategy(args.at(args.begin()->second));
+    settings::rigidbody::BodySelectStrategyChoice strategy = get_body_select_strategy(args.begin()->second);
     return std::make_unique<BodySelectElement>(
         loop_stack.back(),
         rigidbody::factory::create_selection_strategy(
@@ -210,7 +216,7 @@ template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Transform>(const std::unordered_map<std::string, std::string>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"transform\". Expected 1, but got " + std::to_string(args.size()) + ".");}
 
-    settings::rigidbody::TransformationStrategyChoice strategy = get_transform_strategy(args.at(args.begin()->second));
+    settings::rigidbody::TransformationStrategyChoice strategy = get_transform_strategy(args.begin()->second);
     return std::make_unique<TransformElement>(
         loop_stack.back(),
         rigidbody::factory::create_transform_strategy(
@@ -261,9 +267,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
         // verify that the line is a valid element
         std::getline(in, line);
         if (line.empty()) {continue;}
+        std::cout << line << std::endl;
 
         std::unordered_map<std::string, std::string> args;
-        auto tokens = utility::split(line, ' ');
+        auto tokens = utility::split(line, " \t");
         if (line.find_first_of("{[(") != std::string::npos) {
             // parse args in the next lines
             std::string argline;
@@ -281,6 +288,9 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
             args["anonymous"] = tokens[1];
         }
 
+        for (const auto& [key, value] : args) {
+            std::cout << "\t" << key << " = " << value << std::endl;
+        }
         switch (get_type(tokens[0])) {
             case ElementType::LoopBegin:
                 loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::LoopBegin>(args));
