@@ -1,5 +1,6 @@
 #pragma once
 
+#include <rigidbody/sequencer/setup/SetupElement.h>
 #include <rigidbody/sequencer/LoopElement.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <data/DataFwd.h>
@@ -8,13 +9,14 @@
 
 namespace rigidbody {
     namespace sequencer {
-        class Sequencer : public LoopElement {
+        class Sequencer : public LoopElement, public SetupElement {
             public:
                 Sequencer(const io::ExistingFile& saxs, observer_ptr<RigidBody> rigidbody);
                 ~Sequencer();
 
                 std::shared_ptr<fitter::Fit> execute() override;
 
+                observer_ptr<RigidBody>& _get_rigidbody();
                 observer_ptr<RigidBody> _get_rigidbody() const override;
 
                 observer_ptr<detail::BestConf> _get_best_conf() const override;

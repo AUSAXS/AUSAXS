@@ -3,10 +3,10 @@
 #include <rigidbody/sequencer/GenericElement.h>
 
 namespace rigidbody::sequencer {
-    class SetupElement : public GenericElement {
+    class ConstraintElement : public GenericElement {
         public:
-            SetupElement() = default;
-            virtual ~SetupElement() = default;
+            ConstraintElement() = default;
+            ~ConstraintElement() override = default;
 
             void run() override;
     };

@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/OptimizeStepElement.h>
 #include <rigidbody/sequencer/EveryNStepElement.h>
 #include <rigidbody/sequencer/SaveElement.h>
+#include <rigidbody/sequencer/setup/LoadElement.h>
+#include <rigidbody/sequencer/setup/ConstraintElement.h>
 
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
@@ -30,6 +32,8 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace rigidbody::sequencer;
 
 enum class rigidbody::sequencer::ElementType {
+    LoadElement,
+    Constraint,
     LoopBegin,
     LoopEnd,
     Parameter,
@@ -43,6 +47,8 @@ enum class rigidbody::sequencer::ElementType {
 
 ElementType get_type(std::string_view line) {
     static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
+        {ElementType::LoadElement, {"load", "open"}},
+        {ElementType::Constraint, {"constraint"}},
         {ElementType::LoopBegin, {"loop"}},
         {ElementType::LoopEnd, {"end"}},
         {ElementType::Parameter, {"parameter"}},
@@ -85,6 +91,22 @@ settings::rigidbody::ParameterGenerationStrategyChoice get_parameter_strategy(st
     if (line == "translate_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly;}
     if (line == "both" || line == "rotate_and_translate") {return settings::rigidbody::ParameterGenerationStrategyChoice::Simple;}
     throw except::invalid_argument("SequenceParser::get_strategy: Unknown strategy \"" + std::string(line) + "\"");
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::string>& args) {
+    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"load\". Expected at least one argument.");}
+    std::vector<std::string> paths;
+    for (const auto& [key, value] : args) {
+        paths.push_back(value);
+    }
+    return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths);
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::string>& args) {
+    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"constraint\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    return nullptr;
 }
 
 template<>
@@ -328,6 +350,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
 
             case ElementType::SaveOnImprove:
                 parse_arguments<ElementType::SaveOnImprove>(args);
+                break;
+
+            case ElementType::LoadElement:
+                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::LoadElement>(args));
                 break;
 
             default:
