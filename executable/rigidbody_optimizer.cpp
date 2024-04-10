@@ -56,7 +56,7 @@ int main(int argc, char const *argv[]) {
         settings::read(settings);        // read it
         CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
     } else {                            // otherwise check if there is a settings file in the same directory
-        if (settings::discover(std::filesystem::path(mfile).parent_path().string())) {
+        if (settings::discover(std::filesystem::path(mfile.path()).parent_path().string())) {
             CLI11_PARSE(app, argc, argv);
         }
     }
@@ -73,7 +73,7 @@ int main(int argc, char const *argv[]) {
             std::vector<std::string> valid_names = {"calibration", "gromacs", "waxs_final"};
             for (const auto& name : valid_names) {
                 for (const auto& ext : constants::filetypes::saxs_data.extensions) {
-                    std::string path = std::filesystem::path(mfile).parent_path().string() + "/" + name + "." + ext;
+                    std::string path = std::filesystem::path(mfile.path()).parent_path().string() + "/" + name + "." + ext;
                     if (std::filesystem::exists(path)) {
                         settings::rigidbody::detail::calibration_file = path;
                         std::cout << "\tUsing calibration file: \"" << path << "\"" << std::endl;
