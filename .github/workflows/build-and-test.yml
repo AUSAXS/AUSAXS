@@ -65,8 +65,8 @@ jobs:
         id: cpu-cores
 
       - name: Build the library (windows)
-      	shell: bash
         if: matrix.os == 'windows-latest'
+      	shell: bash
         run: |
           mkdir build
           cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x86-windows-static"
