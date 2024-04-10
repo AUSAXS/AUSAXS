@@ -56,9 +56,9 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: brew install curl-openssl
 
-#      - name: Install curl (windows)
-#        if: matrix.os == 'windows-latest'
-#        run: vcpkg install curl:x86-windows-static
+      - name: Install curl (windows)
+        if: matrix.os == 'windows-latest'
+        run: vcpkg install curl:x86-windows-static
 
       - name: Get number of cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -68,7 +68,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           mkdir build
-          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DTOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static
+          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static
           cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Build the library
