@@ -30,6 +30,17 @@ namespace rigidbody::constraints {
             DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
 
             /**
+             * @brief Create a new constraint between a pair of atoms in the two bodies.
+             * 
+             * Complexity: O(n)
+             * 
+             * @param body1 The first body.
+             * @param body2 The second body.
+             * @param center_mass Create a constraint from the center-masses of the two bodies. If false, the two closest carbon atoms are used instead. 
+             */
+            DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, bool center_mass = false);
+
+            /**
              * @brief Create a new constraint between a pair of atoms.
              * 
              * Complexity: O(n) where n is the number of atoms in the protein.

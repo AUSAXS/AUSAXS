@@ -113,7 +113,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measure
 #include <rigidbody/sequencer/All.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 std::shared_ptr<fitter::Fit> RigidBody::optimize_sequence(const io::ExistingFile& measurement_path) {
-    return sequencer::SequenceParser().parse("test.txt", measurement_path, this)->execute();
+    return sequencer::SequenceParser().parse("test.txt", measurement_path)->execute();
 
     // return sequencer::Sequencer(measurement_path, this)
     //     .parameter_strategy(rigidbody::factory::create_parameter_strategy(

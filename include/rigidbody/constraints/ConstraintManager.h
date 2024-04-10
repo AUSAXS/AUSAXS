@@ -29,6 +29,11 @@ namespace rigidbody::constraints {
             void generate_constraints(std::unique_ptr<ConstraintGenerationStrategy> generator);
 
             /**
+             * @brief Add a new constraint.
+             */
+            void add_constraint(std::unique_ptr<Constraint> constraint);
+
+            /**
              * @brief Add a new overlap constraint.
              */
             void add_constraint(OverlapConstraint&& constraint);
@@ -60,12 +65,12 @@ namespace rigidbody::constraints {
             std::vector<DistanceConstraint> distance_constraints;                                                               // All distance constraints
 			std::unordered_map<unsigned int, std::vector<std::reference_wrapper<DistanceConstraint>>> distance_constraints_map; // Maps a body index to all its constraints
 
-        private:
-            /**
-			 * @brief Generate a map of constraints for each body.
-			 * 
-			 * This map allows us to quickly find all constraints that apply to a given body without having to iterate over all constraints.
-			 */
-            void generate_constraint_map();
+            private:
+                /**
+                * @brief Generate a map of constraints for each body.
+                * 
+                * This map allows us to quickly find all constraints that apply to a given body without having to iterate over all constraints.
+                */
+                void update_constraint_map();
     };
 }

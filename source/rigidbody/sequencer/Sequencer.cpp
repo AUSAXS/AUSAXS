@@ -13,11 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::sequencer;
 
-Sequencer::Sequencer(const io::ExistingFile& saxs, observer_ptr<RigidBody> rigidbody) : LoopElement(nullptr, 1), SetupElement(this), rigidbody(rigidbody) {
-    rigidbody->generate_new_hydration();
-    rigidbody->prepare_fitter(saxs);
-    best = std::make_unique<detail::BestConf>(std::make_shared<grid::Grid>(*rigidbody->get_grid()), rigidbody->get_waters(), rigidbody->fitter->fit_chi2_only());
-}
+Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), SetupElement(this), saxs(saxs) {}
 
 Sequencer::~Sequencer() = default;
 
@@ -42,6 +38,12 @@ bool Sequencer::_optimize_step() const {
 }
 
 std::shared_ptr<fitter::Fit> Sequencer::execute() {
+    // prepare rigidbody
+    rigidbody->generate_new_hydration();
+    rigidbody->prepare_fitter(saxs);
+    best = std::make_unique<detail::BestConf>(std::make_shared<grid::Grid>(*rigidbody->get_grid()), rigidbody->get_waters(), rigidbody->fitter->fit_chi2_only());
+
+    // run all elements in sequence
     for (auto& e : elements) {
         e->run();
     }

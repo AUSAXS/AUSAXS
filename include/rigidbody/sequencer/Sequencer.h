@@ -11,7 +11,7 @@ namespace rigidbody {
     namespace sequencer {
         class Sequencer : public LoopElement, public SetupElement {
             public:
-                Sequencer(const io::ExistingFile& saxs, observer_ptr<RigidBody> rigidbody);
+                Sequencer(const io::ExistingFile& saxs);
                 ~Sequencer();
 
                 std::shared_ptr<fitter::Fit> execute() override;
@@ -28,6 +28,7 @@ namespace rigidbody {
             private:
                 observer_ptr<RigidBody> rigidbody;
                 std::unique_ptr<detail::BestConf> best;
+                std::string saxs;
         };
     }
 }
