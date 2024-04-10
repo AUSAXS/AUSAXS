@@ -138,16 +138,16 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
     );
 }
 
+enum OutputControl : int8_t {
+    ALL =    0b01111111,
+    FIRST =  0b01110001,
+    SECOND = 0b01110010,
+    THIRD =  0b01110100,
+    FOURTH = 0b01111000
+};
+
 #if defined __SSE2__
     #include <nmmintrin.h>
-    enum OutputControl : int8_t {
-        ALL =    0b01111111,
-        FIRST =  0b01110001,
-        SECOND = 0b01110010,
-        THIRD =  0b01110100,
-        FOURTH = 0b01111000
-    };
-
     /**
      * @brief Calculate the squared distance between two CompactCoordinatesData using 128-bit SSE2 instructions.
      */
