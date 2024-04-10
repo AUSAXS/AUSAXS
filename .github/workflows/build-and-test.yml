@@ -29,11 +29,18 @@ jobs:
             cpp_compiler: cl
             arch: x86-64
 
-          - os: macos-latest
-            name: "MacOS x86_64 latest with clang"
-            c_compiler: $(brew --prefix llvm@15)/bin/clang
-            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            arch: native
+#	   no money :(
+#          - os: macos-latest-large
+#            name: "MacOS x86 latest with clang"
+#            c_compiler: $(brew --prefix llvm@15)/bin/clang
+#            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+#            arch: x86-64
+
+#          - os: macos-latest
+#            name: "MacOS ARM64 latest with clang"
+#            c_compiler: $(brew --prefix llvm@15)/bin/clang
+#            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+#            arch: native
 
     steps: 
       - name: Checkout code
@@ -51,14 +58,20 @@ jobs:
 
       - name: Install curl (windows)
         if: matrix.os == 'windows-latest'
-        run: vcpkg install curl:x64-windows-static
+        run: vcpkg install curl:x86-windows-static
 
       - name: Get number of cores
         uses: SimenB/github-actions-cpu-cores@v2
         id: cpu-cores
 
-      - name: Build the library (windows, vcpkg)
+      - name: Build the library (windows)
         if: matrix.os == 'windows-latest'
+        run: |
+          mkdir build
+          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DTOOLCHAIN_FILE=$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static
+          cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+
+      - name: Build the library
         shell: bash
         run: |
           mkdir build
