@@ -21,17 +21,33 @@ ConstraintManager::~ConstraintManager() = default;
 
 void ConstraintManager::generate_constraints(std::unique_ptr<ConstraintGenerationStrategy> generator) {
     distance_constraints = generator->generate();
-    generate_constraint_map();
+    update_constraint_map();
+}
+
+void ConstraintManager::add_constraint(std::unique_ptr<Constraint> constraint) {
+    auto distance_constraint = dynamic_cast<DistanceConstraint*>(constraint.get());
+    if (distance_constraint != nullptr) {
+        add_constraint(std::move(*distance_constraint));
+        return;
+    }
+
+    auto overlap_constraint = dynamic_cast<OverlapConstraint*>(constraint.get());
+    if (overlap_constraint != nullptr) {
+        add_constraint(std::move(*overlap_constraint));
+        return;
+    }
+
+    throw except::invalid_argument("ConstraintManager::add_constraint: Unknown constraint type.");
 }
 
 void ConstraintManager::add_constraint(DistanceConstraint&& constraint) {
     distance_constraints.push_back(std::move(constraint));
-    generate_constraint_map();
+    update_constraint_map();
 }
 
 void ConstraintManager::add_constraint(const DistanceConstraint& constraint) {
     distance_constraints.push_back(constraint);
-    generate_constraint_map();
+    update_constraint_map();
 }
 
 void ConstraintManager::add_constraint(OverlapConstraint&& constraint) {
@@ -51,9 +67,9 @@ double ConstraintManager::evaluate() const {
     return chi2;
 }
 
-void ConstraintManager::generate_constraint_map() {
+void ConstraintManager::update_constraint_map() {
     #ifdef DEBUG
-        if (protein == nullptr) [[unlikely]] {throw except::nullptr_error("ConstraintManager::generate_constraint_map: Protein is not set.");}
+        if (protein == nullptr) [[unlikely]] {throw except::nullptr_error("ConstraintManager::update_constraint_map: Molecule is not set.");}
     #endif
 
     for (unsigned int i = 0; i < protein->body_size(); i++) {

@@ -13,6 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/setup/LoadElement.h>
 #include <rigidbody/sequencer/setup/ConstraintElement.h>
 #include <rigidbody/sequencer/setup/AutoConstraintsElement.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
 
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
@@ -50,8 +51,8 @@ enum class rigidbody::sequencer::ElementType {
 ElementType get_type(std::string_view line) {
     static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
         {ElementType::LoadElement, {"load", "open"}},
-        {ElementType::Constraint, {"constraint"}},
-        {ElementType::AutomaticConstraint, {"auto_constraints", "generate_constraints"}},
+        {ElementType::Constraint, {"constraint", "constrain"}},
+        {ElementType::AutomaticConstraint, {"generate_constraints", "autoconstraints", "autoconstrain"}},
         {ElementType::LoopBegin, {"loop"}},
         {ElementType::LoopEnd, {"end"}},
         {ElementType::Parameter, {"parameter"}},
@@ -101,6 +102,95 @@ settings::rigidbody::ConstraintGenerationStrategyChoice get_constraint_strategy(
     if (line == "linear") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;}
     if (line == "volumetric") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric;}
     throw except::invalid_argument("SequenceParser::get_constraint_strategy: Unknown strategy \"" + std::string(line) + "\"");
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    enum class Args {body1, body2, iatom1, iatom2, type};
+    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
+        {Args::body1, {"first", "first_body"}},
+        {Args::body2, {"second", "second_body"}},
+        {Args::iatom1, {"iatom1", "iatom_1", "i1"}},
+        {Args::iatom2, {"iatom2", "iatom_2", "i2"}},
+        {Args::type, {"type", "kind"}}
+    };
+    if (args.size() < 3) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"constraint\". Expected at least 3, but got " + std::to_string(args.size()) + ".");}
+
+    std::string body1, body2, type;
+    int iatom1, iatom2;
+
+    bool found_body1 = false, found_body2 = false, found_iatom1 = false, found_iatom2 = false, found_type = false;
+    for (const auto& name : valid_args[Args::body1]) {
+        if (args.contains(name)) {
+            found_body1 = true;
+            body1 = args.at(name)[0];
+            break;
+        }
+    }
+
+    for (const auto& name : valid_args[Args::body2]) {
+        if (args.contains(name)) {
+            found_body2 = true;
+            body2 = args.at(name)[0];
+            break;
+        }
+    }
+
+    for (const auto& name : valid_args[Args::type]) {
+        if (args.contains(name)) {
+            found_type = true;
+            type = args.at(name)[0];
+            break;
+        }
+    }
+
+    for (const auto& name : valid_args[Args::iatom1]) {
+        if (args.contains(name)) {
+            found_iatom1 = true;
+            iatom1 = std::stoi(args.at(name)[0]);
+            break;
+        }
+    }
+
+    for (const auto& name : valid_args[Args::iatom2]) {
+        if (args.contains(name)) {
+            found_iatom2 = true;
+            iatom2 = std::stoi(args.at(name)[0]);
+            break;
+        }
+    }
+
+    if (!found_body1) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body1\".");}
+    if (!found_body2) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body2\".");}
+
+    if (!(found_iatom1 && found_iatom2)) {
+        if (!found_type) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"iatom1\", and \"iatom2\", or \"type\".");}
+        if (type == "closest") {
+            return std::make_unique<ConstraintElement>(
+                static_cast<Sequencer*>(loop_stack.front()), 
+                body1, 
+                body2
+            );
+        }
+        if (type == "center_mass") {
+            return std::make_unique<ConstraintElement>(
+                static_cast<Sequencer*>(loop_stack.front()), 
+                body1, 
+                body2,
+                true
+            );
+        }
+        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for \"type\": \"" + type + "\".");
+    } else {
+        return std::make_unique<ConstraintElement>(
+            static_cast<Sequencer*>(loop_stack.front()), 
+            body1, 
+            body2,
+            iatom1,
+            iatom2
+        );
+    }
+    throw except::invalid_argument("SequenceParser::parse_arguments: Invalid arguments for \"constraint\".");
 }
 
 template<>
@@ -157,12 +247,6 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
         return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths[0], splits, names);
     }
     return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths, names);
-}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"constraint\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    return nullptr;
 }
 
 template<>
@@ -333,11 +417,11 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sav
     return nullptr;
 }
 
-std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config, const io::ExistingFile& saxs, observer_ptr<RigidBody> rigidbody) {
+std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config, const io::ExistingFile& saxs) {
     std::ifstream in(config.path());
     if (!in.is_open()) {throw except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}
 
-    std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>(saxs, rigidbody);
+    std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>(saxs);
     loop_stack = {sequencer.get()};
 
     std::string line;

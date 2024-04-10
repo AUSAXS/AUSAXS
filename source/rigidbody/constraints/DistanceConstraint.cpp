@@ -42,6 +42,47 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibo
     }
 }
 
+DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, bool center_mass)
+    : protein(protein), ibody1(ibody1), ibody2(ibody2) {
+    const Body& body1 = protein->get_body(ibody1);
+    const Body& body2 = protein->get_body(ibody2);
+
+    if (center_mass) {
+        // find the atoms closest to the center of mass of the two bodies
+        double target_distance = body1.get_cm().distance2(body2.get_cm());
+        double min_distance = std::numeric_limits<double>::max();
+        for (unsigned int i = 0; i < body1.get_atoms().size(); i++) {
+            if (body1.get_atom(i).element != constants::atom_t::C) {continue;}
+            for (unsigned int j = 0; j < body2.get_atoms().size(); j++) {
+                if (body2.get_atom(j).element != constants::atom_t::C) {continue;}
+                double distance = body1.get_atom(i).distance_squared(body2.get_atom(j));
+                if (std::abs(distance - target_distance) < min_distance) {
+                    min_distance = std::abs(distance - target_distance);
+                    iatom1 = i;
+                    iatom2 = j;
+                }
+            }
+        }
+        if (iatom1 == iatom2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Could not find atoms to constrain.");}
+    } else {
+        // find the closest atoms in the two bodies
+        double min_distance = std::numeric_limits<double>::max();
+        for (unsigned int i = 0; i < body1.get_atoms().size(); i++) {
+            if (body1.get_atom(i).element != constants::atom_t::C) {continue;}
+            for (unsigned int j = 0; j < body2.get_atoms().size(); j++) {
+                if (body2.get_atom(j).element != constants::atom_t::C) {continue;}
+                double distance = body1.get_atom(i).distance_squared(body2.get_atom(j));
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    iatom1 = i;
+                    iatom2 = j;
+                }
+            }
+        }
+        if (iatom1 == iatom2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Could not find atoms to constrain.");}
+    } 
+}
+
 DistanceConstraint::DistanceConstraint(data::Molecule* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
     // we only want to allow constraints between the backbone C-alpha structure
     if (atom1.element != constants::atom_t::C || atom2.element != constants::atom_t::C) {

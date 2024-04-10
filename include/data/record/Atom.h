@@ -56,6 +56,11 @@ namespace data::record {
             double distance(const Atom& a) const;
 
             /** 
+             * @brief Calculate the squared distance to another atom. 
+             */
+            double distance_squared(const Atom& a) const;
+
+            /** 
              * @brief Translate this atom.
              */
             void translate(Vector3<double> v);
