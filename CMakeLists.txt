@@ -19,8 +19,8 @@ if (WIN32)
 			/fp:fast /constexpr:steps10000000000 /Zm500 
 			/wd4267 # disable size_t --> int, unsigned int conversions
 			/wd4244 # disable double --> float,int conversions
-			"$<$STREQUAL:${ARCH},x86-64>:/arch:AVX"
-			"$<$STREQUAL:${ARCH},arm64>:/arch:armv8.0"
+			"$<$<STREQUAL:${ARCH},x86-64>:/arch:AVX>"
+			"$<$<STREQUAL:${ARCH},arm64>:/arch:armv8.0>"
 		)
 		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
