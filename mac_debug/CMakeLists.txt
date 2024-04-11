@@ -19,4 +19,8 @@ add_compile_options(
 	"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},arm64>>:-march=armv8-a>"
 )
 
+find_package(CURL REQUIRED)
+set(LIBS -lc++ -static CURL::libcurl)
+
 add_executable(hello_world main.cpp)
+target_link_libraries(hello_world ${LIBS})
