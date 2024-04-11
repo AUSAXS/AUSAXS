@@ -36,15 +36,28 @@ jobs:
 #            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
 #            arch: x86-64
 
-#          - os: macos-latest
-#            name: "MacOS ARM64 latest with clang"
-#            c_compiler: $(brew --prefix llvm@15)/bin/clang
-#            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-#            arch: native
+          - os: macos-latest
+            name: "MacOS ARM64 latest with clang"
+            c_compiler: $(brew --prefix llvm@15)/bin/clang
+            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+            arch: arm64
 
     steps: 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug Mac
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd mac_debug
+          cmake -B build -S .
+          cmake --build build --target hello_world
+      
+      - name: Run hello world
+        if: matrix.os == 'macos-latest'
+        run: |
+          pwd  
+          ./mac_debug/build/hello_world
 
       - name: Install curl (ubuntu)
         if: matrix.os == 'ubuntu-latest'
@@ -64,7 +77,7 @@ jobs:
         uses: SimenB/github-actions-cpu-cores@v2
         id: cpu-cores
 
-      - name: Build the library (windows)
+      - name: Build the library (windows, vcpkg)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
@@ -73,7 +86,7 @@ jobs:
           cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Build the library
-        if: matrix.os != 'windows-latest'
+        if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
         shell: bash
         run: |
           mkdir build
