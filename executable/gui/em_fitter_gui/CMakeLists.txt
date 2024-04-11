@@ -20,6 +20,4 @@ target_include_directories("${ELEMENTS_APP_PROJECT}" PUBLIC "${CMAKE_SOURCE_DIR}
 set_target_properties("${ELEMENTS_APP_PROJECT}" PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
-if (BUILD_PLOT_EXE)
-	add_dependencies("${ELEMENTS_APP_PROJECT}" plotter)
-endif()
+add_dependencies("${ELEMENTS_APP_PROJECT}" plotter)
