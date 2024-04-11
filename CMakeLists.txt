@@ -118,7 +118,7 @@ if (WIN32)
 	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
 elseif (APPLE)
 	find_package(CURL REQUIRED)
-	set(LIBS -static CURL::libcurl)
+	set(LIBS CURL::libcurl)
 elseif(UNIX)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)

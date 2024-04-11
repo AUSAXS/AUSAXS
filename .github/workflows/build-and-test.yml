@@ -86,7 +86,7 @@ jobs:
           cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Build the library
-        if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
+        if: matrix.os != 'windows-latest'
         shell: bash
         run: |
           mkdir build
