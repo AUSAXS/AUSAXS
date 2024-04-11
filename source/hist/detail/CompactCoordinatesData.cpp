@@ -9,12 +9,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace hist::detail;
 
-// AVX implies SSE4.1 and SSE2, but the MSVC compiler doesn't seem to define the latter two
-#if defined __AVX__
-    #define __SSE2__
-    #define __SSE4_1__
-#endif
-
 constexpr float inv_width = constants::axes::d_inv_width;
 
 CompactCoordinatesData::CompactCoordinatesData() : data(std::array<float, 4>({0, 0, 0, 0})) {}
