@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Limit.h>
 
 #include <ostream>
+#include <cmath>
 
 Axis::Axis() noexcept : bins(0), min(0), max(0) {}
 

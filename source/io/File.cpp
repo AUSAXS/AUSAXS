@@ -8,6 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 using namespace io;
 
@@ -99,13 +100,6 @@ std::string operator+(const std::string& str, const io::File& file) {
 
 std::string operator+(const io::File& file, const std::string& str) {
     return std::string(file) + str;
-}
-
-std::istringstream &operator>>(std::istringstream& in, io::File& val) {
-    std::string v;
-    in >> v;
-    val = v;
-    return in;
 }
 
 std::ostream& operator<<(std::ostream& os, const io::File& file) {

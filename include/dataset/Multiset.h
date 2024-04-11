@@ -3,6 +3,7 @@
 #include <dataset/Dataset2D.h>
 #include <io/ExistingFile.h>
 
+#include <unordered_map>
 #include <vector>
 #include <string>
 

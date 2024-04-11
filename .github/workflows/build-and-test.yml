@@ -1,35 +1,103 @@
-name: Run tests
+name: Compile & test
+
 on:
   - workflow_dispatch
 
 permissions:
   checks: write
 
+env:
+  BUILD_TYPE: Release
+
 jobs:
-  runner:
-    runs-on: ubuntu-latest
-    steps:
+  build:
+    name: ${{matrix.name}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # - os: ubuntu-latest
+          #   name: "Ubuntu latest with gcc"
+          #   c_compiler: gcc
+          #   cpp_compiler: g++
+          #   arch: x86-64
+
+          - os: windows-latest
+            name: "Windows latest with msvc"
+            c_compiler: cl
+            cpp_compiler: cl
+            arch: x86-64
+
+#	   no money :(
+#          - os: macos-latest-large
+#            name: "MacOS x86 latest with clang"
+#            c_compiler: $(brew --prefix llvm@15)/bin/clang
+#            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+#            arch: x86-64
+
+#          - os: macos-latest
+#            name: "MacOS ARM64 latest with clang"
+#            c_compiler: $(brew --prefix llvm@15)/bin/clang
+#            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+#            arch: native
+
+    steps: 
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install prerequisites
-        run: sudo apt-get install libcurl4-openssl-dev
+      - name: Install curl (ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install libcurl4-openssl-dev
 
-      - name: Build the library
+      - name: Install curl (macos)
+        if: matrix.os == 'macos-latest'
+        run: brew install curl-openssl
+
+      - name: Install curl (windows)
+        if: matrix.os == 'windows-latest'
+        run: vcpkg install curl:x64-windows-static
+
+      - name: Get number of cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
+
+      - name: Build the library (windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
-          cmake --build build --target ausaxs -j $(nproc)
+          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static"
+          cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
-      - name: Build the tests
-        run: cmake --build build --target tests -j $(nproc)
+      - name: Build the library
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          mkdir build
+          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }}
+          cmake --build build --config $BUILD_TYPE --target saxs_fitter em_fitter rigidbody_optimizer -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
-      - name: Run the tests
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: |
+            build/lib/*
+            build/bin/*
+      
+      - name: Build tests (ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: cmake --build build --target tests -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+
+      - name: Run tests (ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: ctest --output-on-failure --test-dir build/test
 
-      - name: Generate test report
+      - name: Generate test report (ubuntu)
         uses: mikepenz/action-junit-report@v4
-        if: success() || failure()
+        if: matrix.os == 'ubuntu-latest' && (success() || failure())
         with:
           report_paths: build/test/reports/*.xml
-

@@ -6,9 +6,12 @@ project(AUSAXS VERSION 1.0)
 option(GUI "Enable GUI executables" ON)
 option(DLIB "Download and use the dlib minimizers" ON)
 option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" FALSE)
+set(ARCH "native" CACHE STRING "Target architecture. Default: native")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
 if (WIN32)
 	if (MSVC)
@@ -17,6 +20,8 @@ if (WIN32)
 			/fp:fast /constexpr:steps10000000000 /Zm500 
 			/wd4267 # disable size_t --> int, unsigned int conversions
 			/wd4244 # disable double --> float,int conversions
+			"$<$<STREQUAL:${ARCH},x86-64>:/arch:AVX>"
+			"$<$<STREQUAL:${ARCH},arm64>:/arch:armv8.0>"
 		)
 		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -26,16 +31,28 @@ if (WIN32)
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-			"$<$<CONFIG:RELEASE>:-march=x86-64>"
+			"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3>"
+			"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},native>>:-march=native>"
 		)
 	endif()
+elseif (APPLE)
+	add_compile_options(
+		-Ofast -pipe
+		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
+		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
+		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},native>>:-march=native>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3 -mavx>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},arm64>>:-march=armv8-a>"
+	)
 elseif (UNIX)
 	add_compile_options(
 		-Ofast -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-		"$<$<CONFIG:RELEASE>:-march=x86-64>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},native>>:-march=native>"
 	)
 endif()
 
@@ -48,23 +65,24 @@ if (DLIB)
 	FetchContent_Declare(
 		dlib
 		GIT_REPOSITORY https://github.com/davisking/dlib
-		GIT_TAG v19.24.2
+		GIT_TAG v19.24.4
 		GIT_PROGRESS TRUE
 	)
 
 	# tell dlib not to link with various unnecessary libraries
-	SET(DLIB_NO_GUI_SUPPORT TRUE)
-	SET(DLIB_JPEG_SUPPORT OFF)
-	SET(DLIB_LINK_WITH_SQLITE3 OFF)
-	SET(DLIB_USE_BLAS OFF)
-	SET(DLIB_USE_LAPACK OFF)
-	SET(DLIB_USE_CUDA OFF)
-	SET(DLIB_PNG_SUPPORT OFF)
-	SET(DLIB_GIF_SUPPORT OFF)
-	SET(DLIB_WEBP_SUPPORT OFF)
-	SET(DLIB_USE_FFTW OFF)
-	SET(DLIB_USE_MKL_FFT OFF)
-	SET(DLIB_USE_FFMPEG OFF)
+	set(DLIB_NO_GUI_SUPPORT TRUE)
+	set(DLIB_JPEG_SUPPORT OFF)
+	set(DLIB_LINK_WITH_SQLITE3 OFF)
+	set(DLIB_USE_BLAS OFF)
+	set(DLIB_USE_LAPACK OFF)
+	set(DLIB_USE_CUDA OFF)
+	set(DLIB_PNG_SUPPORT OFF)
+	set(DLIB_GIF_SUPPORT OFF)
+	set(DLIB_WEBP_SUPPORT OFF)
+	set(DLIB_JXL_SUPPORT OFF)
+	set(DLIB_USE_FFTW OFF)
+	set(DLIB_USE_MKL_FFT OFF)
+	set(DLIB_USE_FFMPEG OFF)
 	set(CMAKE_CXX_STANDARD 17) # dlib must be compiled with C++17
 	FetchContent_MakeAvailable(dlib)
 	set(CMAKE_CXX_STANDARD 20) # continue with C++20	
@@ -96,17 +114,18 @@ include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include
 if (WIN32)
 	add_compile_definitions("CURL_STATICLIB")
 	find_package(CURL REQUIRED)
-	find_package(OpenSSL COMPONENTS SSL REQUIRED)
 	set(LIBS -static CURL::libcurl)
 	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
-elseif (UNIX)
+elseif (APPLE)
+	find_package(CURL REQUIRED)
+	set(LIBS -lc++ -static CURL::libcurl)
+elseif(UNIX)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl)
 	endif()
 endif()
-
 
 ############################################
 ##                Doxygen                 ##
