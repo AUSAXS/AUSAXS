@@ -40,11 +40,18 @@ jobs:
             name: "MacOS ARM64 latest with clang"
             c_compiler: $(brew --prefix llvm@15)/bin/clang
             cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            arch: arm64
+            arch: x86-64
 
     steps: 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Mac info
+        if: matrix.os == 'macos-latest'
+        run: |
+          uname -a
+          uname -m
+          uname -p
 
       - name: Debug Mac
         if: matrix.os == 'macos-latest'
