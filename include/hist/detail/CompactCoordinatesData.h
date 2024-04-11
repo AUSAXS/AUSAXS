@@ -5,6 +5,12 @@
 #include <array>
 #include <cstdint>
 
+// AVX implies SSE4.1 and SSE2, but the MSVC compiler doesn't seem to define the latter two
+#if defined __AVX__
+    #define __SSE2__
+    #define __SSE4_1__
+#endif
+
 namespace hist::detail {
     /**
      * @brief Simple structure for storing the results of a distance and weight calculation.
