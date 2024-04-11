@@ -17,11 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   name: "Ubuntu latest with gcc"
-          #   c_compiler: gcc
-          #   cpp_compiler: g++
-          #   arch: x86-64
+          - os: ubuntu-latest
+            name: "Ubuntu latest with gcc"
+            c_compiler: gcc
+            cpp_compiler: g++
+            arch: x86-64
 
           - os: windows-latest
             name: "Windows latest with msvc"
@@ -29,18 +29,11 @@ jobs:
             cpp_compiler: cl
             arch: x86-64
 
-#	   no money :(
-#          - os: macos-latest-large
-#            name: "MacOS x86 latest with clang"
-#            c_compiler: $(brew --prefix llvm@15)/bin/clang
-#            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-#            arch: x86-64
-
-#          - os: macos-latest
-#            name: "MacOS ARM64 latest with clang"
-#            c_compiler: $(brew --prefix llvm@15)/bin/clang
-#            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-#            arch: native
+          - os: macos-latest
+            name: "MacOS x86_64 latest with clang"
+            c_compiler: $(brew --prefix llvm@15)/bin/clang
+            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+            arch: native
 
     steps: 
       - name: Checkout code
@@ -64,26 +57,34 @@ jobs:
         uses: SimenB/github-actions-cpu-cores@v2
         id: cpu-cores
 
-      - name: Build the library (windows)
+      - name: Build the library (windows, vcpkg)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static"
-          cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static" -S . -B build 
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
-      - name: Build the library
-        if: matrix.os != 'windows-latest'
+      - name: Build the library (ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }}
-          cmake --build build --config $BUILD_TYPE --target saxs_fitter em_fitter rigidbody_optimizer -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build 
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+
+      - name: Build the library (mac)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          mkdir build
+          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_OSX_ARCHITECTURES="x86_64" -S . -B build
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifacts
+          name: ${{ matrix.os }}-binaries
           path: |
             build/lib/*
             build/bin/*

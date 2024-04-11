@@ -40,9 +40,8 @@ elseif (APPLE)
 		-Ofast -pipe
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
-		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},native>>:-march=native>"
-		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3 -mavx>"
+		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
+		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3>"
 		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},arm64>>:-march=armv8-a>"
 	)
 elseif (UNIX)
@@ -118,7 +117,7 @@ if (WIN32)
 	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
 elseif (APPLE)
 	find_package(CURL REQUIRED)
-	set(LIBS -lc++ -static CURL::libcurl)
+	set(LIBS CURL::libcurl)
 elseif(UNIX)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
