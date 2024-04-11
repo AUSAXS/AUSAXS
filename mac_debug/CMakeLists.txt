@@ -20,7 +20,7 @@ add_compile_options(
 )
 
 find_package(CURL REQUIRED)
-set(LIBS -lc++ -static CURL::libcurl)
+set(LIBS -static CURL::libcurl)
 
 add_executable(hello_world main.cpp)
 target_link_libraries(hello_world ${LIBS})
