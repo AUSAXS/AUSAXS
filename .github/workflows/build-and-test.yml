@@ -68,8 +68,8 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           mkdir build
-          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DTOOLCHAIN_FILE=$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static
-          cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static"
+          cmake --build build --config $BUILD_TYPE --target saxs_fitter em_fitter rigidbody_optimizer -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Build the library
         shell: bash
