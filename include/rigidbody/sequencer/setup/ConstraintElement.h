@@ -6,6 +6,7 @@
 #include <utility/observer_ptr.h>
 
 #include <memory>
+#include <string>
 
 namespace rigidbody::sequencer {
     class ConstraintElement : public GenericElement {
