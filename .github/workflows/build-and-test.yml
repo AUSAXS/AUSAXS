@@ -78,13 +78,15 @@ jobs:
         run: |
           mkdir build
           cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }}
-          cmake --build build --config $BUILD_TYPE --target ausaxs -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake --build build --config $BUILD_TYPE --target saxs_fitter em_fitter rigidbody_optimizer -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libs
-          path: build/lib/*
+          name: artifacts
+          path: |
+            build/lib/*
+            build/bin/*
       
       - name: Build tests (ubuntu)
         if: matrix.os == 'ubuntu-latest'
