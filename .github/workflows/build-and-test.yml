@@ -34,7 +34,7 @@ jobs:
 #            name: "MacOS x86 latest with clang"
 #            c_compiler: $(brew --prefix llvm@15)/bin/clang
 #            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-#            arch: x86-64
+#            arch: native
 
           - os: macos-latest
             name: "MacOS ARM64 latest with clang"
@@ -106,7 +106,7 @@ jobs:
         run: |
           mkdir build
           cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
-          cmake --build build --config $BUILD_TYPE --target saxs_fitter em_fitter rigidbody_optimizer -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake --build build --config $BUILD_TYPE --target ausaxs ausaxs_static -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
