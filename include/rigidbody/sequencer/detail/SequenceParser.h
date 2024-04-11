@@ -13,6 +13,7 @@ namespace rigidbody::sequencer {
             SequenceParser() = default;
 
             std::unique_ptr<Sequencer> parse(const io::ExistingFile& config, const io::ExistingFile& saxs);
+
         private:
             std::vector<observer_ptr<LoopElement>> loop_stack;
 

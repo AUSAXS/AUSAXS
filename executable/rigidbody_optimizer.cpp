@@ -13,8 +13,8 @@
 #include <io/File.h>
 #include <plots/All.h>
 #include <settings/All.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/All.h>
-#include <rigidbody/sequencer/SequenceParser.h>
 
 #include <vector>
 #include <string>
@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
     io::File pdb, mfile, settings, config;
     std::vector<unsigned int> constraints;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
-    app.add_option("input_m", mfile, "Path to the measuremed data.")->check(CLI::ExistingFile);
+    app.add_option("input_m", mfile, "Path to the measuremed data.")->required()->check(CLI::ExistingFile);
     app.add_option("output", settings::general::output, "Path to save the hydrated file at.")->default_val("output/rigidbody/");
     auto p_cal = app.add_option("--calibrate", settings::rigidbody::detail::calibration_file, "Path to the calibration data.")->expected(0, 1)->check(CLI::ExistingFile);
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
@@ -53,7 +53,14 @@ int main(int argc, char const *argv[]) {
     settings::general::output += mfile.stem() + "/";
 
     // check if pdb is a config script
-
+    if (constants::filetypes::rigidbody_config.validate(pdb)) {
+        if (!constants::filetypes::saxs_data.validate(mfile)) {throw except::invalid_argument("The second argument must be a SAXS data file.");}
+        auto res = rigidbody::sequencer::SequenceParser().parse(pdb, mfile)->execute();
+        fitter::FitReporter::report(res.get());
+        fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
+        plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
+        return 0;
+    }
 
     // if a settings file was provided
     if (p_settings->count() != 0) {
