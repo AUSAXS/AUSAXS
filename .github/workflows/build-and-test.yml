@@ -46,26 +46,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Mac info
-        if: matrix.os == 'macos-latest'
-        run: |
-          uname -a
-          uname -m
-          uname -p
-
-      - name: Debug Mac
-        if: matrix.os == 'macos-latest'
-        run: |
-          cd mac_debug
-          cmake -B build -S . -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
-          cmake --build build --target hello_world
-      
-      - name: Run hello world
-        if: matrix.os == 'macos-latest'
-        run: |
-          pwd  
-          ./mac_debug/build/hello_world
-
       - name: Install curl (ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
