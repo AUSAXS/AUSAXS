@@ -85,7 +85,7 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          cmake -DGUI=OFF -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_OSX_ARCHITECTURES="x86_64"
           cmake --build build --config $BUILD_TYPE --target ausaxs ausaxs_static -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Upload artifact
