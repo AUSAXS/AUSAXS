@@ -37,6 +37,9 @@ bool Sequencer::_optimize_step() const {
     return rigidbody->optimize_step(*best);
 }
 
+#include <fitter/FitReporter.h>
+#include <fitter/HydrationFitter.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 std::shared_ptr<fitter::Fit> Sequencer::execute() {
     // prepare rigidbody
     rigidbody->generate_new_hydration();
@@ -47,6 +50,10 @@ std::shared_ptr<fitter::Fit> Sequencer::execute() {
     for (auto& e : elements) {
         e->run();
     }
-    rigidbody->update_fitter(rigidbody->fitter);
-    return rigidbody->fitter->fit();
+
+    std::shared_ptr<fitter::HydrationFitter> fitter = std::make_shared<fitter::HydrationFitter>(saxs, rigidbody->get_histogram());
+    return fitter->fit();
+
+    // rigidbody->update_fitter();
+    // return rigidbody->fitter->fit();
 }

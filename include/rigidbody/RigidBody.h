@@ -23,8 +23,6 @@ namespace rigidbody {
 			 */
 			std::shared_ptr<fitter::Fit> optimize(const io::ExistingFile& measurement_path);
 
-			std::shared_ptr<fitter::Fit> optimize_sequence(const io::ExistingFile& measurement_path);
-
 			/**
 			 * @brief Apply a calibration to this rigid body. 
 			 * 
@@ -35,7 +33,7 @@ namespace rigidbody {
 			/**
 			 * @brief Update the given fitter with the current rigid body parameters.
 			 */
-			void update_fitter(std::shared_ptr<fitter::LinearFitter> fitter);
+			void update_fitter();
 
 			/**
 			 * @brief Get the constraint manager for this rigid body.

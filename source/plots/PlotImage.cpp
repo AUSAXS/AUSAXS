@@ -12,8 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace plots;
 
-PlotImage::PlotImage(const em::Image& image) {
-    plot(image);
+PlotImage::PlotImage(const em::Image& image, const PlotOptions& options) {
+    plot(image, options);
 }
 
 PlotImage::~PlotImage() = default;
@@ -38,9 +38,15 @@ PlotImage& PlotImage::plot_atoms(const em::Image& image, double cutoff) {
     return *this;
 }
 
-void PlotImage::plot(const em::Image& image) {
+void PlotImage::plot(const em::Image& image, const PlotOptions& options) {
     hist::Histogram2D h = image.as_hist();
-    h.add_plot_options("points", {{"xlabel", "Length [Å]"}, {"ylabel", "Length [Å]"}, {"zlabel", "Electron Density [Arb.]"}});
+
+    auto opt = options;
+    opt.draw_markers = true;
+    opt.draw_line = false;
+    opt.xlabel = "Length [Å]";
+    opt.ylabel = "Length [Å]";
+    opt.zlabel = "Electron Density [Arb.]";
 
     std::string contours;
     for (auto c : settings::plots::contour) {
@@ -50,12 +56,12 @@ void PlotImage::plot(const em::Image& image) {
     ss << "PlotImage\n"
         << h.to_string()
         << "\n"
-        << h.get_plot_options().to_string()
+        << options.to_string()
         << contours
         << std::endl;
 }
 
-void PlotImage::quick_plot(const em::Image& image, const io::File& path) {
-    PlotImage p(image);
+void PlotImage::quick_plot(const em::Image& image, const PlotOptions& options, const io::File& path) {
+    PlotImage p(image, options);
     p.save(path);
 }

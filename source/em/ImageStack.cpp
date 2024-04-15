@@ -395,8 +395,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                 l.evals.push_back(mini::Evaluation({x, y}, z));
             }
         }
-        l.add_plot_options({{"xlabel", "cutoff"}, {"ylabel", "c"}, {"zlabel", "$\\chi^2$"}});
-        plots::PlotLandscape::quick_plot(l, settings::general::output + "chi2_data." + settings::plots::format);
+        plots::PlotLandscape::quick_plot(l, plots::PlotOptions({{"xlabel", "cutoff"}, {"ylabel", "c"}, {"zlabel", "$\\chi^2$"}}), settings::general::output + "chi2_data." + settings::plots::format);
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one

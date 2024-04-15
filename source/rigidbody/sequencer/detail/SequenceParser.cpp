@@ -426,31 +426,55 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
 
     std::string line;
     while(!in.eof()) {
-        // verify that the line is a valid element
+        // read the next line
         std::getline(in, line);
         if (line.empty()) {continue;}
-        std::cout << line << std::endl;
 
+        // skip empty lines & comments
         std::unordered_map<std::string, std::vector<std::string>> args;
-        auto tokens = utility::split(line, " \t");
+        auto tokens = utility::split(line, " \t\r\n");
+        if (tokens.empty() || tokens.front()[0] == '#') {continue;}
+
+        // check if the argument list spans over multiple lines
         if (line.find_first_of("{[(") != std::string::npos) {
             // parse args in the next lines
             std::string argline;
             std::getline(in, argline);
             while (argline.find_first_of("]})") == std::string::npos) {
                 if (argline.empty()) {continue;}
-                auto sub_tokens = utility::split(argline, " \t");
-                args[sub_tokens[0]] = std::vector<std::string>(sub_tokens.begin()+1, sub_tokens.end());
+                auto sub_tokens = utility::split(argline, " \t\r\n");
+
+                // check for comment tokens 
+                int end = sub_tokens.size();
+                for (int i = 0; i < sub_tokens.size(); i++) {
+                    if (sub_tokens[i][0] == '#') {
+                        end = i;
+                        break;
+                    }
+                }
+
+                args[sub_tokens[0]] = std::vector<std::string>(sub_tokens.begin()+1, sub_tokens.begin()+end);
                 std::getline(in, argline);
                 if (in.eof()) {throw except::io_error("SequenceParser::parse: Unescaped argument list starting in line \"" + line + "\".");}
             }
-        } else if (tokens.size() == 2) {
+        } 
+        
+        // else check if we only have a single argument
+        else if (tokens.size() == 2) {
             // allow for a single anonymous argument
             args["anonymous"] = {tokens[1]};
         }
 
+        std::cout << "continuing with element: " << std::endl;
+        for (const auto& t : tokens) {
+            std::cout << "\t\"" << t << "\"" << std::endl;
+        }
+        std::cout << "and arguments: " << std::endl; 
         for (const auto& [key, value] : args) {
-            std::cout << "\t" << key << " = " << value[0] << std::endl;
+            std::cout << "\t\"" << key << "\"" << std::endl;
+            for (const auto& v : value) {
+                std::cout << "\t\t\"" << v << "\"" << std::endl;
+            }
         }
         switch (get_type(tokens[0])) {
             case ElementType::Constraint:

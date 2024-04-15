@@ -9,11 +9,11 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace plots;
 
-PlotLandscape::PlotLandscape(const mini::Landscape& data, const io::File& path) {
+PlotLandscape::PlotLandscape(const mini::Landscape& data, const PlotOptions& options, const io::File& path) {
     ss << "PlotLandscape\n" 
         << data.to_string() 
         << "\n"
-        << data.get_plot_options().to_string() 
+        << options.to_string() 
         << std::endl;
 
     save(path);
@@ -21,6 +21,6 @@ PlotLandscape::PlotLandscape(const mini::Landscape& data, const io::File& path) 
 
 PlotLandscape::~PlotLandscape() = default;
 
-void PlotLandscape::quick_plot(const mini::Landscape& data, const io::File& path) {
-    PlotLandscape plot(data, path);
+void PlotLandscape::quick_plot(const mini::Landscape& data, const PlotOptions& options, const io::File& path) {
+    PlotLandscape plot(data, options, path);
 }

@@ -104,40 +104,10 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measure
     }
 
     save(settings::general::output + "optimized.pdb");
-    update_fitter(fitter);
+    update_fitter();
     auto fit = fitter->fit();
     if (calibration != nullptr) {fit->add_parameter(calibration->get_parameter("c"));}
     return fit;
-}
-
-#include <rigidbody/sequencer/All.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-std::shared_ptr<fitter::Fit> RigidBody::optimize_sequence(const io::ExistingFile& measurement_path) {
-    return sequencer::SequenceParser().parse("test.txt", measurement_path)->execute();
-
-    // return sequencer::Sequencer(measurement_path, this)
-    //     .parameter_strategy(rigidbody::factory::create_parameter_strategy(
-    //         settings::rigidbody::iterations, 
-    //         5, 
-    //         constants::pi/3, 
-    //         settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly
-    //     ))
-    //     .loop(100)
-    //         .optimize()
-    //             .save_on_improvement(settings::general::output + "trajectory.xyz")
-    //     .end()
-    //     .parameter_strategy(rigidbody::factory::create_parameter_strategy(
-    //         200, 
-    //         5, 
-    //         constants::pi/3, 
-    //         settings::rigidbody::ParameterGenerationStrategyChoice::Simple
-    //     ))
-    //     .loop(settings::rigidbody::iterations)
-    //         .optimize()
-    //             .save_on_improvement(settings::general::output + "trajectory.xyz")
-    //         .end()
-    //     .end()
-    // .execute();
 }
 
 bool RigidBody::optimize_step(detail::BestConf& best) {
@@ -153,14 +123,15 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     generate_new_hydration(); 
 
     // update the body location in the fitter
-    update_fitter(fitter);
+    update_fitter();
     double new_chi2 = fitter->fit_chi2_only();
 
     // if the old configuration was better
     if (new_chi2 >= best.chi2) {
         transform->undo();          // undo the body transforms
         *grid = *best.grid;         // restore the old grid
-        get_waters() = best.waters;     // restore the old waters
+        get_waters() = best.waters; // restore the old waters
+        signal_modified_hydration_layer();
         return false;
     } else {
         // accept the changes
@@ -191,7 +162,7 @@ void RigidBody::prepare_fitter(const std::string& measurement_path) {
     }
 }
 
-void RigidBody::update_fitter(std::shared_ptr<fitter::LinearFitter> fitter) {
+void RigidBody::update_fitter() {
     if (calibration == nullptr) {
         fitter->set_scattering_hist(get_histogram());
     } else {

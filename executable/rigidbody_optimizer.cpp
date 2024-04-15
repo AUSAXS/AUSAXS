@@ -41,91 +41,99 @@ int main(int argc, char const *argv[]) {
     app.add_option("--constraints", settings::rigidbody::detail::constraints, "Constraints to apply to the rigid body.");
     app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered. Default: true.");
     app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, "Decides whether the protein will be centered. Default: true.");
+    app.add_flag("--quit-on-unknown-atom,!--no-quit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, "Decides whether the program will quit if an unknown atom is found. Default: true.");
     CLI11_PARSE(app, argc, argv);
 
     console::print_info("Running AUSAXS " + std::string(constants::version));
 
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+    settings::molecule::implicit_hydrogens = false;
 
     //###################//
     //### PARSE INPUT ###//
     //###################//
-    settings::general::output += mfile.stem() + "/";
+    try {
+        settings::general::output += mfile.stem() + "/";
 
-    // check if pdb is a config script
-    if (constants::filetypes::rigidbody_config.validate(pdb)) {
-        if (!constants::filetypes::saxs_data.validate(mfile)) {throw except::invalid_argument("The second argument must be a SAXS data file.");}
-        auto res = rigidbody::sequencer::SequenceParser().parse(pdb, mfile)->execute();
-        fitter::FitReporter::report(res.get());
-        fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
-        plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
-        return 0;
-    }
-
-    // if a settings file was provided
-    if (p_settings->count() != 0) {
-        settings::read(settings);        // read it
-        CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
-    } else {                            // otherwise check if there is a settings file in the same directory
-        if (settings::discover(std::filesystem::path(mfile.path()).parent_path().string())) {
-            CLI11_PARSE(app, argc, argv);
+        // check if pdb is a config script
+        if (constants::filetypes::rigidbody_config.validate(pdb)) {
+            if (!constants::filetypes::saxs_data.validate(mfile)) {throw except::invalid_argument("The second argument must be a SAXS data file.");}
+            auto res = rigidbody::sequencer::SequenceParser().parse(pdb, mfile)->execute();
+            fitter::FitReporter::report(res.get());
+            fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
+            plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
+            return 0;
         }
-    }
-    if (settings::rigidbody::detail::constraints.empty()) {
-        throw except::missing_option("rigidbody: Constraints must be supplied. Use --constraints to specify them.");
-    }
 
-    settings::validate_settings();
-    rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split(pdb, settings::rigidbody::detail::constraints);
+        // if a settings file was provided
+        if (p_settings->count() != 0) {
+            settings::read(settings);        // read it
+            CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
+        } else {                            // otherwise check if there is a settings file in the same directory
+            if (settings::discover(std::filesystem::path(mfile.path()).parent_path().string())) {
+                CLI11_PARSE(app, argc, argv);
+            }
+        }
+        if (settings::rigidbody::detail::constraints.empty()) {
+            throw except::missing_option("rigidbody: Constraints must be supplied. Use --constraints to specify them.");
+        }
 
-    if (p_cal->count() != 0) {
-        if (settings::rigidbody::detail::calibration_file.empty()) {
-            // look for calibration file in the same directory as the measurement file
-            std::vector<std::string> valid_names = {"calibration", "gromacs", "waxs_final"};
-            for (const auto& name : valid_names) {
-                for (const auto& ext : constants::filetypes::saxs_data.extensions) {
-                    std::string path = std::filesystem::path(mfile.path()).parent_path().string() + "/" + name + "." + ext;
-                    if (std::filesystem::exists(path)) {
-                        settings::rigidbody::detail::calibration_file = path;
-                        std::cout << "\tUsing calibration file: \"" << path << "\"" << std::endl;
-                        break;
+        settings::validate_settings();
+        rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split(pdb, settings::rigidbody::detail::constraints);
+
+        if (p_cal->count() != 0) {
+            if (settings::rigidbody::detail::calibration_file.empty()) {
+                // look for calibration file in the same directory as the measurement file
+                std::vector<std::string> valid_names = {"calibration", "gromacs", "waxs_final"};
+                for (const auto& name : valid_names) {
+                    for (const auto& ext : constants::filetypes::saxs_data.extensions) {
+                        std::string path = std::filesystem::path(mfile.path()).parent_path().string() + "/" + name + "." + ext;
+                        if (std::filesystem::exists(path)) {
+                            settings::rigidbody::detail::calibration_file = path;
+                            std::cout << "\tUsing calibration file: \"" << path << "\"" << std::endl;
+                            break;
+                        }
                     }
                 }
             }
-        }
-        if (settings::rigidbody::detail::calibration_file.empty()) {
-            throw except::missing_option("rigidbody: Default calibration file not found. Use --calibrate <path> to specify it.");
+            if (settings::rigidbody::detail::calibration_file.empty()) {
+                throw except::missing_option("rigidbody: Default calibration file not found. Use --calibrate <path> to specify it.");
+            }
+
+            settings::general::output += "calibrated/";
+            rigidbody.generate_new_hydration();
+            fitter::HydrationFitter fitter(settings::rigidbody::detail::calibration_file, rigidbody.get_histogram());
+            auto res = fitter.fit();
+            if (settings::general::verbose) {
+                std::cout << "Calibration results:" << std::endl;
+                fitter::FitReporter::report(res.get());
+            }
+            rigidbody.apply_calibration(res);
+            plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "calibration.png");
+        } else {
+            settings::general::output += "uncalibrated/";
         }
 
-        settings::general::output += "calibrated/";
-        rigidbody.generate_new_hydration();
-        fitter::HydrationFitter fitter(settings::rigidbody::detail::calibration_file, rigidbody.get_histogram());
-        auto res = fitter.fit();
-        if (settings::general::verbose) {
-            std::cout << "Calibration results:" << std::endl;
-            fitter::FitReporter::report(res.get());
+        rigidbody.save(settings::general::output + "initial.pdb");
+        rigidbody.optimize(mfile);
+        rigidbody.save(settings::general::output + "optimized.pdb");
+
+        std::shared_ptr<fitter::Fit> res;
+        if (!settings::rigidbody::detail::calibration_file.empty()) {
+            throw except::not_implemented("Calibrated fitting not implemented.");
+            // std::shared_ptr<fitter::LinearFitter> fitter = std::make_shared<fitter::LinearFitter>(mfile);
+            // rigidbody.update_fitter(fitter);
+            // res = fitter->fit();
+        } else {
+            std::shared_ptr<fitter::HydrationFitter> fitter = std::make_shared<fitter::HydrationFitter>(mfile, rigidbody.get_histogram());
+            res = fitter->fit();
         }
-        rigidbody.apply_calibration(res);
-        plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "calibration.png");
-    } else {
-        settings::general::output += "uncalibrated/";
+        fitter::FitReporter::report(res.get());
+        fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
+        plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
+    } catch (const std::exception& e) {
+        console::print_warning(e.what());
+        throw e;
     }
-
-    rigidbody.save(settings::general::output + "initial.pdb");
-    rigidbody.optimize_sequence(mfile);
-    rigidbody.save(settings::general::output + "optimized.pdb");
-
-    std::shared_ptr<fitter::Fit> res;
-    if (!settings::rigidbody::detail::calibration_file.empty()) {
-        std::shared_ptr<fitter::LinearFitter> fitter = std::make_shared<fitter::LinearFitter>(mfile);
-        rigidbody.update_fitter(fitter);
-        res = fitter->fit();
-    } else {
-        std::shared_ptr<fitter::HydrationFitter> fitter = std::make_shared<fitter::HydrationFitter>(mfile, rigidbody.get_histogram());
-        res = fitter->fit();
-    }
-    fitter::FitReporter::report(res.get());
-    fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
-    plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
     return 0;
 }

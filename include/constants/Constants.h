@@ -41,7 +41,7 @@ namespace constants {
         const detail::FileType em_map =           {{".map",  ".ccp4", ".mrc", ".rec"}};
         const detail::FileType unit_cell =        {{".cell", ".uc"}};
         const detail::FileType grid =             {{".grid"}};
-        const detail::FileType rigidbody_config = {{".config", ".conf"}};
+        const detail::FileType rigidbody_config = {{".config", ".conf", ".txt"}};
         const detail::SettingsType setting;
     }
 

@@ -187,13 +187,3 @@ std::string PlotOptions::to_string() const {
         << "zorder "         << zorder << std::endl;
     return ss.str();
 }
-
-void Plottable::set_plot_options(const plots::PlotOptions& options) {this->options = options;}
-
-void Plottable::add_plot_options(std::unordered_map<std::string, std::any> options) {this->options.set(options);}
-
-void Plottable::add_plot_options(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options) {this->options.set(style, options);}
-
-void Plottable::set_plot_color(const std::string& color) {this->options.color = color;}
-
-plots::PlotOptions Plottable::get_plot_options() const {return options;}
