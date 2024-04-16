@@ -118,16 +118,7 @@ int main(int argc, char const *argv[]) {
         rigidbody.optimize(mfile);
         rigidbody.save(settings::general::output + "optimized.pdb");
 
-        std::shared_ptr<fitter::Fit> res;
-        if (!settings::rigidbody::detail::calibration_file.empty()) {
-            throw except::not_implemented("Calibrated fitting not implemented.");
-            // std::shared_ptr<fitter::LinearFitter> fitter = std::make_shared<fitter::LinearFitter>(mfile);
-            // rigidbody.update_fitter(fitter);
-            // res = fitter->fit();
-        } else {
-            std::shared_ptr<fitter::HydrationFitter> fitter = std::make_shared<fitter::HydrationFitter>(mfile, rigidbody.get_histogram());
-            res = fitter->fit();
-        }
+        std::shared_ptr<fitter::Fit> res = rigidbody.get_unconstrained_fitter()->fit();
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
         plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");

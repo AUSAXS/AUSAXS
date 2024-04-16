@@ -246,6 +246,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
         if (paths.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Splits can only be used with a single path.");}
         return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths[0], splits, names);
     }
+
     return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths, names);
 }
 

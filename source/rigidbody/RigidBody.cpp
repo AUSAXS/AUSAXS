@@ -162,6 +162,20 @@ void RigidBody::prepare_fitter(const std::string& measurement_path) {
     }
 }
 
+std::unique_ptr<fitter::LinearFitter> RigidBody::get_unconstrained_fitter() const {
+    if (calibration == nullptr) {
+        return std::make_unique<fitter::HydrationFitter>(get_histogram());
+    } else {
+        auto histogram = get_histogram();
+        histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
+        return std::make_unique<fitter::LinearFitter>(std::move(histogram));
+    }
+}
+
+std::shared_ptr<fitter::LinearFitter> RigidBody::get_fitter() const {
+    return fitter;
+}
+
 void RigidBody::update_fitter() {
     if (calibration == nullptr) {
         fitter->set_scattering_hist(get_histogram());

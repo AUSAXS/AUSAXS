@@ -40,6 +40,16 @@ namespace rigidbody {
 			 */
 			std::shared_ptr<constraints::ConstraintManager> get_constraint_manager() const;
 
+			/**
+			 * @brief Get the fitter for this rigid body. Note that this is a ConstrainedFitter, and will thus include chi2 contributions from the constraints. 
+			 */
+			std::shared_ptr<fitter::LinearFitter> get_fitter() const;
+
+			/**
+			 * @brief Create a new fitter for this rigid body. This fitter will not include any constraints.
+			 */
+			std::unique_ptr<fitter::LinearFitter> get_unconstrained_fitter() const;
+
 			void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
 
 			void set_body_select_manager(std::shared_ptr<rigidbody::selection::BodySelectStrategy> body_selector);
