@@ -4,18 +4,15 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 
 namespace hist {
-	template<bool use_weighted_distribution>
-    class DebugDistanceHistogram : public CompositeDistanceHistogramFFAvg<use_weighted_distribution> {
+    class DebugDistanceHistogram : public CompositeDistanceHistogramFFAvg {
         public: 
-            DebugDistanceHistogram(view_ptr<const data::Molecule> protein);
+            DebugDistanceHistogram(observer_ptr<const data::Molecule> protein);
             ~DebugDistanceHistogram() override;
 
             ScatteringProfile debye_transform() const override;
 
-			
-
         private:
-            view_ptr<const data::Molecule> protein;
+            observer_ptr<const data::Molecule> protein;
     };
 
 	/**

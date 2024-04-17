@@ -38,7 +38,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     CLI11_PARSE(app, argc, argv);
 
-    console::print_info("Running AUSAXS" + constants::version);
+    console::print_info("Running AUSAXS " + std::string(constants::version));
 
     //###################//
     //### PARSE INPUT ###//

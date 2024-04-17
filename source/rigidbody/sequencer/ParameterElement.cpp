@@ -4,37 +4,31 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/sequencer/ParameterElement.h>
-#include <rigidbody/sequencer/DecayElement.h>
-
-#include <iostream>
+#include <rigidbody/sequencer/LoopElement.h>
+#include <rigidbody/parameters/ParameterGenerationFactory.h>
+#include <rigidbody/RigidBody.h>
 
 using namespace rigidbody::sequencer;
 
-ParameterElement::ParameterElement(LoopElement* owner) : LoopElementCallback(owner), owner(owner), strategy(settings::rigidbody::parameter_generation_strategy) {
-    initialize();
-}
-
-ParameterElement::ParameterElement(LoopElement* owner, settings::rigidbody::ParameterGenerationStrategyChoice strategy) : LoopElementCallback(owner), owner(owner), strategy(strategy) {
-    initialize();
-}
+ParameterElement::ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
 
 ParameterElement::~ParameterElement() = default;
 
-void ParameterElement::apply() {
-    std::cout << "ParameterElement::apply()" << std::endl;
+void ParameterElement::run() {
+    owner->_get_rigidbody()->set_parameter_manager(strategy);
 }
 
-DecayElement& ParameterElement::decay_strategy(const settings::rigidbody::DecayStrategyChoice& strategy) {
-    std::cout << "ParameterElement::decay_strategy()" << std::endl;
-    decay_element = std::make_unique<DecayElement>(this, strategy);
-    return *decay_element;
-}
-
-ParameterElement& ParameterElement::amplitude(double amplitude) {
-    std::cout << "ParameterElement::amplitude()" << std::endl;
+ParameterElement& ParameterElement::decay_strategy(std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> strategy) {
+    this->strategy->set_decay_strategy(std::move(strategy));
     return *this;
 }
 
-void ParameterElement::initialize() {
-    decay_element = std::make_unique<DecayElement>(this);
+ParameterElement& ParameterElement::max_rotation_angle(double radians) {
+    strategy->set_max_rotation_angle(radians);
+    return *this;
+}
+
+ParameterElement& ParameterElement::max_translation_distance(double distance) {
+    strategy->set_max_translation_distance(distance);
+    return *this;
 }

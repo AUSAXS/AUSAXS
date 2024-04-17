@@ -1,6 +1,6 @@
 #pragma once
 
-namespace rigidbody::parameters::decay {
+namespace rigidbody::parameter::decay {
     /**
      * @brief The strategy for decaying the amplitude of a parameter.
      */
@@ -9,9 +9,9 @@ namespace rigidbody::parameters::decay {
             virtual ~DecayStrategy() = default;
 
             /**
-             * @brief Get the factor by which to decay the parameter.
+             * @brief Get the factor by which to decay the parameter and increment the internal counter. 
              */
-            virtual double get_factor() = 0;
+            virtual double next() = 0;
 
             /**
              * @brief Set the characteristic time scale for this decay strategy.

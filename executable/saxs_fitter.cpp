@@ -23,7 +23,7 @@
 
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
-    std::string s_pdb, s_mfile, s_settings, placement_strategy = "radial", histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
+    std::string s_pdb, s_mfile, s_settings, histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
     bool use_existing_hydration = false, fit_excluded_volume = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
@@ -34,26 +34,29 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax)->group("General options");
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("General options");
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
+    app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
 
+    // protein options group
     app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered.")->default_val(settings::molecule::center)->group("Protein options");
     app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::molecule::use_effective_charge)->group("Protein options");
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
     app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(fit_excluded_volume)->group("Protein options");
 
+    // advanced options group
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");
     app.add_option("--grid_width,--gw", settings::grid::width, "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::width)->group("Advanced options");
-    app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.")->default_val(placement_strategy)->group("Advanced options");
+    app.add_option_function<std::string>("--placement-strategy,--ps", [] (const std::string& s) {settings::detail::parse_option("placement_strategy", {s});}, "The placement strategy to use. Options: Radial, Axes, Jan.")->group("Advanced options");
     app.add_option("--exv_radius,--er", settings::grid::exv_radius, "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström.")->default_val(settings::grid::exv_radius)->group("Advanced options");
-    auto p_hm = app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
+    app.add_option_function<std::string>("--histogram-manager,--hm", [] (const std::string& s) {settings::detail::parse_option("histogram_manager", {s});}, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
 
+    // hidden options group
     app.add_flag("--foxs", settings::hist::use_foxs_method, "Decides whether the FOXS method will be used.")->default_val(settings::hist::use_foxs_method)->group("Hidden");
     app.add_flag("--weighted_bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     app.add_option("--rvol", settings::grid::rvol, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::rvol)->group("Hidden");
     app.add_flag("--save_exv", settings::grid::save_exv, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::save_exv)->group("Hidden");
-    app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     CLI11_PARSE(app, argc, argv);
 
-    std::cout << "Running AUSAXS " << constants::version << std::endl;
+    console::print_info("Running AUSAXS " + std::string(constants::version));
 
     //###################//
     //### PARSE INPUT ###//
@@ -63,33 +66,14 @@ int main(int argc, char const *argv[]) {
 
     // if a settings file was provided
     if (p_settings->count() != 0) {
-        settings::read(settings);        // read it
+        settings::read(settings);       // read it
         CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
     } else {                            // otherwise check if there is a settings file in the same directory
         if (settings::discover(mfile.directory())) {
             CLI11_PARSE(app, argc, argv);
         }
     }
-
-    if (p_hm->count() == 0) {
-        if (settings::general::threads == 1) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;}
-        else {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;}
-    } else {
-        settings::detail::parse_option("histogram_manager", {histogram_manager});
-        if (fit_excluded_volume) {
-            switch(settings::hist::histogram_manager) {
-                case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-                case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
-                case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: break;
-                default: throw except::invalid_argument("The histogram manager must be either HMMTFF, HMMTFFExplicit or HMMTFFGrid when fitting the excluded volume.");
-            }
-        }
-    }
-    switch (settings::hist::histogram_manager) {
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit: settings::molecule::use_effective_charge = false;
-        default: break;
-    }
+    settings::validate_settings();
 
     // validate input
     if (!constants::filetypes::structure.validate(pdb)) {

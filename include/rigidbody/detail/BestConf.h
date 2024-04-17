@@ -1,0 +1,19 @@
+#pragma once
+
+#include <data/DataFwd.h>
+#include <hydrate/GridFwd.h>
+
+#include <memory>
+#include <vector>
+
+namespace rigidbody::detail {
+    struct BestConf {
+        BestConf();
+        BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::record::Water> waters, double chi2) noexcept;
+        ~BestConf();
+
+        std::shared_ptr<grid::Grid> grid;
+        std::vector<data::record::Water> waters;
+        double chi2;	
+    };
+}

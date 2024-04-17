@@ -23,6 +23,14 @@ namespace rigidbody::parameter {
         Parameter(const Vector3<double>& dr, double alpha, double beta, double gamma);
 
         /**
+         * @brief Constructor.
+         * 
+         * @param dr The translation vector.
+         * @param euler_angles The Euler angles.
+         */
+        Parameter(const Vector3<double>& dr, const Vector3<double>& euler_angles);
+
+        /**
          * @brief Get a string representation of this Parameter.
          */
         std::string to_string() const;

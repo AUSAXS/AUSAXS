@@ -4,24 +4,50 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/RigidBodyManager.h>
+#include <rigidbody/detail/BestConf.h>
+#include <rigidbody/RigidBody.h>
+#include <fitter/LinearFitter.h>
+#include <data/record/Water.h>
+#include <hydrate/Grid.h>
 #include <io/ExistingFile.h>
-
-#include <iostream>
 
 using namespace rigidbody::sequencer;
 
-template<typename T> requires std::is_same_v<std::decay_t<T>, data::Molecule>
-Sequencer::Sequencer(const io::ExistingFile& saxs, T&& rigidbody) {
-    rigidbody::sequencer::rigidbody = std::make_unique<RigidBodyManager>(saxs, std::forward<T>(rigidbody));
-}
-template Sequencer::Sequencer(const io::ExistingFile& saxs, data::Molecule&& protein);
-template Sequencer::Sequencer(const io::ExistingFile& saxs, const data::Molecule& protein);
+Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), SetupElement(this), saxs(saxs) {}
+
 Sequencer::~Sequencer() = default;
 
-void Sequencer::execute() {
-    std::cout << "Sequencer::execute()" << std::endl;
-    for (auto& loop : inner_loops) {
-        loop->execute();
+observer_ptr<rigidbody::RigidBody>& Sequencer::_get_rigidbody() {
+    return rigidbody;
+}
+
+observer_ptr<rigidbody::RigidBody> Sequencer::_get_rigidbody() const {
+    return rigidbody;
+}
+
+observer_ptr<rigidbody::detail::BestConf> Sequencer::_get_best_conf() const {
+    return best.get();
+}
+
+observer_ptr<const Sequencer> Sequencer::_get_sequencer() const {
+    return this;
+}
+
+bool Sequencer::_optimize_step() const {
+    return rigidbody->optimize_step(*best);
+}
+
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+std::shared_ptr<fitter::Fit> Sequencer::execute() {
+    // prepare rigidbody
+    rigidbody->generate_new_hydration();
+    rigidbody->prepare_fitter(saxs);
+    best = std::make_unique<detail::BestConf>(std::make_shared<grid::Grid>(*rigidbody->get_grid()), rigidbody->get_waters(), rigidbody->fitter->fit_chi2_only());
+
+    // run all elements in sequence
+    for (auto& e : elements) {
+        e->run();
     }
+
+    return rigidbody->get_unconstrained_fitter(saxs)->fit();
 }

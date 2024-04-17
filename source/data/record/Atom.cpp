@@ -194,6 +194,7 @@ std::string Atom::as_pdb() const {
 
 RecordType Atom::get_type() const {return RecordType::ATOM;}
 
+double Atom::distance_squared(const Atom& a) const {return coords.distance2(a.coords);}
 double Atom::distance(const Atom& a) const {return coords.distance(a.coords);}
 void Atom::translate(Vector3<double> v) {coords += v;}
 bool Atom::is_water() const {return (resName == "HOH") || (resName == "SOL");}

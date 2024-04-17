@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 
-using namespace rigidbody::parameters::decay;
+using namespace rigidbody::parameter::decay;
 
 ExponentialDecay::ExponentialDecay(unsigned int max_iterations) {
     set_characteristic_time(max_iterations/2);
@@ -15,7 +15,7 @@ ExponentialDecay::ExponentialDecay(unsigned int max_iterations) {
 
 ExponentialDecay::~ExponentialDecay() = default;
 
-double ExponentialDecay::get_factor() {
+double ExponentialDecay::next() {
     return std::exp(-decay_rate*draws++);
 }
 

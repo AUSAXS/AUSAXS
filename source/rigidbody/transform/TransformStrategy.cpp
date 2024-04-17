@@ -4,9 +4,12 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/transform/TransformStrategy.h>
-#include <rigidbody/RigidBody.h>
-#include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/transform/TransformGroup.h>
+#include <rigidbody/transform/BackupBody.h>
+#include <rigidbody/RigidBody.h>
+#include <hydrate/GridMember.h>
+#include <hydrate/Grid.h>
+#include <data/record/Atom.h>
 
 #include <vector>
 
@@ -24,6 +27,29 @@ void TransformStrategy::rotate(const Matrix<double>& M, TransformGroup& group) {
 
 void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& group) {
     std::for_each(group.bodies.begin(), group.bodies.end(), [&t] (data::Body* body) {body->translate(t);});
+}
+
+void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group) {
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group]     (data::Body* body) {body->translate(-group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]         (data::Body* body) {body->rotate(M);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (data::Body* body) {body->translate(group.pivot+t);});
+}
+
+void TransformStrategy::apply(const Matrix<double>& M, const Vector3<double>& t, unsigned int ibody) {
+    auto& body = rigidbody->get_body(ibody);
+
+    bodybackup.clear();
+    bodybackup.emplace_back(body, ibody);
+
+    auto grid = rigidbody->get_grid();
+    grid->remove(&body);
+
+    auto cm = body.get_cm();
+    body.translate(-cm);
+    body.rotate(M);
+    body.translate(cm + t);
+
+    grid->add(&body);
 }
 
 void TransformStrategy::undo() {

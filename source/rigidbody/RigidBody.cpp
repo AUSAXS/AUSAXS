@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/RigidBody.h>
+#include <rigidbody/detail/BestConf.h>
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
@@ -36,10 +37,6 @@ using namespace rigidbody;
 using namespace rigidbody::constraints;
 using namespace rigidbody::parameter;
 
-rigidbody::detail::BestConf::BestConf() = default;
-rigidbody::detail::BestConf::BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::record::Water> waters, double chi2) noexcept : grid(std::move(grid)), waters(std::move(waters)), chi2(chi2) {}
-rigidbody::detail::BestConf::~BestConf() = default;
-
 RigidBody::~RigidBody() = default;
 
 RigidBody::RigidBody(data::Molecule&& protein) : data::Molecule(std::move(protein)) {
@@ -57,7 +54,23 @@ void RigidBody::initialize() {
     constraints = std::make_shared<ConstraintManager>(this);
 }
 
-std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_path) {
+void RigidBody::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
+    this->constraints = constraints;
+}
+
+void RigidBody::set_body_select_manager(std::shared_ptr<rigidbody::selection::BodySelectStrategy> body_selector) {
+    this->body_selector = body_selector;
+}
+
+void RigidBody::set_transform_manager(std::shared_ptr<rigidbody::transform::TransformStrategy> transform) {
+    this->transform = transform;
+}
+
+void RigidBody::set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters) {
+    this->parameter_generator = parameters;
+}
+
+std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measurement_path) {
     generate_new_hydration();
     prepare_fitter(measurement_path);
 
@@ -81,17 +94,17 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
     for (unsigned int i = 0; i < settings::rigidbody::iterations; i++) {
         if (optimize_step(best)) [[unlikely]] {
             trajectory.write_frame(this);
-            std::cout << "\rIteration " << i << std::endl;
+            std::cout << "Iteration " << i << std::endl;
             console::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(best.chi2));
         } else [[likely]] {
             if (i % 10 == 0 && settings::general::verbose) {
-                std::cout << "\rIteration " << i << "          " << std::flush;
+                std::cout << "Iteration " << i << "          " << std::flush;
             }
         }
     }
 
     save(settings::general::output + "optimized.pdb");
-    update_fitter(fitter);
+    update_fitter();
     auto fit = fitter->fit();
     if (calibration != nullptr) {fit->add_parameter(calibration->get_parameter("c"));}
     return fit;
@@ -102,22 +115,29 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
 
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = body_selector->next();
-    DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
-    Parameter param = parameter_generator->next();
+    if (iconstraint == -1) {    // transform free body
+        Parameter param = parameter_generator->next();
+        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
+        transform->apply(R, param.dr, ibody);
+    } else {                    // transform constrained body
+        DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
+        Parameter param = parameter_generator->next();
 
-    Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-    transform->apply(R, param.dr, constraint);
+        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
+        transform->apply(R, param.dr, constraint);
+    }
     generate_new_hydration(); 
 
     // update the body location in the fitter
-    update_fitter(fitter);
+    update_fitter();
     double new_chi2 = fitter->fit_chi2_only();
 
     // if the old configuration was better
     if (new_chi2 >= best.chi2) {
         transform->undo();          // undo the body transforms
         *grid = *best.grid;         // restore the old grid
-        get_waters() = best.waters;     // restore the old waters
+        get_waters() = best.waters; // restore the old waters
+        signal_modified_hydration_layer();
         return false;
     } else {
         // accept the changes
@@ -148,7 +168,21 @@ void RigidBody::prepare_fitter(const std::string& measurement_path) {
     }
 }
 
-void RigidBody::update_fitter(std::shared_ptr<fitter::LinearFitter> fitter) {
+std::unique_ptr<fitter::LinearFitter> RigidBody::get_unconstrained_fitter(const io::ExistingFile& saxs) const {
+    if (calibration == nullptr) {
+        return std::make_unique<fitter::HydrationFitter>(saxs, get_histogram());
+    } else {
+        auto histogram = get_histogram();
+        histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
+        return std::make_unique<fitter::LinearFitter>(saxs, std::move(histogram));
+    }
+}
+
+std::shared_ptr<fitter::LinearFitter> RigidBody::get_fitter() const {
+    return fitter;
+}
+
+void RigidBody::update_fitter() {
     if (calibration == nullptr) {
         fitter->set_scattering_hist(get_histogram());
     } else {

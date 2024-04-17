@@ -2,10 +2,9 @@
 
 #include <math/Matrix.h>
 #include <utility/Axis.h>
-#include <plots/PlotOptions.h>
 
 namespace hist {
-    class Histogram2D : public Matrix<double>, public plots::Plottable {
+    class Histogram2D : public Matrix<double> {
         public: 
             Histogram2D() = default;
 

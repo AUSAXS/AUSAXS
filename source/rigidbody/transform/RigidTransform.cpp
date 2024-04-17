@@ -34,8 +34,7 @@ void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, co
         grid->remove(body);
     }
 
-    rotate(M, group);
-    translate(t, group);
+    rotate_and_translate(M, t, group);
 
     // add them back to the grid
     for (auto& body : group.bodies) {

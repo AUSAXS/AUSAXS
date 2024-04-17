@@ -24,8 +24,11 @@ namespace rigidbody {
 
                 /**
                  * @brief Get the index of the next body and constraint to be transformed. 
+                 * 
+                 * @return A pair with the index of the body and the index of the constraint to be transformed. 
+                 *         The latter is -1 if the body should be transformed independently. 
                  */
-                virtual std::pair<unsigned int, unsigned int> next() = 0;
+                virtual std::pair<unsigned int, int> next() = 0;
 
             protected: 
                 const RigidBody* rigidbody;

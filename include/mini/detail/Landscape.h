@@ -1,13 +1,12 @@
 #pragma once
 
 #include <dataset/SimpleDataset.h>
-#include <plots/PlotOptions.h>
 #include <mini/detail/Evaluation.h>
 
 #include <vector>
 
 namespace mini {
-    class Landscape : public plots::Plottable {
+    class Landscape {
         public: 
             /**
              * @brief Default constructor.
