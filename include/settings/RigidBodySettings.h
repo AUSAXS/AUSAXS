@@ -29,9 +29,11 @@ namespace settings::rigidbody {
 
 namespace settings::rigidbody {
     enum class BodySelectStrategyChoice {
-        RandomSelect,           // Select a random body, then a random constraint within that body. 
-        RandomConstraintSelect, // Select a random constraint. 
-        SequentialSelect        // Select the first constraint, then the second, etc.
+        RandomBodySelect,           // Select a random body, then a random constraint within that body. 
+        RandomConstraintSelect,     // Select a random constraint. 
+        SequentialBodySelect,       // Select the first constraint, then the second, etc.
+        SequentialConstraintSelect, // Select the first body, then the second, etc.
+        ManualSelect                // Select a body and a constraint manually.
     };
     extern BodySelectStrategyChoice body_select_strategy;
 }

@@ -22,7 +22,7 @@ RandomConstraintSelect::RandomConstraintSelect(const RigidBody* rigidbody) : Bod
 
 RandomConstraintSelect::~RandomConstraintSelect() = default;
 
-std::pair<unsigned int, unsigned int> RandomConstraintSelect::next() {
+std::pair<unsigned int, int> RandomConstraintSelect::next() {
     unsigned int iconstraint = distribution(generator);
     const auto& constraint = rigidbody->get_constraint_manager()->distance_constraints[iconstraint];
     unsigned int ibody = constraint.ibody1;

@@ -7,13 +7,12 @@
 namespace rigidbody {
     namespace selection {
         /**
-         * @brief The next constraint is randomly selected, with the body being the one to which the constraint is connected.
-		 *        This strategy will throw an exception if a body has no constraints.
+         * @brief The next body is randomly selected, and the next constraint is randomly selected from the constraints connecting to that body.
          */
-        class RandomConstraintSelect : public BodySelectStrategy {
+        class RandomBodySelect : public BodySelectStrategy {
             public: 
-                RandomConstraintSelect(const RigidBody* rigidbody);
-                ~RandomConstraintSelect() override;
+                RandomBodySelect(const RigidBody* rigidbody);
+                ~RandomBodySelect() override;
 
                 std::pair<unsigned int, int> next() override; ///< @copydoc BodySelectStrategy::next()
 
