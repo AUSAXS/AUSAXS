@@ -48,7 +48,7 @@ namespace rigidbody {
 			/**
 			 * @brief Create a new fitter for this rigid body. This fitter will not include any constraints.
 			 */
-			std::unique_ptr<fitter::LinearFitter> get_unconstrained_fitter() const;
+			std::unique_ptr<fitter::LinearFitter> get_unconstrained_fitter(const io::ExistingFile& saxs) const;
 
 			void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
 

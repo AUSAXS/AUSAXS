@@ -24,8 +24,6 @@ RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbo
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, data::Body& body) {}
-
 void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
@@ -36,8 +34,7 @@ void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, co
         grid->remove(body);
     }
 
-    rotate(M, group);
-    translate(t, group);
+    rotate_and_translate(M, t, group);
 
     // add them back to the grid
     for (auto& body : group.bodies) {

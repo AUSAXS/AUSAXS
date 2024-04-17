@@ -118,7 +118,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     if (iconstraint == -1) {    // transform free body
         Parameter param = parameter_generator->next();
         Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        transform->apply(R, param.dr, get_body(ibody));
+        transform->apply(R, param.dr, ibody);
     } else {                    // transform constrained body
         DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
         Parameter param = parameter_generator->next();
@@ -168,13 +168,13 @@ void RigidBody::prepare_fitter(const std::string& measurement_path) {
     }
 }
 
-std::unique_ptr<fitter::LinearFitter> RigidBody::get_unconstrained_fitter() const {
+std::unique_ptr<fitter::LinearFitter> RigidBody::get_unconstrained_fitter(const io::ExistingFile& saxs) const {
     if (calibration == nullptr) {
-        return std::make_unique<fitter::HydrationFitter>(get_histogram());
+        return std::make_unique<fitter::HydrationFitter>(saxs, get_histogram());
     } else {
         auto histogram = get_histogram();
         histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        return std::make_unique<fitter::LinearFitter>(std::move(histogram));
+        return std::make_unique<fitter::LinearFitter>(saxs, std::move(histogram));
     }
 }
 

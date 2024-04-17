@@ -2,6 +2,7 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
+#include <data/DataFwd.h>
 #include <math/MathFwd.h>
 
 #include <vector>
@@ -36,9 +37,9 @@ namespace rigidbody::transform {
              * 
              * @param M The rotation matrix.
              * @param t The translation vector. 
-             * @param body The body to transform.
+             * @param ibody The index of the body to transform.
              */
-            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, data::Body& body) = 0;
+            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, unsigned int ibody);
 
             /**
              * @brief Undo the previous transformation. 
@@ -54,6 +55,15 @@ namespace rigidbody::transform {
              * @brief Create a backup of the bodies in the group.
              */
             void backup(TransformGroup& group);
+
+            /**
+             * @brief Rotate and translate a body. 
+             * 
+             * @param M The rotation matrix.
+             * @param t The translation vector.
+             * @param group The group to apply the transformation to.
+             */
+            void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group);
 
             /**
              * @brief Rotate a body. 

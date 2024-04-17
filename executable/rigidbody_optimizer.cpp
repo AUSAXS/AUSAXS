@@ -118,7 +118,7 @@ int main(int argc, char const *argv[]) {
         rigidbody.optimize(mfile);
         rigidbody.save(settings::general::output + "optimized.pdb");
 
-        std::shared_ptr<fitter::Fit> res = rigidbody.get_unconstrained_fitter()->fit();
+        std::shared_ptr<fitter::Fit> res = rigidbody.get_unconstrained_fitter(mfile)->fit();
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
         plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");

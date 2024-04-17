@@ -16,9 +16,6 @@ namespace rigidbody::transform {
             ///< @copydoc TransformStrategy::apply(const Matrix<double>&, const Vector3<double>&, constraints::DistanceConstraint&)
             void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) override;
 
-            ///< @copydoc TransformStrategy::apply(const Matrix<double>&, const Vector3<double>&, data::Body&)
-            void apply(const Matrix<double>& M, const Vector3<double>& t, data::Body& body) override;
-
         protected:
             /**
              * @brief Get all bodies connected by constraints to the first body of the pivot. 

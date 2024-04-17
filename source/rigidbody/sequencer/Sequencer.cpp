@@ -49,5 +49,5 @@ std::shared_ptr<fitter::Fit> Sequencer::execute() {
         e->run();
     }
 
-    return rigidbody->get_unconstrained_fitter()->fit();
+    return rigidbody->get_unconstrained_fitter(saxs)->fit();
 }

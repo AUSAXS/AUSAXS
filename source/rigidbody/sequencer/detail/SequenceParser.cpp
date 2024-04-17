@@ -78,9 +78,10 @@ settings::rigidbody::TransformationStrategyChoice get_transform_strategy(std::st
 }
 
 settings::rigidbody::BodySelectStrategyChoice get_body_select_strategy(std::string_view line) {
-    if (line == "random_body") {return settings::rigidbody::BodySelectStrategyChoice::RandomSelect;}
+    if (line == "random_body") {return settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect;}
     if (line == "random_constraint") {return settings::rigidbody::BodySelectStrategyChoice::RandomConstraintSelect;}
-    if (line == "sequential") {return settings::rigidbody::BodySelectStrategyChoice::SequentialSelect;}
+    if (line == "sequential_body") {return settings::rigidbody::BodySelectStrategyChoice::SequentialBodySelect;}
+    if (line == "sequential_constraint") {return settings::rigidbody::BodySelectStrategyChoice::SequentialConstraintSelect;}
     throw except::invalid_argument("SequenceParser::get_body_select_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
@@ -447,7 +448,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
 
                 // check for comment tokens 
                 int end = sub_tokens.size();
-                for (int i = 0; i < sub_tokens.size(); i++) {
+                for (unsigned int i = 0; i < sub_tokens.size(); i++) {
                     if (sub_tokens[i][0] == '#') {
                         end = i;
                         break;
