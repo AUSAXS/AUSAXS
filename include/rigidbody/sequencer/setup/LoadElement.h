@@ -21,5 +21,7 @@ namespace rigidbody::sequencer {
         private:
             observer_ptr<Sequencer> owner;
             std::unique_ptr<rigidbody::RigidBody> rigidbody;
+
+            std::vector<std::string> load_wildcarded(const std::string& path);
     };
 }

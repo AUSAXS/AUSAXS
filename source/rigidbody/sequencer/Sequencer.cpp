@@ -37,6 +37,7 @@ bool Sequencer::_optimize_step() const {
     return rigidbody->optimize_step(*best);
 }
 
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 std::shared_ptr<fitter::Fit> Sequencer::execute() {
     // prepare rigidbody
     rigidbody->generate_new_hydration();

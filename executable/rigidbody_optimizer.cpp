@@ -52,7 +52,7 @@ int main(int argc, char const *argv[]) {
     //###################//
     //### PARSE INPUT ###//
     //###################//
-    try {
+//    try {
         settings::general::output += mfile.stem() + "/";
 
         // check if pdb is a config script
@@ -122,9 +122,9 @@ int main(int argc, char const *argv[]) {
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
         plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
-    } catch (const std::exception& e) {
-        console::print_warning(e.what());
-        throw e;
-    }
+    // } catch (const std::exception& e) {
+    //     console::print_warning(e.what());
+    //     throw e;
+    // }
     return 0;
 }
