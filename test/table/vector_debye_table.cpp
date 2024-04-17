@@ -39,8 +39,6 @@ TEST_CASE("VectorDebyeTable::correct_values") {
 
 TEST_CASE("VectorDebyeTable::iterators") {
     table::VectorDebyeTable debye_table(std::vector<double>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
-    unsigned int i = 0;
-
     for (unsigned int i = 0; i < 10; ++i) {
         unsigned int j = 0;
         for (auto it = debye_table.begin(i); it != debye_table.end(i); ++it) {

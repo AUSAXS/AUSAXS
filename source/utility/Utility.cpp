@@ -43,7 +43,7 @@ utility::detail::__dummy utility::fixedwidth(double number, unsigned int width) 
         }
     }
     if (end < s.size()) {
-        s = s.substr(0, end);
+        s.resize(end);
     }
 
     std::string o;

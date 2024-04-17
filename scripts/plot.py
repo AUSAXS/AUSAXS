@@ -1,12 +1,11 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import sys
 import os
 
 from plot_helper import *
 
 # handle command line arguments
-help = "Usage: plot <folder>\nPlots all .plot files in the given folder and subfolders."
+help_msg = "Usage: plot <folder>\nPlots all .plot files in the given folder and subfolders."
 params = {
     'legend.fontsize': 14,
     'figure.figsize': (10, 8),
@@ -19,7 +18,7 @@ params = {
 
 title=""
 match len(sys.argv):
-    case 1: 
+    case 1:
         if os.path.exists("output"):
             folder = "output"
         else:
@@ -28,7 +27,7 @@ match len(sys.argv):
     case 2:
         if (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
             print("Plotting tool for the .plot files from AUSAXS.")
-            print(help)
+            print(help_msg)
             exit(0)
         else:
             folder = sys.argv[1]
@@ -61,14 +60,14 @@ match len(sys.argv):
                 'ytick.labelsize': 18,
                 'lines.markersize': 10
             }
-    
+
     case 4:
         folder = sys.argv[1]
         if sys.argv[2] == "--logtitle":
             title=sys.argv[3]
             
     case _:
-        print(help)
+        print(help_msg)
         exit(0)
 
 plt.rcParams.update(params)

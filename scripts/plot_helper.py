@@ -61,12 +61,12 @@ class Options:
         words = line.split()
         if len(words) < 2:
             return
-        
+
         if words[0].startswith("#"):
             return
 
         # visuals
-        match (words[0]): 
+        match (words[0]):
             case "color":
                 self.color = words[1]
             case "line_style":
@@ -115,11 +115,11 @@ class Options:
                 self.xshift = float(words[1])
 
         # other stuff
-            case "dof": 
+            case "dof":
                 self.dof = int(words[1])
             case "stagger":
                 self.stagger = float(words[1])
-            case "normalize": 
+            case "normalize":
                 self.normalize = float(words[1])
 
         # invalid option
@@ -132,7 +132,7 @@ class Dataset:
         self.data = np.array(data)
         self.options = options
 
-class Hline: 
+class Hline:
     def __init__(self, y, options):
         self.y = y
         self.options = options
@@ -202,7 +202,7 @@ def read_dataset(file):
                 data[i][1] /= scaling
                 data[i][2] /= scaling
 
-    if options.stagger != 1: 
+    if options.stagger != 1:
         for i in range(len(data)):
             data[i][1] *= options.stagger
             data[i][2] *= options.stagger
@@ -260,7 +260,7 @@ def read_2dhist(file):
 
     ystep = (y_axis[2] - y_axis[1])/y_axis[0]
     for i in range(y_axis[0]):
-        y.append(y_axis[1] + i*ystep)       
+        y.append(y_axis[1] + i*ystep)
 
     z = []
     while(line := file.readline()):
@@ -276,7 +276,7 @@ def read_2dhist(file):
     return [np.array(x), np.array(y), np.array(z), read_options(file)]
 
 first_plot: bool = True
-def plot_dataset(d: Dataset): 
+def plot_dataset(d: Dataset):
     """Plots a dataset.
 
     Args:
@@ -295,31 +295,31 @@ def plot_dataset(d: Dataset):
         if (d.data.shape[1] < 3):
             print("plot_dataset: Not enough columns for error bars.")
             exit(1)
-        plt.errorbar(d.data[:,0], d.data[:,1], yerr=d.data[:,2], 
-            color=d.options.color, 
+        plt.errorbar(d.data[:,0], d.data[:,1], yerr=d.data[:,2],
+            color=d.options.color,
             linestyle="none",
-            marker=d.options.markerstyle, 
-            markersize=d.options.markersize*marker_scaling, 
+            marker=d.options.markerstyle,
+            markersize=d.options.markersize*marker_scaling,
             label=d.options.legend,
             capsize=2*marker_scaling,
             zorder=5
         )
 
-    elif d.options.drawmarker: 
-        plt.plot(d.data[:,0], d.data[:,1], 
-            color=d.options.color, 
+    elif d.options.drawmarker:
+        plt.plot(d.data[:,0], d.data[:,1],
+            color=d.options.color,
             linestyle="none",
-            marker=d.options.markerstyle, 
-            markersize=d.options.markersize*marker_scaling, 
+            marker=d.options.markerstyle,
+            markersize=d.options.markersize*marker_scaling,
             label=d.options.legend,
             zorder=d.options.zorder
         )
 
     if d.options.drawline:
-        plt.plot(d.data[:,0], d.data[:,1], 
-            color=d.options.color, 
-            linestyle=d.options.linestyle, 
-            linewidth=d.options.linewidth*marker_scaling, 
+        plt.plot(d.data[:,0], d.data[:,1],
+            color=d.options.color,
+            linestyle=d.options.linestyle,
+            linewidth=d.options.linewidth*marker_scaling,
             label=d.options.legend,
             zorder=d.options.zorder
         )
@@ -340,7 +340,7 @@ def plot_dataset(d: Dataset):
         if (d.options.ylog):
             plt.yscale("log")
     if (d.options.legend != ""):
-        plt.legend()        
+        plt.legend()
     return
 
 def plot_hline(h: Hline):
@@ -350,10 +350,10 @@ def plot_hline(h: Hline):
         h: The horizontal line to plot.
     """
 
-    plt.axhline(h.y, 
-        color=h.options.color, 
-        linestyle=h.options.linestyle, 
-        linewidth=h.options.linewidth*marker_scaling, 
+    plt.axhline(h.y,
+        color=h.options.color,
+        linestyle=h.options.linestyle,
+        linewidth=h.options.linewidth*marker_scaling,
     )
     return
 
@@ -364,10 +364,10 @@ def plot_vline(v: Vline):
         v: The vertical line to plot.
     """
 
-    plt.axvline(v.x, 
-        color=v.options.color, 
-        linestyle=v.options.linestyle, 
-        linewidth=v.options.linewidth*marker_scaling, 
+    plt.axvline(v.x,
+        color=v.options.color,
+        linestyle=v.options.linestyle,
+        linewidth=v.options.linewidth*marker_scaling,
     )
     return
 
@@ -379,27 +379,12 @@ def plot_landscape(d: Dataset):
     """
     
     ax = plt.gcf().add_subplot(111, projection='3d')
-    def log_tick_formatter(val, pos=None):
-        return f"$10^{{{int(val)}}}$"  # remove int() if you don't use MaxNLocator
-        # return f"{10**val:.2e}"      # e-Notation
-
-    # ax.zaxis.set_major_formatter(mpl.ticker.FuncFormatter(log_tick_formatter))
-    # ax.zaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
-
-    # ax.plot_trisurf(d.data[:,0], d.data[:,1], np.log10(d.data[:,2]), cmap=mpl.cm.coolwarm)
-
-    # x, y, z = d.data[:, 0], d.data[:, 1], np.log10(d.data[:, 2])
     x, y, z = d.data[:, 0], d.data[:, 1], d.data[:, 2]
-    # lim = 5*np.min(z)
-    # x = x[z < lim]
-    # y = y[z < lim]
-    # z = z[z < lim]
 
     ax.scatter(x, y, z, c=z, cmap=mpl.colormaps["coolwarm"])
     ax.set_xlabel(r"{}".format(d.options.xlabel))
     ax.set_ylabel(r"{}".format(d.options.ylabel))
     ax.set_zlabel(r"{}".format(d.options.zlabel))
-    # plt.show()
     return
 
 def plot_image(x, y, z):
@@ -459,7 +444,7 @@ def plot_file(file: str):
                     plot_vline(vline)
 
                 case PlotType.Landscape:
-                    dataset: Dataset = read_dataset(f)    
+                    dataset: Dataset = read_dataset(f)
                     plot_landscape(dataset)
 
                 case PlotType.Histogram:
@@ -467,14 +452,14 @@ def plot_file(file: str):
                     plot_dataset(dataset)
 
                 case PlotType.Image:
-                    x, y, z, options = read_2dhist(f)
+                    x, y, z, _ = read_2dhist(f)
                     plot_image(x, y, z)
 
                 case PlotType.ImageAtoms:
                     print("ImageAtoms not implemented yet.")
                     exit(1)
 
-                case _: 
+                case _:
                     print("plot_file: Invalid plot type: " + line)
                     exit(1)
 
@@ -523,7 +508,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, title=""):
     ax[0].semilogy()
     if title != "":
         ax[0].set_title(title)
-    else: 
+    else:
         ax[0].set_title(os.path.basename(os.path.abspath(data_file.split('.')[0])))
 
     ax[1].axhline(0, color='k', lw=0.5)
