@@ -115,11 +115,17 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
 
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = body_selector->next();
-    DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
-    Parameter param = parameter_generator->next();
+    if (iconstraint == -1) {    // transform free body
+        Parameter param = parameter_generator->next();
+        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
+        transform->apply(R, param.dr, get_body(ibody));
+    } else {                    // transform constrained body
+        DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
+        Parameter param = parameter_generator->next();
 
-    Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-    transform->apply(R, param.dr, constraint);
+        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
+        transform->apply(R, param.dr, constraint);
+    }
     generate_new_hydration(); 
 
     // update the body location in the fitter

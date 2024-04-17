@@ -12,16 +12,10 @@ namespace rigidbody::transform {
             SingleTransform(RigidBody* rigidbody);
             ~SingleTransform() override;
 
-            /**
-             * @brief Apply a transformation to the rigidbody. 
-             * The body to the left of the constraint (body1) is transformed, with atom2 from the right body as the pivot point.
-             * 
-             * The most recent transformation can be undone by calling undo().
-             * 
-             * @param M The rotation matrix.
-             * @param t The translation vector. 
-             * @param constraint The constraint to transform along.
-             */
+            ///< @copydoc TransformStrategy::apply(const Matrix<double>&, const Vector3<double>&, constraints::DistanceConstraint&)
             void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) override;
+
+            ///< @copydoc TransformStrategy::apply(const Matrix<double>&, const Vector3<double>&, data::Body&)
+            void apply(const Matrix<double>& M, const Vector3<double>& t, data::Body& body) override;
     };
 }

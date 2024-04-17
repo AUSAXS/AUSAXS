@@ -2,7 +2,6 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
-#include <utility/Concepts.h>
 #include <math/MathFwd.h>
 
 #include <vector>
@@ -16,18 +15,11 @@ namespace rigidbody::transform {
      */
     class TransformStrategy {
         public:
-            /**
-             * @brief Construtor. 
-             */
             TransformStrategy(RigidBody* rigidbody);
-
-            /**
-             * @brief Destructor.
-             */
             virtual ~TransformStrategy();
 
             /**
-             * @brief Apply a transformation to a body. 
+             * @brief Apply a transformation to a constraint.
              * 
              * The most recent transformation can be undone by calling undo().
              * 
@@ -36,6 +28,17 @@ namespace rigidbody::transform {
              * @param constraint The constraint to transform along.
              */
             virtual void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) = 0;
+
+            /**
+             * @brief Apply a transformation to a body. 
+             * 
+             * The most recent transformation can be undone by calling undo().
+             * 
+             * @param M The rotation matrix.
+             * @param t The translation vector. 
+             * @param body The body to transform.
+             */
+            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, data::Body& body) = 0;
 
             /**
              * @brief Undo the previous transformation. 

@@ -24,6 +24,8 @@ RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbo
 
 RigidTransform::~RigidTransform() = default;
 
+void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, data::Body& body) {}
+
 void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
