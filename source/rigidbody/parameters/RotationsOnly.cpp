@@ -10,23 +10,12 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::parameter;
 
-RotationsOnly::RotationsOnly(int iterations, double length_start, double rad_start) : ParameterGenerationStrategy(iterations, length_start, rad_start) {}
-
 RotationsOnly::~RotationsOnly() = default;
 
-std::tuple<double, double, double> RotationsOnly::get_rotation() {
-    double scaling = scale();
-
+Parameter RotationsOnly::next() {
+    double scaling = decay_strategy->next();
     double dr1 = rotation_dist(generator)*scaling;
     double dr2 = rotation_dist(generator)*scaling;
     double dr3 = rotation_dist(generator)*scaling;
-    return std::tuple(dr1, dr2, dr3);
-}
-
-Vector3<double> RotationsOnly::get_translation() {
-    return Vector3(0., 0., 0.);
-}
-
-double RotationsOnly::scale() const {
-    return double(iterations - iteration)/iterations; 
+    return Parameter({0, 0, 0}, dr1, dr2, dr3);
 }

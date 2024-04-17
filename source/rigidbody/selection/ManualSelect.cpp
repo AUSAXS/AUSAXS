@@ -12,6 +12,6 @@ ManualSelect::ManualSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigi
 
 ManualSelect::~ManualSelect() = default;
 
-std::pair<unsigned int, unsigned int> ManualSelect::next() {
+std::pair<unsigned int, int> ManualSelect::next() {
     throw except::not_implemented("ManualSelect::next: Not implemented.");
 }

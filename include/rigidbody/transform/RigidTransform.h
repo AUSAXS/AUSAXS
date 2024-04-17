@@ -10,25 +10,10 @@ namespace rigidbody::transform {
      */
     class RigidTransform : public TransformStrategy {
         public:
-            /**
-             * @brief Construtor. 
-             */
             RigidTransform(RigidBody* rigidbody);
-
-            /**
-             * @brief Destructor.
-             */
             ~RigidTransform() override;
 
-            /**
-             * @brief Apply a transformation to the rigidbody.
-             * 
-             * The most recent transformation can be undone by calling undo().
-             * 
-             * @param M The rotation matrix.
-             * @param t The translation vector. 
-             * @param constraint The constraint to transform along.
-             */
+            ///< @copydoc TransformStrategy::apply(const Matrix<double>&, const Vector3<double>&, constraints::DistanceConstraint&)
             void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) override;
 
         protected:

@@ -29,17 +29,20 @@ namespace settings::rigidbody {
 
 namespace settings::rigidbody {
     enum class BodySelectStrategyChoice {
-        RandomSelect,           // Select a random body, then a random constraint within that body. 
-        RandomConstraintSelect, // Select a random constraint. 
-        SequentialSelect        // Select the first constraint, then the second, etc.
+        RandomBodySelect,           // Select a random body, then a random constraint within that body. 
+        RandomConstraintSelect,     // Select a random constraint. 
+        SequentialBodySelect,       // Select the first constraint, then the second, etc.
+        SequentialConstraintSelect, // Select the first body, then the second, etc.
+        ManualSelect                // Select a body and a constraint manually.
     };
     extern BodySelectStrategyChoice body_select_strategy;
 }
 
 namespace settings::rigidbody {
     enum class ParameterGenerationStrategyChoice {
-        Simple,         // Generate translation and rotation parameters. Their amplitudes decays linearly with the iteration number.
-        RotationsOnly   // Only generate rotation parameters. The amplitudes decays linearly with the iteration number.
+        Simple,             // Generate translation and rotation parameters.
+        RotationsOnly,      // Only generate rotation parameters.
+        TranslationsOnly    // Only generate translation parameters.
     };
     extern ParameterGenerationStrategyChoice parameter_generation_strategy;
 }

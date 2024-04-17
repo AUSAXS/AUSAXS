@@ -15,7 +15,7 @@ namespace plots {
              * @param data The landscape which will be plotted. 
              * @param path The path to the folder where the plot will be saved. 
              */
-            PlotLandscape(const mini::Landscape& data, const io::File& path);
+            PlotLandscape(const mini::Landscape& data, const PlotOptions& options, const io::File& path);
 
             /**
              * @brief Destructor. 
@@ -26,6 +26,6 @@ namespace plots {
              * @brief Plot and save the input dataset at the specified location. 
              * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
              */
-            static void quick_plot(const mini::Landscape& data, const io::File& path);
+            static void quick_plot(const mini::Landscape& data, const PlotOptions& options, const io::File& path);
     };
 }

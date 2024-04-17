@@ -12,6 +12,14 @@ ParameterElementCallback::ParameterElementCallback(ParameterElement* caller) : L
 
 ParameterElementCallback::~ParameterElementCallback() = default;
 
-ParameterElement& ParameterElementCallback::amplitude(double amplitude) {
-    return caller->amplitude(amplitude);
+ParameterElement& ParameterElementCallback::max_rotation_angle(double radians) {
+    return caller->max_rotation_angle(radians);
+}
+
+ParameterElement& ParameterElementCallback::max_translation_distance(double distance) {
+    return caller->max_translation_distance(distance);
+}
+
+ParameterElement& ParameterElementCallback::decay_strategy(std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> strategy) {
+    return caller->decay_strategy(std::move(strategy));
 }

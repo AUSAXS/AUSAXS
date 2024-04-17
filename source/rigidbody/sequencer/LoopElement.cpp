@@ -5,90 +5,99 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/sequencer/LoopElement.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/RigidBodyManager.h>
 #include <rigidbody/sequencer/ParameterElement.h>
 #include <rigidbody/sequencer/BodySelectElement.h>
 #include <rigidbody/sequencer/TransformElement.h>
-
-#include <iostream>
+#include <rigidbody/sequencer/OptimizeStepElement.h>
+#include <rigidbody/sequencer/EveryNStepElement.h>
+#include <rigidbody/sequencer/SaveElement.h>
 
 using namespace rigidbody::sequencer;
 
-LoopElement::LoopElement() : 
-    parameter_element(std::make_unique<ParameterElement>(this)), 
-    body_select_element(std::make_unique<BodySelectElement>(this)), 
-    transform_element(std::make_unique<TransformElement>(this)) 
-{}
-
-LoopElement::LoopElement(LoopElement* owner) : 
-    owner(owner),
-    parameter_element(std::make_unique<ParameterElement>(this)), 
-    body_select_element(std::make_unique<BodySelectElement>(this)), 
-    transform_element(std::make_unique<TransformElement>(this)) 
-{}
-
-LoopElement::LoopElement(LoopElement* owner, unsigned int repeats) : 
-    owner(owner),
-    iterations(repeats),
-    parameter_element(std::make_unique<ParameterElement>(this)), 
-    body_select_element(std::make_unique<BodySelectElement>(this)), 
-    transform_element(std::make_unique<TransformElement>(this)) 
-{}
+LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {
+    if (iterations == 1) {return;}
+    int this_will_run = iterations;
+    auto next_owner = _get_owner();
+    int escape_counter = 0;
+    while (dynamic_cast<Sequencer*>(next_owner) == nullptr) {
+        if (++escape_counter < 100) {throw std::runtime_error("LoopElement::LoopElement: owner chain too long");}
+        if (next_owner == nullptr) {break;}
+        this_will_run *= next_owner->iterations;
+        next_owner = next_owner->_get_owner();
+    }
+    total_loop_count += this_will_run;
+}
 
 LoopElement::~LoopElement() = default;
 
-void LoopElement::execute() {
-    std::cout << "LoopElement::execute()" << std::endl;
-    parameter_element->apply();
-    body_select_element->apply();
-    transform_element->apply();
+std::shared_ptr<fitter::Fit> LoopElement::execute() {
+    return owner->execute(); // propagate upwards to the main Sequencer
+}
 
-    // if this is a root node, run it the given number of times. 
-    if (is_root) {
-        for (unsigned int i = 0; i < iterations; i++) {
-            this->run();
-        }
-    } else { // else run the inner loops the given number of times.
-        for (unsigned int i = 0; i < iterations; i++) {
-            for (auto& loop : inner_loops) {loop->execute();}
+LoopElement& LoopElement::loop(unsigned int repeats) {
+    elements.push_back(std::make_unique<LoopElement>(this, repeats));
+    return *static_cast<LoopElement*>(elements.back().get());
+}
+
+ParameterElement& LoopElement::parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy) {
+    elements.push_back(std::make_unique<ParameterElement>(this, std::move(strategy)));
+    return *static_cast<ParameterElement*>(elements.back().get());
+}
+
+BodySelectElement& LoopElement::body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) {
+    elements.push_back(std::make_unique<BodySelectElement>(this, std::move(strategy)));
+    return *static_cast<BodySelectElement*>(elements.back().get());
+}
+
+TransformElement& LoopElement::transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) {
+    elements.push_back(std::make_unique<TransformElement>(this, std::move(strategy)));
+    return *static_cast<TransformElement*>(elements.back().get());
+}
+
+void LoopElement::run() {
+    for (unsigned int i = 0; i < iterations; ++i) {
+        ++global_counter;
+        for (auto& element : elements) {
+            element->run();
         }
     }
 }
 
-LoopElement& LoopElement::loop(unsigned int repeats) {
-    std::cout << "LoopElement::loop(" << repeats << ")" << std::endl;
-    is_root = false;
-    LoopElement& ref = *inner_loops.emplace_back(std::make_unique<LoopElement>(owner, repeats));
-    ref.body_select_element->strategy = body_select_element->strategy;
-    ref.parameter_element->strategy = parameter_element->strategy;
-    ref.transform_element->strategy = transform_element->strategy;
-    return ref;
+observer_ptr<rigidbody::RigidBody> LoopElement::_get_rigidbody() const {
+    return owner->_get_rigidbody();
 }
 
-ParameterElement& LoopElement::parameter_strategy(settings::rigidbody::ParameterGenerationStrategyChoice strategy) {
-    std::cout << "LoopElement::parameter_strategy()" << std::endl;
-    parameter_element = std::make_unique<ParameterElement>(this, strategy);
-    return *parameter_element;
+observer_ptr<rigidbody::detail::BestConf> LoopElement::_get_best_conf() const {
+    return owner->_get_best_conf();
 }
 
-BodySelectElement& LoopElement::body_select_strategy(settings::rigidbody::BodySelectStrategyChoice strategy) {
-    std::cout << "LoopElement::body_select_strategy()" << std::endl;
-    body_select_element = std::make_unique<BodySelectElement>(this, strategy);
-    return *body_select_element;
+observer_ptr<LoopElement> LoopElement::_get_owner() const {
+    return owner;
 }
 
-TransformElement& LoopElement::transform_strategy(settings::rigidbody::TransformationStrategyChoice strategy) {
-    std::cout << "LoopElement::transform_strategy()" << std::endl;
-    transform_element = std::make_unique<TransformElement>(this, strategy);
-    return *transform_element;
+observer_ptr<const Sequencer> LoopElement::_get_sequencer() const {
+    return owner->_get_sequencer();
 }
 
-void LoopElement::run() {
-    std::cout << "LoopElement::run()" << std::endl;
-    rigidbody->optimize_step();
+std::vector<std::unique_ptr<GenericElement>>& LoopElement::_get_elements() {
+    return elements;
+}
+
+OptimizeStepElement& LoopElement::optimize() {
+    elements.push_back(std::make_unique<OptimizeStepElement>(this));
+    return *static_cast<OptimizeStepElement*>(elements.back().get());
 }
 
 LoopElement& LoopElement::end() {
-    std::cout << "LoopElement::end()" << std::endl;
     return *owner;
+}
+
+LoopElement& LoopElement::save(const io::File& path) {
+    elements.push_back(std::make_unique<SaveElement>(this, path));
+    return *this;
+}
+
+EveryNStepElement& LoopElement::every(unsigned int n) {
+    elements.push_back(std::make_unique<EveryNStepElement>(this, n));
+    return *static_cast<EveryNStepElement*>(elements.back().get());
 }

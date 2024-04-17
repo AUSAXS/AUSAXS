@@ -14,7 +14,7 @@ namespace plots {
              * 
              * @param image The image to be plotted. 
              */
-            PlotImage(const em::Image& image);
+            PlotImage(const em::Image& image, const PlotOptions& options);
 
             /**
              * @brief Destructor. 
@@ -32,9 +32,9 @@ namespace plots {
 			 * @brief Plot and save the input Image at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single Image. 
 			 */
-            static void quick_plot(const em::Image& image, const io::File& path);
+            static void quick_plot(const em::Image& image, const PlotOptions& options, const io::File& path);
 
         private:
-            void plot(const em::Image& image);
+            void plot(const em::Image& image, const PlotOptions& options);
     };
 }

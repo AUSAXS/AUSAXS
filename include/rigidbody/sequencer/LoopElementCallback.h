@@ -2,6 +2,8 @@
 
 #include <settings/RigidBodySettings.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/RigidbodyFwd.h>
+#include <io/IOFwd.h>
 
 namespace rigidbody {
     namespace sequencer {
@@ -28,17 +30,17 @@ namespace rigidbody {
                 /**
                  * @brief Set the parameter strategy.
                  */
-                ParameterElement& parameter_strategy(settings::rigidbody::ParameterGenerationStrategyChoice strategy);
+                ParameterElement& parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
 
                 /**
                  * @brief Set the body selection strategy.
                  */
-                BodySelectElement& body_select_strategy(settings::rigidbody::BodySelectStrategyChoice strategy);
+                BodySelectElement& body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
 
                 /**
                  * @brief Set the transformation strategy.
                  */
-                TransformElement& transform_strategy(settings::rigidbody::TransformationStrategyChoice strategy);
+                TransformElement& transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
 
                 /**
                  * @brief End the current loop.
@@ -46,12 +48,18 @@ namespace rigidbody {
                 LoopElement& end();
 
                 /**
-                 * @brief Execute this entire sequence. This is the last method that should be called.
+                 * @brief Perform the subroutines for every n iterations of this loop.
                  */
-                void execute();
+                EveryNStepElement& every(unsigned int n);
 
-            private: 
-                LoopElement* caller;
+                /**
+                 * @brief Save the current state of the system.
+                 *
+                 * @param path The path to save the state to. The extension of the file will determine the format.
+                 */
+                LoopElement& save(const io::File& path);
+
+                LoopElement* owner;
         };
     }
 }

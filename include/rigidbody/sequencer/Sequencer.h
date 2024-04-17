@@ -1,17 +1,34 @@
 #pragma once
 
+#include <rigidbody/sequencer/setup/SetupElement.h>
 #include <rigidbody/sequencer/LoopElement.h>
-#include <data/Molecule.h>
+#include <rigidbody/RigidbodyFwd.h>
+#include <data/DataFwd.h>
+#include <io/IOFwd.h>
+#include <utility/observer_ptr.h>
 
 namespace rigidbody {
     namespace sequencer {
-        class Sequencer : public LoopElement {
+        class Sequencer : public LoopElement, public SetupElement {
             public:
-                template<typename T> requires std::is_same_v<std::decay_t<T>, data::Molecule>
-                Sequencer(const io::ExistingFile& saxs, T&& protein);
+                Sequencer(const io::ExistingFile& saxs);
                 ~Sequencer();
 
-                void execute() override;
+                std::shared_ptr<fitter::Fit> execute() override;
+
+                observer_ptr<RigidBody>& _get_rigidbody();
+                observer_ptr<RigidBody> _get_rigidbody() const override;
+
+                observer_ptr<detail::BestConf> _get_best_conf() const override;
+
+                observer_ptr<const Sequencer> _get_sequencer() const override;
+
+    			bool _optimize_step() const;
+
+            private:
+                observer_ptr<RigidBody> rigidbody;
+                std::unique_ptr<detail::BestConf> best;
+                std::string saxs;
         };
     }
 }

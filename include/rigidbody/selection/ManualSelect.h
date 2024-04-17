@@ -5,24 +5,14 @@
 namespace rigidbody {
     namespace selection {
         /**
-         * @brief Thread-safe body selection strategy. The next body is manually selected.
+         * @brief The next body is manually selected, with the next constraint being a random one from the constraints connecting to that body.
          */
         class ManualSelect : public BodySelectStrategy {
             public: 
-                /**
-                 * @brief Constructor.
-                 */
                 ManualSelect(const RigidBody* rigidbody);
-
-                /**
-                 * @brief Destructor.
-                 */
                 ~ManualSelect() override;
 
-                /**
-                 * @brief Get the index of the next body to be transformed. 
-                 */
-                std::pair<unsigned int, unsigned int> next() override;
+                std::pair<unsigned int, int> next() override; ///< @copydoc BodySelectStrategy::next()
 
             private:
                 unsigned int ibody = 0; 		// The index of the body to be transformed. 

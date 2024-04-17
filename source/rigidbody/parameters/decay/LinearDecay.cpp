@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/parameters/decay/LinearDecay.h>
 
-using namespace rigidbody::parameters::decay;
+using namespace rigidbody::parameter::decay;
 
 LinearDecay::LinearDecay(unsigned int max_iterations) {
     set_characteristic_time(max_iterations/2);
@@ -13,7 +13,7 @@ LinearDecay::LinearDecay(unsigned int max_iterations) {
 
 LinearDecay::~LinearDecay() = default;
 
-double LinearDecay::get_factor() {
+double LinearDecay::next() {
     return 1.0 - decay_rate*draws++;
 }
 

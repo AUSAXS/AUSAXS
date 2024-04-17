@@ -7,24 +7,15 @@
 namespace rigidbody {
     namespace selection {
         /**
-         * @brief Thread-safe body selection strategy. The next constraint is randomly selected, with the body being the one to which the constraint is connected.
+         * @brief The next constraint is randomly selected, with the body being the one to which the constraint is connected.
+		 *        This strategy will throw an exception if a body has no constraints.
          */
         class RandomConstraintSelect : public BodySelectStrategy {
             public: 
-                /**
-                 * @brief Constructor.
-                 */
                 RandomConstraintSelect(const RigidBody* rigidbody);
-
-                /**
-                 * @brief Destructor.
-                 */
                 ~RandomConstraintSelect() override;
 
-                /**
-                 * @brief Get the index of the next body to be transformed. 
-                 */
-                std::pair<unsigned int, unsigned int> next() override;
+                std::pair<unsigned int, int> next() override; ///< @copydoc BodySelectStrategy::next()
 
             private:
                 std::mt19937 generator;                          // The random number generator. 
