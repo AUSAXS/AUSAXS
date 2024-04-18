@@ -30,6 +30,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
 
     std::string line; // placeholder for the current line
     while(getline(input, line)) {
+        if (line.empty()) {continue;}
         std::string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {
             case RecordType::ATOM: {

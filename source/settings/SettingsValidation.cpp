@@ -29,6 +29,7 @@ void settings::validate_settings() {
                     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
                 }
             }
+            [[fallthrough]];
         default:
             // check for excluded volume fitting compatibility
             if (settings::hist::fit_excluded_volume) {

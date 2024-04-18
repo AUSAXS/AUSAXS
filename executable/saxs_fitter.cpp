@@ -48,6 +48,8 @@ int main(int argc, char const *argv[]) {
     app.add_option_function<std::string>("--placement-strategy,--ps", [] (const std::string& s) {settings::detail::parse_option("placement_strategy", {s});}, "The placement strategy to use. Options: Radial, Axes, Jan.")->group("Advanced options");
     app.add_option("--exv_radius,--er", settings::grid::exv_radius, "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström.")->default_val(settings::grid::exv_radius)->group("Advanced options");
     app.add_option_function<std::string>("--histogram-manager,--hm", [] (const std::string& s) {settings::detail::parse_option("histogram_manager", {s});}, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
+    app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, "Decides whether the program will exit if an unknown atom is encountered.")->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
+    app.add_flag("--implicit-hydrogens,!--no-implicit-hydrogens", settings::molecule::implicit_hydrogens, "Decides whether implicit hydrogens will be added to the structure.")->default_val(settings::molecule::implicit_hydrogens)->group("Advanced options");
 
     // hidden options group
     app.add_flag("--foxs", settings::hist::use_foxs_method, "Decides whether the FOXS method will be used.")->default_val(settings::hist::use_foxs_method)->group("Hidden");
