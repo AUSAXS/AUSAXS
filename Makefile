@@ -275,7 +275,7 @@ foxs/%:
 
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 
-saxs_fit/%: build/bin/saxs_fitter
+intensity_fit/%: build/bin/intensity_fitter
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
@@ -283,7 +283,7 @@ saxs_fit/%: build/bin/saxs_fitter
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
 		$< $${measurement} $${pdb} ${options};\
-		make plot/output/saxs_fitter/$*;\
+		make plot/output/intensity_fitter/$*;\
 	done
 #		make plot_fits/$*;\
 
