@@ -20,7 +20,7 @@ options :=
 #################################################################################
 # Plot a SAXS dataset along with any accompanying fits
 plot_fits/%: scripts/compare_fit.py
-	@ measurement=$$(find output/intensity_fitter/ -name "$*.dat"); \
+	@ measurement=$$(find output/saxs_fitter/ -name "$*.dat"); \
 	for f in $${measurement}; do\
 		python3 $< $${f}; \
 	done
@@ -250,7 +250,17 @@ crysol/%:
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant ${options}
-	@ mv temp/crysol/out.fit output/intensity_fitter/$*/crysol.fit
+	@ mv temp/crysol/out.fit output/saxs_fitter/$*/crysol.fit
+
+# perform a fit with crysol
+crysol_exv/%: 
+	@ mkdir -p temp/crysol/
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	structure=$$(find $${folder}/ -name "*.pdb"); \
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --dro=0 --smax=1 ${options}
+	@ mv temp/crysol/out.fit output/saxs_fitter/$*/crysol.fit
+	@ mv temp/crysol/out.int output/saxs_fitter/$*/crysol.int
 
 # perform a fit with pepsi-saxs
 pepsi/%:
@@ -259,7 +269,7 @@ pepsi/%:
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" ${options}
-	@ mv temp/pepsi/pepsi.fit output/intensity_fitter/$*/pepsi.fit
+	@ mv temp/pepsi/pepsi.fit output/saxs_fitter/$*/pepsi.fit
 
 foxs/%:
 	@ rm -rf temp/foxs
@@ -271,7 +281,20 @@ foxs/%:
 	cp $${structure} .; \
 	cp $${measurement} .; \
 	foxs $$(basename "$${structure}") $$(basename "$${measurement}") ${options}
-	@ mv temp/foxs/*.fit output/intensity_fitter/$*/foxs.fit
+	@ mv temp/foxs/*.fit output/saxs_fitter/$*/foxs.fit
+
+foxs_exv/%:
+	@ rm -rf temp/foxs
+	@ mkdir -p temp/foxs/
+	@ cd temp/foxs; \
+	measurement=$$(find ../../data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	structure=$$(find $${folder}/ -name "*.pdb"); \
+	cp $${structure} .; \
+	cp $${measurement} .; \
+	~/projects/imp/build/bin/foxs --max_q 1 $$(basename "$${structure}") $$(basename "$${measurement}") ${options}
+	@ mv temp/foxs/*.fit output/saxs_fitter/$*/foxs.fit
+	@ mv temp/foxs/foxs*.dat output/saxs_fitter/$*
 
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 
@@ -283,7 +306,7 @@ saxs_fit/%: build/bin/saxs_fitter
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
 		$< $${measurement} $${pdb} ${options};\
-		make plot/output/intensity_fitter/$*;\
+		make plot/output/saxs_fitter/$*;\
 	done
 #		make plot_fits/$*;\
 
