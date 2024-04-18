@@ -72,6 +72,18 @@ int main(int argc, char const *argv[]) {
 
 
     //### CHECK FOR PRESENCE OF EXTERNAL DATA IN OUTPUT FOLDER ###//
+    // check saxs_fitter output
+    io::File crysol_i("output/saxs_fitter/" + pdb.stem() + "/crysol.fit");
+    io::File foxs_i("output/saxs_fitter/" + pdb.stem() + "/foxs.fit");
+    io::File gromacs_prot_pdb_i("output/saxs_fitter/" + pdb.stem() + "/prot+solvlayer_0.pdb");
+    io::File gromacs_exv_pdb_i("output/saxs_fitter/" + pdb.stem() + "/excludedvolume_0.pdb");
+
+    if (crysol_i.exists()) {std::filesystem::copy(crysol_i.path(), settings::general::output + "crysol.dat");}
+    if (foxs_i.exists()) {std::filesystem::copy(foxs_i.path(), settings::general::output + "foxs_xx.dat");}
+    if (gromacs_prot_pdb_i.exists()) {std::filesystem::copy(gromacs_prot_pdb_i.path(), settings::general::output + "prot+solvlayer_0.pdb");}
+    if (gromacs_exv_pdb_i.exists()) {std::filesystem::copy(gromacs_exv_pdb_i.path(), settings::general::output + "excludedvolume_0.pdb");}
+
+    // check exv_comparison output
     io::File crysol(settings::general::output + "crysol.dat");
     io::File foxs(settings::general::output + "foxs_xx.dat");
     io::File gromacs_prot_pdb(settings::general::output + "prot+solvlayer_0.pdb");
