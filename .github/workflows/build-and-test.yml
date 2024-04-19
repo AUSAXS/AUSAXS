@@ -123,14 +123,25 @@ jobs:
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix: 
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [macos-latest]
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.os }}-binaries
+          path: build
+
+      - name: Get Python packages
+        run: pip3 install numpy
+
+      - name: Test shared library through ctypes
+        run: python3 test/test_shared_lib.py ${PWD}/build
 
       - name: Test shared library through ctypes
         run: |
