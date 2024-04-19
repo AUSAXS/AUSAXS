@@ -1,6 +1,7 @@
 #pragma once
 
-#if defined(unix) && defined(DEBUG)
+#if defined(DEBUG)
+    #define BACKWARD_HAS_DWARF 1
     #include <backward.hpp>
 
     namespace backward {
