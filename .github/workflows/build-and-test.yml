@@ -86,7 +86,7 @@ jobs:
         run: |
           mkdir build
           cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build 
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j 6
 
       - name: Build the library (mac)
         if: matrix.os == 'macos-latest'
