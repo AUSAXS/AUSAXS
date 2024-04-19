@@ -4,7 +4,7 @@ on:
 - workflow_dispatch
 
 permissions:
-  checks: write
+  actions: read
 
 jobs: 
   test-shared-lib:
@@ -19,6 +19,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.os }}-binaries
+          github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           run-id: 52
 
