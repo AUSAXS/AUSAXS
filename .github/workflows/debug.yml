@@ -26,6 +26,9 @@ jobs:
           name: ${{ matrix.os }}-binaries
           workflow_conclusion: ""
 
+      - name: Get Python packages
+        run: python3 -m pip install numpy platform
+
       - name: Test shared library through ctypes
         run: |
           if [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
