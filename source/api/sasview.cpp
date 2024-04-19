@@ -25,7 +25,7 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     std::cout << "CHECKPOINT 2" << std::endl;
 
     // use the multithreaded version of the simple histogram manager
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;
     std::cout << "CHECKPOINT 3" << std::endl;
 
     // do not subtract the solvent charge from the atoms
