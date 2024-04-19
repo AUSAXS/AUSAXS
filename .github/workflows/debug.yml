@@ -32,6 +32,4 @@ jobs:
         run: pip install numpy
 
       - name: Test shared library through ctypes
-        run: |
-          ls -l
-          python3 test/test_shared_lib.py ${PWD}/build
+        run: python3 test/test_shared_lib.py ${PWD}/build
