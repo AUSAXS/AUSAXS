@@ -34,19 +34,14 @@ std::unique_ptr<DistanceHistogram> HistogramManager<use_weighted_distribution>::
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distribution>::calculate_all() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-
-    std::cout << "START calculate_all" << std::endl;
-    std::cout << "CHECKPOINT 1" << std::endl;
     GenericDistribution1D_t p_aa(constants::axes::d_axis.bins);
     GenericDistribution1D_t p_ww(constants::axes::d_axis.bins);
     GenericDistribution1D_t p_aw(constants::axes::d_axis.bins);
 
-    std::cout << "CHECKPOINT 2" << std::endl;
     hist::detail::CompactCoordinates data_a(protein->get_bodies());
     hist::detail::CompactCoordinates data_w = hist::detail::CompactCoordinates(protein->get_waters());
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
-    std::cout << "CHECKPOINT 3" << std::endl;
 
     // calculate aa distances
     for (int i = 0; i < data_a_size; ++i) {
@@ -63,7 +58,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
             evaluate1<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
         }
     }
-    std::cout << "CHECKPOINT 4" << std::endl;
 
     for (int i = 0; i < data_w_size; ++i) {
         // calculate ww distances
@@ -98,18 +92,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
             }
         }
     }
-    std::cout << "CHECKPOINT 5" << std::endl;
 
     // add self-correlation
     p_aa.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);}));
     p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);}));
-    std::cout << "CHECKPOINT 6" << std::endl;
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
-    std::cout << "CHECKPOINT 7" << std::endl;
     for (int i = 0; i < (int) p_aa.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + 2*p_aw.index(i);}
-    std::cout << "CHECKPOINT 8" << std::endl;
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10
@@ -120,13 +110,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
         }
     }
 
-    std::cout << "CHECKPOINT 9" << std::endl;
     p_aa.resize(max_bin);
     p_ww.resize(max_bin);
     p_aw.resize(max_bin);
     p_tot.resize(max_bin);
 
-    std::cout << "CHECKPOINT 10" << std::endl;
     if constexpr (use_weighted_distribution) {
         return std::make_unique<CompositeDistanceHistogram>(
             std::move(Distribution1D(p_aa)), 
