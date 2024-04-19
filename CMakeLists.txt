@@ -121,11 +121,11 @@ elseif (APPLE)
 elseif(UNIX)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
-	if (CMAKE_BUILD_TYPE MATCHES Debug)
-		link_libraries(-lbfd -ldl)
-	endif()
 endif()
 
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+	link_libraries(-lbfd -ldl)
+endif()
 ############################################
 ##                Doxygen                 ##
 ############################################

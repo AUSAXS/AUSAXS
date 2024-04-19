@@ -26,7 +26,7 @@ def determine_os():
 def get_shared_lib_name():
     val = determine_os()
     if val == OS.WIN:
-        return "bin/ausaxs.dll"
+        return "bin/Release/ausaxs.dll"
     elif val == OS.LINUX:
         return "lib/libausaxs.so"
     elif val == OS.MAC:
