@@ -47,7 +47,6 @@ namespace constants::displaced_volume {
         constexpr double N = 8.8;
         constexpr double O = 22.3;
         constexpr double S = 25;
-
     #else 
         constexpr double CH = volume(constants::radius::vdw::C) + volume(constants::radius::vdw::H);
         constexpr double CH2 = volume(constants::radius::vdw::C) + 2*volume(constants::radius::vdw::H);
