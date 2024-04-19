@@ -80,7 +80,6 @@ namespace container {
                     std::cout << "\tCHECKPOINT 3a" << std::endl;
                     for (const auto& [id, t] : data) {
                         if (id == this_id) {continue;}
-                        std::cout << "\tCHECKPOINT 3a: " << t.size() << " " << result.size() << std::endl;
                         std::transform(t.begin(), t.end(), result.begin(), result.begin(), std::plus<>());
                     }
                     std::cout << "\tCHECKPOINT 3b" << std::endl;
@@ -88,9 +87,7 @@ namespace container {
                 } else {
                     std::cout << "\tCHECKPOINT 3b" << std::endl;
                     for (const auto& [id, t] : data) {
-                        std::cout << "\tCHECKPOINT 3b: " << t.size() << " " << result.size() << std::endl;
                         if (id == this_id) {continue;}
-                        std::cout << "\tCHECKPOINT 3b: EXTRA" << std::endl;
                         result += t;
                     }
                     std::cout << "\tCHECKPOINT 4b" << std::endl;
