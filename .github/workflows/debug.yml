@@ -19,6 +19,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.os }}-binaries
+          repository: ${{ github.repository }}
           run-id: 52
 
       - name: Test shared library through ctypes
