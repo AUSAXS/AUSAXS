@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: 
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [macos-latest]
 
     steps:
       - name: Checkout code
@@ -23,7 +23,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           workflow: build-and-test.yml
-          run_number: 52
+          run_number: 56
           name: ${{ matrix.os }}-binaries
           workflow_conclusion: ""
           path: build
