@@ -30,11 +30,4 @@ jobs:
         run: python3 -m pip install numpy
 
       - name: Test shared library through ctypes
-        run: |
-          if [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
-            python3 test/test_shared_lib.py build/lib/libausaxs.so 
-          elif [ ${{ matrix.os }} == 'windows-latest' ]; then
-            python test/test_shared_lib.py build/bin/ausaxs.dll
-          elif [ ${{ matrix.os }} == 'macos-latest' ]; then
-            python3 test/test_shared_lib.py build/lib/libausaxs.dylib
-          fi
+        run: python3 test/test_shared_lib.py build/lib/libausaxs
