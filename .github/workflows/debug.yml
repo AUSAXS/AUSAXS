@@ -29,7 +29,7 @@ jobs:
           path: build
 
       - name: Get Python packages
-        run: pip install numpy
+        run: pip3 install numpy
 
       - name: Test shared library through ctypes
         run: python3 test/test_shared_lib.py ${PWD}/build

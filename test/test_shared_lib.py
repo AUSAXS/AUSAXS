@@ -24,15 +24,15 @@ def determine_os():
     return OS.UNKNOWN
 
 def get_shared_lib_name():
-    match (determine_os()):
-        case OS.WIN:
-            return "bin/ausaxs.dll"
-        case OS.LINUX:
-            return "lib/libausaxs.so"
-        case OS.MAC:
-            return "lib/libausaxs.dylib"
-        case _:
-            exit("Unknown operating system.")
+    val = determine_os()
+    if val == OS.WIN:
+        return "bin/ausaxs.dll"
+    elif val == OS.LINUX:
+        return "lib/libausaxs.so"
+    elif val == OS.MAC:
+        return "lib/libausaxs.dylib"
+    else:
+        exit("Unknown operating system.")
 
 path = os.path.join(sys.argv[1], get_shared_lib_name())
 ausaxs = ct.CDLL(str(path))
