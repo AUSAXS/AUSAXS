@@ -227,7 +227,10 @@ void Molecule::generate_new_hydration() {
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
-    return phm->calculate_all();
+    std::cout << "START Molecule::get_histogram" << std::endl;
+    auto res = phm->calculate_all();
+    std::cout << "END Molecule::get_histogram" << std::endl;
+    return res;
 }
 
 std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {

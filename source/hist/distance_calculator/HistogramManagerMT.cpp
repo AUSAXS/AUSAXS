@@ -26,7 +26,10 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMT<use_weighted_distribution>
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_distribution>::calculate_all() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
+    std::cout << "START calculate_all" << std::endl;
+    std::cout << "\tCHECKPOINT 1" << std::endl;
     auto pool = utility::multi_threading::get_global_pool();
+    std::cout << "\tCHECKPOINT 2" << std::endl;
 
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
@@ -36,6 +39,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     auto& data_w = *data_w_ptr;
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
+    std::cout << "\tCHECKPOINT 3" << std::endl;
 
     //########################//
     // PREPARE MULTITHREADING //
@@ -58,6 +62,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
             }
         }
     };
+    std::cout << "\tCHECKPOINT 4" << std::endl;
 
     container::ThreadLocalWrapper<GenericDistribution1D_t> p_aw_all(constants::axes::d_axis.bins);
     auto calc_aw = [&data_w, &data_a, &p_aw_all, data_a_size] (int imin, int imax) {
@@ -77,6 +82,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
             }
         }
     };
+    std::cout << "\tCHECKPOINT 5" << std::endl;
     
     container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(constants::axes::d_axis.bins);
     auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
@@ -96,6 +102,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
             }
         }
     };
+    std::cout << "\tCHECKPOINT 6" << std::endl;
 
     //##############//
     // SUBMIT TASKS //
@@ -116,21 +123,25 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
             [&calc_ww, i, job_size, data_w_size] () {calc_ww(i, std::min(i+job_size, data_w_size));}
         );
     }
+    std::cout << "\tCHECKPOINT 7" << std::endl;
 
     pool->wait();
     GenericDistribution1D_t p_aa = p_aa_all.merge();
     GenericDistribution1D_t p_aw = p_aw_all.merge();
     GenericDistribution1D_t p_ww = p_ww_all.merge();
+    std::cout << "\tCHECKPOINT 8" << std::endl;
 
     //###################//
     // SELF-CORRELATIONS //
     //###################//
     p_aa.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} ));
     p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} ));
+    std::cout << "\tCHECKPOINT 9" << std::endl;
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
     for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + 2*p_aw.index(i);}
+    std::cout << "\tCHECKPOINT 10" << std::endl;
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
@@ -144,6 +155,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     p_ww.resize(max_bin);
     p_aw.resize(max_bin);
     p_tot.resize(max_bin);
+    std::cout << "\tCHECKPOINT 11" << std::endl;
 
     if constexpr (use_weighted_distribution) {
         return std::make_unique<CompositeDistanceHistogram>(
