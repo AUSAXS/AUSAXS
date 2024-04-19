@@ -25,6 +25,7 @@ jobs:
           run_number: 52
           name: ${{ matrix.os }}-binaries
           workflow_conclusion: ""
+          path: build
 
       - name: Get Python packages
         run: python3 -m pip install numpy
