@@ -63,6 +63,15 @@ jobs:
         uses: SimenB/github-actions-cpu-cores@v2
         id: cpu-cores
 
+      - name: Install libdwarf for debug build
+        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
+        run: |
+          if [ ${{ matrix.os }} == 'macos-latest' ]; then
+            brew install libdwarf
+          elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
+            sudo apt-get install libdwarf-dev
+          fi
+
       - name: Build the library (windows, vcpkg)
         if: matrix.os == 'windows-latest'
         shell: bash
