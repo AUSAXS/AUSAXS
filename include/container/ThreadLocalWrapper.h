@@ -7,6 +7,8 @@
 #include <functional>
 #include <unordered_map>
 
+#include <iostream>
+
 namespace container {
     /**
      * @brief A simple wrapper around T to keep track of the thread-local instances of T.
@@ -69,19 +71,29 @@ namespace container {
              * @brief Merge all thread-local instances of the wrapped type into a single instance.
              */
             T merge() const {
+                std::cout << "START ThreadLocalWrapper::merge" << std::endl;
                 T result = get();
+                std::cout << "\tCHECKPOINT 1" << std::endl;
                 auto this_id = std::this_thread::get_id();
+                std::cout << "\tCHECKPOINT 2" << std::endl;
                 if constexpr (std::ranges::range<T>) {
+                    std::cout << "\tCHECKPOINT 3a" << std::endl;
                     for (const auto& [id, t] : data) {
                         if (id == this_id) {continue;}
+                        std::cout << "\tCHECKPOINT 3a: " << t.size() << " " << result.size() << std::endl;
                         std::transform(t.begin(), t.end(), result.begin(), result.begin(), std::plus<>());
                     }
+                    std::cout << "\tCHECKPOINT 3b" << std::endl;
                     return result;
                 } else {
+                    std::cout << "\tCHECKPOINT 3b" << std::endl;
                     for (const auto& [id, t] : data) {
+                        std::cout << "\tCHECKPOINT 3b: " << t.size() << " " << result.size() << std::endl;
                         if (id == this_id) {continue;}
+                        std::cout << "\tCHECKPOINT 3b: EXTRA" << std::endl;
                         result += t;
                     }
+                    std::cout << "\tCHECKPOINT 4b" << std::endl;
                     return result;
                 }
             }

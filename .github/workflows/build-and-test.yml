@@ -81,7 +81,7 @@ jobs:
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j ${{ steps.cpu-cores.outputs.cpu-cores }}
 
       - name: Build the library (ubuntu)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-20.04'
         shell: bash
         run: |
           mkdir build
@@ -142,13 +142,3 @@ jobs:
 
       - name: Test shared library through ctypes
         run: python3 test/test_shared_lib.py ${PWD}/build
-
-      - name: Test shared library through ctypes
-        run: |
-          if [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
-            python3 test/test_shared_lib.py build/lib/libausaxs.so 
-          elif [ ${{ matrix.os }} == 'windows-latest' ]; then
-            python test/test_shared_lib.py build/bin/ausaxs.dll
-          elif [ ${{ matrix.os }} == 'macos-latest' ]; then
-            python3 test/test_shared_lib.py build/lib/libausaxs.dylib
-          fi

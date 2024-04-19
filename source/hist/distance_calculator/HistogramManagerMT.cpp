@@ -126,8 +126,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     std::cout << "\tCHECKPOINT 7" << std::endl;
 
     pool->wait();
+    std::cout << "\tCHECKPOINT 7a" << std::endl;
     GenericDistribution1D_t p_aa = p_aa_all.merge();
+    std::cout << "\tCHECKPOINT 7b" << std::endl;
     GenericDistribution1D_t p_aw = p_aw_all.merge();
+    std::cout << "\tCHECKPOINT 7c" << std::endl;
     GenericDistribution1D_t p_ww = p_ww_all.merge();
     std::cout << "\tCHECKPOINT 8" << std::endl;
 
