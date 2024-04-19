@@ -33,4 +33,4 @@ jobs:
       - name: Test shared library through ctypes
         run: |
           ls -l
-          python3 test/test_shared_lib.py ${PWD}/build/lib
+          python3 test/test_shared_lib.py ${PWD}/build

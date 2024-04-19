@@ -2,6 +2,7 @@ import ctypes as ct
 import numpy as np
 from enum import Enum
 import sys
+import os
 
 class OS(Enum):
     WIN = 1
@@ -22,21 +23,18 @@ def determine_os():
         return OS.MAC
     return OS.UNKNOWN
 
-def get_shared_lib_extension():
-    """
-    Get the shared library extension for the current operating system, including the dot.
-    If the operating system is unknown, return an empty string.
-    """
-    if determine_os() == OS.WIN:
-        return ".dll"
-    elif determine_os() == OS.LINUX:
-        return ".so"
-    elif determine_os() == OS.MAC:
-        return ".dylib"
-    return ""
+def get_shared_lib_name():
+    match (determine_os()):
+        case OS.WIN:
+            return "bin/ausaxs.dll"
+        case OS.LINUX:
+            return "lib/libausaxs.so"
+        case OS.MAC:
+            return "lib/libausaxs.dylib"
+        case _:
+            exit("Unknown operating system.")
 
-
-path = sys.argv[1] + get_shared_lib_extension()
+path = os.path.join(sys.argv[1], get_shared_lib_name())
 ausaxs = ct.CDLL(str(path))
 ausaxs.evaluate_sans_debye.argtypes = [
     ct.POINTER(ct.c_double), # q vector
