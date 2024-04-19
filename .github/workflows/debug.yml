@@ -27,7 +27,7 @@ jobs:
           workflow_conclusion: ""
 
       - name: Get Python packages
-        run: python3 -m pip install numpy platform
+        run: python3 -m pip install numpy
 
       - name: Test shared library through ctypes
         run: |
