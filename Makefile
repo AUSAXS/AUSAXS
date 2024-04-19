@@ -310,6 +310,16 @@ saxs_fit/%: build/bin/saxs_fitter
 	done
 #		make plot_fits/$*;\
 
+fit_all/%: build/bin/fit_all_exv
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
+	folder=$$(dirname $${measurement}); \
+	structure=$$(find $${folder}/ -name "*.pdb"); \
+	for pdb in $${structure}; do\
+		echo "Fitting " $${pdb} " ...";\
+		sleep 1;\
+		$< $${pdb} $${measurement} ${options};\
+	done
+
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
 consistency/%: build/bin/consistency
