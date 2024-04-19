@@ -7,7 +7,7 @@ permissions:
   checks: write
 
 env:
-  BUILD_TYPE: Debug
+  BUILD_TYPE: Release
 
 jobs:
   build:
