@@ -9,8 +9,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 // undefine SSE2 & AVX for MacOS
 #if defined __APPLE__
-    #undef __SSE2__
-    #undef __SSE4_2_
     #undef __AVX__
 #endif
 
