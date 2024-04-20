@@ -7,6 +7,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/Constants.h>
 #include <math/Vector3.h>
 
+// undefine SSE2 & AVX for MacOS
+#if defined __APPLE__
+    #undef __AVX__
+#endif
+
 using namespace hist::detail;
 
 constexpr float inv_width = constants::axes::d_inv_width;

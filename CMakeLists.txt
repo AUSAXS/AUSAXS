@@ -91,7 +91,6 @@ endif()
 FetchContent_Declare(
 	backward
 	GIT_REPOSITORY https://github.com/bombela/backward-cpp
-	GIT_TAG v1.6
 )
 
 FetchContent_Declare(
@@ -118,14 +117,12 @@ if (WIN32)
 elseif (APPLE)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl)
+	link_libraries("$<$<CONFIG:Debug>:-ldwarf>")
 elseif(UNIX)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
-	if (CMAKE_BUILD_TYPE MATCHES Debug)
-		link_libraries(-lbfd -ldl)
-	endif()
+	link_libraries("$<$<CONFIG:Debug>:-ldwarf>")
 endif()
-
 ############################################
 ##                Doxygen                 ##
 ############################################

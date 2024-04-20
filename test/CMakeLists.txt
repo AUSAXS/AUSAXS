@@ -28,15 +28,12 @@ foreach(test ${TEST_SRC})
 	cmake_path(GET test STEM testname)
 	set(name "test_${testname}")
 	add_executable("${name}" ${test} $<$<CONFIG:DEBUG>: ${BACKWARD_ENABLE}>)
-	target_link_libraries("${name}" Catch2::Catch2WithMain ausaxs)
+	target_link_libraries("${name}" Catch2::Catch2WithMain ausaxs "$<$<CONFIG:Debug>:Backward:Interface>")
 	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/test")
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${TEST_BIN_DIR}"
 		COMPILE_FLAGS "${CMAKE_CXX_FLAGS_TEST}"
 	)
-	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
-		add_backward("${name}")
-	endif()	
 	add_dependencies(tests "${name}")
 	catch_discover_tests("${name}" 
 		TEST_SPEC "~[slow] ~[broken] ~[manual]" 
