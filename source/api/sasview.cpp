@@ -18,6 +18,7 @@ using namespace data;
 using namespace data::record;
 
 void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, int* _return_status, double* _return_Iq) {
+    std::cout << "AUSAXS: Started evaluating Debye equation." << std::endl;
     // default state is error since we don't trust the input enough to assume success
     *_return_status = 1;
 
