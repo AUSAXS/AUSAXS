@@ -84,12 +84,13 @@ int main(int argc, char const *argv[]) {
     #endif
     std::cout << volumes << std::endl;
 
+    io::Folder(settings::general::output).create();
     std::ofstream out(settings::general::output + "/" + volumes + "_" + mfile.stem() + ".txt");
     auto perform_fit = [&] (const std::string& name, settings::hist::HistogramManagerChoice choice, bool fit_exv) {
         settings::hist::histogram_manager = choice;
 
         data::Molecule protein(pdb);
-        if (!use_existing_hydration || protein.water_size() == 0) {protein.generate_new_hydration();}
+        protein.generate_new_hydration();
 
         std::shared_ptr<fitter::HydrationFitter> fitter;
         if (fit_exv) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}

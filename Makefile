@@ -311,14 +311,30 @@ saxs_fit/%: build/bin/saxs_fitter
 #		make plot_fits/$*;\
 
 fit_all/%: build/bin/fit_all_exv
-	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
-	folder=$$(dirname $${measurement}); \
-	structure=$$(find $${folder}/ -name "*.pdb"); \
-	for pdb in $${structure}; do\
-		echo "Fitting " $${pdb} " ...";\
-		sleep 1;\
-		$< $${pdb} $${measurement} ${options};\
-	done
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	echo "Fitting $$structure ...";\
+	$< $${structure} $${measurement} $${options};\
+	rm -rf temp/foxs;\
+	mkdir -p temp/foxs;\
+	cp $${structure} temp/foxs;\
+	cp $${measurement} temp/foxs;\
+	cd temp/foxs; \
+	foxs $$(basename "$${structure}") $$(basename "$${measurement}") ;\
+	cd ../..;\
+	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
+	rm -rf temp/pepsi;\
+	mkdir -p temp/pepsi;\
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit";\
+	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
+	mkdir -p temp/crysol;\
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1;\
+	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
 
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
@@ -354,7 +370,7 @@ unit_cell/%: build/bin/unit_cell
 
 exv_comparison/%: build/bin/exv_comparison
 	@ structure=$$(find data/ -name "$*.pdb"); \
-	$< $${structure}; \
+	$< $${structure} ${options}; \
 	make plot/output/$@
 
 bin_size_analysis/%: build/bin/bin_size_analysis
