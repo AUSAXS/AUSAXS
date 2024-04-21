@@ -310,6 +310,17 @@ saxs_fit/%: build/bin/saxs_fitter
 	done
 #		make plot_fits/$*;\
 
+fit_all_ausaxs/%: build/bin/fit_all_exv
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	echo "Fitting $$structure ...";\
+	$< $${structure} $${measurement} $${options};\
+
 fit_all/%: build/bin/fit_all_exv
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
