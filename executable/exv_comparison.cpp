@@ -22,6 +22,7 @@ int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.add_option("input_s", s_pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/exv_comparison/")->group("General options");
+    app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, "Exit if an unknown atom is encountered.")->group("General options");
     CLI11_PARSE(app, argc, argv);
 
     //### GENERATE INTERNAL PLOT ###//
