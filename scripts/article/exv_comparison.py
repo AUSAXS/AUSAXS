@@ -41,7 +41,7 @@ x_label_map = {
     "HistogramManagerMTFFExplicit_fitted:": 4,
     "HistogramManagerMTFFGrid:": 5
 }
-data = []       # indexing: [file_name, method]
+data = {"TRAUBE": [], "PONTIUS": []}       # indexing: [file_name, method]
 foxs = []
 pepsi = []
 crysol = []
@@ -85,23 +85,30 @@ for file in os.listdir(folder):
                             foxs.append(float(tokens[i+2]))
                             break
         
-            if not nested_file.startswith(method):
+            if not (nested_file.startswith("TRAUBE") or nested_file.startswith("PONTIUS")):
                 continue
 
             # filenames are TRAUBE_name.txt or PONTIUS_name.txt; we want to keep only the name
-            y_labels.append(nested_file.split("_")[1].split(".")[0])
+            tokens = nested_file.split("_")
+            name = tokens[1].split(".")[0]
+            if (name not in y_labels):
+                y_labels.append(name)
             chi2s = np.array([0.0]*6)
             with open(os.path.join(folder, file, nested_file), "r") as f:
                 for line in f:
                     line = line.strip().split()
                     chi2s[x_label_map[line[0]]] = float(line[1])
-                data.append(chi2s)
+                data[tokens[0]].append(chi2s)
         continue
 
-data = np.array(data)
-if method == "TRAUBE":
-    data = np.concatenate((data, np.array([crysol, foxs, pepsi]).T), axis=1)
-    x_labels.extend(["CRYSOL", "FoXS", "Pepsi-SAXS"])
+data_pontius = np.array(data["PONTIUS"])
+data_traube = np.array(data["TRAUBE"])
+if (data_pontius.shape == data_traube.shape):
+    data_diff = data_pontius - data_traube
+
+x_labels_traube = x_labels + ["CRYSOL", "FoXS", "Pepsi-SAXS"]
+data_traube = np.concatenate((data_traube, np.array([crysol, foxs, pepsi]).T), axis=1)
+
 bounds = [1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 25, 100]
 cmap = plt.get_cmap('RdYlGn_r')
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
@@ -113,34 +120,73 @@ def round(x):
         return np.round(x, 1)
     return int(np.round(x))
 
-fig, ax = plt.subplots(figsize=(len(x_labels), len(data)))
-plt.imshow(data, interpolation='nearest', cmap=cmap, norm=norm)
+def plot_one(data, x_labels, method):
+    fig, ax = plt.subplots(figsize=(len(x_labels), len(data)))
+    plt.imshow(data, interpolation='nearest', cmap=cmap, norm=norm)
+    for i in range(len(y_labels)):
+        for j in range(len(x_labels)):
+            text = ax.text(j, i, round(data[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+        plt.axhline(i+0.5, color="black", linewidth=1)
+    for i in range(len(x_labels)):
+        plt.axvline(i+0.5, color="black", linewidth=1)
+
+    plt.title(f"Comparison with {method} volume")
+    plt.xticks(np.arange(len(x_labels)), x_labels, rotation=60, ha="right", rotation_mode="anchor")
+    plt.yticks(np.arange(len(y_labels)), y_labels)
+    plt.tight_layout()
+    plt.savefig(f"output/fit_all_exv/{method}_comparison.png", dpi=300)
+
+    # flipped axes
+    fig, ax = plt.subplots(figsize=(len(data), len(x_labels)))
+    plt.imshow(data.T, interpolation='nearest', cmap=cmap, norm=norm)
+    for i in range(len(x_labels)):
+        for j in range(len(y_labels)):
+            ax.text(j, i, round(data[j, i]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+        plt.axhline(i+0.5, color="black", linewidth=1)
+    for i in range(len(y_labels)):
+        plt.axvline(i+0.5, color="black", linewidth=1)
+
+    plt.title(f"Comparison with {method} volume")
+    plt.xticks(np.arange(len(y_labels)), y_labels, rotation=60, ha="right", rotation_mode="anchor")
+    plt.yticks(np.arange(len(x_labels)), x_labels)
+    plt.tight_layout()
+    plt.savefig(f"output/fit_all_exv/{method}_comparison_flipped.png", dpi=300)
+
+plot_one(data_traube, x_labels_traube, "Traube")
+plot_one(data_pontius, x_labels, "Pontius")
+
+# plot difference
+bounds = [-10, -5, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 5, 10]
+cmap = plt.get_cmap('RdYlGn_r')
+norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+
+fig, ax = plt.subplots(figsize=(len(x_labels), len(y_labels)))
+plt.imshow(data_diff, interpolation='nearest', cmap=cmap, norm=norm)
 for i in range(len(y_labels)):
     for j in range(len(x_labels)):
-        text = ax.text(j, i, round(data[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+        ax.text(j, i, round(data_diff[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
     plt.axhline(i+0.5, color="black", linewidth=1)
 for i in range(len(x_labels)):
     plt.axvline(i+0.5, color="black", linewidth=1)
 
-plt.title(f"Comparison with {method} volume")
+plt.title("Difference between Pontius and Traube")
 plt.xticks(np.arange(len(x_labels)), x_labels, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(y_labels)), y_labels)
 plt.tight_layout()
-plt.savefig(f"output/fit_all_exv/{method}_comparison.png", dpi=300)
+plt.savefig(f"output/fit_all_exv/difference.png", dpi=300)
 
 # flipped axes
-fig, ax = plt.subplots(figsize=(len(data), len(x_labels)))
-plt.imshow(data.T, interpolation='nearest', cmap=cmap, norm=norm)
+fig, ax = plt.subplots(figsize=(len(y_labels), len(x_labels)))
+plt.imshow(data_diff.T, interpolation='nearest', cmap=cmap, norm=norm)
 for i in range(len(x_labels)):
     for j in range(len(y_labels)):
-        text = ax.text(j, i, round(data[j, i]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+        ax.text(j, i, round(data_diff[j, i]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
     plt.axhline(i+0.5, color="black", linewidth=1)
 for i in range(len(y_labels)):
     plt.axvline(i+0.5, color="black", linewidth=1)
 
-plt.title(f"Comparison with {method} volume")
+plt.title("Difference between Pontius and Traube")
 plt.xticks(np.arange(len(y_labels)), y_labels, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(x_labels)), x_labels)
 plt.tight_layout()
-plt.savefig(f"output/fit_all_exv/{method}_comparison_flipped.png", dpi=300)
-plt.show()
+plt.savefig(f"output/fit_all_exv/difference_flipped.png", dpi=300)
