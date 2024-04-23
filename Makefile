@@ -416,7 +416,7 @@ old_simulate/%:
 	mv $(*F)_fmodel.ccp4 sim/$(*F)_$(res).ccp4;\
 
 stuff/%: build/bin/stuff
-	@ file=$$(find data/ -name "$*.*"); \
+	@ file=$$(find data/ -name "$*.pdb"); \
 	$< $${file}
 
 ####################################################################################
