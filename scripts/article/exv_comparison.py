@@ -42,10 +42,10 @@ x_label_map = {
     "HistogramManagerMTFFGrid:": 5
 }
 data = {"TRAUBE": [], "PONTIUS": []}       # indexing: [file_name, method]
+size = []
 foxs = []
 pepsi = []
 crysol = []
-x_labels = ["Simple", "Averaged", "Averaged & fitted", "Explicit", "Explicit & fitted", "Grid"]   # method
 y_labels = []   # file_name
 for file in os.listdir(folder):
     # open nested folders
@@ -97,17 +97,32 @@ for file in os.listdir(folder):
             with open(os.path.join(folder, file, nested_file), "r") as f:
                 for line in f:
                     line = line.strip().split()
-                    chi2s[x_label_map[line[0]]] = float(line[1])
+                    if (line[0].startswith("size")):
+                        if (int(line[1]) not in size):
+                            size.append(int(line[1]))
+                    else:
+                        chi2s[x_label_map[line[0]]] = float(line[1])
                 data[tokens[0]].append(chi2s)
         continue
 
+size = np.array(size)
 data_pontius = np.array(data["PONTIUS"])
 data_traube = np.array(data["TRAUBE"])
-if (data_pontius.shape == data_traube.shape):
-    data_diff = data_pontius - data_traube
 
-x_labels_traube = x_labels + ["CRYSOL", "FoXS", "Pepsi-SAXS"]
+# sort by size
+indices = np.argsort(size)
+size = size[indices]
+data_pontius = data_pontius[indices]
+data_traube = data_traube[indices]
+y_labels = [y_labels[i] for i in indices]
+
+if (data_pontius.shape == data_traube.shape):
+    data_diff = (data_pontius - data_traube)[:, 3:5]
+
 data_traube = np.concatenate((data_traube, np.array([crysol, foxs, pepsi]).T), axis=1)
+x_labels_traube = ["Simple", "Averaged", "Averaged & fitted", "Explicit", "Explicit & fitted", "Grid", "CRYSOL", "FoXS", "Pepsi-SAXS"]
+x_labels_pontius = ["Simple", "Averaged", "Averaged & fitted", "Explicit", "Explicit & fitted", "Grid"]
+x_labels_diff = ["Explicit", "Explicit & fitted"]
 
 bounds = [1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 25, 100]
 cmap = plt.get_cmap('RdYlGn_r')
@@ -153,32 +168,32 @@ def plot_one(data, x_labels, method):
     plt.savefig(f"output/fit_all_exv/{method}_comparison_flipped.png", dpi=300)
 
 plot_one(data_traube, x_labels_traube, "Traube")
-plot_one(data_pontius, x_labels, "Pontius")
+plot_one(data_pontius, x_labels_pontius, "Pontius")
 
 # plot difference
 bounds = [-10, -5, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 5, 10]
 cmap = plt.get_cmap('RdYlGn_r')
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 
-fig, ax = plt.subplots(figsize=(len(x_labels), len(y_labels)))
+fig, ax = plt.subplots(figsize=(len(x_labels_diff)+2, len(y_labels)))
 plt.imshow(data_diff, interpolation='nearest', cmap=cmap, norm=norm)
 for i in range(len(y_labels)):
-    for j in range(len(x_labels)):
+    for j in range(len(x_labels_diff)):
         ax.text(j, i, round(data_diff[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
     plt.axhline(i+0.5, color="black", linewidth=1)
-for i in range(len(x_labels)):
+for i in range(len(x_labels_diff)):
     plt.axvline(i+0.5, color="black", linewidth=1)
 
 plt.title("Difference between Pontius and Traube")
-plt.xticks(np.arange(len(x_labels)), x_labels, rotation=60, ha="right", rotation_mode="anchor")
+plt.xticks(np.arange(len(x_labels_diff)), x_labels_diff, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(y_labels)), y_labels)
 plt.tight_layout()
 plt.savefig(f"output/fit_all_exv/difference.png", dpi=300)
 
 # flipped axes
-fig, ax = plt.subplots(figsize=(len(y_labels), len(x_labels)))
+fig, ax = plt.subplots(figsize=(len(y_labels), len(x_labels_diff)+2))
 plt.imshow(data_diff.T, interpolation='nearest', cmap=cmap, norm=norm)
-for i in range(len(x_labels)):
+for i in range(len(x_labels_diff)):
     for j in range(len(y_labels)):
         ax.text(j, i, round(data_diff[j, i]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
     plt.axhline(i+0.5, color="black", linewidth=1)
@@ -187,6 +202,6 @@ for i in range(len(y_labels)):
 
 plt.title("Difference between Pontius and Traube")
 plt.xticks(np.arange(len(y_labels)), y_labels, rotation=60, ha="right", rotation_mode="anchor")
-plt.yticks(np.arange(len(x_labels)), x_labels)
+plt.yticks(np.arange(len(x_labels_diff)), x_labels_diff)
 plt.tight_layout()
 plt.savefig(f"output/fit_all_exv/difference_flipped.png", dpi=300)

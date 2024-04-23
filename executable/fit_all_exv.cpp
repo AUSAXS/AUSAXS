@@ -62,35 +62,41 @@ int main(int argc, char const *argv[]) {
     //######################//
     //### ACTUAL PROGRAM ###//
     //######################//
-    std::vector<settings::hist::HistogramManagerChoice> loop = {
-        settings::hist::HistogramManagerChoice::HistogramManagerMT,
-        settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid,
-        settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg, 
-        settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit
-    };
-
-    std::vector<std::string> loop_names = {
-        "HistogramManagerMT",
-        "HistogramManagerMTFFGrid",
-        "HistogramManagerMTFFAvg", 
-        "HistogramManagerMTFFExplicit"
-    };
+    std::vector<settings::hist::HistogramManagerChoice> loop;
+    std::vector<std::string> loop_names;
 
     std::string volumes = "None";
     #if TRAUBE_FF
+        std::vector<settings::hist::HistogramManagerChoice> loop = {
+            settings::hist::HistogramManagerChoice::HistogramManagerMT,
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid,
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg, 
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit
+        };
+
+        std::vector<std::string> loop_names = {
+            "HistogramManagerMT",
+            "HistogramManagerMTFFGrid",
+            "HistogramManagerMTFFAvg", 
+            "HistogramManagerMTFFExplicit"
+        };
         volumes = "TRAUBE";
     #elif PONTIUS_FF
+        std::vector<settings::hist::HistogramManagerChoice> loop = {settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit};
+        std::vector<std::string> loop_names = {"HistogramManagerMTFFExplicit"};
         volumes = "PONTIUS";
     #endif
     std::cout << volumes << std::endl;
 
     io::Folder(settings::general::output).create();
     std::ofstream out(settings::general::output + "/" + volumes + "_" + mfile.stem() + ".txt");
+    bool printed_volume = false;
     auto perform_fit = [&] (const std::string& name, settings::hist::HistogramManagerChoice choice, bool fit_exv) {
         settings::hist::histogram_manager = choice;
 
         data::Molecule protein(pdb);
         protein.generate_new_hydration();
+        if (!printed_volume) {out << "atoms: " << std::to_string(protein.atom_size()) << std::endl; printed_volume = true;}
 
         std::shared_ptr<fitter::HydrationFitter> fitter;
         if (fit_exv) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
