@@ -321,6 +321,48 @@ fit_all_ausaxs/%: build/bin/fit_all_exv
 	echo "Fitting $$structure ...";\
 	$< $${structure} $${measurement} $${options};\
 
+fit_all_foxs/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	rm -rf temp/foxs;\
+	mkdir -p temp/foxs;\
+	cp $${structure} temp/foxs;\
+	cp $${measurement} temp/foxs;\
+	cd temp/foxs; \
+	foxs $$(basename "$${structure}") $$(basename "$${measurement}") $${options};\
+	cd ../..;\
+	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
+
+fit_all_pepsi/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	rm -rf temp/pepsi;\
+	mkdir -p temp/pepsi;\
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" $${options};\
+	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
+
+fit_all_crysol/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	mkdir -p temp/crysol;\
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 $${options};\
+	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
+
 fit_all/%: build/bin/fit_all_exv
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\

@@ -110,11 +110,11 @@ data_pontius = np.array(data["PONTIUS"])
 data_traube = np.array(data["TRAUBE"])
 
 # sort by size
-indices = np.argsort(size)
-size = size[indices]
-data_pontius = data_pontius[indices]
-data_traube = data_traube[indices]
-y_labels = [y_labels[i] for i in indices]
+# indices = np.argsort(size)
+# size = size[indices]
+# data_pontius = data_pontius[indices]
+# data_traube = data_traube[indices]
+# y_labels = [y_labels[i] for i in indices]
 
 if (data_pontius.shape == data_traube.shape):
     data_diff = (data_pontius - data_traube)[:, 3:5]
