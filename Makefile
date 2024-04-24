@@ -287,6 +287,124 @@ intensity_fit/%: build/bin/intensity_fitter
 	done
 #		make plot_fits/$*;\
 
+fit_all_ausaxs/%: build/bin/fit_all_exv
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	echo "Fitting $$structure ...";\
+	$< $${structure} $${measurement} --no-exit-on-unknown-atom $${options};\
+
+fit_all_foxs/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	structure=$$(find $${folder}/ -name "$*.pdb");\
+	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
+	structure="$${folder}/$*_stripped.pdb";\
+	rm -rf temp/foxs;\
+	mkdir -p temp/foxs;\
+	cp $${structure} temp/foxs;\
+	cp $${measurement} temp/foxs;\
+	cd temp/foxs; \
+	foxs $$(basename "$${structure}") $$(basename "$${measurement}") $${options};\
+	cd ../..;\
+	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
+	cp output/fit_all_exv/$*/foxs.fit output/saxs_fitter/$*
+
+fit_all_pepsi/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	structure=$$(find $${folder}/ -name "$*.pdb");\
+	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
+	structure="$${folder}/$*_stripped.pdb";\
+	rm -rf temp/pepsi;\
+	mkdir -p temp/pepsi;\
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" $${options};\
+	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
+	cp output/fit_all_exv/$*/pepsi.fit output/saxs_fitter/$*
+
+fit_all_crysol/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	structure=$$(find $${folder}/ -name "$*.pdb");\
+	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
+	structure="$${folder}/$*_stripped.pdb";\
+	mkdir -p temp/crysol;\
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 $${options};\
+	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
+	cp output/fit_all_exv/$*/crysol.fit output/saxs_fitter/$*
+
+fit_all_foxs/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	rm -rf temp/foxs;\
+	mkdir -p temp/foxs;\
+	cp $${structure} temp/foxs;\
+	cp $${measurement} temp/foxs;\
+	cd temp/foxs; \
+	foxs $$(basename "$${structure}") $$(basename "$${measurement}") $${options};\
+	cd ../..;\
+	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
+
+fit_all_pepsi/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	rm -rf temp/pepsi;\
+	mkdir -p temp/pepsi;\
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" $${options};\
+	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
+
+fit_all_crysol/%: 
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
+		structure="$${folder}/$*_dehydrated.pdb";\
+	else \
+		structure=$$(find $${folder}/ -name "$*.pdb");\
+	fi;\
+	mkdir -p temp/crysol;\
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 $${options};\
+	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
+
+fit_all/%: build/bin/fit_all_exv
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+	folder=$$(dirname $${measurement});\
+	structure=$$(find $${folder}/ -name "$*.pdb");\
+	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
+	structure="$${folder}/$*_stripped.pdb";\
+	echo "Fitting $$structure ...";\
+	$< $${structure} $${measurement} --no-exit-on-unknown-atom $${options};\
+	mkdir -p output/saxs_fitter/$*;\
+	rm -rf temp/foxs;\
+	mkdir -p temp/foxs;\
+	cp $${structure} temp/foxs;\
+	cp $${measurement} temp/foxs;\
+	cd temp/foxs; \
+	foxs $$(basename "$${structure}") $$(basename "$${measurement}") ;\
+	cd ../..;\
+	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
+	rm -rf temp/pepsi;\
+	mkdir -p temp/pepsi;\
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit";\
+	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
+	mkdir -p temp/crysol;\
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1;\
+	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit;\
+	cp output/fit_all_exv/$*/*.fit output/saxs_fitter/$*
+
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
 consistency/%: build/bin/consistency
