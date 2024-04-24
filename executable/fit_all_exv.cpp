@@ -67,14 +67,14 @@ int main(int argc, char const *argv[]) {
 
     std::string volumes = "None";
     #if TRAUBE_FF
-        std::vector<settings::hist::HistogramManagerChoice> loop = {
+        loop = {
             settings::hist::HistogramManagerChoice::HistogramManagerMT,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg, 
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit
         };
 
-        std::vector<std::string> loop_names = {
+        loop_names = {
             "HistogramManagerMT",
             "HistogramManagerMTFFGrid",
             "HistogramManagerMTFFAvg", 
@@ -82,8 +82,8 @@ int main(int argc, char const *argv[]) {
         };
         volumes = "TRAUBE";
     #elif PONTIUS_FF
-        std::vector<settings::hist::HistogramManagerChoice> loop = {settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit};
-        std::vector<std::string> loop_names = {"HistogramManagerMTFFExplicit"};
+        loop = {settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit};
+        loop_names = {"HistogramManagerMTFFExplicit"};
         volumes = "PONTIUS";
     #endif
     std::cout << volumes << std::endl;
@@ -96,7 +96,7 @@ int main(int argc, char const *argv[]) {
 
         data::Molecule protein(pdb);
         protein.generate_new_hydration();
-        if (!printed_volume) {out << "atoms: " << std::to_string(protein.atom_size()) << std::endl; printed_volume = true;}
+        if (!printed_volume) {out << "size: " << std::to_string(protein.atom_size()) << std::endl; printed_volume = true;}
 
         std::shared_ptr<fitter::HydrationFitter> fitter;
         if (fit_exv) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
@@ -108,11 +108,23 @@ int main(int argc, char const *argv[]) {
     };
 
     for (unsigned int i = 0; i < loop.size(); ++i) {
-        if (i == 1) {
-            settings::molecule::use_effective_charge = false;
-        }
-        if (2 <= i) {
-            perform_fit(loop_names[i] + "_fitted", loop[i], true);
+        switch (loop[i]) {
+            case settings::hist::HistogramManagerChoice::HistogramManagerMT:
+                settings::molecule::use_effective_charge = true;
+                break;
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
+                settings::molecule::use_effective_charge = false;
+                break;
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
+                settings::molecule::use_effective_charge = false;
+                perform_fit(loop_names[i] + "_fitted", loop[i], true);
+                break;
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
+                settings::molecule::use_effective_charge = false;
+                perform_fit(loop_names[i] + "_fitted", loop[i], true);
+                break;
+            default:
+                throw except::invalid_argument("Unknown histogram manager choice.");
         }
         perform_fit(loop_names[i], loop[i], false);
     }
