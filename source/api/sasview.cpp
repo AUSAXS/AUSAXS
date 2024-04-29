@@ -51,17 +51,20 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     }
 
     // construct a protein from the collection of atom
+    *_return_status = 2;
     Molecule protein(atoms);
 
     // calculate the distance histogram for the protein
+    *_return_status = 3;
     auto dist = protein.get_histogram();
 
     // perform the Debye transform
+    *_return_status = 4;
     auto Iq = dist->debye_transform(q);
 
     // sanity check - the number of q values should match the number of I(q) values
     if ((int) Iq.size() != _nq) {
-        *_return_status = 2;
+        *_return_status = 5;
         return;
     }
 
