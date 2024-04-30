@@ -92,14 +92,22 @@ jobs:
                 -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static" -S . -B build
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
 
-      - name: Build the library (ubuntu)
+      - name: Build the library (ubuntu latest)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          mkdir build
+          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
+
+      - name: Build the library (ubuntu 20.04)
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-20.04'
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build 
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
-
+          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j 6
+ 
       - name: Build the library (macos)
         if: matrix.os == 'macos-latest'
         shell: bash
@@ -118,7 +126,7 @@ jobs:
       
       - name: Build tests (ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: cmake --build build --target tests -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+        run: cmake --build build --target tests -j ${{ steps.cpu-cores.outputs.count }}
 
       - name: Run tests (ubuntu)
         if: matrix.os == 'ubuntu-latest'

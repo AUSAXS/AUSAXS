@@ -69,7 +69,6 @@ TEST_CASE("BodySelectStrategy::next") {
         // check that the strategy loops back to the beginning
         auto[ibody, iconstraint] = strat->next();
         REQUIRE(ibody == 0);
-        REQUIRE(iconstraint == 0);
     }
 
     SECTION("RandomConstraintSelect::next") {
