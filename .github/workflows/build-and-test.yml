@@ -54,7 +54,9 @@ jobs:
 
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
-        run: brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
+        run: |
+          brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
+          brew remove binutils coreutils
 
       - name: Export GitHub Actions cache environment variables
         if: matrix.os == 'windows-latest'
@@ -71,13 +73,6 @@ jobs:
       - name: Get number of cores
         uses: SimenB/github-actions-cpu-cores@v2
         id: cpu-cores
-
-      - name: Debug
-        if: matrix.os == 'macos-latest'
-        run: |
-          echo $(which ar)
-          brew unlink ar
-          echo $(which ar)
 
       - name: Install libdwarf for debug build
         if: (matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest') && env.BUILD_TYPE == 'Debug'
