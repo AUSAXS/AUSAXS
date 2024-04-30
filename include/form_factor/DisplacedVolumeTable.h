@@ -5,7 +5,7 @@
 #include <math/ConstexprMath.h>
 #include <constants/ConstantsMath.h>
 
-#define TRAUBE_FF false
+#define TRAUBE_FF true
 #define PONTIUS_FF true
 namespace constants::displaced_volume {
     namespace {
@@ -16,20 +16,20 @@ namespace constants::displaced_volume {
 
     #if TRAUBE_FF
         // from original CRYSOL paper: https://doi.org/10.1107/S0021889895007047
-        constexpr double CH  = 0.02159*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double CH2 = 0.02674*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double CH3 = 0.03189*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double NH  = 0.00764*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double NH2 = 0.01279*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double NH3 = 0.01794*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double OH  = 0.01428*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double SH  = 0.02510*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double CH  = 0.02159*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double CH2 = 0.02674*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double CH3 = 0.03189*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double NH  = 0.00764*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double NH2 = 0.01279*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double NH3 = 0.01794*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double OH  = 0.01428*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double SH  = 0.02510*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
 
-        constexpr double H = 0.00515*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double C = 0.01644*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double N = 0.00249*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double O = 0.00913*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-        constexpr double S = 0.01986*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double H = 0.00515*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double C = 0.01644*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double N = 0.00249*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double O = 0.00913*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double S = 0.01986*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
 
     #elif PONTIUS_FF
         // from Pontius et al, 1996: https://doi.org/10.1006/jmbi.1996.0628

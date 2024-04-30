@@ -183,7 +183,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
     pool->detach_task([&p_tot, max_bin] () { p_tot.resize(max_bin); });
     pool->wait();
 
-    if (settings::hist::use_foxs_method) {
+    if (settings::hist::histogram_manager == settings::hist::HistogramManagerChoice::FoXSManager) {
         return std::make_unique<CompositeDistanceHistogramFoXS>(
             std::move(Distribution3D(p_aa)), 
             std::move(Distribution3D(p_ax)), 

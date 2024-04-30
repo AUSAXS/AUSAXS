@@ -102,6 +102,10 @@ double ExcludedVolumeFitter::get_intercept() {
 }
 
 void ExcludedVolumeFitter::update_excluded_volume(double d) {
+    #if defined(DEBUG)
+        auto res = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h.get());
+        if (res == nullptr) {throw except::invalid_operation("ExcludedVolumeFitter::update_excluded_volume: Cannot cast histogram to ICompositeDistanceHistogramExv!");}
+    #endif
     static_cast<hist::ICompositeDistanceHistogramExv*>(h.get())->apply_excluded_volume_scaling_factor(d);
 }
 

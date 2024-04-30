@@ -12,7 +12,6 @@ For more information, please refer to the LICENSE file in the project root.
 double settings::axes::qmin = constants::axes::q_axis.min;
 double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;
-bool settings::hist::use_foxs_method = false;
 bool settings::hist::weighted_bins = true;
 bool settings::hist::fit_excluded_volume = false;
 
@@ -42,6 +41,7 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Histogra
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT: return "phmmt";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg: return "phmmtff";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit: return "phmmtffx";
+        case settings::hist::HistogramManagerChoice::FoXSManager: return "foxs";
         case settings::hist::HistogramManagerChoice::DebugManager: return "debug";
         default: return std::to_string(static_cast<int>(settingref));
     }
@@ -59,6 +59,7 @@ template<> void settings::io::detail::SettingRef<settings::hist::HistogramManage
     else if (str == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg;}
     else if (str == "phmmtffx") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit;}
     else if (str == "debug") {settingref = settings::hist::HistogramManagerChoice::DebugManager;}
+    else if (str == "foxs") {settingref = settings::hist::HistogramManagerChoice::FoXSManager;}
     else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::hist::HistogramManagerChoice>(std::stoi(val[0]));}
     else {
         throw except::io_error("settings::hist::histogram_manager: Unkown HistogramManagerChoice. Did you forget to add parsing support for it in HistogramSettings.cpp?");

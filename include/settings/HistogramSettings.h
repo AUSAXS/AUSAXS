@@ -21,9 +21,9 @@ namespace settings::hist {
         PartialHistogramManagerMTFFAvg,      // A multithreaded implementation of the partial manager that uses precalculated form factor products and an average for the excluded volume.
         PartialHistogramManagerMTFFExplicit, // A multithreaded implementation of the partial manager that uses precalculated form factor products for both the protein and the excluded volume. 
         PartialHistogramManagerMTFFGrid,     // A multithreaded implementation of the partial manager using a grid-based approach to evaluate the excluded volume.
+        FoXSManager,                         // A manager that mimics the FoXS method to evaluate the scattering intensity.
         DebugManager,
     };
-    extern bool use_foxs_method;        // Whether to use the FoXS methods to evaluate the scattering intensity.
     extern bool weighted_bins;          // Whether to use weighted p(r) bins or not.
     extern bool fit_excluded_volume;    // Whether to fit the excluded volume or not.
     extern HistogramManagerChoice histogram_manager;

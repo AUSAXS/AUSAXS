@@ -11,6 +11,7 @@ void settings::validate_settings() {
     switch(settings::hist::histogram_manager) {
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
+        case settings::hist::HistogramManagerChoice::FoXSManager:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
             // check for effective charge compatibility
             if (settings::molecule::use_effective_charge == true) {

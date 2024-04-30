@@ -24,7 +24,7 @@
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
     std::string s_pdb, s_mfile, s_settings, histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
-    bool use_existing_hydration = false, fit_excluded_volume = false;
+    bool use_existing_hydration = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.add_option("input_s", s_pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
@@ -40,7 +40,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered.")->default_val(settings::molecule::center)->group("Protein options");
     app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::molecule::use_effective_charge)->group("Protein options");
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
-    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(fit_excluded_volume)->group("Protein options");
+    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", settings::hist::fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(settings::hist::fit_excluded_volume)->group("Protein options");
 
     // advanced options group
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");
@@ -52,7 +52,6 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--implicit-hydrogens,!--no-implicit-hydrogens", settings::molecule::implicit_hydrogens, "Decides whether implicit hydrogens will be added to the structure.")->default_val(settings::molecule::implicit_hydrogens)->group("Advanced options");
 
     // hidden options group
-    app.add_flag("--foxs", settings::hist::use_foxs_method, "Decides whether the FOXS method will be used.")->default_val(settings::hist::use_foxs_method)->group("Hidden");
     app.add_flag("--weighted_bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     app.add_option("--rvol", settings::grid::rvol, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::rvol)->group("Hidden");
     app.add_flag("--save_exv", settings::grid::save_exv, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::save_exv)->group("Hidden");
@@ -100,7 +99,7 @@ int main(int argc, char const *argv[]) {
     }
 
     std::shared_ptr<fitter::HydrationFitter> fitter;
-    if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
+    if (settings::hist::fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
     else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
     std::shared_ptr<fitter::Fit> result = fitter->fit();
     fitter::FitReporter::report(result.get());
