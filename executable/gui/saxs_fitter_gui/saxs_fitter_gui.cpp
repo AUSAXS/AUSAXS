@@ -160,7 +160,7 @@ auto io_menu(gui::view& view) {
 	auto ref = output_box.second;
 	static bool pdb_ok = false, saxs_ok = false;
 
-	pdb_box.second->on_text = [&view] (std::string_view text) {
+	pdb_box.second->on_text = [] (std::string_view text) {
 		if (text.size() == 1) {
 			pdb_box_bg.get()._color = ColorManager::get_color_accent();
 		} else if (text.empty()) {
@@ -178,13 +178,13 @@ auto io_menu(gui::view& view) {
 		if (fill.second) {pdb_box.second->on_enter(fill.first);}
 	};
 
-	pdb_box.second->on_enter = [&view] (std::string_view text) {
+	pdb_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
 		if (!constants::filetypes::structure.validate(file)) {
 			std::cout << "invalid pdb file " << file.path() << std::endl;
 			pdb_box_bg.get() = ColorManager::get_color_fail();
 			pdb_ok = false;
-			return;
+			return true;
 		}
 
 		// check if we can use a relative path instead of absolute
@@ -199,7 +199,7 @@ auto io_menu(gui::view& view) {
 		pdb_ok = true;
 
 		if (!saxs_ok) {
-			if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return;}
+			if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return true;}
 			for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
 				io::File tmp(p.path().string());
 				if (constants::filetypes::saxs_data.validate(tmp)) {
@@ -215,9 +215,10 @@ auto io_menu(gui::view& view) {
 			output_box.second->set_text(path);
 			output_box.second->on_enter(path);
 		}
+		return true;
 	};
 
-	saxs_box.second->on_text = [&view] (std::string_view text) {
+	saxs_box.second->on_text = [] (std::string_view text) {
 		if (text.size() == 1) {
 			saxs_box_bg.get() = ColorManager::get_color_accent();
 		} else if (text.empty()) {
@@ -235,14 +236,14 @@ auto io_menu(gui::view& view) {
 		if (fill.second) {saxs_box.second->on_enter(fill.first);}
 	};
 
-	saxs_box.second->on_enter = [&view] (std::string_view text) {
+	saxs_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
 		if (!constants::filetypes::saxs_data.validate(file)) {
 			std::cout << "invalid saxs file " << file.path() << std::endl;
 			saxs_box_bg.get() = ColorManager::get_color_fail();
 			saxs_ok = false;
 			setup::saxs_dataset = nullptr;
-			return;
+			return true;
 		}
 
 		// check if we can use a relative path instead of absolute
@@ -264,6 +265,7 @@ auto io_menu(gui::view& view) {
 				output_box.second->on_enter(path);
 			}
 		}
+		return true;
 	};
 
 	output_box.second->on_text = [] (std::string_view text) {
@@ -275,13 +277,14 @@ auto io_menu(gui::view& view) {
 		default_output = false;
 	};
 
-	output_box.second->on_enter = [&view] (std::string_view text) {
+	output_box.second->on_enter = [&view] (std::string_view text) -> bool {
 		settings::general::output = text;
 		if (settings::general::output.back() != '/') {
 			settings::general::output += "/";
 			view.refresh(output_box.first);
 		}
 		std::cout << "output path was set to " << settings::general::output << std::endl;
+		return true;
 	};
 
 	auto map_box_field = make_file_dialog_button(pdb_box, pdb_box_bg, {"PDB file", "pdb"});
@@ -456,9 +459,9 @@ auto toggle_mode_button(gui::view& view) {
 
 #include <logo.h>
 #include <resources.h>
-int main(int argc, char* argv[]) {
+int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
-	gui::app app(argc, argv, "AUSAXS intensity fitter", "com.cycfi.ausaxs-intensity-fitter");
+	gui::app app("AUSAXS saxs fitter");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), {50, 50, 1024+50, 768+50});
 	win.on_close = [&app]() {app.stop();};
 
@@ -468,7 +471,7 @@ int main(int argc, char* argv[]) {
 	gui::view view(win);
 	auto header = gui::layer(
 		gui::align_center_top(
-			gui::label("Intensity fitter")
+			gui::label("SAXS fitter")
 				.font_size(50)
 				.font_color(ColorManager::get_text_color())
 		),

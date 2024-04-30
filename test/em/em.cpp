@@ -32,7 +32,7 @@ using std::vector;
 TEST_CASE("extract_image", "[manual]") {
     em::ImageStack image("test/files/A2M_2020_Q4.ccp4"); 
 
-    plots::PlotImage plot(image.image(5));
+    plots::PlotImage plot(image.image(5), plots::PlotOptions());
     // plot.plot_atoms(0.1);
     plot.save("test.pdf");
 }
@@ -233,7 +233,7 @@ TEST_CASE("plot_images", "[files],[manual],[slow]") {
     settings::plots::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
-        plots::PlotImage plot(image.image(i));
+        plots::PlotImage plot(image.image(i), plots::PlotOptions());
         // plot.plot_atoms(-1);
         plot.save("figures/test/em/images/" + file.stem() + "/" + std::to_string(i) + ".png");
     }
