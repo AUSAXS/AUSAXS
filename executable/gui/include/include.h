@@ -83,16 +83,16 @@ struct ColorManager {
 static auto background = ColorManager::new_background_color();
 
 shell::Command get_plotter_cmd() {
-	#ifdef _WIN32
+	#ifdef defined(_WIN32)
 		// first check if plot.exe is available in the path
-		auto res = shell::Command("where plot").mute().execute();
+		auto res = shell::Command("where.exe plot /q").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
 			return shell::Command(res.out);
 		}
 
 		// if not, check if python & the python script is available
-		bool python_available = shell::Command("python --version").mute().execute();
+		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
 		bool python_script_available = io::File("scripts/plot.py").exists();
 		if (python_available && python_script_available) {
 			return shell::Command("python scripts/plot.py");
