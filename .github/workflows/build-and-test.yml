@@ -36,10 +36,10 @@ jobs:
             arch: x86-64
 
           - os: macos-latest
-            name: "MacOS x86_64 latest with clang"
+            name: "MacOS arm64 latest with clang"
             c_compiler: $(brew --prefix llvm@15)/bin/clang
             cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            arch: x86-64
+            arch: arm64
 
     steps: 
       - name: Checkout code
@@ -57,7 +57,7 @@ jobs:
 
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-latest'
-        run: vcpkg install curl pkg-config cairo libwebp --triplet x64-windows-static
+        run: vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
 
       - name: Get number of cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -77,24 +77,24 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static" -S . -B build 
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static" -S . -B build 
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
 
       - name: Build the library (ubuntu)
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-20.04'
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build 
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build 
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
 
-      - name: Build the library (mac)
+      - name: Build the library (macos)
         if: matrix.os == 'macos-latest'
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j ${{ steps.cpu-cores.outputs.cpu-cores }}
+          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64 -S . -B build
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
