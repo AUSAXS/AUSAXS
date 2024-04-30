@@ -83,16 +83,16 @@ struct ColorManager {
 static auto background = ColorManager::new_background_color();
 
 shell::Command get_plotter_cmd() {
-	#ifdef _WIN32
+	#ifdef defined(_WIN32)
 		// first check if plot.exe is available in the path
-		auto res = shell::Command("where plot").mute().execute();
+		auto res = shell::Command("where.exe plot /q").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
 			return shell::Command(res.out);
 		}
 
 		// if not, check if python & the python script is available
-		bool python_available = shell::Command("python --version").mute().execute();
+		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
 		bool python_script_available = io::File("scripts/plot.py").exists();
 		if (python_available && python_script_available) {
 			return shell::Command("python scripts/plot.py");
@@ -300,7 +300,7 @@ auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
+	qmin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
 			qslider.value_first(axis_transform_inv(std::stof(std::string(text))));
 			qmin_bg.get() = ColorManager::get_color_background();
@@ -308,6 +308,7 @@ auto q_slider(gui::view& view) {
 		} catch (std::exception&) {
 			qmin_bg.get() = ColorManager::get_color_fail();
 		}
+		return true;
 	};
 
 	qmax_textbox.second->on_text = [] (std::string_view text) {
@@ -318,7 +319,7 @@ auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
+	qmax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
 			qslider.value_second(axis_transform_inv(std::stof(std::string(text))));
 			qmax_bg.get() = ColorManager::get_color_background();
@@ -326,6 +327,7 @@ auto q_slider(gui::view& view) {
 		} catch (std::exception&) {
 			qmax_bg.get() = ColorManager::get_color_fail();
 		}
+		return true;
 	};
 
 	return gui::vtile(
@@ -539,7 +541,7 @@ auto alpha_level_slider(gui::view& view) {
 		view.refresh(amax_textbox.first);
 	};
 
-	amin_textbox.second->on_text = [&view] (std::string_view text) {
+	amin_textbox.second->on_text = [] (std::string_view text) {
 		if (text.empty()) {			
 			amin_bg.get() = ColorManager::get_color_background();
 		} else {
@@ -547,7 +549,7 @@ auto alpha_level_slider(gui::view& view) {
 		}
 	};
 
-	amin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
+	amin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
 			aslider.value_first(axis_transform_inv(std::stof(std::string(text))));
 			amin_bg.get() = ColorManager::get_color_background();
@@ -556,9 +558,10 @@ auto alpha_level_slider(gui::view& view) {
 			amin_bg.get() = ColorManager::get_color_fail();
 		}
 		view.refresh(aslider);
+		return true;
 	};
 
-	amax_textbox.second->on_text = [&view] (std::string_view text) {
+	amax_textbox.second->on_text = [] (std::string_view text) {
 		if (text.empty()) {
 			amax_bg.get() = ColorManager::get_color_background();
 		} else {
@@ -566,7 +569,7 @@ auto alpha_level_slider(gui::view& view) {
 		}
 	};
 
-	amax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
+	amax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
 			aslider.value_second(axis_transform_inv(std::stof(std::string(text))));
 			amax_bg.get() = ColorManager::get_color_background();
@@ -575,9 +578,10 @@ auto alpha_level_slider(gui::view& view) {
 			amax_bg.get() = ColorManager::get_color_fail();
 		}
 		view.refresh(aslider);
+		return true;
 	};
 
-	astep_textbox.second->on_text = [&view] (std::string_view text) {
+	astep_textbox.second->on_text = [] (std::string_view text) {
 		if (text.empty()) {
 			astep_bg.get() = ColorManager::get_color_background();
 		} else {
@@ -585,7 +589,7 @@ auto alpha_level_slider(gui::view& view) {
 		}
 	};
 
-	astep_textbox.second->on_enter = [&view] (std::string_view text) {
+	astep_textbox.second->on_enter = [&view] (std::string_view text) -> bool {
 		try {
 			settings::fit::max_iterations = std::stof(std::string(text));
 			astep_bg.get() = ColorManager::get_color_background();
@@ -593,6 +597,7 @@ auto alpha_level_slider(gui::view& view) {
 			astep_bg.get() = ColorManager::get_color_fail();
 		}
 		view.refresh(astep_textbox.first);
+		return true;
 	};
 
 	return gui::vtile(

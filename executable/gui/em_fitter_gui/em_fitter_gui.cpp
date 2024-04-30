@@ -186,7 +186,7 @@ auto io_menu(gui::view& view) {
 	output_box.second->set_text("output/em_fitter");
 	static bool map_ok = false, saxs_ok = false;
 
-	map_box.second->on_text = [&view] (std::string_view text) {
+	map_box.second->on_text = [] (std::string_view text) {
 		static unsigned int last_size = 0;
 		if (text.size() == 1) {
 			map_box_bg = bg_color_accent;
@@ -245,13 +245,13 @@ auto io_menu(gui::view& view) {
 		}
 	};
 
-	map_box.second->on_enter = [&view] (std::string_view text) {
+	map_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
 		if (!constants::filetypes::em_map.validate(file)) {
 			std::cout << "invalid map file " << file.path() << std::endl;
 			map_box_bg = bred;
 			map_ok = false;
-			return;
+			return true;
 		}
 
 		settings::map_file = file.path();
@@ -265,11 +265,11 @@ auto io_menu(gui::view& view) {
 			map_box_bg = bred;
 			map_ok = false;
 			setup::map = nullptr;
-			return;
+			return true;
 		}
 
 		if (!saxs_ok) {
-			if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return;}
+			if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return true;}
 			for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
 				io::File tmp(p.path().string());
 				if (constants::filetypes::saxs_data.validate(tmp)) {
@@ -286,9 +286,10 @@ auto io_menu(gui::view& view) {
 			output_box.second->set_text(path);
 			output_box.second->on_enter(path);
 		}
+		return true;
 	};
 
-	saxs_box.second->on_text = [&view] (std::string_view text) {
+	saxs_box.second->on_text = [] (std::string_view text) {
 		static unsigned int last_size = 0;
 		if (text.size() == 1) {
 			saxs_box_bg = bg_color_accent;
@@ -349,14 +350,14 @@ auto io_menu(gui::view& view) {
 		}
 	};
 
-	saxs_box.second->on_enter = [&view] (std::string_view text) {
+	saxs_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
 		if (!constants::filetypes::saxs_data.validate(file)) {
 			std::cout << "invalid saxs file " << file.path() << std::endl;
 			saxs_box_bg = bred;
 			saxs_ok = false;
 			setup::saxs_dataset = nullptr;
-			return;
+			return true;
 		}
 
 		settings::saxs_file = file.path();
@@ -370,7 +371,7 @@ auto io_menu(gui::view& view) {
 			saxs_box_bg = bred;
 			saxs_ok = false;
 			setup::saxs_dataset = nullptr;
-			return;
+			return true;
 		}
 
 		if (map_ok) {
@@ -380,6 +381,7 @@ auto io_menu(gui::view& view) {
 				output_box.second->on_enter(path);
 			}
 		}
+		return true;
 	};
 
 	output_box.second->on_text = [] (std::string_view text) {
@@ -391,13 +393,14 @@ auto io_menu(gui::view& view) {
 		default_output = false;
 	};
 
-	output_box.second->on_enter = [&view] (std::string_view text) {
+	output_box.second->on_enter = [&view] (std::string_view text) -> bool {
 		settings::general::output = text;
 		if (settings::general::output.back() != '/') {
 			settings::general::output += "/";
 			view.refresh(output_box.first);
 		}
 		std::cout << "output path was set to " << settings::general::output << std::endl;
+		return true;
 	};
 
 	auto map_box_field = make_file_dialog_button(map_box, map_box_bg, {"EM map", "map,ccp4,mrc"});
@@ -539,7 +542,7 @@ auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
+	qmin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
 			qslider.value_first(axis_transform_inv(std::stof(std::string(text))));
 			qmin_bg = bg_color;
@@ -547,6 +550,7 @@ auto q_slider(gui::view& view) {
 		} catch (std::exception&) {
 			qmin_bg = bred;
 		}
+		return true;
 	};
 
 	qmax_textbox.second->on_text = [] (std::string_view text) {
@@ -557,7 +561,7 @@ auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
+	qmax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
 			qslider.value_second(axis_transform_inv(std::stof(std::string(text))));
 			qmax_bg = bg_color;
@@ -565,6 +569,7 @@ auto q_slider(gui::view& view) {
 		} catch (std::exception&) {
 			qmax_bg = bred;
 		}
+		return true;
 	};
 
 	return gui::vtile(
@@ -718,7 +723,7 @@ auto alpha_level_slider(gui::view& view) {
 		view.refresh(amax_textbox.first);
 	};
 
-	amin_textbox.second->on_text = [&view] (std::string_view text) {
+	amin_textbox.second->on_text = [] (std::string_view text) {
 		if (text.empty()) {			
 			amin_bg = bg_color;
 		} else {
@@ -726,7 +731,7 @@ auto alpha_level_slider(gui::view& view) {
 		}
 	};
 
-	amin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
+	amin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
 			aslider.value_first(axis_transform_inv(std::stof(std::string(text))));
 			amin_bg = bg_color;
@@ -735,9 +740,10 @@ auto alpha_level_slider(gui::view& view) {
 			amin_bg = bred;
 		}
 		view.refresh(aslider);
+		return true;
 	};
 
-	amax_textbox.second->on_text = [&view] (std::string_view text) {
+	amax_textbox.second->on_text = [] (std::string_view text) {
 		if (text.empty()) {
 			amax_bg = bg_color;
 		} else {
@@ -745,7 +751,7 @@ auto alpha_level_slider(gui::view& view) {
 		}
 	};
 
-	amax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
+	amax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
 			aslider.value_second(axis_transform_inv(std::stof(std::string(text))));
 			amax_bg = bg_color;
@@ -754,9 +760,10 @@ auto alpha_level_slider(gui::view& view) {
 			amax_bg = bred;
 		}
 		view.refresh(aslider);
+		return true;
 	};
 
-	astep_textbox.second->on_text = [&view] (std::string_view text) {
+	astep_textbox.second->on_text = [] (std::string_view text) {
 		if (text.empty()) {
 			astep_bg = bg_color;
 		} else {
@@ -764,7 +771,7 @@ auto alpha_level_slider(gui::view& view) {
 		}
 	};
 
-	astep_textbox.second->on_enter = [&view] (std::string_view text) {
+	astep_textbox.second->on_enter = [&view] (std::string_view text) -> bool {
 		try {
 			settings::fit::max_iterations = std::stof(std::string(text));
 			astep_bg = bg_color;
@@ -772,6 +779,7 @@ auto alpha_level_slider(gui::view& view) {
 			astep_bg = bred;
 		}
 		view.refresh(astep_textbox.first);
+		return true;
 	};
 
 	return gui::vtile(
@@ -869,7 +877,7 @@ auto make_misc_settings() {
 		}
 	};
 
-	frequency.second->on_enter = [] (std::string_view text) {
+	frequency.second->on_enter = [] (std::string_view text) -> bool {
 		try {
 			settings::em::sample_frequency = std::stof(std::string(text));
 			frequency_bg = bg_color;
@@ -877,6 +885,7 @@ auto make_misc_settings() {
 			std::cout << "invalid sample frequency input" << std::endl;
 			frequency_bg = bred;
 		}
+		return true;
 	};
 
 	static auto frequency_element = gui::hsize(
@@ -1030,7 +1039,7 @@ auto make_start_button(gui::view& view) {
 
 #include <iostream>
 #include <logo.h>
-int main(int argc, char* argv[]) {
+int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
 	settings::axes::qmin = 0;
 	settings::axes::qmax = 1;
@@ -1044,7 +1053,7 @@ int main(int argc, char* argv[]) {
 	// generate the logo file on disk
 	auto logo_path = resources::generate_logo_file();
 
-	gui::app app(argc, argv, "EM fitter", "com.saxs.gui");
+	gui::app app("EM fitter");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), gui::rect{20, 20, 1620, 1020});
 	win.on_close = [&app]() {app.stop();};
 

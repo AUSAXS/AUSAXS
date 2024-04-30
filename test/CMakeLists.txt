@@ -27,8 +27,8 @@ set(TEST_BIN_DIR "${CMAKE_BINARY_DIR}/test/bin")
 foreach(test ${TEST_SRC})
 	cmake_path(GET test STEM testname)
 	set(name "test_${testname}")
-	add_executable("${name}" ${test} $<$<CONFIG:DEBUG>: ${BACKWARD_ENABLE}>)
-	target_link_libraries("${name}" Catch2::Catch2WithMain ausaxs "$<$<CONFIG:Debug>:Backward:Interface>")
+	add_executable("${name}" ${test})
+	target_link_libraries("${name}" Catch2::Catch2WithMain ausaxs "$<$<CONFIG:Debug>:Backward::Interface>")
 	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/test")
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${TEST_BIN_DIR}"

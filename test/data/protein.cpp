@@ -239,8 +239,8 @@ TEST_CASE_METHOD(fixture, "Protein::get_total_histogram") {
 
 TEST_CASE("Protein::save") {
     Molecule protein("test/files/2epe.pdb");
-    protein.save("test/temp/protein_save_2epe.pdb");
-    Molecule protein2("test/temp/protein_save_2epe.pdb");
+    protein.save("temp/test/protein_save_2epe.pdb");
+    Molecule protein2("temp/test/protein_save_2epe.pdb");
     auto atoms1 = protein.get_atoms();
     auto atoms2 = protein2.get_atoms();
     REQUIRE(atoms1.size() == atoms2.size());
@@ -316,12 +316,18 @@ TEST_CASE("Protein::total_effective_charge") {
     for (auto& atom : protein.get_atoms()) {
         sum += atom.get_effective_charge();
     }
-    REQUIRE(protein.total_atomic_charge() == sum);
+    REQUIRE(protein.total_effective_charge() == sum);
 }
 
 TEST_CASE("Protein::get_relative_charge_density") {
     Molecule protein("test/files/2epe.pdb");
-    REQUIRE(protein.get_relative_charge_density() == (protein.total_atomic_charge() - constants::charge::density::water*protein.get_volume_grid())/protein.get_volume_grid());
+    REQUIRE_THAT(
+        protein.get_relative_charge_density(), 
+        Catch::Matchers::WithinAbs(
+            (protein.total_atomic_charge() - constants::charge::density::water*protein.get_volume_grid())/protein.get_volume_grid(), 
+            1e-6
+        )
+    );
 }
 
 TEST_CASE("Protein::get_relative_mass_density") {
@@ -453,18 +459,18 @@ TEST_CASE("histogram") {
 
     SECTION("multiple bodies, simple") {
         // make the protein
-        vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+        vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "LYS", 1)};
+        vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "LYS", 1)};
+        vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "LYS", 1)};
+        vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "LYS", 1)};
         vector<Body> ap = {Body(b1), Body(b2), Body(b3), Body(b4)};
         Molecule many(ap, {});
 
         // make the body
-        vector<Atom> ab = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1),
-                           Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
-                           Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
-                           Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+        vector<Atom> ab = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "LYS", 1),
+                           Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "LYS", 1),
+                           Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "LYS", 1),
+                           Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "LYS", 1)};
         Molecule one(ab, {});
 
         // create some water molecules

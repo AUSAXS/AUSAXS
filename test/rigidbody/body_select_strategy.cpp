@@ -3,8 +3,9 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
-#include <rigidbody/selection/RandomSelect.h>
-#include <rigidbody/selection/SequentialSelect.h>
+#include <rigidbody/selection/RandomBodySelect.h>
+#include <rigidbody/selection/SequentialBodySelect.h>
+#include <rigidbody/selection/SequentialConstraintSelect.h>
 #include <data/record/Atom.h>
 #include <data/Body.h>
 #include <rigidbody/RigidBody.h>
@@ -36,8 +37,72 @@ TEST_CASE("BodySelectStrategy::next") {
         }
     }
 
-    SECTION("RandomSelect::next") {
-        std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::RandomSelect>(&rigidbody);
+    SECTION("SequentialConstraintSelect::next") {
+        std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::SequentialConstraintSelect>(&rigidbody);
+        std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
+
+        // check that the constraints are selected sequentially
+        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+            for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size(); j++) {
+                auto[ibody, iconstraint] = strat->next();
+                REQUIRE(ibody == i);
+                REQUIRE(iconstraint == int(j));
+            }
+        }
+
+        // check that the strategy loops back to the beginning
+        auto[ibody, iconstraint] = strat->next();
+        REQUIRE(ibody == 0);
+        REQUIRE(iconstraint == 0);
+    }
+
+    SECTION("SequentialBodySelect::next") {
+        std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::SequentialBodySelect>(&rigidbody);
+        std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
+
+        // check that the bodies are selected sequentially
+        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+            auto[ibody, _] = strat->next();
+            REQUIRE(ibody == i);
+        }
+
+        // check that the strategy loops back to the beginning
+        auto[ibody, iconstraint] = strat->next();
+        REQUIRE(ibody == 0);
+    }
+
+    SECTION("RandomConstraintSelect::next") {
+        std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::RandomConstraintSelect>(&rigidbody);
+        std::unordered_map<unsigned int, unsigned int> count;
+
+        // count how many times each constraint is selected
+        unsigned int iterations = 10000;
+        for (unsigned int i = 0; i < iterations; i++) {
+            auto[ibody, iconstraint] = strat->next();
+            if (ibody >= rigidbody.body_size()) {
+                std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
+                REQUIRE(false);
+            } 
+            if (iconstraint >= int(rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).size())) {
+                std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
+                REQUIRE(false);
+            }
+
+            const auto& constraint = rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).at(iconstraint);
+            for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints.size(); j++) {
+                if (&rigidbody.get_constraint_manager()->distance_constraints[j] == &constraint.get()) {
+                    count[j]++;
+                }
+            }
+        }
+
+        for (unsigned int i = 0; i < rigidbody.get_constraint_manager()->distance_constraints.size(); i++) {
+            REQUIRE(count[i] > 0.8*iterations/rigidbody.get_constraint_manager()->distance_constraints.size());
+        }
+    }
+
+    SECTION("RandomBodySelect::next") {
+        std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::RandomBodySelect>(&rigidbody);
         std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
 
         // count how many times each body and constraint is selected
@@ -48,7 +113,7 @@ TEST_CASE("BodySelectStrategy::next") {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
                 REQUIRE(false);
             } 
-            if (iconstraint >= rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).size()) {
+            if (iconstraint >= int(rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).size())) {
                 std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
                 REQUIRE(false);
             }
@@ -69,55 +134,6 @@ TEST_CASE("BodySelectStrategy::next") {
             for (unsigned int j = i; j < rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size(); j++) {
                 REQUIRE(count[i][j] > 0.7*sum/rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size());
             }
-        }
-    }
-
-    SECTION("SequentialSelect::next") {
-        std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::SequentialSelect>(&rigidbody);
-        std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
-
-        // check that the constraints are selected sequentially
-        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
-            for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size(); j++) {
-                auto[ibody, iconstraint] = strat->next();
-                REQUIRE(ibody == i);
-                REQUIRE(iconstraint == j);
-            }
-        }
-
-        // check that the strategy loops back to the beginning
-        auto[ibody, iconstraint] = strat->next();
-        REQUIRE(ibody == 0);
-        REQUIRE(iconstraint == 0);
-    }
-
-    SECTION("RandomConstraintSelect::next") {
-        std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::RandomConstraintSelect>(&rigidbody);
-        std::unordered_map<unsigned int, unsigned int> count;
-
-        // count how many times each constraint is selected
-        unsigned int iterations = 10000;
-        for (unsigned int i = 0; i < iterations; i++) {
-            auto[ibody, iconstraint] = strat->next();
-            if (ibody >= rigidbody.body_size()) {
-                std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
-                REQUIRE(false);
-            } 
-            if (iconstraint >= rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).size()) {
-                std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
-                REQUIRE(false);
-            }
-
-            const auto& constraint = rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).at(iconstraint);
-            for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints.size(); j++) {
-                if (&rigidbody.get_constraint_manager()->distance_constraints[j] == &constraint.get()) {
-                    count[j]++;
-                }
-            }
-        }
-
-        for (unsigned int i = 0; i < rigidbody.get_constraint_manager()->distance_constraints.size(); i++) {
-            REQUIRE(count[i] > 0.8*iterations/rigidbody.get_constraint_manager()->distance_constraints.size());
         }
     }
 }

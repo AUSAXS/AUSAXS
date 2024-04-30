@@ -9,7 +9,7 @@ FetchContent_MakeAvailable(CLI11)
 file(GLOB EXEC_SOURCE "*.cpp")
 foreach(exec ${EXEC_SOURCE})
 	cmake_path(GET exec STEM name)
-	add_executable("${name}" ${exec} $<$<CONFIG:DEBUG>: ${BACKWARD_ENABLE}>)
+	add_executable("${name}" ${exec})
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 	)
