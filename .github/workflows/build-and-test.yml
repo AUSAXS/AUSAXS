@@ -72,6 +72,13 @@ jobs:
         uses: SimenB/github-actions-cpu-cores@v2
         id: cpu-cores
 
+      - name: Debug
+        if: matrix.os == 'macos-latest'
+        run: |
+          echo $(which ar)
+          brew unlink ar
+          echo $(which ar)
+
       - name: Install libdwarf for debug build
         if: (matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest') && env.BUILD_TYPE == 'Debug'
         run: |
@@ -87,8 +94,7 @@ jobs:
         run: |
           mkdir build
           cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} \
-                -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static" \
-                -DCMAKE_GENERATOR="Ninja" -S . -B build
+                -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static" -S . -B build
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
 
       - name: Build the library (ubuntu)

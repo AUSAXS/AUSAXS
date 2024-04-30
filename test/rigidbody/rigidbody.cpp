@@ -5,9 +5,10 @@
 
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/transform/RigidTransform.h>
-#include <rigidbody/selection/RandomSelect.h>
+#include <rigidbody/selection/RandomBodySelect.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
-#include <rigidbody/selection/SequentialSelect.h>
+#include <rigidbody/selection/SequentialConstraintSelect.h>
+#include <rigidbody/selection/SequentialBodySelect.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/transform/TransformGroup.h>

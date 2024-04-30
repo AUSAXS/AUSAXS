@@ -14,9 +14,9 @@ TEST_CASE("LinearDecay::factor") {
     double rate = 1./val;
     
     SECTION("Decay value " + std::to_string(val)) {
-        parameters::decay::LinearDecay decay(val);
+        parameter::decay::LinearDecay decay(val);
         for (unsigned int i = val; i > 0; --i) {
-            REQUIRE_THAT(decay.get_factor(), Catch::Matchers::WithinAbs(i*rate, 1e-6));
+            REQUIRE_THAT(decay.next(), Catch::Matchers::WithinAbs(i*rate, 1e-6));
         }
     }
 }
@@ -26,10 +26,10 @@ TEST_CASE("ExponentialDecay::factor") {
     
     SECTION("Decay value " + std::to_string(val)) {
         double rate = 2./val;
-        parameters::decay::ExponentialDecay decay(val);
+        parameter::decay::ExponentialDecay decay(val);
         for (double i = 0; i < val; ++i) {
             double factor = std::exp(-i*rate);
-            REQUIRE_THAT(decay.get_factor(), Catch::Matchers::WithinAbs(factor, 1e-6));
+            REQUIRE_THAT(decay.next(), Catch::Matchers::WithinAbs(factor, 1e-6));
         }
     }
 }
