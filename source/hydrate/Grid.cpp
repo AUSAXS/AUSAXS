@@ -615,25 +615,7 @@ Vector3<int> Grid::to_bins_bounded(const Vector3<double>& v) const {
 }
 
 double Grid::get_volume() {
-    // auto vol = volume;
-    // std::cout << "Volumes: " << std::endl;
-    // std::cout << "\tBefore expansion: " << volume << std::endl;
     expand_volume();
-    // std::cout << "\tAfter expansion:  " << volume << std::endl;
-    // std::cout << "\tDifference:       " << (volume - vol) << std::endl;
-
-    // // assume perfect sphere
-    // double vol = std::pow(width, 3)*volume; // volume in cubic Å
-    // double r = std::cbrt(3*vol/(4*constants::pi));   // radius of the protein in Ångström
-
-    // // assume ellipsoid with axes r, r, 0.8r
-    // double vol = std::pow(settings::grid::width, 3)*volume; // volume in cubic Å
-    // double r = std::cbrt(3*vol/(4*constants::pi*0.8));   // radius of the protein in Ångström
-
-    // // since rvol is significantly larger than the Van der Waals radius, we must correct for this
-    // // this has a significant volume contribution for small proteins
-    // r -= (settings::grid::rvol - constants::radius::get_vdw_radius(constants::atom_t::C));
-    // return 0.8*4/3*constants::pi*std::pow(r, 3); // volume in cubic Å
     return volume*std::pow(settings::grid::width, 3);
 }
 
@@ -706,7 +688,7 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
     exv_atoms.reserve(volume);
     auto[vmin, vmax] = bounding_box_index();
 
-    if (std::fmod(settings::grid::exv_radius*2, settings::grid::width) != 0) {
+    if (std::abs(std::remainder(settings::grid::exv_radius*2, settings::grid::width)) > 1e-6) {
         console::print_warning("Warning in Grid::generate_excluded_volume: The excluded volume radius is not a multiple of the grid width. Rounding to nearest integer.");
     }
     int stride = std::round(2*settings::grid::exv_radius/settings::grid::width);
@@ -725,16 +707,6 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
             }
         }
     }
-
-    // // check if we should use excluded volume spheres larger than the grid width
-    // if (settings::grid::exv_radius != settings::grid::width) {
-    //     std::cout << "Aggregating excluded volume spheres." << std::endl;
-    //     double r = settings::grid::exv_radius;
-    //     double V = std::pow(r, 3);
-    //     double reduction_factor = V/std::pow(settings::grid::width, 3);
-    //     std::shuffle(exv_atoms.begin(), exv_atoms.end(), std::mt19937{std::random_device{}()});
-    //     exv_atoms.resize(exv_atoms.size()/reduction_factor);
-    // }
 
     if (settings::grid::save_exv) {
         std::vector<Atom> atoms(exv_atoms.size());
