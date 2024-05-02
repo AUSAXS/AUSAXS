@@ -20,7 +20,7 @@ options :=
 #################################################################################
 # Plot a SAXS dataset along with any accompanying fits
 plot_fits/%: scripts/compare_fit.py
-	@ measurement=$$(find output/intensity_fitter/ -name "$*.dat"); \
+	@ measurement=$$(find output/saxs_fitter/ -name "$*.scat"); \
 	for f in $${measurement}; do\
 		python3 $< $${f}; \
 	done
@@ -340,11 +340,9 @@ fit_all_crysol/%:
 fit_all_foxs/%: 
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
-	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
-		structure="$${folder}/$*_dehydrated.pdb";\
-	else \
-		structure=$$(find $${folder}/ -name "$*.pdb");\
-	fi;\
+	structure=$$(find $${folder}/ -name "$*.pdb");\
+	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
+	structure="$${folder}/$*_stripped.pdb";\
 	rm -rf temp/foxs;\
 	mkdir -p temp/foxs;\
 	cp $${structure} temp/foxs;\
@@ -353,31 +351,30 @@ fit_all_foxs/%:
 	foxs $$(basename "$${structure}") $$(basename "$${measurement}") $${options};\
 	cd ../..;\
 	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
+	cp output/fit_all_exv/$*/foxs.fit output/saxs_fitter/$*
 
 fit_all_pepsi/%: 
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
-	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
-		structure="$${folder}/$*_dehydrated.pdb";\
-	else \
-		structure=$$(find $${folder}/ -name "$*.pdb");\
-	fi;\
+	structure=$$(find $${folder}/ -name "$*.pdb");\
+	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
+	structure="$${folder}/$*_stripped.pdb";\
 	rm -rf temp/pepsi;\
 	mkdir -p temp/pepsi;\
 	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" $${options};\
 	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
+	cp output/fit_all_exv/$*/pepsi.fit output/saxs_fitter/$*
 
 fit_all_crysol/%: 
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
-	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
-		structure="$${folder}/$*_dehydrated.pdb";\
-	else \
-		structure=$$(find $${folder}/ -name "$*.pdb");\
-	fi;\
+	structure=$$(find $${folder}/ -name "$*.pdb");\
+	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
+	structure="$${folder}/$*_stripped.pdb";\
 	mkdir -p temp/crysol;\
 	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 $${options};\
 	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
+	cp output/fit_all_exv/$*/crysol.fit output/saxs_fitter/$*
 
 fit_all/%: build/bin/fit_all_exv
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
