@@ -71,19 +71,21 @@ int main(int argc, char const *argv[]) {
             settings::hist::HistogramManagerChoice::HistogramManagerMT,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg, 
-            settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit,
+            settings::hist::HistogramManagerChoice::FoXSManager
         };
 
         loop_names = {
             "HistogramManagerMT",
             "HistogramManagerMTFFGrid",
             "HistogramManagerMTFFAvg", 
-            "HistogramManagerMTFFExplicit"
+            "HistogramManagerMTFFExplicit",
+            "FoXS"
         };
         volumes = "TRAUBE";
     #elif PONTIUS_FF
         loop = {settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit};
-        loop_names = {"HistogramManagerMTFFExplicit"};
+        loop_names = {"HistogramManagerMTFFExplicit", "FoXS"};
         volumes = "PONTIUS";
     #endif
     std::cout << volumes << std::endl;
@@ -116,10 +118,8 @@ int main(int argc, char const *argv[]) {
                 settings::molecule::use_effective_charge = false;
                 break;
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-                settings::molecule::use_effective_charge = false;
-                perform_fit(loop_names[i] + "_fitted", loop[i], true);
-                break;
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
+            case settings::hist::HistogramManagerChoice::FoXSManager:
                 settings::molecule::use_effective_charge = false;
                 perform_fit(loop_names[i] + "_fitted", loop[i], true);
                 break;

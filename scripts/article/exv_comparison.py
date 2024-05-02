@@ -15,21 +15,17 @@ params = {
     'lines.markersize': 5
 }
 
-folder = ""
-method = ""
+folder = "output/fit_all_exv/"
 match len(sys.argv):
-    case 3:
+    case 1: pass
+    case 2:
         folder = sys.argv[1]
         if not os.path.exists(folder):
             print(f"Folder {sys.argv[2]} does not exist.")
             exit(1)
-        method = sys.argv[2]
-        if method != "TRAUBE" and method != "PONTIUS":
-            print("Method must be either TRAUBE or PONTIUS.")
-            exit(1)
 
     case _:
-        print("Usage: python exv_comparison.py <folder> <method>")
+        print("Usage: python exv_comparison.py <folder>")
         exit(1)
 
 # iterate through all files in the directory
@@ -39,8 +35,14 @@ x_label_map = {
     "HistogramManagerMTFFAvg_fitted:": 2, 
     "HistogramManagerMTFFExplicit:": 3, 
     "HistogramManagerMTFFExplicit_fitted:": 4,
-    "HistogramManagerMTFFGrid:": 5
+    "FoXS:": 5,
+    "FoXS_fitted:": 6,
+    "HistogramManagerMTFFGrid:": 7
 }
+x_labels_traube = ["Simple", "Averaged", "Averaged fitted", "Explicit", "Explicit fitted", "FoXS (ours)", "FoXS fitted (ours)", "Grid", "CRYSOL", "FoXS", "Pepsi-SAXS"]
+x_labels_pontius = ["Simple", "Averaged", "Averaged fitted", "Explicit", "Explicit fitted", "FoXS (ours)", "FoXS fitted (ours)", "Grid"]
+x_labels_diff = ["Explicit", "Explicit & fitted"]
+
 data = {"TRAUBE": [], "PONTIUS": []}       # indexing: [file_name, method]
 size = []
 foxs = []
@@ -93,7 +95,7 @@ for file in os.listdir(folder):
             name = tokens[1].split(".")[0]
             if (name not in y_labels):
                 y_labels.append(name)
-            chi2s = np.array([0.0]*6)
+            chi2s = np.array([0.0]*len(x_label_map))
             with open(os.path.join(folder, file, nested_file), "r") as f:
                 for line in f:
                     line = line.strip().split()
@@ -108,6 +110,10 @@ for file in os.listdir(folder):
 size = np.array(size)
 data_pontius = np.array(data["PONTIUS"])
 data_traube = np.array(data["TRAUBE"])
+data_diff = None
+
+figsize_x = max(len(x_labels_diff)+2, 8)
+figsize_y = max(len(data), 6)
 
 # sort by size
 # indices = np.argsort(size)
@@ -116,14 +122,10 @@ data_traube = np.array(data["TRAUBE"])
 # data_traube = data_traube[indices]
 # y_labels = [y_labels[i] for i in indices]
 
-if (data_pontius.shape == data_traube.shape):
+if (data_pontius.shape == data_traube.shape and data_pontius.shape[0] > 0):
     data_diff = (data_pontius - data_traube)[:, 3:5]
 
 data_traube = np.concatenate((data_traube, np.array([crysol, foxs, pepsi]).T), axis=1)
-x_labels_traube = ["Simple", "Averaged", "Averaged & fitted", "Explicit", "Explicit & fitted", "Grid", "CRYSOL", "FoXS", "Pepsi-SAXS"]
-x_labels_pontius = ["Simple", "Averaged", "Averaged & fitted", "Explicit", "Explicit & fitted", "Grid"]
-x_labels_diff = ["Explicit", "Explicit & fitted"]
-
 bounds = [1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 25, 100]
 cmap = plt.get_cmap('RdYlGn_r')
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
@@ -136,7 +138,7 @@ def round(x):
     return int(np.round(x))
 
 def plot_one(data, x_labels, method):
-    fig, ax = plt.subplots(figsize=(len(x_labels), len(data)))
+    fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
     plt.imshow(data, interpolation='nearest', cmap=cmap, norm=norm)
     for i in range(len(y_labels)):
         for j in range(len(x_labels)):
@@ -152,7 +154,7 @@ def plot_one(data, x_labels, method):
     plt.savefig(f"output/fit_all_exv/{method}_comparison.png", dpi=300)
 
     # flipped axes
-    fig, ax = plt.subplots(figsize=(len(data), len(x_labels)))
+    fig, ax = plt.subplots(figsize=(figsize_y, figsize_x))
     plt.imshow(data.T, interpolation='nearest', cmap=cmap, norm=norm)
     for i in range(len(x_labels)):
         for j in range(len(y_labels)):
@@ -167,15 +169,21 @@ def plot_one(data, x_labels, method):
     plt.tight_layout()
     plt.savefig(f"output/fit_all_exv/{method}_comparison_flipped.png", dpi=300)
 
-plot_one(data_traube, x_labels_traube, "Traube")
-plot_one(data_pontius, x_labels_pontius, "Pontius")
+if data_traube.shape[0] > 0:
+    plot_one(data_traube, x_labels_traube, "Traube")
+
+if data_pontius.shape[0] > 0:
+    plot_one(data_pontius, x_labels_pontius, "Pontius")
 
 # plot difference
+if data_diff is None:
+    exit(0)
+
 bounds = [-10, -5, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 5, 10]
 cmap = plt.get_cmap('RdYlGn_r')
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 
-fig, ax = plt.subplots(figsize=(len(x_labels_diff)+2, len(y_labels)))
+fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
 plt.imshow(data_diff, interpolation='nearest', cmap=cmap, norm=norm)
 for i in range(len(y_labels)):
     for j in range(len(x_labels_diff)):
@@ -191,7 +199,7 @@ plt.tight_layout()
 plt.savefig(f"output/fit_all_exv/difference.png", dpi=300)
 
 # flipped axes
-fig, ax = plt.subplots(figsize=(len(y_labels), len(x_labels_diff)+2))
+fig, ax = plt.subplots(figsize=(figsize_y, figsize_x))
 plt.imshow(data_diff.T, interpolation='nearest', cmap=cmap, norm=norm)
 for i in range(len(x_labels_diff)):
     for j in range(len(y_labels)):

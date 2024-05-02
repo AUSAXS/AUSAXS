@@ -20,8 +20,8 @@ int main(int argc, char const *argv[]) {
     std::vector<hist::ScatteringProfile> histograms;
     for (double cutoff = axis.max; cutoff >= axis.min; cutoff -= axis.width()) {
         std::cout << "cutoff: " << cutoff << std::endl;
-        histograms.push_back(stack.get_histogram(cutoff)->debye_transform());
         stack.save(cutoff, "output/thea/protein_" + std::to_string(cutoff) + ".pdb");
+        // histograms.push_back(stack.get_histogram(cutoff)->debye_transform());
     }
 
     plots::PlotDataset plot;
