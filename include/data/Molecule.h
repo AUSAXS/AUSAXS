@@ -7,7 +7,7 @@
 #include <utility/observer_ptr.h>
 #include <dataset/DatasetFwd.h>
 #include <fitter/FitterFwd.h>
-#include <hydrate/GridFwd.h>
+#include <grid/GridFwd.h>
 
 #include <string>
 #include <vector>
