@@ -135,6 +135,21 @@ double Molecule::get_total_effective_charge() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_effective_charge();});
 }
 
+double Molecule::get_Rg() const {
+    Vector3<double> cm = get_cm();
+    double Rg = 0;
+
+    // Rg is defined as the RMS average distance of each _electron_ from the center of mass, so multiply each atom by its effective charge
+    for (auto& body : get_bodies()) {
+        for (auto& a : body.get_atoms()) {
+            Rg += cm.distance2(a.get_coordinates())*a.get_effective_charge();
+        }
+    }
+
+    // return the RMS
+    return std::sqrt(Rg/get_total_effective_charge());
+}
+
 double Molecule::get_relative_charge() const {
     double V = get_volume_grid();
     double Z_molecule = get_total_atomic_charge();

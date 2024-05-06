@@ -251,6 +251,11 @@ namespace data {
 			[[nodiscard]] std::vector<double> debye_transform() const;
 
 			/**
+			 * @brief Get the radius of gyration of this molecule. 
+			 */
+			[[nodiscard]] double get_Rg() const;
+
+			/**
 			 * @brief Get the number of constituent bodies. 
 			 */
 			[[nodiscard]] std::size_t size_body() const;
