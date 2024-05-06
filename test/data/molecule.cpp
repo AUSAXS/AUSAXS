@@ -1,4 +1,3 @@
-#include "constants/ConstantsFwd.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -63,10 +62,10 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
     return true;
 }
 
-TEST_CASE_METHOD(fixture, "Protein::Protein") {
+TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
     settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
-    SECTION("Protein&") {
+    SECTION("Molecule&") {
         Molecule protein1(bodies);
         Molecule protein2(protein1);
         REQUIRE(protein1.get_atoms() == protein2.get_atoms());
@@ -143,7 +142,32 @@ TEST_CASE_METHOD(fixture, "Protein::Protein") {
     }
 }
 
-TEST_CASE("Protein::simulate_dataset") {
+TEST_CASE("Molecule::get_Rg") {
+    // tests without effective charge are compared against the electron Rg from CRYSOL
+    settings::molecule::use_effective_charge = false;
+    SECTION("2epe") {
+        Molecule protein("test/files/2epe.pdb");
+        REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(13.89, 0.01));
+    }
+
+    SECTION("6lyz") {
+        Molecule protein("test/files/6lyz.pdb");
+        REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(13.99, 0.01));
+    }
+
+    SECTION("LAR1-2") {
+        Molecule protein("test/files/LAR1-2.pdb");
+        REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(28.88, 0.02));
+    }
+
+    settings::molecule::throw_on_unknown_atom = false;
+    SECTION("SASDJQ4") {
+        Molecule protein("test/files/SASDJQ4.pdb");
+        REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(28.08, 0.02));
+    }
+}
+
+TEST_CASE("Molecule::simulate_dataset") {
     settings::axes::qmax = 0.4;
     settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 2;
@@ -157,13 +181,13 @@ TEST_CASE("Protein::simulate_dataset") {
     // plot1.save("figures/test/protein/check_chi2_1.png");
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_cm") {
+TEST_CASE_METHOD(fixture, "Molecule::get_cm") {
     Molecule protein(bodies, {});
     Vector3<double> cm = protein.get_cm();
     REQUIRE(cm == Vector3<double>{0, 0, 0});
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_volume", "[broken]") {
+TEST_CASE_METHOD(fixture, "Molecule::get_volume", "[broken]") {
     // broken since it was supposed to use the old protein.get_volume_acids() method
     // since the protein does not consist of a complete amino acid, the volume is not correct
     // TODO: create a protein containing a full amino acid and check if the volume is roughly correct
@@ -171,7 +195,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_volume", "[broken]") {
     REQUIRE_THAT(protein.get_volume_grid(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
 }
 
-TEST_CASE_METHOD(fixture, "Protein::update_effective_charge") {
+TEST_CASE_METHOD(fixture, "Molecule::update_effective_charge") {
     settings::molecule::use_effective_charge = false;
     Molecule protein(bodies, {});
 
@@ -187,7 +211,7 @@ TEST_CASE_METHOD(fixture, "Protein::update_effective_charge") {
     REQUIRE(charge == protein.get_total_effective_charge());
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
+TEST_CASE_METHOD(fixture, "Molecule::get_histogram") {
     SECTION("delegated to HistogramManager") {
         Molecule protein(bodies, {});
         REQUIRE(compare_hist(protein.get_histogram()->get_total_counts(), protein.get_histogram_manager()->calculate()->get_total_counts()));
@@ -231,13 +255,13 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_total_histogram") {
+TEST_CASE_METHOD(fixture, "Molecule::get_total_histogram") {
     Molecule protein(bodies, {});
     REQUIRE(compare_hist(protein.get_histogram()->get_total_counts(), protein.get_histogram_manager()->calculate_all()->get_total_counts()));
     // REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
 }
 
-TEST_CASE("Protein::save") {
+TEST_CASE("Molecule::save") {
     Molecule protein("test/files/2epe.pdb");
     protein.save("temp/test/protein_save_2epe.pdb");
     Molecule protein2("temp/test/protein_save_2epe.pdb");
@@ -249,7 +273,7 @@ TEST_CASE("Protein::save") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "Protein::generate_new_hydration") {
+TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration") {
     settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
 
@@ -278,21 +302,21 @@ TEST_CASE_METHOD(fixture, "Protein::generate_new_hydration") {
     }
 }
 
-TEST_CASE("Protein::get_volume_grid") {
+TEST_CASE("Molecule::get_volume_grid") {
     Molecule protein("test/files/2epe.pdb");
     REQUIRE(protein.get_volume_grid() == protein.get_grid()->get_volume());
 }
 
-// TEST_CASE("Protein::get_volume_calpha") {    
+// TEST_CASE("Molecule::get_volume_calpha") {    
 //     CHECK(false);
 // }
 
-TEST_CASE("Protein::molar_mass") {
+TEST_CASE("Molecule::molar_mass") {
     Molecule protein("test/files/2epe.pdb");
     REQUIRE(protein.get_molar_mass() == protein.get_absolute_mass()*constants::Avogadro);
 }
 
-TEST_CASE("Protein::absolute_mass") {
+TEST_CASE("Molecule::absolute_mass") {
     Molecule protein("test/files/2epe.pdb");
     double sum = 0;
     for (auto& atom : protein.get_atoms()) {
@@ -301,7 +325,7 @@ TEST_CASE("Protein::absolute_mass") {
     REQUIRE(protein.get_absolute_mass() == sum);
 }
 
-TEST_CASE("Protein::total_atomic_charge") {
+TEST_CASE("Molecule::total_atomic_charge") {
     Molecule protein("test/files/2epe.pdb");
     double sum = 0;
     for (auto& atom : protein.get_atoms()) {
@@ -310,7 +334,7 @@ TEST_CASE("Protein::total_atomic_charge") {
     REQUIRE(protein.get_total_atomic_charge() == sum);
 }
 
-TEST_CASE("Protein::total_effective_charge") {
+TEST_CASE("Molecule::total_effective_charge") {
     Molecule protein("test/files/2epe.pdb");
     double sum = 0;
     for (auto& atom : protein.get_atoms()) {
@@ -319,7 +343,7 @@ TEST_CASE("Protein::total_effective_charge") {
     REQUIRE(protein.get_total_effective_charge() == sum);
 }
 
-TEST_CASE("Protein::get_relative_charge_density") {
+TEST_CASE("Molecule::get_relative_charge_density") {
     Molecule protein("test/files/2epe.pdb");
     REQUIRE_THAT(
         protein.get_relative_charge_density(), 
@@ -330,37 +354,37 @@ TEST_CASE("Protein::get_relative_charge_density") {
     );
 }
 
-TEST_CASE("Protein::get_relative_mass_density") {
+TEST_CASE("Molecule::get_relative_mass_density") {
     Molecule protein("test/files/2epe.pdb");
     REQUIRE(protein.get_relative_mass_density() == (protein.get_absolute_mass() - constants::mass::density::water*protein.get_volume_grid())/protein.get_volume_grid());
 }
 
-TEST_CASE("Protein::get_relative_charge") {
+TEST_CASE("Molecule::get_relative_charge") {
     Molecule protein("test/files/2epe.pdb");
     REQUIRE(protein.get_relative_charge() == protein.get_total_effective_charge() - protein.get_volume_grid()*constants::charge::density::water);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_grid") {
+TEST_CASE_METHOD(fixture, "Molecule::get_grid") {
     Molecule protein(bodies, {});
     // we just want to test that the grid is created by default
     REQUIRE(protein.get_grid() != nullptr);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::set_grid") {
+TEST_CASE_METHOD(fixture, "Molecule::set_grid") {
     Molecule protein(bodies, {});
     grid::Grid grid(Limit3D(0, 1, 0, 1, 0, 1));
     protein.set_grid(grid);
     REQUIRE(*protein.get_grid() == grid);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::clear_hydration") {
+TEST_CASE_METHOD(fixture, "Molecule::clear_hydration") {
     Molecule protein2(bodies, {w1, w2});
     REQUIRE(protein2.size_water() != 0);
     protein2.clear_hydration();
     REQUIRE(protein2.size_water() == 0);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::center") {
+TEST_CASE_METHOD(fixture, "Molecule::center") {
     Molecule protein(bodies, {});
     REQUIRE(protein.get_cm() == Vector3<double>{0, 0, 0});
 
@@ -371,7 +395,7 @@ TEST_CASE_METHOD(fixture, "Protein::center") {
     REQUIRE(protein.get_cm() == Vector3<double>{0, 0, 0});
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_body") {
+TEST_CASE_METHOD(fixture, "Molecule::get_body") {
     Molecule protein(bodies, {});
     REQUIRE(protein.get_body(0) == protein.get_bodies()[0]);
     REQUIRE(protein.get_body(1) == protein.get_bodies()[1]);
@@ -379,28 +403,28 @@ TEST_CASE_METHOD(fixture, "Protein::get_body") {
     REQUIRE(protein.get_body(3) == protein.get_bodies()[3]);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_bodies") {
+TEST_CASE_METHOD(fixture, "Molecule::get_bodies") {
     Molecule protein(bodies, {});
     REQUIRE(protein.get_bodies() == bodies);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_atoms") {
+TEST_CASE_METHOD(fixture, "Molecule::get_atoms") {
     Molecule protein(bodies, {});
     REQUIRE(protein.get_atoms() == vector<Atom>{a1, a2, a3, a4, a5, a6, a7, a8});
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_waters") {
+TEST_CASE_METHOD(fixture, "Molecule::get_waters") {
     Molecule protein2(bodies, {w1, w2});
     REQUIRE(protein2.get_waters() == vector<Water>{w1, w2});
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_water") {
+TEST_CASE_METHOD(fixture, "Molecule::get_water") {
     Molecule protein2(bodies, {w1, w2});
     REQUIRE(protein2.get_water(0) == w1);
     REQUIRE(protein2.get_water(1) == w2);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::create_grid") {
+TEST_CASE_METHOD(fixture, "Molecule::create_grid") {
     Molecule protein(bodies, {});
     protein.clear_grid();
     auto grid = protein.get_grid();
@@ -408,24 +432,24 @@ TEST_CASE_METHOD(fixture, "Protein::create_grid") {
     REQUIRE(protein.get_grid() != grid);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::size_body") {
+TEST_CASE_METHOD(fixture, "Molecule::size_body") {
     Molecule protein(bodies, {});
     CHECK(protein.size_body() == 4);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::size_atom") {
+TEST_CASE_METHOD(fixture, "Molecule::size_atom") {
     Molecule protein(bodies, {});
     CHECK(protein.size_atom() == 8);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::size_water") {
+TEST_CASE_METHOD(fixture, "Molecule::size_water") {
     Molecule protein(bodies, {});
     CHECK(protein.size_water() == 0);
     Molecule protein2(bodies, {w1, w2});
     CHECK(protein2.size_water() == 2);
 }
 
-TEST_CASE("Protein::fit") {
+TEST_CASE("Molecule::fit") {
     Molecule protein("test/files/2epe.pdb");
     std::string measurement = "test/files/2epe.dat";
     fitter::HydrationFitter fitter(measurement, protein.get_histogram());
@@ -437,17 +461,17 @@ TEST_CASE("Protein::fit") {
     CHECK(pfit->parameters == hfit->parameters);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_histogram_manager") {
+TEST_CASE_METHOD(fixture, "Molecule::get_histogram_manager") {
     Molecule protein(bodies, {});
     CHECK(protein.get_histogram_manager() != nullptr);
 }
 
-// TEST_CASE_METHOD(fixture, "Protein::set_histogram_manager") {
-//     Protein protein = Protein(bodies, {});
+// TEST_CASE_METHOD(fixture, "Molecule::set_histogram_manager") {
+//     Molecule protein = Molecule(bodies, {});
 //     auto hm = protein.get_histogram_manager();
 // }
 
-TEST_CASE("Protein::translate") {
+TEST_CASE("Molecule::translate") {
     Molecule protein("test/files/2epe.pdb");
     Vector3<double> cm = protein.get_cm();
     protein.translate(Vector3<double>{1, 1, 1});
@@ -618,13 +642,13 @@ TEST_CASE("histogram") {
 //     Body b3 = Body(std::vector<Atom>{a5, a6});
 //     Body b4 = Body(std::vector<Atom>{a7, a8});
 //     std::vector<Body> ap = {b1, b2, b3, b4};
-//     Protein protein = Protein(ap);
+//     Molecule protein = Molecule(ap);
 // };
 
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
 #include <hist/distance_calculator/HistogramManagerFactory.h>
-TEST_CASE_METHOD(fixture, "Protein::bind_body_signallers") {
+TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
     Molecule protein(bodies, {});
     settings::general::verbose = false;
 
@@ -657,7 +681,7 @@ TEST_CASE_METHOD(fixture, "Protein::bind_body_signallers") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "Protein::signal_modified_hydration_layer") {
+TEST_CASE_METHOD(fixture, "Molecule::signal_modified_hydration_layer") {
     Molecule protein(bodies, {});
     auto manager = protein.get_histogram_manager()->get_state_manager();
     manager->reset_to_false();

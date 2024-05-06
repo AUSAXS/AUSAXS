@@ -4,6 +4,10 @@ temp
 output
 data
 
+!test/data
+!source/data
+!include/data
+
 # developer stuff
 **/__pycache__
 resources
