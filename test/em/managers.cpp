@@ -122,20 +122,20 @@ TEST_CASE("em_partial_histogram_manager") {
         manager->set_charge_levels({2, 4, 6, 8});
         auto protein = manager->get_protein(0);
 
-        REQUIRE(protein->body_size() == 5);
-        CHECK(protein->get_body(0).atom_size() == 3);
-        CHECK(protein->get_body(1).atom_size() == 4);
-        CHECK(protein->get_body(2).atom_size() == 4);
-        CHECK(protein->get_body(3).atom_size() == 1);
-        CHECK(protein->get_body(4).atom_size() == 0);
+        REQUIRE(protein->size_body() == 5);
+        CHECK(protein->get_body(0).size_atom() == 3);
+        CHECK(protein->get_body(1).size_atom() == 4);
+        CHECK(protein->get_body(2).size_atom() == 4);
+        CHECK(protein->get_body(3).size_atom() == 1);
+        CHECK(protein->get_body(4).size_atom() == 0);
 
         protein = manager->get_protein(3);
-        REQUIRE(protein->body_size() == 5);
-        CHECK(protein->get_body(0).atom_size() == 0);
-        CHECK(protein->get_body(1).atom_size() == 2);
-        CHECK(protein->get_body(2).atom_size() == 4);
-        CHECK(protein->get_body(3).atom_size() == 1);
-        CHECK(protein->get_body(4).atom_size() == 0);
+        REQUIRE(protein->size_body() == 5);
+        CHECK(protein->get_body(0).size_atom() == 0);
+        CHECK(protein->get_body(1).size_atom() == 2);
+        CHECK(protein->get_body(2).size_atom() == 4);
+        CHECK(protein->get_body(3).size_atom() == 1);
+        CHECK(protein->get_body(4).size_atom() == 0);
     }
 
     SECTION("comparison with standard approach") {

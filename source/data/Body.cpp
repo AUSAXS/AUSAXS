@@ -121,19 +121,19 @@ void Body::update_effective_charge(double charge) {
     updated_charge = true;
 }
 
-double Body::total_atomic_charge() const {
+double Body::get_total_atomic_charge() const {
     return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const record::Atom& atom) {return sum + atom.Z();});
 }
 
-double Body::total_effective_charge() const {
+double Body::get_total_effective_charge() const {
     return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [](double sum, const record::Atom& a) { return sum + a.get_effective_charge(); });
 }
 
-double Body::molar_mass() const {
-    return absolute_mass()*constants::Avogadro;
+double Body::get_molar_mass() const {
+    return get_absolute_mass()*constants::Avogadro;
 }
 
-double Body::absolute_mass() const {
+double Body::get_absolute_mass() const {
     double M = 0;
     std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&M] (const record::Atom& a) {M += a.get_mass();});
     std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&M] (const record::Water& a) {M += a.get_mass();});
@@ -192,4 +192,4 @@ data::detail::AtomCollection& Body::get_file() {return file;}
 
 int Body::get_id() const {return uid;}
 
-std::size_t Body::atom_size() const {return file.protein_atoms.size();}
+std::size_t Body::size_atom() const {return file.protein_atoms.size();}

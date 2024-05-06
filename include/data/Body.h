@@ -106,22 +106,22 @@ namespace data {
 			/**
 			 * @brief Calculate the molar mass of this body in Daltons.
 			 */
-			double molar_mass() const;
+			double get_molar_mass() const;
 
 			/**
 			 * @brief Get the absolute mass of this body in kg.
 			 */
-			double absolute_mass() const;
+			double get_absolute_mass() const;
 
 			/**
 			 * @brief Get the total atomic charge of this body.
 			 */
-			double total_atomic_charge() const;
+			double get_total_atomic_charge() const;
 
 			/**
 			 * @brief Get the total effective charge of this body.
 			 */
-			double total_effective_charge() const;
+			double get_total_effective_charge() const;
 
 			/**
 			 * @brief Center this Body on origo. 
@@ -214,7 +214,7 @@ namespace data {
 			/**
 			 * @brief Get the total number of constituent atoms, excluding hydration. 
 			 */
-			[[nodiscard]] std::size_t atom_size() const;
+			[[nodiscard]] std::size_t size_atom() const;
 
 		private:
 			int uid;                     				// A unique identifier for this body

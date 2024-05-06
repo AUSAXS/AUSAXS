@@ -115,43 +115,43 @@ void Molecule::save(const io::File& path) {
     file.write(path);
 }
 
-double Molecule::molar_mass() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.molar_mass();});
+double Molecule::get_molar_mass() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_molar_mass();});
 }
 
-double Molecule::absolute_mass() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.absolute_mass();});
+double Molecule::get_absolute_mass() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_absolute_mass();});
 }
 
-double Molecule::excluded_volume_mass() const {
+double Molecule::get_excluded_volume_mass() const {
     return get_volume_grid()*constants::SI::volume::A3*constants::mass::density::protein/constants::SI::mass::u;
 }
 
-double Molecule::total_atomic_charge() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.total_atomic_charge();});
+double Molecule::get_total_atomic_charge() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_atomic_charge();});
 }
 
-double Molecule::total_effective_charge() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.total_effective_charge();});
+double Molecule::get_total_effective_charge() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_effective_charge();});
 }
 
 double Molecule::get_relative_charge() const {
     double V = get_volume_grid();
-    double Z_molecule = total_atomic_charge();
+    double Z_molecule = get_total_atomic_charge();
     double Z_water = constants::charge::density::water*V;
     return Z_molecule - Z_water;
 }
 
 double Molecule::get_relative_charge_density() const {
     double V = get_volume_grid();
-    double Z_molecule = total_atomic_charge();
+    double Z_molecule = get_total_atomic_charge();
     double Z_water = constants::charge::density::water*V;
     return (Z_molecule - Z_water)/V;
 }
 
 double Molecule::get_relative_mass_density() const {
     double V = get_volume_grid();
-    double m_molecule = absolute_mass();
+    double m_molecule = get_absolute_mass();
     double m_water = constants::mass::density::water*V;
     return (m_molecule - m_water)/V;
 }
@@ -252,15 +252,15 @@ void Molecule::clear_hydration() {
     signal_modified_hydration_layer();
 }
 
-std::size_t Molecule::body_size() const {
+std::size_t Molecule::size_body() const {
     return bodies.size();
 }
 
-std::size_t Molecule::atom_size() const {
+std::size_t Molecule::size_atom() const {
     return std::accumulate(bodies.begin(), bodies.end(), std::size_t{ 0 }, [] (std::size_t sum, const Body& body) {return sum + body.get_atoms().size(); });
 }
 
-std::size_t Molecule::water_size() const {
+std::size_t Molecule::size_water() const {
     return hydration_atoms.size();
 }
 
@@ -322,7 +322,7 @@ void Molecule::update_effective_charge(double scaling) {
     previous_charge += displaced_charge;
 
     // number of atoms
-    std::size_t N = atom_size();
+    std::size_t N = size_atom();
     double charge_per_atom = -displaced_charge/N;
     if (settings::general::verbose) {
         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
@@ -402,7 +402,7 @@ void Molecule::generate_unit_cell() {
 
 void Molecule::remove_disconnected_atoms(double min_percent) {
     if (grid == nullptr) {create_grid();}
-    int min = static_cast<int>(std::round(min_percent*atom_size()));
+    int min = static_cast<int>(std::round(min_percent*size_atom()));
     auto to_remove = grid->remove_disconnected_atoms(min);
 
     // sanity check
@@ -439,8 +439,8 @@ const std::vector<Body>& Molecule::get_bodies() const {return bodies;}
 bool Molecule::operator==(const Molecule& other) const = default;
 
 bool Molecule::equals_content(const Molecule& other) const {
-    if (body_size() != body_size()) {return false;}
-    for (unsigned int i = 0; i < body_size(); i++) {
+    if (size_body() != other.size_body()) {return false;}
+    for (unsigned int i = 0; i < size_body(); i++) {
         if (get_body(i).equals_content(other.get_body(i))) {return false;}
     }
     return true;

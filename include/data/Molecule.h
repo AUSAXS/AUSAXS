@@ -118,13 +118,13 @@ namespace data {
 			 * @brief Calculate the atomic molar mass of this molecule in Daltons.
 			 * 		  Note that this is just the sum of the molar mass of all atoms.
 			 */
-			[[nodiscard]] double molar_mass() const;
+			[[nodiscard]] double get_molar_mass() const;
 
 			/**
 			 * @brief Get the absolute atomic mass of this entire molecule. 
 			 * 		  Note that this is just the sum of the mass of all atoms.  
 			 */
-			[[nodiscard]] double absolute_mass() const;
+			[[nodiscard]] double get_absolute_mass() const;
 
 			/**
 			 * @brief Get the excluded volume mass of this molecule.
@@ -132,17 +132,17 @@ namespace data {
 			 * 
 			 * @return The excluded volume mass in Da.
 			 */
-			[[nodiscard]] double excluded_volume_mass() const;
+			[[nodiscard]] double get_excluded_volume_mass() const;
 
 			/**
 			 * @brief Get the total atomic charge. 
 			 */
-			[[nodiscard]] double total_atomic_charge() const;
+			[[nodiscard]] double get_total_atomic_charge() const;
 
 			/**
 			 * @brief Get the total effective charge. 
 			 */
-			[[nodiscard]] double total_effective_charge() const;
+			[[nodiscard]] double get_total_effective_charge() const;
 
 			/**
 			 * @brief Get the relative charge density. 
@@ -253,17 +253,17 @@ namespace data {
 			/**
 			 * @brief Get the number of constituent bodies. 
 			 */
-			[[nodiscard]] std::size_t body_size() const;
+			[[nodiscard]] std::size_t size_body() const;
 
 			/**
 			 * @brief Get the total number of constituent atoms, excluding hydration. 
 			 */
-			[[nodiscard]] std::size_t atom_size() const;
+			[[nodiscard]] std::size_t size_atom() const;
 
 			/**
 			 * @brief Get the total number of water molecules.
 			 */
-			[[nodiscard]] std::size_t water_size() const;
+			[[nodiscard]] std::size_t size_water() const;
 
 			/**
 			 * @brief Bind the signaller objects in each body to the histogram manager. 

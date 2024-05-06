@@ -58,7 +58,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
     SECTION("ExistingFile&") {
         io::ExistingFile ef("test/files/2epe.pdb");
         Body b(ef);
-        REQUIRE(b.atom_size() == 1001);
+        REQUIRE(b.size_atom() == 1001);
         REQUIRE(b.get_waters().size() == 48);
     }
 
@@ -144,22 +144,22 @@ TEST_CASE_METHOD(fixture, "Body::get_cm") {
 // }
 
 TEST_CASE_METHOD(fixture, "Body::molar_mass") {
-    CHECK_THAT(body.molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(constants::atom_t::C)*constants::Avogadro, 1e-6));
+    CHECK_THAT(body.get_molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(constants::atom_t::C)*constants::Avogadro, 1e-6));
 }
 
 TEST_CASE_METHOD(fixture, "Body::absolute_mass") {
-    CHECK_THAT(body.absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(constants::atom_t::C), 1e-6));
+    CHECK_THAT(body.get_absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(constants::atom_t::C), 1e-6));
 }
 
 TEST_CASE_METHOD(fixture, "Body::total_atomic_charge") {
-    CHECK(body.total_atomic_charge() == 8*6);
+    CHECK(body.get_total_atomic_charge() == 8*6);
 }
 
 TEST_CASE_METHOD(fixture, "Body::total_effective_charge") {
     double c0 = body.get_atom(0).get_effective_charge();    
-    double charge1 = body.total_effective_charge();
+    double charge1 = body.get_total_effective_charge();
     body.update_effective_charge(1.5);
-    double charge2 = body.total_effective_charge();
+    double charge2 = body.get_total_effective_charge();
     CHECK(charge2 == charge1+12);
     CHECK(body.get_atom(0).get_effective_charge() == c0+1.5);
 }
@@ -347,14 +347,14 @@ TEST_CASE_METHOD(fixture, "Body::state") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::get_id") {
-    unsigned int id = body.get_id();
+    int id = body.get_id();
     Body b2(a);
     CHECK(id+1 == b2.get_id());
 }
 
 TEST_CASE_METHOD(fixture, "Body::atom_size") {
-    CHECK(body.atom_size() == 8);
-    CHECK(Body().atom_size() == 0);
+    CHECK(body.size_atom() == 8);
+    CHECK(Body().size_atom() == 0);
 }
 
 // TODO: move to grid tests instead

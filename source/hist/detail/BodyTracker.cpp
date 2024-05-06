@@ -12,7 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace hist;
 
-BodyTracker::BodyTracker(observer_ptr<const data::Molecule> protein) : body_size(protein->body_size()), statemanager(std::make_unique<state::StateManager>(body_size)) {}
+BodyTracker::BodyTracker(observer_ptr<const data::Molecule> protein) : body_size(protein->size_body()), statemanager(std::make_unique<state::StateManager>(body_size)) {}
 
 BodyTracker::~BodyTracker() = default;
 

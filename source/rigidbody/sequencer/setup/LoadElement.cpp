@@ -20,14 +20,14 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
         rigidbody = std::make_unique<RigidBody>(data::Molecule(paths));
     }
 
-    if (!body_names.empty() && body_names.size() != rigidbody->body_size()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
-    for (unsigned int i = 0; i < rigidbody->body_size(); ++i) {
+    if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
+    for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
         owner->_get_body_names().emplace(body_names.empty() ? "b" + std::to_string(i) : body_names[i], i);
     }
     owner->_set_active_body(rigidbody.get());
 
     if (settings::general::verbose) {
-        std::cout << "\tLoaded " << rigidbody->body_size() << " bodies from " << paths.size() << " files." << std::endl;
+        std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from " << paths.size() << " files." << std::endl;
     }
 }
 
@@ -38,14 +38,14 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         rigidbody = std::make_unique<RigidBody>(rigidbody::BodySplitter::split(path, splits));
     }
 
-    if (!body_names.empty() && body_names.size() != rigidbody->body_size()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
-    for (unsigned int i = 0; i < rigidbody->body_size(); ++i) {
+    if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
+    for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
         owner->_get_body_names().emplace(body_names.empty() ? "b" + std::to_string(i) : body_names[i], i);
     }
     owner->_set_active_body(rigidbody.get());
 
     if (settings::general::verbose) {
-        std::cout << "\tLoaded " << rigidbody->body_size() << " bodies from \"" << path.size() << "\"." << std::endl;
+        std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from \"" << path.size() << "\"." << std::endl;
     }
 }
 

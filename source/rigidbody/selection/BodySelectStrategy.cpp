@@ -9,4 +9,4 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::selection;
 
-BodySelectStrategy::BodySelectStrategy(const RigidBody* rigidbody) : rigidbody(rigidbody), N(rigidbody->body_size()) {}
+BodySelectStrategy::BodySelectStrategy(const RigidBody* rigidbody) : rigidbody(rigidbody), N(rigidbody->size_body()) {}

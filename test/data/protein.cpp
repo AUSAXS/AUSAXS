@@ -74,11 +74,11 @@ TEST_CASE_METHOD(fixture, "Protein::Protein") {
 
     SECTION("vector<Body>&&") {
         Molecule protein(std::move(bodies));
-        REQUIRE(protein.body_size() == 4);
-        CHECK(protein.get_body(0).atom_size() == 2);
-        CHECK(protein.get_body(1).atom_size() == 2);
-        CHECK(protein.get_body(2).atom_size() == 2);
-        CHECK(protein.get_body(3).atom_size() == 2);
+        REQUIRE(protein.size_body() == 4);
+        CHECK(protein.get_body(0).size_atom() == 2);
+        CHECK(protein.get_body(1).size_atom() == 2);
+        CHECK(protein.get_body(2).size_atom() == 2);
+        CHECK(protein.get_body(3).size_atom() == 2);
     }
 
     SECTION("vector<string>&") {
@@ -87,9 +87,9 @@ TEST_CASE_METHOD(fixture, "Protein::Protein") {
         Body body("test/files/2epe.pdb"); // compare with body constructor
         body.get_waters().clear();
 
-        REQUIRE(protein.body_size() == 2);
-        CHECK(protein.atom_size() == 2002);
-        CHECK(protein.water_size() == 96);
+        REQUIRE(protein.size_body() == 2);
+        CHECK(protein.size_atom() == 2002);
+        CHECK(protein.size_water() == 96);
         CHECK(protein.get_body(0).equals_content(protein.get_body(1)));
         CHECK(protein.get_body(0).equals_content(body));
     }
@@ -100,46 +100,46 @@ TEST_CASE_METHOD(fixture, "Protein::Protein") {
         Body body("test/files/2epe.pdb"); // compare with body constructor
         body.get_waters().clear();
 
-        REQUIRE(protein.body_size() == 1);
-        CHECK(protein.atom_size() == 1001);
-        CHECK(protein.water_size() == 48);
+        REQUIRE(protein.size_body() == 1);
+        CHECK(protein.size_atom() == 1001);
+        CHECK(protein.size_water() == 48);
         CHECK(protein.get_body(0).equals_content(body));
     }
 
     SECTION("vector<Body>&, vector<Water>&") {
         Molecule protein(bodies, {w1, w2});
-        REQUIRE(protein.body_size() == 4);
-        CHECK(protein.get_body(0).atom_size() == 2);
-        CHECK(protein.get_body(1).atom_size() == 2);
-        CHECK(protein.get_body(2).atom_size() == 2);
-        CHECK(protein.get_body(3).atom_size() == 2);
-        REQUIRE(protein.water_size() == 2);
+        REQUIRE(protein.size_body() == 4);
+        CHECK(protein.get_body(0).size_atom() == 2);
+        CHECK(protein.get_body(1).size_atom() == 2);
+        CHECK(protein.get_body(2).size_atom() == 2);
+        CHECK(protein.get_body(3).size_atom() == 2);
+        REQUIRE(protein.size_water() == 2);
         CHECK(protein.get_water(0) == w1);
         CHECK(protein.get_water(1) == w2);
     }
 
     SECTION("vector<Body>&") {
         Molecule protein(bodies);
-        REQUIRE(protein.body_size() == 4);
-        CHECK(protein.get_body(0).atom_size() == 2);
-        CHECK(protein.get_body(1).atom_size() == 2);
-        CHECK(protein.get_body(2).atom_size() == 2);
-        CHECK(protein.get_body(3).atom_size() == 2);
+        REQUIRE(protein.size_body() == 4);
+        CHECK(protein.get_body(0).size_atom() == 2);
+        CHECK(protein.get_body(1).size_atom() == 2);
+        CHECK(protein.get_body(2).size_atom() == 2);
+        CHECK(protein.get_body(3).size_atom() == 2);
     }
 
     SECTION("vector<Atom>&, vector<Water>&") {
         Molecule protein({a1, a2, a3, a4, a5, a6, a7, a8}, {w1, w2});
-        REQUIRE(protein.body_size() == 1);
-        CHECK(protein.get_body(0).atom_size() == 8);
-        REQUIRE(protein.water_size() == 2);
+        REQUIRE(protein.size_body() == 1);
+        CHECK(protein.get_body(0).size_atom() == 8);
+        REQUIRE(protein.size_water() == 2);
         CHECK(protein.get_water(0) == w1);
         CHECK(protein.get_water(1) == w2);
     }
 
     SECTION("vector<Atom>&") {
         Molecule protein({a1, a2, a3, a4, a5, a6, a7, a8});
-        REQUIRE(protein.body_size() == 1);
-        CHECK(protein.get_body(0).atom_size() == 8);
+        REQUIRE(protein.size_body() == 1);
+        CHECK(protein.get_body(0).size_atom() == 8);
     }
 }
 
@@ -175,16 +175,16 @@ TEST_CASE_METHOD(fixture, "Protein::update_effective_charge") {
     settings::molecule::use_effective_charge = false;
     Molecule protein(bodies, {});
 
-    double charge = protein.total_atomic_charge();
-    double effective_charge = protein.total_effective_charge();
+    double charge = protein.get_total_atomic_charge();
+    double effective_charge = protein.get_total_effective_charge();
     REQUIRE(charge == effective_charge);
 
     protein.update_effective_charge(0.5);
-    effective_charge = protein.total_effective_charge();
+    effective_charge = protein.get_total_effective_charge();
     REQUIRE(charge != effective_charge);
 
     protein.update_effective_charge(0);
-    REQUIRE(charge == protein.total_effective_charge());
+    REQUIRE(charge == protein.get_total_effective_charge());
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
@@ -258,7 +258,7 @@ TEST_CASE_METHOD(fixture, "Protein::generate_new_hydration") {
         settings::grid::scaling = 5;
         Molecule protein(bodies);
         protein.generate_new_hydration();
-        REQUIRE(protein.water_size() != 0);
+        REQUIRE(protein.size_water() != 0);
         settings::grid::scaling = 0.25;
     }
 
@@ -289,7 +289,7 @@ TEST_CASE("Protein::get_volume_grid") {
 
 TEST_CASE("Protein::molar_mass") {
     Molecule protein("test/files/2epe.pdb");
-    REQUIRE(protein.molar_mass() == protein.absolute_mass()*constants::Avogadro);
+    REQUIRE(protein.get_molar_mass() == protein.get_absolute_mass()*constants::Avogadro);
 }
 
 TEST_CASE("Protein::absolute_mass") {
@@ -298,7 +298,7 @@ TEST_CASE("Protein::absolute_mass") {
     for (auto& atom : protein.get_atoms()) {
         sum += atom.get_mass();
     }
-    REQUIRE(protein.absolute_mass() == sum);
+    REQUIRE(protein.get_absolute_mass() == sum);
 }
 
 TEST_CASE("Protein::total_atomic_charge") {
@@ -307,7 +307,7 @@ TEST_CASE("Protein::total_atomic_charge") {
     for (auto& atom : protein.get_atoms()) {
         sum += atom.get_absolute_charge();
     }
-    REQUIRE(protein.total_atomic_charge() == sum);
+    REQUIRE(protein.get_total_atomic_charge() == sum);
 }
 
 TEST_CASE("Protein::total_effective_charge") {
@@ -316,7 +316,7 @@ TEST_CASE("Protein::total_effective_charge") {
     for (auto& atom : protein.get_atoms()) {
         sum += atom.get_effective_charge();
     }
-    REQUIRE(protein.total_effective_charge() == sum);
+    REQUIRE(protein.get_total_effective_charge() == sum);
 }
 
 TEST_CASE("Protein::get_relative_charge_density") {
@@ -324,7 +324,7 @@ TEST_CASE("Protein::get_relative_charge_density") {
     REQUIRE_THAT(
         protein.get_relative_charge_density(), 
         Catch::Matchers::WithinAbs(
-            (protein.total_atomic_charge() - constants::charge::density::water*protein.get_volume_grid())/protein.get_volume_grid(), 
+            (protein.get_total_atomic_charge() - constants::charge::density::water*protein.get_volume_grid())/protein.get_volume_grid(), 
             1e-6
         )
     );
@@ -332,12 +332,12 @@ TEST_CASE("Protein::get_relative_charge_density") {
 
 TEST_CASE("Protein::get_relative_mass_density") {
     Molecule protein("test/files/2epe.pdb");
-    REQUIRE(protein.get_relative_mass_density() == (protein.absolute_mass() - constants::mass::density::water*protein.get_volume_grid())/protein.get_volume_grid());
+    REQUIRE(protein.get_relative_mass_density() == (protein.get_absolute_mass() - constants::mass::density::water*protein.get_volume_grid())/protein.get_volume_grid());
 }
 
 TEST_CASE("Protein::get_relative_charge") {
     Molecule protein("test/files/2epe.pdb");
-    REQUIRE(protein.get_relative_charge() == protein.total_effective_charge() - protein.get_volume_grid()*constants::charge::density::water);
+    REQUIRE(protein.get_relative_charge() == protein.get_total_effective_charge() - protein.get_volume_grid()*constants::charge::density::water);
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_grid") {
@@ -355,9 +355,9 @@ TEST_CASE_METHOD(fixture, "Protein::set_grid") {
 
 TEST_CASE_METHOD(fixture, "Protein::clear_hydration") {
     Molecule protein2(bodies, {w1, w2});
-    REQUIRE(protein2.water_size() != 0);
+    REQUIRE(protein2.size_water() != 0);
     protein2.clear_hydration();
-    REQUIRE(protein2.water_size() == 0);
+    REQUIRE(protein2.size_water() == 0);
 }
 
 TEST_CASE_METHOD(fixture, "Protein::center") {
@@ -408,21 +408,21 @@ TEST_CASE_METHOD(fixture, "Protein::create_grid") {
     REQUIRE(protein.get_grid() != grid);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::body_size") {
+TEST_CASE_METHOD(fixture, "Protein::size_body") {
     Molecule protein(bodies, {});
-    CHECK(protein.body_size() == 4);
+    CHECK(protein.size_body() == 4);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::atom_size") {
+TEST_CASE_METHOD(fixture, "Protein::size_atom") {
     Molecule protein(bodies, {});
-    CHECK(protein.atom_size() == 8);
+    CHECK(protein.size_atom() == 8);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::water_size") {
+TEST_CASE_METHOD(fixture, "Protein::size_water") {
     Molecule protein(bodies, {});
-    CHECK(protein.water_size() == 0);
+    CHECK(protein.size_water() == 0);
     Molecule protein2(bodies, {w1, w2});
-    CHECK(protein2.water_size() == 2);
+    CHECK(protein2.size_water() == 2);
 }
 
 TEST_CASE("Protein::fit") {

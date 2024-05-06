@@ -37,7 +37,7 @@ ImageStack::~ImageStack() = default;
 double ImageStack::get_mass(double cutoff) const {
     auto p = get_protein_manager()->get_protein(cutoff);
     p->clear_grid();
-    return p->excluded_volume_mass()/1e3;
+    return p->get_excluded_volume_mass()/1e3;
 }
 
 std::unique_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
@@ -443,14 +443,14 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             std::static_pointer_cast<HydrationFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}});
             fitter->set_scattering_hist(p->get_histogram());
 
-            auto mass = p->excluded_volume_mass()/1e3; // mass in kDa
+            auto mass = p->get_excluded_volume_mass()/1e3;      // mass in kDa
             fit = fitter->fit();                                // do the fit
             water_factors.push_back(fit->get_parameter("c"));   // record c value
             last_c = fit->get_parameter("c").value;             // update c for next iteration
             evals.push_back(detail::ExtendedLandscape(params[0], mass, p->get_volume_grid(), std::move(fit->evaluated_points)));  // record evaluated points
         } else {
             p->clear_grid();                                    // clear grid from previous iteration
-            auto mass = p->excluded_volume_mass()/1e3;          // mass in kDa
+            auto mass = p->get_excluded_volume_mass()/1e3;      // mass in kDa
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
             evals.push_back(detail::ExtendedLandscape(params[0], mass, p->get_volume_grid(), std::move(fit->evaluated_points)));  // record evaluated points

@@ -105,7 +105,7 @@ void SmartProteinManager::toggle_histogram_manager_init(bool state) {
 }
 
 void SmartProteinManager::update_protein(double cutoff) {
-    if (protein == nullptr || protein->atom_size() == 0) {
+    if (protein == nullptr || protein->size_atom() == 0) {
         toggle_histogram_manager_init(true);
         protein = generate_protein(cutoff); 
         protein->bind_body_signallers();
@@ -148,7 +148,7 @@ void SmartProteinManager::update_protein(double cutoff) {
                 protein->get_body(charge_index) = std::move(new_protein->get_body(charge_index));
             } else {
                 // if we have the same number of atoms as earlier, nothing has changed
-                if (new_protein->get_body(charge_index).atom_size() == protein->get_body(charge_index).atom_size()) {
+                if (new_protein->get_body(charge_index).size_atom() == protein->get_body(charge_index).size_atom()) {
                     break;
                 }
 

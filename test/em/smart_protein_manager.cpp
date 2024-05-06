@@ -32,11 +32,11 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::set_charge_levels") {
 
 TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein") {
     // we just check the size of the returned protein
-    unsigned int size = manager->get_protein(2)->atom_size();
+    unsigned int size = manager->get_protein(2)->size_atom();
     CHECK(size != 0);
-    CHECK(manager->get_protein(1)->atom_size() > size);
-    CHECK(manager->get_protein(3)->atom_size() < size);
-    CHECK(manager->get_protein(2)->atom_size() == size);
+    CHECK(manager->get_protein(1)->size_atom() > size);
+    CHECK(manager->get_protein(3)->size_atom() < size);
+    CHECK(manager->get_protein(2)->size_atom() == size);
 }
 
 TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram") {
