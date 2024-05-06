@@ -29,8 +29,8 @@ TEST_CASE("BodySelectStrategy::next") {
     auto manager = rigidbody.get_constraint_manager();
 
     // add a varying number of constraints to each body
-    for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
-        for (unsigned int j = i+1; j < rigidbody.body_size(); j++) {
+    for (unsigned int i = 0; i < rigidbody.size_body(); i++) {
+        for (unsigned int j = i+1; j < rigidbody.size_body(); j++) {
             for (unsigned int k = j; k < 5; k++) {
                 manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, i, j, 0, 0));
             }
@@ -42,7 +42,7 @@ TEST_CASE("BodySelectStrategy::next") {
         std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
 
         // check that the constraints are selected sequentially
-        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+        for (unsigned int i = 0; i < rigidbody.size_body(); i++) {
             for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size(); j++) {
                 auto[ibody, iconstraint] = strat->next();
                 REQUIRE(ibody == i);
@@ -61,7 +61,7 @@ TEST_CASE("BodySelectStrategy::next") {
         std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
 
         // check that the bodies are selected sequentially
-        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+        for (unsigned int i = 0; i < rigidbody.size_body(); i++) {
             auto[ibody, _] = strat->next();
             REQUIRE(ibody == i);
         }
@@ -79,7 +79,7 @@ TEST_CASE("BodySelectStrategy::next") {
         unsigned int iterations = 10000;
         for (unsigned int i = 0; i < iterations; i++) {
             auto[ibody, iconstraint] = strat->next();
-            if (ibody >= rigidbody.body_size()) {
+            if (ibody >= rigidbody.size_body()) {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
                 REQUIRE(false);
             } 
@@ -109,7 +109,7 @@ TEST_CASE("BodySelectStrategy::next") {
         unsigned int iterations = 10000;
         for (unsigned int i = 0; i < iterations; i++) {
             auto[ibody, iconstraint] = strat->next();
-            if (ibody >= rigidbody.body_size()) {
+            if (ibody >= rigidbody.size_body()) {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
                 REQUIRE(false);
             } 
@@ -120,7 +120,7 @@ TEST_CASE("BodySelectStrategy::next") {
             count[ibody][iconstraint]++;
         }
 
-        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+        for (unsigned int i = 0; i < rigidbody.size_body(); i++) {
             // calculate how many times each body was selected
             double sum = 0;
             for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size(); j++) {

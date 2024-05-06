@@ -279,7 +279,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_self_correlation
         p_pp.add(0, std::accumulate(coords.get_data().begin(), coords.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}));
     };
 
-    unsigned int atom_size = this->protein->atom_size();
+    unsigned int atom_size = this->protein->size_atom();
     for (unsigned int i = 0; i < atom_size; i += settings::general::detail::job_size) {
         pool->detach_task(
             [this, i, index, atom_size] () {calc_internal(this->partials_aa_all, index, this->coords_a[index], i, std::min(i+settings::general::detail::job_size, atom_size));}

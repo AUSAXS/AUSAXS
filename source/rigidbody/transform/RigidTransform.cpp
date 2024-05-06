@@ -88,15 +88,15 @@ TransformGroup RigidTransform::get_connected(const constraints::DistanceConstrai
     }
 
     // check if the system is overconstrained
-    if (0.5*rigidbody->body_size() < path1.size() && 0.5*rigidbody->body_size() < path2.size()) {
+    if (0.5*rigidbody->size_body() < path1.size() && 0.5*rigidbody->size_body() < path2.size()) {
         throw except::size_error("TransformStrategy::get_connected: The system is overconstrained. Use a different TransformStrategy.");
     }
 
     unsigned int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
-        return sum + rigidbody->get_body(ibody).atom_size();
+        return sum + rigidbody->get_body(ibody).size_atom();
     });
     unsigned int N2 = std::accumulate(path2.begin(), path2.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
-        return sum + rigidbody->get_body(ibody).atom_size();
+        return sum + rigidbody->get_body(ibody).size_atom();
     });
 
     // return the path with the least atoms, since that will be the cheapest to transform

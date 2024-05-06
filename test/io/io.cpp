@@ -273,16 +273,16 @@ TEST_CASE("io: writing multifile pdb") {
 
     // first file
     Molecule protein2("temp/io/temp_multifile_part1.pdb");
-    REQUIRE(protein2.get_body(0).atom_size() == 100000);
+    REQUIRE(protein2.get_body(0).size_atom() == 100000);
     REQUIRE(protein2.get_body(0).get_atoms().back().serial == 99999);
 
     Molecule protein3("temp/io/temp_multifile_part2.pdb");
-    REQUIRE(protein3.get_body(0).atom_size() == 1000);
+    REQUIRE(protein3.get_body(0).size_atom() == 1000);
     for (int i = 0; i < 1000; i++) {
         REQUIRE(protein3.get_body(0).get_atom(i).serial == i);
     }
     REQUIRE(protein3.get_body(0).get_file().terminate.serial == 1000);
-    REQUIRE(protein3.water_size() == 100);
+    REQUIRE(protein3.size_water() == 100);
     for (int i = 0; i < 100; i++) {
         REQUIRE(protein3.get_water(i).serial == i+1001);
     }

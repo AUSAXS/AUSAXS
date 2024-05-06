@@ -109,7 +109,7 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, const Atom& atom
 std::pair<DistanceConstraint::AtomLoc, DistanceConstraint::AtomLoc> DistanceConstraint::find_host_bodies(const Atom& atom1, const Atom& atom2) const {
     int ibody1 = -1, ibody2 = -1;
     int iatom1 = -1, iatom2 = -1;
-    for (unsigned int ibody = 0; ibody < protein->body_size(); ibody++) {
+    for (unsigned int ibody = 0; ibody < protein->size_body(); ibody++) {
         const Body& body = protein->get_body(ibody);
         for (unsigned int iatom = 0; iatom < body.get_atoms().size(); iatom++) {
             if (atom1 == body.get_atom(iatom)) {

@@ -18,14 +18,14 @@ CompactCoordinates::CompactCoordinates(std::vector<Vector3<double>>&& coordinate
     std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return CompactCoordinatesData(v, weight);});
 }
 
-CompactCoordinates::CompactCoordinates(const data::Body& body) : data(body.atom_size()) {
+CompactCoordinates::CompactCoordinates(const data::Body& body) : data(body.size_atom()) {
     for (unsigned int i = 0; i < size(); ++i) {
         const auto& a = body.get_atom(i); 
         data[i] = CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
     }
 }
 
-CompactCoordinates::CompactCoordinates(const std::vector<data::Body>& bodies) : data(std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.atom_size();})) {
+CompactCoordinates::CompactCoordinates(const std::vector<data::Body>& bodies) : data(std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.size_atom();})) {
     unsigned int i = 0;
     for (const auto& body : bodies) {
         for (const auto& a : body.get_atoms()) {
