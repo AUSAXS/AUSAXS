@@ -24,8 +24,8 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::u
     HydrationFitter hfit(input, std::move(h));
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
-    if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0, 1.5}}};}
-    else {this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0, 1.5}}};}
+    if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0.5, 1.5}}};}
+    else {this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0.5, 1.5}}};}
     HydrationFitter::operator=(std::move(hfit));
 }
 

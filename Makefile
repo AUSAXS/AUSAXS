@@ -319,26 +319,14 @@ fit_all_ausaxs/%: build/bin/fit_all_exv
 		structure=$$(find $${folder}/ -name "$*.pdb");\
 	fi;\
 	echo "Fitting $$structure ...";\
-<<<<<<< HEAD
 	$< $${structure} $${measurement} --no-exit-on-unknown-atom $${options};\
-=======
-	$< $${structure} $${measurement} $${options};\
->>>>>>> 17249834faa7347011160fc2b47289a898245060
 
 fit_all_foxs/%: 
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
-<<<<<<< HEAD
 	structure=$$(find $${folder}/ -name "$*.pdb");\
 	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
 	structure="$${folder}/$*_stripped.pdb";\
-=======
-	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
-		structure="$${folder}/$*_dehydrated.pdb";\
-	else \
-		structure=$$(find $${folder}/ -name "$*.pdb");\
-	fi;\
->>>>>>> 17249834faa7347011160fc2b47289a898245060
 	rm -rf temp/foxs;\
 	mkdir -p temp/foxs;\
 	cp $${structure} temp/foxs;\
@@ -347,38 +335,23 @@ fit_all_foxs/%:
 	foxs $$(basename "$${structure}") $$(basename "$${measurement}") $${options};\
 	cd ../..;\
 	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
-<<<<<<< HEAD
 	cp output/fit_all_exv/$*/foxs.fit output/saxs_fitter/$*
-=======
->>>>>>> 17249834faa7347011160fc2b47289a898245060
 
 fit_all_pepsi/%: 
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
-<<<<<<< HEAD
 	structure=$$(find $${folder}/ -name "$*.pdb");\
 	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
 	structure="$${folder}/$*_stripped.pdb";\
-=======
-	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
-		structure="$${folder}/$*_dehydrated.pdb";\
-	else \
-		structure=$$(find $${folder}/ -name "$*.pdb");\
-	fi;\
->>>>>>> 17249834faa7347011160fc2b47289a898245060
 	rm -rf temp/pepsi;\
 	mkdir -p temp/pepsi;\
 	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" $${options};\
 	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
-<<<<<<< HEAD
 	cp output/fit_all_exv/$*/pepsi.fit output/saxs_fitter/$*
-=======
->>>>>>> 17249834faa7347011160fc2b47289a898245060
 
 fit_all_crysol/%: 
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
-<<<<<<< HEAD
 	structure=$$(find $${folder}/ -name "$*.pdb");\
 	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
 	structure="$${folder}/$*_stripped.pdb";\
@@ -386,36 +359,16 @@ fit_all_crysol/%:
 	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 $${options};\
 	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
 	cp output/fit_all_exv/$*/crysol.fit output/saxs_fitter/$*
-=======
-	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
-		structure="$${folder}/$*_dehydrated.pdb";\
-	else \
-		structure=$$(find $${folder}/ -name "$*.pdb");\
-	fi;\
-	mkdir -p temp/crysol;\
-	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 $${options};\
-	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
->>>>>>> 17249834faa7347011160fc2b47289a898245060
 
 fit_all/%: build/bin/fit_all_exv
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
-<<<<<<< HEAD
 	structure=$$(find $${folder}/ -name "$*.pdb");\
 	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
 	structure="$${folder}/$*_stripped.pdb";\
 	echo "Fitting $$structure ...";\
 	$< $${structure} $${measurement} --no-exit-on-unknown-atom $${options};\
 	mkdir -p output/saxs_fitter/$*;\
-=======
-	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
-		structure="$${folder}/$*_dehydrated.pdb";\
-	else \
-		structure=$$(find $${folder}/ -name "$*.pdb");\
-	fi;\
-	echo "Fitting $$structure ...";\
-	$< $${structure} $${measurement} $${options};\
->>>>>>> 17249834faa7347011160fc2b47289a898245060
 	rm -rf temp/foxs;\
 	mkdir -p temp/foxs;\
 	cp $${structure} temp/foxs;\
@@ -430,12 +383,8 @@ fit_all/%: build/bin/fit_all_exv
 	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
 	mkdir -p temp/crysol;\
 	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1;\
-<<<<<<< HEAD
 	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit;\
 	cp output/fit_all_exv/$*/*.fit output/saxs_fitter/$*
-=======
-	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
->>>>>>> 17249834faa7347011160fc2b47289a898245060
 
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 

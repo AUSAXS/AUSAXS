@@ -13,6 +13,9 @@ void settings::validate_settings() {
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
         case settings::hist::HistogramManagerChoice::FoXSManager:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid1:
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid2:
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid3:
             // check for effective charge compatibility
             if (settings::molecule::use_effective_charge == true) {
                 console::print_warning("Warning: The chosen histogram manager does not support using an effective charge approximation.");

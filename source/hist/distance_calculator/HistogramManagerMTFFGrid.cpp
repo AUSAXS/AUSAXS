@@ -9,6 +9,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid1.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid2.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid3.h>
 #include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
 #include <hydrate/Grid.h>
@@ -210,13 +213,43 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     std::move(p_wx.begin(), p_wx.begin()+max_bin, p_aw.begin(form_factor::exv_bin));
     std::move(p_xx.begin(), p_xx.begin()+max_bin, p_aa.begin(form_factor::exv_bin, form_factor::exv_bin));
 
-    return std::make_unique<CompositeDistanceHistogramFFGrid>(
-        std::move(p_aa), 
-        std::move(p_aw), 
-        std::move(p_ww), 
-        std::move(p_tot),
-        std::move(p_xx_generic)
-    );
+    switch (settings::hist::histogram_manager) {
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
+            return std::make_unique<CompositeDistanceHistogramFFGrid>(
+                std::move(p_aa), 
+                std::move(p_aw), 
+                std::move(p_ww), 
+                std::move(p_tot),
+                std::move(p_xx_generic)
+            );
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid1:
+            return std::make_unique<CompositeDistanceHistogramFFGrid1>(
+                std::move(p_aa), 
+                std::move(p_aw), 
+                std::move(p_ww), 
+                std::move(p_tot),
+                std::move(p_xx_generic)
+            );
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid2:
+            return std::make_unique<CompositeDistanceHistogramFFGrid2>(
+                std::move(p_aa), 
+                std::move(p_aw), 
+                std::move(p_ww), 
+                std::move(p_tot),
+                std::move(p_xx_generic)
+            );
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid3:
+            return std::make_unique<CompositeDistanceHistogramFFGrid3>(
+                std::move(p_aa), 
+                std::move(p_aw), 
+                std::move(p_ww), 
+                std::move(p_tot),
+                std::move(p_xx_generic)
+            );
+        default:
+            throw std::runtime_error("Invalid histogram manager choice.");
+    }
+
 }
 
 template class hist::HistogramManagerMTFFGrid<false>;

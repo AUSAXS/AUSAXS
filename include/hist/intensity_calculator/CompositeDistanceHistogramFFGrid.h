@@ -72,7 +72,7 @@ namespace hist {
             inline static form_factor::storage::atomic::table_t ff_table = generate_table();
             std::unique_ptr<table::VectorDebyeTable> weighted_sinc_table_x;
 
-            double exv_factor(double q) const override;
+            virtual double exv_factor(double q) const override;
 
             /**
              * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.

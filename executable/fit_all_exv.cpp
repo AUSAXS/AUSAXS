@@ -70,6 +70,9 @@ int main(int argc, char const *argv[]) {
         loop = {
             settings::hist::HistogramManagerChoice::HistogramManagerMT,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid,
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid1,
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid2,
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid3,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg, 
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit,
             settings::hist::HistogramManagerChoice::FoXSManager
@@ -78,6 +81,9 @@ int main(int argc, char const *argv[]) {
         loop_names = {
             "HistogramManagerMT",
             "HistogramManagerMTFFGrid",
+            "HistogramManagerMTFFGrid1",
+            "HistogramManagerMTFFGrid2",
+            "HistogramManagerMTFFGrid3",
             "HistogramManagerMTFFAvg", 
             "HistogramManagerMTFFExplicit",
             "FoXS"
@@ -123,6 +129,12 @@ int main(int argc, char const *argv[]) {
                 settings::molecule::use_effective_charge = false;
                 perform_fit(loop_names[i] + "_fitted", loop[i], true);
                 break;
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid1:
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid2:
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid3:
+                settings::molecule::use_effective_charge = false;
+                perform_fit(loop_names[i] + "_fitted", loop[i], true);
+                continue;
             default:
                 throw except::invalid_argument("Unknown histogram manager choice.");
         }
