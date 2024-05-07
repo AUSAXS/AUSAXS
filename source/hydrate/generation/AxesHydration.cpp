@@ -12,6 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data::record;
 
+hydrate::AxesHydration::~AxesHydration() = default;
+
 std::vector<data::record::Water> hydrate::AxesHydration::generate_explicit_hydration() {
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();

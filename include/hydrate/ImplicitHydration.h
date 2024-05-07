@@ -10,5 +10,7 @@ namespace hydrate {
         public:
             ImplicitHydration() = default;
             ~ImplicitHydration() = default;
+
+            void clear() override {};
     };
 }

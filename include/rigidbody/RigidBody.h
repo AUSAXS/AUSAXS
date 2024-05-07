@@ -2,7 +2,7 @@
 
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
-#include <hydrate/GridFwd.h>
+#include <grid/GridFwd.h>
 #include <fitter/FitterFwd.h>
 #include <data/Molecule.h>
 
@@ -13,8 +13,6 @@ namespace rigidbody {
 		friend rigidbody::sequencer::Sequencer;
 		public:
 			RigidBody(data::Molecule&& protein);
-
-			RigidBody(const data::Molecule& protein);
 
 			virtual ~RigidBody();
 

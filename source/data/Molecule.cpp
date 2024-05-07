@@ -37,9 +37,11 @@ using namespace hist;
 using namespace data;
 using namespace data::record;
 
-Molecule::Molecule() noexcept = default;
+Molecule::Molecule() noexcept : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(), updated_charge(false), centered(false), grid(nullptr), phm(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins)) {}
 
-Molecule::Molecule(std::vector<Body>&& bodies) : bodies(std::move(bodies)) {
+Molecule::Molecule(Molecule&& other) noexcept : hydration(std::move(other.hydration)), bodies(std::move(other.bodies)), updated_charge(other.updated_charge), centered(other.centered), grid(std::move(other.grid)), phm(std::move(other.phm)) {}
+
+Molecule::Molecule(std::vector<Body>&& bodies) : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(std::move(bodies)) {
     initialize();
 }
 
@@ -54,7 +56,7 @@ Molecule::Molecule(const std::vector<Atom>& molecule_atoms, const std::vector<Wa
     initialize();
 }
 
-Molecule::Molecule(const io::File& input) {
+Molecule::Molecule(const io::File& input) : Molecule() {
     Body b1(input);
     bodies = {b1};
     this->get_waters() = std::move(bodies[0].get_waters());
@@ -62,7 +64,7 @@ Molecule::Molecule(const io::File& input) {
     initialize();
 }
 
-Molecule::Molecule(const std::vector<std::string>& input) {
+Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
     std::vector<Water> waters;
     for (const std::string& str : input) {
         bodies.emplace_back(str);
@@ -269,7 +271,7 @@ void Molecule::clear_grid() {
 
 void Molecule::clear_hydration() {
     if (grid != nullptr) {grid->clear_waters();} // also clear the waters from the grid
-    hydration = nullptr;
+    hydration->clear();
     signal_modified_hydration_layer();
 }
 

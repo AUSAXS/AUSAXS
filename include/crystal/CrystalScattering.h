@@ -2,7 +2,7 @@
 
 #include <math/Vector3.h>
 #include <crystal/CrystalFwd.h>
-#include <hydrate/GridFwd.h>
+#include <grid/GridFwd.h>
 #include <dataset/DatasetFwd.h>
 
 #include <memory>
