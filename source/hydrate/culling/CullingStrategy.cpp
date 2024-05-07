@@ -3,11 +3,11 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <grid/culling/CullingStrategy.h>
+#include <hydrate/culling/CullingStrategy.h>
 
-using namespace grid;
+using namespace hydrate;
 
-CullingStrategy::CullingStrategy(Grid* grid) : grid(grid) {}
+CullingStrategy::CullingStrategy(observer_ptr<grid::Grid> grid) : grid(grid) {}
 
 CullingStrategy::~CullingStrategy() = default;
 

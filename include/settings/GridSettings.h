@@ -17,22 +17,3 @@ namespace settings {
         }
     }
 }
-
-namespace settings::grid {
-    enum class PlacementStrategy {
-        AxesStrategy, 
-        RadialStrategy, 
-        JanStrategy,
-        NoStrategy
-    };
-    extern PlacementStrategy placement_strategy;
-}
-
-namespace settings::grid {
-    enum class CullingStrategy {
-        CounterStrategy, 
-        OutlierStrategy, 
-        RandomStrategy
-    };
-    extern CullingStrategy culling_strategy;
-}

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <grid/culling/CullingStrategy.h>
+#include <hydrate/culling/CullingStrategy.h>
 
-namespace grid {
+namespace hydrate {
     /**
      * @brief Iterate through all water molecules, and count how many other molecules are nearby. Atoms counts as +1, while other water molecules counts as -2. 
      *        Then start removing the most negative water molecules until the desired count is reached. 
@@ -13,6 +13,6 @@ namespace grid {
             ~OutlierCulling() override = default;
 
             // runs in O(n ln n) where n is the number of water molecules
-            std::vector<data::record::Water> cull(std::vector<GridMember<data::record::Water>>& placed_water) const override;
+            std::vector<data::record::Water> cull(std::vector<data::record::Water>&& placed_water) const override;
         };
 }

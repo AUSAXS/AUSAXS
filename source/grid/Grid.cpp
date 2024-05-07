@@ -4,9 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <grid/Grid.h>
-#include <grid/culling/CullingFactory.h>
-#include <grid/placement/PlacementFactory.h>
-#include <grid/GridMember.h>
+#include <grid/detail/GridMember.h>
 #include <data/detail/AtomCollection.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -96,9 +94,6 @@ void Grid::setup() {
     }
 
     this->grid = detail::GridObj(axes.x.bins, axes.y.bins, axes.z.bins);
-
-    water_placer = grid::factory::construct_placement_strategy(this);
-    water_culler = grid::factory::construct_culling_strategy(this);
 }
 
 double Grid::get_atomic_radius(constants::atom_t atom) const {
@@ -107,28 +102,6 @@ double Grid::get_atomic_radius(constants::atom_t atom) const {
 
 double Grid::get_hydration_radius() const {
     return constants::radius::get_vdw_radius(constants::atom_t::O);
-}
-
-std::vector<Water> Grid::hydrate() {
-    // a quick check to verify there are no water molecules already present
-    if (w_members.size() != 0) {console::print_warning("Warning in Grid::hydrate: Attempting to hydrate a grid which already contains water!");}
-    std::vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-
-    // assume the protein is a perfect sphere. then we want the number of water molecules to be proportional to the surface area
-    double vol = get_volume(); // volume in cubic Ångström
-    double r = std::cbrt(3*vol/(4*constants::pi)); // radius of the protein in Ångström
-    double area = 4*constants::pi*std::pow(r, 2.5); // surface area of the protein in Ångström^2
-    double target = settings::grid::water_scaling*area; // the target number of water molecules
-
-    water_culler->set_target_count(target);
-    return water_culler->cull(placed_water);
-}
-
-std::vector<GridMember<Water>> Grid::find_free_locs() {
-    expand_volume();
-
-    // place the water molecules with the chosen strategy
-    return water_placer->place();
 }
 
 std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
@@ -354,7 +327,7 @@ void Grid::deflate_volume(GridMember<Water>& water) {
     }
 }
 
-#include <grid/culling/ClusterCulling.h>
+#include <hydrate/culling/ClusterCulling.h>
 std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
     // throw except::not_implemented("Grid::remove_disconnected_atoms: Not implemented!");
     expand_volume();
@@ -641,8 +614,6 @@ bool Grid::operator==(const Grid& rhs) const {
     if (volume != rhs.volume) {return false;}
     if (a_members.size() != rhs.a_members.size()) {return false;}
     if (w_members.size() != rhs.w_members.size()) {return false;}
-    if (typeid(water_culler) != typeid(rhs.water_culler)) {return false;}
-    if (typeid(water_placer) != typeid(rhs.water_placer)) {return false;}
     if (axes != rhs.axes) {return false;}
     return true;
 }
