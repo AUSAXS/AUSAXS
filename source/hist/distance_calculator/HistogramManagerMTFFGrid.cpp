@@ -11,7 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>

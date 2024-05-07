@@ -27,8 +27,8 @@ namespace settings::molecule::io {
     });
 
     settings::io::SettingSection hydrate_settings("Hydrate", {
-        settings::io::create(hydrate::hydration_strategy, "strategy"),
-        settings::io::create(hydrate::culling_strategy, "culling")
+        settings::io::create(hydrate::hydration_strategy, "hydration_strategy"),
+        settings::io::create(hydrate::culling_strategy, "culling_strategy")
     });
 }
 

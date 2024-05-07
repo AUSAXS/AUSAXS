@@ -8,8 +8,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/RigidBody.h>
 #include <fitter/LinearFitter.h>
 #include <data/record/Water.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <io/ExistingFile.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 
 using namespace rigidbody::sequencer;
 
@@ -37,7 +38,6 @@ bool Sequencer::_optimize_step() const {
     return rigidbody->optimize_step(*best);
 }
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 std::shared_ptr<fitter::Fit> Sequencer::execute() {
     // prepare rigidbody
     rigidbody->generate_new_hydration();
