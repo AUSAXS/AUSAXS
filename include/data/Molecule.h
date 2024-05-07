@@ -8,6 +8,7 @@
 #include <dataset/DatasetFwd.h>
 #include <fitter/FitterFwd.h>
 #include <grid/GridFwd.h>
+#include <hydrate/HydrationFwd.h>
 
 #include <string>
 #include <vector>
@@ -22,15 +23,7 @@ namespace data {
 	 */
 	class Molecule {
 		public: 
-			/**
-			 * @brief Default constructor. 
-			 */
 			Molecule() noexcept;
-
-			/**
-			 * @brief Copy constructor.
-			 */
-			Molecule(const Molecule& molecule);
 
 			/**
 			 * @brief Create a new molecule based on a set of bodies.
@@ -328,8 +321,8 @@ namespace data {
 			bool equals_content(const Molecule& other) const;
 
 		private:
-			std::vector<record::Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
-			std::vector<Body> bodies;           		// The constituent bodies
+			std::unique_ptr<hydrate::Hydration> hydration; 	// Abstract representation of the hydration layer
+			std::vector<Body> bodies;           			// The constituent bodies
 
 			// the following two variables are only necessary to ensure copying cannot repeat the same work
 			bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise.

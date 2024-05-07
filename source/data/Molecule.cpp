@@ -25,10 +25,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <constants/Constants.h>
-#include <hydrate/Grid.h>
-#include <hydrate/GridMember.h>
-#include <hydrate/placement/PlacementStrategy.h>
-#include <hydrate/culling/CullingStrategy.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
+#include <hydrate/ExplicitHydration.h>
+#include <hydrate/generation/HydrationFactory.h>
+#include <hydrate/generation/GridBasedHydration.h>
 
 #include <numeric>
 
@@ -43,17 +44,13 @@ Molecule::Molecule(std::vector<Body>&& bodies) : bodies(std::move(bodies)) {
 }
 
 Molecule::Molecule(const std::vector<Body>& bodies) : Molecule(bodies, std::vector<Water>()) {}
-Molecule::Molecule(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
+Molecule::Molecule(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration(std::make_unique<hydrate::ExplicitHydration>(hydration_atoms)), bodies(bodies) {
     initialize();
 }
 
 Molecule::Molecule(const std::vector<Atom>& molecule_atoms) : Molecule(molecule_atoms, std::vector<Water>()) {}
-Molecule::Molecule(const std::vector<Atom>& molecule_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
-    bodies = {Body(molecule_atoms, this->hydration_atoms)};
-    initialize();
-}
-
-Molecule::Molecule(const Molecule& molecule) : hydration_atoms(molecule.hydration_atoms), bodies(molecule.bodies), updated_charge(molecule.updated_charge), centered(molecule.centered) {
+Molecule::Molecule(const std::vector<Atom>& molecule_atoms, const std::vector<Water>& hydration_atoms) : hydration(std::make_unique<hydrate::ExplicitHydration>(hydration_atoms)) {
+    bodies = {Body(molecule_atoms, get_waters())};
     initialize();
 }
 
@@ -226,19 +223,28 @@ Vector3<double> Molecule::get_cm() const {
     return cm/M;
 }
 
-std::vector<Water>& Molecule::get_waters() {return hydration_atoms;}
+const std::vector<Water>& Molecule::get_waters() const {
+    if (auto cast = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); cast != nullptr) {
+        return cast->waters;
+    } else {
+        throw std::runtime_error("Molecule::get_waters: The chosen hydration strategy is not explicit, and thus does not generate dummy water atoms.");
+    }
+}
 
-const std::vector<Water>& Molecule::get_waters() const {return hydration_atoms;}
+std::vector<Water>& Molecule::get_waters() {
+    return const_cast<std::vector<Water>&>(static_cast<const Molecule*>(this)->get_waters());
+}
 
 void Molecule::generate_new_hydration() {
-    // delete the old hydration layer
-    get_waters().clear();
-    signal_modified_hydration_layer();
+    auto generator = hydrate::factory::construct_hydration_generator(grid.get());
 
-    // create the grid and hydrate it
-    if (grid == nullptr) {create_grid();}
-    else {grid->clear_waters();}
-    get_waters() = grid->hydrate();
+    // if the generator is grid-based, we need to prepare the grid itself
+    if (auto cast = dynamic_cast<hydrate::GridBasedHydration*>(generator.get()); cast != nullptr) {
+        signal_modified_hydration_layer();
+        if (grid == nullptr) {create_grid();}
+        else {grid->clear_waters();}
+    }
+    hydration = generator->hydrate();
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
@@ -263,7 +269,7 @@ void Molecule::clear_grid() {
 
 void Molecule::clear_hydration() {
     if (grid != nullptr) {grid->clear_waters();} // also clear the waters from the grid
-    hydration_atoms.clear();
+    hydration = nullptr;
     signal_modified_hydration_layer();
 }
 
@@ -276,12 +282,12 @@ std::size_t Molecule::size_atom() const {
 }
 
 std::size_t Molecule::size_water() const {
-    return hydration_atoms.size();
+    return get_waters().size();
 }
 
-Water& Molecule::get_waters(unsigned int i) {return hydration_atoms[i];}
+Water& Molecule::get_waters(unsigned int i) {return get_waters()[i];}
 
-const Water& Molecule::get_water(unsigned int i) const {return hydration_atoms[i];}
+const Water& Molecule::get_water(unsigned int i) const {return get_waters()[i];}
 
 std::vector<double> Molecule::debye_transform() const {
     auto data = hist::detail::CompactCoordinates(get_bodies());
