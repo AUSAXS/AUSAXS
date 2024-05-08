@@ -118,6 +118,5 @@ std::vector<data::record::Water> PepsiHydration::generate_explicit_hydration() {
             }
         }
     }
-
     return placed_water;
 }
