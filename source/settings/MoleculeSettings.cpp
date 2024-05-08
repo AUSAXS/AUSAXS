@@ -40,17 +40,20 @@ template<> std::string settings::io::detail::SettingRef<settings::hydrate::Hydra
         case settings::hydrate::HydrationStrategy::RadialStrategy: return "radial";
         case settings::hydrate::HydrationStrategy::AxesStrategy: return "axes";
         case settings::hydrate::HydrationStrategy::JanStrategy: return "jan";
+        case settings::hydrate::HydrationStrategy::PepsiStrategy: return "pepsi";
         default: return std::to_string(static_cast<int>(settingref));
     }
 }
 
 template<> void settings::io::detail::SettingRef<settings::hydrate::HydrationStrategy>::set(const std::vector<std::string>& val) {
-    if (utility::to_lowercase(val[0]) == "radial") {settingref = settings::hydrate::HydrationStrategy::RadialStrategy;}
-    else if (utility::to_lowercase(val[0]) == "axes") {settingref = settings::hydrate::HydrationStrategy::AxesStrategy;}
-    else if (utility::to_lowercase(val[0]) == "jan") {settingref = settings::hydrate::HydrationStrategy::JanStrategy;}
+    auto str = utility::to_lowercase(val[0]); 
+    if (str == "radial") {settingref = settings::hydrate::HydrationStrategy::RadialStrategy;}
+    else if (str == "axes") {settingref = settings::hydrate::HydrationStrategy::AxesStrategy;}
+    else if (str == "jan") {settingref = settings::hydrate::HydrationStrategy::JanStrategy;}
+    else if (str == "pepsi") {settingref = settings::hydrate::HydrationStrategy::PepsiStrategy;}
     else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::hydrate::HydrationStrategy>(std::stoi(val[0]));}
     else {
-        throw except::io_error("settings::hydrate::placement_strategy: Unkown HydrationStrategy. Did you forget to add parsing support for it in GridSettings.cpp?");
+        throw except::io_error("settings::hydrate::placement_strategy: Unkown HydrationStrategy. Did you forget to add parsing support for it in MoleculeSettings.cpp?");
     }
 }
 

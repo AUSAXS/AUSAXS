@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/culling/CounterCulling.h>
 #include <hydrate/culling/OutlierCulling.h>
 #include <hydrate/culling/RandomCulling.h>
+#include <hydrate/culling/NoCulling.h>
 #include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
 
@@ -22,6 +23,8 @@ std::unique_ptr<hydrate::CullingStrategy> hydrate::factory::construct_culling_st
             return std::make_unique<hydrate::OutlierCulling>(grid);
         case settings::hydrate::CullingStrategy::RandomStrategy:
             return std::make_unique<hydrate::RandomCulling>(grid);
+        case settings::hydrate::CullingStrategy::NoStrategy:
+            return std::make_unique<hydrate::NoCulling>(grid);
         default: 
             throw except::unknown_argument("grid::factory::construct_culling_strategy: Unkown CullingStrategy. Did you forget to add it to the switch statement?");
     }

@@ -321,13 +321,14 @@ namespace data {
 			std::vector<Body> bodies;           			// The constituent bodies
 
 			// the following two variables are only necessary to ensure copying cannot repeat the same work
-			bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise.
-			bool centered = false;              // True if this object has been centered, false otherwise. 
+			bool updated_charge = false;	// True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise.
+			bool centered = false;      	// True if this object has been centered, false otherwise. 
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
-			mutable std::unique_ptr<grid::Grid> grid; // The grid representation of this body
-			std::unique_ptr<hist::IHistogramManager> phm;
-			std::unique_ptr<hist::ICompositeDistanceHistogram> histogram; // An object representing the distances between atoms
+			mutable std::unique_ptr<grid::Grid> grid; 						// The grid representation of this body
+			std::unique_ptr<hist::IHistogramManager> phm;					// The histogram manager of this molecule
+			std::unique_ptr<hist::ICompositeDistanceHistogram> histogram; 	// An object representing the distances between atoms
+			std::unique_ptr<hydrate::HydrationStrategy> hydration_strategy; // The strategy used to generate the hydration layer
 
 			void initialize();
 	};

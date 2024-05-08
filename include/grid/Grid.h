@@ -265,6 +265,11 @@ namespace grid {
 			 */
 			Vector3<int> get_center() const;
 
+			/**
+			 * @brief Add a value to the volume of the grid.
+			 */
+			void add_volume(double value);
+
 			detail::GridObj grid; // The actual grid.
 			std::list<GridMember<data::record::Atom>> a_members; // A list of all member atoms and where they are located.
 			std::list<GridMember<data::record::Water>> w_members; // A list of all member water molecules and where they are located. 

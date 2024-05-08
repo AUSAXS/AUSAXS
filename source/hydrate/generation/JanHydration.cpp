@@ -7,11 +7,13 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
 #include <data/record/Water.h>
+#include <data/Molecule.h>
 #include <constants/Constants.h>
 
 using namespace data::record;
 
 std::vector<data::record::Water> hydrate::JanHydration::generate_explicit_hydration() {
+    auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
@@ -27,7 +29,7 @@ std::vector<data::record::Water> hydrate::JanHydration::generate_explicit_hydrat
     for (int i = min.x(); i < max.x(); i++) {
         for (int j = min.y(); j < max.y(); j++) {
             for (int k = min.z(); k < max.z(); k++) {
-                if (gref.index(i, j, k) == grid::detail::EMPTY) {continue;}
+                if (gref.is_empty(i, j, k)) {continue;}
 
                 // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
                 int im = std::max(i-r_eff, 0), ip = std::min(i+r_eff, (int) bins.x()-1); // xminus and xplus

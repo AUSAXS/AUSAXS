@@ -13,6 +13,7 @@ namespace settings {
             AxesStrategy, 
             RadialStrategy, 
             JanStrategy,
+            PepsiStrategy,
             NoStrategy
         };
         extern HydrationStrategy hydration_strategy;
@@ -20,7 +21,8 @@ namespace settings {
         enum class CullingStrategy {
             CounterStrategy, 
             OutlierStrategy, 
-            RandomStrategy
+            RandomStrategy,
+            NoStrategy
         };
         extern CullingStrategy culling_strategy;
     }
