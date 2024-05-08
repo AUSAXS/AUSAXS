@@ -94,7 +94,7 @@ int main(int argc, char const *argv[]) {
     //### ACTUAL PROGRAM ###//
     //######################//
     data::Molecule protein(pdb);
-    if (!use_existing_hydration || protein.water_size() == 0) {
+    if (!use_existing_hydration || protein.size_water() == 0) {
         protein.generate_new_hydration();
     }
 
@@ -113,7 +113,7 @@ int main(int argc, char const *argv[]) {
     fitter->get_dataset().save(settings::general::output + mfile.stem() + ".scat");
 
     // calculate rhoM
-    double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
+    double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
     std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
 
     protein.save(settings::general::output + "model.pdb");

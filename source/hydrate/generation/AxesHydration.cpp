@@ -13,7 +13,16 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data::record;
 
+hydrate::AxesHydration::AxesHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
+    initialize();
+}
+
 hydrate::AxesHydration::~AxesHydration() = default;
+
+void hydrate::AxesHydration::initialize() {
+    hydrate::GridBasedHydration::initialize();
+    grid = protein->get_grid();
+}
 
 std::vector<data::record::Water> hydrate::AxesHydration::generate_explicit_hydration() {
     auto grid = protein->get_grid();
@@ -87,8 +96,6 @@ std::vector<data::record::Water> hydrate::AxesHydration::generate_explicit_hydra
 
 bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, double ra) const {
     static double rh = constants::radius::get_vdw_radius(constants::atom_t::O); // radius of a water molecule
-
-    auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     

@@ -15,12 +15,15 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace hydrate;
 using namespace data::record;
 
-PepsiHydration::PepsiHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {}
+PepsiHydration::PepsiHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
+    initialize();
+}
 
 void PepsiHydration::initialize() {
-    settings::grid::width = 3;
+    std::cout << "Initializing PepsiHydration" << std::endl;
     settings::hydrate::culling_strategy = settings::hydrate::CullingStrategy::NoStrategy;
     GridBasedHydration::initialize();
+    grid = protein->get_grid();
 }
 
 PepsiHydration::~PepsiHydration() = default;
@@ -29,11 +32,10 @@ void PepsiHydration::modified_expand_volume(grid::GridMember<data::record::Atom>
     if (atom.is_expanded()) {return;} // check if this location has already been expanded
     atom.set_expanded(true); // mark this location as expanded
 
-    auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto axes = grid->get_axes();
 
-    double r = 3; // fixed radius of 3Å
+    double r = 3/settings::grid::width; // fixed radius of 3Å
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z(); 
@@ -67,15 +69,16 @@ void PepsiHydration::modified_expand_volume(grid::GridMember<data::record::Atom>
     grid->add_volume(added_volume);
 }
 
-std::vector<data::record::Water> PepsiHydration::generate_explicit_hydration() {
-    double shell_width = 3; // width of the hydration shell
-    double r = 3;           // distance from the atom to the hydration shell
+// linear interpolation of the shell width as described in the paper
+auto get_shell_width(double Rg) {
+    double a = (5. - 3.)/(20.-15.);
+    return std::clamp(a*Rg, 3., 5.);
+}
 
-    auto grid = protein->get_grid();
-    grid->deflate_volume();
-    for (auto& atom : grid->a_members) {
-        modified_expand_volume(atom);
-    }
+#include "data/Body.h"
+std::vector<data::record::Water> PepsiHydration::generate_explicit_hydration() {
+    double shell_width = get_shell_width(protein->get_Rg());
+    double r = 3; // distance from the atom to the hydration shell
 
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
@@ -86,35 +89,35 @@ std::vector<data::record::Water> PepsiHydration::generate_explicit_hydration() {
         placed_water.emplace_back(Water::create_new_water(grid->to_xyz(v)));
     };
 
-    auto[min, max] = grid->bounding_box_index();
-
-    // padding of at least 12Å
-    int padding = std::ceil(12./settings::grid::width);
-    min.x() = std::max(min.x()-padding, 0); max.x() = std::min(max.x()+padding, (int) bins.x());
-    min.y() = std::max(min.y()-padding, 0); max.y() = std::min(max.y()+padding, (int) bins.y());
-    min.z() = std::max(min.z()-padding, 0); max.z() = std::min(max.z()+padding, (int) bins.z());
-
     // loop over the location of all member atoms
     double max_r = r+shell_width;
+    double max_r2 = max_r*max_r;
     for (const auto& atom : grid->a_members) {
         auto coords_abs = atom.get_atom().get_coordinates();
 
         // scan for free cells in a box of size [x-r, x+r][y-r, y+r][z-r, z+r]
         auto bin_min = grid->to_bins(coords_abs - max_r);
         auto bin_max = grid->to_bins(coords_abs + max_r);
-        bin_min.x() = std::max<int>(bin_min.x(), 0); bin_max.x() = std::min<int>(bin_max.x(), bins[0]-1);
-        bin_min.y() = std::max<int>(bin_min.y(), 0); bin_max.y() = std::min<int>(bin_max.y(), bins[1]-1);
-        bin_min.z() = std::max<int>(bin_min.z(), 0); bin_max.z() = std::min<int>(bin_max.z(), bins[2]-1);
+        bin_min.x() = std::max<int>(bin_min.x()-1, 0); bin_max.x() = std::min<int>(bin_max.x()+1, bins[0]-1);
+        bin_min.y() = std::max<int>(bin_min.y()-1, 0); bin_max.y() = std::min<int>(bin_max.y()+1, bins[1]-1);
+        bin_min.z() = std::max<int>(bin_min.z()-1, 0); bin_max.z() = std::min<int>(bin_max.z()+1, bins[2]-1);
 
         for (int i = bin_min.x(); i <= bin_max.x(); ++i) {
             for (int j = bin_min.y(); j <= bin_max.y(); ++j) {
                 for (int k = bin_min.z(); k <= bin_max.z(); ++k) {
-                    if (gref.is_empty(i, j, k)) {
+                    if (!gref.is_empty(i, j, k)) {
+                        continue;
+                    }
+
+                    double dist = grid->to_xyz(Vector3<int>(i, j, k)).distance2(coords_abs);
+                    if (dist < max_r2) {
                         add_loc(Vector3<int>(i, j, k));
+                        gref.index(i, j, k) = grid::detail::W_CENTER;
                     }
                 }
             }
         }
     }
+
     return placed_water;
 }

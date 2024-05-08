@@ -13,7 +13,7 @@ namespace hydrate {
      */
     class JanHydration : public GridBasedHydration {
         public:
-            using GridBasedHydration::GridBasedHydration;
+            JanHydration(observer_ptr<data::Molecule> protein);
             ~JanHydration() override = default;
 
             std::vector<data::record::Water> generate_explicit_hydration() override;

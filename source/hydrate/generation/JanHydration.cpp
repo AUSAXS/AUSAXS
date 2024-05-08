@@ -12,6 +12,10 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data::record;
 
+hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
+    initialize();
+}
+
 std::vector<data::record::Water> hydrate::JanHydration::generate_explicit_hydration() {
     auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;

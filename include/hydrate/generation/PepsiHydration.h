@@ -16,6 +16,7 @@ namespace hydrate {
             std::vector<data::record::Water> generate_explicit_hydration() override;
 
         private:
+            observer_ptr<grid::Grid> grid;
             void modified_expand_volume(grid::GridMember<data::record::Atom>& atom);
             void initialize() override;
     };

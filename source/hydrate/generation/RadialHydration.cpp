@@ -15,12 +15,17 @@ using namespace data::record;
 
 hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
     initialize();
+    prepare_rotations();
 }
 
 hydrate::RadialHydration::~RadialHydration() = default;
 
-void hydrate::RadialHydration::initialize(int divisions) {
-    auto grid = protein->get_grid();
+void hydrate::RadialHydration::initialize() {
+    hydrate::GridBasedHydration::initialize();
+    grid = protein->get_grid();
+}
+
+void hydrate::RadialHydration::prepare_rotations(int divisions) {
     double width = grid->get_width();
 
     std::vector<Vector3<int>> bins_1rh;
@@ -86,8 +91,6 @@ void hydrate::RadialHydration::initialize(int divisions) {
 }
 
 std::vector<data::record::Water> hydrate::RadialHydration::generate_explicit_hydration() {
-    auto grid = protein->get_grid();
-
     // we define a helper lambda
     std::vector<Water> placed_water; 
     placed_water.reserve(grid->a_members.size());
@@ -115,8 +118,6 @@ std::vector<data::record::Water> hydrate::RadialHydration::generate_explicit_hyd
 }
 
 bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
-    auto grid = protein->get_grid();
-
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     int score = 0;

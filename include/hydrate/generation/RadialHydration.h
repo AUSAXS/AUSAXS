@@ -22,7 +22,10 @@ namespace hydrate {
             std::vector<data::record::Water> generate_explicit_hydration() override;
 
         private:
-            void initialize(int divisions = 8);
+            observer_ptr<grid::Grid> grid;
+
+            void initialize() override;
+            void prepare_rotations(int divisions = 8);
 
             std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
             std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius

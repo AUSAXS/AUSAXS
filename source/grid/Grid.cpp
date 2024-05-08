@@ -38,10 +38,16 @@ Grid::Grid(const std::vector<Body>& bodies) {
         }
     }
 
+    // for small systems, expand the grid by a factor 2
+    auto diff = max - min;
+    if (diff.x() < 50 || diff.y() < 50 || diff.z() < 50) {
+        settings::grid::scaling = 1;
+    }
+
     // expand bounding box by scaling factor
     Vector3<double> nmin, nmax; // new min & max
     for (unsigned int i = 0; i < 3; i++) {
-        double expand = 0.5*(max[i] - min[i])*settings::grid::scaling; // amount to expand in each direction
+        double expand = 0.5*diff[i]*settings::grid::scaling; // amount to expand in each direction
         nmin[i] = std::floor(min[i] - expand - settings::grid::width); // flooring to make our grid 'nice' (i.e. bin edges are at integer values)
         nmax[i] = std::ceil( max[i] + expand + settings::grid::width); //  ceiling to make our grid 'nice' (i.e. bin edges are at integer values)
     }
@@ -380,17 +386,17 @@ void Grid::remove(const Body* body) {
 
 const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
     auto loc = to_bins(atom.coords);
-    unsigned int x = loc.x(), y = loc.y(), z = loc.z();
+    unsigned int i = loc.x(), j = loc.y(), k = loc.z();
 
     // sanity check
     #if DEBUG
-        bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
+        bool out_of_bounds = i >= axes.x.bins || j >= axes.y.bins || k >= axes.z.bins;
         if (out_of_bounds) [[unlikely]] {
             throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
         }
     #endif
 
-    auto& bin = grid.index(x, y, z);
+    auto& bin = grid.index(i, j, k);
     volume += grid.is_empty(bin);
     bin = detail::A_CENTER;
 
@@ -403,21 +409,21 @@ const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
 
 const GridMember<Water>& Grid::add(const Water& water, bool expand) {
     auto loc = to_bins(water.coords);
-    int x = loc.x(), y = loc.y(), z = loc.z(); 
+    int i = loc.x(), j = loc.y(), k = loc.z(); 
 
     // sanity check
     #if DEBUG
-        if (x >= (int) axes.x.bins || y >= (int) axes.y.bins || z >= (int) axes.z.bins || x < 0 || y < 0 || z < 0) [[unlikely]] {
+        if (i >= (int) axes.x.bins || j >= (int) axes.y.bins || k >= (int) axes.z.bins || i < 0 || j < 0 || k < 0) [[unlikely]] {
             throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
         } 
 
-        if (!(grid.index(x, y, z) == detail::EMPTY || grid.index(x, y, z) == detail::W_CENTER || grid.index(x, y, z) == detail::VOLUME)) {
-            throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")");
+        if (!(grid.index(i, j, k) == detail::EMPTY || grid.index(i, j, k) == detail::W_CENTER || grid.index(i, j, k) == detail::VOLUME)) {
+            throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
         }
     #endif
 
     GridMember gm(water, loc);
-    grid.index(x, y, z) = detail::W_CENTER;
+    grid.index(i, j, k) = detail::W_CENTER;
     if (expand) {expand_volume(gm);}
     w_members.push_back(std::move(gm));
 
@@ -651,6 +657,17 @@ void Grid::save(const io::File& path) const {
             }
         }
     }
+
+    // visualize corners
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, 0, 0), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, 0, 0), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, axes.y.bins, 0), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, axes.y.bins, 0), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, axes.y.bins, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, 0, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, 0, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, axes.y.bins, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+
     data::Molecule p(atoms, waters);
     p.save(path);
 }
