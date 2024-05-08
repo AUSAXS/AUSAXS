@@ -102,7 +102,7 @@ SimpleDataset Molecule::simulate_dataset(bool add_noise) const {
 }
 
 void Molecule::save(const io::File& path) {
-    // if there's only a single body, just save that instead
+    // if there's only a single body, just save that instead to preserve the original pdb header & footer
     if (bodies.size() == 1) {
         bodies[0].get_waters() = get_waters();
         bodies[0].save(path);
@@ -238,15 +238,10 @@ std::vector<Water>& Molecule::get_waters() {
 }
 
 void Molecule::generate_new_hydration() {
-    auto generator = hydrate::factory::construct_hydration_generator(grid.get());
-
-    // if the generator is grid-based, we need to prepare the grid itself
-    if (auto cast = dynamic_cast<hydrate::GridBasedHydration*>(generator.get()); cast != nullptr) {
-        signal_modified_hydration_layer();
-        if (grid == nullptr) {create_grid();}
-        else {grid->clear_waters();}
+    if (hydration_strategy == nullptr) {
+        hydration_strategy = hydrate::factory::construct_hydration_generator(this);
     }
-    hydration = generator->hydrate();
+    hydration = hydration_strategy->hydrate();
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {

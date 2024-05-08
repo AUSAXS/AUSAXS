@@ -16,7 +16,7 @@ namespace hydrate {
      */
     class RadialHydration : public GridBasedHydration {
         public:
-            RadialHydration(observer_ptr<grid::Grid> grid);
+            RadialHydration(observer_ptr<data::Molecule> protein);
             virtual ~RadialHydration();
 
             std::vector<data::record::Water> generate_explicit_hydration() override;

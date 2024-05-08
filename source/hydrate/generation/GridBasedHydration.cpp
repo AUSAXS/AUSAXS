@@ -9,15 +9,27 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/culling/CullingFactory.h>
 #include <data/record/Water.h>
+#include <data/Molecule.h>
 #include <utility/Console.h>
 #include <settings/GridSettings.h>
 
 using namespace hydrate;
 
-GridBasedHydration::GridBasedHydration(observer_ptr<grid::Grid> grid) : grid(grid), culling_strategy(hydrate::factory::construct_culling_strategy(grid)) {}
+GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein) : protein(protein) {
+    initialize();
+}
+
+void GridBasedHydration::initialize() {
+    protein->signal_modified_hydration_layer();
+    if (auto grid = protein->get_grid(); grid == nullptr) {protein->create_grid();}
+    else {grid->clear_waters();}
+}
+
 GridBasedHydration::~GridBasedHydration() = default;
 
 std::unique_ptr<Hydration> GridBasedHydration::hydrate() {
+    auto grid = protein->get_grid();
+    if (culling_strategy == nullptr) {culling_strategy = hydrate::factory::construct_culling_strategy(grid);}
     if (grid->w_members.size() != 0) {console::print_warning("Warning in GridBasedHydration::hydrate: Attempting to hydrate a grid which already contains water!");}
     std::vector<data::record::Water> waters = generate_explicit_hydration();
 

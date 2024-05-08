@@ -156,6 +156,10 @@ std::vector<Atom> Grid::get_atoms() const {
     return atoms;
 }
 
+void Grid::add_volume(double value) {
+    volume += value;
+}
+
 void Grid::force_expand_volume() {
     for (auto& atom : a_members) {
         atom.set_expanded(false);

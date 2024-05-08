@@ -9,7 +9,7 @@
 
 namespace hydrate {
     namespace factory {
-        std::unique_ptr<HydrationStrategy> construct_hydration_generator(observer_ptr<grid::Grid> grid);
-        std::unique_ptr<HydrationStrategy> construct_hydration_generator(observer_ptr<grid::Grid> grid, const settings::hydrate::HydrationStrategy& choice);
+        std::unique_ptr<HydrationStrategy> construct_hydration_generator(observer_ptr<data::Molecule> protein);
+        std::unique_ptr<HydrationStrategy> construct_hydration_generator(observer_ptr<data::Molecule> protein, const settings::hydrate::HydrationStrategy& choice);
     }
 }
