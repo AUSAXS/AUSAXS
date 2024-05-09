@@ -20,7 +20,6 @@ PepsiHydration::PepsiHydration(observer_ptr<data::Molecule> protein) : GridBased
 }
 
 void PepsiHydration::initialize() {
-    std::cout << "Initializing PepsiHydration" << std::endl;
     settings::hydrate::culling_strategy = settings::hydrate::CullingStrategy::NoStrategy;
     GridBasedHydration::initialize();
     grid = protein->get_grid();

@@ -176,7 +176,6 @@ double Molecule::get_volume_grid() const {
 }
 
 observer_ptr<grid::Grid> Molecule::create_grid() const {
-    std::cout << "Molecule::create_grid" << std::endl;
     grid = std::make_unique<grid::Grid>(bodies); 
     return grid.get();
 }

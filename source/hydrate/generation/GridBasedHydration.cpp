@@ -18,7 +18,6 @@ using namespace hydrate;
 GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein) : protein(protein) {}
 
 void GridBasedHydration::initialize() {
-    std::cout << "Initializing GridBasedHydration" << std::endl;
     protein->signal_modified_hydration_layer();
     if (auto grid = protein->get_grid(); grid == nullptr) {protein->create_grid();}
     else {grid->clear_waters();}
