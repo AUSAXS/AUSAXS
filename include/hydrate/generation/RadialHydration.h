@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hydrate/generation/GridBasedHydration.h>
+#include <grid/detail/GridInternalFwd.h>
 #include <math/MathFwd.h>
 
 #include <vector>
@@ -19,7 +20,7 @@ namespace hydrate {
             RadialHydration(observer_ptr<data::Molecule> protein);
             virtual ~RadialHydration();
 
-            std::vector<data::record::Water> generate_explicit_hydration() override;
+            std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
 
         private:
             observer_ptr<grid::Grid> grid;

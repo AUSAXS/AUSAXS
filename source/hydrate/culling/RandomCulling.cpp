@@ -14,8 +14,7 @@ using namespace data::record;
 
 hydrate::RandomCulling::~RandomCulling() = default;
 
-std::vector<data::record::Water> hydrate::RandomCulling::cull(std::vector<Water>&& placed_water) const {
+std::vector<data::record::Water> hydrate::RandomCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     std::shuffle(placed_water.begin(), placed_water.end(), std::mt19937{std::random_device{}()}); // shuffle the molecules
-    grid->add(placed_water);
-    return CounterCulling::cull(std::move(placed_water));
+    return CounterCulling::cull(placed_water);
 }

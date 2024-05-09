@@ -13,7 +13,7 @@ namespace hydrate {
             PepsiHydration(observer_ptr<data::Molecule> protein);
             ~PepsiHydration() override;
 
-            std::vector<data::record::Water> generate_explicit_hydration() override;
+            std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
 
         private:
             observer_ptr<grid::Grid> grid;

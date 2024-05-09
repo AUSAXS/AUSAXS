@@ -24,16 +24,18 @@ void hydrate::AxesHydration::initialize() {
     grid = protein->get_grid();
 }
 
-std::vector<data::record::Water> hydrate::AxesHydration::generate_explicit_hydration() {
+std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::generate_explicit_hydration() {
     auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
     // short lambda to actually place the generated water molecules
-    std::vector<data::record::Water> placed_water;
+    std::vector<grid::GridMember<data::record::Water>> placed_water;
     placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (Vector3<double> exact_loc) {
-        placed_water.emplace_back(Water::create_new_water(exact_loc));
+        Water a = Water::create_new_water(exact_loc);
+        grid::GridMember<Water> gm = grid->add(a, true);
+        placed_water.emplace_back(std::move(gm));
     };
 
     // loop over the location of all member atoms

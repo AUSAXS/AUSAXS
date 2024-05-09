@@ -16,7 +16,7 @@ namespace hydrate {
             AxesHydration(observer_ptr<data::Molecule> protein);
             virtual ~AxesHydration();
 
-            std::vector<data::record::Water> generate_explicit_hydration() override;
+            std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
 
         private:
             observer_ptr<grid::Grid> grid;

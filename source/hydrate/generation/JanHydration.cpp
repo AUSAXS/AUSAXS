@@ -16,7 +16,7 @@ hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein) : Grid
     initialize();
 }
 
-std::vector<data::record::Water> hydrate::JanHydration::generate_explicit_hydration() {
+std::vector<grid::GridMember<data::record::Water>> hydrate::JanHydration::generate_explicit_hydration() {
     auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
@@ -54,5 +54,7 @@ std::vector<data::record::Water> hydrate::JanHydration::generate_explicit_hydrat
             }
         }
     }
-    return placed_water;
+
+    auto placed = grid->add(placed_water);
+    return placed;
 }

@@ -16,6 +16,6 @@ namespace hydrate {
             JanHydration(observer_ptr<data::Molecule> protein);
             ~JanHydration() override = default;
 
-            std::vector<data::record::Water> generate_explicit_hydration() override;
+            std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
         };
 }

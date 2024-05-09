@@ -12,6 +12,6 @@ namespace hydrate {
             ~CounterCulling() override = default;
 
             // runs in O(n) where n is the number of water molecules
-            std::vector<data::record::Water> cull(std::vector<data::record::Water>&& placed_water) const override;
+            std::vector<data::record::Water> cull(std::vector<grid::GridMember<data::record::Water>>& placed_water) const override;
     };       
 }

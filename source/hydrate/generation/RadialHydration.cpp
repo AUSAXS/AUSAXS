@@ -90,12 +90,14 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     rot_locs = std::move(locs);
 }
 
-std::vector<data::record::Water> hydrate::RadialHydration::generate_explicit_hydration() {
+std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
     // we define a helper lambda
-    std::vector<Water> placed_water; 
+    std::vector<grid::GridMember<Water>> placed_water; 
     placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (Vector3<double> exact_loc) {
-        placed_water.emplace_back(Water::create_new_water(exact_loc));
+        Water a = Water::create_new_water(exact_loc);
+        grid::GridMember<Water> gm = grid->add(a, true);
+        placed_water.emplace_back(std::move(gm));
     };
 
     double rh = grid->get_hydration_radius();

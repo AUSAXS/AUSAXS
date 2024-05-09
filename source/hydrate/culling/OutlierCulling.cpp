@@ -15,12 +15,13 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace hydrate;
 using namespace data::record;
 
-std::vector<data::record::Water> OutlierCulling::cull(std::vector<Water>&& waters) const {
+std::vector<data::record::Water> OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {
-        return waters;
+        std::vector<Water> final_water(placed_water.size());
+        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (grid::GridMember<Water>& gm) {return gm.get_atom();});
+        return final_water;
     }
 
-    auto placed_water = grid->add(waters);
     std::vector<std::pair<grid::GridMember<Water>, int>> v(placed_water.size());
     int r = 3*grid->get_atomic_radius(constants::atom_t::C)/grid->get_width(); // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();

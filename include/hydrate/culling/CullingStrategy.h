@@ -9,27 +9,19 @@
 
 namespace hydrate {    
     /**
-     * @brief This class defines the strategy used to remove some of the water molecules, and is responsible for adding them to the grid. 
+     * @brief This class defines the strategy used to remove some of the water molecules from the grid. 
      *        See its subclasses for more information on how this is done. 
      */
     class CullingStrategy {
         public:
-            /**
-             * @brief Constructor.
-             * @param grid The Grid object to apply this Strategy to.
-             */
             CullingStrategy(observer_ptr<grid::Grid> grid);
-
-            /**
-             * @brief Destructor.
-             */
             virtual ~CullingStrategy();
 
             /**
              * @brief Cull the water molecules.
-             * @return The remaining molecules after the culling.
+             * @return A copy of the remaining molecules after the culling. They will also be stored in the grid itself. 
              */
-            virtual std::vector<data::record::Water> cull(std::vector<data::record::Water>&& placed_water) const = 0;
+            virtual std::vector<data::record::Water> cull(std::vector<grid::GridMember<data::record::Water>>& placed_water) const = 0;
 
             /**
              * @brief Set the desired number of water molecules after the culling. 

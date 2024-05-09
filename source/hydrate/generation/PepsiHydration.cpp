@@ -75,8 +75,7 @@ auto get_shell_width(double Rg) {
     return std::clamp(a*Rg, 3., 5.);
 }
 
-#include "data/Body.h"
-std::vector<data::record::Water> PepsiHydration::generate_explicit_hydration() {
+std::vector<grid::GridMember<data::record::Water>> PepsiHydration::generate_explicit_hydration() {
     double shell_width = get_shell_width(protein->get_Rg());
     double r = 3; // distance from the atom to the hydration shell
 
@@ -118,5 +117,7 @@ std::vector<data::record::Water> PepsiHydration::generate_explicit_hydration() {
             }
         }
     }
-    return placed_water;
+
+    auto placed = grid->add(placed_water);
+    return placed;
 }

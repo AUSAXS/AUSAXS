@@ -3,6 +3,7 @@
 #include <hydrate/generation/HydrationStrategy.h>
 #include <hydrate/culling/CullingStrategy.h>
 #include <utility/observer_ptr.h>
+#include <grid/detail/GridInternalFwd.h>
 #include <grid/GridFwd.h>
 
 namespace hydrate {
@@ -16,7 +17,7 @@ namespace hydrate {
         protected:
             observer_ptr<data::Molecule> protein;
 
-            virtual std::vector<data::record::Water> generate_explicit_hydration() = 0;
+            virtual std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() = 0;
 
             virtual void initialize();
 
