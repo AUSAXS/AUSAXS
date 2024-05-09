@@ -256,8 +256,12 @@ observer_ptr<grid::Grid> Molecule::get_grid() const {
     return grid == nullptr ? create_grid() : grid.get();
 }
 
-void Molecule::set_grid(const grid::Grid& grid) {
-    this->grid = std::make_unique<grid::Grid>(grid);
+void Molecule::set_grid(grid::Grid&& grid) {
+    this->grid = std::make_unique<grid::Grid>(std::move(grid));
+}
+
+void Molecule::set_grid(std::unique_ptr<grid::Grid> grid) {
+    this->grid = std::move(grid);
 }
 
 void Molecule::clear_grid() {

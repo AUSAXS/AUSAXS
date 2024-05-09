@@ -1,5 +1,3 @@
-#include "hist/intensity_calculator/ICompositeDistanceHistogram.h"
-#include "settings/MoleculeSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -18,9 +16,10 @@
 #include <data/BodySplitter.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <hydrate/Grid.h>
-#include <hydrate/GridMember.h>
-#include <hydrate/GridObj.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
+#include <grid/detail/GridObj.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 
 using namespace data;
@@ -33,40 +32,40 @@ TEST_CASE("RigidBody::update_fitter") {}
 TEST_CASE("RigidBody::get_constraint_manager") {}
 
 // test that we can consistently fit the same protein
-// TEST_CASE("RigidBody: reusable fitter", "[files]") {
-//     settings::general::verbose = true;
+TEST_CASE("RigidBody: reusable fitter", "[files]") {
+    settings::general::verbose = true;
 
-//     Molecule protein_2epe("test/files/2epe.pdb");
-//     Molecule protein_LAR12("test/files/LAR1-2.pdb");
-//     protein_2epe.generate_new_hydration();
-//     protein_LAR12.generate_new_hydration();
+    Molecule protein_2epe("test/files/2epe.pdb");
+    Molecule protein_LAR12("test/files/LAR1-2.pdb");
+    protein_2epe.generate_new_hydration();
+    protein_LAR12.generate_new_hydration();
 
-//     SECTION("intensity_fitter") {
-//         fitter::HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
-//         double chi2 = fitter.fit()->fval;
+    SECTION("intensity_fitter") {
+        fitter::HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
+        double chi2 = fitter.fit()->fval;
 
-//         fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
-//         double _chi2 = fitter.fit()->fval;
-//         REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
+        fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
+        double _chi2 = fitter.fit()->fval;
+        REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
-//         fitter.set_scattering_hist(protein_2epe.get_total_histogram());
-//         _chi2 = fitter.fit()->fval;
-//         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
-//     }
+        fitter.set_scattering_hist(protein_2epe.get_total_histogram());
+        _chi2 = fitter.fit()->fval;
+        REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
+    }
 
-//     SECTION("simple_intensity_fitter") {
-//         fitter::LinearFitter fitter("test/files/2epe.dat", protein_2epe.get_total_histogram());
-//         double chi2 = fitter.fit()->fval;
+    SECTION("simple_intensity_fitter") {
+        fitter::LinearFitter fitter("test/files/2epe.dat", protein_2epe.get_total_histogram());
+        double chi2 = fitter.fit()->fval;
 
-//         fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
-//         double _chi2 = fitter.fit()->fval;
-//         REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
+        fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
+        double _chi2 = fitter.fit()->fval;
+        REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
-//         fitter.set_scattering_hist(protein_2epe.get_total_histogram());
-//         _chi2 = fitter.fit()->fval;
-//         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
-//     }
-// }
+        fitter.set_scattering_hist(protein_2epe.get_total_histogram());
+        _chi2 = fitter.fit()->fval;
+        REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
+    }
+}
 
 // manually check the method of rigidbody::RigidBody::optimize
 // TEST_CASE("RigidBody: run iteration step") {

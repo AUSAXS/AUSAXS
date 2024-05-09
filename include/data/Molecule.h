@@ -162,7 +162,8 @@ namespace data {
 			/**
 			 * @brief Set the grid representation.
 			 */
-			void set_grid(const grid::Grid&);
+			void set_grid(grid::Grid&& grid);
+			void set_grid(std::unique_ptr<grid::Grid> grid); // @copydoc set_grid(grid::Grid&&)
 
 			/**
 			 * @brief Clear the current grid.

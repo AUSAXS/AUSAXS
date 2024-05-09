@@ -1,15 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <vector>
-#include <string>
-#include <iostream>
-
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/record/Water.h>
-#include <hydrate/Grid.h>
-#include <hydrate/GridMember.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 #include <constants/Constants.h>
 #include <utility/Utility.h>
 #include <fitter/LinearFitter.h>
@@ -17,6 +13,10 @@
 #include <fitter/HydrationFitter.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+
+#include <vector>
+#include <string>
+#include <iostream>
 
 using namespace data;
 using namespace data::record;
@@ -65,11 +65,6 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
     settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
-    SECTION("Molecule&") {
-        Molecule protein1(bodies);
-        Molecule protein2(protein1);
-        REQUIRE(protein1.get_atoms() == protein2.get_atoms());
-    }
 
     SECTION("vector<Body>&&") {
         Molecule protein(std::move(bodies));
@@ -373,7 +368,8 @@ TEST_CASE_METHOD(fixture, "Molecule::get_grid") {
 TEST_CASE_METHOD(fixture, "Molecule::set_grid") {
     Molecule protein(bodies, {});
     grid::Grid grid(Limit3D(0, 1, 0, 1, 0, 1));
-    protein.set_grid(grid);
+    auto grid_dup = grid;
+    protein.set_grid(std::move(grid_dup));
     REQUIRE(*protein.get_grid() == grid);
 }
 
@@ -599,14 +595,15 @@ TEST_CASE("histogram") {
 
         // new auto-scaling approach
         Molecule protein1(atoms);
-        grid::Grid grid1(atoms);
-        protein1.set_grid(grid1);
+        protein1.set_grid(grid::Grid(atoms));
 
         // old approach
         Molecule protein2(atoms);
-        grid::Grid grid2({-2, 2, -2, 2, -2, 2}); 
-        grid2.add(atoms);
-        protein2.set_grid(grid2);
+        {
+            grid::Grid grid2({-2, 2, -2, 2, -2, 2}); 
+            grid2.add(atoms);
+            protein2.set_grid(std::move(grid2));
+        }
 
         // generate the distance histograms
         auto h1 = protein1.get_histogram();
