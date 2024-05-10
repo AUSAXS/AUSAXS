@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/state/UnboundSignaller.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <constants/Constants.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>

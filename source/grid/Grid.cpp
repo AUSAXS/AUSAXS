@@ -3,10 +3,8 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <hydrate/Grid.h>
-#include <hydrate/culling/CullingFactory.h>
-#include <hydrate/placement/PlacementFactory.h>
-#include <hydrate/GridMember.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 #include <data/detail/AtomCollection.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -17,8 +15,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Console.h>
 #include <constants/Constants.h>
 #include <io/ExistingFile.h>
-
-#include <random>
 
 using namespace grid;
 using namespace data;
@@ -42,10 +38,16 @@ Grid::Grid(const std::vector<Body>& bodies) {
         }
     }
 
+    // for small systems, expand the grid by a factor 2
+    auto diff = max - min;
+    if (settings::grid::scaling == 0.25 && (diff.x() < 50 || diff.y() < 50 || diff.z() < 50)) {
+        settings::grid::scaling = 1;
+    }
+
     // expand bounding box by scaling factor
     Vector3<double> nmin, nmax; // new min & max
     for (unsigned int i = 0; i < 3; i++) {
-        double expand = 0.5*(max[i] - min[i])*settings::grid::scaling; // amount to expand in each direction
+        double expand = 0.5*diff[i]*settings::grid::scaling; // amount to expand in each direction
         nmin[i] = std::floor(min[i] - expand - settings::grid::width); // flooring to make our grid 'nice' (i.e. bin edges are at integer values)
         nmax[i] = std::ceil( max[i] + expand + settings::grid::width); //  ceiling to make our grid 'nice' (i.e. bin edges are at integer values)
     }
@@ -98,9 +100,6 @@ void Grid::setup() {
     }
 
     this->grid = detail::GridObj(axes.x.bins, axes.y.bins, axes.z.bins);
-
-    water_placer = grid::factory::construct_placement_strategy(this);
-    water_culler = grid::factory::construct_culling_strategy(this);
 }
 
 double Grid::get_atomic_radius(constants::atom_t atom) const {
@@ -109,28 +108,6 @@ double Grid::get_atomic_radius(constants::atom_t atom) const {
 
 double Grid::get_hydration_radius() const {
     return constants::radius::get_vdw_radius(constants::atom_t::O);
-}
-
-std::vector<Water> Grid::hydrate() {
-    // a quick check to verify there are no water molecules already present
-    if (w_members.size() != 0) {console::print_warning("Warning in Grid::hydrate: Attempting to hydrate a grid which already contains water!");}
-    std::vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-
-    // assume the protein is a perfect sphere. then we want the number of water molecules to be proportional to the surface area
-    double vol = get_volume(); // volume in cubic Ångström
-    double r = std::cbrt(3*vol/(4*constants::pi)); // radius of the protein in Ångström
-    double area = 4*constants::pi*std::pow(r, 2.5); // surface area of the protein in Ångström^2
-    double target = settings::grid::water_scaling*area; // the target number of water molecules
-
-    water_culler->set_target_count(target);
-    return water_culler->cull(placed_water);
-}
-
-std::vector<GridMember<Water>> Grid::find_free_locs() {
-    expand_volume();
-
-    // place the water molecules with the chosen strategy
-    return water_placer->place();
 }
 
 std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
@@ -183,6 +160,10 @@ std::vector<Atom> Grid::get_atoms() const {
     }
     atoms.resize(i);
     return atoms;
+}
+
+void Grid::add_volume(double value) {
+    volume += value;
 }
 
 void Grid::force_expand_volume() {
@@ -298,7 +279,7 @@ void Grid::deflate_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
-    double rvol = settings::grid::rvol/settings::grid::width;
+    double rvol = std::max<double>(get_atomic_radius(atom.get_atom_type()), settings::grid::rvol)/settings::grid::width;
     double rvol2 = std::pow(rvol, 2);
     int xm = std::max<int>(x - std::ceil(rvol), 0), xp = std::min<int>(x + std::ceil(rvol) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvol), 0), yp = std::min<int>(y + std::ceil(rvol) + 1, axes.y.bins); // yminus and yplus
@@ -405,17 +386,17 @@ void Grid::remove(const Body* body) {
 
 const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
     auto loc = to_bins(atom.coords);
-    unsigned int x = loc.x(), y = loc.y(), z = loc.z();
+    unsigned int i = loc.x(), j = loc.y(), k = loc.z();
 
     // sanity check
     #if DEBUG
-        bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
+        bool out_of_bounds = i >= axes.x.bins || j >= axes.y.bins || k >= axes.z.bins;
         if (out_of_bounds) [[unlikely]] {
             throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
         }
     #endif
 
-    auto& bin = grid.index(x, y, z);
+    auto& bin = grid.index(i, j, k);
     volume += grid.is_empty(bin);
     bin = detail::A_CENTER;
 
@@ -428,21 +409,21 @@ const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
 
 const GridMember<Water>& Grid::add(const Water& water, bool expand) {
     auto loc = to_bins(water.coords);
-    int x = loc.x(), y = loc.y(), z = loc.z(); 
+    int i = loc.x(), j = loc.y(), k = loc.z(); 
 
     // sanity check
     #if DEBUG
-        if (x >= (int) axes.x.bins || y >= (int) axes.y.bins || z >= (int) axes.z.bins || x < 0 || y < 0 || z < 0) [[unlikely]] {
+        if (i >= (int) axes.x.bins || j >= (int) axes.y.bins || k >= (int) axes.z.bins || i < 0 || j < 0 || k < 0) [[unlikely]] {
             throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
         } 
 
-        if (!(grid.index(x, y, z) == detail::EMPTY || grid.index(x, y, z) == detail::W_CENTER || grid.index(x, y, z) == detail::VOLUME)) {
-            throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")");
+        if (!(grid.index(i, j, k) == detail::EMPTY || grid.index(i, j, k) == detail::W_CENTER || grid.index(i, j, k) == detail::VOLUME)) {
+            throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
         }
     #endif
 
     GridMember gm(water, loc);
-    grid.index(x, y, z) = detail::W_CENTER;
+    grid.index(i, j, k) = detail::W_CENTER;
     if (expand) {expand_volume(gm);}
     w_members.push_back(std::move(gm));
 
@@ -643,8 +624,6 @@ bool Grid::operator==(const Grid& rhs) const {
     if (volume != rhs.volume) {return false;}
     if (a_members.size() != rhs.a_members.size()) {return false;}
     if (w_members.size() != rhs.w_members.size()) {return false;}
-    if (typeid(water_culler) != typeid(rhs.water_culler)) {return false;}
-    if (typeid(water_placer) != typeid(rhs.water_placer)) {return false;}
     if (axes != rhs.axes) {return false;}
     return true;
 }
@@ -667,10 +646,10 @@ void Grid::save(const io::File& path) const {
                         atoms.push_back(Atom(c++, "C", "", "LYS", 'C', 3, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case detail::W_CENTER:
-                        waters.push_back(Water(c++, "H", "", "HOH", 'D', 4, "", to_xyz(i, j, k), 1, 0, constants::atom_t::H, ""));
+                        waters.push_back(Atom(c++, "C", "", "LYS", 'D', 4, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case detail::W_AREA:
-                        waters.push_back(Water(c++, "H", "", "HOH", 'E', 5, "", to_xyz(i, j, k), 1, 0, constants::atom_t::H, ""));
+                        waters.push_back(Atom(c++, "C", "", "LYS", 'E', 5, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     default:
                         break;
@@ -678,6 +657,17 @@ void Grid::save(const io::File& path) const {
             }
         }
     }
+
+    // visualize corners
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, 0, 0), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, 0, 0), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, axes.y.bins, 0), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, axes.y.bins, 0), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, axes.y.bins, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, 0, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, 0, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, axes.y.bins, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+
     data::Molecule p(atoms, waters);
     p.save(path);
 }

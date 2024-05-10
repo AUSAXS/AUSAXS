@@ -45,7 +45,7 @@ int main(int argc, char const *argv[]) {
     // advanced options group
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");
     app.add_option("--grid_width,--gw", settings::grid::width, "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::width)->group("Advanced options");
-    app.add_option_function<std::string>("--placement-strategy,--ps", [] (const std::string& s) {settings::detail::parse_option("placement_strategy", {s});}, "The placement strategy to use. Options: Radial, Axes, Jan.")->group("Advanced options");
+    app.add_option_function<std::string>("--hydration-strategy,--hs", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, "The hydration model to use. Options: Radial, Axes, Jan.")->group("Advanced options");
     app.add_option("--exv_radius,--er", settings::grid::exv_radius, "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström.")->default_val(settings::grid::exv_radius)->group("Advanced options");
     app.add_option_function<std::string>("--histogram-manager,--hm", [] (const std::string& s) {settings::detail::parse_option("histogram_manager", {s});}, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
     app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, "Decides whether the program will exit if an unknown atom is encountered.")->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
@@ -94,7 +94,7 @@ int main(int argc, char const *argv[]) {
     //### ACTUAL PROGRAM ###//
     //######################//
     data::Molecule protein(pdb);
-    if (!use_existing_hydration || protein.water_size() == 0) {
+    if (!use_existing_hydration || protein.size_water() == 0) {
         protein.generate_new_hydration();
     }
 
@@ -113,7 +113,7 @@ int main(int argc, char const *argv[]) {
     fitter->get_dataset().save(settings::general::output + mfile.stem() + ".scat");
 
     // calculate rhoM
-    double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
+    double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
     std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
 
     protein.save(settings::general::output + "model.pdb");

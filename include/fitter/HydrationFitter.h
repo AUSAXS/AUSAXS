@@ -134,6 +134,11 @@ namespace fitter {
 			 */
 			[[nodiscard]] observer_ptr<hist::ICompositeDistanceHistogram> get_scattering_hist();
 
+            /**
+             * @brief Set the scattering histogram to use for the fit. 
+             */
+            void set_scattering_hist(std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+
             mini::type fit_type = mini::type::DEFAULT;
         protected:
             /**

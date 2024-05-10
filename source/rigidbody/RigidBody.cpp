@@ -19,10 +19,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fitter/HydrationFitter.h>
 #include <fitter/LinearFitter.h>
 #include <fitter/Fit.h>
-#include <hydrate/Grid.h>
-#include <hydrate/GridMember.h>
-#include <hydrate/placement/PlacementStrategy.h>
-#include <hydrate/culling/CullingStrategy.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/Body.h>
@@ -40,10 +38,6 @@ using namespace rigidbody::parameter;
 RigidBody::~RigidBody() = default;
 
 RigidBody::RigidBody(data::Molecule&& protein) : data::Molecule(std::move(protein)) {
-    initialize();
-}
-
-RigidBody::RigidBody(const data::Molecule& protein) : data::Molecule(protein) {
     initialize();
 }
 

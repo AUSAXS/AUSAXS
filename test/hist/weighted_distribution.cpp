@@ -22,7 +22,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <io/ExistingFile.h>
 #include <plots/PlotIntensity.h>
 #include <table/ArrayDebyeTable.h>

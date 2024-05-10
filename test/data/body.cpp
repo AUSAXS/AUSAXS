@@ -3,8 +3,8 @@
 
 #include <constants/Constants.h>
 #include <utility/Console.h>
-#include <hydrate/Grid.h>
-#include <hydrate/GridMember.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <data/BodySplitter.h>

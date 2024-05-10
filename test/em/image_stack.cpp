@@ -6,7 +6,7 @@
 #include <settings/All.h>
 #include <data/record/Atom.h>
 #include <data/Molecule.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <fitter/Fit.h>

@@ -7,8 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/RigidBody.h>
-#include <hydrate/GridMember.h>
-#include <hydrate/Grid.h>
+#include <grid/detail/GridMember.h>
+#include <grid/Grid.h>
 #include <data/record/Atom.h>
 
 #include <vector>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <data/DataFwd.h>
-#include <hydrate/GridFwd.h>
+#include <grid/GridFwd.h>
 
 #include <memory>
 #include <vector>

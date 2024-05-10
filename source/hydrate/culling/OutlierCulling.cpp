@@ -4,27 +4,28 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hydrate/culling/OutlierCulling.h>
-#include <hydrate/GridMember.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 #include <math/Vector3.h>
 #include <data/record/Water.h>
 #include <constants/Constants.h>
 
 #include <utility>
 
+using namespace hydrate;
 using namespace data::record;
 
-std::vector<data::record::Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
+std::vector<data::record::Water> OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {
         std::vector<Water> final_water(placed_water.size());
-        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.get_atom();});
+        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (grid::GridMember<Water>& gm) {return gm.get_atom();});
         return final_water;
     }
 
-    std::vector<std::pair<GridMember<Water>, int>> v(placed_water.size());
+    std::vector<std::pair<grid::GridMember<Water>, int>> v(placed_water.size());
     int r = 3*grid->get_atomic_radius(constants::atom_t::C)/grid->get_width(); // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();
-    const detail::GridObj& gref = grid->grid;
+    const grid::detail::GridObj& gref = grid->grid;
     unsigned int index = 0;
     for (const auto& water : placed_water) {
         const int x = water.get_bin_loc().x(), y = water.get_bin_loc().y(), z = water.get_bin_loc().z();

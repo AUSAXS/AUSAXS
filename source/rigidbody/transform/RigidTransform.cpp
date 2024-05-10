@@ -9,8 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/RigidBody.h>
-#include <hydrate/Grid.h>
-#include <hydrate/GridMember.h>
+#include <grid/detail/GridMember.h>
+#include <grid/Grid.h>
 #include <data/record/Atom.h>
 #include <data/Body.h>
 

@@ -4,8 +4,8 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hydrate/culling/ClusterCulling.h>
-#include <hydrate/GridMember.h>
-#include <hydrate/Grid.h>
+#include <grid/detail/GridMember.h>
+#include <grid/Grid.h>
 #include <math/Vector3.h>
 #include <data/record/Water.h>
 #include <constants/Constants.h>
