@@ -3,20 +3,29 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <hydrate/placement/RadialPlacement.h>
-#include <hydrate/Grid.h>
-#include <hydrate/GridMember.h>
-#include <settings/GridSettings.h>
+#include <hydrate/generation/RadialHydration.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 #include <data/record/Water.h>
+#include <data/Molecule.h>
 #include <constants/Constants.h>
+#include <settings/GridSettings.h>
 
 using namespace data::record;
 
-grid::RadialPlacement::RadialPlacement(Grid* grid) : PlacementStrategy(grid) {prepare_rotations();}
+hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
+    initialize();
+    prepare_rotations();
+}
 
-grid::RadialPlacement::~RadialPlacement() = default;
+hydrate::RadialHydration::~RadialHydration() = default;
 
-void grid::RadialPlacement::prepare_rotations(int divisions) {
+void hydrate::RadialHydration::initialize() {
+    hydrate::GridBasedHydration::initialize();
+    grid = protein->get_grid();
+}
+
+void hydrate::RadialHydration::prepare_rotations(int divisions) {
     double width = grid->get_width();
 
     std::vector<Vector3<int>> bins_1rh;
@@ -81,14 +90,14 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
     rot_locs = std::move(locs);
 }
 
-std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
+std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
     // we define a helper lambda
-    std::vector<GridMember<Water>> placed_water; 
+    std::vector<grid::GridMember<Water>> placed_water; 
     placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (Vector3<double> exact_loc) {
         Water a = Water::create_new_water(exact_loc);
-        GridMember<Water> gm = grid->add(a, true);
-        placed_water.push_back(std::move(gm));
+        grid::GridMember<Water> gm = grid->add(a, true);
+        placed_water.emplace_back(std::move(gm));
     };
 
     double rh = grid->get_hydration_radius();
@@ -110,8 +119,8 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
     return placed_water;
 }
 
-bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
-    detail::GridObj& gref = grid->grid;
+bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
+    grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     int score = 0;
 

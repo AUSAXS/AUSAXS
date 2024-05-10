@@ -9,7 +9,7 @@
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <settings/All.h>
 #include <utility/Utility.h>
 

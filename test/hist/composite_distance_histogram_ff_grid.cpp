@@ -4,7 +4,7 @@
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <data/Molecule.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <dataset/SimpleDataset.h>
 #include <plots/All.h>
 #include <settings/All.h>

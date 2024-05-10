@@ -5,9 +5,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hydrate/culling/CullingStrategy.h>
 
-using namespace grid;
+using namespace hydrate;
 
-CullingStrategy::CullingStrategy(Grid* grid) : grid(grid) {}
+CullingStrategy::CullingStrategy(observer_ptr<grid::Grid> grid) : grid(grid) {}
 
 CullingStrategy::~CullingStrategy() = default;
 

@@ -9,9 +9,10 @@
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
-#include <hydrate/Grid.h>
-#include <hydrate/GridMember.h>
-#include <hydrate/placement/PlacementStrategy.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
+#include <hydrate/generation/HydrationStrategy.h>
+#include <hydrate/generation/HydrationFactory.h>
 #include <hydrate/culling/CullingStrategy.h>
 #include <settings/All.h>
 #include <math/Vector3.h>
@@ -25,8 +26,9 @@ using namespace data::record;
 
 // Debug class to expose the volume variable
 class GridDebug : public grid::Grid {
-    using Grid::Grid;
     public: 
+        GridDebug(Limit3D axes) : Grid(axes) {}
+
 		double get_atomic_radius(constants::atom_t) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
@@ -34,7 +36,8 @@ class GridDebug : public grid::Grid {
         auto get_volume_without_expanding() {return volume;}
         auto bounding_box_index() {return Grid::bounding_box_index();}
         auto to_bins(const Vector3<double> v) {return Grid::to_bins(v);}
-        auto find_free_locs() {return Grid::find_free_locs();}
+        auto get_member_atoms() {return a_members;}
+        auto get_member_waters() {return w_members;}
         static auto bounding_box(const vector<Atom>& atoms) {return Grid::bounding_box(atoms);}
     
     private:
@@ -291,33 +294,41 @@ TEST_CASE("volume") {
 
 TEST_CASE("Grid::hydrate") {
     settings::general::verbose = false;
+    settings::molecule::center = false;
+    settings::hydrate::hydration_strategy = GENERATE(settings::hydrate::HydrationStrategy::AxesStrategy, settings::hydrate::HydrationStrategy::RadialStrategy, settings::hydrate::HydrationStrategy::JanStrategy);
 
     // check that all the expected hydration sites are found
-    SECTION("correct placement") {
+    SECTION("correct placement " + std::to_string(static_cast<int>(settings::hydrate::hydration_strategy))) {
         Limit3D axes(-10, 10, -10, 10, -10, 10);
         settings::grid::width = 1;
-        GridDebug grid(axes);
-        grid.set_atomic_radius(3);
-        grid.set_hydration_radius(3);
-        settings::grid::rvol = 3;
+        auto grid = std::make_unique<GridDebug>(axes);
+        grid->set_atomic_radius(3);
+        grid->set_hydration_radius(3);
 
         // add a single atom to the grid, and hydrate it
         settings::grid::water_scaling = 0;
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-        grid.add(a);
-        REQUIRE(grid.get_atoms().size() == 1); // check atoms
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
+        grid->add(a);
+        REQUIRE(grid->get_atoms().size() == 1); // check atoms
 
-        vector<Water> water = grid.hydrate();
+        data::Molecule protein(a);
+        protein.set_grid(std::move(grid));
+        protein.generate_new_hydration();
+        auto water = protein.get_waters();
 
-        REQUIRE(water.size() == 6); // check that the expected number of water molecules was placed
-        CHECK(water[0].coords == Vector3{0, 0, 6});  // (0, 0,  2r)
-        CHECK(water[1].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
-        CHECK(water[2].coords == Vector3{6, 0, 0});  // ( 2r, 0, 0)
-        CHECK(water[3].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
-        CHECK(water[4].coords == Vector3{0, 6, 0});  // (0,  2r, 0)
-        CHECK(water[5].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
-
-        REQUIRE(grid.get_atoms().size() == 1); // check that they are indeed registered as water molecules
+        REQUIRE(6 <= water.size()); // check that the expected number of water molecules was placed
+        int count = 0;
+        for (const auto& w : water) {
+            if (w.coords == Vector3{ 0,  0,  6}) {++count; continue;} // ( 0,   0,  2r)
+            if (w.coords == Vector3{ 0,  0, -6}) {++count; continue;} // ( 0,   0, -2r)
+            if (w.coords == Vector3{ 6,  0,  0}) {++count; continue;} // ( 2r,  0,   0)
+            if (w.coords == Vector3{-6,  0,  0}) {++count; continue;} // (-2r,  0,   0)
+            if (w.coords == Vector3{ 0,  6,  0}) {++count; continue;} // ( 0,  2r,   0)
+            if (w.coords == Vector3{ 0, -6,  0}) {++count; continue;} // ( 0, -2r,   0)
+            std::cout << w.coords << std::endl;
+        }
+        REQUIRE(count == 6);
+        REQUIRE(protein.get_grid()->get_atoms().size() == 1); // check that they are indeed registered as water molecules
     }
 
     // check that a hydration operation is reversible
@@ -354,8 +365,8 @@ TEST_CASE("Grid::hydrate") {
 
     // check that a hydration operation produces consistent results
     SECTION("consistency") {
-        settings::grid::culling_strategy = settings::grid::CullingStrategy::CounterStrategy;
-        settings::grid::placement_strategy = GENERATE(settings::grid::PlacementStrategy::AxesStrategy, settings::grid::PlacementStrategy::RadialStrategy, settings::grid::PlacementStrategy::JanStrategy);
+        settings::hydrate::culling_strategy = settings::hydrate::CullingStrategy::CounterStrategy;
+        settings::hydrate::hydration_strategy = GENERATE(settings::hydrate::HydrationStrategy::AxesStrategy, settings::hydrate::HydrationStrategy::RadialStrategy, settings::hydrate::HydrationStrategy::JanStrategy);
         Molecule protein("test/files/LAR1-2.pdb");
         protein.get_grid()->force_expand_volume();
 
@@ -373,27 +384,34 @@ TEST_CASE("Grid::hydrate") {
     }
 }
 
-TEST_CASE("using different widths") {
-    auto test_width_basics = [] (settings::grid::PlacementStrategy strategy) {
-        settings::grid::placement_strategy = strategy;
+TEST_CASE("Grid: using different widths") {
+    settings::general::verbose = false;
+    auto test_width_basics = [] (settings::hydrate::HydrationStrategy strategy) {
+        settings::hydrate::hydration_strategy = strategy;
         settings::grid::width = 0.1;
-        Limit3D axes(-10, 10, -10, 10, -10, 10);
-        GridDebug grid(axes);
-        grid.set_atomic_radius(3);
-        grid.set_hydration_radius(3);
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
+        data::Molecule protein(a);
+        {
+            Limit3D axes(-10, 10, -10, 10, -10, 10);
+            auto grid = std::make_unique<GridDebug>(axes);
+            grid->set_atomic_radius(3);
+            grid->set_hydration_radius(3);
 
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-        grid.add(a);
-        GridObj& g = grid.grid;
+            grid->add(a);
+            GridObj& g = grid->grid;
 
-        // check that it was placed correctly
-        REQUIRE(g.index(100, 100, 100) == A_CENTER);
-        REQUIRE(grid.a_members.back().get_bin_loc() == Vector3(100, 100, 100));
-        REQUIRE(grid.a_members.back().get_atom().get_coordinates() == Vector3(0, 0, 0));
+            // check that it was placed correctly
+            REQUIRE(g.index(100, 100, 100) == A_CENTER);
+            REQUIRE(grid->a_members.back().get_bin_loc() == Vector3(100, 100, 100));
+            REQUIRE(grid->a_members.back().get_atom().get_coordinates() == Vector3(0, 0, 0));
 
-        // check water generation
-        settings::grid::water_scaling = 0;
-        vector<Water> water = grid.hydrate();
+            // check water generation
+            settings::grid::water_scaling = 0;
+
+            protein.set_grid(std::move(grid));
+            protein.generate_new_hydration();
+        }
+        vector<Water> water = protein.get_waters();
 
         // since this needs to work with different placement strategies, we have to perform a more general check on the positions
         vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
@@ -407,8 +425,8 @@ TEST_CASE("using different widths") {
         }
     };
 
-    auto test_width_bounds = [] (settings::grid::PlacementStrategy strategy) {
-        settings::grid::placement_strategy = strategy;
+    auto test_width_bounds = [] (settings::hydrate::HydrationStrategy strategy) {
+        settings::hydrate::hydration_strategy = strategy;
         settings::grid::width = 0.1;
         Limit3D axes(-10, 10, -10, 10, -10, 10);
         GridDebug grid(axes);
@@ -430,26 +448,26 @@ TEST_CASE("using different widths") {
 
     SECTION("RadialStrategy") {
         SECTION("basics") {
-            test_width_basics(settings::grid::PlacementStrategy::RadialStrategy);
+            test_width_basics(settings::hydrate::HydrationStrategy::RadialStrategy);
         }
         SECTION("bounds") {
-            test_width_bounds(settings::grid::PlacementStrategy::RadialStrategy);
+            test_width_bounds(settings::hydrate::HydrationStrategy::RadialStrategy);
         }
     }
     SECTION("AxesStrategy") {
         SECTION("basics") {
-            test_width_basics(settings::grid::PlacementStrategy::AxesStrategy);
+            test_width_basics(settings::hydrate::HydrationStrategy::AxesStrategy);
         }
         SECTION("bounds") {
-            test_width_bounds(settings::grid::PlacementStrategy::AxesStrategy);
+            test_width_bounds(settings::hydrate::HydrationStrategy::AxesStrategy);
         }
     }
     SECTION("JanStrategy") {
         SECTION("basics") {
-            test_width_basics(settings::grid::PlacementStrategy::JanStrategy);
+            test_width_basics(settings::hydrate::HydrationStrategy::JanStrategy);
         }
         SECTION("bounds") {
-            test_width_bounds(settings::grid::PlacementStrategy::JanStrategy);
+            test_width_bounds(settings::hydrate::HydrationStrategy::JanStrategy);
         }
     }
 }
@@ -612,19 +630,26 @@ TEST_CASE("Grid: correct_volume") {
 }
 
 TEST_CASE("Grid::find_free_locs") {
-    auto test_func = [] (settings::grid::PlacementStrategy ch) {
-        settings::grid::placement_strategy = ch;
+    settings::general::verbose = false;
+    auto test_func = [] (settings::hydrate::HydrationStrategy ch) {
+        settings::hydrate::hydration_strategy = ch;
         settings::grid::width = 1;
+
         Limit3D axes(-10, 10, -10, 10, -10, 10);
-        GridDebug grid(axes);
-        grid.set_atomic_radius(3);
-        grid.set_hydration_radius(3);
+        auto grid = std::make_unique<GridDebug>(axes);
+        grid->set_atomic_radius(3);
+        grid->set_hydration_radius(3);
 
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-        grid.add(a);
-        grid.expand_volume();
+        settings::grid::water_scaling = 0;
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
+        grid->add(a);
+        grid->expand_volume();
 
-        vector<grid::GridMember<Water>> locs = grid.find_free_locs();
+        data::Molecule protein(a);
+        protein.set_grid(std::move(grid));
+        protein.generate_new_hydration();
+
+        std::list<grid::GridMember<Water>> locs = static_cast<GridDebug*>(protein.get_grid())->get_member_waters();
         REQUIRE(locs.size() == 6);
 
         // since this needs to work with different placement strategies, we have to perform a more general check on the positions
@@ -639,34 +664,36 @@ TEST_CASE("Grid::find_free_locs") {
     };
 
     SECTION("RadialStrategy") {
-        test_func(settings::grid::PlacementStrategy::RadialStrategy);
+        test_func(settings::hydrate::HydrationStrategy::RadialStrategy);
     }
     SECTION("JanStrategy") {
-        test_func(settings::grid::PlacementStrategy::JanStrategy);
+        test_func(settings::hydrate::HydrationStrategy::JanStrategy);
     }
     SECTION("AxesStrategy") {
-        test_func(settings::grid::PlacementStrategy::AxesStrategy);
+        test_func(settings::hydrate::HydrationStrategy::AxesStrategy);
     }
 }
 
 // Test that expansion and deflation completely cancels each other. 
 TEST_CASE("Grid::deflate_volume") {
+    settings::general::verbose = false;
+
     Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    GridDebug grid(axes);
-    grid.set_atomic_radius(3);
-    grid.set_hydration_radius(3);
+    auto grid = std::make_unique<GridDebug>(axes);
+    grid->set_atomic_radius(3);
+    grid->set_hydration_radius(3);
 
     vector<Atom> a = {Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1), Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2)};
-    grid.add(a);
-    REQUIRE(grid.get_volume_without_expanding() == 2);
+    grid->add(a);
+    REQUIRE(grid->get_volume_without_expanding() == 2);
 
-    grid.expand_volume();
-    grid.deflate_volume();
-    GridObj &g = grid.grid;
-    REQUIRE(grid.get_volume_without_expanding() == 2);
+    grid->expand_volume();
+    grid->deflate_volume();
+    GridObj &g = grid->grid;
+    REQUIRE(grid->get_volume_without_expanding() == 2);
 
-    auto bins = grid.get_bins();
+    auto bins = grid->get_bins();
     for (int i = 0; i < bins.x(); i++) {
         for (int j = 0; j < bins.y(); j++) {
             for (int k = 0; k < bins.z(); k++) {
@@ -717,12 +744,20 @@ TEST_CASE("Grid: cubic_grid") {
     settings::grid::cubic = false;
 }
 
-TEST_CASE("Grid::operator=") {
+TEST_CASE("Grid::operator=", "[files]") {
+    settings::general::verbose = false;
+
     SECTION("copy") {
-        Limit3D axes(-10, 10, -10, 10, -10, 10);
+        Limit3D axes(-100, 100, -100, 100, -100, 100);
         Grid grid1(axes);
-        grid1.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
-        grid1.hydrate();
+        {
+            data::Molecule protein("test/files/2epe.pdb");
+            grid1.add(protein.get_atoms());
+            Grid grid2 = grid1;
+            protein.set_grid(std::move(grid2));
+            protein.generate_new_hydration();
+            grid1.add(protein.get_waters());
+        }
 
         Grid grid2 = grid1;
         REQUIRE(grid2 == grid1);
@@ -733,10 +768,16 @@ TEST_CASE("Grid::operator=") {
     }
 
     SECTION("move") {
-        Limit3D axes(-10, 10, -10, 10, -10, 10);
+        Limit3D axes(-100, 100, -100, 100, -100, 100);
         Grid grid1(axes);
-        grid1.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
-        grid1.hydrate();
+        {
+            data::Molecule protein("test/files/2epe.pdb");
+            grid1.add(protein.get_atoms());
+            Grid grid2 = grid1;
+            protein.set_grid(std::move(grid2));
+            protein.generate_new_hydration();
+            grid1.add(protein.get_waters());
+        }
 
         Grid gridcopy = grid1;
         Grid grid2 = std::move(grid1);
@@ -748,23 +789,32 @@ TEST_CASE("Grid::operator=") {
     }
 }
 
-TEST_CASE("hydration") {
+TEST_CASE("Grid: hydration") {
+    settings::general::verbose = false;
+
     Limit3D lims(-10, 10, -10, 10, -10, 10);
-    Grid grid(lims);
-    grid.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
-    grid.hydrate();
+    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
+    data::Molecule protein(a);
+    {
+        Grid grid(lims);
+        grid.add(a);
+        protein.set_grid(std::move(grid));
+        protein.generate_new_hydration();
+    }
 
     // check that the waters have been expanded
-    for (const auto& w : grid.w_members) {
+    GridDebug* g = static_cast<GridDebug*>(protein.get_grid());
+    for (const auto& w : g->get_member_waters()) {
         CHECK(w.is_expanded());
     }
 
-    grid.clear_waters();
-    auto axes = grid.get_axes();
+    g->clear_waters();
+    auto& gobj = g->grid;
+    auto axes = g->get_axes();
     for (unsigned int i = 0; i < axes.x.bins; i++) {
         for (unsigned int j = 0; j < axes.y.bins; j++) {
             for (unsigned int k = 0; k < axes.z.bins; k++) {
-                auto index = grid.grid.index(i, j, k);
+                auto index = gobj.index(i, j, k);
                 if (index != EMPTY) {
                     if (index == A_CENTER || index == A_AREA || index == VOLUME) {
                         continue;

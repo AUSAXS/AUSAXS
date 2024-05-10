@@ -8,14 +8,14 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Console.h>
 
 void settings::validate_settings() {
-    switch(settings::hist::histogram_manager) {
+    switch (settings::hist::histogram_manager) {
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
         case settings::hist::HistogramManagerChoice::FoXSManager:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
             // check for effective charge compatibility
             if (settings::molecule::use_effective_charge == true) {
-                console::print_warning("Warning: The chosen histogram manager does not support using an effective charge approximation.");
+                console::print_warning("Warning: The chosen histogram manager does not support using an effective charge approximation. Disabling effective charge.");
                 settings::molecule::use_effective_charge = false;
             }
             break;
@@ -34,8 +34,20 @@ void settings::validate_settings() {
         default:
             // check for excluded volume fitting compatibility
             if (settings::hist::fit_excluded_volume) {
-                console::print_warning("Warning: The chosen histogram manager does not support excluded volume fitting.");
+                console::print_warning("Warning: The chosen histogram manager does not support excluded volume fitting. Disabling excluded volume fitting.");
                 settings::hist::fit_excluded_volume = false;
             }
+    }
+
+    switch (settings::hydrate::hydration_strategy) {
+        case settings::hydrate::HydrationStrategy::PepsiStrategy:
+            if (settings::grid::width != 5) {
+                console::print_warning("Warning: The Pepsi hydration method requires a specific set of grid options. Setting grid width to 5Å and all atomic radii to 3Å.");
+                settings::grid::width = 5;
+                settings::grid::rvol = 3;
+            }
+            break;
+        default:
+            break;
     }
 }

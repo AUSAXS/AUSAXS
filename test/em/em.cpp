@@ -22,7 +22,7 @@
 #include <settings/All.h>
 #include <constants/Constants.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <data/Molecule.h>
 
 using std::vector;

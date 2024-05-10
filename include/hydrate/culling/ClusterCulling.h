@@ -1,7 +1,7 @@
 #pragma once
 
 #include <math/Vector3.h>
-#include <hydrate/GridFwd.h>
+#include <grid/GridFwd.h>
 
 #include <vector>
 

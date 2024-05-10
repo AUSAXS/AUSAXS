@@ -1,33 +1,27 @@
 #pragma once
 
 #include <data/DataFwd.h>
-#include <hydrate/GridFwd.h>
-#include <hydrate/detail/GridInternalFwd.h>
+#include <utility/observer_ptr.h>
+#include <grid/GridFwd.h>
+#include <grid/detail/GridInternalFwd.h>
 
 #include <vector>
 
-namespace grid {    
+namespace hydrate {    
     /**
-     * @brief This class defines the strategy used to remove some of the water molecules. See its subclasses for more information on how this is done. 
+     * @brief This class defines the strategy used to remove some of the water molecules from the grid. 
+     *        See its subclasses for more information on how this is done. 
      */
     class CullingStrategy {
         public:
-            /**
-             * @brief Constructor.
-             * @param grid The Grid object to apply this Strategy to.
-             */
-            CullingStrategy(Grid* grid);
-
-            /**
-             * @brief Destructor.
-             */
+            CullingStrategy(observer_ptr<grid::Grid> grid);
             virtual ~CullingStrategy();
 
             /**
              * @brief Cull the water molecules.
-             * @return The remaining molecules after the culling.
+             * @return A copy of the remaining molecules after the culling. They will also be stored in the grid itself. 
              */
-            virtual std::vector<data::record::Water> cull(std::vector<GridMember<data::record::Water>>& placed_water) const = 0;
+            virtual std::vector<data::record::Water> cull(std::vector<grid::GridMember<data::record::Water>>& placed_water) const = 0;
 
             /**
              * @brief Set the desired number of water molecules after the culling. 
@@ -37,6 +31,6 @@ namespace grid {
 
         protected: 
             unsigned int target_count = 0; // The desired number of molecules after the culling.
-            Grid* grid; // A reference to the grid used in Grid.
+            observer_ptr<grid::Grid> grid;
     };
 }

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <hydrate/placement/PlacementStrategy.h>
+#include <hydrate/generation/GridBasedHydration.h>
+#include <math/MathFwd.h>
 
-namespace grid {
+namespace hydrate {
     /**
      * @brief This strategy iterates through all bins, and for every bin which is part of the volume of an atom, it attempts to place a
      * water molecule at x±r, y±r, and z±r. If the location is valid, the molecule will be placed. This will typically generate
@@ -10,11 +11,11 @@ namespace grid {
      * 
      * The radius r is defined as the sum of @a ra and @a rh.
      */
-    class JanPlacement : public PlacementStrategy {
+    class JanHydration : public GridBasedHydration {
         public:
-            using PlacementStrategy::PlacementStrategy; // inherit constructor
-            ~JanPlacement() override = default;
+            JanHydration(observer_ptr<data::Molecule> protein);
+            ~JanHydration() override = default;
 
-            std::vector<GridMember<data::record::Water>> place() const override;
+            std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
         };
 }

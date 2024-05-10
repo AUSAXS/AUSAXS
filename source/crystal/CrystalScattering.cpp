@@ -16,7 +16,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/CrystalSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <dataset/SimpleDataset.h>
 #include <utility/Basis3D.h>
 #include <io/ExistingFile.h>
