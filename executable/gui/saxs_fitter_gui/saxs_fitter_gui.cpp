@@ -320,16 +320,16 @@ auto selection_menu_settings(gui::view&) {
 	// we use a deck composite to avoid circular dependencies
 	static auto deck = gui::deck_composite();
 
-	std::vector<std::pair<std::string, settings::grid::PlacementStrategy>> options1 {
-		{"1. Radial placement", settings::grid::PlacementStrategy::RadialStrategy},
-		{"2. Axial placement", settings::grid::PlacementStrategy::AxesStrategy},
-		{"3. No hydration", settings::grid::PlacementStrategy::NoStrategy}
+	std::vector<std::pair<std::string, settings::hydrate::HydrationStrategy>> options1 {
+		{"1. Radial placement", settings::hydrate::HydrationStrategy::RadialStrategy},
+		{"2. Axial placement", settings::hydrate::HydrationStrategy::AxesStrategy},
+		{"3. No hydration", settings::hydrate::HydrationStrategy::NoStrategy}
 	};
 	static auto hydration_model = gui::selection_menu(
 		[options1] (std::string_view selection) {
 			for (auto& option : options1) {
 				if (option.first == selection) {
-					settings::grid::placement_strategy = option.second;
+					settings::hydrate::hydration_strategy = option.second;
 				}
 			}
 		}, 
