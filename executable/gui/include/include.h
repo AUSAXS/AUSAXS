@@ -14,13 +14,13 @@
 
 namespace gui = cycfi::elements;
 namespace settings {
-    std::string map_file, pdb_file, saxs_file, output;
+    inline std::string map_file, pdb_file, saxs_file, output;
 }
 
 namespace setup {
-	std::unique_ptr<data::Molecule> pdb;
-	std::unique_ptr<SimpleDataset> saxs_dataset;
-	std::unique_ptr<em::ImageStack> map;
+	inline std::unique_ptr<data::Molecule> pdb;
+	inline std::unique_ptr<SimpleDataset> saxs_dataset;
+	inline std::unique_ptr<em::ImageStack> map;
 }
 
 struct ColorManager {
@@ -82,8 +82,8 @@ struct ColorManager {
 };
 static auto background = ColorManager::new_background_color();
 
-shell::Command get_plotter_cmd() {
-	#ifdef defined(_WIN32)
+inline shell::Command get_plotter_cmd() {
+	#if defined(_WIN32)
 		// first check if plot.exe is available in the path
 		auto res = shell::Command("where.exe plot /q").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
@@ -111,13 +111,13 @@ shell::Command get_plotter_cmd() {
 	throw std::runtime_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
 }
 
-auto perform_plot(const std::string& path) {
+inline auto perform_plot(const std::string& path) {
 	get_plotter_cmd().append(path).execute();
 };
 
 enum class NFD_TARGET {FILE, FOLDER};
 template<NFD_TARGET target>
-auto make_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {
+inline auto make_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {
 	auto folder_button = gui::button("");
 	auto clear_button = gui::button("");
 	auto folder_icon = gui::icon(gui::icons::folder_open_empty);
@@ -180,17 +180,17 @@ auto make_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::string,
 	);
 };
 
-auto make_file_dialog_button(auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {return make_dialog_button<NFD_TARGET::FILE>(text_field, bg, filter);}
-auto make_folder_dialog_button(auto& text_field, auto& bg) {return make_dialog_button<NFD_TARGET::FOLDER>(text_field, bg, {});}
+inline auto make_file_dialog_button(auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {return make_dialog_button<NFD_TARGET::FILE>(text_field, bg, filter);}
+inline auto make_folder_dialog_button(auto& text_field, auto& bg) {return make_dialog_button<NFD_TARGET::FOLDER>(text_field, bg, {});}
 
-auto make_tip(std::string text) {
+inline auto make_tip(std::string text) {
 	return gui::layer(
 		gui::margin({20, 8, 20, 8}, gui::basic_text_box(text)), 
 		gui::panel{}
 	);
 }
 
-auto q_slider(gui::view& view) {
+inline auto q_slider(gui::view& view) {
 	static auto track = gui::basic_track<5, false>(gui::colors::black);
 	static auto thumb = gui::margin(
 		{1, 2, 1, 2},
@@ -381,7 +381,7 @@ auto q_slider(gui::view& view) {
  * If there is only a single match, the full path to the file is returned along with 'true'. 
  * If there are multiple matches, the longest common prefix is returned along with 'false'. 
  */
-auto autocomplete = [] (std::string_view path, unsigned int& last_size, std::function<bool(const io::File&)> cmp_func) {
+inline auto autocomplete = [] (std::string_view path, unsigned int& last_size, std::function<bool(const io::File&)> cmp_func) {
 	// prevent autocompletion when deleting text
 	if (path.size() < last_size) {
 		last_size = path.size();
@@ -432,7 +432,7 @@ auto autocomplete = [] (std::string_view path, unsigned int& last_size, std::fun
 	return std::make_pair(std::string(path), false);
 };
 
-auto alpha_level_slider(gui::view& view) {
+inline auto alpha_level_slider(gui::view& view) {
 	static auto track = gui::basic_track<5, false>(gui::colors::black);
 	static auto aslider = gui::range_slider(
 		gui::fixed_size(
