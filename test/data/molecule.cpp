@@ -137,8 +137,9 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
     }
 }
 
-TEST_CASE("Molecule::get_Rg") {
+TEST_CASE("Molecule::get_Rg", "[files]") {
     // tests without effective charge are compared against the electron Rg from CRYSOL
+    settings::general::verbose = false;
     settings::molecule::use_effective_charge = false;
     SECTION("2epe") {
         Molecule protein("test/files/2epe.pdb");
@@ -162,9 +163,10 @@ TEST_CASE("Molecule::get_Rg") {
     }
 }
 
-TEST_CASE("Molecule::simulate_dataset") {
+TEST_CASE("Molecule::simulate_dataset", "[files]") {
     settings::axes::qmax = 0.4;
     settings::molecule::use_effective_charge = false;
+    settings::general::verbose = false;
     settings::em::sample_frequency = 2;
     Molecule protein("test/files/2epe.pdb");
 
@@ -206,7 +208,9 @@ TEST_CASE_METHOD(fixture, "Molecule::update_effective_charge") {
     REQUIRE(charge == protein.get_total_effective_charge());
 }
 
-TEST_CASE_METHOD(fixture, "Molecule::get_histogram") {
+TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
+    settings::general::verbose = false;
+
     SECTION("delegated to HistogramManager") {
         Molecule protein(bodies, {});
         REQUIRE(compare_hist(protein.get_histogram()->get_total_counts(), protein.get_histogram_manager()->calculate()->get_total_counts()));
@@ -256,19 +260,39 @@ TEST_CASE_METHOD(fixture, "Molecule::get_total_histogram") {
     // REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
 }
 
-TEST_CASE("Molecule::save") {
+TEST_CASE("Molecule::save", "[files]") {
+    settings::general::verbose = false;
+    settings::molecule::use_effective_charge = false;
+
     Molecule protein("test/files/2epe.pdb");
     protein.save("temp/test/protein_save_2epe.pdb");
     Molecule protein2("temp/test/protein_save_2epe.pdb");
     auto atoms1 = protein.get_atoms();
     auto atoms2 = protein2.get_atoms();
     REQUIRE(atoms1.size() == atoms2.size());
+
+    // we have to manually compare the data since saving & loading will necessarily round the doubles
     for (size_t i = 0; i < atoms1.size(); ++i) {
-        REQUIRE(atoms1[i].equals_content(atoms2[i]));
+        bool ok = true;
+        auto& a1 = atoms1[i];
+        auto& a2 = atoms2[i];
+        if (1e-3 < abs(a1.coords.x() - a2.coords.x()) + abs(a1.coords.y() - a2.coords.y()) + abs(a1.coords.z() - a2.coords.z())) {ok = false;}
+        if (a1.name != a2.name) {ok = false;}
+        if (a1.altLoc != a2.altLoc) {ok = false;}
+        if (a1.resName != a2.resName) {ok = false;}
+        if (a1.chainID != a2.chainID) {ok = false;}
+        if (a1.iCode != a2.iCode) {ok = false;}
+        if (a1.element != a2.element) {ok = false;}
+        if (a1.charge != a2.charge) {ok = false;}
+        if (1e-3 < std::abs(a1.occupancy - a2.occupancy)) {ok = false;}
+        if (1e-3 < std::abs(a1.tempFactor - a2.tempFactor)) {ok = false;}
+        if (a1.serial != a2.serial) {ok = false;}
+        if (a1.resSeq != a2.resSeq) {ok = false;}
+        if (1e-3 < std::abs(a1.effective_charge - a2.effective_charge)) {ok = false;}
+        REQUIRE(ok);
     }
 }
-
-TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration") {
+TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
     settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
 
@@ -297,7 +321,8 @@ TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration") {
     }
 }
 
-TEST_CASE("Molecule::get_volume_grid") {
+TEST_CASE("Molecule::get_volume_grid", "[files]") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
     REQUIRE(protein.get_volume_grid() == protein.get_grid()->get_volume());
 }
@@ -306,12 +331,14 @@ TEST_CASE("Molecule::get_volume_grid") {
 //     CHECK(false);
 // }
 
-TEST_CASE("Molecule::molar_mass") {
+TEST_CASE("Molecule::get_molar_mass", "[files]") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
     REQUIRE(protein.get_molar_mass() == protein.get_absolute_mass()*constants::Avogadro);
 }
 
-TEST_CASE("Molecule::absolute_mass") {
+TEST_CASE("Molecule::get_absolute_mass", "[files]") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
     double sum = 0;
     for (auto& atom : protein.get_atoms()) {
@@ -320,7 +347,8 @@ TEST_CASE("Molecule::absolute_mass") {
     REQUIRE(protein.get_absolute_mass() == sum);
 }
 
-TEST_CASE("Molecule::total_atomic_charge") {
+TEST_CASE("Molecule::get_total_atomic_charge", "[files]") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
     double sum = 0;
     for (auto& atom : protein.get_atoms()) {
@@ -329,7 +357,8 @@ TEST_CASE("Molecule::total_atomic_charge") {
     REQUIRE(protein.get_total_atomic_charge() == sum);
 }
 
-TEST_CASE("Molecule::total_effective_charge") {
+TEST_CASE("Molecule::get_total_effective_charge", "[files]") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
     double sum = 0;
     for (auto& atom : protein.get_atoms()) {
@@ -338,7 +367,8 @@ TEST_CASE("Molecule::total_effective_charge") {
     REQUIRE(protein.get_total_effective_charge() == sum);
 }
 
-TEST_CASE("Molecule::get_relative_charge_density") {
+TEST_CASE("Molecule::get_relative_charge_density", "[files]") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
     REQUIRE_THAT(
         protein.get_relative_charge_density(), 
@@ -349,14 +379,16 @@ TEST_CASE("Molecule::get_relative_charge_density") {
     );
 }
 
-TEST_CASE("Molecule::get_relative_mass_density") {
+TEST_CASE("Molecule::get_relative_mass_density", "[files]") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
     REQUIRE(protein.get_relative_mass_density() == (protein.get_absolute_mass() - constants::mass::density::water*protein.get_volume_grid())/protein.get_volume_grid());
 }
 
-TEST_CASE("Molecule::get_relative_charge") {
+TEST_CASE("Molecule::get_relative_charge", "[files]") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
-    REQUIRE(protein.get_relative_charge() == protein.get_total_effective_charge() - protein.get_volume_grid()*constants::charge::density::water);
+    REQUIRE(protein.get_relative_charge() == protein.get_total_atomic_charge() - protein.get_volume_grid()*constants::charge::density::water);
 }
 
 TEST_CASE_METHOD(fixture, "Molecule::get_grid") {
@@ -445,7 +477,7 @@ TEST_CASE_METHOD(fixture, "Molecule::size_water") {
     CHECK(protein2.size_water() == 2);
 }
 
-TEST_CASE("Molecule::fit") {
+TEST_CASE("Molecule::fit", "[files]") {
     Molecule protein("test/files/2epe.pdb");
     std::string measurement = "test/files/2epe.dat";
     fitter::HydrationFitter fitter(measurement, protein.get_histogram());
@@ -467,14 +499,14 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram_manager") {
 //     auto hm = protein.get_histogram_manager();
 // }
 
-TEST_CASE("Molecule::translate") {
+TEST_CASE("Molecule::translate", "[files]") {
     Molecule protein("test/files/2epe.pdb");
     Vector3<double> cm = protein.get_cm();
     protein.translate(Vector3<double>{1, 1, 1});
     REQUIRE(protein.get_cm() == cm + Vector3<double>{1, 1, 1});
 }
 
-TEST_CASE("histogram") {
+TEST_CASE("Molecule::histogram", "[files]") {
     settings::molecule::use_effective_charge = false;
 
     SECTION("multiple bodies, simple") {
@@ -588,10 +620,10 @@ TEST_CASE("histogram") {
     }
 
     SECTION("equivalent to old approach") {
-        vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1),
-                              Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
-                              Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
-                              Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+        vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "LYS", 1),
+                              Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "LYS", 1),
+                              Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "LYS", 1),
+                              Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "LYS", 1)};
 
         // new auto-scaling approach
         Molecule protein1(atoms);

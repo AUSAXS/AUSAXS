@@ -13,12 +13,15 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace data::record;
 
 std::vector<data::record::Water> hydrate::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
-    int factor = std::floor(placed_water.size()/target_count); // reduction factor
-    if (target_count == 0 || factor < 2) {
+    auto return_input = [&placed_water] () {
         std::vector<Water> final_water(placed_water.size());
-        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (grid::GridMember<Water>& gm) {return gm.get_atom();});
+        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (const grid::GridMember<Water>& gm) {return gm.get_atom();});
         return final_water;
-    }
+    };
+
+    if (target_count == 0) {return return_input();}
+    int factor = std::floor(placed_water.size()/target_count); // reduction factor
+    if (factor < 2) {return return_input();}
 
     std::vector<Water> final_water(placed_water.size()); // the final water molecules that will be used
     std::vector<Water> removed_water(placed_water.size()); // the water molecules which will be removed

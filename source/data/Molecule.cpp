@@ -461,9 +461,14 @@ const std::vector<Body>& Molecule::get_bodies() const {return bodies;}
 bool Molecule::operator==(const Molecule& other) const = default;
 
 bool Molecule::equals_content(const Molecule& other) const {
-    if (size_body() != other.size_body()) {return false;}
+    if (size_body() != other.size_body()) {
+        return false;
+    }
+
     for (unsigned int i = 0; i < size_body(); i++) {
-        if (get_body(i).equals_content(other.get_body(i))) {return false;}
+        if (get_body(i).equals_content(other.get_body(i))) {
+            return false;
+        }
     }
     return true;
 }

@@ -28,7 +28,7 @@ GridBasedHydration::~GridBasedHydration() = default;
 std::unique_ptr<Hydration> GridBasedHydration::hydrate() {
     auto grid = protein->get_grid();
     if (culling_strategy == nullptr) {culling_strategy = hydrate::factory::construct_culling_strategy(grid);}
-    if (grid->w_members.size() != 0) {console::print_warning("Warning in GridBasedHydration::hydrate: Attempting to hydrate a grid which already contains water!");}
+    if (grid->w_members.size() != 0) {grid->clear_waters();}
     auto waters = generate_explicit_hydration();
 
     // assume the protein is a perfect sphere. then we want the number of water molecules to be proportional to the surface area

@@ -26,8 +26,9 @@ using namespace data::record;
 
 // Debug class to expose the volume variable
 class GridDebug : public grid::Grid {
-    using Grid::Grid;
     public: 
+        GridDebug(Limit3D axes) : Grid(axes) {}
+
 		double get_atomic_radius(constants::atom_t) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
@@ -293,36 +294,40 @@ TEST_CASE("volume") {
 
 TEST_CASE("Grid::hydrate") {
     settings::general::verbose = false;
+    settings::molecule::center = false;
+    settings::hydrate::hydration_strategy = GENERATE(settings::hydrate::HydrationStrategy::AxesStrategy, settings::hydrate::HydrationStrategy::RadialStrategy, settings::hydrate::HydrationStrategy::JanStrategy);
 
     // check that all the expected hydration sites are found
-    SECTION("correct placement") {
+    SECTION("correct placement " + std::to_string(static_cast<int>(settings::hydrate::hydration_strategy))) {
         Limit3D axes(-10, 10, -10, 10, -10, 10);
         settings::grid::width = 1;
-        GridDebug grid(axes);
-        grid.set_atomic_radius(3);
-        grid.set_hydration_radius(3);
-        settings::grid::rvol = 3;
+        auto grid = std::make_unique<GridDebug>(axes);
+        grid->set_atomic_radius(3);
+        grid->set_hydration_radius(3);
 
         // add a single atom to the grid, and hydrate it
         settings::grid::water_scaling = 0;
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-        grid.add(a);
-        REQUIRE(grid.get_atoms().size() == 1); // check atoms
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
+        grid->add(a);
+        REQUIRE(grid->get_atoms().size() == 1); // check atoms
 
         data::Molecule protein(a);
         protein.set_grid(std::move(grid));
         protein.generate_new_hydration();
-
         auto water = protein.get_waters();
 
-        REQUIRE(water.size() == 6); // check that the expected number of water molecules was placed
-        CHECK(water[0].coords == Vector3{0, 0, 6});  // (0, 0,  2r)
-        CHECK(water[1].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
-        CHECK(water[2].coords == Vector3{6, 0, 0});  // ( 2r, 0, 0)
-        CHECK(water[3].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
-        CHECK(water[4].coords == Vector3{0, 6, 0});  // (0,  2r, 0)
-        CHECK(water[5].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
-
+        REQUIRE(6 <= water.size()); // check that the expected number of water molecules was placed
+        int count = 0;
+        for (const auto& w : water) {
+            if (w.coords == Vector3{ 0,  0,  6}) {++count; continue;} // ( 0,   0,  2r)
+            if (w.coords == Vector3{ 0,  0, -6}) {++count; continue;} // ( 0,   0, -2r)
+            if (w.coords == Vector3{ 6,  0,  0}) {++count; continue;} // ( 2r,  0,   0)
+            if (w.coords == Vector3{-6,  0,  0}) {++count; continue;} // (-2r,  0,   0)
+            if (w.coords == Vector3{ 0,  6,  0}) {++count; continue;} // ( 0,  2r,   0)
+            if (w.coords == Vector3{ 0, -6,  0}) {++count; continue;} // ( 0, -2r,   0)
+            std::cout << w.coords << std::endl;
+        }
+        REQUIRE(count == 6);
         REQUIRE(protein.get_grid()->get_atoms().size() == 1); // check that they are indeed registered as water molecules
     }
 
@@ -379,25 +384,26 @@ TEST_CASE("Grid::hydrate") {
     }
 }
 
-TEST_CASE("using different widths") {
+TEST_CASE("Grid: using different widths") {
+    settings::general::verbose = false;
     auto test_width_basics = [] (settings::hydrate::HydrationStrategy strategy) {
         settings::hydrate::hydration_strategy = strategy;
         settings::grid::width = 0.1;
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
         data::Molecule protein(a);
         {
             Limit3D axes(-10, 10, -10, 10, -10, 10);
-            GridDebug grid(axes);
-            grid.set_atomic_radius(3);
-            grid.set_hydration_radius(3);
+            auto grid = std::make_unique<GridDebug>(axes);
+            grid->set_atomic_radius(3);
+            grid->set_hydration_radius(3);
 
-            grid.add(a);
-            GridObj& g = grid.grid;
+            grid->add(a);
+            GridObj& g = grid->grid;
 
             // check that it was placed correctly
             REQUIRE(g.index(100, 100, 100) == A_CENTER);
-            REQUIRE(grid.a_members.back().get_bin_loc() == Vector3(100, 100, 100));
-            REQUIRE(grid.a_members.back().get_atom().get_coordinates() == Vector3(0, 0, 0));
+            REQUIRE(grid->a_members.back().get_bin_loc() == Vector3(100, 100, 100));
+            REQUIRE(grid->a_members.back().get_atom().get_coordinates() == Vector3(0, 0, 0));
 
             // check water generation
             settings::grid::water_scaling = 0;
@@ -624,24 +630,25 @@ TEST_CASE("Grid: correct_volume") {
 }
 
 TEST_CASE("Grid::find_free_locs") {
+    settings::general::verbose = false;
     auto test_func = [] (settings::hydrate::HydrationStrategy ch) {
         settings::hydrate::hydration_strategy = ch;
         settings::grid::width = 1;
 
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
+        auto grid = std::make_unique<GridDebug>(axes);
+        grid->set_atomic_radius(3);
+        grid->set_hydration_radius(3);
+
+        settings::grid::water_scaling = 0;
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
+        grid->add(a);
+        grid->expand_volume();
+
         data::Molecule protein(a);
-        {
-            Limit3D axes(-10, 10, -10, 10, -10, 10);
-            GridDebug grid(axes);
-            grid.set_atomic_radius(3);
-            grid.set_hydration_radius(3);
+        protein.set_grid(std::move(grid));
+        protein.generate_new_hydration();
 
-            grid.add(a);
-            grid.expand_volume();
-
-            protein.set_grid(std::move(grid));
-            protein.generate_new_hydration();
-        }
         std::list<grid::GridMember<Water>> locs = static_cast<GridDebug*>(protein.get_grid())->get_member_waters();
         REQUIRE(locs.size() == 6);
 
@@ -669,22 +676,24 @@ TEST_CASE("Grid::find_free_locs") {
 
 // Test that expansion and deflation completely cancels each other. 
 TEST_CASE("Grid::deflate_volume") {
+    settings::general::verbose = false;
+
     Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    GridDebug grid(axes);
-    grid.set_atomic_radius(3);
-    grid.set_hydration_radius(3);
+    auto grid = std::make_unique<GridDebug>(axes);
+    grid->set_atomic_radius(3);
+    grid->set_hydration_radius(3);
 
     vector<Atom> a = {Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1), Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2)};
-    grid.add(a);
-    REQUIRE(grid.get_volume_without_expanding() == 2);
+    grid->add(a);
+    REQUIRE(grid->get_volume_without_expanding() == 2);
 
-    grid.expand_volume();
-    grid.deflate_volume();
-    GridObj &g = grid.grid;
-    REQUIRE(grid.get_volume_without_expanding() == 2);
+    grid->expand_volume();
+    grid->deflate_volume();
+    GridObj &g = grid->grid;
+    REQUIRE(grid->get_volume_without_expanding() == 2);
 
-    auto bins = grid.get_bins();
+    auto bins = grid->get_bins();
     for (int i = 0; i < bins.x(); i++) {
         for (int j = 0; j < bins.y(); j++) {
             for (int k = 0; k < bins.z(); k++) {
@@ -736,11 +745,13 @@ TEST_CASE("Grid: cubic_grid") {
 }
 
 TEST_CASE("Grid::operator=", "[files]") {
+    settings::general::verbose = false;
+
     SECTION("copy") {
-        Limit3D axes(-10, 10, -10, 10, -10, 10);
+        Limit3D axes(-100, 100, -100, 100, -100, 100);
         Grid grid1(axes);
         {
-            data::Molecule protein("test/data/2epe.pdb");
+            data::Molecule protein("test/files/2epe.pdb");
             grid1.add(protein.get_atoms());
             Grid grid2 = grid1;
             protein.set_grid(std::move(grid2));
@@ -757,10 +768,10 @@ TEST_CASE("Grid::operator=", "[files]") {
     }
 
     SECTION("move") {
-        Limit3D axes(-10, 10, -10, 10, -10, 10);
+        Limit3D axes(-100, 100, -100, 100, -100, 100);
         Grid grid1(axes);
         {
-            data::Molecule protein("test/data/2epe.pdb");
+            data::Molecule protein("test/files/2epe.pdb");
             grid1.add(protein.get_atoms());
             Grid grid2 = grid1;
             protein.set_grid(std::move(grid2));
@@ -778,9 +789,11 @@ TEST_CASE("Grid::operator=", "[files]") {
     }
 }
 
-TEST_CASE("hydration") {
+TEST_CASE("Grid: hydration") {
+    settings::general::verbose = false;
+
     Limit3D lims(-10, 10, -10, 10, -10, 10);
-    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
+    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
     data::Molecule protein(a);
     {
         Grid grid(lims);

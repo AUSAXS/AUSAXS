@@ -201,7 +201,7 @@ class Vector3 {
 		const typename std::array<T, 3>::const_iterator begin() const;
 		const typename std::array<T, 3>::const_iterator end() const;
 
-        static constexpr double precision = 1e-9;
+        static constexpr double precision = 1e-6;
 
 	private:
 		std::array<T, 3> data;

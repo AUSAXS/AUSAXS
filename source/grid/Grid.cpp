@@ -40,7 +40,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
 
     // for small systems, expand the grid by a factor 2
     auto diff = max - min;
-    if (diff.x() < 50 || diff.y() < 50 || diff.z() < 50) {
+    if (settings::grid::scaling == 0.25 && (diff.x() < 50 || diff.y() < 50 || diff.z() < 50)) {
         settings::grid::scaling = 1;
     }
 
@@ -279,7 +279,7 @@ void Grid::deflate_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
-    double rvol = settings::grid::rvol/settings::grid::width;
+    double rvol = std::max<double>(get_atomic_radius(atom.get_atom_type()), settings::grid::rvol)/settings::grid::width;
     double rvol2 = std::pow(rvol, 2);
     int xm = std::max<int>(x - std::ceil(rvol), 0), xp = std::min<int>(x + std::ceil(rvol) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvol), 0), yp = std::min<int>(y + std::ceil(rvol) + 1, axes.y.bins); // yminus and yplus
@@ -646,10 +646,10 @@ void Grid::save(const io::File& path) const {
                         atoms.push_back(Atom(c++, "C", "", "LYS", 'C', 3, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case detail::W_CENTER:
-                        waters.push_back(Water(c++, "H", "", "HOH", 'D', 4, "", to_xyz(i, j, k), 1, 0, constants::atom_t::H, ""));
+                        waters.push_back(Atom(c++, "C", "", "LYS", 'D', 4, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case detail::W_AREA:
-                        waters.push_back(Water(c++, "H", "", "HOH", 'E', 5, "", to_xyz(i, j, k), 1, 0, constants::atom_t::H, ""));
+                        waters.push_back(Atom(c++, "C", "", "LYS", 'E', 5, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     default:
                         break;
