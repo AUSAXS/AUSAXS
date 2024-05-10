@@ -39,7 +39,9 @@ using namespace data::record;
 
 Molecule::Molecule() noexcept : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(), updated_charge(false), centered(false), grid(nullptr), phm(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins)) {}
 
-Molecule::Molecule(Molecule&& other) noexcept : hydration(std::move(other.hydration)), bodies(std::move(other.bodies)), updated_charge(other.updated_charge), centered(other.centered), grid(std::move(other.grid)), phm(std::move(other.phm)) {}
+Molecule::Molecule(Molecule&& other) : hydration(std::move(other.hydration)), bodies(std::move(other.bodies)), updated_charge(other.updated_charge), centered(other.centered), grid(std::move(other.grid)) {
+    initialize(); // reinitialize since some of the members contains pointers to the old object
+}
 
 Molecule::Molecule(std::vector<Body>&& bodies) : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(std::move(bodies)) {
     initialize();

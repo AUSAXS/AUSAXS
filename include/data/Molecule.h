@@ -24,7 +24,7 @@ namespace data {
 	class Molecule {
 		public: 
 			Molecule() noexcept;
-			Molecule(Molecule&& other) noexcept;
+			Molecule(Molecule&& other);
 
 			/**
 			 * @brief Create a new molecule based on a set of bodies.

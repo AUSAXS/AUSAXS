@@ -33,7 +33,7 @@ TEST_CASE("RigidBody::get_constraint_manager") {}
 
 // test that we can consistently fit the same protein
 TEST_CASE("RigidBody: reusable fitter", "[files]") {
-    settings::general::verbose = true;
+    settings::general::verbose = false;
 
     Molecule protein_2epe("test/files/2epe.pdb");
     Molecule protein_LAR12("test/files/LAR1-2.pdb");
@@ -44,11 +44,11 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
         fitter::HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
-        fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
+        fitter.set_scattering_hist(protein_LAR12.get_histogram());
         double _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
-        fitter.set_scattering_hist(protein_2epe.get_total_histogram());
+        fitter.set_scattering_hist(protein_2epe.get_histogram());
         _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }

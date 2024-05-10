@@ -201,6 +201,10 @@ SimpleDataset HydrationFitter::get_dataset() const {
     return data;
 }
 
+void HydrationFitter::set_scattering_hist(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
+    this->h = std::move(h);
+}
+
 observer_ptr<hist::ICompositeDistanceHistogram> HydrationFitter::get_scattering_hist() {
     return static_cast<hist::ICompositeDistanceHistogram*>(h.get());
 }
