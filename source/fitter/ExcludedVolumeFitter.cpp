@@ -31,7 +31,6 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::u
 
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     fit_type = mini::type::DEFAULT;
-    settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess);
     auto res = mini->minimize();
@@ -54,7 +53,6 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     fitted->add_plots(*this);                                     // make the result plottable
     fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
 
-    settings::general::verbose = true;
     return fitted;
 }
 

@@ -4,7 +4,7 @@
 #include <data/Body.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
-#include <hydrate/Grid.h>
+#include <grid/Grid.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
