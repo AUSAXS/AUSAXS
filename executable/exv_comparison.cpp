@@ -4,11 +4,7 @@
 #include <data/Body.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
-<<<<<<< HEAD
 #include <grid/Grid.h>
-=======
-#include <hydrate/Grid.h>
->>>>>>> 0f6f8910 (analysis)
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
