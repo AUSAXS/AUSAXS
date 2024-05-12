@@ -25,7 +25,6 @@ void hydrate::AxesHydration::initialize() {
 }
 
 std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::generate_explicit_hydration() {
-    auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 

@@ -18,8 +18,7 @@ namespace form_factor {
              */
             constexpr ExvFormFactor(double volume) {
                 // double s_to_q = constants::pi*constants::pi*constants::form_factor::s_to_q_factor;
-                double s_to_q = constants::form_factor::s_to_q_factor;
-                exponent = constants::pi*constexpr_math::pow(volume, 2./3)*s_to_q;
+                exponent = constants::pi*constexpr_math::pow(volume, 2./3)*constants::form_factor::s_to_q_factor;
                 q0 = volume*constants::charge::density::water;
             }
 
