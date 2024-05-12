@@ -23,11 +23,16 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace fitter;
 
 HydrationFitter::HydrationFitter(HydrationFitter&& other) : LinearFitter(std::move(other)), guess(std::move(other.guess)) {}
-HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {}
-HydrationFitter::HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(input, std::move(h)) {}
-HydrationFitter::HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(data, std::move(h)) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {initialize_guess();}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(input, std::move(h)) {initialize_guess();}
+HydrationFitter::HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(data, std::move(h)) {initialize_guess();}
 HydrationFitter::HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model) : HydrationFitter(std::move(model), Limit(settings::axes::qmin, settings::axes::qmax)) {}
-HydrationFitter::HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model, const Limit& limits) : LinearFitter(std::move(model), limits) {}
+HydrationFitter::HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model, const Limit& limits) : LinearFitter(std::move(model), limits) {initialize_guess();}
+
+void HydrationFitter::initialize_guess() {
+    auto lim = cast_h()->get_water_scaling_factor_limits();
+    guess = mini::Parameter{"c", lim.center(), lim};
+}
 
 void HydrationFitter::set_algorithm(const mini::type& t) {fit_type = t;}
 std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
@@ -40,6 +45,7 @@ observer_ptr<hist::ICompositeDistanceHistogram> HydrationFitter::cast_h() const 
 }
 
 std::shared_ptr<Fit> HydrationFitter::fit() {
+    mini::Parameter guess = {"c", 1, cast_h()->get_water_scaling_factor_limits()};
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
     auto res = mini->minimize();
@@ -65,6 +71,7 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
 }
 
 double HydrationFitter::fit_chi2_only() {
+    mini::Parameter guess = {"c", 1, cast_h()->get_water_scaling_factor_limits()};
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
     auto res = mini->minimize();

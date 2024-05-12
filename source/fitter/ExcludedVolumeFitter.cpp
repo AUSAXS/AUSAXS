@@ -20,20 +20,39 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : HydrationFitter(), fit_type(mini::type::DEFAULT) {
-    HydrationFitter hfit(input, std::move(h));
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : HydrationFitter() {
+    HydrationFitter hfit(saxs, std::move(h));
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
-    if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0, 1.5}}};}
-    else {this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0, 1.5}}};}
+    if (c == 0) {
+        // if c is zero use smaller limits
+        this->guess = mini::Parameter{"c", 0, {0, 1}};
+    } else {
+        // else allow 20% variation
+        this->guess = mini::Parameter{"c", c, {c*0.8, c*1.2}};
+    }
     HydrationFitter::operator=(std::move(hfit));
+    initialize_guess();
+    validate_histogram();
+}
+
+void ExcludedVolumeFitter::validate_histogram() const {
+    if (h == nullptr) {throw except::invalid_argument("ExcludedVolumeFitter::validate_histogram: Cannot fit without a histogram.");}
+    if (dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h.get()) == nullptr) {
+        throw except::invalid_argument("ExcludedVolumeFitter::validate_histogram: Histogram must support excluded volume operations.");
+    }
+}
+
+void ExcludedVolumeFitter::initialize_guess() {
+    auto lim = cast_exv()->get_excluded_volume_scaling_factor_limits();
+    guess_exv = mini::Parameter{"d", lim.center(), lim};
 }
 
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     fit_type = mini::type::DEFAULT;
     settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
-    auto mini = mini::create_minimizer(fit_type, f, guess);
+    auto mini = mini::create_minimizer(fit_type, f, {guess, guess_exv});
     auto res = mini->minimize();
 
     update_excluded_volume(res.get_parameter("d").value);
@@ -62,7 +81,7 @@ double ExcludedVolumeFitter::fit_chi2_only() {
     fit_type = mini::type::DEFAULT;
     settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
-    auto mini = mini::create_minimizer(fit_type, f, guess);
+    auto mini = mini::create_minimizer(fit_type, f, {guess, guess_exv});
     auto res = mini->minimize();
 
     update_excluded_volume(res.get_parameter("d").value);
@@ -125,6 +144,16 @@ SimpleDataset ExcludedVolumeFitter::get_dataset() const {
     return data;
 }
 
-void ExcludedVolumeFitter::set_guess(std::vector<mini::Parameter> guess) {
-    this->guess = guess;
+void ExcludedVolumeFitter::set_guess(mini::Parameter guess_hydration, mini::Parameter guess_exv) {
+    this->guess = guess_hydration;
+    this->guess_exv = guess_exv;
+}
+
+observer_ptr<hist::ICompositeDistanceHistogramExv> ExcludedVolumeFitter::cast_exv() const {
+    return static_cast<hist::ICompositeDistanceHistogramExv*>(h.get());
+}
+
+void ExcludedVolumeFitter::set_scattering_hist(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
+    this->h = std::move(h);
+    validate_histogram();
 }

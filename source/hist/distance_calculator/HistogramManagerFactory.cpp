@@ -42,7 +42,9 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
             // case settings::hist::HistogramManagerChoice::DebugManager:
             //     return std::make_unique<DebugManager<true>>(protein);
             case settings::hist::HistogramManagerChoice::FoXSManager:
-                return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein); // FoXSManager is an extension of HistogramManagerMTFFExplicit
+            case settings::hist::HistogramManagerChoice::PepsiManager:
+                // FoXSManager and PepsiManager are extensions of HistogramManagerMTFFExplicit
+                return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein);
             case settings::hist::HistogramManagerChoice::None:
                 return nullptr;
             default:

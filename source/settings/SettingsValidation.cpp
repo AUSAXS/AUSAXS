@@ -12,6 +12,7 @@ void settings::validate_settings() {
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
         case settings::hist::HistogramManagerChoice::FoXSManager:
+        case settings::hist::HistogramManagerChoice::PepsiManager:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
             // check for effective charge compatibility
             if (settings::molecule::use_effective_charge == true) {
@@ -41,8 +42,8 @@ void settings::validate_settings() {
 
     switch (settings::hydrate::hydration_strategy) {
         case settings::hydrate::HydrationStrategy::PepsiStrategy:
-            if (settings::grid::width != 5) {
-                console::print_warning("Warning: The Pepsi hydration method requires a specific set of grid options. Setting grid width to 5Å and all atomic radii to 3Å.");
+            if (settings::grid::width < 3) {
+                console::print_warning("Warning: The Pepsi hydration method requires a specific set of grid options. Setting grid width to 3Å and all atomic radii to 3Å.");
                 settings::grid::width = 3;
                 settings::grid::rvol = 3;
             }
