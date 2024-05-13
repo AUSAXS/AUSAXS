@@ -24,6 +24,9 @@ namespace setup {
 	inline std::unique_ptr<em::ImageStack> map;
 }
 
+#include <fstream>
+inline std::ofstream log_file("log.txt");
+
 struct ColorManager {
 	static auto new_background_color() {
 		managed_background_colors.emplace_back(gui::box_element(dark_mode ? dark_bg : light_bg));
@@ -89,10 +92,10 @@ inline shell::Command get_plotter_cmd() {
 		auto res = shell::Command("where.exe plot").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
-			std::cout << "plot.exe found in path at \"" << res.out << "\"" << std::endl;
+			log_file << "plot.exe found in path at \"" << res.out << "\"" << std::endl;
 			return shell::Command(res.out);
 		}
-		std::cout << "plot.exe not found in path" << std::endl;
+		log_file << "plot.exe not found in path" << std::endl;
 
 		// if not, check if python & the python script is available
 		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
@@ -116,7 +119,7 @@ inline shell::Command get_plotter_cmd() {
 }
 
 inline auto perform_plot(const std::string& path) {
-	std::cout << "PERFORMING PLOTTER CMD: \"" << get_plotter_cmd().append(path).get() << std::endl;
+	log_file << "PERFORMING PLOTTER CMD: \"" << get_plotter_cmd().append(path).get() << std::endl;
 	get_plotter_cmd().append(path).execute();
 };
 
