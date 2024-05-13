@@ -8,6 +8,7 @@
 #include <dataset/SimpleDataset.h>
 #include <shell/Command.h>
 #include <constants/Constants.h>
+#include <utility/Console.h>
 #include <settings/All.h>
 
 #include <list>
@@ -85,7 +86,7 @@ static auto background = ColorManager::new_background_color();
 inline shell::Command get_plotter_cmd() {
 	#if defined(_WIN32)
 		// first check if plot.exe is available in the path
-		auto res = shell::Command("where.exe plot /q").mute().execute();
+		auto res = shell::Command("where.exe plot").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
 			return shell::Command(res.out);
@@ -108,6 +109,7 @@ inline shell::Command get_plotter_cmd() {
 		throw std::runtime_error("macOS is not currently supported");
 	#endif
 
+	console::print_warning("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
 	throw std::runtime_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
 }
 
