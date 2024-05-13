@@ -88,8 +88,10 @@ inline shell::Command get_plotter_cmd() {
 		auto res = shell::Command("where.exe plot /q").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
+			std::cout << "plot.exe found in path at \"" << res.out << "\"" << std::endl;
 			return shell::Command(res.out);
 		}
+		std::cout << "plot.exe not found in path" << std::endl;
 
 		// if not, check if python & the python script is available
 		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
@@ -112,6 +114,7 @@ inline shell::Command get_plotter_cmd() {
 }
 
 inline auto perform_plot(const std::string& path) {
+	std::cout << "PERFORMING PLOTTER CMD: \"" << get_plotter_cmd().append(path).get() << std::endl;
 	get_plotter_cmd().append(path).execute();
 };
 
