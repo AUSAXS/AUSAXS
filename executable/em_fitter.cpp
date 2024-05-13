@@ -43,43 +43,48 @@ int main(int argc, char const *argv[]) {
     //###################//
     //### PARSE INPUT ###//
     //###################//
-    // if a settings file was provided
-    if (p_settings->count() != 0) {
-        settings::read(settings);        // read it
-        CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
-    } else {                            // otherwise check if there is a settings file in the same directory
-        if (settings::discover(mfile.directory())) {
-            CLI11_PARSE(app, argc, argv);
+    try {
+        // if a settings file was provided
+        if (p_settings->count() != 0) {
+            settings::read(settings);        // read it
+            CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
+        } else {                            // otherwise check if there is a settings file in the same directory
+            if (settings::discover(mfile.directory())) {
+                CLI11_PARSE(app, argc, argv);
+            }
         }
-    }
-    if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
-    settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
+        if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
+        settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 
-    // validate input
-    if (!constants::filetypes::em_map.validate(mapfile)) {
-        if (constants::filetypes::em_map.validate(mfile)) {
-            std::swap(mapfile, mfile);
-        } else {
-            throw except::invalid_argument("Unknown EM extensions: \"" + mapfile + "\" and \"" + mfile + "\"");
+        // validate input
+        if (!constants::filetypes::em_map.validate(mapfile)) {
+            if (constants::filetypes::em_map.validate(mfile)) {
+                std::swap(mapfile, mfile);
+            } else {
+                throw except::invalid_argument("Unknown EM extensions: \"" + mapfile + "\" and \"" + mfile + "\"");
+            }
         }
+        if (!constants::filetypes::saxs_data.validate(mfile)) {
+            throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile + "\"");
+        }
+
+        std::cout << "Performing EM fit with map \"" << mapfile << "\" and measurement \"" << mfile << "\"" << std::endl;
+        em::ImageStack map(mapfile); 
+
+        // Fit the measurements to the EM density map.
+        auto res = map.fit(mfile);
+
+        std::string cmd_line;
+        for (int i = 0; i < argc; ++i) {cmd_line.append(argv[i]).append(" ");}
+
+        fitter::FitReporter::report(res.get());
+        fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", cmd_line);
+
+        res->figures.data.save(settings::general::output + mfile.stem() + ".scat");
+        res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");
+    } catch (const std::exception& e) {
+        console::print_warning(e.what());
+        throw e;
     }
-    if (!constants::filetypes::saxs_data.validate(mfile)) {
-        throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile + "\"");
-    }
-
-    std::cout << "Performing EM fit with map \"" << mapfile << "\" and measurement \"" << mfile << "\"" << std::endl;
-    em::ImageStack map(mapfile); 
-
-    // Fit the measurements to the EM density map.
-    auto res = map.fit(mfile);
-
-    std::string cmd_line;
-    for (int i = 0; i < argc; ++i) {cmd_line.append(argv[i]).append(" ");}
-
-    fitter::FitReporter::report(res.get());
-    fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", cmd_line);
-
-    res->figures.data.save(settings::general::output + mfile.stem() + ".scat");
-    res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");
     return 0;
 }
