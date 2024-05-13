@@ -18,17 +18,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            name: "Ubuntu latest with gcc"
-            c_compiler: gcc
-            cpp_compiler: g++
-            arch: x86-64
+          # - os: ubuntu-latest
+          #   name: "Ubuntu latest with gcc"
+          #   c_compiler: gcc
+          #   cpp_compiler: g++
+          #   arch: x86-64
 
-          - os: ubuntu-20.04
-            name: "Ubuntu 20.04 with gcc"
-            c_compiler: gcc-10
-            cpp_compiler: g++-10
-            arch: x86-64
+          # - os: ubuntu-20.04
+          #   name: "Ubuntu 20.04 with gcc"
+          #   c_compiler: gcc-10
+          #   cpp_compiler: g++-10
+          #   arch: x86-64
 
           - os: windows-latest
             name: "Windows latest with msvc"
@@ -36,11 +36,11 @@ jobs:
             cpp_compiler: cl
             arch: x86-64
 
-          - os: macos-latest
-            name: "MacOS arm64 latest with clang"
-            c_compiler: $(brew --prefix llvm@15)/bin/clang
-            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            arch: arm64
+          # - os: macos-latest
+          #   name: "MacOS arm64 latest with clang"
+          #   c_compiler: $(brew --prefix llvm@15)/bin/clang
+          #   cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+          #   arch: arm64
 
     steps: 
       - name: Checkout code
@@ -63,9 +63,15 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-        
-      - name: Install dependencies (windows)
+
+      - name: Setup Python env (windows)
         if: matrix.os == 'windows-latest'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+        id: windows-python
+
+      - name: Install dependencies (windows)
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           pip install matplotlib numpy pyinstaller
