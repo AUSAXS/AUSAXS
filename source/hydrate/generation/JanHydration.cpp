@@ -41,16 +41,16 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::JanHydration::genera
                 int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, (int) bins.z()-1); // zminus and zplus
 
                 // check collisions for x ± r_eff                
-                if (gref.index(im, j, k) == grid::detail::EMPTY) {add_loc(Vector3<int>(im, j, k));}
-                if (gref.index(ip, j, k) == grid::detail::EMPTY) {add_loc(Vector3<int>(ip, j, k));}
+                if (gref.is_empty(im, j, k)) {add_loc(Vector3<int>(im, j, k));}
+                if (gref.is_empty(ip, j, k)) {add_loc(Vector3<int>(ip, j, k));}
 
                 // check collisions for y ± r_eff
-                if (gref.index(i, jp, k) == grid::detail::EMPTY) {add_loc(Vector3<int>(i, jp, k));}
-                if (gref.index(i, jm, k) == grid::detail::EMPTY) {add_loc(Vector3<int>(i, jm, k));}
+                if (gref.is_empty(i, jp, k)) {add_loc(Vector3<int>(i, jp, k));}
+                if (gref.is_empty(i, jm, k)) {add_loc(Vector3<int>(i, jm, k));}
 
                 // check collisions for z ± r_eff
-                if (gref.index(i, j, km) == grid::detail::EMPTY) {add_loc(Vector3<int>(i, j, km));}
-                if (gref.index(i, j, kp) == grid::detail::EMPTY) {add_loc(Vector3<int>(i, j, kp));}
+                if (gref.is_empty(i, j, km)) {add_loc(Vector3<int>(i, j, km));}
+                if (gref.is_empty(i, j, kp)) {add_loc(Vector3<int>(i, j, kp));}
             }
         }
     }
