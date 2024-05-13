@@ -54,9 +54,7 @@ jobs:
 
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
-        run: |
-          brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
-          brew remove binutils coreutils
+        run: brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
 
       - name: Export GitHub Actions cache environment variables
         if: matrix.os == 'windows-latest'
@@ -68,7 +66,9 @@ jobs:
         
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-latest'
-        run: vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
+        run: |
+          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
+          pip install matplotlib numpy pyinstaller
 
       - name: Get number of cores
         uses: SimenB/github-actions-cpu-cores@v2
