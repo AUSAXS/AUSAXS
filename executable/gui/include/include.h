@@ -92,7 +92,7 @@ inline shell::Command get_plotter_cmd() {
 		auto res = shell::Command("where.exe plot").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
-			log_file << "plot.exe found in path at \"" << res.out << "\"" << std::endl;
+			log_file << "plot.exe found in path at \"" << utility::remove_all(res.out, "\n\r") << "\"" << std::endl;
 			return shell::Command(utility::remove_all(res.out, "\n\r"));
 		}
 		log_file << "plot.exe not found in path" << std::endl;
