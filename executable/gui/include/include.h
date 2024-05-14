@@ -87,13 +87,13 @@ struct ColorManager {
 static auto background = ColorManager::new_background_color();
 
 inline shell::Command get_plotter_cmd() {
-	#if defined(_WIN32)
+	#if defined(__linux__)
 		// first check if plot.exe is available in the path
 		auto res = shell::Command("where.exe plot").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
 			log_file << "plot.exe found in path at \"" << res.out << "\"" << std::endl;
-			return shell::Command(res.out);
+			return shell::Command(utility::remove_all(res.out, "\n\r"));
 		}
 		log_file << "plot.exe not found in path" << std::endl;
 
