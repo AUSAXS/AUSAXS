@@ -119,8 +119,9 @@ inline shell::Command get_plotter_cmd() {
 }
 
 inline auto perform_plot(const std::string& path) {
-	log_file << "PERFORMING PLOTTER CMD: \"" << get_plotter_cmd().append(path).get() << std::endl;
-	get_plotter_cmd().append(path).execute();
+	auto cmd = get_plotter_cmd().append(path);
+	log_file << "PERFORMING PLOTTER CMD: \"" << cmd.get() << std::endl;
+	cmd.execute();
 };
 
 enum class NFD_TARGET {FILE, FOLDER};
