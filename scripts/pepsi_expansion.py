@@ -86,4 +86,42 @@ def pepsi_comparison():
     plt.ylabel('Deviation [%]')
     plt.show()
 
-pepsi_comparison()
+def crysol_approx():
+    rm = 1.62
+    r0, rw, q = sp.symbols('r0 rw q')
+    V = 4*np.pi/3 * rw**3
+    dr = r0 - rm
+    Gq_crysol = (r0/rm)**3 * sp.exp(-sp.cbrt(4*sp.pi/3)**2 * sp.pi * q*q * (r0**2 - rm**2))
+    Gq_exact = (r0/rm)**3 * sp.exp(-sp.sqrt(4*sp.pi/3)**3 * sp.pi * q*q * (rw/rm)**2 * (r0**2 - rm**2))
+
+    g_exact = Gq_exact*V*sp.exp(-sp.pi * q**2 * sp.cbrt(V)**2)
+    g_crysol = Gq_crysol*V*sp.exp(-sp.pi * q**2 * sp.cbrt(V)**2)
+    g_pepsi = V*sp.exp(-sp.pi*q**2*sp.cbrt(V)**2)*(1 + dr*(3 - 2*sp.sqrt(4*sp.pi/3)**3 * sp.pi * rm*rm))
+
+    vals = {"rw": 1.96, "r0": 0.95*rm}
+    q_axis = np.linspace(0, 1, 100)
+    g_exact_y = [g_exact.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
+    g_crysol_y = [g_crysol.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
+    g_pepsi_y = [g_pepsi.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
+
+    fig, ax = plt.subplots(2, 1, height_ratios=[2, 1], figsize=(10, 6))
+    plt.sca(ax[0])
+    plt.plot(q_axis, g_exact_y, "k", label='exact')
+    plt.plot(q_axis, g_crysol_y, label='crysol')
+    plt.plot(q_axis, g_pepsi_y, label='pepsi')
+    plt.semilogy()
+    plt.xlabel('q')
+    plt.ylabel('Value')
+    plt.title('Comparing exact and approximations')
+    plt.legend()
+    plt.grid(True)
+
+    plt.sca(ax[1])
+    plt.axhline(1, color='k', linestyle='--')
+    plt.plot(q_axis, [g_crysol_y[i] / g_exact_y[i] for i in range(len(q_axis))])
+    plt.plot(q_axis, [g_pepsi_y[i] / g_exact_y[i] for i in range(len(q_axis))])
+    plt.xlabel('q')
+    plt.ylabel('Deviation factor')
+    plt.show()
+
+crysol_approx()
