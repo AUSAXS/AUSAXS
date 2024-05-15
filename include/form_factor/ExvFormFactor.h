@@ -15,10 +15,11 @@ namespace form_factor {
         public: 
             /**
              * @brief Create a new excluded volume form factor with the given volume.
+             *
+             * @param volume The excluded volume of the atom. 
              */
             constexpr ExvFormFactor(double volume) {
-                // double s_to_q = constants::pi*constants::pi*constants::form_factor::s_to_q_factor;
-                exponent = constants::pi*constexpr_math::pow(volume, 2./3)*constants::form_factor::s_to_q_factor;
+                exponent = constants::pi*constexpr_math::pow(volume, 2./3);
                 q0 = volume*constants::charge::density::water;
             }
 

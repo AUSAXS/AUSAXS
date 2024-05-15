@@ -9,10 +9,11 @@ double hist::CompositeDistanceHistogramPepsi::exv_factor(double q) const {
     // Approximation of the G(q) factor from the Pepsi-SAXS paper, doi: 10.1107/S2059798317005745
     // This is just a Maclaurin expansion of the original expression, containing only the linear terms and no q-dependence
     constexpr double rm = 1.64;
-    constexpr double c = constexpr_math::pow(4*constants::pi/3, 2./3)*2*constants::pi*rm*rm*constants::form_factor::s_to_q_factor;
-    return (1 + cx*(3-c*q*q));
+    constexpr double c = 2*constants::pi*constexpr_math::pow(4*constants::pi/3, 2./3)*rm*rm;
+    return (1 + cx*(3-c));
+    // return (1 - cx*(3-c*q*q));
 }
 
 Limit hist::CompositeDistanceHistogramPepsi::get_excluded_volume_scaling_factor_limits() const {
-    return {-0.1, 0.1};
+    return {-0.5, 0.5};
 }
