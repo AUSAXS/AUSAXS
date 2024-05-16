@@ -13,6 +13,7 @@ void settings::validate_settings() {
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
         case settings::hist::HistogramManagerChoice::FoXSManager:
         case settings::hist::HistogramManagerChoice::PepsiManager:
+        case settings::hist::HistogramManagerChoice::CrysolManager:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
             // check for effective charge compatibility
             if (settings::molecule::use_effective_charge == true) {

@@ -43,7 +43,8 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
             //     return std::make_unique<DebugManager<true>>(protein);
             case settings::hist::HistogramManagerChoice::FoXSManager:
             case settings::hist::HistogramManagerChoice::PepsiManager:
-                // FoXSManager and PepsiManager are extensions of HistogramManagerMTFFExplicit
+            case settings::hist::HistogramManagerChoice::CrysolManager:
+                // FoXSManager, PepsiManager, and CrysolManager are all extensions of the HistogramManagerMTFFExplicit method
                 return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein);
             case settings::hist::HistogramManagerChoice::None:
                 return nullptr;
@@ -67,7 +68,10 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
                 return std::make_unique<PartialHistogramManagerMT<false>>(protein);
             case settings::hist::HistogramManagerChoice::FoXSManager:
-                return std::make_unique<HistogramManagerMTFFExplicit<false>>(protein); // FoXSManager is an extension of HistogramManagerMTFFExplicit
+            case settings::hist::HistogramManagerChoice::PepsiManager:
+            case settings::hist::HistogramManagerChoice::CrysolManager:
+                // FoXSManager, PepsiManager, and CrysolManager are all extensions of the HistogramManagerMTFFExplicit method
+                return std::make_unique<HistogramManagerMTFFExplicit<false>>(protein);
             // case settings::hist::HistogramManagerChoice::DebugManager:
             //     return std::make_unique<DebugManager<false>>(protein);
             case settings::hist::HistogramManagerChoice::None:

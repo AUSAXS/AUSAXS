@@ -23,6 +23,7 @@ namespace settings::hist {
         PartialHistogramManagerMTFFGrid,     // A multithreaded implementation of the partial manager using a grid-based approach to evaluate the excluded volume.
         FoXSManager,                         // A manager that mimics the FoXS method to evaluate the scattering intensity.
         PepsiManager,                        // A manager that mimics the Pepsi method to evaluate the scattering intensity.
+        CrysolManager,                       // A manager that mimics the Crysol method to evaluate the scattering intensity.
         DebugManager,
     };
     extern bool weighted_bins;          // Whether to use weighted p(r) bins or not.

@@ -14,9 +14,6 @@ namespace hist {
      */
     class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFAvg {
         public: 
-            /**
-             * @brief Default constructor.
-             */
             CompositeDistanceHistogramFFExplicit();
 
             /**
@@ -69,26 +66,14 @@ namespace hist {
             // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
             virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
-            /**
-             * @brief Get the intensity profile for atom-atom interactions.
-             */
-            virtual ScatteringProfile get_profile_ax() const override;
-
-            /**
-             * @brief Get the intensity profile for atom-water interactions.
-             */
-            virtual ScatteringProfile get_profile_xx() const override;
-
-            /**
-             * @brief Get the intensity profile for water-water interactions.
-             */
-            virtual ScatteringProfile get_profile_wx() const override;
+            virtual ScatteringProfile get_profile_ax() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_ax() const
+            virtual ScatteringProfile get_profile_xx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_xx() const
+            virtual ScatteringProfile get_profile_wx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_wx() const
 
         protected:
             // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
             double exv_factor(double q) const override;
 
-        private:
             hist::Distribution3D cp_ax;
             hist::Distribution3D cp_xx;
             hist::Distribution2D cp_wx;

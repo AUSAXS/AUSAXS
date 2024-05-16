@@ -8,6 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
+#include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
@@ -197,6 +198,16 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
             );
         case settings::hist::HistogramManagerChoice::PepsiManager:
             return std::make_unique<CompositeDistanceHistogramPepsi>(
+                std::move(Distribution3D(p_aa)), 
+                std::move(Distribution3D(p_ax)), 
+                std::move(Distribution3D(p_xx)),
+                std::move(Distribution2D(p_wa)), 
+                std::move(Distribution2D(p_wx)), 
+                std::move(Distribution1D(p_ww)),
+                std::move(p_tot)
+            );
+        case settings::hist::HistogramManagerChoice::CrysolManager:
+            return std::make_unique<CompositeDistanceHistogramCrysol>(
                 std::move(Distribution3D(p_aa)), 
                 std::move(Distribution3D(p_ax)), 
                 std::move(Distribution3D(p_xx)),

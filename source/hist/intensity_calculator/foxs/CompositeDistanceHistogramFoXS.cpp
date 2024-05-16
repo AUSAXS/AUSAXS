@@ -35,11 +35,18 @@ CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS(
 
 CompositeDistanceHistogramFoXS::~CompositeDistanceHistogramFoXS() = default;
 
-double CompositeDistanceHistogramFoXS::G_factor(double q) const {
+Limit CompositeDistanceHistogramFoXS::get_excluded_volume_scaling_factor_limits() const {
+    return {0.95, 1.05};
+}
+
+double CompositeDistanceHistogramFoXS::exv_factor(double q) const {
     constexpr double rm = 1.58;
     constexpr double c = rm*rm/(4*constants::pi);
-    // constexpr double c = std::pow(4*constants::pi/3, 3./2)*constants::pi*1.62*1.62*constants::form_factor::s_to_q_factor;
     return std::pow(cx, 3)*std::exp(-c*(cx*cx - 1)*q*q);
+}
+
+SimpleDataset CompositeDistanceHistogramFoXS::debye_transform(const std::vector<double>&) const {
+    throw std::runtime_error("CompositeDistanceHistogramFoXS::debye_transform: Custom q values are not supported.");
 }
 
 static auto ff_aa_table = form_factor::foxs::storage::atomic::generate_table();
@@ -53,7 +60,7 @@ ScatteringProfile CompositeDistanceHistogramFoXS::debye_transform() const {
     std::vector<double> Iq(debye_axis.bins, 0);
     unsigned int ff_w_index = static_cast<int>(form_factor::form_factor_t::OH);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double Gq = G_factor(constants::axes::q_vals[q]);
+        double Gq = exv_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
@@ -92,7 +99,7 @@ ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ax() const {
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double Gq = G_factor(constants::axes::q_vals[q]);
+        double Gq = exv_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
@@ -110,7 +117,7 @@ ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_xx() const {
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double Gq = G_factor(constants::axes::q_vals[q]);
+        double Gq = exv_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
@@ -128,7 +135,7 @@ ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_wx() const {
     std::vector<double> Iq(debye_axis.bins, 0);
     unsigned int ff_w_index = static_cast<int>(form_factor::form_factor_t::OH);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double Gq = G_factor(constants::axes::q_vals[q]);
+        double Gq = exv_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table->begin(q), 0.0);
             Iq[q] += 2*Gq*cw*count_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
