@@ -40,10 +40,8 @@ CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit(
 CompositeDistanceHistogramFFExplicit::~CompositeDistanceHistogramFFExplicit() = default;
 
 double CompositeDistanceHistogramFFExplicit::exv_factor(double q) const {
-    // G(q) factor from CRYSOL
-    constexpr double rm = 1.62;
-    constexpr double c = constexpr_math::pow(4*constants::pi/3, 3./2)*constants::pi*rm*rm;
-    return std::pow(cx, 3)*std::exp(-c*(cx*cx - 1)*q*q);
+    constexpr double rm2 = constants::form_factor::sigma_excluded_volume*constants::form_factor::sigma_excluded_volume;
+    return std::pow(cx, 3)*std::exp(-rm2*(cx*cx - 1)*q*q/4);
 }
 
 ScatteringProfile CompositeDistanceHistogramFFExplicit::debye_transform() const {
