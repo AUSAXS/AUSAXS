@@ -7,12 +7,13 @@
 // Five-Gaussian form factor table values. See each nested namespace for the source.
 namespace constants::form_factor {
     namespace {
+        constexpr double s_to_q_factor = 1./(4*4*constants::pi*constants::pi); // q = 4πs --> s = q/(4pi)
+
         /**
          * @brief Convert a Gaussian form factor from s to q.
          *        This is purely for convenience, such that the tabulated values are easier to read.
          */
         constexpr std::array<double, 5> s_to_q(std::array<double, 5> a) {
-            constexpr double s_to_q_factor = 1./(4*4*constants::pi*constants::pi); // q = 4πs --> s = q/(4pi)
             for (unsigned int i = 0; i < 5; ++i) {
                 a[i] *= s_to_q_factor;
             }

@@ -17,9 +17,9 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
         const form_factor::FormFactor& ff_exv = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
         SimpleDataset dataset;
         for (const double& q : q_vals) {
-            dataset.push_back(q, ff_exv.evaluate(q));
+            dataset.push_back(q, ff_exv.evaluate(q)/ff_exv.evaluate(0));
         }
-        plot.plot(dataset, plots::PlotOptions({{"legend", "average exv"}, {"xlabel", "q"}, {"ylabel", "Amplitude"}, {"logx", true}, {"color", style::color::next()}, {"linewidth", 2}}));
+        plot.plot(dataset, plots::PlotOptions({{"legend", "average exv"}, {"xlabel", "q"}, {"ylabel", "Amplitude"}, {"logx", true}, {"logy", true}, {"color", style::color::next()}, {"linewidth", 2}}));
     }
 
     for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {

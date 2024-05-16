@@ -19,7 +19,7 @@ namespace form_factor {
              * @param volume The excluded volume of the atom. 
              */
             constexpr ExvFormFactor(double volume) {
-                exponent = constants::pi*constexpr_math::pow(volume, 2./3);
+                exponent = constexpr_math::pow(volume, 2./3)/(4*constants::pi);
                 q0 = volume*constants::charge::density::water;
             }
 
