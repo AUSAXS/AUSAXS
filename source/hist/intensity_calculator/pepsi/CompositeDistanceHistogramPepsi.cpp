@@ -15,5 +15,5 @@ double hist::CompositeDistanceHistogramPepsi::exv_factor(double q) const {
 }
 
 Limit hist::CompositeDistanceHistogramPepsi::get_excluded_volume_scaling_factor_limits() const {
-    return {-0.5, 0.5};
+    return {-0.05, 0.05};
 }
