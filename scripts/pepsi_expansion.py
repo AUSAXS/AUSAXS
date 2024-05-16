@@ -79,39 +79,61 @@ def pepsi_comparison():
 
 def crysol_approx():
     rm = 1.62
+    rw_val = 1.92
     r0, rw, q = sp.symbols('r0 rw q')
     V = 4*np.pi/3 * rw**3
+    V_exact = np.power(np.pi, 3./2)*rw**3
     dr = r0 - rm
+    c1 = r0/rm
     Gq_crysol = (r0/rm)**3 * sp.exp(-sp.sqrt(4*sp.pi/3)**3 * sp.pi * q*q * (r0**2 - rm**2))
-    Gq_exact  = (r0/rm)**3 * sp.exp(-sp.cbrt(4*sp.pi/3)**2 * sp.pi * q*q * (rw/rm)**2 * (r0**2 - rm**2))
+    Gq_exact  = (r0/rm)**3 * sp.exp(-(rw/rm)**2 * (r0**2 - rm**2)*q*q / 4)
+    # Gq_foxs =        c1**3 * sp.exp(-sp.sqrt(4*sp.pi/3)**3*q*q*rm*rm*(c1*c1 - 1)/(4*sp.pi))
+    Gq_foxs =        c1**3 * sp.exp(-q*q*rm*rm*(c1*c1 - 1)/(4*sp.pi))
+    Gq_pepsi = (1 + dr*(3 - 2*sp.pi*sp.cbrt(4*sp.pi/3)**2 * rm*rm))
 
-    g_exact = Gq_exact*V*sp.exp(-sp.pi * q**2 * sp.cbrt(V)**2)
+    g_exact = Gq_exact*V_exact*sp.exp(-q**2 * sp.cbrt(V_exact)**2/(4*sp.pi))
     g_crysol = Gq_crysol*V*sp.exp(-sp.pi * q**2 * sp.cbrt(V)**2)
-    g_pepsi = V*sp.exp(-sp.pi*q**2*sp.cbrt(V)**2)*(1 + dr*(3 - 2*sp.sqrt(4*sp.pi/3)**3 * sp.pi * rm*rm))
+    g_pepsi = Gq_pepsi*V*sp.exp(-sp.pi*q**2*sp.cbrt(V)**2)
+    g_foxs = Gq_foxs*5.49096*sp.exp(-0.23/2*q*q)
 
-    vals = {"rw": 1.96, "r0": 0.95*rm}
-    q_axis = np.linspace(0, 1, 100)
-    g_exact_y = [g_exact.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
-    g_crysol_y = [g_crysol.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
-    g_pepsi_y = [g_pepsi.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
+    exact = {}
+    crysol = {}
+    pepsi = {}
+    foxs = {}
+    tag = {"min", "max"}
+    for l, t in zip([0.865, 1.265], tag):
+        vals = {"rw": rw_val, "r0": l*rm}
+        q_axis = np.linspace(0, 1, 100)
+        crysol[t] = [g_crysol.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
 
-    fig, ax = plt.subplots(2, 1, height_ratios=[2, 1], figsize=(10, 6))
-    plt.sca(ax[0])
-    plt.plot(q_axis, g_exact_y, "k", label='exact')
-    plt.plot(q_axis, g_crysol_y, label='crysol')
-    plt.plot(q_axis, g_pepsi_y, label='pepsi')
-    plt.semilogy()
+    for l, t in zip([0.95, 1.05], tag):
+        vals = {"rw": rw_val, "r0": l*rm}
+        q_axis = np.linspace(0, 1, 100)
+        exact[t] = [g_exact.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
+        pepsi[t] = [g_pepsi.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]   
+        foxs[t] = [g_foxs.subs({rw: vals["rw"], r0: vals["r0"], q: q_val}) for q_val in q_axis]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(q_axis, exact["min"], "k--", label='exact')
+    plt.plot(q_axis, exact["max"], "k--")
+    plt.plot(q_axis, crysol["min"], "c", label='crysol')
+    plt.plot(q_axis, crysol["max"], "c")
+    plt.plot(q_axis, pepsi["min"], "b", label='pepsi')
+    plt.plot(q_axis, pepsi["max"], "b")
+    plt.plot(q_axis, foxs["min"], "tab:orange", label='foxs')
+    plt.plot(q_axis, foxs["max"], "tab:orange")
     plt.xlabel('q')
     plt.ylabel('Value')
-    plt.title('Comparing exact and approximations')
+    plt.title('Range of fitting')
     plt.legend()
     plt.grid(True)
-
-    plt.sca(ax[1])
-    plt.axhline(1, color='k', linestyle='--')
-    plt.plot(q_axis, [g_crysol_y[i] / g_exact_y[i] for i in range(len(q_axis))])
-    plt.plot(q_axis, [g_pepsi_y[i] / g_exact_y[i] for i in range(len(q_axis))])
-    plt.xlabel('q')
-    plt.ylabel('Deviation factor')
     plt.show()
+
+    # plt.sca(ax[1])
+    # plt.axhline(1, color='k', linestyle='--')
+    # plt.plot(q_axis, [g_crysol_y[i] / g_exact_y[i] for i in range(len(q_axis))])
+    # plt.plot(q_axis, [g_pepsi_y[i] / g_exact_y[i] for i in range(len(q_axis))])
+    # plt.xlabel('q')
+    # plt.ylabel('Deviation factor')
+    # plt.show()
 crysol_approx()
