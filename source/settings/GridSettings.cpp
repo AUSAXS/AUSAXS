@@ -14,6 +14,7 @@ bool settings::grid::cubic = false;
 double settings::grid::rvol = 2.15;
 double settings::grid::exv_radius = 0.5;
 bool settings::grid::save_exv = false;
+unsigned int settings::grid::min_bins = 0;
 
 namespace settings::grid::detail {
     double min_score = 0.1;
