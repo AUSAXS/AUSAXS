@@ -9,16 +9,16 @@
 namespace form_factor {
     /**
      * @brief Calculate the excluded volume form factor based on the description from Fraser, MacRae & Suzuki: https://doi.org/10.1107/S0021889878014296
-     *        This is the same approach as CRYSOL.
      */
     class ExvFormFactor {
         public: 
             /**
              * @brief Create a new excluded volume form factor with the given volume.
+             *
+             * @param volume The excluded volume of the atom. 
              */
             constexpr ExvFormFactor(double volume) {
-                // double s_to_q = constants::pi*constants::pi*constants::form_factor::s_to_q_factor;
-                exponent = constants::pi*constexpr_math::pow(volume, 2./3)*constants::form_factor::s_to_q_factor;
+                exponent = constexpr_math::pow(volume, 2./3)/(4*constants::pi);
                 q0 = volume*constants::charge::density::water;
             }
 

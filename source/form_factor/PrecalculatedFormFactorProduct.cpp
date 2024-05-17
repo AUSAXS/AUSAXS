@@ -6,11 +6,15 @@ For more information, please refer to the LICENSE file in the project root.
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <constants/Constants.h>
 
-#include <cmath>
+#if CONSTEXPR_TABLES
+    #define CONST constexpr
+#else
+    #define CONST const
+#endif
 
 using namespace form_factor;
 
-constexpr form_factor::storage::atomic::table_t generate_table() {
+CONST form_factor::storage::atomic::table_t generate_table() {
     form_factor::storage::atomic::table_t table;
     for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {

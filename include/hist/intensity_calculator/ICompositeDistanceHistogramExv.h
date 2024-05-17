@@ -31,5 +31,11 @@ namespace hist {
              * @brief Get the intensity profile for water-water interactions.
              */
             virtual ScatteringProfile get_profile_wx() const = 0;
+
+            /**
+             * @brief Get the limits for the excluded volume scaling factor parameter. 
+             *        This is intended to be used by the fitter to set correct limits. 
+             */
+            virtual Limit get_excluded_volume_scaling_factor_limits() const {return {0.5, 1.5};}
     };
 }

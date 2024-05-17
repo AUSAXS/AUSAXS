@@ -141,19 +141,19 @@ namespace fitter {
 
             mini::type fit_type = mini::type::DEFAULT;
         protected:
+            mini::Parameter guess;
+            virtual void initialize_guess();
+
             /**
              * @brief Calculate chi2 for a given choice of parameters @a params.
              */
             [[nodiscard]] virtual double chi2(const std::vector<double>& params) override;
 
             /**
-             * @brief Cast the histogram to a CompositeDistanceHistogram.
+             * @brief Cast the histogram to a ICompositeDistanceHistogram.
              * 
-             * @return This is always safe since the constructor of this class guarantees that the histogram is a CompositeDistanceHistogram.
+             * @return This is always safe since the constructor of this class guarantees that the histogram is a ICompositeDistanceHistogram.
              */
             observer_ptr<hist::ICompositeDistanceHistogram> cast_h() const;
-
-        private: 
-            mini::Parameter guess = {"c", 1, {0, 10}}; // The guess value for the hydration scaling factor.
     };
 }

@@ -56,7 +56,7 @@ namespace form_factor::foxs {
                     case form_factor_t::OTHER:
                         return FormFactorFoXS(17.99, vacuum_modulation);
                     default:
-                        throw std::runtime_error("form_factor::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                        throw std::runtime_error("form_factor::foxs::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
             }
 
@@ -112,7 +112,7 @@ namespace form_factor::foxs {
                     case form_factor_t::OTHER:
                         return FormFactorFoXS(1.399, exv_modulation);
                     default:
-                        throw std::runtime_error("form_factor::storage::exv::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                        throw std::runtime_error("form_factor::foxs::storage::exv::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
             }
 
