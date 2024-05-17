@@ -158,7 +158,6 @@ auto io_menu(gui::view& view) {
 
 	static bool default_output = true;
 	output_box.second->set_text("output/saxs_fitter");
-	auto ref = output_box.second;
 	static bool pdb_ok = false, saxs_ok = false;
 
 	pdb_box.second->on_text = [] (std::string_view text) {
@@ -340,6 +339,7 @@ auto selection_menu_settings(gui::view&) {
 			options1[2].first
 		}
 	);
+	ColorManager::manage_text([] (gui::color color) {hydration_model.second->font_color(color);});
 
 	std::vector<std::pair<std::string, settings::hist::HistogramManagerChoice>> options2 {
 		{"1. Default form-factor", settings::hist::HistogramManagerChoice::HistogramManagerMT},
@@ -377,21 +377,29 @@ auto selection_menu_settings(gui::view&) {
 			options2[3].first
 		}
 	);
+	ColorManager::manage_text([] (gui::color color) {excluded_volume_model.second->font_color(color);});
 
 	static auto fit_excluded_volume_button = gui::check_box("fit excluded volume");
 	fit_excluded_volume_button.on_click = [] (bool value) {
 		settings::fit_excluded_volume = value;
 	};
 
+	static auto hydration_text = gui::label("hydration model")
+		.font_color(ColorManager::get_text_color())
+		.font_size(18);
+	ColorManager::manage_text([] (gui::color color) {hydration_text.set_font_color(color);});
+	static auto exv_text = gui::label("excluded volume model")
+		.font_color(ColorManager::get_text_color())
+		.font_size(18);
+	ColorManager::manage_text([] (gui::color color) {exv_text.set_font_color(color);});
+	
 	auto exv_fit_support_layout = gui::margin_left_right(
 		{10, 10},
 		gui::htile(
 			gui::vtile(
 				gui::margin_bottom(
 					10,
-					gui::label("hydration model")
-						.font_color(ColorManager::get_text_color())
-						.font_size(18)
+					link(hydration_text)
 				),
 				link(hydration_model.first)
 			),
@@ -399,9 +407,7 @@ auto selection_menu_settings(gui::view&) {
 			gui::vtile(
 				gui::margin_bottom(
 					10,
-					gui::label("excluded volume model")
-						.font_color(ColorManager::get_text_color())
-						.font_size(18)
+					link(exv_text)
 				),
 				link(excluded_volume_model.first)
 			),
@@ -421,9 +427,7 @@ auto selection_menu_settings(gui::view&) {
 			gui::vtile(
 				gui::margin_bottom(
 					10,
-					gui::label("hydration model")
-						.font_color(ColorManager::get_text_color())
-						.font_size(18)
+					link(hydration_text)
 				),
 				link(hydration_model.first)
 			),
@@ -431,9 +435,7 @@ auto selection_menu_settings(gui::view&) {
 			gui::vtile(
 				gui::margin_bottom(
 					10,
-					gui::label("excluded volume model")
-						.font_color(ColorManager::get_text_color())
-						.font_size(18)
+					link(exv_text)
 				),
 				link(excluded_volume_model.first)
 			)
@@ -451,8 +453,8 @@ auto selection_menu_settings(gui::view&) {
 auto toggle_mode_button(gui::view& view) {
 	static auto button = gui::button("light mode");
 	button.on_click = [&view] (bool) {
-		ColorManager::switch_mode();
 		button->set_text(ColorManager::dark_mode ? "light mode" : "dark mode");
+		ColorManager::switch_mode();
 		view.refresh();
 	};
 	return link(button);
@@ -469,12 +471,15 @@ int main(int, char*[]) {
 	resources::generate_resource_file();
 	auto logo_path = resources::generate_logo_file();
 
+	auto title = gui::label("SAXS fitter")
+		.font_size(50)
+		.font_color(ColorManager::get_text_color());
+	ColorManager::manage_text([&title] (gui::color color) {title.set_font_color(color);});
+
 	gui::view view(win);
 	auto header = gui::layer(
 		gui::align_center_top(
-			gui::label("SAXS fitter")
-				.font_size(50)
-				.font_color(ColorManager::get_text_color())
+			link(title)
 		),
 		gui::align_right_top(
 			gui::margin(
@@ -499,15 +504,21 @@ int main(int, char*[]) {
 			)
 		)
 	);
+	auto authors = gui::label("Kristian Lytje & Jan Skov Pedersen")
+		.font_color(ColorManager::get_text_color());
+	ColorManager::manage_text([&authors] (gui::color color) {authors.set_font_color(color);});
+	auto version = gui::label(std::string(constants::version))
+		.font_color(ColorManager::get_text_color());
+	ColorManager::manage_text([&version] (gui::color color) {version.set_font_color(color);});
 	auto footer = gui::margin(
 		{10, 10, 10, 10},
 		gui::hgrid(
 			{0.33, 0.66, 1},
 			gui::align_left_bottom(
-				gui::label(std::string(constants::version)).font_color(ColorManager::get_text_color())
+				link(version)
 			),
 			gui::align_center_bottom(
-				gui::label("Kristian Lytje & Jan Skov Pedersen").font_color(ColorManager::get_text_color())
+				link(authors)
 			),
 			gui::align_right_bottom(
 				gui::scale_element(0.15, gui::image(logo_path.absolute_path().c_str()))
