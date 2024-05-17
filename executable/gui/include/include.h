@@ -25,11 +25,6 @@ namespace setup {
 }
 
 struct ColorManager {
-	static auto new_background_color() {
-		managed_background_colors.emplace_back(gui::box_element(dark_mode ? dark_bg : light_bg));
-		return link(managed_background_colors.back());
-	}
-
 	static auto get_color_background() {
 		return dark_mode ? dark_bg : light_bg;
 	}
@@ -52,27 +47,32 @@ struct ColorManager {
 
 	static void switch_mode() {
 		dark_mode = !dark_mode;
-		for (auto& bg : managed_background_colors) {
-			if (bg._color == (dark_mode ? light_bg : dark_bg)) {
-				bg._color = get_color_background();
-			} else if (bg._color == (dark_mode ? light_accent : dark_accent)) {
-				bg._color = get_color_background();
-			}
-		}
-
-		for (auto& label : managed_input_boxes) {
-			label->set_color(get_text_color());
-		}
+		for (auto& func : managed_text) {func(get_text_color());}
+		for (auto& func : managed_backgrounds) {func(get_color_background());}
 	}
 
-	static void manage_input_box(std::shared_ptr<gui::basic_input_box> label) {
-		label->set_color(get_text_color());
-		managed_input_boxes.push_back(label);
+	static void manage_input_box(std::shared_ptr<gui::basic_input_box> box) {
+		manage_text([box] (gui::color color) {box->set_color(color);});
+	}
+
+	static void manage_text(std::function<void(gui::color)>&& func) {
+		managed_text.emplace_back(std::move(func));
+	}
+
+	static void manage_background(std::function<void(gui::color)>&& func) {
+		managed_backgrounds.emplace_back(std::move(func));
+	}
+
+	static auto new_background_color() {
+		auto bg = std::make_shared<gui::box_element>(get_color_background());
+		managed_backgrounds.emplace_back([bg] (gui::color color) {bg->_color = color;});
+		return hold(bg);
 	}
 
 	inline static bool dark_mode = true;
-	inline static std::list<gui::box_element> managed_background_colors;
-	inline static std::list<std::shared_ptr<gui::basic_input_box>> managed_input_boxes;
+	inline static std::list<gui::box_element> bgs;
+	inline static std::list<std::function<void(gui::color)>> managed_text;
+	inline static std::list<std::function<void(gui::color)>> managed_backgrounds;
 
 	inline static constexpr auto dark_bg = gui::rgba(35, 35, 37, 255);
 	inline static constexpr auto light_bg = gui::rgba(255, 255, 255, 255);
