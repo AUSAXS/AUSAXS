@@ -79,6 +79,7 @@ auto make_start_button(gui::view& view) {
 		worker = std::thread([&view] () {
 			bool fit_excluded_volume = settings::fit_excluded_volume;
 			setup::pdb = std::make_unique<data::Molecule>(settings::pdb_file);
+			setup::pdb->generate_new_hydration();
 
 			std::shared_ptr<fitter::HydrationFitter> fitter;
 			if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(settings::saxs_file, setup::pdb->get_histogram());}
