@@ -18,17 +18,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            name: "Ubuntu latest with gcc"
-            c_compiler: gcc
-            cpp_compiler: g++
-            arch: x86-64
+          # - os: ubuntu-latest
+          #   name: "Ubuntu latest with gcc"
+          #   c_compiler: gcc
+          #   cpp_compiler: g++
+          #   arch: x86-64
 
-          - os: ubuntu-20.04
-            name: "Ubuntu 20.04 with gcc"
-            c_compiler: gcc-10
-            cpp_compiler: g++-10
-            arch: x86-64
+          # - os: ubuntu-20.04
+          #   name: "Ubuntu 20.04 with gcc"
+          #   c_compiler: gcc-10
+          #   cpp_compiler: g++-10
+          #   arch: x86-64
 
           - os: windows-latest
             name: "Windows latest with msvc"
@@ -36,11 +36,11 @@ jobs:
             cpp_compiler: cl
             arch: x86-64
 
-          - os: macos-latest
-            name: "MacOS arm64 latest with clang"
-            c_compiler: $(brew --prefix llvm@15)/bin/clang
-            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
-            arch: arm64
+          # - os: macos-latest
+          #   name: "MacOS arm64 latest with clang"
+          #   c_compiler: $(brew --prefix llvm@15)/bin/clang
+          #   cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+          #   arch: arm64
 
     steps: 
       - name: Checkout code
@@ -54,9 +54,7 @@ jobs:
 
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
-        run: |
-          brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
-          brew remove binutils coreutils
+        run: brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
 
       - name: Export GitHub Actions cache environment variables
         if: matrix.os == 'windows-latest'
@@ -65,10 +63,18 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-        
-      - name: Install dependencies (windows)
+
+      - name: Setup Python env (windows)
         if: matrix.os == 'windows-latest'
-        run: vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+        id: windows-python
+
+      - name: Install dependencies (windows)
+        run: |
+          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
+          pip install matplotlib numpy pyinstaller
 
       - name: Get number of cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -88,7 +94,7 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} \
+          cmake -DGUI=ON -DBUILD_PLOT_EXE=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} \
                 -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static" \
                 -S . -B build
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui
@@ -102,7 +108,7 @@ jobs:
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
 
       - name: Build the library (ubuntu 20.04)
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-20.04'
         shell: bash
         run: |
           mkdir build
@@ -114,7 +120,7 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=ON -DDLIB=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -S . -B build
+          cmake -DGUI=ON -DDLIB=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -S . -B build
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j 6
 
       - name: Upload artifact
