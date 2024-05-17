@@ -6,11 +6,15 @@ For more information, please refer to the LICENSE file in the project root.
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
 #include <constants/Constants.h>
 
-#include <cmath>
+#if CONSTEXPR_TABLES
+    #define CONST constexpr
+#else
+    #define CONST const
+#endif
 
 using namespace form_factor;
 
-constexpr form_factor::storage::exv::table_t generate_exv_exv_table() {
+CONST form_factor::storage::exv::table_t generate_exv_exv_table() {
     form_factor::storage::exv::table_t table;
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
@@ -37,7 +41,7 @@ const form_factor::storage::exv::table_t& form_factor::storage::exv::get_precalc
     return ff_xx_table;
 }
 
-constexpr form_factor::storage::cross::table_t generate_atom_exv_table() {
+CONST form_factor::storage::cross::table_t generate_atom_exv_table() {
     form_factor::storage::cross::table_t table;
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {

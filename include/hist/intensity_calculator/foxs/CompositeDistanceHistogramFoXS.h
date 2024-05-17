@@ -59,39 +59,17 @@ namespace hist {
             ~CompositeDistanceHistogramFoXS() override;
 
             ScatteringProfile debye_transform() const override; // @copydoc DistanceHistogram::debye_transform() const
-
-            /**
-             * @brief Get the intensity profile for atom-atom interactions.
-             */
-            virtual ScatteringProfile get_profile_ax() const override;
-
-            /**
-             * @brief Get the intensity profile for atom-water interactions.
-             */
-            virtual ScatteringProfile get_profile_xx() const override;
-
-            /**
-             * @brief Get the intensity profile for water-water interactions.
-             */
-            virtual ScatteringProfile get_profile_wx() const override;
-
-            /**
-             * @brief Get the intensity profile for atom-water interactions.
-             */
-            virtual ScatteringProfile get_profile_aw() const override;
-
-            /**
-             * @brief Get the intensity profile for water-water interactions.
-             */
-            virtual ScatteringProfile get_profile_ww() const override;
-
-            /**
-             * @brief Get the intensity profile for atom-atom interactions.
-             */
-            virtual ScatteringProfile get_profile_aa() const override;
+            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override; // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
+            virtual ScatteringProfile get_profile_aa() const override; // @copydoc ICompositeDistanceHistogram::get_profile_aa() const
+            virtual ScatteringProfile get_profile_aw() const override; // @copydoc ICompositeDistanceHistogram::get_profile_aw() const
+            virtual ScatteringProfile get_profile_ww() const override; // @copydoc ICompositeDistanceHistogram::get_profile_ww() const
+            virtual ScatteringProfile get_profile_xx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_xx() const
+            virtual ScatteringProfile get_profile_ax() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_ax() const
+            virtual ScatteringProfile get_profile_wx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_wx() const
+            Limit get_excluded_volume_scaling_factor_limits() const override; // @copydoc ICompositeDistanceHistogramExv::get_excluded_volume_scaling_factor_limits() const
 
         protected:
-            double G_factor(double q) const;
+            double exv_factor(double q) const override;
 
         private:
             container::Container3D<double> cp_ax;

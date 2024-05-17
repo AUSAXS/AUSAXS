@@ -140,6 +140,7 @@ plt.ylabel("Intensity [arb]")
 plt.title(os.path.basename(mfile.split('.')[0]))
 plt.legend()
 plt.semilogy()
+<<<<<<< HEAD
 fig.savefig(folder + '/compare_log.png', bbox_inches='tight', dpi=300)
 
 plt.semilogx()
@@ -148,3 +149,12 @@ fig.savefig(folder + '/compare_loglog.png', bbox_inches='tight', dpi=300)
 ax.set_xlim(0.1, 0.5)
 fig.savefig(folder + '/compare_loglog_short.png', bbox_inches='tight', dpi=300)
 print("Done. Saved three figures in " + folder + ".")
+=======
+fig.savefig(folder + '/compare_log.png', bbox_inches='tight')
+
+plt.semilogx()
+fig.savefig(folder + '/compare_loglog.png', bbox_inches='tight')
+
+ax.set_xlim(0.1, 0.5)
+fig.savefig(folder + '/compare_loglog_short.png', bbox_inches='tight')
+>>>>>>> 89b35823 (Added Pepsi excluded volume fitting (#43))

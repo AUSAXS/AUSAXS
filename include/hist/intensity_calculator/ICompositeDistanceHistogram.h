@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/DistanceHistogram.h>
+#include <utility/Limit.h>
 
 namespace hist {
     class ICompositeDistanceHistogram : public hist::DistanceHistogram {
@@ -26,5 +27,11 @@ namespace hist {
             virtual ScatteringProfile get_profile_aw() const = 0;
 
             virtual ScatteringProfile get_profile_ww() const = 0;
+
+            /**
+             * @brief Get the limits for the water scaling factor parameter. 
+             *        This is intended to be used by the fitter to set correct limits. 
+             */
+            virtual Limit get_water_scaling_factor_limits() const {return {0, 10};}
     };
 }
