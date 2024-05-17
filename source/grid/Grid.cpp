@@ -91,6 +91,28 @@ void Grid::setup() {
         }
     }
 
+    // enforce minimum number of bins if set
+    if (settings::grid::min_bins != 0) {
+        double min_length = settings::grid::min_bins*settings::grid::width/2;
+        if (axes.x.bins < settings::grid::min_bins) {
+            axes.x.bins = settings::grid::min_bins;
+            axes.x.min = -min_length;
+            axes.x.max =  min_length;
+        }
+
+        if (axes.y.bins < settings::grid::min_bins) {
+            axes.y.bins = settings::grid::min_bins;
+            axes.y.min = -min_length;
+            axes.y.max =  min_length;
+        }
+
+        if (axes.z.bins < settings::grid::min_bins) {
+            axes.z.bins = settings::grid::min_bins;
+            axes.z.min = -min_length;
+            axes.z.max =  min_length;
+        }
+    }
+
     // check if the grid is abnormally large
     long long int total_bins = (long long) axes.x.bins*axes.y.bins*axes.z.bins;
     if (total_bins > 32e9) {
