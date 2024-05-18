@@ -18,17 +18,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   name: "Ubuntu latest with gcc"
-          #   c_compiler: gcc
-          #   cpp_compiler: g++
-          #   arch: x86-64
+          - os: ubuntu-latest
+            name: "Ubuntu latest with gcc"
+            c_compiler: gcc
+            cpp_compiler: g++
+            arch: x86-64
 
-          # - os: ubuntu-20.04
-          #   name: "Ubuntu 20.04 with gcc"
-          #   c_compiler: gcc-10
-          #   cpp_compiler: g++-10
-          #   arch: x86-64
+          - os: ubuntu-20.04
+            name: "Ubuntu 20.04 with gcc"
+            c_compiler: gcc-10
+            cpp_compiler: g++-10
+            arch: x86-64
 
           - os: windows-latest
             name: "Windows latest with msvc"
@@ -152,7 +152,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: 
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest] # macos-latest
 
     steps:
       - name: Checkout code
