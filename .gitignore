@@ -7,10 +7,7 @@ temp
 # developer stuff
 **/__pycache__
 resources
-Makefile
-resources
 .clangd
 .cache
 .vscode
 .vs
-**/__pycache__
