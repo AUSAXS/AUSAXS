@@ -46,6 +46,7 @@ elseif (APPLE)
 		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},arm64>>:-march=armv8-a>"
 	)
 elseif (UNIX)
+#	add_compile_definitions("$<$<CONFIG:DEBUG>:_GLIBCXX_DEBUG>")
 	add_compile_options(
 		-Ofast -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"

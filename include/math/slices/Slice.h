@@ -145,7 +145,7 @@ class Slice {
         friend std::ostream& operator<<(std::ostream& os, const Slice<T, Container>& v) {os << v.to_string(); return os;}
 
         SliceIterator<const T> begin() const {return SliceIterator<const T>(&data[offset], step);}
-        SliceIterator<const T> end() const {return SliceIterator<const T>(&data[offset + length*step], step);}
+        SliceIterator<const T> end() const {return SliceIterator<const T>(&data[offset] + length*step, step);}
 
     protected:
         Container data;         // the raw data array backing this Slice
@@ -255,7 +255,7 @@ class MutableSlice : public Slice<T, std::vector<T>&> {
         using Slice<T, data_type>::front;
 
         SliceIterator<T> begin() {return SliceIterator<T>(&this->data[this->offset], this->step);}
-        SliceIterator<T> end() {return SliceIterator<T>(&this->data[this->offset + this->length*this->step], this->step);}
+        SliceIterator<T> end() {return SliceIterator<T>(&this->data[this->offset] + this->length*this->step, this->step);}
 };
 
 template<numeric T>
