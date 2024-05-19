@@ -134,7 +134,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double cx2 = 2*exv_factor(constants::axes::q_vals[q]);
+        double cx2 = std::pow(exv_factor(constants::axes::q_vals[q]), 2);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 double xx_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
