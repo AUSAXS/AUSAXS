@@ -21,9 +21,6 @@ namespace hist {
     template<typename FormFactorTableType>
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
-            /**
-             * @brief Default constructor.
-             */
             CompositeDistanceHistogramFFAvgBase();
 
             /**

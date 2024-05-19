@@ -38,7 +38,7 @@ observer_ptr<const table::DebyeTable> DistanceHistogram::get_sinc_table() const 
 }
 
 void DistanceHistogram::use_weighted_sinc_table() {
-    weighted_sinc_table = std::make_unique<table::VectorDebyeTable>(table::VectorDebyeTable(d_axis));
+    weighted_sinc_table = std::make_unique<table::VectorDebyeTable>(d_axis);
     use_weighted_table = true;
 }
 
