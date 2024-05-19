@@ -257,7 +257,7 @@ pepsi/%:
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
-	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" ${options}
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" --dro 0 ${options}
 	@ mv temp/pepsi/pepsi.fit output/saxs_fitter/$*/pepsi.fit
 
 foxs/%:
@@ -271,6 +271,14 @@ foxs/%:
 	cp $${measurement} .; \
 	foxs $$(basename "$${structure}") $$(basename "$${measurement}") ${options}
 	@ mv temp/foxs/*.fit output/saxs_fitter/$*/foxs.fit
+
+pepsi_exv/%:
+	@ mkdir -p temp/pepsi/
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	structure=$$(find $${folder}/ -name "*.pdb"); \
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} -o "temp/pepsi/pepsi.fit" --dro 0 -ms 1 -n 100 ${options}
+	@ mv temp/pepsi/pepsi.fit output/saxs_fitter/$*/pepsi.dat
 
 crysol_exv/%: 
 	@ mkdir -p temp/crysol/
