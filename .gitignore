@@ -8,8 +8,6 @@ temp
 **/__pycache__
 tests/benchmarks
 resources
-Makefile
-resources
 .clangd
 .cache
 .vscode
