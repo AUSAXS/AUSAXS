@@ -31,11 +31,11 @@ int main(int argc, char const *argv[]) {
     settings::axes::qmin = 1e-4;
     settings::axes::qmax = 1;
     settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = true;
     settings::general::threads = 1;
 
-    SimpleDataset ausaxs_crysol_aa, ausaxs_crysol_xx, ausaxs_foxs_aa, ausaxs_foxs_xx, ausaxs_aa, ausaxs_xx;
+    SimpleDataset ausaxs_crysol_aa, ausaxs_crysol_xx, ausaxs_foxs_aa, ausaxs_foxs_xx, ausaxs_pepsi_aa, ausaxs_pepsi_xx, ausaxs_aa, ausaxs_xx;
     {   // crysol mimic
-        settings::molecule::implicit_hydrogens = true;
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::CrysolManager;
         data::Molecule molecule(pdb);
 
@@ -44,7 +44,6 @@ int main(int argc, char const *argv[]) {
         ausaxs_crysol_xx = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_xx().as_dataset();
     }
     {   // foxs mimic
-        settings::molecule::implicit_hydrogens = true;
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::FoXSManager;
         data::Molecule molecule(pdb);
 
@@ -52,8 +51,15 @@ int main(int argc, char const *argv[]) {
         ausaxs_foxs_aa = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_aa().as_dataset();
         ausaxs_foxs_xx = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_xx().as_dataset();
     }
+    {   // pepsi mimic
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PepsiManager;
+        data::Molecule molecule(pdb);
+
+        auto hist = molecule.get_histogram();
+        ausaxs_pepsi_aa = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_aa().as_dataset();
+        ausaxs_pepsi_xx = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_xx().as_dataset();
+    }
     {   // ausaxs
-        settings::molecule::implicit_hydrogens = true;
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
         data::Molecule molecule(pdb);
 
@@ -64,41 +70,89 @@ int main(int argc, char const *argv[]) {
 
     //### CHECK FOR PRESENCE OF EXTERNAL DATA IN OUTPUT FOLDER ###//
     io::File crysol(settings::general::output + "crysol.dat");
-    io::File foxs(settings::general::output + "foxs_xx.dat");
+    io::File foxs_xx(settings::general::output + "foxs_xx.dat");
+    io::File foxs_aa(settings::general::output + "foxs_aa.dat");
+    io::File pepsi(settings::general::output + "pepsi.dat");
 
-    if (!crysol.exists() || !foxs.exists()) {
+    if (!crysol.exists() || !foxs_aa.exists() || !foxs_xx.exists() || !pepsi.exists()) {
         std::cout << "External data not found in output folder. Skipping external comparison." << std::endl;
         return 0;
     }
 
     // generate plot
-    SimpleDataset crysol_data;
+    SimpleDataset crysol_data_xx, crysol_data_aa, pepsi_data_xx, pepsi_data_aa;
+    SimpleDataset foxs_data_xx(foxs_xx);
+    SimpleDataset foxs_data_aa(foxs_aa);
     {
         Dataset tmp(crysol);
-        crysol_data = SimpleDataset(tmp.x(), tmp.col(3));
-    }
-    auto foxs_data = SimpleDataset(foxs);
+        crysol_data_aa = SimpleDataset(tmp.x(), tmp.col(2));
+        crysol_data_xx = SimpleDataset(tmp.x(), tmp.col(3));
 
+        tmp = Dataset(pepsi);
+        pepsi_data_aa = SimpleDataset(tmp.x(), tmp.col(2));
+        pepsi_data_xx = SimpleDataset(tmp.x(), tmp.col(3));
+    }
+
+    crysol_data_aa.normalize();
+    crysol_data_xx.normalize();
+    foxs_data_aa.normalize();
+    foxs_data_xx.normalize();
+    pepsi_data_aa.normalize();
+    pepsi_data_xx.normalize();
+    ausaxs_crysol_aa.normalize();
+    ausaxs_crysol_xx.normalize();
+    ausaxs_foxs_aa.normalize();
+    ausaxs_foxs_xx.normalize();
+    ausaxs_pepsi_aa.normalize();
+    ausaxs_pepsi_xx.normalize();
+    ausaxs_xx.normalize();
+    ausaxs_aa.normalize();
     plots::PlotIntensity()
-        .plot(crysol_data, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"xrange", Limit(1e-2, 1)}}))
-        .plot(foxs_data, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
-        .plot(ausaxs_crysol_xx, plots::PlotOptions({{"legend", "AUSAXS$_{crysol}$"}, {"color", style::color::blue}, {"linestyle", style::line::dashed}}))
-        .plot(ausaxs_foxs_xx, plots::PlotOptions({{"legend", "AUSAXS$_{foxs}$"}, {"color", style::color::red}, {"linestyle", style::line::dashed}}))
-        .plot(ausaxs_xx, plots::PlotOptions({{"legend", "AUSAXS"}, {"color", style::color::green}, {"linestyle", style::line::dashed}}))
+        .plot(crysol_data_xx, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"xrange", Limit(1e-2, 1)}}))
+        .plot(foxs_data_xx, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
+        .plot(pepsi_data_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
+        .plot(ausaxs_crysol_xx, plots::PlotOptions({{"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
+        .plot(ausaxs_foxs_xx, plots::PlotOptions({{"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
+        .plot(ausaxs_pepsi_xx, plots::PlotOptions({{"legend", "AUSAXS$_{mimics}$"}, {"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
+        .plot(ausaxs_xx, plots::PlotOptions({{"legend", "AUSAXS"}, {"color", style::color::black}}))
     .save(settings::general::output + "profiles_xx.png");
 
-    SimpleDataset crysol_diff = crysol_data;
-    for (size_t i = 0; i < crysol_diff.size(); ++i) {
-        crysol_diff.y(i) /= ausaxs_crysol_xx.interpolate_x(crysol_diff.x(i), 1);
+    plots::PlotIntensity()
+        .plot(crysol_data_aa, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{aa}$ profiles"}, {"xrange", Limit(1e-2, 1)}}))
+        .plot(foxs_data_aa, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
+        .plot(pepsi_data_aa, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
+        .plot(ausaxs_aa, plots::PlotOptions({{"legend", "AUSAXS"}, {"color", style::color::black}}))
+    .save(settings::general::output + "profiles_aa.png");
+
+    SimpleDataset crysol_diff_xx = crysol_data_xx, crysol_diff_aa = crysol_data_aa;
+    for (size_t i = 0; i < crysol_diff_xx.size(); ++i) {
+        crysol_diff_xx.y(i) /= ausaxs_crysol_xx.interpolate_x(crysol_diff_xx.x(i), 1);
+        crysol_diff_aa.y(i) /= ausaxs_crysol_aa.interpolate_x(crysol_diff_aa.x(i), 1);
     }
 
-    SimpleDataset foxs_diff = foxs_data;
-    for (size_t i = 0; i < foxs_diff.size(); ++i) {
-        foxs_diff.y(i) /= ausaxs_foxs_xx.interpolate_x(foxs_diff.x(i), 1);
+    SimpleDataset foxs_diff_xx = foxs_data_xx, foxs_diff_aa = foxs_data_aa;
+    for (size_t i = 0; i < foxs_diff_xx.size(); ++i) {
+        foxs_diff_xx.y(i) /= ausaxs_foxs_xx.interpolate_x(foxs_diff_xx.x(i), 1);
+        foxs_diff_aa.y(i) /= ausaxs_foxs_aa.interpolate_x(foxs_diff_aa.x(i), 1);
+    }
+
+    SimpleDataset pepsi_diff_xx = pepsi_data_xx, pepsi_diff_aa = pepsi_data_aa;
+    for (size_t i = 0; i < pepsi_diff_xx.size(); ++i) {
+        pepsi_diff_xx.y(i) /= ausaxs_pepsi_xx.interpolate_x(pepsi_diff_xx.x(i), 1);
+        pepsi_diff_aa.y(i) /= ausaxs_pepsi_aa.interpolate_x(pepsi_diff_aa.x(i), 1);
     }
 
     plots::PlotDataset()
-        .plot(crysol_diff, plots::PlotOptions({{"xlabel", "q (Å⁻¹)"}, {"ylabel", "CRYSOL / AUSAXS"}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"yrange", Limit(0.5, 1.5)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}}))
-        .plot(foxs_diff, plots::PlotOptions({{"ylabel", "FoXS / AUSAXS"}, {"color", style::color::orange}}))
+        .plot(crysol_diff_xx, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "THEIRS / AUSAXS"}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"yrange", Limit(0.5, 1.5)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}}))
+        .plot(foxs_diff_xx, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
+        .plot(pepsi_diff_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
+        .hline(1, plots::PlotOptions({{"linestyle", style::line::dashed}, {"color", style::color::black}}))
     .save(settings::general::output + "profiles_xx_diff.png");
+
+    plots::PlotDataset()
+        .plot(crysol_diff_aa, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "THEIRS / AUSAXS"}, {"title", pdb.stem() + " $I_{aa}$ profiles"}, {"yrange", Limit(0.5, 1.5)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}}))
+        .plot(foxs_diff_aa, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
+        .plot(pepsi_diff_aa, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
+        .hline(1, plots::PlotOptions({{"linestyle", style::line::dashed}, {"color", style::color::black}}))
+    .save(settings::general::output + "profiles_aa_diff.png");
 }
