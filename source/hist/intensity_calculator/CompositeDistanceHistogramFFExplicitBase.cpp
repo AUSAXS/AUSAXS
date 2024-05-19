@@ -98,7 +98,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
         double ww_sum = std::inner_product(this->cp_ww.begin(), this->cp_ww.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += this->cw*this->cw*ww_sum*ff_aa_table.index(ff_w_index, ff_w_index).evaluate(q);
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
@@ -123,7 +123,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
             }
         }
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
@@ -143,7 +143,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
             }
         }
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
@@ -162,7 +162,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
             Iq[q-q0] += 2*cx*this->cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
         }
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template class hist::CompositeDistanceHistogramFFExplicitBase<form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t>;

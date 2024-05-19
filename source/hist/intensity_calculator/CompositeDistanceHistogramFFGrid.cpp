@@ -111,7 +111,7 @@ ScatteringProfile CompositeDistanceHistogramFFGrid::debye_transform() const {
         double ww_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += cw*cw*ww_sum*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 SimpleDataset CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>&) const {
@@ -130,7 +130,7 @@ ScatteringProfile CompositeDistanceHistogramFFGrid::get_profile_xx() const {
         double xx_sum = std::inner_product(cp_aa.begin(form_factor::exv_bin, form_factor::exv_bin), cp_aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += cx*cx*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGrid::get_sinc_table_x() const {

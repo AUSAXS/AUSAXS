@@ -66,7 +66,7 @@ auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::De
         Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]);
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 };
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
