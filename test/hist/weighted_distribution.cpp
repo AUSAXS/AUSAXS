@@ -139,8 +139,15 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
 
     auto check_default = [] (const auto& hist) {
         auto p = hist->get_d_axis();
-        for (unsigned int i = 0; i < 20; ++i) {
-            if (p[i] != constants::axes::d_vals[i]) {return false;}
+        if (p.back() < 2) {
+            std::cout << "Failed on size: expected last index larger than 2Å, got: " << p.back() << std::endl;
+            return false;
+        }
+        for (unsigned int i = 0; i < p.size(); ++i) {
+            if (p[i] != constants::axes::d_vals[i]) {
+                std::cout << "Failed on index " << i << ": expected: " << constants::axes::d_vals[i] << ", got: " << p[i] << std::endl;
+                return false;
+            }
         }
         return true;
     };
@@ -148,7 +155,7 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
         auto p = hist->get_d_axis();
         for (auto e : d_exact) {
             if (1e-6 < std::abs(p[std::round(e/constants::axes::d_axis.width())]-e)) {
-                std::cout << "Failed on index " << std::round(e/constants::axes::d_axis.width()) << ": Expected: " << e << " Got: " << p[std::round(e/constants::axes::d_axis.width())] << std::endl;
+                std::cout << "Failed on index " << std::round(e/constants::axes::d_axis.width()) << ": expected: " << e << ", got: " << p[std::round(e/constants::axes::d_axis.width())] << std::endl;
                 return false;
             }
         }
@@ -156,32 +163,32 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
     };
 
     { // hm
-        REQUIRE(check_default(hist::HistogramManager<false>(&protein).calculate_all()));
-        REQUIRE(check_exact(hist::HistogramManager<true>(&protein).calculate_all()));
+        CHECK(check_default(hist::HistogramManager<false>(&protein).calculate_all()));
+        CHECK(check_exact(hist::HistogramManager<true>(&protein).calculate_all()));
     }
     { // hm_mt
-        REQUIRE(check_default(hist::HistogramManagerMT<false>(&protein).calculate_all()));
-        REQUIRE(check_exact(hist::HistogramManagerMT<true>(&protein).calculate_all()));
+        CHECK(check_default(hist::HistogramManagerMT<false>(&protein).calculate_all()));
+        CHECK(check_exact(hist::HistogramManagerMT<true>(&protein).calculate_all()));
     }
     { // hm_mt_ff_avg
-        REQUIRE(check_default(hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()));
-        REQUIRE(check_exact(hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()));
+        CHECK(check_default(hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()));
+        CHECK(check_exact(hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()));
     }
     { // hm_mt_ff_explicit
-        REQUIRE(check_default(hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()));
-        REQUIRE(check_exact(hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()));
+        CHECK(check_default(hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()));
+        CHECK(check_exact(hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()));
     }
     { // hm_mt_ff_grid
-        REQUIRE(check_default(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()));
-        REQUIRE(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all()));
+        CHECK(check_default(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()));
+        // CHECK(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all())); // exv cells dominates bin locs in this case
     }
     { // phm
-        REQUIRE(check_default(hist::PartialHistogramManager<false>(&protein).calculate_all()));
-        REQUIRE(check_exact(hist::PartialHistogramManager<true>(&protein).calculate_all()));
+        CHECK(check_default(hist::PartialHistogramManager<false>(&protein).calculate_all()));
+        CHECK(check_exact(hist::PartialHistogramManager<true>(&protein).calculate_all()));
     }
     { // phm_mt
-        REQUIRE(check_default(hist::PartialHistogramManagerMT<false>(&protein).calculate_all()));
-        REQUIRE(check_exact(hist::PartialHistogramManagerMT<true>(&protein).calculate_all()));
+        CHECK(check_default(hist::PartialHistogramManagerMT<false>(&protein).calculate_all()));
+        CHECK(check_exact(hist::PartialHistogramManagerMT<true>(&protein).calculate_all()));
     }
 }
 

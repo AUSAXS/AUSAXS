@@ -196,7 +196,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_
             }
         }
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template<typename FormFactorTableType>
@@ -214,7 +214,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_
             Iq[q-q0] += 2*cx*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
         }
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template<typename FormFactorTableType>
@@ -230,7 +230,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_
         double xx_sum = std::inner_product(cp_aa.begin(form_factor::exv_bin, form_factor::exv_bin), cp_aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += cx*cx*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template<typename FormFactorTableType>
@@ -246,7 +246,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_
         double ew_sum = std::inner_product(cp_aw.begin(form_factor::exv_bin), cp_aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += 2*cx*cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template<typename FormFactorTableType>
@@ -263,7 +263,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_
             Iq[q-q0] += 2*cw*aw_sum*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
         }
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template<typename FormFactorTableType>
@@ -278,7 +278,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_
         double ww_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += cw*cw*ww_sum*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
 template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t>;

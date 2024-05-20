@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 #include <hist/distribution/Distribution3D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution1D.h>
@@ -14,6 +15,7 @@ namespace hist {
      */
     class CompositeDistanceHistogramPepsi : public CompositeDistanceHistogramFFExplicit {
         public:
+            // using CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol;
             using CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit;
             ~CompositeDistanceHistogramPepsi() override = default;
 

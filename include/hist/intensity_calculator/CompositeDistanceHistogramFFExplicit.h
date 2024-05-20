@@ -1,9 +1,10 @@
 #pragma once
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicitBase.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
+#include <form_factor/PrecalculatedExvFormFactorProduct.h>
 
 namespace hist {
     /**
@@ -12,70 +13,20 @@ namespace hist {
      *        Unique exluded volume form factors are used for each atomic type.
      *        For more information, see CompositeDistanceHistogram.
      */
-    class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFAvg {
+    class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFExplicitBase<form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t> {
         public: 
-            CompositeDistanceHistogramFFExplicit();
+            using CompositeDistanceHistogramFFExplicitBase::CompositeDistanceHistogramFFExplicitBase;
 
-            /**
-             * @brief Create a new unweighted composite distance histogram with form factors.
-             * 
-             * @param p_aa The partial distance histogram for atom-atom interactions.
-             * @param p_ax The partial distance histogram for atom-excluded volume interactions.
-             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions.
-             * @param p_aw The partial distance histogram for atom-water interactions.
-             * @param p_wx The partial distance histogram for water-excluded volume interactions.
-             * @param p_ww The partial distance histogram for water-water interactions.
-             * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
-             */
-            CompositeDistanceHistogramFFExplicit(
-                hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
-                hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
-                hist::Distribution1D&& p_ww,
-                hist::Distribution1D&& p_tot
-            );
+            const form_factor::storage::atomic::table_t& get_ff_table() const override {
+                return form_factor::storage::atomic::get_precalculated_form_factor_table();
+            }
 
-            /**
-             * @brief Create a new weighted composite distance histogram with form factors.
-             * 
-             * @param p_aa The partial distance histogram for atom-atom interactions.
-             * @param p_ax The partial distance histogram for atom-excluded volume interactions.
-             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions.
-             * @param p_aw The partial distance histogram for atom-water interactions.
-             * @param p_wx The partial distance histogram for water-excluded volume interactions.
-             * @param p_ww The partial distance histogram for water-water interactions.
-             * @param p_tot The total distance histogram. This is only used to extract the bin centers.
-             */
-            CompositeDistanceHistogramFFExplicit(
-                hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
-                hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
-                hist::Distribution1D&& p_ww, 
-                hist::WeightedDistribution1D&& p_tot
-            );
+            const form_factor::storage::cross::table_t& get_ffax_table() const override {
+                return form_factor::storage::cross::get_precalculated_form_factor_table();
+            }
 
-            ~CompositeDistanceHistogramFFExplicit() override;
-
-            // @copydoc DistanceHistogram::debye_transform() const
-            ScatteringProfile debye_transform() const override;
-
-            // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
-            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
-
-            virtual ScatteringProfile get_profile_ax() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_ax() const
-            virtual ScatteringProfile get_profile_xx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_xx() const
-            virtual ScatteringProfile get_profile_wx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_wx() const
-
-        protected:
-            // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
-            double exv_factor(double q) const override;
-
-            hist::Distribution3D cp_ax;
-            hist::Distribution3D cp_xx;
-            hist::Distribution2D cp_wx;
+            const form_factor::storage::exv::table_t& get_ffxx_table() const override {
+                return form_factor::storage::exv::get_precalculated_form_factor_table();
+            }
     };
 }

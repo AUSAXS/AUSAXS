@@ -21,6 +21,7 @@ namespace form_factor::foxs {
             double q0 = 1;
             double modulation = 0.23/2;
     };
+    static_assert(sizeof(FormFactorFoXS) == sizeof(ExvFormFactor), "ExvFormFactorCrysol must have the same size as ExvFormFactor");
 
     namespace storage {
         namespace atomic {
@@ -55,14 +56,16 @@ namespace form_factor::foxs {
                         return FormFactorFoXS(16.9998, vacuum_modulation);
                     case form_factor_t::OTHER:
                         return FormFactorFoXS(17.99, vacuum_modulation);
+                    case form_factor_t::EXCLUDED_VOLUME:
+                        return FormFactorFoXS(0, vacuum_modulation);
                     default:
                         throw std::runtime_error("form_factor::foxs::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
             }
 
-            [[maybe_unused]] static container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
-                container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
-                for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
+            [[maybe_unused]] static container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()> generate_table() {
+                container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()> table;
+                for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
                     for (unsigned int j = 0; j < i; ++j) {
                         table.index(i, j) = PrecalculatedFormFactorProduct(
                             get_form_factor(static_cast<form_factor_t>(i)), 
