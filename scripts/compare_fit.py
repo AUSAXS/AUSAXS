@@ -76,19 +76,14 @@ else:
 fits = []
 labels = []
 data = np.loadtxt(mfile, skiprows=1)
-def load_fit(fitdata, title: str):
-
-    # define the chi2 function
+def load_fit(y, title: str):
     def chi2(ymodel):
         return np.sum(((data[:, 1] - ymodel) / data[:, 2]) ** 2)
 
-    # perform a linear fit of fitdata to the measurement
-    popt, _ = curve_fit(lambda x, a, b: a*x + b, fitdata[:, 1], data[:, 1], sigma=data[:, 2], absolute_sigma=True, p0=[1, 0])
-    fitdata[:, 1] = popt[0] * fitdata[:, 1] + popt[1]
+    popt, _ = curve_fit(lambda x, a, b: a*x + b, y, data[:, 1], sigma=data[:, 2], absolute_sigma=True, p0=[1, 0])
+    y = popt[0] * y + popt[1]
     fits.append(fitdata)
-    # print(f"Fit {title} to {mfile} with parameters {popt}.")
-
-    chi2r = chi2(fits[-1][:, 1]) / (len(data[:, 1]) - 3)
+    chi2r = chi2(y) / (len(data[:, 1]) - 3)
     labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$ " + title)
 
 # parse each file
@@ -99,34 +94,36 @@ for f in files:
 
     if "foxs".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=3, usecols=[0, 3])
-        load_fit(fitdata, stem.lower())
+        y = np.interp(data[:, 0], fitdata[:, 0], fitdata[:, 1])        
+        load_fit(y, stem.lower())
 
     elif "crysol".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 3])
-        load_fit(fitdata, stem.lower())
+        y = np.interp(data[:, 0], fitdata[:, 0], fitdata[:, 1])
+        load_fit(y, stem.lower())
 
     elif "pepsi".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=0, comments="#", usecols=[0, 3])
-        load_fit(fitdata, stem.lower())
+        y = np.interp(data[:, 0], fitdata[:, 0], fitdata[:, 1])
+        load_fit(y, stem.lower())
 
     elif "waxsis".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=0, comments="#", usecols=[0, 1])
         x = fitdata[:, 0]
         y = np.interp(data[:, 0], x, fitdata[:, 1])
-        fitdata = np.vstack((data[:, 0], y)).T
-        load_fit(fitdata, stem.lower())
+        load_fit(y, stem.lower())
 
     elif "gromacs".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=0, comments=["@", "#", "&"], usecols=[0, 1])
         # interpolate the data to match the dataset
         x = fitdata[:, 0]/10
         y = np.interp(data[:, 0], x, fitdata[:, 1])
-        fitdata = np.vstack((data[:, 0], y)).T
-        load_fit(fitdata, stem.lower())
+        load_fit(y, stem.lower())
 
     elif "fit".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 1])
-        load_fit(fitdata, stem.lower())
+        y = np.interp(data[:, 0], fitdata[:, 0], fitdata[:, 1])
+        load_fit(y, stem.lower())
     else:
         print(f"Unknown fit file: \"{f}\"")
 

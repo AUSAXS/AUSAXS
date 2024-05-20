@@ -13,24 +13,44 @@ namespace hist {
             using CompositeDistanceHistogramFFExplicitBase::CompositeDistanceHistogramFFExplicitBase;
             ~CompositeDistanceHistogramFoXS() override = default;
 
-            const form_factor::storage::atomic::table_t& get_ff_table() const override {
-                return ffaa_table;
-            }
+            CompositeDistanceHistogramFoXS(
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D&& p_ax, 
+                hist::Distribution3D&& p_xx, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution2D&& p_wx, 
+                hist::Distribution1D&& p_ww,
+                hist::Distribution1D&& p_tot
+            );
 
-            const form_factor::storage::cross::table_t& get_ffax_table() const override {
-                return ffax_table;
-            }
-
-            const form_factor::storage::exv::table_t& get_ffxx_table() const override {
-                return ffxx_table;
-            }
+            CompositeDistanceHistogramFoXS(
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D&& p_ax, 
+                hist::Distribution3D&& p_xx, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution2D&& p_wx, 
+                hist::Distribution1D&& p_ww, 
+                hist::WeightedDistribution1D&& p_tot
+            );
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
+            const form_factor::storage::atomic::table_t& get_ff_table() const override {
+                return ff_aa_table;
+            }
+
+            const form_factor::storage::cross::table_t& get_ffax_table() const override {
+                return ff_ax_table;
+            }
+
+            const form_factor::storage::exv::table_t& get_ffxx_table() const override {
+                return ff_xx_table;
+            }
+
         protected:
             double exv_factor(double q) const override;
-            form_factor::storage::atomic::table_t ffaa_table = form_factor::foxs::storage::atomic::generate_table();
-            form_factor::storage::cross::table_t ffax_table = form_factor::foxs::storage::cross::generate_table();
-            form_factor::storage::exv::table_t ffxx_table = form_factor::foxs::storage::exv::generate_table();
+            form_factor::storage::atomic::table_t ff_aa_table = form_factor::foxs::storage::atomic::generate_table();
+            form_factor::storage::cross::table_t ff_ax_table = form_factor::foxs::storage::cross::generate_table();
+            form_factor::storage::exv::table_t ff_xx_table = form_factor::foxs::storage::exv::generate_table();
     };
 }
