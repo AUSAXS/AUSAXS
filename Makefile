@@ -21,10 +21,7 @@ options :=
 #################################################################################
 # Plot a SAXS dataset along with any accompanying fits
 plot_fits/%: scripts/compare_fit.py
-	@ measurement=$$(find output/saxs_fitter/ -name "$*.dat"); \
-	for f in $${measurement}; do\
-		python3 $< $${f}; \
-	done
+	@ python $< output/saxs_fitter/$*/$*.scat
 
 plot_em/%: scripts/plot_fit.py
 	@ measurement=$$(find output/em_fitter/ -name "$*.RSR" -or -name "$*.dat"); \
@@ -257,7 +254,7 @@ pepsi/%:
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
-	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" --dro 0 ${options}
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" ${options}
 	@ mv temp/pepsi/pepsi.fit output/saxs_fitter/$*/pepsi.fit
 
 foxs/%:
