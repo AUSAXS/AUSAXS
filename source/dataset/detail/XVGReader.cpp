@@ -18,56 +18,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <fstream>
 
-std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
-    if (settings::general::verbose) {
-        console::print_info("Loading dataset from \"" + path + "\"");
-    }
-
-    // check if file was succesfully opened
-    std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("Dataset::load: Could not open file \"" + path + "\"");}
-
-    std::string line;
-    std::vector<std::string> header;
-    std::vector<std::vector<double>> row_data;
-    std::vector<unsigned int> col_number;
-    while(getline(input, line)) {
-        if (line.empty()) {continue;}                           // skip empty lines
-        if (line[0] == '#') {continue;}                         // skip comments
-        if (line[0] == '@') {header.push_back(line); continue;} // save header lines
-
-        // remove leading whitespace
-        std::vector<std::string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
-
-        // remove empty tokens
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].empty()) {
-                tokens.erase(tokens.begin() + i);
-                i--;
-            }
-        }
-
-        // check if all tokens are numbers
-        bool skip = false;
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
-                skip = true;
-            }
-        }
-        if (skip) {continue;}
-
-        // add values to dataset
-        std::vector<double> vals(tokens.size());
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            vals[i] = std::stod(tokens[i]);
-        }
-        row_data.push_back(vals);
-        col_number.push_back(vals.size());
-    }
-
+std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vector<unsigned int>&& col_number, std::vector<std::vector<double>>&& row_data, const io::ExistingFile& path, unsigned int expected_cols) {
     unsigned int mode = stats::mode(col_number);
 
-    // sanity check: comparing the detected number of columns with the header
+   // sanity check: comparing the detected number of columns with the header
     if (!header.empty() && header.back().find("type") != std::string::npos) {
         std::string type = header.back().substr(6);
         if (mode == 2) {
@@ -83,7 +37,7 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
 
     // check that we have at least the expected number of columns
     if (expected_cols != 0 && mode < expected_cols) {
-        throw except::io_error("XVGReader::construct: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
+        throw except::io_error("XVGReader::parse_data: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
     }
 
     // copy the data to the dataset
@@ -129,7 +83,7 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
 
     // verify that at least one row was read correctly
     if (dataset->empty()) {
-        throw except::io_error("XVGReader::construct: No data could be read from the file.");
+        throw except::io_error("XVGReader::parse_data: No data could be read from the file.");
     }
 
     // unit conversion
@@ -145,6 +99,57 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
         std::cout << "\tRemoved " << N - dataset->size_rows() << " data points outside specified q-range [" << settings::axes::qmin << ", " << settings::axes::qmax << "]." << std::endl;
     }
 
+    return dataset;
+};
+
+std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
+    if (settings::general::verbose) {
+        console::print_info("Loading dataset from \"" + path + "\"");
+    }
+
+    // check if file was succesfully opened
+    std::ifstream input(path);
+    if (!input.is_open()) {throw std::ios_base::failure("XVGReader::parse_data: Could not open file \"" + path + "\"");}
+
+    std::string line;
+    std::vector<std::string> header;
+    std::vector<std::vector<double>> row_data;
+    std::vector<unsigned int> col_number;
+    while(getline(input, line)) {
+        if (line.empty()) {continue;}                           // skip empty lines
+        if (line[0] == '#') {continue;}                         // skip comments
+        if (line[0] == '@') {header.push_back(line); continue;} // save header lines
+
+        // remove leading whitespace
+        std::vector<std::string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
+
+        // remove empty tokens
+        for (unsigned int i = 0; i < tokens.size(); i++) {
+            if (tokens[i].empty()) {
+                tokens.erase(tokens.begin() + i);
+                i--;
+            }
+        }
+
+        // check if all tokens are numbers
+        bool skip = false;
+        for (unsigned int i = 0; i < tokens.size(); i++) {
+            if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
+                skip = true;
+            }
+        }
+        if (skip) {continue;}
+
+        // add values to dataset
+        std::vector<double> vals(tokens.size());
+        for (unsigned int i = 0; i < tokens.size(); i++) {
+            vals[i] = std::stod(tokens[i]);
+        }
+        row_data.push_back(vals);
+        col_number.push_back(vals.size());
+    }
+
+    auto dataset = parse_data(std::move(header), std::move(col_number), std::move(row_data), path, expected_cols);
     // check if the file is abnormally large
     if (dataset->size_rows() > 300) {
         // reread first line
@@ -164,5 +169,70 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
     if (settings::general::verbose) {
         std::cout << "\tSuccessfully read " << dataset->size_rows() << " data points from " << path << std::endl;
     }
+
     return dataset;
+}
+
+std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(const io::ExistingFile& path) {
+    if (settings::general::verbose) {
+        console::print_info("Loading dataset from \"" + path + "\"");
+    }
+    auto verbose = settings::general::verbose;
+    settings::general::verbose = false;
+
+    // check if file was succesfully opened
+    std::ifstream input(path);
+    if (!input.is_open()) {throw std::ios_base::failure("XVGReader::construct_multifile: Could not open file \"" + path + "\"");}
+
+    std::string line;
+    std::vector<std::string> header;
+    std::vector<std::vector<double>> row_data;
+    std::vector<unsigned int> col_number;
+    std::vector<std::unique_ptr<Dataset>> datasets;
+    while(getline(input, line)) {
+        if (line.find("@type") == std::string::npos) {continue;}
+        else {header.push_back(line);}
+
+        while (getline(input, line) && line[0] != '&') {
+            // remove leading whitespace
+            std::vector<std::string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
+
+            // remove empty tokens
+            for (unsigned int i = 0; i < tokens.size(); i++) {
+                if (tokens[i].empty()) {
+                    tokens.erase(tokens.begin() + i);
+                    i--;
+                }
+            }
+
+            // check if all tokens are numbers
+            bool skip = false;
+            for (unsigned int i = 0; i < tokens.size(); i++) {
+                if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
+                    skip = true;
+                }
+            }
+            if (skip) {continue;}
+
+            // add values to dataset
+            std::vector<double> vals(tokens.size());
+            for (unsigned int i = 0; i < tokens.size(); i++) {
+                vals[i] = std::stod(tokens[i]);
+            }
+            row_data.push_back(vals);
+            col_number.push_back(vals.size());
+        }
+
+        datasets.push_back(parse_data(std::move(header), std::move(col_number), std::move(row_data), path, 0));
+        header.clear();
+        row_data.clear();
+        col_number.clear();
+    }
+
+    settings::general::verbose = verbose;
+    if (settings::general::verbose) {
+        std::cout << "\tSuccessfully read " << datasets.size() << " datasets from " << path << std::endl;
+    }
+
+    return datasets;
 }
