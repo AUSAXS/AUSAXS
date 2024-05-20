@@ -54,7 +54,6 @@ int main(int argc, char const *argv[]) {
         ausaxs_foxs_xx = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_xx().as_dataset();
     }
     {   // pepsi mimic
-        settings::hist::weighted_bins = true;
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PepsiManager;
         data::Molecule molecule(pdb);
 
@@ -145,7 +144,7 @@ int main(int argc, char const *argv[]) {
     .save(settings::general::output + "profiles_aa.png");
 
     plots::PlotIntensity()
-        .plot(crysol_data_ww, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{ww}$ profiles"}, {"xrange", Limit(1e-2, 1)}}))
+        .plot(crysol_data_ww, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{ww}$ profiles"}, {"xrange", Limit(1e-2, 1)}, {"yrange", Limit(1e-5, 1.1)}}))
         .plot(foxs_data_ww, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_data_ww, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
         // .plot(waxsis_data_ww, plots::PlotOptions({{"legend", "WAXSiS"}, {"color", style::color::green}}))
@@ -175,7 +174,7 @@ int main(int argc, char const *argv[]) {
         foxs_diff_aa.y(i) /= ausaxs_foxs_aa.interpolate_x(foxs_diff_aa.x(i), 1);
     }
 
-    SimpleDataset pepsi_diff_xx = pepsi_data_xx, pepsi_diff_aa = pepsi_data_aa;
+    SimpleDataset pepsi_diff_xx = pepsi_data_xx, pepsi_diff_aa = pepsi_data_aa, pepsi_diff_ww = pepsi_data_ww;
     for (size_t i = 0; i < pepsi_diff_xx.size(); ++i) {
         pepsi_diff_xx.y(i) /= ausaxs_pepsi_xx.interpolate_x(pepsi_diff_xx.x(i), 1);
         pepsi_diff_aa.y(i) /= ausaxs_pepsi_aa.interpolate_x(pepsi_diff_aa.x(i), 1);

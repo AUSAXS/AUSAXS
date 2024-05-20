@@ -72,18 +72,19 @@ int main(int argc, char const *argv[]) {
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg, 
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit,
-            settings::hist::HistogramManagerChoice::FoXSManager
+            settings::hist::HistogramManagerChoice::FoXSManager,
+            settings::hist::HistogramManagerChoice::CrysolManager,
+            settings::hist::HistogramManagerChoice::PepsiManager
         };
 
         loop_names = {
             "HistogramManagerMT",
             "HistogramManagerMTFFGrid",
-            "HistogramManagerMTFFGrid1",
-            "HistogramManagerMTFFGrid2",
-            "HistogramManagerMTFFGrid3",
             "HistogramManagerMTFFAvg", 
             "HistogramManagerMTFFExplicit",
-            "FoXS"
+            "FoXS",
+            "CRYSOL",
+            "Pepsi-SAXS"
         };
         volumes = "TRAUBE";
     #elif PONTIUS_FF
@@ -123,6 +124,8 @@ int main(int argc, char const *argv[]) {
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
             case settings::hist::HistogramManagerChoice::FoXSManager:
+            case settings::hist::HistogramManagerChoice::PepsiManager:
+            case settings::hist::HistogramManagerChoice::CrysolManager:
                 settings::molecule::use_effective_charge = false;
                 perform_fit(loop_names[i] + "_fitted", loop[i], true);
                 break;
