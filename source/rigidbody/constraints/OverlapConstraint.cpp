@@ -21,6 +21,10 @@ OverlapConstraint::OverlapConstraint(data::Molecule* protein) {
 
 OverlapConstraint::~OverlapConstraint() = default;
 
+void OverlapConstraint::set_strength(double s) {
+    strength = s;
+}
+
 double OverlapConstraint::evaluate() const {
     if (target.empty()) [[unlikely]] {return 0;}
     auto current = protein->get_total_histogram()->get_total_counts();
@@ -33,7 +37,7 @@ double OverlapConstraint::evaluate() const {
 }
 
 double OverlapConstraint::weight(double r) {
-    return std::exp(-5*r);
+    return strength*std::exp(-5*r);
 }
 
 void OverlapConstraint::initialize() {

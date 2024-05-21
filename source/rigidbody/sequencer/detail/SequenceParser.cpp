@@ -34,6 +34,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace rigidbody::sequencer;
 
 enum class rigidbody::sequencer::ElementType {
+    OverlapStrength,
     LoadElement,
     Constraint,
     AutomaticConstraint,
@@ -50,6 +51,7 @@ enum class rigidbody::sequencer::ElementType {
 
 ElementType get_type(std::string_view line) {
     static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
+        {ElementType::OverlapStrength, {"overlap_strength"}},
         {ElementType::LoadElement, {"load", "open"}},
         {ElementType::Constraint, {"constraint", "constrain"}},
         {ElementType::AutomaticConstraint, {"generate_constraints", "autoconstraints", "autoconstrain"}},
@@ -409,6 +411,13 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sav
 }
 
 template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OverlapStrength>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"overlap_strength\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    static_cast<Sequencer*>(loop_stack.front())->set_overlap_strength(std::stod(args.begin()->second[0]));
+    return nullptr;
+}
+
+template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SaveOnImprove>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save_on_improve\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     auto last_element_cast = dynamic_cast<OptimizeStepElement*>(loop_stack.back()->_get_elements().back().get());
@@ -529,8 +538,12 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
                 loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::LoadElement>(args));
                 break;
 
+            case ElementType::OverlapStrength:
+                parse_arguments<ElementType::OverlapStrength>(args);
+                break;
+
             default:
-                throw except::invalid_argument("SequenceParser::constructor: Unknown element type.");
+                throw except::invalid_argument("SequenceParser::constructor: Unknown element type \"" + tokens[0] + "\".");
         }
     }
     return sequencer;

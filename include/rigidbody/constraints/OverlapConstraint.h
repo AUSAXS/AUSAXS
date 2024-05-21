@@ -31,6 +31,8 @@ namespace rigidbody::constraints {
 
             bool operator==(const OverlapConstraint& other) const;
 
+            static void set_strength(double s);
+
         protected:
             static double weight(double r);
 
@@ -39,6 +41,7 @@ namespace rigidbody::constraints {
             std::vector<double> target;
             std::vector<double> weights;
             std::vector<double> axis;
+            inline static double strength = 1;
 
             /**
              * @brief Initialize the target distribution.

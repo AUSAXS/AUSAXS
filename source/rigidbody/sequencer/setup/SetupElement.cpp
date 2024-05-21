@@ -11,12 +11,18 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/RigidBody.h>
 
 using namespace rigidbody::sequencer;
 
 SetupElement::SetupElement(observer_ptr<Sequencer> owner) : LoopElementCallback(owner) {}
+
+SetupElement& SetupElement::set_overlap_strength(double strength) {
+    rigidbody::constraints::OverlapConstraint::set_strength(strength);
+    return *this;
+}
 
 SetupElement& SetupElement::load(const std::vector<std::string>& paths, const std::vector<std::string>& names) {
     owner->_get_elements().push_back(std::make_unique<LoadElement>(static_cast<Sequencer*>(owner), paths, names));

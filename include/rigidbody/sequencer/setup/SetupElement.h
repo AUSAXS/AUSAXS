@@ -19,6 +19,8 @@ namespace rigidbody::sequencer {
             SetupElement(observer_ptr<Sequencer> owner);
             virtual ~SetupElement() = default;
 
+            SetupElement& set_overlap_strength(double strength);
+
             SetupElement& load(const std::vector<std::string>& path, const std::vector<std::string>& body_names = {});
 
             SetupElement& load_existing(observer_ptr<RigidBody> rigidbody);

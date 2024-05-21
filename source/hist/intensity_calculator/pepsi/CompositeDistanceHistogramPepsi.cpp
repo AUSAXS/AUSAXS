@@ -10,8 +10,7 @@ double hist::CompositeDistanceHistogramPepsi::exv_factor(double q) const {
     // This is just a Maclaurin expansion of the original expression, containing only the linear terms and no q-dependence
     constexpr double rm = 1.64;
     constexpr double c = 2*constants::pi*constexpr_math::pow(4*constants::pi/3, 2./3)*rm*rm;
-    return (1 + cx*(3-c));
-    // return (1 - cx*(3-c*q*q));
+    return (1 - cx*(3-c));
 }
 
 Limit hist::CompositeDistanceHistogramPepsi::get_excluded_volume_scaling_factor_limits() const {
