@@ -54,7 +54,7 @@ jobs:
 
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
-        run: brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
+        run: brew install curl # pkg-config cairo fontconfig bzip2 expat zlib libpng webp
 
       - name: Export GitHub Actions cache environment variables
         if: matrix.os == 'windows-latest'
@@ -121,7 +121,7 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=ON -DDLIB=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
                 -DARCH=${{ matrix.arch }} -S . -B build
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j
 
