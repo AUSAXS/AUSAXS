@@ -11,6 +11,7 @@ namespace hydrate {
     class PepsiHydration : public GridBasedHydration {
         public:
             PepsiHydration(observer_ptr<data::Molecule> protein);
+            PepsiHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
             ~PepsiHydration() override;
 
             std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;

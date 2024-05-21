@@ -15,7 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace hydrate;
 
-GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein) : protein(protein) {}
+GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein) : protein(protein), culling_strategy(factory::construct_culling_strategy(protein)) {}
+GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy) : protein(protein), culling_strategy(std::move(culling_strategy)) {}
 
 void GridBasedHydration::initialize() {
     protein->signal_modified_hydration_layer();
@@ -25,9 +26,12 @@ void GridBasedHydration::initialize() {
 
 GridBasedHydration::~GridBasedHydration() = default;
 
+void GridBasedHydration::set_culling_strategy(std::unique_ptr<CullingStrategy> culling_strategy) {
+    this->culling_strategy = std::move(culling_strategy);
+}
+
 std::unique_ptr<Hydration> GridBasedHydration::hydrate() {
     auto grid = protein->get_grid();
-    if (culling_strategy == nullptr) {culling_strategy = hydrate::factory::construct_culling_strategy(grid);}
     if (grid->w_members.size() != 0) {grid->clear_waters();}
     grid->expand_volume();
     auto waters = generate_explicit_hydration();

@@ -10,9 +10,12 @@ namespace hydrate {
     class GridBasedHydration : public HydrationStrategy {
         public:
             GridBasedHydration(observer_ptr<data::Molecule> protein);
+            GridBasedHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
             virtual ~GridBasedHydration();
 
             std::unique_ptr<Hydration> hydrate() override;
+
+            void set_culling_strategy(std::unique_ptr<CullingStrategy> culling_strategy);
 
         protected:
             observer_ptr<data::Molecule> protein;

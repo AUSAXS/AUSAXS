@@ -4,8 +4,9 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hydrate/culling/CounterCulling.h>
-#include <grid/detail/GridMember.h>
 #include <data/record/Water.h>
+#include <data/Molecule.h>
+#include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
 
 #include <cmath>
@@ -38,6 +39,6 @@ std::vector<data::record::Water> hydrate::CounterCulling::cull(std::vector<grid:
     }
     removed_water.resize(rm_index);
     final_water.resize(pw_index);
-    grid->remove(removed_water);
+    molecule->get_grid()->remove(removed_water);
     return final_water;
 }

@@ -5,14 +5,19 @@
 namespace hydrate {
     /**
      * @brief Iterates through all placed water molecules, rejecting all but the nth, where n is determined from the desired number of water molecules. 
+     *        This is done on a per-body basis, allowing for more control over the hydration placement. 
      */
-    template<typename Wrapped>
-    class RandomCulling : public Wrapped {
+    class BodyCounterCulling : public CullingStrategy {
         public:
-            using Wrapped::Wrapped;
-            ~RandomCulling() override;
+            using CullingStrategy::CullingStrategy;
+            ~BodyCounterCulling() override = default;
 
             // runs in O(n) where n is the number of water molecules
             std::vector<data::record::Water> cull(std::vector<grid::GridMember<data::record::Water>>& placed_water) const override;
-    };
+
+            void set_body_ratios(const std::vector<double>& body_ratios);
+
+        private:
+            std::vector<double> body_ratios;
+    };       
 }

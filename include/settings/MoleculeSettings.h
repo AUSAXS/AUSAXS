@@ -20,8 +20,11 @@ namespace settings {
 
         enum class CullingStrategy {
             CounterStrategy, 
+            BodyCounterStrategy,
             OutlierStrategy, 
-            RandomStrategy,
+            RandomCounterStrategy,
+            RandomOutlierStrategy,
+            RandomBodyCounterStrategy,
             NoStrategy
         };
         extern CullingStrategy culling_strategy;

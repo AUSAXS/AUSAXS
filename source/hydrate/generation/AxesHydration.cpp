@@ -17,6 +17,10 @@ hydrate::AxesHydration::AxesHydration(observer_ptr<data::Molecule> protein) : Gr
     initialize();
 }
 
+hydrate::AxesHydration::AxesHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy) : GridBasedHydration(protein, std::move(culling_strategy)) {
+    initialize();
+}
+
 hydrate::AxesHydration::~AxesHydration() = default;
 
 void hydrate::AxesHydration::initialize() {

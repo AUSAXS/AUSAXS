@@ -239,6 +239,14 @@ std::vector<Water>& Molecule::get_waters() {
     return const_cast<std::vector<Water>&>(static_cast<const Molecule*>(this)->get_waters());
 }
 
+observer_ptr<hydrate::HydrationStrategy> Molecule::get_hydration_generator() const {
+    return hydration_strategy.get();
+}
+
+void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager) {
+    hydration_strategy = std::move(manager);
+}
+
 void Molecule::generate_new_hydration() {
     if (hydration_strategy == nullptr) {
         hydration_strategy = hydrate::factory::construct_hydration_generator(this);

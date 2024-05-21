@@ -14,7 +14,7 @@ namespace hydrate {
      */
     class CullingStrategy {
         public:
-            CullingStrategy(observer_ptr<grid::Grid> grid);
+            CullingStrategy(observer_ptr<data::Molecule> grid);
             virtual ~CullingStrategy();
 
             /**
@@ -31,6 +31,6 @@ namespace hydrate {
 
         protected: 
             unsigned int target_count = 0; // The desired number of molecules after the culling.
-            observer_ptr<grid::Grid> grid;
+            observer_ptr<data::Molecule> molecule;
     };
 }

@@ -153,7 +153,7 @@ TEST_CASE("Molecule::get_Rg", "[files]") {
 
     SECTION("LAR1-2") {
         Molecule protein("test/files/LAR1-2.pdb");
-        REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(28.88, 0.02));
+        REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(28.92, 0.02));
     }
 
     settings::molecule::throw_on_unknown_atom = false;

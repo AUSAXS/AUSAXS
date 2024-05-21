@@ -196,7 +196,6 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
     };
 
     // Iterate through all atoms, and use radial lines to detect other nearby atoms. Group them into clusters.
-    unsigned int index = 0; // index of current atom
     for (grid::GridMember<Atom>& atom : grid->a_members) {
         // check if atom is already in a group
         unsigned int id1 = to_id(atom.get_bin_loc());
@@ -228,8 +227,6 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
                 merge_groups(groups[id2], g1);
             }
         }
-
-        index++;
     }
 
     // determine which groups to remove

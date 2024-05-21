@@ -16,6 +16,10 @@ hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein) : Grid
     initialize();
 }
 
+hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy) : GridBasedHydration(protein, std::move(culling_strategy)) {
+    initialize();
+}
+
 std::vector<grid::GridMember<data::record::Water>> hydrate::JanHydration::generate_explicit_hydration() {
     auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;

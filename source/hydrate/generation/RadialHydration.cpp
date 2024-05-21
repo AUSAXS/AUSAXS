@@ -18,6 +18,11 @@ hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) 
     prepare_rotations();
 }
 
+hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy) : GridBasedHydration(protein, std::move(culling_strategy)) {
+    initialize();
+    prepare_rotations();
+}
+
 hydrate::RadialHydration::~RadialHydration() = default;
 
 void hydrate::RadialHydration::initialize() {

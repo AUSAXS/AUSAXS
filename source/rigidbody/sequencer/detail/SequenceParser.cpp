@@ -13,6 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/setup/LoadElement.h>
 #include <rigidbody/sequencer/setup/ConstraintElement.h>
 #include <rigidbody/sequencer/setup/AutoConstraintsElement.h>
+#include <rigidbody/sequencer/setup/RelativeHydrationElement.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
@@ -46,7 +47,8 @@ enum class rigidbody::sequencer::ElementType {
     OptimizeStep,
     EveryNStep,
     Save,
-    SaveOnImprove
+    SaveOnImprove,
+    RelativeHydration
 };
 
 ElementType get_type(std::string_view line) {
@@ -63,7 +65,8 @@ ElementType get_type(std::string_view line) {
         {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
         {ElementType::EveryNStep, {"every", "for_every"}},
         {ElementType::Save, {"save", "write"}},
-        {ElementType::SaveOnImprove, {"save_on_improve", "write_on_improve"}}
+        {ElementType::SaveOnImprove, {"save_on_improve", "write_on_improve"}},
+        {ElementType::RelativeHydration, {"relative_hydration"}}
     };
     for (const auto& [type, prefixes] : type_map) {
         for (const auto& prefix : prefixes) {
@@ -393,6 +396,62 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Tra
 }
 
 template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::RelativeHydration>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    enum class Options {Maximum, High, Normal, Low, Minimum};
+    std::unordered_map<std::string, Options> options = {
+        {"max",     Options::Maximum},
+        {"maximum", Options::Maximum},
+        {"high",    Options::High},
+        {"normal",  Options::Normal},
+        {"low",     Options::Low},
+        {"minimum", Options::Minimum},
+        {"min",     Options::Minimum}
+    };
+
+    auto to_value = [] (Options opt) {
+        switch (opt) {
+            case Options::Maximum:  return 1.75;
+            case Options::High:     return 1.5;
+            case Options::Normal:   return 1.0;
+            case Options::Low:      return 0.5;
+            case Options::Minimum:  return 0.25;
+        }
+        return 0.0;
+    };
+
+    auto rigidbody = loop_stack.front()->_get_rigidbody();
+    if (args.size() != rigidbody->size_body()) {
+        throw except::invalid_argument(
+            "SequenceParser::parse_arguments: Invalid number of arguments for \"relative_hydration\". Expected 0, but got " + std::to_string(args.size()) + "."
+        );
+    }
+
+    std::vector<double> ratios;
+    std::vector<std::string> names;
+    bool generic = false;
+    unsigned int i = 1;
+    for (const auto& [name, value] : args) {
+        double val = to_value(options[value[0]]);
+
+        // check if generic names are used
+        if (name == "body" + std::to_string(i)) {
+            ratios.push_back(val);
+            generic = true;
+            continue;
+        }
+
+        generic = false;
+        names.push_back(name);
+        ratios.push_back(val);
+    }
+
+    if (generic) {
+        return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), ratios);
+    }
+    return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), ratios, names);
+}
+
+template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OptimizeStep>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 0) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"optimize_step\". Expected 0, but got " + std::to_string(args.size()) + ".");}
     return std::make_unique<OptimizeStepElement>(loop_stack.back());
@@ -540,6 +599,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
 
             case ElementType::OverlapStrength:
                 parse_arguments<ElementType::OverlapStrength>(args);
+                break;
+
+            case ElementType::RelativeHydration:
+                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::RelativeHydration>(args));
                 break;
 
             default:

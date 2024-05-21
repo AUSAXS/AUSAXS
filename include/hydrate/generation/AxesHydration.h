@@ -14,6 +14,7 @@ namespace hydrate {
     class AxesHydration : public GridBasedHydration {
         public:
             AxesHydration(observer_ptr<data::Molecule> protein);
+            AxesHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
             virtual ~AxesHydration();
 
             std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
