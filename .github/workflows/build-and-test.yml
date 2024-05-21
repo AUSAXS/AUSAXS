@@ -122,7 +122,7 @@ jobs:
         run: |
           mkdir build
           cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
-                -DARCH=${{ matrix.arch }} -S . -B build
+                -S . -B build
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j
 
       - name: Upload artifact
