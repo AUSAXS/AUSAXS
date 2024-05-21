@@ -72,6 +72,7 @@ jobs:
         id: windows-python
 
       - name: Install dependencies (windows)
+        if: matrix.os == 'windows-latest'
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           pip install matplotlib numpy pyinstaller
