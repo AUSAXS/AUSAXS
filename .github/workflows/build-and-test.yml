@@ -166,5 +166,8 @@ jobs:
           name: ${{ matrix.os }}-binaries
           path: build
 
+      - name: Install dependencies
+        run: python -m pip install numpy
+
       - name: Test shared library through ctypes
-        run: python3 test/test_shared_lib.py ${PWD}/build
+        run: python test/test_shared_lib.py ${PWD}/build
