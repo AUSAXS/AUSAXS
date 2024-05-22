@@ -54,7 +54,7 @@ jobs:
 
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
-        run: brew install curl # pkg-config cairo fontconfig bzip2 expat zlib libpng webp
+        run: brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
 
       - name: Export GitHub Actions cache environment variables
         if: matrix.os == 'windows-latest'
