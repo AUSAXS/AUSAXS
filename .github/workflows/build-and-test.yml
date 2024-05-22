@@ -154,7 +154,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: 
-        os: [ubuntu-latest, windows-latest] # macos-latest
+        os: [macos-latest] #[ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout code
