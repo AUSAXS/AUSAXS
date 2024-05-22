@@ -174,4 +174,6 @@ jobs:
 
       - name: Check universal library
         if : matrix.os == 'macos-latest'
-        run: file build/lib/libausaxs.dylib
+        run: |
+          file build/lib/libausaxs.dylib
+          otool -L build/lib/libausaxs.dylib
