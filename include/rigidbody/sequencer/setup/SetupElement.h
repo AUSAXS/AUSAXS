@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <functional>
 
 namespace rigidbody::sequencer {
     /**
@@ -19,10 +20,25 @@ namespace rigidbody::sequencer {
             SetupElement(observer_ptr<Sequencer> owner);
             virtual ~SetupElement() = default;
 
-            SetupElement& set_overlap_strength(double strength);
+            /**
+             * @brief Set the overlap function for evaluating the overlap penalty. 
+             *        The function is multiplied onto the distance histogram, with the sum of the product being the chi2 penalty. 
+             *
+             * @param func The monotonically decreasing weight function. 
+             */
+            SetupElement& set_overlap_function(std::function<double(double)> func);
 
+            /**
+             * @brief Load a body from a file. 
+             * 
+             * @param path Path to the file.
+             * @param body_names Optional names for the bodies contained in the file.
+             */
             SetupElement& load(const std::vector<std::string>& path, const std::vector<std::string>& body_names = {});
 
+            /**
+             * @brief Load an existing rigidbody. 
+             */
             SetupElement& load_existing(observer_ptr<RigidBody> rigidbody);
 
             /**
@@ -77,6 +93,9 @@ namespace rigidbody::sequencer {
              */
             SetupElement& distance_constraint_center_mass(const std::string& body1, const std::string& body2);
 
+            /**
+             * @brief Create a fixed constraint for the currently active body. 
+             */
             SetupElement& fixed_constraint();
 
             /**

@@ -434,13 +434,16 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Rel
         double val = to_value(options[value[0]]);
 
         // check if generic names are used
-        if (name == "body" + std::to_string(i)) {
+        if (name == "body" + std::to_string(i++)) {
             ratios.push_back(val);
             generic = true;
             continue;
         }
 
-        generic = false;
+        if (generic) {
+            throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
+        }
+
         names.push_back(name);
         ratios.push_back(val);
     }
@@ -471,8 +474,21 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sav
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OverlapStrength>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"overlap_strength\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    static_cast<Sequencer*>(loop_stack.front())->set_overlap_strength(std::stod(args.begin()->second[0]));
+    enum class Args {scaling, distance};
+    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
+        {Args::scaling, {"scaling", "factor"}},
+        {Args::distance, {"max", "max_distance", "distance"}}
+    };
+    if (args.size() != valid_args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"overlap_strength\". Expected 2, but got " + std::to_string(args.size()) + ".");}
+    double scaling, distance;
+    try {
+        scaling = std::stod(args.at("scaling")[0]);
+        distance = std::stod(args.at("distance")[0]);
+    } catch (std::invalid_argument& e) {
+        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for \"overlap_strength\". Expected decimal values.");
+    }
+
+    static_cast<Sequencer*>(loop_stack.front())->set_overlap_function([scaling, distance] (double x) {return x < distance ? scaling*std::pow((distance-x)/distance, 2) : 0;});
     return nullptr;
 }
 

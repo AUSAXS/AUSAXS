@@ -19,8 +19,8 @@ using namespace rigidbody::sequencer;
 
 SetupElement::SetupElement(observer_ptr<Sequencer> owner) : LoopElementCallback(owner) {}
 
-SetupElement& SetupElement::set_overlap_strength(double strength) {
-    rigidbody::constraints::OverlapConstraint::set_strength(strength);
+SetupElement& SetupElement::set_overlap_function(std::function<double(double)> func) {
+    rigidbody::constraints::OverlapConstraint::set_overlap_function(func);
     return *this;
 }
 
@@ -103,7 +103,7 @@ SetupElement& SetupElement::distance_constraint_center_mass(const std::string& i
 }
 
 SetupElement& SetupElement::fixed_constraint() {
-    return *this;
+    throw std::runtime_error("SetupElement::fixed_constraint: Not implemented.");
 }
 
 SetupElement& SetupElement::generate_linear_constraints() {

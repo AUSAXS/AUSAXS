@@ -31,17 +31,17 @@ namespace rigidbody::constraints {
 
             bool operator==(const OverlapConstraint& other) const;
 
-            static void set_strength(double s);
+            static void set_overlap_function(std::function<double(double)> func);
 
         protected:
             static double weight(double r);
 
         private: 
+            inline static std::function<double(double)> overlap_function = [](double r) {return std::exp(-5*r);};
             observer_ptr<data::Molecule> protein;
             std::vector<double> target;
             std::vector<double> weights;
             std::vector<double> axis;
-            inline static double strength = 1;
 
             /**
              * @brief Initialize the target distribution.

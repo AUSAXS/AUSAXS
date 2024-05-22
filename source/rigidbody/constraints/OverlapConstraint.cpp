@@ -21,8 +21,8 @@ OverlapConstraint::OverlapConstraint(data::Molecule* protein) {
 
 OverlapConstraint::~OverlapConstraint() = default;
 
-void OverlapConstraint::set_strength(double s) {
-    strength = s;
+void OverlapConstraint::set_overlap_function(std::function<double(double)> func) {
+    overlap_function = func;
 }
 
 double OverlapConstraint::evaluate() const {
@@ -32,12 +32,12 @@ double OverlapConstraint::evaluate() const {
     for (unsigned int i = 1; i < target.size(); i++) { // skip the self-correlation bin
         chi2 += std::pow((current[i] - target[i])*weights[i], 2);
     }
-    // std::cout << "Overlap constraint: " << chi2 << std::endl;
+    std::cout << "Overlap constraint: " << chi2 << std::endl;
     return chi2;
 }
 
 double OverlapConstraint::weight(double r) {
-    return strength*std::exp(-5*r);
+    return overlap_function(r);
 }
 
 void OverlapConstraint::initialize() {
