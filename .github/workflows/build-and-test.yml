@@ -121,7 +121,7 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
                 -S . -B build
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
 
@@ -165,9 +165,6 @@ jobs:
         with:
           name: ${{ matrix.os }}-binaries
           path: build
-
-      - name: Get Python packages
-        run: pip3 install numpy
 
       - name: Test shared library through ctypes
         run: python3 test/test_shared_lib.py ${PWD}/build
