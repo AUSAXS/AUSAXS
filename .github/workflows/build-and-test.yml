@@ -73,11 +73,11 @@ jobs:
 
       - name: Setup MSBUILD (windows)
         if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v1.1.3
 
       - name: Install MSVC dev cmd (windows)
         if: matrix.os == 'windows-latest'
-        uses: ilammy/msvc-dev-cmd@v1.3.0
+        uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
           spectre: true
