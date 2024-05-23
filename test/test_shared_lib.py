@@ -50,10 +50,10 @@ ausaxs.evaluate_sans_debye.argtypes = [
 ausaxs.evaluate_sans_debye.restype = None # don't expect a return value
 
 q = np.arange(1e-4, 1, 0.01)
-x = np.array([0, 1, 2, 3, 4])
-y = np.array([1, 2, 3, 4, 5])
-z = np.array([2, 3, 4, 5, 6])
-w = np.array([1, 1, 1, 1, 1])
+x = np.array([0, 1, 2, 3, 4, 5, 6, 7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+y = np.array([1, 2, 3, 4, 5, 6, 7, 8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21])
+z = np.array([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])
+w = np.array([1, 1, 1, 1, 1, 1, 1, 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1])
 nq = len(q)
 nc = len(x)
 status = ct.c_int(0)
