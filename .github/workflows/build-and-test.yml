@@ -75,6 +75,13 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v1.0.2
 
+      - name: Install MSVC dev cmd (windows)
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1.3.0
+        with:
+          arch: x64
+          spectre: true
+
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-latest'
         run: |
