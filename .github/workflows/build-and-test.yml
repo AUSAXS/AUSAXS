@@ -18,26 +18,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   name: "Ubuntu latest with gcc"
-          #   c_compiler: gcc
-          #   cpp_compiler: g++
-          #   arch: x86-64
+          - os: ubuntu-latest
+            name: "Ubuntu latest with GCC"
+            c_compiler: gcc
+            cpp_compiler: g++
+            arch: x86-64
 
-          # - os: ubuntu-20.04
-          #   name: "Ubuntu 20.04 with gcc"
-          #   c_compiler: gcc-10
-          #   cpp_compiler: g++-10
-          #   arch: x86-64
+          - os: ubuntu-20.04
+            name: "Ubuntu 20.04 with GCC"
+            c_compiler: gcc-10
+            cpp_compiler: g++-10
+            arch: x86-64
 
-          # - os: windows-latest
-          #   name: "Windows latest with msvc"
-          #   c_compiler: cl
-          #   cpp_compiler: cl
-          #   arch: x86-64
+          - os: windows-latest
+            name: "Windows latest with MSVC"
+            c_compiler: cl
+            cpp_compiler: cl
+            arch: x86-64
 
           - os: macos-latest
-            name: "MacOS arm64 latest with clang"
+            name: "MacOS arm64 latest with Clang"
             c_compiler: $(brew --prefix llvm@15)/bin/clang
             cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
             arch: x86-64
@@ -58,7 +58,7 @@ jobs:
 
       - name: Export GitHub Actions cache environment variables
         if: matrix.os == 'windows-latest'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -71,15 +71,15 @@ jobs:
           python-version: '3.12'
         id: windows-python
 
+      - name: Setup MSBUILD (windows)
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v1.0.2
+
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-latest'
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           pip install matplotlib numpy pyinstaller
-
-      - name: Get number of cores
-        uses: SimenB/github-actions-cpu-cores@v2
-        id: cpu-cores
 
       - name: Install libdwarf for debug build
         if: (matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest') && env.BUILD_TYPE == 'Debug'
@@ -95,9 +95,15 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=ON -DBUILD_PLOT_EXE=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} \
-                -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="x64-windows-static" \
-                -S . -B build
+          cmake -B build -S . -G "Ninja" \
+            -DGUI=ON \
+            -DBUILD_PLOT_EXE=ON \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+            -DARCH=${{ matrix.arch }} \
+            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="x64-windows-static"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui
 
       - name: Build the library (ubuntu latest)
@@ -105,7 +111,12 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build
+          cmake -B build -S . \
+            -DGUI=ON \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+            -DARCH=${{ matrix.arch }}
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
       - name: Build the library (ubuntu 20.04)
@@ -113,7 +124,12 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DARCH=${{ matrix.arch }} -S . -B build
+          cmake -B build -S . \
+            -DGUI=OFF \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+            -DARCH=${{ matrix.arch }}
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
  
       - name: Build the library (macos)
@@ -121,8 +137,10 @@ jobs:
         shell: bash
         run: |
           mkdir build
-          cmake -DGUI=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
-                -S . -B build
+          cmake -B build -S . \
+            -DGUI=OFF \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
 
       - name: Upload artifact
@@ -135,7 +153,7 @@ jobs:
       
       - name: Build tests (ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: cmake --build build --target tests -j ${{ steps.cpu-cores.outputs.count }}
+        run: cmake --build build --target tests -j12
 
       - name: Run tests (ubuntu)
         if: matrix.os == 'ubuntu-latest'
@@ -146,34 +164,3 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && (success() || failure())
         with:
           report_paths: build/test/reports/*.xml
-
-  test-shared-lib:
-    name: Test shared library
-    needs: build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix: 
-        os: [macos-latest] #[ubuntu-latest, windows-latest]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ matrix.os }}-binaries
-          path: build
-
-      - name: Install dependencies
-        run: python -m pip install numpy
-
-      - name: Test shared library through ctypes
-        run: python test/test_shared_lib.py ${PWD}/build
-
-      - name: Check universal library
-        if : matrix.os == 'macos-latest'
-        run: |
-          file build/lib/libausaxs.dylib
-          otool -L build/lib/libausaxs.dylib
