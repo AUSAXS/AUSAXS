@@ -11,7 +11,7 @@ double CompositeDistanceHistogramCrysol::exv_factor(double q) const {
     // G(q) factor from CRYSOL: https://doi.org/10.1107/S0021889895007047
     double magic_constant = 1/(4*constants::pi*constants::pi);
     double rm = 1.62;
-    double c = constexpr_math::pow(4*constants::pi/3, 3./2)*constants::pi*rm*rm*magic_constant;
+    double c = constexpr_math::pow(4*constants::pi/3, 2./3)*constants::pi*rm*rm*magic_constant;
     return std::pow(free_params.cx, 3)*std::exp(-c*(std::pow(free_params.cx, 2) - 1)*q*q);
 }
 
