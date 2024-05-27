@@ -298,6 +298,18 @@ foxs_exv/%:
 	@ mv temp/foxs/*.fit output/saxs_fitter/$*/foxs.fit
 	@ mv temp/foxs/$*.pdb.dat output/saxs_fitter/$*/foxs.dat
 
+foxs_exv_bounds/%:
+	@ rm -rf temp/foxs
+	@ mkdir -p temp/foxs/
+	@ cd temp/foxs; \
+	measurement=$$(find ../../data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	structure=$$(find $${folder}/ -name "*.pdb"); \
+	cp $${structure} .; \
+	cp $${measurement} .; \
+	${foxs} $$(basename "$${structure}") --max_q 1 --write-partial-profile true ${options}
+	@ mv temp/foxs/foxs*.dat output/saxs_fitter/$*/
+
 profile_comparison/%: build/bin/plot_profiles
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
 	folder=$$(dirname $${measurement}); \
