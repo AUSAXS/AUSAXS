@@ -9,10 +9,12 @@
 #include <plots/All.h>
 #include <settings/All.h>
 
+#include "../test/hist/hist_test_helper.h"
+
 using namespace data;
 using namespace data::record;
 
-TEST_CASE("CompositeDistanceHistogramFFGrid::volumes") {
+TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     settings::general::verbose = false;
     data::Molecule protein("test/files/2epe.pdb");
     auto V = protein.get_volume_grid();

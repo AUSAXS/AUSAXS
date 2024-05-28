@@ -6,6 +6,7 @@
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -13,13 +14,16 @@
 #include <settings/All.h>
 #include <utility/Utility.h>
 
+#include "hist_test_helper.h"
+
 using namespace hist;
 using namespace data;
 using namespace data::record;
 
+template<bool weighted>
 auto test = [] (const Molecule& protein) {
     settings::molecule::center = false; // to avoid rounding errors
-    auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+    auto h = hist::HistogramManagerMTFFGrid<weighted>(&protein).calculate_all();
 
     // convert the grid to water atoms
     auto exv_grid = protein.get_grid()->generate_excluded_volume();
@@ -29,7 +33,7 @@ auto test = [] (const Molecule& protein) {
         waters[i].set_effective_charge(1);
     }
     Molecule exv(protein.get_atoms(), waters);
-    auto h_exv = hist::HistogramManager<false>(&exv).calculate_all();
+    auto h_exv = hist::HistogramManager<weighted>(&exv).calculate_all();
 
     // calculate the xx, ax, aa distributions
     auto h_cast = static_cast<CompositeDistanceHistogramFFAvg*>(h.get());
@@ -98,17 +102,18 @@ auto test = [] (const Molecule& protein) {
     SUCCEED();
 };
 
+// Check that the histograms are correct
 TEST_CASE("HistogramManagerMTFFGrid::calculate") {
     settings::molecule::use_effective_charge = false;
     SECTION("simple") {
         settings::grid::width = GENERATE(0.2, 0.5, 1, 2);
         settings::grid::exv_radius = settings::grid::width;
+
         SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
-            settings::grid::width = 2;
-            settings::grid::exv_radius = 2;
             Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
             Molecule protein({a1});
-            test(protein);
+            test<false>(protein);
+            test<true>(protein);
         }
     }
 
@@ -118,6 +123,29 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate") {
         settings::grid::exv_radius = 1;
         Molecule protein("test/files/LAR1-2.pdb");
         protein.clear_hydration();
-        test(protein);
+        test<false>(protein);
+        test<true>(protein);
     }
+}
+
+// Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
+TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
+    settings::molecule::use_effective_charge = false;
+    settings::hist::weighted_bins = true;
+    Molecule protein("test/files/2epe.pdb");
+
+    auto exv_grid = protein.get_grid()->generate_excluded_volume();
+    std::vector<Atom> atoms(exv_grid.size());
+    for (unsigned int i = 0; i < exv_grid.size(); i++) {
+        atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_grid[i], 1, 0, constants::atom_t::dummy, "");
+    }
+    Molecule exv(atoms);
+
+    auto h_grid = hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
+    auto h_exv =  hist::HistogramManagerMT<true>(&exv).calculate_all();
+    auto h_atom = hist::HistogramManagerMT<true>(&protein).calculate_all();
+
+    auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
+    // CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis())); // this is not the same because the grid includes the d_ax distances
+    CHECK(compare_hist(h_grid_cast->get_d_axis_x(), h_exv->get_d_axis()));
 }

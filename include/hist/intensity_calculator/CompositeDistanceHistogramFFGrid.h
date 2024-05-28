@@ -67,10 +67,17 @@ namespace hist {
              */
             virtual ScatteringProfile get_profile_xx() const override;
 
+            /**
+             * @brief Get the distance axis for the excluded volume calculations. 
+             *        If weighted bins are used, this will be distinct from the regular distance axis.
+             */
+            const std::vector<double>& get_d_axis_x() const {return d_axis_x;}
+
         private: 
             static form_factor::storage::atomic::table_t generate_table();
             inline static form_factor::storage::atomic::table_t ff_table = generate_table();
             std::unique_ptr<table::VectorDebyeTable> weighted_sinc_table_x;
+            std::vector<double> d_axis_x;
 
             double exv_factor(double q) const override;
 

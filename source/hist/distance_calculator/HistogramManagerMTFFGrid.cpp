@@ -182,7 +182,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     p_tot.resize(max_bin);
     for (int i = 0; i < (int) max_bin; ++i) {
         p_tot.add_index(i, p_wx_generic.index(i));
-        // p_tot.add_index(i, p_xx_generic.index(i)); // we specifically do not add this to avoid polluting the bin center calculation
     }
     for (int i = 0; i < (int) p_ax_generic.size_x(); ++i) {
         for (int j = 0; j < (int) max_bin; ++j) {

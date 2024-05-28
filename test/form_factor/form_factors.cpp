@@ -4,6 +4,8 @@
 #include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorTable.h>
 #include <constants/Constants.h>
+#include <dataset/SimpleDataset.h>
+#include <plots/All.h>
 
 #include <iostream>
 
@@ -23,7 +25,7 @@ TEST_CASE("FormFactor::evaluate") {
 }
 
 // Check that the form factors are normalized. 
-TEST_CASE("FormFactor::normalized") {
+TEST_CASE("FormFactor: normalized") {
     for (unsigned int ff = 0; ff < get_count_without_excluded_volume(); ++ff) {
         const FormFactor& ff_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0), Catch::Matchers::WithinAbs(1, 1e-6));
@@ -34,7 +36,7 @@ TEST_CASE("FormFactor::normalized") {
 // These are all taken from the table at https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php (International Tables for Crystallography)
 using constants::form_factor::s_to_q;
 const auto& q_vals = constants::axes::q_vals;
-TEST_CASE("FormFactor::compare_with_four_gaussians") {
+TEST_CASE("FormFactor: compare_with_four_gaussians") {
     SECTION("oxygen") {
         std::array<double, 5> a =        {3.0485,  2.2868, 1.5463, 0.867,   0};
         std::array<double, 5> b = s_to_q({13.2771, 5.7011, 0.3239, 32.9089, 0});
@@ -94,4 +96,33 @@ TEST_CASE("FormFactor::compare_with_four_gaussians") {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(S.evaluate(q), 1e-3));
         }
     }
+}
+
+// Check that the form factors are equivalent to the figures in the Waasmeier & Kirfel paper. 
+TEST_CASE("FormFactor: comparison with Waasmeier & Kirfel") {
+    std::array<double, 5> a = {19.747344, 17.368476, 10.465718, 2.592602, 11.003653};
+    std::array<double, 5> b = {3.481823, 0.371224, 21.226641, 173.834271, 0.010719};
+    double c = -5.183497;
+
+    FormFactor Ba(a, s_to_q(b), c);
+    SimpleDataset ff_q, ff_s;
+    for (const double& q : q_vals) {
+        ff_q.push_back(q/(4*constants::pi), Ba.evaluate(q));
+    }
+
+    auto ffBa = [a, b, c] (double s) {return a[0]*std::exp(-b[0]*s*s) + a[1]*std::exp(-b[1]*s*s) + a[2]*std::exp(-b[2]*s*s) + a[3]*std::exp(-b[3]*s*s) + a[4]*std::exp(-b[4]*s*s) + c;};
+    double val0 = ffBa(0);
+    for (double s = 0; s < 6; s += 0.01) {
+        double val = ffBa(s)/val0;
+        ff_s.push_back(s, val);
+    }
+
+    for (unsigned int i = 0; i < ff_q.size(); ++i) {
+        REQUIRE_THAT(ff_q.y(i), Catch::Matchers::WithinAbs(ff_s.interpolate_x(ff_q.x(i), 1), 1e-3));
+    }
+
+    // plots::PlotDataset plot;
+    // plot.plot(ff_s, plots::PlotOptions({{"xlabel", "s [Å]"}, {"ylabel", "f(s)"}, {"color", style::color::blue}}));
+    // plot.plot(ff_q, plots::PlotOptions({{"xlabel", "q [Å⁻¹]"}, {"ylabel", "f(q)"}, {"color", style::color::red}}));
+    // plot.save("temp/test/form_factor/Waasmeier_Kirfel_comparison.png");
 }

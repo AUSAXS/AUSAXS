@@ -139,5 +139,6 @@ observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGrid::get_sinc
 }
 
 void CompositeDistanceHistogramFFGrid::initialize(std::vector<double>&& d_axis_x) {
-    weighted_sinc_table_x = std::make_unique<table::VectorDebyeTable>(std::move(d_axis_x));
+    this->d_axis_x = std::move(d_axis_x);
+    weighted_sinc_table_x = std::make_unique<table::VectorDebyeTable>(this->d_axis_x);
 }

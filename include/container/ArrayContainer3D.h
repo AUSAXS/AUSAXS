@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 
 #if SAFE_MATH
     #include <utility/Exceptions.h>
