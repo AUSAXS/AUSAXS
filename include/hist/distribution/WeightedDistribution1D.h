@@ -40,6 +40,11 @@ namespace hist {
             std::vector<double> get_weighted_axis() const;
 
             /**
+             * @brief Set the bin centers of this distribution.
+             */
+            void set_bin_centers(const std::vector<double>& centers);
+
+            /**
              * @brief Add a value for a given distance.
              * 
              * @param distance The distance to add the value to.

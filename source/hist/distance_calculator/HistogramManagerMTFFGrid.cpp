@@ -170,7 +170,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     // ensure that our new vectors are compatible with those from the base class
     // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
     auto cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    GenericDistribution1D_t p_tot = hist::Distribution1D(std::move(cast_res->get_counts())); // manual cast necessary here to allow another implicit cast to WeightedDistribution1D
+    GenericDistribution1D_t p_tot = hist::Distribution1D(std::move(cast_res->get_counts()));
+    if constexpr (use_weighted_distribution) {
+        p_tot.set_bin_centers(cast_res->get_d_axis());
+    }
+
     Distribution3D p_aa = std::move(cast_res->get_aa_counts_ff());
     Distribution2D p_aw = std::move(cast_res->get_aw_counts_ff());
     Distribution1D p_ww = std::move(cast_res->get_ww_counts_ff());
@@ -180,11 +184,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
 
     // update p_tot
     p_tot.resize(max_bin);
+    GenericDistribution1D_t p_tot_ax = hist::Distribution1D(std::max<int>(max_bin, p_wx_generic.size()));
     for (int i = 0; i < (int) max_bin; ++i) {
-        p_tot.add_index(i, p_wx_generic.index(i));
+        p_tot_ax.add_index(i, p_wx_generic.index(i));
     }
 
-    GenericDistribution1D_t p_tot_ax = hist::Distribution1D(std::max<int>(max_bin, p_wx_generic.size()));
     for (int i = 0; i < (int) p_ax_generic.size_x(); ++i) {
         for (int j = 0; j < (int) max_bin; ++j) {
             p_tot_ax.add_index(j, p_ax_generic.index(i, j));
