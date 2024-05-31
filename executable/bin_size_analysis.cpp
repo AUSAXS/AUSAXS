@@ -31,36 +31,14 @@
 #include <cassert>
 #include <filesystem>
 
-auto get_profile_xx = [] (hist::CompositeDistanceHistogramFFGrid* h) {
-    auto sinqd_table = table::VectorDebyeTable(h->get_d_axis());
-    auto cp_aa = h->get_aa_counts_ff();
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-
-    std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double xx_sum = std::inner_product(cp_aa.begin(form_factor::exv_bin, form_factor::exv_bin), cp_aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table.begin(q), 0.0);
-        Iq[q-q0] += xx_sum;
+// redefine without applying form factors
+auto get_profile_aa = [] (hist::ICompositeDistanceHistogram* h) {
+    auto I = h->get_profile_aa();
+    auto q = I.get_axis().as_vector();
+    for (unsigned int i = 0; i < I.size(); ++i) {
+        I.index(i) /= std::exp(-q[i]*q[i]);
     }
-    return hist::ScatteringProfile(Iq, debye_axis);
-};
-
-auto get_profile_aa = [] (hist::CompositeDistanceHistogramFFGrid* h) {
-    auto sinqd_table = table::VectorDebyeTable(h->get_d_axis());
-    auto cp_aa = h->get_aa_counts_ff();
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-
-    std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
-            for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
-                double aa_sum = std::inner_product(cp_aa.begin(i, j), cp_aa.end(i, j), sinqd_table.begin(q), 0.0);
-                Iq[q-q0] += aa_sum;
-            }
-        }
-    }
-    return hist::ScatteringProfile(Iq, debye_axis);
+    return I;
 };
 
 auto exact = [] (const data::Molecule& molecule) {
@@ -81,9 +59,9 @@ auto exact = [] (const data::Molecule& molecule) {
             for (unsigned int j = 0; j < atoms.size(); ++j) {
                 double qd = constants::axes::q_vals[q]*distances(i, j);
                 if (qd < 1e-6) {
-                    sum += atoms[i].effective_charge*atoms[j].effective_charge;
+                    sum += 1;
                 } else {
-                    sum += atoms[i].effective_charge*atoms[j].effective_charge*std::sin(qd)/(qd);
+                    sum += std::sin(qd)/(qd);
                 }
             }
         }
@@ -117,13 +95,14 @@ int main(int argc, char const *argv[]) {
     constants::radius::set_dummy_radius(2);
     if (setup) {
         data::Molecule protein_6lyz_exv("test/files/6lyz_exv.pdb");
-        for (auto& b : protein_6lyz_exv.get_bodies()) {for (auto& a : b.get_atoms()){a.element = constants::atom_t::dummy;}}
-        auto Iq =  get_profile_xx(static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&protein_6lyz_exv).calculate_all().get())).as_dataset();
-        auto Iqw = get_profile_xx(static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<true>(&protein_6lyz_exv).calculate_all().get())).as_dataset();
+        for (auto& b : protein_6lyz_exv.get_bodies()) {for (auto& a : b.get_atoms()){a.set_effective_charge(1);}}
+        auto Iq =  get_profile_aa(hist::HistogramManagerMT<false>(&protein_6lyz_exv).calculate_all().get()).as_dataset();
+        auto Iqw = get_profile_aa(hist::HistogramManagerMT<true>(&protein_6lyz_exv).calculate_all().get()).as_dataset();
 
         data::Molecule protein_6lyz("test/files/6lyz.pdb");
-        auto Iq2 =  get_profile_aa(static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&protein_6lyz).calculate_all().get())).as_dataset();
-        auto Iqw2 = get_profile_aa(static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<true>(&protein_6lyz).calculate_all().get())).as_dataset();
+        for (auto& b : protein_6lyz.get_bodies()) {for (auto& a : b.get_atoms()){a.set_effective_charge(1);}}
+        auto Iq2 =  get_profile_aa(hist::HistogramManagerMT<false>(&protein_6lyz).calculate_all().get()).as_dataset();
+        auto Iqw2 = get_profile_aa(hist::HistogramManagerMT<true>(&protein_6lyz).calculate_all().get()).as_dataset();
 
         Iq.normalize();
         Iqw.normalize();
@@ -193,18 +172,18 @@ int main(int argc, char const *argv[]) {
                 unweighted[i].y(j) /= std::abs(Iqexact.y(j));
             }
 
-            p_unweighted.plot(unweighted[i], plots::PlotOptions({{"color", color}, {"legend", "width " + width}, {"lw", 2}, {"yrange", Limit(0, 2)}, {"xlabel", "q"}, {"ylabel", "Relative deviation"}}));
-            p_weighted.plot(    weighted[i], plots::PlotOptions({{"color", color}, {"legend", "width " + width}, {"lw", 2}, {"yrange", Limit(0, 2)}}));
+            p_unweighted.plot(unweighted[i], plots::PlotOptions({{"color", color}, {"legend", "width " + width}, {"lw", 2}, {"yrange", Limit(0.5, 2)}, {"xlabel", "q"}, {"ylabel", "Relative deviation"}}));
+            p_weighted.plot(    weighted[i], plots::PlotOptions({{"color", color}, {"legend", "width " + width}, {"lw", 2}, {"yrange", Limit(0.5, 2)}}));
             p_all.plot(       unweighted[i], plots::PlotOptions({{"color", color}, {"legend", "unweighted, width " + width}, {"lw", 2}, {"ls", style::line::dashed}}));
-            p_all.plot(         weighted[i], plots::PlotOptions({{"color", color}, {"legend", "weighted, width " + width}, {"lw", 2}, {"yrange", Limit(0, 2)}}));
+            p_all.plot(         weighted[i], plots::PlotOptions({{"color", color}, {"legend", "weighted, width " + width}, {"lw", 2}, {"yrange", Limit(0.5, 2)}}));
         }
-        p_all.hline(1, plots::PlotOptions({{"color", style::color::black}, {"lw", 1}}));
-        p_weighted.hline(1, plots::PlotOptions({{"color", style::color::black}, {"lw", 1}}));
-        p_unweighted.hline(1, plots::PlotOptions({{"color", style::color::black}, {"lw", 1}}));
+        p_all.hline(1,          plots::PlotOptions({{"color", style::color::black}, {"lw", 1}}));
+        p_weighted.hline(1,     plots::PlotOptions({{"color", style::color::black}, {"lw", 1}}));
+        p_unweighted.hline(1,   plots::PlotOptions({{"color", style::color::black}, {"lw", 1}}));
 
-        p_all.save("output/bin_size_analysis/all" + prefix + ".png");
-        p_weighted.save("output/bin_size_analysis/weighted" + prefix + ".png");
-        p_unweighted.save("output/bin_size_analysis/unweighted" + prefix + ".png");
-        p_intensity_weighted.save("output/bin_size_analysis/intensity_weighted" + prefix + ".png");
+        p_all.save(                 "output/bin_size_analysis/all" +                prefix + ".png");
+        p_weighted.save(            "output/bin_size_analysis/weighted" +           prefix + ".png");
+        p_unweighted.save(          "output/bin_size_analysis/unweighted" +         prefix + ".png");
+        p_intensity_weighted.save(  "output/bin_size_analysis/intensity_weighted" + prefix + ".png");
     }
 }
