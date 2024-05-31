@@ -205,6 +205,11 @@ denss_em/%:
 		sleep 1; \
 	done
 
+vary_grid_radii/%: build/bin/vary_grid_radii
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${structure} $${measurement}
+
 em_bench/%: build/bin/em_bench
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
