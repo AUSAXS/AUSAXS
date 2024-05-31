@@ -12,6 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 #include <vector>
+#include <cassert>
 
 using namespace hist;
 
@@ -69,12 +70,21 @@ std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
     return weights;
 }
 
+void WeightedDistribution1D::set_bin_centers(const std::vector<double>& centers) {
+    assert(centers.size() == size());
+    for (std::size_t i = 0; i < size(); i++) {
+        index(i).bin_center = centers[i];
+    }
+}
+
 WeightedDistribution1D& WeightedDistribution1D::operator+=(const WeightedDistribution1D& rhs) {
+    assert(this->size() == rhs.size());
     std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::plus<>());
     return *this;
 }
 
 WeightedDistribution1D& WeightedDistribution1D::operator-=(const WeightedDistribution1D& rhs) {
+    assert(this->size() == rhs.size());
     std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::minus<>());
     return *this;
 }
