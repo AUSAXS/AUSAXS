@@ -694,7 +694,7 @@ void Grid::save(const io::File& path) const {
     p.save(path);
 }
 
-std::vector<Vector3<double>> Grid::generate_excluded_volume() {
+grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_surface) {
     expand_volume();
     std::vector<Vector3<double>> exv_atoms;
     exv_atoms.reserve(volume);
@@ -727,7 +727,14 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
         }
         data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
     }
-    return exv_atoms;
+
+    if (!determine_surface) {
+        return {exv_atoms, {}};
+    }
+
+    // determine the surface atoms
+    std::vector<Vector3<double>> surface_atoms;
+    
 }
 
 const grid::detail::State& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {

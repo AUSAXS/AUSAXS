@@ -2,6 +2,7 @@
 
 #include <grid/detail/GridObj.h>
 #include <grid/detail/GridInternalFwd.h>
+#include <grid/detail/GridExcludedVolume.h>
 #include <utility/Axis3D.h>
 #include <data/DataFwd.h>
 #include <io/IOFwd.h>
@@ -250,8 +251,9 @@ namespace grid {
 
 			/**
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
+			 * 		  This will expand all atoms in the grid.
 			 */
-			std::vector<Vector3<double>> generate_excluded_volume();
+			detail::GridExcludedVolume generate_excluded_volume(bool determine_surface);
 
 			std::vector<data::record::Atom> get_surface_atoms() const;
 
