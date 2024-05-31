@@ -37,6 +37,7 @@ int main(int argc, char const *argv[]) {
 
     data::Molecule molecule(pdb);
     molecule.generate_new_hydration();
+    Dataset standard = hist::HistogramManagerMTFFGrid<true>(molecule).calculate_all()->debye_transform().as_dataset();
 
     std::vector<Dataset> datasets;
     std::vector<Dataset> datasets_fitted;
@@ -55,6 +56,7 @@ int main(int argc, char const *argv[]) {
     std::array<double, 3> rgb_start = {153, 0, 0}, rgb_end = {0, 0, 153};
     plots::PlotDataset plot;
     plots::PlotDataset plot_fitted;
+    plots::PlotDataset plot_relative;
     for (unsigned int i = 0; i < datasets.size(); i++) {
         double r = 1 + 0.1 * i;
         double r_norm = (r - 1) / 2;
@@ -63,6 +65,13 @@ int main(int argc, char const *argv[]) {
         ss << "#" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(rgb[0]) << std::setw(2) << static_cast<int>(rgb[1]) << std::setw(2) << static_cast<int>(rgb[2]);
         plot.plot(datasets[i], plots::PlotOptions({{"xlabel", "Distance"}, {"ylabel", "Intensity"}, {"yrange", std::vector{1e-4, 1e2}}, {"normalize", true}, {"logx", true}, {"logy", true}, {"color", ss.str()}, {"normalize", true}}));
         plot_fitted.plot(datasets_fitted[i], plots::PlotOptions({{"xlabel", "Distance"}, {"ylabel", "Intensity"}, {"yrange", std::vector{1e-4, 1e2}}, {"normalize", true}, {"logx", true}, {"logy", true}, {"color", ss.str()}, {"normalize", true}, {"legend", std::to_string(chi2[i])}}));
+
+        SimpleDataset relative = standard;
+        for (unsigned int j = 0; j < relative.size(); j++) {
+            relative.y(j) = datasets_fitted[i].y(j) / standard.y(j);
+        }
+        relative.normalize();
+        plot_relative.plot(relative, plots::PlotOptions({{"xlabel", "Distance"}, {"ylabel", "Intensity"}, {"yrange", std::vector{0.5, 1.5}}, {"logx", true}, {"color", ss.str()}, {"normalize", true}}));
     }
     plot.save(settings::general::output + "analysis.png");
     plot_fitted.save(settings::general::output + "analysis_fitted.png");
