@@ -7,6 +7,7 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -140,12 +141,13 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_grid[i], 1, 0, constants::atom_t::dummy, "");
     }
     Molecule exv(atoms);
+    for (auto& b : exv.get_bodies()) {for (auto& a : b.get_atoms()) {a.set_effective_charge(1);}}
 
     auto h_grid = hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
     auto h_exv =  hist::HistogramManagerMT<true>(&exv).calculate_all();
     auto h_atom = hist::HistogramManagerMT<true>(&protein).calculate_all();
 
     auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-    // CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis())); // this is not the same because the grid includes the d_ax distances
-    CHECK(compare_hist(h_grid_cast->get_d_axis_x(), h_exv->get_d_axis()));
+    CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
+    CHECK(compare_hist(h_grid_cast->get_d_axis_xx(), h_exv->get_d_axis()));
 }

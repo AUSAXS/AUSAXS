@@ -183,9 +183,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     for (int i = 0; i < (int) max_bin; ++i) {
         p_tot.add_index(i, p_wx_generic.index(i));
     }
+
+    GenericDistribution1D_t p_tot_ax = hist::Distribution1D(std::max<int>(max_bin, p_wx_generic.size()));
     for (int i = 0; i < (int) p_ax_generic.size_x(); ++i) {
         for (int j = 0; j < (int) max_bin; ++j) {
-            p_tot.add_index(j, p_ax_generic.index(i, j));
+            p_tot_ax.add_index(j, p_ax_generic.index(i, j));
         }
     }
 
@@ -214,6 +216,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
         std::move(p_aw), 
         std::move(p_ww), 
         std::move(p_tot),
+        std::move(p_tot_ax),
         std::move(p_xx_generic)
     );
 }

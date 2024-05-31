@@ -34,15 +34,17 @@ namespace hist {
              * @param p_aa The partial distance histogram for atom-atom interactions.
              * @param p_aw The partial distance histogram for atom-water interactions.
              * @param p_ww The partial distance histogram for water-water interactions.
-             * @param p_tot The total distance histogram for everything except the grid. This is only used to extract the bin centers.
-             * @param p_tot_x The total distance histogram for the grid only. Calculations involving this grid must use unique bin centers due to the highly ordered grid structure. 
+             * @param p_tot_aa The total distance histogram for everything except the grid. This is only used to extract the bin centers.
+             * @param p_tot_ax The total distance histogram for the cross terms. This is only used to extract the bin centers. 
+             * @param p_tot_xx The total distance histogram for the grid only. Calculations involving this grid must use unique bin centers due to the highly ordered grid structure. 
              */
             CompositeDistanceHistogramFFGrid(
                 hist::Distribution3D&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
-                hist::WeightedDistribution1D&& p_tot,
-                hist::WeightedDistribution1D&& p_tot_x
+                hist::WeightedDistribution1D&& p_tot_aa,
+                hist::WeightedDistribution1D&& p_tot_ax,
+                hist::WeightedDistribution1D&& p_tot_xx
             );
 
             /**
@@ -62,30 +64,40 @@ namespace hist {
             // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
             virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
-            /**
-             * @brief Get the intensity profile for atom-water interactions.
-             */
-            virtual ScatteringProfile get_profile_xx() const override;
+            virtual ScatteringProfile get_profile_ax() const override; // @copydoc ICompositeDistanceHistogram::get_profile_ax() const
+            virtual ScatteringProfile get_profile_wx() const override; // @copydoc ICompositeDistanceHistogram::get_profile_wx() const
+            virtual ScatteringProfile get_profile_xx() const override; // @copydoc ICompositeDistanceHistogram::get_profile_xx() const
 
             /**
              * @brief Get the distance axis for the excluded volume calculations. 
              *        If weighted bins are used, this will be distinct from the regular distance axis.
              */
-            const std::vector<double>& get_d_axis_x() const {return d_axis_x;}
+            const std::vector<double>& get_d_axis_xx() const {return d_axis_xx;}
+
+            /**
+             * @brief Get the distance axis for the cross term calculations. 
+             *        If weighted bins are used, this will be distinct from the regular distance axis.
+             */
+            const std::vector<double>& get_d_axis_ax() const {return d_axis_ax;}
 
         private: 
             static form_factor::storage::atomic::table_t generate_table();
             inline static form_factor::storage::atomic::table_t ff_table = generate_table();
-            std::unique_ptr<table::VectorDebyeTable> weighted_sinc_table_x;
-            std::vector<double> d_axis_x;
+            std::unique_ptr<table::VectorDebyeTable> weighted_sinc_table_xx, weighted_sinc_table_ax;
+            std::vector<double> d_axis_xx, d_axis_ax;
 
             double exv_factor(double q) const override;
 
             /**
              * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.
              */
-            observer_ptr<const table::DebyeTable> get_sinc_table_x() const;
+            observer_ptr<const table::DebyeTable> get_sinc_table_xx() const;
 
-            void initialize(std::vector<double>&& d_axis_x);
+            /**
+             * @brief Get the sinc(x) lookup table for the cross terms for the Debye transform.
+             */
+            observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
+
+            void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
     };
 }
