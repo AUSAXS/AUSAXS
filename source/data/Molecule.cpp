@@ -203,26 +203,26 @@ Vector3<double> Molecule::get_cm() const {
     // iterate through all constituent bodies
     for (const auto& body : bodies) {
         // iterate through their molecule atoms
-        for (const auto& a : body.get_atoms()) {
-            double m = a.get_mass();
+        std::for_each(body.get_atoms().begin(), body.get_atoms().end(), [&M, &cm] (const auto& atom) {
+            double m = atom.get_mass();
             M += m;
-            cm += a.coords*m;
-        }
+            cm += atom.coords*m;
+        });
 
         // iterate through their hydration atoms
-        for (const auto& a : body.get_waters()) {
-            double m = a.get_mass();
+        std::for_each(body.get_waters().begin(), body.get_waters().end(), [&M, &cm] (const auto& water) {
+            double m = water.get_mass();
             M += m;
-            cm += a.coords*m;
-        }
+            cm += water.coords*m;
+        });
     }
 
     // iterate through any generated hydration atoms
-    for (const auto& a : get_waters()) {
-        double m = a.get_mass();
+    std::for_each(get_waters().begin(), get_waters().end(), [&M, &cm] (const auto& water) {
+        double m = water.get_mass();
         M += m;
-        cm += a.coords*m;
-    }
+        cm += water.coords*m;
+    });
 
     return cm/M;
 }

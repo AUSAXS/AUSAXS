@@ -58,7 +58,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     auto pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<use_weighted_distribution>::calculate_all(); // make sure everything is initialized
-    hist::detail::CompactCoordinates data_x = hist::detail::CompactCoordinates(this->protein->get_grid()->generate_excluded_volume(), 1);
+    hist::detail::CompactCoordinates data_x = hist::detail::CompactCoordinates(this->protein->get_grid()->generate_excluded_volume(false).interior, 1);
     auto& data_a = *this->data_a_ptr;
     auto& data_w = *this->data_w_ptr;
     int data_a_size = (int) data_a.size();

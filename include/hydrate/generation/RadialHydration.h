@@ -29,11 +29,11 @@ namespace hydrate {
             void initialize() override;
             void prepare_rotations(int divisions = 8);
 
-            static std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
-            static std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius
-            static std::vector<Vector3<int>> rot_bins_5rh; // rotation bins at 5rh radius
-            static std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius
-            static std::vector<Vector3<double>> rot_locs;  // absolute locations of the rotation bins
+            std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
+            std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius
+            std::vector<Vector3<int>> rot_bins_5rh; // rotation bins at 5rh radius
+            std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius
+            std::vector<Vector3<double>> rot_locs;  // absolute locations of the rotation bins
 
             /**
              * @brief Check if a water molecule can be placed at the given location. 

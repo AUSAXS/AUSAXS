@@ -16,7 +16,8 @@ namespace grid {
             A_CENTER = (1 << 2),    // Center of an atom.
             W_AREA =   (1 << 3),    // Area surrounding the center of a water atom.
             A_AREA =   (1 << 4),    // Area surrounding the center of an atom.
-            VOLUME =   (1 << 5)     // Similar to EMPTY, but used to indicate that the cell is part of the volume of the protein. We need this to avoid double-counting cells when evaluating the volume.
+            VOLUME =   (1 << 5),    // Similar to EMPTY, but used to indicate that the cell is part of the volume of the protein. We need this to avoid double-counting cells when evaluating the volume.
+            RESERVED = (1 << 6)     // Defined for various other uses.
         };
 
         /**
@@ -32,82 +33,75 @@ namespace grid {
                 /**
                  * @brief Branchless function to check if a given bin is part of a volume. This means the bin is VOLUME.
                  */
-                bool is_volume(unsigned int x, unsigned int y, unsigned int z) const;
-
-                /**
-                 * @brief Branchless function to check if a given bin is part of a volume. This means the bin is VOLUME.
-                 */
                 bool is_volume(State s) const;
 
-                /**
-                 * @brief Branchless function to check if a given bin is empty or part of a volume. This means the bin is EMPTY or VOLUME.
-                 */
-                bool is_empty_or_volume(unsigned int x, unsigned int y, unsigned int z) const;
+                // @copydoc is_volume(State s) const
+                bool is_volume(unsigned int x, unsigned int y, unsigned int z) const;
 
                 /**
                  * @brief Branchless function to check if a given bin is empty or part of a volume. This means the bin is EMPTY or VOLUME.
                  */
                 bool is_empty_or_volume(State s) const;
 
+                // @copydoc is_empty_or_volume(State s) const
+                bool is_empty_or_volume(unsigned int x, unsigned int y, unsigned int z) const;
+
                 /**
-                 * @brief Branchless function to check if a given bin is empty. Empty means the bin is EMPTY. 
+                 * @brief Branchless function to check if a given bin is empty, part of a volume, or part of the hydration shell. 
+                 *      This means the bin is EMPTY, VOLUME, W_AREA, or W_CENTER.
                  */
-                bool is_empty(unsigned int x, unsigned int y, unsigned int z) const;
+                bool is_empty_or_volume_or_water(State s) const;
+
+                // @copydoc is_empty_or_volume_or_water(State) const
+                bool is_empty_or_volume_or_water(unsigned int x, unsigned int y, unsigned int z) const;
 
                 /**
                  * @brief Branchless function to check if a given bin is empty. Empty means the bin is EMPTY. 
                  */
                 bool is_empty(State s) const;
 
-                /**
-                 * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is A_AREA. 
-                 */
-                bool is_atom_area(unsigned int x, unsigned int y, unsigned int z) const;
+                // @copydoc is_empty(State) const
+                bool is_empty(unsigned int x, unsigned int y, unsigned int z) const;
 
                 /**
                  * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is A_AREA. 
                  */
                 bool is_atom_area(State s) const;
 
-                /**
-                 * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is either A_AREA or VOLUME.
-                 */
-                bool is_atom_area_or_volume(unsigned int x, unsigned int y, unsigned int z) const;
+                // @copydoc is_atom_area(State) const
+                bool is_atom_area(unsigned int x, unsigned int y, unsigned int z) const;
 
                 /**
                  * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is either A_AREA or VOLUME.
                  */
                 bool is_atom_area_or_volume(State s) const;
 
-                /**
-                 * @brief Branchless function to check if a given bin is part of a water volume. This means the bin is W_AREA.
-                 */
-                bool is_water_area(unsigned int x, unsigned int y, unsigned int z) const;
+                // @copydoc is_atom_area_or_volume(State) const
+                bool is_atom_area_or_volume(unsigned int x, unsigned int y, unsigned int z) const;
 
                 /**
                  * @brief Branchless function to check if a given bin is part of a water volume. This means the bin is W_AREA.
                  */
                 bool is_water_area(State s) const;
 
-                /**
-                 * @brief Branchless function to check if a given bin is the center of an atom. This means the bin is A_CENTER.
-                 */
-                bool is_atom_center(unsigned int x, unsigned int y, unsigned int z) const;
+                // @copydoc is_water_area(State) const
+                bool is_water_area(unsigned int x, unsigned int y, unsigned int z) const;
 
                 /**
                  * @brief Branchless function to check if a given bin is the center of an atom. This means the bin is A_CENTER.
                  */
                 bool is_atom_center(State s) const;
 
-                /**
-                 * @brief Branchless function to check if a given bin is the center of a water molecule. This means the bin is W_CENTER. 
-                 */
-                bool is_water_center(unsigned int x, unsigned int y, unsigned int z) const;
+                // @copydoc is_atom_center(State) const;
+                bool is_atom_center(unsigned int x, unsigned int y, unsigned int z) const;
 
                 /**
                  * @brief Branchless function to check if a given bin is the center of a water molecule. This means the bin is W_CENTER. 
                  */
                 bool is_water_center(State s) const;
+
+                // @copydoc is_water_center(State) const;
+                bool is_water_center(unsigned int x, unsigned int y, unsigned int z) const;
 
                 using container::Container3D<State>::index;
                 State& index(const Vector3<int>& v);

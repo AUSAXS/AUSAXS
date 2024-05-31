@@ -18,6 +18,8 @@ RadialLineGenerator::RadialLineGenerator(observer_ptr<grid::Grid> grid) {
     }
 }
 
+RadialLineGenerator::~RadialLineGenerator() = default;
+
 void RadialLineGenerator::generate(int divisions) {
     std::vector<Vector3<int>> bins_1rh;
     std::vector<Vector3<int>> bins_3rh;

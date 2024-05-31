@@ -51,7 +51,7 @@ const AAFormFactorTableType CompositeDistanceHistogramFFExplicitBase<AAFormFacto
 
 template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
 double CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::exv_factor(double q) const {
-    constexpr double rm2 = constants::form_factor::sigma_excluded_volume*constants::form_factor::sigma_excluded_volume;
+    constexpr double rm2 = constants::radius::average_atomic_radius*constants::radius::average_atomic_radius;
     return std::pow(this->cx, 3)*std::exp(-rm2*(this->cx*this->cx - 1)*q*q/4);
 }
 

@@ -10,7 +10,7 @@ namespace grid::detail {
     class RadialLineGenerator {
         public:
             RadialLineGenerator(observer_ptr<grid::Grid> grid);
-            ~RadialLineGenerator() = default;
+            virtual ~RadialLineGenerator();
 
             /**
              * @brief Generate the radial lines for the current grid. 
@@ -19,11 +19,11 @@ namespace grid::detail {
             static void generate(int divisions = 8);
 
         protected:
-            static std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
-            static std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius
-            static std::vector<Vector3<int>> rot_bins_5rh; // rotation bins at 5rh radius
-            static std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius
-            static std::vector<Vector3<double>> rot_locs;  // absolute locations of the rotation bins
+            inline static std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
+            inline static std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius
+            inline static std::vector<Vector3<int>> rot_bins_5rh; // rotation bins at 5rh radius
+            inline static std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius
+            inline static std::vector<Vector3<double>> rot_locs;  // absolute locations of the rotation bins
 
         private:
             inline static double width = 0;

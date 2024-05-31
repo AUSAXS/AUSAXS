@@ -1,6 +1,6 @@
 #pragma once
 
-#include <constants/ConstantsMath.h>
+#include <constants/Constants.h>
 
 #include <array>
 
@@ -20,8 +20,6 @@ namespace constants::form_factor {
             return a;
         }
     }
-
-    constexpr double sigma_excluded_volume = 1.62; // Å
 
     // International Tables for Crystallography, https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php        
     namespace H {
@@ -69,7 +67,7 @@ namespace constants::form_factor {
     //! get source from Jan
     namespace excluded_volume {
         constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
-        constexpr std::array<double, 5> b = {sigma_excluded_volume*sigma_excluded_volume/2, 0, 0, 0, 0};
+        constexpr std::array<double, 5> b = {radius::average_atomic_radius*radius::average_atomic_radius/2, 0, 0, 0, 0};
         constexpr double c = 0;
     }
 
