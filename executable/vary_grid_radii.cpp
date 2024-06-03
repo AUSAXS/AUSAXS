@@ -20,16 +20,11 @@
 #include <array>
 
 int main(int argc, char const *argv[]) {
-    io::File pdb, saxs;
-    CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
-    app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
-    app.add_option("input_m", saxs, "Path to the measured data.")->required()->check(CLI::ExistingFile);
-    app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/vary_grid_radii/")->group("General options");
-    app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, "Exit if an unknown atom is encountered.")->group("General options");
-    CLI11_PARSE(app, argc, argv);
+    io::ExistingFile pdb(argv[1]);
+    io::ExistingFile saxs(argv[2]);
 
     //### GENERATE INTERNAL PLOT ###//
-    settings::general::output += pdb.stem() + "/";
+    settings::general::output += "vary_grid_radii/" + pdb.stem() + "/";
     settings::axes::qmin = 1e-2;
     settings::axes::qmax = 1;
     settings::molecule::use_effective_charge = false;
@@ -50,13 +45,12 @@ int main(int argc, char const *argv[]) {
         auto fit = fitter.fit();
         datasets_fitted.push_back(fit->figures.intensity);
         chi2.push_back(fit->fval/fit->dof);
+        // molecule.get_grid()->save(settings::general::output + "grid_" + std::to_string(r) + ".pdb");
         molecule.clear_grid();
     }
 
     std::array<double, 3> rgb_start = {153, 0, 0}, rgb_end = {0, 0, 153};
-    plots::PlotDataset plot;
-    plots::PlotDataset plot_fitted;
-    plots::PlotDataset plot_relative;
+    plots::PlotDataset plot, plot_fitted, plot_relative;
     for (unsigned int i = 0; i < datasets.size(); i++) {
         double r = 1 + 0.1 * i;
         double r_norm = (r - 1) / 2;
@@ -68,11 +62,12 @@ int main(int argc, char const *argv[]) {
 
         SimpleDataset relative = standard;
         for (unsigned int j = 0; j < relative.size(); j++) {
-            relative.y(j) = datasets_fitted[i].y(j) / standard.y(j);
+            relative.y(j) = datasets[i].y(j) / standard.y(j);
         }
         relative.normalize();
         plot_relative.plot(relative, plots::PlotOptions({{"xlabel", "Distance"}, {"ylabel", "Intensity"}, {"yrange", std::vector{0.5, 1.5}}, {"logx", true}, {"color", ss.str()}, {"normalize", true}}));
     }
     plot.save(settings::general::output + "analysis.png");
     plot_fitted.save(settings::general::output + "analysis_fitted.png");
+    plot_relative.save(settings::general::output + "analysis_relative.png");
 }
