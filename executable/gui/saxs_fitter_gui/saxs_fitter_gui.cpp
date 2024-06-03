@@ -14,6 +14,9 @@
 #include <settings/All.h>
 #include <plots/All.h>
 
+#include <logo.h>
+#include <resources.h>
+
 #include <bitset>
 #include <thread>
 #include <filesystem>
@@ -232,7 +235,7 @@ auto io_menu(gui::view& view) {
 
 		static unsigned int last_size = 0;
 		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::saxs_data.validate(p);});
-		if (!fill.first.empty()) {pdb_box.second->set_text(fill.first);}
+		if (!fill.first.empty()) {saxs_box.second->set_text(fill.first);}
 		if (fill.second) {saxs_box.second->on_enter(fill.first);}
 	};
 
@@ -460,8 +463,6 @@ auto toggle_mode_button(gui::view& view) {
 	return link(button);
 }
 
-#include <logo.h>
-#include <resources.h>
 int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
 	gui::app app("AUSAXS saxs fitter");

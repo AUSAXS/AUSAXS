@@ -16,7 +16,10 @@
 #include <fitter/FitReporter.h>
 #include <shell/Command.h>
 #include <settings/All.h>
+
 #include <logo.h>
+#include <include.h>
+#include <resources.h>
 
 #include <filesystem>
 #include <algorithm>
@@ -45,136 +48,6 @@ auto abs_path(const std::string& path) {
 	return std::filesystem::current_path().string() + "/" + path;
 }
 
-shell::Command get_plotter_cmd() {
-	#if defined(_WIN32)
-		// first check if plot.exe is available in the path
-		auto res = shell::Command("where.exe plot").mute().execute();
-		bool plot_exe_available = res.exit_code == 0;
-		if (plot_exe_available) {
-			return shell::Command(utility::remove_all(res.out, "\n\r"));
-		}
-
-		// if not, check if python & the python script is available
-		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
-		bool python_script_available = io::File("scripts/plot.py").exists();
-		if (python_available && python_script_available) {
-			return shell::Command("python scripts/plot.py");
-		}
-	#elif defined(__linux__)
-		// check if python & the python script is available
-		bool python_available = shell::Command("python3 --version").mute().execute().exit_code == 0;
-		bool python_script_available = io::File("scripts/plot.py").exists();
-		if (python_available && python_script_available) {
-			return shell::Command("python3 scripts/plot.py");
-		}
-	#elif defined (__APPLE__)
-		throw std::runtime_error("macOS is not currently supported");
-	#endif
-
-	throw std::runtime_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
-}
-
-auto perform_plot(const std::string& path) {
-	auto cmd = get_plotter_cmd().append(path);
-	std::cout << "PLOTTING CMD: " << cmd.get() << std::endl;
-	cmd.execute();
-//	get_plotter_cmd().append(path).execute();
-};
-
-namespace settings {
-	std::string map_file, saxs_file;
-	bool lock = false;
-}
-
-namespace setup {
-	std::unique_ptr<SimpleDataset> saxs_dataset;
-	std::unique_ptr<em::ImageStack> map;
-}
-
-auto make_file_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {
-   auto button = gui::button("");
-   auto icon = gui::icon(gui::icons::folder_open_empty);
-
-   button.on_click = [&text_field, filter] (bool) {
-		NFD::Guard guard;
-		NFD::UniquePath output;
-	    nfdfilteritem_t filterItem[1] = {{filter.first.c_str(), filter.second.c_str()}};
-		auto result = NFD::OpenDialog(output, filterItem, 1);
-	    
-		if (result == NFD_OKAY) {
-        	std::cout << "User picked file: " << output.get() << std::endl;
-        	text_field.second->set_text(output.get());
-			text_field.second->on_enter(output.get());
-      	} else if (result == NFD_CANCEL) {
-        	puts("User cancelled file selection.");
-      	} else {
-        	printf("Error: %s\n", NFD_GetError());
-      	}
-   };
-
-   return gui::htile(
-      gui::fixed_size(
-         { 30, 30 },
-         gui::layer(
-            gui::align_center_middle(
-               icon
-            ),
-            button
-         )
-      ),
-      gui::hspace(5),
-	  gui::layer(
-	      link(text_field.first),
-		  link(bg)
-	  )
-   );
-};
-
-auto make_folder_dialog_button = [] (auto& text_field, auto& bg) {
-	auto button = gui::button("");
-	auto icon = gui::icon(gui::icons::folder_open_empty);
-
-	button.on_click = [&text_field] (bool) {
-		NFD::Guard guard;
-		NFD::UniquePath output;
-		auto result = NFD::PickFolder(output);
-		
-		if (result == NFD_OKAY) {
-			std::cout << "User picked ouput folder: " << output << std::endl;
-			text_field.second->set_text(output.get());
-			text_field.second->on_enter(output.get());
-		} else if (result == NFD_CANCEL) {
-			puts("User cancelled folder selection.");
-		} else {
-			printf("Error: %s\n", NFD_GetError());
-		}
-	};
-
-	return gui::htile(
-		gui::fixed_size(
-			{ 30, 30 },
-			gui::layer(
-				gui::align_center_middle(
-					icon
-				),
-				button
-			)
-		),
-		gui::hspace(5),
-		gui::layer(
-			link(text_field.first),
-			link(bg)
-		)
-	);
-};
-
-auto make_tip(std::string text) {
-	return gui::layer(
-		gui::margin({20, 8, 20, 8}, gui::basic_text_box(text)), 
-		gui::panel{}
-	);
-}
-
 auto io_menu(gui::view& view) {
 	static auto saxs_box_bg = gui::box(bg_color);
 	static auto map_box_bg = gui::box(bg_color);
@@ -187,7 +60,6 @@ auto io_menu(gui::view& view) {
 	static bool map_ok = false, saxs_ok = false;
 
 	map_box.second->on_text = [] (std::string_view text) {
-		static unsigned int last_size = 0;
 		if (text.size() == 1) {
 			map_box_bg = bg_color_accent;
 		} else if (text.empty()) {
@@ -199,50 +71,10 @@ auto io_menu(gui::view& view) {
 			map_box_bg = bg_color_accent;
 		}
 
-		// prevent autocompletion when deleting text
-		if (text.size() < last_size) {
-			last_size = text.size();
-			return;
-		}
-		last_size = text.size();
-
-		// only autocomplete if the last character is a '/' and there are less than 20 matches
-		if (text.back() != '/') {return;}
-		if (!std::filesystem::is_directory(text)) {return;}
-		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
-
-		std::list<std::string> matches;
-		for (auto& p : std::filesystem::directory_iterator(text)) {
-			io::File tmp(p.path().string());
-			if (constants::filetypes::em_map.validate(tmp)) {
-				matches.push_back(tmp.path());
-			}
-		}
-		if (matches.empty()) {return;}
-		if (matches.size() == 1) {
-			// only one match, auto-fill
-			settings::map_file = matches.front();
-			map_box.second->set_text(matches.front());
-			map_box.second->on_enter(matches.front());
-			return;
-		}
-		// find the longest common prefix
-		std::string prefix = matches.front();
-		for (auto& match : matches) {
-			if (prefix == match) {continue;}
-			std::string tmp;
-			for (size_t i = 0; i < std::min(prefix.size(), match.size()); ++i) {
-				if (prefix[i] == match[i]) {
-					tmp += prefix[i];
-				} else {
-					break;
-				}
-			}
-			prefix = tmp;
-		}
-		if (prefix.size() > 1) {
-			map_box.second->set_text(prefix);
-		}
+		static unsigned int last_size = 0;
+		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::em_map.validate(p);});
+		if (!fill.first.empty()) {map_box.second->set_text(fill.first);}
+		if (fill.second) {map_box.second->on_enter(fill.first);}
 	};
 
 	map_box.second->on_enter = [] (std::string_view text) -> bool {
@@ -261,7 +93,6 @@ auto io_menu(gui::view& view) {
 			map_box_bg = bgreen;
 			map_ok = true;
 		} catch (std::exception& e) {
-//			std::cerr << "encountered following error while loading the map file \"" << settings:map_file << "\":\n" << e.what() << std::endl;
 			map_box_bg = bred;
 			map_ok = false;
 			setup::map = nullptr;
@@ -290,7 +121,6 @@ auto io_menu(gui::view& view) {
 	};
 
 	saxs_box.second->on_text = [] (std::string_view text) {
-		static unsigned int last_size = 0;
 		if (text.size() == 1) {
 			saxs_box_bg = bg_color_accent;
 		} else if (text.empty()) {
@@ -302,52 +132,10 @@ auto io_menu(gui::view& view) {
 			saxs_box_bg = bg_color_accent;
 		}
 
-		// prevent autocompletion when deleting text
-		if (text.size() < last_size) {
-			last_size = text.size();
-			return;
-		}
-		last_size = text.size();
-
-		// only autocomplete if the last character is a '/' and there are less than 20 matches
-		if (text.back() != '/') {return;}
-		if (!std::filesystem::is_directory(text)) {return;}
-		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
-
-		std::list<std::string> matches;
-		for (auto& p : std::filesystem::directory_iterator(text)) {
-			io::File tmp(p.path().string());
-			if (constants::filetypes::saxs_data.validate(tmp)) {
-				matches.push_back(tmp.path());
-			} else {
-				std::cout << "reject possible match: " << tmp.path() << std::endl;
-			}
-		}
-		if (matches.empty()) {return;}
-		if (matches.size() == 1) {
-			// only one match, auto-fill
-			settings::saxs_file = matches.front();
-			saxs_box.second->set_text(matches.front());
-			saxs_box.second->on_enter(matches.front());
-			return;
-		}
-		// find the longest common prefix
-		std::string prefix = matches.front();
-		for (auto& match : matches) {
-			if (prefix == match) {continue;}
-			std::string tmp;
-			for (size_t i = 0; i < std::min(prefix.size(), match.size()); ++i) {
-				if (prefix[i] == match[i]) {
-					tmp += prefix[i];
-				} else {
-					break;
-				}
-			}
-			prefix = tmp;
-		}
-		if (prefix.size() > 1) {
-			saxs_box.second->set_text(prefix);
-		}
+		static unsigned int last_size = 0;
+		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::saxs_data.validate(p);});
+		if (!fill.first.empty()) {saxs_box.second->set_text(fill.first);}
+		if (fill.second) {saxs_box.second->on_enter(fill.first);}
 	};
 
 	saxs_box.second->on_enter = [] (std::string_view text) -> bool {
@@ -367,7 +155,6 @@ auto io_menu(gui::view& view) {
 			saxs_box_bg = bgreen;
 			saxs_ok = true;
 		} catch (std::exception& e) {
-//			std::cerr << "encountered the following exception while loading \"" << settings::saxs_file << "\":\n" << e.what() << std::endl;
 			saxs_box_bg = bred;
 			saxs_ok = false;
 			setup::saxs_dataset = nullptr;
@@ -428,186 +215,6 @@ auto io_menu(gui::view& view) {
 				gui::hsize(
 					300,
 					output_box_field
-				)
-			)
-		)
-	);
-}
-
-auto q_slider(gui::view& view) {
-	static auto track = gui::basic_track<5, false>(gui::colors::black);
-	static auto thumb = gui::margin(
-		{1, 2, 1, 2},
-		gui::box(gui::colors::white_smoke)
-	);
-	static auto qslider = gui::range_slider(
-		gui::fixed_size(
-			{5, 30},
-			gui::box(gui::colors::light_gray)
-		),
-		gui::fixed_size(
-			{5, 30},
-			gui::box(gui::colors::light_gray)
-		),
-		gui::slider_labels<9>(
-			gui::slider_marks_log<20, 4>(track), 0.8, "1e-4", "1e-3", "1e-2", "1e-1", "1e0"
-		),
-		{0, 1}
-	);
-
-	static auto qmin_textbox = gui::input_box("q_min");
-	static auto qmax_textbox = gui::input_box("q_max");
-	static auto qinfo_box = gui::label("");
-	static auto qmin_bg = gui::box(bg_color);
-	static auto qmax_bg = gui::box(bg_color);
-
-	auto pretty_printer = [] (float value) {
-		std::stringstream ss;
-		ss << std::setprecision(2) << std::scientific  << value;
-		return ss.str();
-	};
-
-	auto axis_transform_inv = [] (float value) {
-		return (std::log10(value)-std::log10(constants::axes::q_axis.min))/(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min));
-	};
-
-	auto axis_transform = [] (float x) {
-		double logy = x*(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min)) + std::log10(constants::axes::q_axis.min);
-		return std::pow(10, logy);
-	};
-
-	auto update_removed_counter = [&view] () {
-		static bool extend_wait = false;
-		static bool waiting = false;
-		static std::thread worker;
-
-		// extend wait period if the user is still moving the slider
-		if (waiting) {
-			extend_wait = true;
-			return;	
-		}
-
-		// a valid dataset must be present
-		if (!setup::saxs_dataset) {return;}
-
-		// ensure that the worker thread is finished and can be destructed
-		if (worker.joinable()) {
-			worker.join();
-		}
-
-		waiting = true;
-		worker = std::thread([&view] () {
-			do {
-				extend_wait = false;
-				std::this_thread::sleep_for(std::chrono::milliseconds(500));			
-			} while (extend_wait);
-
-			unsigned int removed_elements = 0;
-			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
-				auto x = setup::saxs_dataset->x(i);
-				removed_elements += !(qslider.value_first() < x && x < qslider.value_second());
-			}
-			if (removed_elements != 0) {
-				qinfo_box.set_text("note: ignoring " + std::to_string(removed_elements) + " lines in SAXS file" 
-										+ std::string(std::min<int>(4-std::to_string(removed_elements).size(), 0), ' '));
-			} else {
-				qinfo_box.set_text("");
-			}
-			view.refresh(qinfo_box);
-			waiting = false;
-		});
-	};
-
-	qslider.on_change.first = [&view, pretty_printer, axis_transform, update_removed_counter] (float value) {
-		value = axis_transform(value);
-		qmin_textbox.second->set_text(pretty_printer(value));
-		update_removed_counter();
-		view.refresh(qmin_textbox.first);
-		view.refresh(qinfo_box);
-	};
-
-	qslider.on_change.second = [&view, pretty_printer, axis_transform, update_removed_counter] (float value) {
-		value = axis_transform(value);
-		qmax_textbox.second->set_text(pretty_printer(value));
-		update_removed_counter();
-		view.refresh(qmax_textbox.first);
-		view.refresh(qinfo_box);
-	};
-
-	qmin_textbox.second->on_text = [] (std::string_view text) {
-		if (text.empty()) {
-			qmin_bg = bg_color;
-		} else {
-			qmin_bg = bg_color_accent;
-		}
-	};
-
-	qmin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
-		try {
-			qslider.value_first(axis_transform_inv(std::stof(std::string(text))));
-			qmin_bg = bg_color;
-			view.refresh(qslider);
-		} catch (std::exception&) {
-			qmin_bg = bred;
-		}
-		return true;
-	};
-
-	qmax_textbox.second->on_text = [] (std::string_view text) {
-		if (text.empty()) {
-			qmax_bg = bg_color;
-		} else {
-			qmax_bg = bg_color_accent;
-		}
-	};
-
-	qmax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
-		try {
-			qslider.value_second(axis_transform_inv(std::stof(std::string(text))));
-			qmax_bg = bg_color;
-			view.refresh(qslider);
-		} catch (std::exception&) {
-			qmax_bg = bred;
-		}
-		return true;
-	};
-
-	return gui::vtile(
-		gui::margin(
-			{50, 0, 50, 0},
-			gui::layer(
-				link(qslider)
-			)
-		),
-		gui::layer(
-			gui::align_left(
-				gui::margin(
-					{50, 10, 50, 10},
-					gui::hsize(
-						100,
-						gui::layer(
-							link(qmin_textbox.first),
-							link(qmin_bg)
-						)
-					)
-				)
-			),
-			gui::align_center(
-				gui::margin(
-					{50, 10, 50, 10},
-					link(qinfo_box)
-				)
-			),
-			gui::align_right(
-				gui::margin(
-					{50, 10, 50, 10},
-					gui::hsize(
-						100,
-						gui::layer(
-							link(qmax_textbox.first),
-							link(qmax_bg)
-						)
-					)
 				)
 			)
 		)
@@ -1037,8 +644,6 @@ auto make_start_button(gui::view& view) {
 	return link(deck);
 }
 
-#include <iostream>
-#include <logo.h>
 int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
 	settings::axes::qmin = 0;
@@ -1050,7 +655,7 @@ int main(int, char*[]) {
     settings::em::alpha_levels = {1, 10};
     settings::hist::weighted_bins = true;
 
-	// generate the logo file on disk
+	resources::generate_resource_file();
 	auto logo_path = resources::generate_logo_file();
 
 	gui::app app("EM fitter");
