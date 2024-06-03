@@ -14,36 +14,7 @@ User-guides to all of these programs can be found in the [wiki](https://github.c
 The fastest way to get started is using the most recent precompiled executables available in the [releases](https://github.com/klytje/AUSAXS/releases). Alternatively you can follow the next section to compile the library yourself. 
 
 ## Compile from source
-The software can easily be compiled from source with only a few steps. GCC v11+, Clang v15+, and MSVC 2022+ are supported, though GCC is the preferred option for optimal efficiency.
-
-### Linux
-1. Make sure you have the prerequisites installed  
-`apt-get install cmake make g++ libcurl4-openssl-dev`
-
-2. Clone this repository  
-`git clone https://github.com/klytje/AUSAXS.git`.
-
-3. Prepare the project for compilation  
-`cmake -B build -S .`
-
-4. Compile your choice of executable  
-`cmake --build build --target em_fitter`
-
-The possible targets are `em_fitter`, `intensity_fitter`, and `em_fitter_gui`. Use the multithreading flag `-jX` for significantly shorter compilation times. 
-
-### MacOS
-1. Make sure CMake and Xcode is available  
-`brew install cmake`
-
-2. Follow step 2 through 4 of the Linux guide
-
-### Windows
-1. Make sure CURL is available on your system, e.g. through vcpkg
-
-2. Clone this repository  
-`git clone https://github.com/klytje/AUSAXS.git`.
-
-3. Open the project with Visual Studio and compile your choice of executable. Note that this is very memory-intensive with the MSVC compiler, requiring 12GB+ of available memory due to their inefficient handling of constant expressions. 
+The software can easily be compiled from source with only a few steps. GCC v11+, Clang v15+, and MSVC 2022+ are supported, though GCC is the preferred option for optimal efficiency. For more information on how this is done, see [this](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) page in the wiki. 
 
 # References
 Several articles documenting the methods used in this project are currently in various stages of development. The first, on the EM validation methods, is expected to be published soon. Direct links will be provided in this section once they are publically available. 
