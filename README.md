@@ -31,10 +31,16 @@ The software can easily be compiled from source with only a few steps. GCC v11+,
 
 The possible targets are `em_fitter`, `intensity_fitter`, and `em_fitter_gui`. Use the multithreading flag `-jX` for significantly shorter compilation times. 
 
-### Windows
-1. Make sure CURL and OpenSSL are available on your system, e.g. through vcpkg
+### MacOS
+1. Make sure CMake and Xcode is available  
+`brew install cmake`
 
-2. Download or clone this repository
+2. Follow step 2 through 4 of the Linux guide
+
+### Windows
+1. Make sure CURL is available on your system, e.g. through vcpkg
+
+2. Clone this repository
 `git clone https://github.com/klytje/AUSAXS.git`.
 
 3. Open the project with Visual Studio and compile your choice of executable. Note that this is very memory-intensive with the MSVC compiler, requiring 12GB+ of available memory due to their inefficient handling of constant expressions. 
@@ -42,4 +48,4 @@ The possible targets are `em_fitter`, `intensity_fitter`, and `em_fitter_gui`. U
 # References
 Several articles documenting the methods used in this project are currently in various stages of development. The first, on the EM validation methods, is expected to be published soon. Direct links will be provided in this section once they are publically available. 
 
-_This project is licenced under the GNU General Public Licence v3. Alternative licencing arrangements can be discussed upon request. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
+_This project is licenced under the GNU Lesser General Public Licence v3.0. Alternative licencing arrangements can be discussed upon request. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
