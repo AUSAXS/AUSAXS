@@ -40,7 +40,7 @@ The possible targets are `em_fitter`, `intensity_fitter`, and `em_fitter_gui`. U
 ### Windows
 1. Make sure CURL is available on your system, e.g. through vcpkg
 
-2. Clone this repository
+2. Clone this repository  
 `git clone https://github.com/klytje/AUSAXS.git`.
 
 3. Open the project with Visual Studio and compile your choice of executable. Note that this is very memory-intensive with the MSVC compiler, requiring 12GB+ of available memory due to their inefficient handling of constant expressions. 
