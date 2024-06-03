@@ -25,6 +25,9 @@ bool GridObj::is_empty_or_volume_or_water(State s) const {return s & (EMPTY | VO
 bool GridObj::is_empty(unsigned int x, unsigned int y, unsigned int z) const {return is_empty(index(x, y, z));}
 bool GridObj::is_empty(State s) const {return s & EMPTY;}
 
+bool GridObj::is_empty_or_water(State s) const {return s & (EMPTY | W_AREA | W_CENTER);}
+bool GridObj::is_empty_or_water(unsigned int x, unsigned int y, unsigned int z) const {return is_empty_or_water(index(x, y, z));}
+
 bool GridObj::is_atom_area(unsigned int x, unsigned int y, unsigned int z) const {return is_atom_area(index(x, y, z));}
 bool GridObj::is_atom_area(State s) const {return s & A_AREA;}
 

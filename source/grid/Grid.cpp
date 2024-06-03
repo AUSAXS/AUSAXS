@@ -699,23 +699,23 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
     expand_volume();
     auto vol = detail::GridSurfaceDetection(this).detect_voxels();
 
-    if (settings::grid::save_exv) {
-        auto prots = detail::GridSurfaceDetection(this).detect_atoms();
-        std::vector<Atom> atoms;
-        atoms.reserve(prots.interior.size() + prots.surface.size());
+    // if (settings::grid::save_exv) {
+    //     auto prots = detail::GridSurfaceDetection(this).detect_atoms();
+    //     std::vector<Atom> atoms;
+    //     atoms.reserve(prots.interior.size() + prots.surface.size());
  
-        unsigned int i = 0;
-        for (; i < prots.interior.size(); ++i) {
-            atoms.emplace_back(i, "C", "", "LYS", 'A', 1, "", prots.interior[i], 1, 0, constants::atom_t::C, "");
-        }
+    //     unsigned int i = 0;
+    //     for (; i < prots.interior.size(); ++i) {
+    //         atoms.emplace_back(i, "C", "", "LYS", 'A', 1, "", prots.interior[i], 1, 0, constants::atom_t::C, "");
+    //     }
 
-        for (unsigned int j = 0; i < prots.surface.size(); ++j) {
-            atoms.emplace_back(i+j, "C", "", "LYS", 'B', 2, "", prots.surface[j], 1, 0, constants::atom_t::C, "");
-        }
-        data::detail::AtomCollection(atoms, {}).write(settings::general::output + "protein_surface.pdb");
-    }
+    //     for (unsigned int j = 0; i < prots.surface.size(); ++j) {
+    //         atoms.emplace_back(i+j, "C", "", "LYS", 'B', 2, "", prots.surface[j], 1, 0, constants::atom_t::C, "");
+    //     }
+    //     data::detail::AtomCollection(atoms, {}).write(settings::general::output + "protein_surface.pdb");
+    // }
 
-    if (settings::grid::save_exv) {
+    if (true) {
         std::vector<Atom> atoms;
         atoms.reserve(vol.interior.size()+vol.surface.size());
     

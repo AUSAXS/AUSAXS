@@ -43,8 +43,17 @@ namespace grid {
                  */
                 bool is_empty_or_volume(State s) const;
 
-                // @copydoc is_empty_or_volume(State s) const
+                // @copydoc is_empty_or_volume(State) const
                 bool is_empty_or_volume(unsigned int x, unsigned int y, unsigned int z) const;
+
+                /**
+                 * @brief Branchless function to check if a given bin is empty or part of the hydration shell. 
+                 *        This means the bin is EMPTY, W_AREA, or W_CENTER.
+                 */
+                bool is_empty_or_water(State s) const;
+
+                // @copydoc is_empty_or_water(State) const
+                bool is_empty_or_water(unsigned int x, unsigned int y, unsigned int z) const;
 
                 /**
                  * @brief Branchless function to check if a given bin is empty, part of a volume, or part of the hydration shell. 
