@@ -17,7 +17,8 @@ namespace grid {
             W_AREA =   (1 << 3),    // Area surrounding the center of a water atom.
             A_AREA =   (1 << 4),    // Area surrounding the center of an atom.
             VOLUME =   (1 << 5),    // Similar to EMPTY, but used to indicate that the cell is part of the volume of the protein. We need this to avoid double-counting cells when evaluating the volume.
-            RESERVED = (1 << 6)     // Defined for various other uses.
+            RESERVED_1 = (1 << 6),  // Defined for various other uses.
+            RESERVED_2 = (1 << 6)+1 // Defined for various other uses.
         };
 
         /**

@@ -715,7 +715,7 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
     //     data::detail::AtomCollection(atoms, {}).write(settings::general::output + "protein_surface.pdb");
     // }
 
-    if (true) {
+    if (settings::grid::save_exv) {
         std::vector<Atom> atoms;
         atoms.reserve(vol.interior.size()+vol.surface.size());
     
