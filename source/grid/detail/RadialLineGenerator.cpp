@@ -11,20 +11,25 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace grid::detail;
 
-RadialLineGenerator::RadialLineGenerator(observer_ptr<grid::Grid> grid) {
+std::vector<Vector3<int>> RadialLineGenerator::rot_bins_1;
+std::vector<Vector3<int>> RadialLineGenerator::rot_bins_2;
+std::vector<Vector3<int>> RadialLineGenerator::rot_bins_3;
+std::vector<Vector3<int>> RadialLineGenerator::rot_bins_4;
+std::vector<Vector3<double>> RadialLineGenerator::rot_locs_abs;
+
+RadialLineGenerator::RadialLineGenerator(observer_ptr<grid::Grid> grid, double radius, int divisions) : RadialLineGenerator(grid, {radius, 3*radius, 5*radius, 7*radius}, divisions) {}
+
+RadialLineGenerator::RadialLineGenerator(observer_ptr<grid::Grid> grid, std::array<double, 4> radius, int divisions) {
     if (grid->get_width() != width) {
         width = grid->get_width();
-        generate();
+        generate(radius, divisions);
     }
 }
 
 RadialLineGenerator::~RadialLineGenerator() = default;
 
-void RadialLineGenerator::generate(int divisions) {
-    std::vector<Vector3<int>> bins_1rh;
-    std::vector<Vector3<int>> bins_3rh;
-    std::vector<Vector3<int>> bins_5rh;
-    std::vector<Vector3<int>> bins_7rh;
+void RadialLineGenerator::generate(std::array<double, 4> r, int divisions) {
+    std::vector<Vector3<int>> bins_1, bins_2, bins_3, bins_4;
     std::vector<Vector3<double>> locs;
     double ang = 2*constants::pi/divisions;
 
@@ -65,20 +70,19 @@ void RadialLineGenerator::generate(int divisions) {
         }
     }
 
-    double rh = constants::radius::vdw::O;
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
-        bins_1rh.push_back(Vector3<int>(std::round(  rh*xr)/width, std::round(  rh*yr)/width, std::round(  rh*zr)/width));
-        bins_3rh.push_back(Vector3<int>(std::round(3*rh*xr)/width, std::round(3*rh*yr)/width, std::round(3*rh*zr)/width));
-        bins_5rh.push_back(Vector3<int>(std::round(5*rh*xr)/width, std::round(5*rh*yr)/width, std::round(5*rh*zr)/width));
-        bins_7rh.push_back(Vector3<int>(std::round(7*rh*xr)/width, std::round(7*rh*yr)/width, std::round(7*rh*zr)/width));
+        bins_1.push_back(Vector3<int>(std::round(r[0]*xr)/width, std::round(r[0]*yr)/width, std::round(r[0]*zr)/width));
+        bins_2.push_back(Vector3<int>(std::round(r[1]*xr)/width, std::round(r[1]*yr)/width, std::round(r[1]*zr)/width));
+        bins_3.push_back(Vector3<int>(std::round(r[2]*xr)/width, std::round(r[2]*yr)/width, std::round(r[2]*zr)/width));
+        bins_4.push_back(Vector3<int>(std::round(r[3]*xr)/width, std::round(r[3]*yr)/width, std::round(r[3]*zr)/width));
         locs.push_back(Vector3<double>(xr, yr, zr));
     }
 
     // set the member vectors
-    rot_bins_1rh = std::move(bins_1rh);
-    rot_bins_3rh = std::move(bins_3rh);
-    rot_bins_5rh = std::move(bins_5rh);
-    rot_bins_7rh = std::move(bins_7rh);
-    rot_locs = std::move(locs);
+    rot_bins_1 = std::move(bins_1);
+    rot_bins_2 = std::move(bins_2);
+    rot_bins_3 = std::move(bins_3);
+    rot_bins_4 = std::move(bins_4);
+    rot_locs_abs = std::move(locs);
 }

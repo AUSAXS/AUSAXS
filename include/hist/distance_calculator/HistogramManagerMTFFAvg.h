@@ -4,12 +4,11 @@
 #include <hist/detail/CompactCoordinatesFF.h>
 
 namespace hist {
-	class CompositeDistanceHistogram;
-	namespace detail {class CompactCoordinatesFF;}
-
 	/**
-	 * @brief A multi-threaded simple distance calculator. 
-     *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
+	 * @brief A histogram manager which uses an average excluded volume approximation. 
+	 *
+	 * This is equivalent to the CRYSOL implementation, but with a single average excluded volume for all atoms.
+	 * To use unique excluded volumes for each atom, see HistogramManagerMTFFExplicit. 
 	 */
 	template<bool use_weighted_distribution>
 	class HistogramManagerMTFFAvg : public HistogramManager<use_weighted_distribution> {
@@ -29,6 +28,7 @@ namespace hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
+			// data stored for inheritance
 			std::unique_ptr<hist::detail::CompactCoordinatesFF> data_a_ptr;
 		    std::unique_ptr<hist::detail::CompactCoordinatesFF> data_w_ptr;
 	};

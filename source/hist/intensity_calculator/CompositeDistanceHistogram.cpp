@@ -16,44 +16,44 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot
-) : ICompositeDistanceHistogram(std::move(p_tot)), p_aa(p_aa), p_aw(p_aw), p_ww(p_ww) {}
+) : ICompositeDistanceHistogram(std::move(p_tot)), distance_profiles{std::move(p_aa), std::move(p_aw), std::move(p_ww)} {}
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aa, 
     hist::Distribution1D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::Distribution1D&& p_tot
-) : ICompositeDistanceHistogram(std::move(p_tot)), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {}
+) : ICompositeDistanceHistogram(std::move(p_tot)), distance_profiles{std::move(p_aa), std::move(p_aw), std::move(p_ww)} {}
 
 CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 
 const Distribution1D& CompositeDistanceHistogram::get_aa_counts() const {
-    return p_aa;
+    return distance_profiles.aa;
 }
 
 Distribution1D& CompositeDistanceHistogram::get_aa_counts() {
-    return p_aa;
+    return distance_profiles.aa;
 }
 
 const Distribution1D& CompositeDistanceHistogram::get_aw_counts() const {
-    return p_aw;
+    return distance_profiles.aw;
 }
 
 Distribution1D& CompositeDistanceHistogram::get_aw_counts() {
-    return p_aw;
+    return distance_profiles.aw;
 }
 
 const Distribution1D& CompositeDistanceHistogram::get_ww_counts() const {
-    return p_ww;
+    return distance_profiles.ww;
 }
 
 Distribution1D& CompositeDistanceHistogram::get_ww_counts() {
-    return p_ww;
+    return distance_profiles.ww;
 }
 
 void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     auto& p_tot = get_total_counts();
-    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot[i] = p_aa.index(i) + 2*k*p_aw.index(i) + k*k*p_ww.index(i);}
+    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot[i] = distance_profiles.aa.index(i) + 2*k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
 }
 
 auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::DebyeTable> sinqd_table) {

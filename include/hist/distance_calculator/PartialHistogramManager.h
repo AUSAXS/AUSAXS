@@ -24,7 +24,7 @@ namespace hist {
 	 */
 
 	/**
-	 * @brief A single-threaded smart distance calculator which efficiently calculates the distance histogram.
+	 * @brief A single-threaded smart distance calculator which efficiently calculates the simple distance histogram.
 	 */
     template<bool use_weighted_distribution> 
 	class PartialHistogramManager : public HistogramManager<use_weighted_distribution> {

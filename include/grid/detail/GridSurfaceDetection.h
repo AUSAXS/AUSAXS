@@ -10,12 +10,15 @@ namespace grid::detail {
             GridSurfaceDetection(observer_ptr<grid::Grid> grid);
             ~GridSurfaceDetection() override;
 
-            GridExcludedVolume detect_atoms();
-            GridExcludedVolume detect_voxels();
+            GridExcludedVolume detect() const;
+            GridExcludedVolume no_detect() const;
 
         private:
             observer_ptr<grid::Grid> grid;
 
-            bool collision_check(const Vector3<int>& loc);
+            template<bool detect>
+            GridExcludedVolume helper() const;
+
+            bool collision_check(const Vector3<int>& loc) const;
     };
 }

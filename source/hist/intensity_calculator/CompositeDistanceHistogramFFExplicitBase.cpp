@@ -27,7 +27,7 @@ CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTabl
     hist::Distribution2D&& p_wx, 
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot
-) : CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
+) : CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), exv_distance_profiles{std::move(p_xx), std::move(p_ax), std::move(p_wx)} {}
 
 template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
 CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::CompositeDistanceHistogramFFExplicitBase(
@@ -38,7 +38,7 @@ CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTabl
     hist::Distribution2D&& p_wx, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot
-) : CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
+) : CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), exv_distance_profiles{std::move(p_xx), std::move(p_ax), std::move(p_wx)} {}
 
 template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
 CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::~CompositeDistanceHistogramFFExplicitBase() = default;
@@ -52,7 +52,7 @@ const AAFormFactorTableType CompositeDistanceHistogramFFExplicitBase<AAFormFacto
 template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
 double CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::exv_factor(double q) const {
     constexpr double rm2 = constants::radius::average_atomic_radius*constants::radius::average_atomic_radius;
-    return std::pow(this->cx, 3)*std::exp(-rm2*(this->cx*this->cx - 1)*q*q/4);
+    return std::pow(this->free_params.cx, 3)*std::exp(-rm2*(std::pow(this->free_params.cx, 2) - 1)*q*q/4);
 }
 
 template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
@@ -72,30 +72,30 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 // atom-atom
-                double aa_sum = std::inner_product(this->cp_aa.begin(ff1, ff2), this->cp_aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                double aa_sum = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += aa_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
 
                 // atom-exv
-                double ax_sum = std::inner_product(cp_ax.begin(ff1, ff2), cp_ax.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                double ax_sum = std::inner_product(exv_distance_profiles.ax.begin(ff1, ff2), exv_distance_profiles.ax.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] -= 2*cx*ax_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
 
                 // exv-exv
-                double xx_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                double xx_sum = std::inner_product(exv_distance_profiles.xx.begin(ff1, ff2), exv_distance_profiles.xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += cx*cx*xx_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
             }
 
             // atom-water
-            double aw_sum = std::inner_product(this->cp_aw.begin(ff1), this->cp_aw.end(ff1), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] += 2*this->cw*aw_sum*ff_aa_table.index(ff1, form_factor::water_bin).evaluate(q);
+            double aw_sum = std::inner_product(this->distance_profiles.aw.begin(ff1), this->distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
+            Iq[q-q0] += 2*this->free_params.cw*aw_sum*ff_aa_table.index(ff1, form_factor::water_bin).evaluate(q);
 
             // exv-water
-            double wx_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] -= 2*cx*this->cw*wx_sum*ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q);
+            double wx_sum = std::inner_product(exv_distance_profiles.wx.begin(ff1), exv_distance_profiles.wx.end(ff1), sinqd_table->begin(q), 0.0);
+            Iq[q-q0] -= 2*cx*this->free_params.cw*wx_sum*ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q);
         }
 
         // water-water
-        double ww_sum = std::inner_product(this->cp_ww.begin(), this->cp_ww.end(), sinqd_table->begin(q), 0.0);
-        Iq[q-q0] += this->cw*this->cw*ww_sum*ff_aa_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
+        double ww_sum = std::inner_product(this->distance_profiles.ww.begin(), this->distance_profiles.ww.end(), sinqd_table->begin(q), 0.0);
+        Iq[q-q0] += std::pow(this->free_params.cw, 2)*ww_sum*ff_aa_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
     }
     return ScatteringProfile(std::move(Iq), debye_axis);
 }
@@ -117,7 +117,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
         double cx = exv_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double ax_sum = std::inner_product(cp_ax.begin(ff1, ff2), cp_ax.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                double ax_sum = std::inner_product(exv_distance_profiles.ax.begin(ff1, ff2), exv_distance_profiles.ax.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*cx*ax_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
             }
         }
@@ -137,7 +137,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
         double cx2 = std::pow(exv_factor(constants::axes::q_vals[q]), 2);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double xx_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                double xx_sum = std::inner_product(exv_distance_profiles.xx.begin(ff1, ff2), exv_distance_profiles.xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += cx2*xx_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
             }
         }
@@ -157,8 +157,8 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         double cx = exv_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            double wx_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] += 2*cx*this->cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
+            double wx_sum = std::inner_product(exv_distance_profiles.wx.begin(ff1), exv_distance_profiles.wx.end(ff1), sinqd_table->begin(q), 0.0);
+            Iq[q-q0] += 2*cx*this->free_params.cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
         }
     }
     return ScatteringProfile(std::move(Iq), debye_axis);

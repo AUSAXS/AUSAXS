@@ -9,6 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
+#include <hist/distance_calculator/HistogramManagerMTFFGridSurface.h>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
 // #include <hist/distance_calculator/DebugManager.h>
@@ -34,7 +35,9 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
                 return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein);
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: 
-                return std::make_unique<HistogramManagerMTFFGrid<true>>(protein);
+                return std::make_unique<HistogramManagerMTFFGrid>(protein);
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: 
+                return std::make_unique<HistogramManagerMTFFGridSurface>(protein);
             case settings::hist::HistogramManagerChoice::PartialHistogramManager:
                 return std::make_unique<PartialHistogramManager<true>>(protein);
             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
@@ -61,8 +64,6 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 return std::make_unique<HistogramManagerMTFFAvg<false>>(protein);
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
                 return std::make_unique<HistogramManagerMTFFExplicit<false>>(protein);
-            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: 
-                return std::make_unique<HistogramManagerMTFFGrid<false>>(protein);
             case settings::hist::HistogramManagerChoice::PartialHistogramManager:
                 return std::make_unique<PartialHistogramManager<false>>(protein);
             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:

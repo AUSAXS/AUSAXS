@@ -75,8 +75,6 @@ namespace hist {
             virtual ScatteringProfile get_profile_ww() const override;
 
         private:
-            mutable Distribution1D p_aa;
-            mutable Distribution1D p_aw;
-            mutable Distribution1D p_ww;
+            mutable struct {Distribution1D aa, aw, ww;} distance_profiles;
     };
 }

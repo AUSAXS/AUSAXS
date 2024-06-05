@@ -37,6 +37,7 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Histogra
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg: return "hmmtff";
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit: return "hmmtffx";
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: return "hmmtffg";
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: return "hmmtffgs";
         case settings::hist::HistogramManagerChoice::PartialHistogramManager: return "phm";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT: return "phmmt";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg: return "phmmtff";
@@ -56,6 +57,7 @@ template<> void settings::io::detail::SettingRef<settings::hist::HistogramManage
     else if (str == "hmmtff") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg;}
     else if (str == "hmmtffx") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;}
     else if (str == "hmmtffg") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
+    else if (str == "hmmtffgs") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
     else if (str == "phm") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManager;}
     else if (str == "phmmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
     else if (str == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg;}

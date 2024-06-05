@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <table/VectorDebyeTable.h>
 
@@ -11,8 +11,43 @@ namespace hist {
      *        The excluded volume is approximated using a space-filling grid of spheres, filling the volume of the molecule. 
      *        This approach adds a substantial overhead to the calculations, but should give a more accurate representation of the excluded volume.
      */
-    class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFAvg {
+    class CompositeDistanceHistogramFFGridSurface : public CompositeDistanceHistogramFFAvg {
         public:
+            struct XXContainer {
+                XXContainer(unsigned int size) : interior(size), surface(size), cross(size) {}
+                WeightedDistribution1D interior;
+                WeightedDistribution1D surface;
+                WeightedDistribution1D cross;
+                XXContainer operator+=(const XXContainer& other) {
+                    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), std::plus<>());
+                    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), std::plus<>());
+                    std::transform(cross.begin(), cross.end(), other.cross.begin(), cross.begin(), std::plus<>());
+                    return *this;
+                }
+            };
+
+            struct AXContainer {
+                AXContainer(unsigned int ff, unsigned int size) : interior(ff, size), surface(ff, size) {}
+                WeightedDistribution2D interior;
+                WeightedDistribution2D surface;
+                AXContainer operator+=(const AXContainer& other) {
+                    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), [](auto& a, const auto& b) {return a+b;});
+                    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), [](auto& a, const auto& b) {return a+b;});
+                    return *this;
+                }
+            };
+
+            struct WXContainer {
+                WXContainer(unsigned int size) : interior(size), surface(size) {}
+                WeightedDistribution1D interior;
+                WeightedDistribution1D surface;
+                WXContainer operator+=(const WXContainer& other) {
+                    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), std::plus<>());
+                    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), std::plus<>());
+                    return *this;
+                }
+            };
+
             /**
              * @brief Create a weighted grid-based composite distance histogram with form factors.
              * 
@@ -23,10 +58,13 @@ namespace hist {
              * @param p_tot_ax The total distance histogram for the cross terms. This is only used to extract the bin centers. 
              * @param p_tot_xx The total distance histogram for the grid only. Calculations involving this grid must use unique bin centers due to the highly ordered grid structure. 
              */
-            CompositeDistanceHistogramFFGrid(
+            CompositeDistanceHistogramFFGridSurface(
                 hist::Distribution3D&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
+                XXContainer&& xx,
+                AXContainer&& ax,
+                WXContainer&& wx,
                 hist::WeightedDistribution1D&& p_tot_aa,
                 hist::WeightedDistribution1D&& p_tot_ax,
                 hist::WeightedDistribution1D&& p_tot_xx
@@ -65,11 +103,18 @@ namespace hist {
              */
             const std::vector<double>& get_d_axis_ax() const {return distance_axes.ax;}
 
+            Limit get_excluded_volume_scaling_factor_limits() const override;
+
         private: 
             static form_factor::storage::atomic::table_t generate_table();
             inline static form_factor::storage::atomic::table_t ff_table = generate_table();
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
+
+            struct {hist::Distribution1D xx_i, xx_s, xx_c, wx_i, wx_s; hist::Distribution2D ax_i, ax_s;} exv_distance_profiles;
+            hist::Distribution1D evaluate_xx_profile() const;
+            hist::Distribution1D evaluate_wx_profile() const;
+            hist::Distribution2D evaluate_ax_profile() const;
 
             double exv_factor(double q) const override;
 
