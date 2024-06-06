@@ -208,8 +208,8 @@ observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGridSurface::g
 }
 
 void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
-    this->distance_axes = {std::move(d_axis_xx), std::move(d_axis_ax)};
-    sinc_tables = {std::make_unique<table::VectorDebyeTable>(this->distance_axes.xx), std::make_unique<table::VectorDebyeTable>(this->distance_axes.ax)};
+    this->distance_axes = {.xx=std::move(d_axis_xx), .ax=std::move(d_axis_ax)};
+    sinc_tables = {.xx=std::make_unique<table::VectorDebyeTable>(this->distance_axes.xx), .ax=std::make_unique<table::VectorDebyeTable>(this->distance_axes.ax)};
 
     // fix the aa counts to also contain the exv contributions
     auto xx = evaluate_xx_profile();

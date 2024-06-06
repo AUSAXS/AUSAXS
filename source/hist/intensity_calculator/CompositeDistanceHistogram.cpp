@@ -16,14 +16,14 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot
-) : ICompositeDistanceHistogram(std::move(p_tot)), distance_profiles{std::move(p_aa), std::move(p_aw), std::move(p_ww)} {}
+) : ICompositeDistanceHistogram(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)} {}
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aa, 
     hist::Distribution1D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::Distribution1D&& p_tot
-) : ICompositeDistanceHistogram(std::move(p_tot)), distance_profiles{std::move(p_aa), std::move(p_aw), std::move(p_ww)} {}
+) : ICompositeDistanceHistogram(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)} {}
 
 CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 

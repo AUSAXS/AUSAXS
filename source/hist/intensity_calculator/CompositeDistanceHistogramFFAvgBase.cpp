@@ -21,7 +21,7 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHisto
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot
-) : ICompositeDistanceHistogramExv(std::move(p_tot)), distance_profiles{std::move(p_aa), std::move(p_aw), std::move(p_ww)} {}
+) : ICompositeDistanceHistogramExv(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)} {}
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
@@ -29,7 +29,7 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHisto
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot
-) : ICompositeDistanceHistogramExv(std::move(p_tot)), distance_profiles{std::move(p_aa), std::move(p_aw), std::move(p_ww)} {}
+) : ICompositeDistanceHistogramExv(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)} {}
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::~CompositeDistanceHistogramFFAvgBase() = default;
