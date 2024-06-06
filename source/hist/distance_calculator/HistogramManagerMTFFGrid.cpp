@@ -196,6 +196,19 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
         max_bin = base_res->get_d_axis().size(); // make sure we overwrite anything which may already be stored
     }
 
+    // overwrite the excluded volume calculations from the HistogramManagerMTFFAvg calculations with our new grid-based ones
+    // first cast the weighted distributions to make iteration simpler
+    Distribution2D p_ax = Distribution2D(p_ax_generic);
+    Distribution1D p_wx = Distribution1D(p_wx_generic);
+    Distribution1D p_xx = Distribution1D(p_xx_generic);
+
+    // replace the calculations
+    for (unsigned int i = 0; i < p_aa.size_x(); ++i) {
+        std::move(p_ax.begin(i), p_ax.begin(i)+max_bin, p_aa.begin(i, form_factor::exv_bin));
+    }
+    std::move(p_wx.begin(), p_wx.begin()+max_bin, p_aw.begin(form_factor::exv_bin));
+    std::move(p_xx.begin(), p_xx.begin()+max_bin, p_aa.begin(form_factor::exv_bin, form_factor::exv_bin));
+
     return std::make_unique<CompositeDistanceHistogramFFGrid>(
         std::move(p_aa), 
         std::move(p_aw), 

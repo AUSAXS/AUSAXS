@@ -1,8 +1,9 @@
 #pragma once
 
-#include "constants/Axes.h"
-#include "utility/Utility.h"
+#include <constants/Axes.h>
+#include <utility/Utility.h>
 #include <data/Molecule.h>
+#include <data/record/Atom.h>
 #include <utility/Concepts.h>
 
 #include <iostream>
@@ -49,6 +50,13 @@ void set_unity_charge(T& protein) {
     }
 }
 
+inline std::vector<data::record::Atom> atom_cube = {
+    data::record::Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1),
+    data::record::Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
+    data::record::Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
+    data::record::Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)
+};
+
 // calculation: 8 points
 //          1 line  of length 0
 //          3 lines of length 2
@@ -65,8 +73,8 @@ void set_unity_charge(T& protein) {
 //          24 lines of length 2
 //          24 lines of length sqrt(8)
 //          8 lines of length sqrt(12)
-auto width = constants::axes::d_axis.width();
-std::vector<double> d = {
+inline auto width = constants::axes::d_axis.width();
+inline std::vector<double> d = {
     0, 
     constants::axes::d_vals[std::round(std::sqrt(3)/width)], 
     constants::axes::d_vals[std::round(2./width)], 
@@ -74,7 +82,7 @@ std::vector<double> d = {
     constants::axes::d_vals[std::round(std::sqrt(12)/width)]
 };
 
-std::vector<double> d_exact = {
+inline std::vector<double> d_exact = {
     0, 
     std::sqrt(3), 
     2, 

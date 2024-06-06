@@ -76,7 +76,8 @@ form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGridSurface::g
 
 hist::Distribution1D CompositeDistanceHistogramFFGridSurface::evaluate_xx_profile() const {
     hist::Distribution1D xx = exv_distance_profiles.xx_i;
-    std::transform(xx.begin(), xx.end(), exv_distance_profiles.xx_s.begin(), xx.begin(), [this] (double a, double b) {return a + free_params.cx*b;});
+    std::transform(xx.begin(), xx.end(), exv_distance_profiles.xx_s.begin(), xx.begin(), [this] (double a, double b) {return a + std::pow(free_params.cx, 2)*b;});
+    std::transform(xx.begin(), xx.end(), exv_distance_profiles.xx_c.begin(), xx.begin(), [this] (double a, double b) {return a + free_params.cx*b;});
     return xx;
 }
 
@@ -101,6 +102,10 @@ ScatteringProfile CompositeDistanceHistogramFFGridSurface::debye_transform() con
     auto xx = evaluate_xx_profile();
     auto wx = evaluate_wx_profile();
     auto ax = evaluate_ax_profile();
+
+    std::cout << "aa[0] = " << distance_profiles.aa.index(int(form_factor_t::C), int(form_factor_t::C), 0) << std::endl;
+    std::cout << "ax[0] = " << ax.index(int(form_factor_t::C), 0) << std::endl;
+    std::cout << "xx[0] = " << xx.index(0) << std::endl;
 
     // calculate the Debye scattering intensity
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);

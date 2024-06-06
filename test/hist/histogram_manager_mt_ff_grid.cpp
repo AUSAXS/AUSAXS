@@ -18,6 +18,7 @@
 #include <utility/Utility.h>
 
 #include "hist_test_helper.h"
+#include "../grid/grid_debug.h"
 
 using namespace hist;
 using namespace data;
@@ -54,9 +55,9 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
         }
         std::transform(aa.begin(form_factor::exv_bin, form_factor::exv_bin), aa.end(form_factor::exv_bin, form_factor::exv_bin), temp_xx.begin(), temp_xx.begin(), std::plus<>());
 
-        aa1 = temp_aa;
-        ax1 = temp_ax;
-        xx1 = temp_xx;
+        aa1 = std::move(temp_aa);
+        ax1 = std::move(temp_ax);
+        xx1 = std::move(temp_xx);
     }
 
     auto xx2 = h_exv->get_ww_counts();
@@ -106,10 +107,10 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
 };
 
 // Check that the Grid histograms are correct
-TEST_CASE("HistogramManagerMTFFGrid::calculate") {
+TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
     settings::molecule::use_effective_charge = false;
     SECTION("simple") {
-        settings::grid::width = GENERATE(1);
+        settings::grid::width = GENERATE(0.2, 0.5, 1, 2);
         settings::grid::exv_radius = settings::grid::width;
 
         SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
@@ -119,38 +120,94 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate") {
         }
     }
 
-    // SECTION("actual data") {
-    //     settings::general::verbose = false;
-    //     settings::grid::width = 1;
-    //     settings::grid::exv_radius = 1;
-    //     Molecule protein("test/files/LAR1-2.pdb");
-    //     protein.clear_hydration();
-    //     test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
-    // }
+    SECTION("actual data") {
+        settings::general::verbose = false;
+        settings::grid::width = 1;
+        settings::grid::exv_radius = 1;
+        Molecule protein("test/files/LAR1-2.pdb");
+        protein.clear_hydration();
+        test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
+    }
 }
 
 // Check that the GridSurface histograms are correct
-TEST_CASE("HistogramManagerMTFFGridSurface::calculate") {
+TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
     settings::molecule::use_effective_charge = false;
-    // SECTION("simple") {
-    //     settings::grid::width = GENERATE(1);
-    //     settings::grid::exv_radius = settings::grid::width;
+    settings::molecule::center = false;
+    settings::general::verbose = false;
 
-    //     SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
-    //         Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
-    //         Molecule protein({a1});
-    //         test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
-    //     }
-    // }
+    SECTION("simple") {
+        settings::grid::width = GENERATE(0.2, 0.5, 1, 2);
+        settings::grid::exv_radius = settings::grid::width;
 
-    // SECTION("actual data") {
-    //     settings::general::verbose = false;
-    //     settings::grid::width = 1;
-    //     settings::grid::exv_radius = 1;
-    //     Molecule protein("test/files/LAR1-2.pdb");
-    //     protein.clear_hydration();
-    //     test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
-    // }
+        SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
+            Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
+            Molecule protein({a1});
+            test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
+        }
+    }
+
+    SECTION("actual data") {
+        settings::general::verbose = false;
+        settings::grid::width = 1;
+        settings::grid::exv_radius = 1;
+        Molecule protein("test/files/LAR1-2.pdb");
+        protein.clear_hydration();
+        test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
+    }
+
+    SECTION("compare with Grid") {
+        settings::grid::min_bins = 20;
+
+        Molecule protein("test/files/LAR1-2.pdb");
+        protein.generate_new_hydration();
+
+        auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h_grids = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+
+        auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
+        auto aa1 = h_grid_cast->get_aa_counts_ff();
+        auto ax1 = h_grid_cast->get_aw_counts_ff();
+        auto xx1 = h_grid_cast->get_ww_counts_ff();
+
+        auto h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grids.get());
+        auto aa2 = h_grids_cast->get_aa_counts_ff();
+        auto ax2 = h_grids_cast->get_aw_counts_ff();
+        auto xx2 = h_grids_cast->get_ww_counts_ff();
+
+        CHECK(xx1.size() == xx2.size());
+        for (unsigned int k = 0; k < xx1.size(); ++k) {
+            if (!utility::approx(xx1.index(k), xx2.index(k), 1e-3, 0)) {
+                std::cout << "histogram_manager_mt_ff_grid failed at index " << k << std::endl;
+                REQUIRE_THAT(xx2.index(k), Catch::Matchers::WithinAbs(xx1.index(k), 1e-3));
+            }
+            SUCCEED();
+        }
+
+        CHECK((ax1.size_x() == ax2.size_x() && ax1.size_y() == ax2.size_y()));
+        for (unsigned int k = 0; k < ax2.size_y(); ++k) {
+            for (unsigned int j = 0; j < ax2.size_x(); ++j) {
+                if (!utility::approx(ax2.index(j, k), ax1.index(j, k), 1e-3, 0)) {
+                    std::cout << "histogram_manager_mt_ff_grid failed at index " << j << ", " << k << std::endl;
+                    REQUIRE_THAT(ax2.index(j, k), Catch::Matchers::WithinAbs(ax1.index(j, k), 1e-3));
+                }
+                SUCCEED();
+            }
+        }
+
+        CHECK((aa1.size_x() == aa2.size_x() && aa1.size_y() == aa2.size_y() && aa1.size_z() == aa2.size_z()));
+        for (unsigned int k = 0; k < aa2.size_z(); ++k) {
+            for (unsigned int j = 0; j < aa2.size_y(); ++j) {
+                for (unsigned int i = 0; i < aa2.size_x(); ++i) {
+                    if (!utility::approx(aa2.index(i, j, k), aa1.index(i, j, k), 1e-3, 0)) {
+                        std::cout << "histogram_manager_mt_ff_grid failed at index " << i << ", " << j << ", " << k << std::endl;
+                        REQUIRE_THAT(aa2.index(i, j, k), Catch::Matchers::WithinAbs(aa1.index(i, j, k), 1e-3));
+                    }
+                    SUCCEED();
+                }
+            }
+        }
+    }
 }
 
 // Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
@@ -159,58 +216,111 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     settings::hist::weighted_bins = true;
     Molecule protein("test/files/2epe.pdb");
 
-    // SECTION("simple") {
-    //     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-    //     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-    //     std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-    //     std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-    //     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-    //     Molecule protein(a);
-    //     set_unity_charge(protein);
+    SECTION("simple") {
+        std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+        std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+        std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+        std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
+        Molecule protein(a);
+        set_unity_charge(protein);
 
-    //     auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
-    //     std::vector<Atom> atoms(exv_grid.interior.size());
-    //     for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
-    //         atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_grid.interior[i], 1, 0, constants::atom_t::dummy, "");
-    //     }
-    //     Molecule exv(atoms);
+        auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
+        std::vector<Atom> atoms(exv_grid.interior.size());
+        for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
+            atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_grid.interior[i], 1, 0, constants::atom_t::dummy, "");
+        }
+        Molecule exv(atoms);
 
-    //     auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
-    //     auto h_grids = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
-    //     auto h_exv   = hist::HistogramManagerMT<true>(&exv).calculate_all();
-    //     auto h_atom  = hist::HistogramManagerMT<true>(&protein).calculate_all();
+        auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h_grids = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto h_exv   = hist::HistogramManagerMT<true>(&exv).calculate_all();
+        auto h_atom  = hist::HistogramManagerMT<true>(&protein).calculate_all();
 
-    //     auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-    //     auto h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grids.get());
+        auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
+        auto h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grids.get());
 
-    //     CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
-    //     CHECK(compare_hist(h_grids_cast->get_d_axis(),  h_atom->get_d_axis()));
+        CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
+        CHECK(compare_hist(h_grids_cast->get_d_axis(),  h_atom->get_d_axis()));
 
-    //     CHECK(compare_hist(h_grid_cast->get_d_axis_xx(), h_exv->get_d_axis()));
-    //     CHECK(compare_hist(h_grids_cast->get_d_axis_xx(), h_exv->get_d_axis()));
-    // }
+        CHECK(compare_hist(h_grid_cast->get_d_axis_xx(), h_exv->get_d_axis()));
+        CHECK(compare_hist(h_grids_cast->get_d_axis_xx(), h_exv->get_d_axis()));
+    }
 
-    // SECTION("real data") {
-    //     auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
-    //     std::vector<Atom> atoms(exv_grid.interior.size());
-    //     for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
-    //         atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_grid.interior[i], 1, 0, constants::atom_t::dummy, "");
-    //     }
-    //     Molecule exv(atoms);
-    //     for (auto& b : exv.get_bodies()) {for (auto& a : b.get_atoms()) {a.set_effective_charge(1);}}
+    SECTION("real data") {
+        auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
+        std::vector<Atom> atoms(exv_grid.interior.size());
+        for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
+            atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_grid.interior[i], 1, 0, constants::atom_t::dummy, "");
+        }
+        Molecule exv(atoms);
+        for (auto& b : exv.get_bodies()) {for (auto& a : b.get_atoms()) {a.set_effective_charge(1);}}
 
-    //     auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
-    //     auto h_grids = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
-    //     auto h_exv   = hist::HistogramManagerMT<true>(&exv).calculate_all();
-    //     auto h_atom  = hist::HistogramManagerMT<true>(&protein).calculate_all();
+        auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h_grids = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto h_exv   = hist::HistogramManagerMT<true>(&exv).calculate_all();
+        auto h_atom  = hist::HistogramManagerMT<true>(&protein).calculate_all();
 
-    //     auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-    //     auto h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grid.get());
+        auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
+        auto h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grid.get());
 
-    //     CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
-    //     CHECK(compare_hist(h_grids_cast->get_d_axis(),   h_atom->get_d_axis()));
+        CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
+        CHECK(compare_hist(h_grids_cast->get_d_axis(),   h_atom->get_d_axis()));
 
-    //     CHECK(compare_hist(h_grid_cast->get_d_axis_xx(), h_exv->get_d_axis()));
-    //     CHECK(compare_hist(h_grids_cast->get_d_axis_xx(), h_exv->get_d_axis()));
-    // }
+        CHECK(compare_hist(h_grid_cast->get_d_axis_xx(), h_exv->get_d_axis()));
+        CHECK(compare_hist(h_grids_cast->get_d_axis_xx(), h_exv->get_d_axis()));
+    }
+}
+
+auto calc_scat = [] (double k) {
+    const auto& q_axis = constants::axes::q_vals;
+    auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
+    auto ff_Cx = form_factor::storage::exv::get_form_factor(form_factor::form_factor_t::C);
+    std::vector<double> Iq_exp(q_axis.size(), 0);
+
+    for (unsigned int q = 0; q < q_axis.size(); ++q) {
+        double aasum = 
+            8 + 
+            16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+            24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+            24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+            8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+        double axsum = 
+            k*16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+            24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+            24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+            8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+        double xxsum = 
+            8 + 
+            k*k*16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+            24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+            24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+            8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+
+        Iq_exp[q] += aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);                 // + aa
+        Iq_exp[q] -= 2*axsum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2ax
+        Iq_exp[q] += xxsum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);                // + xx
+    }
+    return Iq_exp;
+};
+
+// Check that the surface scaling works as expected
+TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = true;
+
+    settings::grid::save_exv = true;
+    settings::general::output = "temp/test/hist/hmmtffg/";
+    settings::grid::rvol = 2;
+    std::vector<Atom> atoms = atom_cube;
+    atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
+
+    Molecule protein(atoms);
+    auto h = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+    auto h_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h.get());
+
+    // x1
+    auto Iq_exp = calc_scat(1);
+    REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
 }

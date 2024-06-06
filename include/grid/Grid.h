@@ -253,7 +253,7 @@ namespace grid {
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
 			 * 		  This will expand all atoms in the grid.
 			 */
-			detail::GridExcludedVolume generate_excluded_volume(bool determine_surface);
+			virtual detail::GridExcludedVolume generate_excluded_volume(bool determine_surface);
 
 			std::vector<data::record::Atom> get_surface_atoms() const;
 

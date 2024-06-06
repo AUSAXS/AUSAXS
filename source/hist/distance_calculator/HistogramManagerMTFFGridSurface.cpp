@@ -244,8 +244,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
-    for (int i = p_xx.surface.size()-1; i >= 10; i--) {
-        if (p_xx.surface.index(i) != 0) {
+    for (unsigned int i = p_xx.surface.size()-1; i >= 10; i--) {
+        if (p_xx.surface.index(i) != 0 || p_xx.interior.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
         }
@@ -292,6 +292,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     for (int i = 0; i < (int) max_bin; ++i) {
         p_tot_xx.add_index(i, p_xx.interior.index(i));
         p_tot_xx.add_index(i, p_xx.surface.index(i));
+    }
+
+    {   // delete the exv information from the HistogramManagerMTFFAvg data
+        // we delegate this work to the DistanceHistogram class, since it must be able to do this anyway to vary the surface contribution
+        for (unsigned int i = 0; i < p_aa.size_x(); ++i) {
+            std::for_each(p_aa.begin(i, form_factor::exv_bin), p_aa.end(i, form_factor::exv_bin) , [](auto& x) {x = 0;});
+        }
+        std::for_each(p_aw.begin(form_factor::exv_bin), p_aw.end(form_factor::exv_bin), [](auto& x) {x = 0;});
+        std::for_each(p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), p_aa.end(form_factor::exv_bin, form_factor::exv_bin), [](auto& x) {x = 0;});
     }
 
     return std::make_unique<CompositeDistanceHistogramFFGridSurface>(
