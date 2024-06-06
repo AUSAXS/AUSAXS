@@ -34,6 +34,7 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
         waters[i] = Water(i, "C", "", "LYS", 'A', 1, "", exv_grid.interior[i], 1, 0, constants::atom_t::dummy, "");
         waters[i].set_effective_charge(1);
     }
+
     Molecule exv(protein.get_atoms(), waters);
     auto h_exv = hist::HistogramManager<true>(&exv).calculate_all();
 
@@ -104,32 +105,8 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
     SUCCEED();
 };
 
-// Check that the histograms are correct
-// TEST_CASE("HistogramManagerMTFFGrid::calculate") {
-//     settings::molecule::use_effective_charge = false;
-//     SECTION("simple") {
-//         settings::grid::width = GENERATE(0.2, 0.5, 1, 2);
-//         settings::grid::exv_radius = settings::grid::width;
-
-//         SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
-//             Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
-//             Molecule protein({a1});
-//             test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
-//         }
-//     }
-
-//     SECTION("actual data") {
-//         settings::general::verbose = false;
-//         settings::grid::width = 1;
-//         settings::grid::exv_radius = 1;
-//         Molecule protein("test/files/LAR1-2.pdb");
-//         protein.clear_hydration();
-//         test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
-//     }
-// }
-
-// Check that the histograms are correct
-TEST_CASE("HistogramManagerMTFFGridSurface::calculate") {
+// Check that the Grid histograms are correct
+TEST_CASE("HistogramManagerMTFFGrid::calculate") {
     settings::molecule::use_effective_charge = false;
     SECTION("simple") {
         settings::grid::width = GENERATE(1);
@@ -138,9 +115,33 @@ TEST_CASE("HistogramManagerMTFFGridSurface::calculate") {
         SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
             Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
             Molecule protein({a1});
-            test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
+            test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
         }
     }
+
+    // SECTION("actual data") {
+    //     settings::general::verbose = false;
+    //     settings::grid::width = 1;
+    //     settings::grid::exv_radius = 1;
+    //     Molecule protein("test/files/LAR1-2.pdb");
+    //     protein.clear_hydration();
+    //     test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
+    // }
+}
+
+// Check that the GridSurface histograms are correct
+TEST_CASE("HistogramManagerMTFFGridSurface::calculate") {
+    settings::molecule::use_effective_charge = false;
+    // SECTION("simple") {
+    //     settings::grid::width = GENERATE(1);
+    //     settings::grid::exv_radius = settings::grid::width;
+
+    //     SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
+    //         Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
+    //         Molecule protein({a1});
+    //         test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
+    //     }
+    // }
 
     // SECTION("actual data") {
     //     settings::general::verbose = false;

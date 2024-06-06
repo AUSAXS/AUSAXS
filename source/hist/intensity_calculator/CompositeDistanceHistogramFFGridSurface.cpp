@@ -210,4 +210,18 @@ observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGridSurface::g
 void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
     this->distance_axes = {std::move(d_axis_xx), std::move(d_axis_ax)};
     sinc_tables = {std::make_unique<table::VectorDebyeTable>(this->distance_axes.xx), std::make_unique<table::VectorDebyeTable>(this->distance_axes.ax)};
+
+    // fix the aa counts to also contain the exv contributions
+    auto xx = evaluate_xx_profile();
+    auto wx = evaluate_wx_profile();
+    auto ax = evaluate_ax_profile();
+
+    auto& aa = CompositeDistanceHistogramFFAvgBase::get_aa_counts_ff();
+    for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {
+        std::transform(aa.begin(ff, form_factor::exv_bin), aa.end(ff, form_factor::exv_bin), ax.begin(ff), aa.begin(ff, form_factor::exv_bin), std::plus<double>());
+    }
+    std::transform(aa.begin(form_factor::exv_bin, form_factor::exv_bin), aa.end(form_factor::exv_bin, form_factor::exv_bin), xx.begin(), aa.begin(form_factor::exv_bin, form_factor::exv_bin), std::plus<double>());
+
+    auto& aw = CompositeDistanceHistogramFFAvgBase::get_aw_counts_ff();
+    std::transform(aw.begin(form_factor::exv_bin), aw.end(form_factor::exv_bin), wx.begin(), aw.begin(form_factor::exv_bin), std::plus<double>());
 }

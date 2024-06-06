@@ -23,7 +23,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace fitter;
 
 HydrationFitter::HydrationFitter(HydrationFitter&& other) : LinearFitter(std::move(other)), guess(std::move(other.guess)) {}
-HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {initialize_guess();}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {}
 HydrationFitter::HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(input, std::move(h)) {initialize_guess();}
 HydrationFitter::HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(data, std::move(h)) {initialize_guess();}
 HydrationFitter::HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model) : HydrationFitter(std::move(model), Limit(settings::axes::qmin, settings::axes::qmax)) {}

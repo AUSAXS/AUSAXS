@@ -87,9 +87,9 @@ namespace hist {
             // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
             virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
-            virtual ScatteringProfile get_profile_ax() const override; // @copydoc ICompositeDistanceHistogram::get_profile_ax() const
-            virtual ScatteringProfile get_profile_wx() const override; // @copydoc ICompositeDistanceHistogram::get_profile_wx() const
-            virtual ScatteringProfile get_profile_xx() const override; // @copydoc ICompositeDistanceHistogram::get_profile_xx() const
+            virtual ScatteringProfile get_profile_ax() const override;  // @copydoc ICompositeDistanceHistogram::get_profile_ax() const
+            virtual ScatteringProfile get_profile_wx() const override;  // @copydoc ICompositeDistanceHistogram::get_profile_wx() const
+            virtual ScatteringProfile get_profile_xx() const override;  // @copydoc ICompositeDistanceHistogram::get_profile_xx() const
 
             /**
              * @brief Get the distance axis for the excluded volume calculations. 
