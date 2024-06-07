@@ -24,6 +24,9 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& saxs, std::un
     HydrationFitter hfit(saxs, std::move(h));
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
+    HydrationFitter::operator=(std::move(hfit));
+    initialize_guess();
+    validate_histogram();
     if (c == 0) {
         // if c is zero use smaller limits
         this->guess = mini::Parameter{"c", 0, {0, 1}};
@@ -31,9 +34,6 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& saxs, std::un
         // else allow 20% variation
         this->guess = mini::Parameter{"c", c, {c*0.8, c*1.2}};
     }
-    HydrationFitter::operator=(std::move(hfit));
-    initialize_guess();
-    validate_histogram();
 }
 
 void ExcludedVolumeFitter::validate_histogram() const {
@@ -45,7 +45,7 @@ void ExcludedVolumeFitter::validate_histogram() const {
 
 void ExcludedVolumeFitter::initialize_guess() {
     auto lim = cast_exv()->get_excluded_volume_scaling_factor_limits();
-    guess_exv = mini::Parameter{"d", lim.center(), lim};
+    guess_exv = mini::Parameter{"d", lim.min < 1 && 1 < lim.max ? 1 : lim.center(), lim};
 }
 
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
