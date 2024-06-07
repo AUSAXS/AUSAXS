@@ -57,7 +57,7 @@ template<> void settings::io::detail::SettingRef<settings::hist::HistogramManage
     else if (str == "hmmtff") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg;}
     else if (str == "hmmtffx") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;}
     else if (str == "hmmtffg") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
-    else if (str == "hmmtffgs") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
+    else if (str == "hmmtffgs") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;}
     else if (str == "phm") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManager;}
     else if (str == "phmmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
     else if (str == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg;}
