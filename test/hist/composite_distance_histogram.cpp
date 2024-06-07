@@ -81,6 +81,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform") {
     settings::general::warnings = true;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
+    auto d = SimpleCube::d;
 
     SECTION("no water") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};

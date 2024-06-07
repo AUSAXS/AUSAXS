@@ -5,6 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
+#include <grid/detail/GridSurfaceDetection.h>
 #include <data/detail/AtomCollection.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -694,40 +695,29 @@ void Grid::save(const io::File& path) const {
     p.save(path);
 }
 
-std::vector<Vector3<double>> Grid::generate_excluded_volume() {
+grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_surface) {
     expand_volume();
-    std::vector<Vector3<double>> exv_atoms;
-    exv_atoms.reserve(volume);
-    auto[vmin, vmax] = bounding_box_index();
-
-    if (std::abs(std::remainder(settings::grid::exv_radius*2, settings::grid::width)) > 1e-6) {
-        console::print_warning("Warning in Grid::generate_excluded_volume: The excluded volume radius is not a multiple of the grid width. Rounding to nearest integer.");
-    }
-    int stride = std::round(2*settings::grid::exv_radius/settings::grid::width);
-    int buffer = 2./settings::grid::width; // 2Å buffer in each direction should be enough to capture all filled voxels
-    for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer, axes.x.bins); i+=stride) {
-        for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer, axes.y.bins); j+=stride) {
-            for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer, axes.z.bins); k+=stride) {
-                switch (grid.index(i, j, k)) {
-                    case detail::VOLUME:
-                    case detail::A_AREA:
-                    case detail::A_CENTER: 
-                        exv_atoms.push_back(to_xyz(i, j, k));
-                    default:
-                        break;
-                }
-            }
-        }
-    }
+    auto vol = determine_surface ? detail::GridSurfaceDetection(this).detect() : detail::GridSurfaceDetection(this).no_detect();
 
     if (settings::grid::save_exv) {
-        std::vector<Atom> atoms(exv_atoms.size());
-        for (unsigned int i = 0; i < exv_atoms.size(); i++) {
-            atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_atoms[i], 1, 0, constants::atom_t::C, "");
+        std::vector<Atom> atoms;
+        atoms.reserve(vol.interior.size()+vol.surface.size());
+    
+        unsigned int i = 0;
+        for (; i < vol.interior.size(); ++i) {
+            atoms.emplace_back(i, "C", "", "LYS", 'A', 1, "", vol.interior[i], 1, 0, constants::atom_t::C, "");
+        }
+
+        for (unsigned int j = 0; j < vol.surface.size(); ++j) {
+            atoms.emplace_back(i+j, "C", "", "LYS", 'B', 2, "", vol.surface[j], 1, 0, constants::atom_t::C, "");
         }
         data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
     }
-    return exv_atoms;
+
+    if (!determine_surface) {
+        return {vol.interior, {}};
+    }
+    return vol;
 }
 
 const grid::detail::State& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {

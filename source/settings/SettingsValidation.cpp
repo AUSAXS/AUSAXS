@@ -15,6 +15,7 @@ void settings::validate_settings() {
         case settings::hist::HistogramManagerChoice::PepsiManager:
         case settings::hist::HistogramManagerChoice::CrysolManager:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
             // check for effective charge compatibility
             if (settings::molecule::use_effective_charge == true) {
                 console::print_warning("Warning: The chosen histogram manager does not support using an effective charge approximation. Disabling effective charge.");

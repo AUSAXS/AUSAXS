@@ -79,8 +79,6 @@ namespace hist {
             // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
             double exv_factor(double q) const override;
 
-            hist::Distribution3D cp_ax;
-            hist::Distribution3D cp_xx;
-            hist::Distribution2D cp_wx;
+            struct {hist::Distribution3D xx, ax; hist::Distribution2D wx;} exv_distance_profiles;
     };
 }

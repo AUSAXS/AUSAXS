@@ -13,7 +13,7 @@
 
 namespace hist {
 	/**
-	 * @brief A multi-threaded smart distance calculator.
+	 * @brief A multi-threaded smart distance calculator which efficiently calculates the simple distance histogram. 
 	 */
     template<bool use_weighted_distribution> 
 	class PartialHistogramManagerMT : public PartialHistogramManager<use_weighted_distribution> {

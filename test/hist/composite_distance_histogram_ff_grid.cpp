@@ -3,6 +3,7 @@
 
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <dataset/SimpleDataset.h>
@@ -43,3 +44,5 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     SimpleDataset dataset(rxs, volumes);
     plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "temp/test/hist/composite_distance_histogram_ff_grid/volumes.png");
 }
+
+TEST_CASE("CompositeDistanceHistogramFFGridSurface: compare_profiles") {}

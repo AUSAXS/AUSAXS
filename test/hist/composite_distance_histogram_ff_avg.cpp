@@ -29,6 +29,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     auto ff_w = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::OH);
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
+    auto d = SimpleCube::d;
 
     SECTION("no water") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};

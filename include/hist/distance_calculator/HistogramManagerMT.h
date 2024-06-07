@@ -6,7 +6,9 @@
 namespace hist {
 	/**
 	 * @brief A multi-threaded simple distance calculator. 
-     *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
+	 *
+	 * This class does not account for the excluded volume in any way. 
+	 * To implicitly include it, subtract the average excluded volume charge from each atom. 
 	 */
 	template<bool use_weighted_distribution>
 	class HistogramManagerMT : public HistogramManager<use_weighted_distribution> {

@@ -7,8 +7,8 @@ namespace hist {
 	namespace detail {class CompactCoordinatesFF;}
 
 	/**
-	 * @brief A multi-threaded simple distance calculator. 
-     *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
+	 * @brief A histogram manager using explicit excluded volume form factors for each atomic type.
+	 *		  This is equivalent to the CRYSOL implementation. 
 	 */
 	template<bool use_weighted_distribution>
 	class HistogramManagerMTFFExplicit : public HistogramManager<use_weighted_distribution> {

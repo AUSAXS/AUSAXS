@@ -145,16 +145,12 @@ namespace hist {
             virtual const FormFactorTableType& get_ff_table() const = 0;
 
         protected:
-            double cw = 1; // water scaling factor
-            double cx = 1; // excluded volume scaling factor
-            Distribution3D cp_aa; 
-            Distribution2D cp_aw; 
-            Distribution1D cp_ww;
+            struct {double cw=1, cx=1;} free_params;
+            struct {Distribution3D aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
 
         private:
-            mutable Distribution1D p_aa;
-            mutable Distribution1D p_aw;
-            mutable Distribution1D p_ww;
+            // cached profiles for the different interactions
+            mutable struct {Distribution1D p_aa, p_aw, p_ww;} cached_profiles;
 
             /**
              * @brief Get the q-dependent multiplicative factor for the excluded volume form factor.

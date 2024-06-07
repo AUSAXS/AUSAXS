@@ -137,58 +137,33 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
     Molecule protein(a);
 
-    auto check_default = [] (const auto& hist) {
-        auto p = hist->get_d_axis();
-        if (p.back() < 2) {
-            std::cout << "Failed on size: expected last index larger than 2Å, got: " << p.back() << std::endl;
-            return false;
-        }
-        for (unsigned int i = 0; i < p.size(); ++i) {
-            if (p[i] != constants::axes::d_vals[i]) {
-                std::cout << "Failed on index " << i << ": expected: " << constants::axes::d_vals[i] << ", got: " << p[i] << std::endl;
-                return false;
-            }
-        }
-        return true;
-    };
-    auto check_exact = [] (const auto& hist) {
-        auto p = hist->get_d_axis();
-        for (auto e : d_exact) {
-            if (1e-6 < std::abs(p[std::round(e/constants::axes::d_axis.width())]-e)) {
-                std::cout << "Failed on index " << std::round(e/constants::axes::d_axis.width()) << ": expected: " << e << ", got: " << p[std::round(e/constants::axes::d_axis.width())] << std::endl;
-                return false;
-            }
-        }
-        return true;
-    };
-
     { // hm
-        CHECK(check_default(hist::HistogramManager<false>(&protein).calculate_all()));
-        CHECK(check_exact(hist::HistogramManager<true>(&protein).calculate_all()));
+        CHECK(SimpleCube::check_default(hist::HistogramManager<false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManager<true>(&protein).calculate_all()->get_d_axis()));
     }
     { // hm_mt
-        CHECK(check_default(hist::HistogramManagerMT<false>(&protein).calculate_all()));
-        CHECK(check_exact(hist::HistogramManagerMT<true>(&protein).calculate_all()));
+        CHECK(SimpleCube::check_default(hist::HistogramManagerMT<false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManagerMT<true>(&protein).calculate_all()->get_d_axis()));
     }
     { // hm_mt_ff_avg
-        CHECK(check_default(hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()));
-        CHECK(check_exact(hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()));
+        CHECK(SimpleCube::check_default(hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()->get_d_axis()));
     }
     { // hm_mt_ff_explicit
-        CHECK(check_default(hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()));
-        CHECK(check_exact(hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()));
+        CHECK(SimpleCube::check_default(hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()->get_d_axis()));
     }
     { // hm_mt_ff_grid
-        CHECK(check_default(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFGrid(&protein).calculate_all()->get_d_axis()));
         // CHECK(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all())); // exv cells dominates bin locs in this case
     }
     { // phm
-        CHECK(check_default(hist::PartialHistogramManager<false>(&protein).calculate_all()));
-        CHECK(check_exact(hist::PartialHistogramManager<true>(&protein).calculate_all()));
+        CHECK(SimpleCube::check_default(hist::PartialHistogramManager<false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::PartialHistogramManager<true>(&protein).calculate_all()->get_d_axis()));
     }
     { // phm_mt
-        CHECK(check_default(hist::PartialHistogramManagerMT<false>(&protein).calculate_all()));
-        CHECK(check_exact(hist::PartialHistogramManagerMT<true>(&protein).calculate_all()));
+        CHECK(SimpleCube::check_default(hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_d_axis()));
     }
 }
 
@@ -197,6 +172,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::general::warnings = true;
+    auto d_exact = SimpleCube::d;
 
     SECTION("no water") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -325,17 +301,14 @@ TEST_CASE("6lyz_exv", "[manual]") {
 
     data::Molecule protein("test/files/6lyz_exv.pdb");
     for (auto& b : protein.get_bodies()) {for (auto& a : b.get_atoms()){a.element = constants::atom_t::dummy;}}
-    auto Iq =  static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all().get())->get_profile_xx().as_dataset();
-    auto Iqw = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all().get())->get_profile_xx().as_dataset();
+    auto Iq =  static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid(&protein).calculate_all().get())->get_profile_xx().as_dataset();
     auto Iqexact = exact(protein, settings::grid::exv_radius).as_dataset();
 
     Iq.normalize();
-    Iqw.normalize();
     Iqexact.normalize();
 
     plots::PlotIntensity()
         .plot(Iq, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}, {"yrange", Limit(1e-4, 1.1)}}))
-        .plot(Iqw, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"lw", 2}}))
         .plot(Iqexact, plots::PlotOptions(style::draw::line, {{"color", style::color::green}, {"legend", "Exact"}, {"ls", style::line::dashed}, {"lw", 2}}))
     .save("temp/test/hist/6lyz_exv.png");
 }

@@ -126,6 +126,8 @@ namespace constants {
         namespace detail {
             extern double dummy_radius;
         }
+
+        constexpr double average_atomic_radius = 1.62;
     }
 
     /**

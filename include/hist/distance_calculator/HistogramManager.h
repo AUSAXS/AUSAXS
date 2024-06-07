@@ -8,8 +8,12 @@
 
 namespace hist {
 	/**
-	 * @brief A histogram manager which calculates the distance histogram in a slow but simple way. 
-	 * 		  This class is only intended for testing and inheritance. Use the PartialHistogramManagerMT class for production. 
+	 * @brief A single-threaded simple distance calculator. 
+	 *
+	 * This class does not account for the excluded volume in any way. 
+	 * To implicitly include it, subtract the average excluded volume charge from each atom. 
+	 *
+	 * This class is not meant for production use. 
 	 */
 	template<bool use_weighted_distribution>
 	class HistogramManager : public IHistogramManager {
