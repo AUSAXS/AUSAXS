@@ -27,13 +27,7 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& saxs, std::un
     HydrationFitter::operator=(std::move(hfit));
     initialize_guess();
     validate_histogram();
-    if (c == 0) {
-        // if c is zero use smaller limits
-        this->guess = mini::Parameter{"c", 0, {0, 1}};
-    } else {
-        // else allow 20% variation
-        this->guess = mini::Parameter{"c", c, {c*0.8, c*1.2}};
-    }
+    guess.guess = c;
 }
 
 void ExcludedVolumeFitter::validate_histogram() const {
