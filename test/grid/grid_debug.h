@@ -28,12 +28,18 @@ class GridDebug : public grid::Grid {
         double ra = 0, rh = 0;
 };
 
-inline grid::detail::GridExcludedVolume GridDebug::generate_excluded_volume(bool) {
+inline grid::detail::GridExcludedVolume GridDebug::generate_excluded_volume(bool determine_surface) {
     grid::detail::GridExcludedVolume vol;
     vol.interior = {{0, 0, 0}};
     vol.surface = {
         { 1, 1, 1}, { 1, 1, -1}, { 1, -1, 1}, { 1, -1, -1}, 
         {-1, 1, 1}, {-1, 1, -1}, {-1, -1, 1}, {-1, -1, -1}
     };
+
+    if (!determine_surface) {
+        vol.interior.insert(vol.interior.end(), vol.surface.begin(), vol.surface.end());
+        vol.surface.clear();
+    }
+
     return vol;
 }

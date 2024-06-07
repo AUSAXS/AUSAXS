@@ -276,20 +276,20 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     // calculate weighted distance bins
     p_tot.resize(max_bin);
     WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx.surface.size());
-    for (int i = 0; i < (int) max_bin; ++i) {
+    for (unsigned int i = 0; i < max_bin; ++i) {
         p_tot_ax.add_index(i, p_wx.interior.index(i));
         p_tot_ax.add_index(i, p_wx.surface.index(i));
     }
 
-    for (int i = 0; i < (int) p_ax.surface.size_x(); ++i) {
-        for (int j = 0; j < (int) max_bin; ++j) {
+    for (unsigned int i = 0; i < p_ax.surface.size_x(); ++i) {
+        for (unsigned int j = 0; j < max_bin; ++j) {
             p_tot_ax.add_index(j, p_ax.interior.index(i, j));
             p_tot_ax.add_index(j, p_ax.surface.index(i, j));
         }
     }
 
     WeightedDistribution1D p_tot_xx = std::max<int>(max_bin, p_xx.surface.size());
-    for (int i = 0; i < (int) max_bin; ++i) {
+    for (unsigned int i = 0; i < max_bin; ++i) {
         p_tot_xx.add_index(i, p_xx.interior.index(i));
         p_tot_xx.add_index(i, p_xx.surface.index(i));
         p_tot_xx.add_index(i, p_xx.cross.index(i));

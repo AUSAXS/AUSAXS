@@ -174,19 +174,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     // either xx or ww are largest of all components
     max_bin = std::max<unsigned int>(max_bin, p_tot.size());
 
-    // update p_tot
-    p_tot.resize(max_bin);
-    WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx_generic.size());
-    for (int i = 0; i < (int) max_bin; ++i) {
-        p_tot_ax.add_index(i, p_wx_generic.index(i));
-    }
-
-    for (int i = 0; i < (int) p_ax_generic.size_x(); ++i) {
-        for (int j = 0; j < (int) max_bin; ++j) {
-            p_tot_ax.add_index(j, p_ax_generic.index(i, j));
-        }
-    }
-
     // downsize the axes to only the relevant area
     if (base_res->get_d_axis().size() < max_bin) {
         p_aa.resize(max_bin);
@@ -194,6 +181,19 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
         p_ww.resize(max_bin);
     } else {
         max_bin = base_res->get_d_axis().size(); // make sure we overwrite anything which may already be stored
+    }
+
+    // calculate weighted distance bins
+    p_tot.resize(max_bin);
+    WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx_generic.size());
+    for (unsigned int i = 0; i < max_bin; ++i) {
+        p_tot_ax.add_index(i, p_wx_generic.index(i));
+    }
+
+    for (unsigned int i = 0; i < p_ax_generic.size_x(); ++i) {
+        for (unsigned int j = 0; j < max_bin; ++j) {
+            p_tot_ax.add_index(j, p_ax_generic.index(i, j));
+        }
     }
 
     // overwrite the excluded volume calculations from the HistogramManagerMTFFAvg calculations with our new grid-based ones

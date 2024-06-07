@@ -105,6 +105,8 @@ namespace hist {
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
+            static double exv_factor(double q, double cx);
+
         private: 
             static form_factor::storage::atomic::table_t generate_table();
             inline static form_factor::storage::atomic::table_t ff_table = generate_table();
@@ -117,7 +119,6 @@ namespace hist {
             hist::Distribution2D evaluate_ax_profile(double cx) const;
 
             double exv_factor(double q) const override;
-            static double exv_factor(double q, double cx);
 
             /**
              * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.

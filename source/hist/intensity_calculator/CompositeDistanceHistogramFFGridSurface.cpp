@@ -36,9 +36,13 @@ Limit CompositeDistanceHistogramFFGridSurface::get_excluded_volume_scaling_facto
     return {0, 2};
 }
 
-double CompositeDistanceHistogramFFGridSurface::exv_factor(double q) const {
+double CompositeDistanceHistogramFFGridSurface::exv_factor(double q, double cx) {
     constexpr double rm2 = constants::radius::average_atomic_radius*constants::radius::average_atomic_radius;
-    return std::pow(this->free_params.cx, 3)*std::exp(-rm2*(std::pow(this->free_params.cx, 2) - 1)*q*q/4);
+    return std::pow(cx, 3)*std::exp(-rm2*(std::pow(cx, 2) - 1)*q*q/4);
+}
+
+double CompositeDistanceHistogramFFGridSurface::exv_factor(double q) const {
+    return exv_factor(q, free_params.cx);
 }
 
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGridSurface::generate_table() {
@@ -105,7 +109,7 @@ ScatteringProfile CompositeDistanceHistogramFFGridSurface::debye_transform() con
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double cx = exv_factor(q);
+        double cx = exv_factor(constants::axes::q_vals[q]);
         auto xx = evaluate_xx_profile(cx);
         auto wx = evaluate_wx_profile(cx);
         auto ax = evaluate_ax_profile(cx);
@@ -154,7 +158,7 @@ ScatteringProfile CompositeDistanceHistogramFFGridSurface::get_profile_ax() cons
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        auto ax = evaluate_ax_profile(exv_factor(q));
+        auto ax = evaluate_ax_profile(exv_factor(constants::axes::q_vals[q]));
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table->begin(q), 0.0);
             Iq[q-q0] += 2*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
@@ -172,7 +176,7 @@ ScatteringProfile CompositeDistanceHistogramFFGridSurface::get_profile_wx() cons
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        auto wx = evaluate_wx_profile(exv_factor(q));
+        auto wx = evaluate_wx_profile(exv_factor(constants::axes::q_vals[q]));
         double ew_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += 2*free_params.cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
     }
@@ -188,7 +192,7 @@ ScatteringProfile CompositeDistanceHistogramFFGridSurface::get_profile_xx() cons
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        auto xx = evaluate_xx_profile(exv_factor(q));
+        auto xx = evaluate_xx_profile(exv_factor(constants::axes::q_vals[q]));
         double xx_sum = std::inner_product(xx.begin(), xx.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
     }

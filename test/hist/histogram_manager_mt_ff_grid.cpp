@@ -213,7 +213,9 @@ TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
 // Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
 TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     settings::molecule::use_effective_charge = false;
+    settings::molecule::center = false;
     settings::hist::weighted_bins = true;
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
 
     SECTION("simple") {
@@ -248,6 +250,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     }
 
     SECTION("simple, all") {
+        settings::grid::rvol = 0;
         std::vector<Atom> atoms = SimpleCube::atoms;
         atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
         std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
@@ -308,6 +311,7 @@ auto calc_scat = [] (double k) {
         //          1 line  of length 0
         //          16 lines of length sqrt(3) = 1.73 (counting both directions)
 
+        auto cx = hist::CompositeDistanceHistogramFFGridSurface::exv_factor(constants::axes::q_vals[q], k);
         double aasum = 
             9 + 
             16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
@@ -316,18 +320,18 @@ auto calc_scat = [] (double k) {
             8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
         double axsum = 
             1 +
-            k*8 +
-            8*(1+k)*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
-            k*24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-            k*24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
-            k*8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+            cx*8 +
+            8*(1+cx)*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+            cx*24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+            cx*24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+            cx*8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
         double xxsum = 
             1 +
-            k*k*8 + 
-            k*16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
-            k*k*24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-            k*k*24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
-            k*k*8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+            cx*cx*8 + 
+            cx*16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+            cx*cx*24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+            cx*cx*24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+            cx*cx*8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
 
         // if (q==0) {
         //     std::cout << "aasum: " << aasum << std::endl;
@@ -365,10 +369,11 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
+    settings::hist::weighted_bins = true;
+    settings::grid::width = 1;
+    settings::grid::exv_radius = 0.5;
+    settings::grid::rvol = 0;
 
-    settings::grid::save_exv = true;
-    settings::general::output = "temp/test/hist/hmmtffg/";
-    settings::grid::rvol = 2;
     std::vector<Atom> atoms = SimpleCube::atoms;
     atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
     std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
@@ -400,5 +405,10 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     // x0.5
     Iq_exp = calc_scat(0.5);
     h_cast->apply_excluded_volume_scaling_factor(0.5);
+    REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+    // x0
+    Iq_exp = calc_scat(0);
+    h_cast->apply_excluded_volume_scaling_factor(0);
     REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
 }
