@@ -247,6 +247,22 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         CHECK(compare_hist(h_grids_cast->get_d_axis_xx(), h_exv->get_d_axis()));
     }
 
+    SECTION("simple, all") {
+        std::vector<Atom> atoms = SimpleCube::atoms;
+        atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
+        std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
+
+        Molecule protein(atoms);
+        GridDebug::generate_debug_grid(protein); // overrides exv generation
+        auto h = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h.get());
+
+        // check the distance axes
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_xx()));
+    }
+
     SECTION("real data") {
         auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
         std::vector<Atom> atoms(exv_grid.interior.size());
@@ -275,31 +291,71 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
 auto calc_scat = [] (double k) {
     const auto& q_axis = constants::axes::q_vals;
     auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
-    auto ff_Cx = form_factor::storage::exv::get_form_factor(form_factor::form_factor_t::C);
-    std::vector<double> Iq_exp(q_axis.size(), 0);
 
+    auto V = std::pow(2*settings::grid::exv_radius, 3);
+    form_factor::FormFactor ffx = form_factor::ExvFormFactor(V);
+    auto d = SimpleCube::d_exact;
+
+    std::vector<double> Iq_exp(q_axis.size(), 0);
     for (unsigned int q = 0; q < q_axis.size(); ++q) {
+        // calculation: 8 points (scaled by k)
+        //          1 line  of length 0
+        //          3 lines of length 2
+        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
+        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
+        //
+        // calculation: 1 center point
+        //          1 line  of length 0
+        //          16 lines of length sqrt(3) = 1.73 (counting both directions)
+
         double aasum = 
-            8 + 
+            9 + 
             16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
             24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
             24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
             8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
         double axsum = 
-            k*16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
-            24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-            24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
-            8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+            1 +
+            k*8 +
+            8*(1+k)*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+            k*24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+            k*24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+            k*8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
         double xxsum = 
-            8 + 
-            k*k*16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
-            24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-            24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
-            8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+            1 +
+            k*k*8 + 
+            k*16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+            k*k*24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+            k*k*24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+            k*k*8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
 
-        Iq_exp[q] += aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);                 // + aa
-        Iq_exp[q] -= 2*axsum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2ax
-        Iq_exp[q] += xxsum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);                // + xx
+        // if (q==0) {
+        //     std::cout << "aasum: " << aasum << std::endl;
+        //     std::cout << "\t9*1" << std::endl;
+        //     std::cout << "\t16*sin(" << q_axis[q] << "*" << d[1] << ")/(" << q_axis[q] << "*" << d[1] << ") = " << std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) << std::endl;
+        //     std::cout << "\t24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
+        //     std::cout << "\t24*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
+        //     std::cout << "\t8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+
+        //     std::cout << "axsum: " << axsum << std::endl;
+        //     std::cout << "\t1" << std::endl;
+        //     std::cout << "\t" << 8*k << std::endl;
+        //     std::cout << "\t" << 24*k << "*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
+        //     std::cout << "\t" << 24*k << "*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
+        //     std::cout << "\t" << 8*k << " *sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+
+        //     std::cout << "xxsum: " << xxsum << std::endl;
+        //     std::cout << "\t1" << std::endl;
+        //     std::cout << "\t" << 8*k*k << std::endl;
+        //     std::cout << "\t" << 16 << "*sin(" << q_axis[q] << "*" << d[1] << ")/(" << q_axis[q] << "*" << d[1] << ") = " << k*k*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) << std::endl;
+        //     std::cout << "\t" << 24*k*k << "*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
+        //     std::cout << "\t" << 24*k*k << "*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
+        //     std::cout << "\t" << 8*k*k << "*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+        // }
+
+        Iq_exp[q] += aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);               // + aa
+        Iq_exp[q] -= 2*axsum*ff_C.evaluate(q_axis[q])*ffx.evaluate(q_axis[q]);  // -2ax
+        Iq_exp[q] += xxsum*std::pow(ffx.evaluate(q_axis[q]), 2);                // + xx
     }
     return Iq_exp;
 };
@@ -313,14 +369,36 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     settings::grid::save_exv = true;
     settings::general::output = "temp/test/hist/hmmtffg/";
     settings::grid::rvol = 2;
-    std::vector<Atom> atoms = atom_cube;
+    std::vector<Atom> atoms = SimpleCube::atoms;
     atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
+    std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
 
     Molecule protein(atoms);
+    GridDebug::generate_debug_grid(protein);
     auto h = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
     auto h_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h.get());
 
+    // check the distance axes
+    REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
+    REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
+    REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_xx()));
+
     // x1
     auto Iq_exp = calc_scat(1);
+    REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+    // x2
+    Iq_exp = calc_scat(2);
+    h_cast->apply_excluded_volume_scaling_factor(2);
+    REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+    // x3
+    Iq_exp = calc_scat(3);
+    h_cast->apply_excluded_volume_scaling_factor(3);
+    REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+    // x0.5
+    Iq_exp = calc_scat(0.5);
+    h_cast->apply_excluded_volume_scaling_factor(0.5);
     REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
 }

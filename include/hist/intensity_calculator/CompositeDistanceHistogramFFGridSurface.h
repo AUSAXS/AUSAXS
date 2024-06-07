@@ -112,11 +112,12 @@ namespace hist {
             struct {std::vector<double> xx, ax;} distance_axes;
 
             struct {hist::Distribution1D xx_i, xx_s, xx_c, wx_i, wx_s; hist::Distribution2D ax_i, ax_s;} exv_distance_profiles;
-            hist::Distribution1D evaluate_xx_profile() const;
-            hist::Distribution1D evaluate_wx_profile() const;
-            hist::Distribution2D evaluate_ax_profile() const;
+            hist::Distribution1D evaluate_xx_profile(double cx) const;
+            hist::Distribution1D evaluate_wx_profile(double cx) const;
+            hist::Distribution2D evaluate_ax_profile(double cx) const;
 
             double exv_factor(double q) const override;
+            static double exv_factor(double q, double cx);
 
             /**
              * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.

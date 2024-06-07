@@ -131,9 +131,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
         return p_xx;
     };
 
-    container::ThreadLocalWrapper<AXContainer> p_ax_i_all(form_factor::get_count(), constants::axes::d_axis.bins);
-    auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_i_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
-        auto& p_ax = p_ax_i_all.get();
+    container::ThreadLocalWrapper<AXContainer> p_ax_all(form_factor::get_count(), constants::axes::d_axis.bins);
+    auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
+        auto& p_ax = p_ax_all.get();
         for (int i = imin; i < imax; ++i) { // atoms
             int j = 0;                      // exv interior
             for (; j+7 < data_x_i_size; j+=8) {
@@ -233,7 +233,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
 
     pool->wait();
     XXContainer p_xx = p_xx_all.merge();
-    AXContainer p_ax = p_ax_i_all.merge();
+    AXContainer p_ax = p_ax_all.merge();
     WXContainer p_wx = p_wx_all.merge();
 
     //###################//
@@ -292,6 +292,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     for (int i = 0; i < (int) max_bin; ++i) {
         p_tot_xx.add_index(i, p_xx.interior.index(i));
         p_tot_xx.add_index(i, p_xx.surface.index(i));
+        p_tot_xx.add_index(i, p_xx.cross.index(i));
     }
 
     {   // delete the exv information from the HistogramManagerMTFFAvg data
