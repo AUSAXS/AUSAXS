@@ -4,11 +4,8 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <math/PeakFinder.h>
-#include <plots/PlotDataset.h>
-#include <dataset/SimpleDataset.h>
-#include <utility/Exceptions.h>
-
 #include <algorithm>
+#include <stdexcept>
 
 /*
     Alternative idea:
@@ -17,10 +14,19 @@ For more information, please refer to the LICENSE file in the project root.
 
 #define DEBUG_PLOT false
 #define DEBUG_OUTPUT false
-#define DEBUG_PRINT(x) if (DEBUG_OUTPUT) {std::cout << x << std::endl;}
 
+#if DEBUG_PLOT
+    #include <plots/PlotDataset.h>
+    #include <dataset/SimpleDataset.h>
+    #include <iostream>
+    #define DEBUG_PRINT(x) if (DEBUG_OUTPUT) {std::cout << x << std::endl;}
+#else
+    #define DEBUG_PRINT(x)
+#endif
+
+struct Limit {double min = 0, max = 0;};
 std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const std::vector<double>& y, unsigned int min_spacing, double min_prominence) {
-	if (x.size() != y.size()) {throw except::invalid_argument("math::find_minima: x and y must have the same size.");}
+	if (x.size() != y.size()) {throw std::invalid_argument("math::find_minima: x and y must have the same size.");}
     if (x.size() < 3) {return {};}
 	unsigned int size = x.size();
 

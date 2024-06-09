@@ -147,35 +147,6 @@ endif(DOXYGEN_FOUND)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED)
 
-add_subdirectory(include)
-
-file(GLOB_RECURSE HEADER_FILES "${CMAKE_SOURCE_DIR}/include/*.h")
-file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
-
-add_library(objlib OBJECT ${SOURCE_FILES})
-set_target_properties(objlib PROPERTIES POSITION_INDEPENDENT_CODE 1)
-
-add_library(ausaxs_static STATIC $<TARGET_OBJECTS:objlib>)
-add_library(ausaxs SHARED $<TARGET_OBJECTS:objlib>)
-set_target_properties(ausaxs_static PROPERTIES 
-	OUTPUT_NAME ausaxs_static
-	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
-)
-set_target_properties(ausaxs 
-	PROPERTIES OUTPUT_NAME ausaxs
-	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
-)
-
-target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-if (DLIB)
-	target_link_libraries(objlib dlib::dlib)
-	target_link_libraries(ausaxs dlib::dlib)
-	target_link_libraries(ausaxs_static dlib::dlib)
-endif()
-target_link_libraries(ausaxs ${LIBS})
-target_link_libraries(ausaxs_static ${LIBS})
-
+add_subdirectory(source)
 add_subdirectory(tests)
 add_subdirectory(executable)

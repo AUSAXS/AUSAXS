@@ -1,0 +1,41 @@
+target_sources(${mainlib} PRIVATE 
+	"Histogram.cpp"
+	"Histogram2D.cpp"
+	"ScatteringHistogram.cpp"
+	
+	"detail/BodyTracker.cpp"
+	"detail/CompactCoordinates.cpp"
+	"detail/CompactCoordinatesData.cpp"
+	"detail/CompactCoordinatesFF.cpp"
+	"detail/MasterHistogram.cpp"
+	
+	"distance_calculator/HistogramManager.cpp"
+	"distance_calculator/HistogramManagerFactory.cpp"
+	"distance_calculator/HistogramManagerMT.cpp"
+	"distance_calculator/HistogramManagerMTFFAvg.cpp"
+	"distance_calculator/HistogramManagerMTFFExplicit.cpp"
+	"distance_calculator/HistogramManagerMTFFGrid.cpp"
+	"distance_calculator/HistogramManagerMTFFGridSurface.cpp"
+	"distance_calculator/PartialHistogramManager.cpp"
+	"distance_calculator/PartialHistogramManagerMT.cpp"
+	
+	"distribution/Distribution1D.cpp"
+	"distribution/Distribution2D.cpp"
+	"distribution/Distribution3D.cpp"
+	"distribution/WeightedDistribution1D.cpp"
+	"distribution/WeightedDistribution2D.cpp"
+	"distribution/WeightedDistribution3D.cpp"
+	"distribution/detail/WeightedEntry.cpp"
+	
+	"intensity_calculator/CompositeDistanceHistogram.cpp"
+	"intensity_calculator/CompositeDistanceHistogramFFAvgBase.cpp"
+	"intensity_calculator/CompositeDistanceHistogramFFExplicitBase.cpp"
+	"intensity_calculator/CompositeDistanceHistogramFFGrid.cpp"
+	"intensity_calculator/CompositeDistanceHistogramFFGridSurface.cpp"
+	"intensity_calculator/DistanceHistogram.cpp"
+	"intensity_calculator/crysol/CompositeDistanceHistogramCrysol.cpp"
+	"intensity_calculator/foxs/CompositeDistanceHistogramFoXS.cpp"
+	"intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.cpp"
+
+	"symmetry/PlaneSymmetry.cpp"
+)

@@ -1,0 +1,15 @@
+target_sources(${mainlib} PRIVATE 
+	"CrystalSettings.cpp"
+	"EMSettings.cpp"
+	"FitSettings.cpp"
+	"GeneralSettings.cpp"
+	"GridSettings.cpp"
+	"HistogramSettings.cpp"
+	"MoleculeSettings.cpp"
+	"PlotSettings.cpp"
+	"RigidBodySettings.cpp"
+	"SettingRef.cpp"
+	"SettingsIO.cpp"
+	"SettingsIORegistry.cpp"
+	"SettingsValidation.cpp"
+)

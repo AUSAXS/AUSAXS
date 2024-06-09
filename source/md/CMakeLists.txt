@@ -1,4 +1,7 @@
-file(GLOB_RECURSE INCLUDE "${CMAKE_SOURCE_DIR}/include/md/*.h")
 file(GLOB_RECURSE SOURCE "${CMAKE_SOURCE_DIR}/source/md/*.cpp")
-add_library(ausaxs_gmx ${INCLUDE} ${SOURCE})
-target_include_directories(gmx PUBLIC "${CMAKE_SOURCE_DIR}/include")
+add_library(ausaxs_gmx OBJECT ${SOURCE})
+
+set_target_properties(ausaxs_gmx PROPERTIES
+	PROPERTIES_OUTPUT_NAME ausaxs_gmx
+	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
+)
