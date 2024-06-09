@@ -78,7 +78,7 @@ bool GridSurfaceDetection::collision_check(const Vector3<int>& loc) const {
     return score < 14;
 }
 
-template<bool detect>
+template<bool detect_surface>
 GridExcludedVolume GridSurfaceDetection::helper() const {
     GridExcludedVolume vol;
     vol.interior.reserve(grid->get_volume());
@@ -95,7 +95,7 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
                     case grid::detail::VOLUME:
                     case grid::detail::A_AREA:
                     case grid::detail::A_CENTER: 
-                        if constexpr (detect) {
+                        if constexpr (detect_surface) {
                             if (collision_check({i, j, k})) {
                                 vol.interior.push_back(grid->to_xyz(i, j, k));
                             } else {
