@@ -1,4 +1,3 @@
-set(ELEMENTS_BUILD_EXAMPLES OFF)
 FetchContent_Declare(
 	elements
 	GIT_REPOSITORY https://github.com/cycfi/elements.git

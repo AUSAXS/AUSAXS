@@ -147,6 +147,8 @@ endif(DOXYGEN_FOUND)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED)
 
+add_subdirectory(include)
+
 file(GLOB_RECURSE HEADER_FILES "${CMAKE_SOURCE_DIR}/include/*.h")
 file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
 
@@ -175,5 +177,5 @@ endif()
 target_link_libraries(ausaxs ${LIBS})
 target_link_libraries(ausaxs_static ${LIBS})
 
-add_subdirectory(test)
+add_subdirectory(tests)
 add_subdirectory(executable)

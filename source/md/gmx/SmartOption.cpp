@@ -1,0 +1,62 @@
+#include <gmx/SmartOption.h>
+
+#include <fstream>
+#include <sstream>
+#include <filesystem>
+
+template<> void gmx::SmartOption<double>::set(const std::string& value) {this->value = std::stod(value);}
+template<> void gmx::SmartOption<int>::set(const std::string& value) {this->value = std::stoi(value);}
+template<> void gmx::SmartOption<std::string>::set(const std::string& value) {this->value = value;}
+template<> std::string gmx::SmartOption<double>::get() const {return std::to_string(value);}
+template<> std::string gmx::SmartOption<int>::get() const {return std::to_string(value);}
+template<> std::string gmx::SmartOption<std::string>::get() const {return value;}
+
+void gmx::settings::parse_option(const std::string& name, const std::string& value) {
+    if (ISmartOption::all_options.count(name) == 0) {
+        throw std::runtime_error("Unknown option: " + name);
+    }
+    ISmartOption::all_options[name]->set(value);
+}
+
+bool gmx::settings::is_comment_char(char c) {
+    switch (c) {
+        case '#':
+        case ';':
+        case '/':
+            return true;
+        default:
+            return false;
+    }
+}
+
+void gmx::settings::read(const std::string& filename) {
+    std::ifstream in(filename);
+    std::string line;
+    while (std::getline(in, line)) {
+        if (line.empty() || is_comment_char(line[0])) {continue;}
+        std::string name, value;
+        std::istringstream iss(line);
+        iss >> name >> value;
+        parse_option(name, value);
+    }
+}
+
+void gmx::settings::write(const std::string& filename) {
+    std::ofstream out(filename);
+    for (const auto& [name, option] : ISmartOption::all_options) {
+        out << name << " " << option->get() << std::endl;
+    }
+}
+
+bool gmx::settings::discover(std::string path) {
+    if (path[path.size()-1] != '/') {path += "/";}
+    std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
+    for (const auto& e : valid_names) {
+        if (std::filesystem::exists(path + e + ".txt")) {
+            std::cout << "Using discovered settings file at " << path + e + ".txt" << std::endl;
+            settings::read(path + e + ".txt");
+            return true;
+        }
+    }
+    return false;
+}
