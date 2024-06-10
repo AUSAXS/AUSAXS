@@ -1,12 +1,8 @@
-build
-winbuild
+/build
+/winbuild
+/output
+/data
 temp
-output
-data
-
-!tests/data
-!source/core/data
-!include/core/data
 
 # developer stuff
 **/__pycache__
