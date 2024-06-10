@@ -4,9 +4,9 @@ temp
 output
 data
 
-!test/data
-!source/data
-!include/data
+!tests/data
+!source/core/data
+!include/core/data
 
 # developer stuff
 **/__pycache__
