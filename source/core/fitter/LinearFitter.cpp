@@ -4,15 +4,13 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <fitter/LinearFitter.h>
+#include <fitter/SimpleLeastSquares.h>
 #include <fitter/FitPlots.h>
 #include <math/CubicSpline.h>
-#include <math/SimpleLeastSquares.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/Histogram.h>
 #include <utility/Exceptions.h>
 #include <settings/HistogramSettings.h>
-#include <mini/detail/FittedParameter.h>
-#include <mini/detail/Evaluation.h>
 #include <dataset/Dataset2D.h>
 #include <settings/EMSettings.h>
 

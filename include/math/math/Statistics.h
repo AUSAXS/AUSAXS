@@ -1,10 +1,11 @@
 #pragma once
 
-#include <math/slices/Slice.h>
-#include <utility/Concepts.h>
+#include <math/MathConcepts.h>
 
-#include <vector>
 #include <algorithm>
+#include <stdexcept>
+#include <vector>
+#include <cmath>
 
 namespace stats {
     /**

@@ -1,1 +1,1 @@
-target_sources(${mainlib} PRIVATE "sasview.cpp")
+target_sources(ausaxs_core PRIVATE "sasview.cpp")

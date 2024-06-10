@@ -73,9 +73,9 @@ mini::Landscape LimitedScan::landscape(unsigned int evals) {
             }
         }
         return get_evaluated_points();
-    } 
-    
+    }
+
     else { // parameters.size() <= 2 
-        throw except::unexpected("LimitedScan::landscape: Using more than two parameters is currently not implemented.");
+        throw std::runtime_error("LimitedScan::landscape: Using more than two parameters is currently not implemented.");
     } 
 }

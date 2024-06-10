@@ -3,19 +3,14 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <math/SimpleLeastSquares.h>
-#include <math/Statistics.h>
+#include <dataset/Dataset.h>
 #include <math/MovingAverager.h>
 #include <math/CubicSpline.h>
 #include <math/PeakFinder.h>
-#include <dataset/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 #include <utility/Console.h>
 #include <dataset/DatasetFactory.h>
-#include <dataset/SimpleDataset.h>
-#include <mini/detail/FittedParameter.h>
-#include <mini/detail/Evaluation.h>
 #include <settings/GeneralSettings.h>
 
 #include <vector>

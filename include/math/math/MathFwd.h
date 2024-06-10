@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility/Concepts.h>
+#include <math/MathConcepts.h>
 
 template<numeric T>
 class Matrix;

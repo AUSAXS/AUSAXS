@@ -11,12 +11,6 @@
 #include <iomanip>
 #include <cmath>
 
-template<typename C>
-concept container_type = requires(C c, int i) {
-    {c[i]};
-    {c.size()};
-};
-
 template<numeric T, container_type Container> 
 class Slice {
     public: 
@@ -209,15 +203,6 @@ class MutableSlice : public Slice<T, std::vector<T>&> {
             }
             return *this;
         }
-
-        // template<numeric Q, container_type R>
-        // MutableSlice& operator+=(const Slice<Q, R>& rhs) {
-        //     this->validate_sizes(rhs.size());
-        //     for (unsigned int i = 0; i < this->size(); i++) {
-        //         (*this)[i] += rhs[i];
-        //     }
-        //     return *this;
-        // }
 
         template<container_type Q>
         MutableSlice& operator+=(const Q& rhs) {

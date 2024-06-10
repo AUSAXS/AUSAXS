@@ -4,21 +4,18 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <fitter/HydrationFitter.h>
+#include <fitter/SimpleLeastSquares.h>
 #include <fitter/Fit.h>
-#include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
 #include <hist/Histogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Exceptions.h>
-#include <plots/All.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
 #include <io/ExistingFile.h>
 #include <dataset/Dataset2D.h>
 #include <mini/All.h>
-#include <mini/detail/Parameter.h>
-#include <mini/Minimizer.h>
 
 using namespace fitter;
 

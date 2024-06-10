@@ -3,15 +3,11 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include "dataset/Dataset.h"
-#include <math/SimpleLeastSquares.h>
-#include <math/Statistics.h>
 #include <dataset/SimpleDataset.h>
+#include <math/Statistics.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <dataset/DatasetFactory.h>
-#include <mini/detail/FittedParameter.h>
-#include <mini/detail/Evaluation.h>
 #include <hist/Histogram.h>
 #include <settings/GeneralSettings.h>
 

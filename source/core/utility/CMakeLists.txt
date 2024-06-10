@@ -1,4 +1,4 @@
-target_sources(${mainlib} PRIVATE 
+target_sources(ausaxs_core PRIVATE 
 	"Axis.cpp"
 	"Axis3D.cpp"
 	"Console.cpp"

@@ -1,4 +1,4 @@
-target_sources(${mainlib} PRIVATE 
+target_sources(ausaxs_core PRIVATE 
 	"Dataset.cpp"
 	"Dataset2D.cpp"
 	"DatasetFactory.cpp"

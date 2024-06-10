@@ -1,4 +1,4 @@
-target_sources(${mainlib} PRIVATE 
+target_sources(ausaxs_core PRIVATE 
 	"ExistingFile.cpp"
 	"File.cpp"
 	"Folder.cpp"

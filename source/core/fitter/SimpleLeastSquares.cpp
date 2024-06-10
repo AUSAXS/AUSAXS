@@ -3,12 +3,11 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <math/SimpleLeastSquares.h>
+#include <fitter/SimpleLeastSquares.h>
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
 #include <fitter/FitPlots.h>
 #include <utility/Exceptions.h>
-#include <mini/All.h>
 
 #include <cmath>
 

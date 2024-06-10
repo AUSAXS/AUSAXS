@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility/Concepts.h>
+#include <math/MathConcepts.h>
 #include <utility/Axis.h>
 
 class Axis3D;

@@ -1,4 +1,4 @@
-target_sources(${mainlib} PRIVATE 
+target_sources(ausaxs_core PRIVATE 
 	"Histogram.cpp"
 	"Histogram2D.cpp"
 	"ScatteringHistogram.cpp"

@@ -5,6 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Evaluation.h>
+#include <utility/Exceptions.h>
 
 mini::Landscape::Landscape(const std::vector<Evaluation>& evals) : evals(std::move(evals)) {}
 

@@ -28,7 +28,7 @@ namespace mini {
                 case type::LIMITED_SCAN:
                     return std::make_shared<LimitedScan>();
                 default:
-                    throw except::invalid_argument("all::create_minimizer: Unknown minimizer type.");
+                    throw std::invalid_argument("all::create_minimizer: Unknown minimizer type.");
             }
         }
     }

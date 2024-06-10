@@ -1,9 +1,8 @@
-target_sources(${mainlib} PRIVATE 
+target_sources(ausaxs_core PRIVATE 
 	"Plot.cpp"
 	"PlotDataset.cpp"
 	"PlotDistance.cpp"
 	"PlotHistogram.cpp"
-	"PlotImage.cpp"
 	"PlotIntensity.cpp"
 	"PlotIntensityFit.cpp"
 	"PlotIntensityFitResiduals.cpp"

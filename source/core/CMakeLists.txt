@@ -1,22 +1,22 @@
-set(mainlib "objlib")
-add_library(${mainlib} OBJECT)
-set_target_properties(${mainlib} PROPERTIES POSITION_INDEPENDENT_CODE 1)
+add_library(ausaxs_core OBJECT)
+set_target_properties(ausaxs_core PROPERTIES POSITION_INDEPENDENT_CODE 1)
+target_include_directories(ausaxs_core PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
+target_link_libraries(ausaxs_core ausaxs_math)
+if (DLIB) 
+	target_link_libraries(ausaxs_core "dlib::dlib") 
+endif()
 
-add_library(ausaxs_static STATIC $<TARGET_OBJECTS:objlib>)
-add_library(ausaxs SHARED $<TARGET_OBJECTS:objlib>)
+add_library(ausaxs_static STATIC $<TARGET_OBJECTS:ausaxs_core>)
 set_target_properties(ausaxs_static PROPERTIES 
 	OUTPUT_NAME ausaxs_static
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
+add_library(ausaxs SHARED $<TARGET_OBJECTS:ausaxs_core>)
 set_target_properties(ausaxs 
 	PROPERTIES OUTPUT_NAME ausaxs
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
 
-target_include_directories(${mainlib} PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
-if (DLIB)
-	target_link_libraries(${mainlib} dlib::dlib)
-endif()
 target_link_libraries(ausaxs ${LIBS})
 target_link_libraries(ausaxs_static ${LIBS})
 

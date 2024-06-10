@@ -5,8 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/Fit.h>
-#include <fitter/FitPlots.h>
-#include <math/SimpleLeastSquares.h>
+#include <fitter/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
 #include <hist/Histogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -14,9 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
-#include <plots/All.h>
 #include <settings/GeneralSettings.h>
-#include <data/Molecule.h>
 
 using namespace fitter;
 

@@ -1,1 +1,1 @@
-target_sources(${mainlib} PRIVATE "Constants.cpp")
+target_sources(ausaxs_core PRIVATE "Constants.cpp")

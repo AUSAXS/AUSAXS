@@ -1,6 +1,5 @@
 #pragma once
 
-#include <utility/Concepts.h>
 #include <math/MathFwd.h>
 
 namespace crystal {

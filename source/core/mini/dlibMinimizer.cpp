@@ -45,8 +45,8 @@ For more information, please refer to the LICENSE file in the project root.
 
     template<mini::type algo>
     Result dlibMinimizer<algo>::minimize_override() {
-        if (!is_parameter_set()) {throw except::bad_order("dlibMinimizer::minimize: No parameters were supplied.");}
-        if (!is_function_set()) {throw except::bad_order("dlibMinimizer::minimize: No function was set.");}
+        if (!is_parameter_set()) {throw std::invalid_argument("dlibMinimizer::minimize: No parameters were supplied.");}
+        if (!is_function_set()) {throw std::invalid_argument("dlibMinimizer::minimize: No function was set.");}
 
         // prepare guess value
         bool bounds = true;
@@ -59,7 +59,7 @@ For more information, please refer to the LICENSE file in the project root.
             } else if (parameters[i].has_bounds()) {
                 x(i) = parameters[i].bounds->center();
             } else {
-                throw except::invalid_argument("dlibMinimizer::minimize: Either a guess or bounds must be supplied.");
+                throw std::invalid_argument("dlibMinimizer::minimize: Either a guess or bounds must be supplied.");
             }
 
             if (!parameters[i].has_bounds()) {

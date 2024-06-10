@@ -19,7 +19,7 @@ PlotImage::PlotImage(const em::Image& image, const PlotOptions& options) {
 PlotImage::~PlotImage() = default;
 
 PlotImage& PlotImage::plot_atoms(const em::Image& image, double cutoff) {
-    const std::list<data::record::Atom>& atoms = image.generate_atoms(cutoff);
+    std::list<data::record::Atom> atoms = image.generate_atoms(cutoff);
     std::vector<double> x;
     std::vector<double> y;
     x.reserve(atoms.size());
