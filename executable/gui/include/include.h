@@ -3,7 +3,6 @@
 #include <elements.hpp>
 #include <nfd.hpp>
 
-#include <em/ImageStack.h>
 #include <data/Molecule.h>
 #include <dataset/SimpleDataset.h>
 #include <shell/Command.h>
@@ -21,7 +20,6 @@ namespace settings {
 namespace setup {
 	inline std::unique_ptr<data::Molecule> pdb;
 	inline std::unique_ptr<SimpleDataset> saxs_dataset;
-	inline std::unique_ptr<em::ImageStack> map;
 }
 
 struct ColorManager {

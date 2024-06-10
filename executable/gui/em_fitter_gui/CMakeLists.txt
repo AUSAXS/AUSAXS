@@ -15,9 +15,6 @@ include(ElementsConfigApp)
 #	IMPORTED_IMPLIB "${CMAKE_BINARY_DIR}/Release/ausaxs.lib"
 #	INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
 #)
-target_link_libraries("${ELEMENTS_APP_PROJECT}" PRIVATE ausaxs_static)
+target_link_libraries("${ELEMENTS_APP_PROJECT}" PRIVATE ausaxs_core ausaxs_math ausaxs_em)
 target_include_directories("${ELEMENTS_APP_PROJECT}" PUBLIC "${CMAKE_SOURCE_DIR}/include")
-set_target_properties("${ELEMENTS_APP_PROJECT}" PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
 add_dependencies("${ELEMENTS_APP_PROJECT}" plotter)

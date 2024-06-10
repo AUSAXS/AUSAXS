@@ -3,7 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <data/BodySplitter.h>
+#include <rigidbody/BodySplitter.h>
 #include <data/Body.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>

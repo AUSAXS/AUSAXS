@@ -6,15 +6,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(CLI11)
 
-file(GLOB EXEC_SOURCE "*.cpp")
-foreach(exec ${EXEC_SOURCE})
-	cmake_path(GET exec STEM name)
-	add_executable("${name}" ${exec})
-	set_target_properties("${name}" PROPERTIES 
-		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-	)
-	target_link_libraries("${name}" CLI11::CLI11 ausaxs_static "$<$<CONFIG:Debug>:Backward::Interface>")
-endforeach()
+add_executable(saxs_fitter "saxs_fitter.cpp")
+add_executable(em_fitter "em_fitter.cpp")
+add_executable(rigidbody_optimizer "rigidbody_optimizer.cpp")
+
+target_link_libraries(saxs_fitter PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
+target_link_libraries(em_fitter PRIVATE ausaxs_core ausaxs_math ausaxs_em CLI11::CLI11)
+target_link_libraries(rigidbody_optimizer PRIVATE ausaxs_core ausaxs_math ausaxs_rigidbody CLI11::CLI11)
 
 if (GUI)
 	add_subdirectory(gui)

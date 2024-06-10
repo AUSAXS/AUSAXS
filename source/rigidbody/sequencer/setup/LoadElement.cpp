@@ -6,7 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/setup/LoadElement.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/RigidBody.h>
-#include <data/BodySplitter.h>
+#include <rigidbody/BodySplitter.h>
 #include <settings/GeneralSettings.h>
 
 #include <iostream>

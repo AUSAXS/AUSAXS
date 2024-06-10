@@ -30,6 +30,10 @@
 
 namespace gui = cycfi::elements;
 
+namespace setup {
+	inline std::unique_ptr<em::ImageStack> map;
+}
+
 auto constexpr bg_color_accent = gui::rgba(55, 55, 57, 255);
 auto constexpr bg_color = gui::rgba(35, 35, 37, 255);
 auto constexpr bgreen   = gui::colors::green.level(0.7).opacity(0.4);

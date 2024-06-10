@@ -1,7 +1,7 @@
 add_library(ausaxs_core OBJECT)
 set_target_properties(ausaxs_core PROPERTIES POSITION_INDEPENDENT_CODE 1)
 target_include_directories(ausaxs_core PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
-target_link_libraries(ausaxs_core ausaxs_math)
+target_link_libraries(ausaxs_core ausaxs_math CURL::libcurl)
 if (DLIB) 
 	target_link_libraries(ausaxs_core "dlib::dlib") 
 endif()
