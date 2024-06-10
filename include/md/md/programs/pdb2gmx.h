@@ -3,10 +3,9 @@
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
 
-#include <algorithm>
 #include <tuple>
 
-namespace gmx {
+namespace md {
     class pdb2gmx : private gmx {
         public: 
             pdb2gmx() {
@@ -40,7 +39,7 @@ namespace gmx {
                 return *this;
             }
 
-            pdb2gmx& water_model(option::WaterModel model) {
+            pdb2gmx& water_model(option::WaterModel) {
                 // options.push_back(std::make_shared<shell::Argument>("-water", option::to_string(model)));
                 cmd.prepend("echo 7 |");
                 return *this;

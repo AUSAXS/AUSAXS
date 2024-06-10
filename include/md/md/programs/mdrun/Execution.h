@@ -7,7 +7,7 @@
 
 #include <functional>
 
-namespace gmx {
+namespace md {
     enum class location {
         local,
         lucy,

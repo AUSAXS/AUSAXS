@@ -2,7 +2,7 @@
 #include <md/programs/mdrun/Execution.h>
 #include <md/utility/Exceptions.h>
 
-using namespace gmx;
+using namespace md;
 
 mdrun::mdrun() {
     cmd.append("mdrun -v -cpi");

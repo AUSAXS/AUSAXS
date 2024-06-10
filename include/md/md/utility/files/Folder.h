@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace gmx {
+namespace md {
     struct Folder {
         Folder();
         Folder(const std::string& path);

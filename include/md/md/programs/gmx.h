@@ -8,12 +8,11 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <algorithm>
 #include <fstream>
 #include <chrono>
 #include <ctime>
 
-namespace gmx {
+namespace md {
     class gmx {
         public: 
             // shell::Command cmd = shell::Command("/data/shared/opt/gromacs/2021.5/bin/gmx");

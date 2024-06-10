@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 #include <iostream>
-namespace gmx {
+namespace md {
     struct ISmartOption {
         virtual ~ISmartOption() = default;
         virtual void set(const std::string& value) = 0;

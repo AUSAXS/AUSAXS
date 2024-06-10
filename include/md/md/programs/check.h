@@ -5,7 +5,7 @@
 #include <md/utility/Utility.h>
 #include <md/utility/Exceptions.h>
 
-namespace gmx {
+namespace md {
     class check : private gmx {
         public: 
             check() {

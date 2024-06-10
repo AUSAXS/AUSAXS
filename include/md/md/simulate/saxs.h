@@ -11,7 +11,7 @@
 
 #include <math.h>
 
-namespace gmx {
+namespace md {
     SAXSOutput simulate_saxs(SAXSOptions& options) {
         if (!options.molecule.top.exists()) {throw except::io_error("simulate_saxs: The topology file does not exist.");}
 

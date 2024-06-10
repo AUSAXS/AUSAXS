@@ -2,7 +2,7 @@
 
 #include <md/gmx/SmartOption.h>
 
-namespace gmx {
+namespace md {
     struct setting {
         inline static SmartOption<std::string> gmx_path = {"gmx", {"gmx_exe", "gmx_executable", "gmx"}};
         inline static SmartOption<std::string> buffer_path = {"", {"buffer_path", "buffer"}};

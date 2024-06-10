@@ -6,7 +6,7 @@
 
 #include <CLI/CLI.hpp>
 
-using namespace gmx;
+using namespace md;
 
 int main(int argc, char const *argv[]) {
     settings::discover(".");
@@ -18,7 +18,7 @@ int main(int argc, char const *argv[]) {
     CLI11_PARSE(app, argc, argv);
 
     // test executable
-    if (!gmx::gmx().test_executable()) {
+    if (!gmx().test_executable()) {
         throw except::io_error("Gromacs executable not found. Please install Gromacs and add it to your PATH.");
     }
 
@@ -46,7 +46,7 @@ int main(int argc, char const *argv[]) {
     MoleculeOptions mo(sele, pdb);
     auto molecule = simulate_molecule(mo);
 
-    gmx::SimulateBufferOutput buffer;
+    SimulateBufferOutput buffer;
     if (setting::buffer_path.get().empty()) {
         BufferOptions bo(sele, molecule.gro);
         buffer = simulate_buffer(bo);

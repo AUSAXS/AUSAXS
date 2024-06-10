@@ -10,7 +10,7 @@
 
 #include <math.h>
 
-namespace gmx {
+namespace md {
     std::vector<SAXSOutput> frameanalysis(SAXSOptions& options) {
         if (!options.molecule.top.exists()) {throw except::io_error("simulate_saxs: The topology file does not exist.");}
 

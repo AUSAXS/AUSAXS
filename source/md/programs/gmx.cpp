@@ -1,6 +1,6 @@
 #include <md/programs/gmx.h>
 
-using namespace gmx;
+using namespace md;
 
 std::string option::to_string(Forcefield opt) {
     switch (opt) {

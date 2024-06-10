@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-using namespace gmx;
+using namespace md;
 
 std::string GROFile::get_unit_cell() const {
     if (!exists()) {throw except::io_error("GROFile::get_unit_cell: \"" + path + "\" does not exist.");}

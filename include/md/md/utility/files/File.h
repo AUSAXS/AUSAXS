@@ -2,12 +2,13 @@
 
 #include <md/utility/files/Folder.h>
 
-namespace gmx {
+namespace md {
     namespace detail {
         struct File {
             File();
             File(const std::string& path);
             File(const std::string& path, const std::string& ext);
+            virtual ~File() = default;
 
             void validate(const std::string& path);
 

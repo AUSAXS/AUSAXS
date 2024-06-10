@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <fstream>
 
-using namespace gmx;
+using namespace md;
 
 void TopologyFile::discover_includes() {
     if (!std::filesystem::exists(path)) {return;}

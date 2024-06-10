@@ -10,7 +10,7 @@
 
 #include <math.h>
 
-namespace gmx {
+namespace md {
     /**
      * @brief Generate a series of SAXS curves with different durations. 
      * 

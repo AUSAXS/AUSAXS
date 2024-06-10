@@ -3,9 +3,7 @@
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
 
-#include <iostream>
-
-namespace gmx {
+namespace md {
     class genscatt : private gmx {
         public: 
             genscatt() {

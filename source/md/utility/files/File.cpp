@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <fstream>
 
-using namespace gmx::detail;
+using namespace md::detail;
 
 File::File() = default;
 File::File(const std::string& path) : path(path) {}

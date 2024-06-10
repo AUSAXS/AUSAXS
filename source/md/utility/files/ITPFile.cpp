@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-using namespace gmx;
+using namespace md;
 
 unsigned int ITPFile::size() const {
     std::ifstream in(path);
@@ -33,7 +33,7 @@ unsigned int ITPFile::size() const {
     if (count != 0) {
         auto tokens = utility::split(last_atom_line, " \t");
         try {
-            if (std::stoi(tokens[0]) != count) {
+            if (std::stoi(tokens[0]) != static_cast<int>(count)) {
                 throw except::invalid_argument("ITPFile::size: inconsistent atom count in file \"" + path + "\". Expected " + std::to_string(count) + " but found " + tokens[0] + ".");
             }
         } 

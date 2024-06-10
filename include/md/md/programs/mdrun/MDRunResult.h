@@ -6,7 +6,7 @@
 #include <string>
 #include <memory>
 
-namespace gmx {
+namespace md {
     struct MDRunResult {
         MDRunResult(const std::string& folder) {
             if (folder.back() == '/') {

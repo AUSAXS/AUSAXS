@@ -4,12 +4,13 @@
 
 #include <vector>
 
-namespace gmx {
+namespace md {
     // Include topology file
     struct ITPFile : public detail::File {
         ITPFile() = default;
         ITPFile(const std::string& name) : File(name, "itp") {}
         ITPFile(const char* name) : ITPFile(std::string(name)) {}
+        ~ITPFile() override = default;
 
         unsigned int size() const;
 

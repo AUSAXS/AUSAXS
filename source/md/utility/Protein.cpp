@@ -2,11 +2,9 @@
 #include <md/utility/Exceptions.h>
 
 #include <fstream>
-#include <math.h>
+#include <cmath>
 
-#include <iostream>
-
-using namespace gmx;
+using namespace md;
 
 std::vector<Vector3> Protein::parse(const std::string& filename) {
     std::ifstream input(filename);

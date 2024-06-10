@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace gmx {
+namespace md {
     namespace MDPOptions {
         namespace detail {
             struct OptionVal {

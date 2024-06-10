@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace gmx {
+namespace md {
     // Topology file
     struct TOPFile : public detail::File {
         public:
@@ -18,6 +18,8 @@ namespace gmx {
             TOPFile(const char* name) : TOPFile(std::string(name)) {
                 includes = discover_includes();
             }
+
+            ~TOPFile() override = default;
 
             /**
              * @brief Include an ITP file in the topology file.

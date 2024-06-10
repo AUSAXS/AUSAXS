@@ -3,15 +3,16 @@
 #include <md/programs/all.h>
 #include <md/utility/files/MDPCreator.h>
 
-namespace gmx::option {
-    struct WaterModel {
-        virtual ~WaterModel() = default;
+namespace md::option {
+    struct IWaterModel {
+        virtual ~IWaterModel() = default;
 
         virtual std::string name() const = 0;
         virtual void generate_mdp(const GROFile& gro) const = 0;
     };
 
-    struct TIP4P2005 : WaterModel {
+    struct TIP4P2005 : IWaterModel {
+        ~TIP4P2005() override = default;
         std::string name() const override { return "tip4p2005"; }
         void generate_mdp(const GROFile& gro) const override {
             // generate protein index file

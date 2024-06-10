@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iomanip>
 
-using namespace gmx;
+using namespace md;
 
 MDPCreator& MDPCreator::add(const MDPOptions::detail::OptionVal& option) {
     options.push_back(option);

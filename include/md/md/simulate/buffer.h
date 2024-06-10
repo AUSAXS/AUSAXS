@@ -6,7 +6,7 @@
 #include <md/utility/files/MDPCreator.h>
 #include <md/utility/Utility.h>
 
-namespace gmx {
+namespace md {
     SimulateBufferOutput simulate_buffer(const BufferOptions& options) {
         utility::print_info("\nPreparing buffer simulation");
 

@@ -3,7 +3,7 @@
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
 
-namespace gmx {
+namespace md {
     class select : private gmx {
         public: 
             select() {

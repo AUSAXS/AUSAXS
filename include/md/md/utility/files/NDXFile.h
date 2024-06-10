@@ -2,12 +2,15 @@
 
 #include <md/utility/files/File.h>
 
-namespace gmx {
+#include <fstream>
+
+namespace md {
     // Index file
     struct NDXFile : public detail::File {
         NDXFile() = default;
         NDXFile(const std::string& name) : File(name, "ndx") {}
         NDXFile(const char* name) : NDXFile(std::string(name)) {}
+        ~NDXFile() override = default;
 
         void append_file(const NDXFile& other) {
             std::ifstream ifs(other);

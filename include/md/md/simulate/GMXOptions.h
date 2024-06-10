@@ -7,7 +7,7 @@
 
 #include <memory>
 
-namespace gmx {
+namespace md {
     struct GMXOptions {
         option::Forcefield forcefield;
         option::WaterModel watermodel;

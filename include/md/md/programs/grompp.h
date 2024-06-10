@@ -3,10 +3,7 @@
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
 
-#include <fstream>
-#include <filesystem>
-
-namespace gmx {
+namespace md {
     class grompp : private gmx {
         public: 
             grompp() {

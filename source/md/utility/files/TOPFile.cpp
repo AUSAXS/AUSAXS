@@ -8,7 +8,7 @@
 #include <iostream>
 #include <numeric>
 
-using namespace gmx;
+using namespace md;
 
 void TOPFile::include(const ITPFile& itp, const std::string& symbol) {
     if (!std::filesystem::exists(path)) {throw except::io_error("TOPFile: \"" + path + "\" does not exist.");}
@@ -101,8 +101,8 @@ void TOPFile::include(const std::vector<ITPFile>& itps, const std::string& symbo
     std::vector<std::string> name(itps.size());
     for (unsigned int i = 0; i < itps.size(); i++) {
         auto fname = itps[i].filename();
-        unsigned int begin = fname.find_first_of('_');
-        unsigned int end = fname.find_last_of('.');
+        auto begin = fname.find_first_of('_');
+        auto end = fname.find_last_of('.');
         if (begin == std::string::npos || end == std::string::npos) {
             throw except::io_error("TOPFile: Could not extract name from filename \"" + itps[i].path + "\".");
         }
@@ -145,11 +145,11 @@ void TOPFile::include(const std::vector<ITPFile>& itps, const std::string& symbo
 
     // validate that all itp files were inserted
     auto sum = std::accumulate(inserted.begin(), inserted.end(), 0);
-    if (sum < name.size()) {
+    if (sum < static_cast<int>(name.size())) {
         std::cout << "TOPFile: Could not find include locations for the following itp files:" << std::endl;
         for (const auto& itp : itps) {std::cout << itp.path << std::endl;}
         throw except::io_error("TOPFile::include: Could not find include locations for all itp files.");
-    } else if (sum > name.size()) {
+    } else if (sum > static_cast<int>(name.size())) {
         throw except::io_error("TOPFile::include: Multiple include locations found for itp files.");
     }
 
@@ -179,7 +179,7 @@ std::vector<ITPFile> TOPFile::discover_includes() const {
     std::vector<ITPFile> includes_file;
     while (std::getline(in, line)) {
         if (line.find("#include") != std::string::npos) {
-            unsigned int index = line.find("\"");
+            auto index = line.find("\"");
             if (index == std::string::npos) {throw except::io_error("TOPFile: \"" + path + "\" contains an include that is not in quotes.");}
             std::string include = line.substr(index + 1);
             index = include.find("\"");
@@ -230,7 +230,7 @@ void TOPFile::fix_relative_includes(const std::string& path) {
     std::vector<std::string> contents;
     while (std::getline(in, line)) {
         if (line.find("#include") != std::string::npos) {
-            unsigned int index = line.find("\"");
+            auto index = line.find("\"");
             if (index == std::string::npos) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" contains an include that is not in quotes.");}
             std::string include = line.substr(index + 1);
             index = include.find("\"");

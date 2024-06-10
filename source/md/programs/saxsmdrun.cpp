@@ -2,7 +2,7 @@
 #include <md/programs/mdrun/Execution.h>
 #include <md/utility/Exceptions.h>
 
-using namespace gmx;
+using namespace md;
 
 saxsmdrun::saxsmdrun() {
     cmd.append("mdrun -v -cpi");
@@ -26,7 +26,7 @@ saxsmdrun& saxsmdrun::rerun(const XTCFile& mol, const XTCFile& buf) {
     return *this;
 }
 
-saxsmdrun& saxsmdrun::output(const Folder& folder, const std::string& prefix) {
+saxsmdrun& saxsmdrun::output(const Folder& folder, const std::string&) {
     this->folder = folder;
     // options.push_back(std::make_shared<shell::Argument>("-deffnm", folder + prefix));
     return *this;
