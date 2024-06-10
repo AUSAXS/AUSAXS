@@ -8,9 +8,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(elements CLI11 nfd)
 
-link_libraries(nfd)
-include_directories(include)
-
 # set the path to the elements root & module path
 set(ELEMENTS_ROOT "${elements_SOURCE_DIR}")
 set(ELEMENTS_BUILD_EXAMPLES OFF)
