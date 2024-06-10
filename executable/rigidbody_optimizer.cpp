@@ -3,7 +3,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <rigidbody/RigidBody.h>
-#include <data/BodySplitter.h>
+#include <rigidbody/BodySplitter.h>
 #include <fitter/FitReporter.h>
 #include <fitter/HydrationFitter.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
