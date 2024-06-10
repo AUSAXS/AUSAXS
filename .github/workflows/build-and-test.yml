@@ -45,7 +45,7 @@ jobs:
             -DARCH=x86-64 \
             -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="x64-windows-static"
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
   
       - uses: actions/upload-artifact@v4
         with:
@@ -151,10 +151,10 @@ jobs:
 
       - name: Run tests (ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: ctest --output-on-failure --test-dir build/test
+        run: ctest --output-on-failure --test-dir build/tests
 
       - name: Generate test report (ubuntu)
         uses: mikepenz/action-junit-report@v4
         if: matrix.os == 'ubuntu-latest' && (success() || failure())
         with:
-          report_paths: build/test/reports/*.xml
+          report_paths: build/tests/reports/*.xml

@@ -6,6 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <math/CubicSpline.h>
 
 #include <stdexcept>
+#include <string>
 #include <cmath>
 
 using namespace math;
