@@ -60,7 +60,7 @@ TEST_CASE("1d_landscape", "[manual]") {
 
     plots::PlotDataset plot(landscape, plots::PlotOptions(style::draw::line, {{"color", style::color::black}}));
     plot.plot(evaluations, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}));
-    plot.save("figures/test/minimizer/golden_test.pdf");
+    plot.save("figures/tests/minimizer/golden_test.pdf");
 }
 
 // TEST_CASE("2d_landscape", "[minimizer],[manual]") {
@@ -121,14 +121,14 @@ TEST_CASE("scan_minimizer") {
 
 //         SimpleDataset data2 = mini2.get_evaluated_points().as_dataset();
 //         data2.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::orange}});
-//         plots::PlotDataset::quick_plot(data2, "figures/test/minimizer/explorer_test_single.pdf");
+//         plots::PlotDataset::quick_plot(data2, "figures/tests/minimizer/explorer_test_single.pdf");
 //         plot.plot(data2);
 
 //         mini::Golden mini3(test.function, {"a", test.bounds[0]});
 //         SimpleDataset line = mini3.landscape(1000).as_dataset();
 //         plot.plot(line);
 
-//         plot.save("figures/test/minimizer/explorer_test.pdf");
+//         plot.save("figures/tests/minimizer/explorer_test.pdf");
 
 //         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini1.tol));
 //     };

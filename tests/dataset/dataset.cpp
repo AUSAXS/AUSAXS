@@ -93,7 +93,7 @@ TEST_CASE("Dataset::Dataset") {
     }
 
     SECTION("ExistingFile&") {
-        io::ExistingFile file("test/files/2epe.dat");
+        io::ExistingFile file("tests/files/2epe.dat");
         Dataset dataset(file);
         CHECK(dataset.size() == 104);
         CHECK(dataset.size_rows() == 104);
@@ -348,7 +348,7 @@ TEST_CASE_METHOD(fixture, "Dataset::limit_x") {
     }
 
     SECTION("real data") {
-        Dataset data("test/files/2epe.dat");
+        Dataset data("tests/files/2epe.dat");
 
         unsigned int start = 0;
         while (data.x(start) < 0.01) {            
@@ -521,7 +521,7 @@ TEST_CASE("Dataset::find_maxima") {
 }
 
 std::string generate_SASDJG5_dataset() {
-    io::File file("temp/test/dataset/SASDJG5.dat");
+    io::File file("temp/tests/dataset/SASDJG5.dat");
     if (file.exists()) {return file;}
     file.create();
 

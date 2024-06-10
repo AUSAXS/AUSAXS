@@ -17,7 +17,7 @@
 #include <settings/All.h>
 #include <constants/Constants.h>
 
-#include "../test/hist/hist_test_helper.h"
+#include "hist/hist_test_helper.h"
 #include "settings/GeneralSettings.h"
 
 using namespace data::record;
@@ -191,7 +191,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     }
 
     // SECTION("real data") {
-    //     Molecule protein("test/files/2epe.pdb");
+    //     Molecule protein("tests/files/2epe.pdb");
     //     double ZX = protein.get_excluded_volume()*constants::charge::density::water/protein.atom_size();
     //     double ZC = 6;
     //     double ZO = 8;
@@ -216,7 +216,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     settings::general::verbose = false;
 
-    data::Molecule protein("test/files/2epe.pdb");
+    data::Molecule protein("tests/files/2epe.pdb");
     auto hist_data = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
     auto hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());
     auto Iq = hist->debye_transform();
@@ -242,7 +242,7 @@ TEST_CASE("plot_Gq", "[manual]") {
     for (unsigned int i = 0; i < constants::axes::q_vals.size(); ++i) {
         Gq.push_back(constants::axes::q_vals[i], hist.Gq(constants::axes::q_vals[i]));
     }
-    plots::PlotDataset::quick_plot(Gq, plots::PlotOptions(), io::File("temp/test/composite_distance_histogram_ff_explicit/Gq.png"));
+    plots::PlotDataset::quick_plot(Gq, plots::PlotOptions(), io::File("temp/tests/composite_distance_histogram_ff_explicit/Gq.png"));
 }
 
 TEST_CASE("plot_cmp", "[manual]") {
@@ -306,5 +306,5 @@ TEST_CASE("plot_cmp", "[manual]") {
         .plot(aw, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{aw}$"}, {"color", style::color::pink}}))
         .plot(wx, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{wx}$"}, {"color", style::color::purple}}))
         .plot(ww, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{ww}$"}, {"color", style::color::brown}}))
-    .save("temp/test/composite_distance_histogram_ff_explicit/compare_ausaxs_x.png");
+    .save("temp/tests/composite_distance_histogram_ff_explicit/compare_ausaxs_x.png");
 }

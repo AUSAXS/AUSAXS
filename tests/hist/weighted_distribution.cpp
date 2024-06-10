@@ -27,7 +27,7 @@
 #include <plots/PlotIntensity.h>
 #include <table/ArrayDebyeTable.h>
 
-#include "../test/hist/hist_test_helper.h"
+#include "../tests/hist/hist_test_helper.h"
 #include "constants/Axes.h"
 #include "hist/intensity_calculator/DistanceHistogram.h"
 
@@ -299,7 +299,7 @@ TEST_CASE("6lyz_exv", "[manual]") {
     settings::grid::rvol = 2;
     constants::radius::set_dummy_radius(2);
 
-    data::Molecule protein("test/files/6lyz_exv.pdb");
+    data::Molecule protein("tests/files/6lyz_exv.pdb");
     for (auto& b : protein.get_bodies()) {for (auto& a : b.get_atoms()){a.element = constants::atom_t::dummy;}}
     auto Iq =  static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid(&protein).calculate_all().get())->get_profile_xx().as_dataset();
     auto Iqexact = exact(protein, settings::grid::exv_radius).as_dataset();
@@ -310,7 +310,7 @@ TEST_CASE("6lyz_exv", "[manual]") {
     plots::PlotIntensity()
         .plot(Iq, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}, {"yrange", Limit(1e-4, 1.1)}}))
         .plot(Iqexact, plots::PlotOptions(style::draw::line, {{"color", style::color::green}, {"legend", "Exact"}, {"ls", style::line::dashed}, {"lw", 2}}))
-    .save("temp/test/hist/6lyz_exv.png");
+    .save("temp/tests/hist/6lyz_exv.png");
 }
 
 TEST_CASE("sphere_comparison", "[manual]") {
@@ -332,7 +332,7 @@ TEST_CASE("sphere_comparison", "[manual]") {
             }
         }
     }
-    auto loc = "temp/test/hist/sphere.pdb";
+    auto loc = "temp/tests/hist/sphere.pdb";
     grid.save(loc);
 
     Molecule protein(loc);
@@ -342,7 +342,7 @@ TEST_CASE("sphere_comparison", "[manual]") {
     plots::PlotIntensity()
         .plot(Iq1, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
         .plot(Iq2, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}}))
-    .save("temp/test/hist/sphere_comparison.png");
+    .save("temp/tests/hist/sphere_comparison.png");
 
     auto ratio = Iq1;
     for (unsigned int i = 0; i < ratio.get_counts().size(); ++i) {
@@ -352,7 +352,7 @@ TEST_CASE("sphere_comparison", "[manual]") {
     plots::PlotIntensity(
         ratio,
         plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"legend", "Ratio"}, {"lw", 2}}))
-    .save("temp/test/hist/sphere_comparison_ratio.png");
+    .save("temp/tests/hist/sphere_comparison_ratio.png");
 }
 
 TEST_CASE("real_comparison", "[manual]") {
@@ -360,7 +360,7 @@ TEST_CASE("real_comparison", "[manual]") {
     settings::molecule::center = false;
     settings::axes::qmax = 1;
 
-    data::Molecule protein("test/files/LAR1-2.pdb");
+    data::Molecule protein("tests/files/LAR1-2.pdb");
     auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
     auto hist = hist::HistogramManagerMT<true>(&protein).calculate_all();
     auto Iq2 = hist->debye_transform();
@@ -402,5 +402,5 @@ TEST_CASE("real_comparison", "[manual]") {
     plots::PlotIntensity()
         .plot(Iq1, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
         .plot(Iq2, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}}))
-    .save("temp/test/hist/real_comparison.png");
+    .save("temp/tests/hist/real_comparison.png");
 }

@@ -213,7 +213,7 @@ TEST_CASE("io: protein") {
     settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
 
-    Molecule protein("test/files/2epe.pdb");
+    Molecule protein("tests/files/2epe.pdb");
     protein.save("temp/io/temp.pdb");
     Molecule protein2("temp/io/temp.pdb");
     auto atoms1 = protein.get_atoms();
@@ -239,7 +239,7 @@ TEST_CASE("io: protein") {
 }
 
 TEST_CASE("io: body copying") {
-    Body body("test/files/2epe.pdb");
+    Body body("tests/files/2epe.pdb");
     CHECK(!body.get_file().header.get().empty());
     CHECK(!body.get_file().footer.get().empty());
 

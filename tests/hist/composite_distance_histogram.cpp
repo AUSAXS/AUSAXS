@@ -15,7 +15,7 @@
 #include <constants/Constants.h>
 #include <settings/All.h>
 
-#include "../test/hist/hist_test_helper.h"
+#include "hist/hist_test_helper.h"
 
 using namespace data::record;
 using namespace data;
@@ -239,7 +239,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform") {
 
 TEST_CASE("qmin & qmax") {
     settings::general::verbose = false;
-    Molecule protein("test/files/2epe.pdb");
+    Molecule protein("tests/files/2epe.pdb");
     auto Iqf = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
     settings::axes::qmin = 1e-2;
     settings::axes::qmax = 0.7;
@@ -253,7 +253,7 @@ TEST_CASE("qmin & qmax") {
 
 TEST_CASE("CompositeDistanceHistogram::get_profile") {
     settings::general::verbose = false;
-    data::Molecule protein("test/files/2epe.pdb");
+    data::Molecule protein("tests/files/2epe.pdb");
     auto hist = hist::HistogramManager<false>(&protein).calculate_all();
     auto Iq = hist->debye_transform();
     auto profile_sum = hist->get_profile_aa() + hist->get_profile_aw() + hist->get_profile_ww();

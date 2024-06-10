@@ -14,19 +14,19 @@ TEST_CASE("File::File") {
     }
 
     SECTION("with folder") {
-        io::File file("test/file.txt");
-        CHECK(file.directory().path() == "test");
+        io::File file("tests/file.txt");
+        CHECK(file.directory().path() == "tests");
         CHECK(file.stem() == "file");
         CHECK(file.extension() == ".txt");
-        CHECK(file.path() == "test/file.txt");
+        CHECK(file.path() == "tests/file.txt");
     }
 
     SECTION("nested folders") {
-        io::File file("test/folder/file.txt");
-        CHECK(file.directory().path() == "test/folder");
+        io::File file("tests/folder/file.txt");
+        CHECK(file.directory().path() == "tests/folder");
         CHECK(file.stem() == "file");
         CHECK(file.extension() == ".txt");
-        CHECK(file.path() == "test/folder/file.txt");
+        CHECK(file.path() == "tests/folder/file.txt");
     }
 }
 
@@ -40,25 +40,25 @@ TEST_CASE("File::exists") {
     }
 
     SECTION("true") {
-        io::File file("test/files/2epe.dat");
+        io::File file("tests/files/2epe.dat");
         CHECK(file.exists());
     }
 }
 
 TEST_CASE("File::append") {
-    io::File file("test/file.txt");
+    io::File file("tests/file.txt");
     file.append("_2");
-    CHECK(file.path() == "test/file_2.txt");
+    CHECK(file.path() == "tests/file_2.txt");
 }
 
 TEST_CASE("File::stem") {
-    io::File file("test/file.txt");
+    io::File file("tests/file.txt");
     CHECK(file.stem() == "file");
 }
 
 TEST_CASE("File::split") {
-    auto [dir, name, ext] = io::File::split("test/file.txt");
-    CHECK(dir == "test");
+    auto [dir, name, ext] = io::File::split("tests/file.txt");
+    CHECK(dir == "tests");
     CHECK(name == "file");
     CHECK(ext == ".txt");
 }

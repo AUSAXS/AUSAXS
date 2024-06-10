@@ -22,14 +22,14 @@ include(Catch)
 file(GLOB_RECURSE TEST_SRC "*.cpp")
 
 add_custom_target(tests)
-set(REPORT_DIR "${CMAKE_BINARY_DIR}/test/reports")
-set(TEST_BIN_DIR "${CMAKE_BINARY_DIR}/test/bin")
+set(REPORT_DIR "${CMAKE_BINARY_DIR}/tests/reports")
+set(TEST_BIN_DIR "${CMAKE_BINARY_DIR}/tests/bin")
 foreach(test ${TEST_SRC})
 	cmake_path(GET test STEM testname)
 	set(name "test_${testname}")
 	add_executable("${name}" ${test})
 	target_link_libraries("${name}" Catch2::Catch2WithMain ausaxs "$<$<CONFIG:Debug>:Backward::Interface>")
-	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/test")
+	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/tests")
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${TEST_BIN_DIR}"
 		COMPILE_FLAGS "${CMAKE_CXX_FLAGS_TEST}"
@@ -47,6 +47,6 @@ endforeach()
 # since the tests are run in the TEST_BIN_DIR directory, we have to create a symbolic link from there to the test files
 add_custom_command(TARGET tests POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E make_directory "${REPORT_DIR}"
-	COMMAND ${CMAKE_COMMAND} -E make_directory "${TEST_BIN_DIR}/test"
-	COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_SOURCE_DIR}/test/files" "${TEST_BIN_DIR}/test/files"
+	COMMAND ${CMAKE_COMMAND} -E make_directory "${TEST_BIN_DIR}/tests"
+	COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_SOURCE_DIR}/tests/files" "${TEST_BIN_DIR}/tests/files"
 )

@@ -335,7 +335,7 @@ TEST_CASE("Grid::hydrate") {
     SECTION("reversible") {
         SECTION("LAR1-2") {
             // get the grid before hydrating it
-            Molecule protein("test/files/LAR1-2.pdb");
+            Molecule protein("tests/files/LAR1-2.pdb");
             protein.clear_hydration();
             auto g1 = *protein.get_grid();
 
@@ -367,7 +367,7 @@ TEST_CASE("Grid::hydrate") {
     SECTION("consistency") {
         settings::hydrate::culling_strategy = settings::hydrate::CullingStrategy::CounterStrategy;
         settings::hydrate::hydration_strategy = GENERATE(settings::hydrate::HydrationStrategy::AxesStrategy, settings::hydrate::HydrationStrategy::RadialStrategy, settings::hydrate::HydrationStrategy::JanStrategy);
-        Molecule protein("test/files/LAR1-2.pdb");
+        Molecule protein("tests/files/LAR1-2.pdb");
         protein.get_grid()->force_expand_volume();
 
         protein.generate_new_hydration();
@@ -751,7 +751,7 @@ TEST_CASE("Grid::operator=", "[files]") {
         Limit3D axes(-100, 100, -100, 100, -100, 100);
         Grid grid1(axes);
         {
-            data::Molecule protein("test/files/2epe.pdb");
+            data::Molecule protein("tests/files/2epe.pdb");
             grid1.add(protein.get_atoms());
             Grid grid2 = grid1;
             protein.set_grid(std::move(grid2));
@@ -771,7 +771,7 @@ TEST_CASE("Grid::operator=", "[files]") {
         Limit3D axes(-100, 100, -100, 100, -100, 100);
         Grid grid1(axes);
         {
-            data::Molecule protein("test/files/2epe.pdb");
+            data::Molecule protein("tests/files/2epe.pdb");
             grid1.add(protein.get_atoms());
             Grid grid2 = grid1;
             protein.set_grid(std::move(grid2));

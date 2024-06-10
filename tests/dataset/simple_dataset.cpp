@@ -65,7 +65,7 @@ TEST_CASE("SimpleDataset::SimpleDataset") {
     }
 
     SECTION("io::ExistingFile") {
-        SimpleDataset dataset("test/files/2epe.dat");
+        SimpleDataset dataset("tests/files/2epe.dat");
         CHECK(dataset.size() == 104);
         CHECK(dataset.size_rows() == 104);
         CHECK(dataset.size_cols() == 3);
@@ -92,7 +92,7 @@ TEST_CASE("SimpleDataset::load") {
     }
 
     SECTION("complex") {
-        SimpleDataset data("test/files/2epe.dat");
+        SimpleDataset data("tests/files/2epe.dat");
         auto x = data.x();
         auto y = data.y();
         auto yerr = data.yerr();
@@ -115,7 +115,7 @@ TEST_CASE("SimpleDataset::load") {
 TEST_CASE("SimpleDataset::save") {
     settings::general::verbose = false;
     SECTION("same contents") {
-        SimpleDataset data("test/files/2epe.dat");
+        SimpleDataset data("tests/files/2epe.dat");
         auto data2 = data;
         data.save("temp/dataset/2epe.dat");
         REQUIRE(data.size() == data2.size());
@@ -429,13 +429,13 @@ TEST_CASE("SimpleDataset::find_minimum") {
     }
 
     SECTION("real data") {
-        SimpleDataset dataset("test/files/SASDJQ4.dat");
+        SimpleDataset dataset("tests/files/SASDJQ4.dat");
         CHECK(dataset.find_minimum() == Point2D(0.39893, -0.00298, 0.06117));
     }
 }
 
 TEST_CASE("SimpleDataset::rebin") {
-    SimpleDataset dataset("test/files/SASDJQ4.dat");
+    SimpleDataset dataset("tests/files/SASDJQ4.dat");
     REQUIRE(dataset.size() == 844);
     dataset.rebin();
     CHECK(dataset.size() < 400);

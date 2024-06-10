@@ -174,7 +174,7 @@ TEST_CASE("em_partial_histogram_manager") {
         }
 
         SECTION("real example") {
-            em::ImageStack images("test/files/A2M_2020_Q4.ccp4");
+            em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
 
             settings::em::fixed_weights = false;
             std::shared_ptr<em::managers::ProteinManager> manager1 = em::factory::create_manager(&images);

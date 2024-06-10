@@ -263,7 +263,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 //        settings::molecule::implicit_hydrogens = false;
 
         // create the atom, and perform a sanity check on our extracted list
-        Molecule protein("test/files/2epe.pdb");
+        Molecule protein("tests/files/2epe.pdb");
         protein.generate_new_hydration();
         auto p_exp = protein.get_histogram();
 
@@ -318,7 +318,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
 TEST_CASE("PartialHistogramManager::get_probe") {
     settings::general::verbose = false;
-    Molecule protein("test/files/2epe.pdb");
+    Molecule protein("tests/files/2epe.pdb");
     auto phm = hist::PartialHistogramManager<false>(&protein);
     auto sm = phm.get_state_manager();
 
@@ -333,7 +333,7 @@ TEST_CASE("PartialHistogramManager::get_probe") {
 
 TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
     settings::general::verbose = false;
-    Molecule protein("test/files/2epe.pdb");
+    Molecule protein("tests/files/2epe.pdb");
     auto phm = hist::PartialHistogramManager<false>(&protein);
     auto sm = phm.get_state_manager();
     sm->reset_to_false();

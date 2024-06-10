@@ -2,6 +2,8 @@
 
 #include <container/Container3D.h>
 
+#include <algorithm>
+
 using namespace container;
 
 TEST_CASE("Container3D::Container3D") {

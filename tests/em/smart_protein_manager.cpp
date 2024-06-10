@@ -10,7 +10,7 @@
 struct fixture {
     fixture() {
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
-        stack = std::make_unique<em::ImageStack>("test/files/A2M_2020_Q4.ccp4");
+        stack = std::make_unique<em::ImageStack>("tests/files/A2M_2020_Q4.ccp4");
         manager = std::make_unique<em::managers::SmartProteinManager>(stack.get());
     }
 

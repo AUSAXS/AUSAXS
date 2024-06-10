@@ -7,18 +7,20 @@ if (DLIB)
 endif()
 
 add_library(ausaxs_static STATIC $<TARGET_OBJECTS:ausaxs_core>)
+target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
 set_target_properties(ausaxs_static PROPERTIES 
 	OUTPUT_NAME ausaxs_static
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
 add_library(ausaxs SHARED $<TARGET_OBJECTS:ausaxs_core>)
+target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
 set_target_properties(ausaxs 
 	PROPERTIES OUTPUT_NAME ausaxs
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
 
-target_link_libraries(ausaxs ${LIBS})
-target_link_libraries(ausaxs_static ${LIBS})
+target_link_libraries(ausaxs ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody)
+target_link_libraries(ausaxs_static ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody)
 
 add_subdirectory(api)
 add_subdirectory(constants)

@@ -10,7 +10,7 @@ TEST_CASE("ExistingFile::ExistingFile") {
     }
 
     SECTION("existing") {
-        io::ExistingFile file("test/files/2epe.dat");
-        CHECK(file.path() == "test/files/2epe.dat");
+        io::ExistingFile file("tests/files/2epe.dat");
+        CHECK(file.path() == "tests/files/2epe.dat");
     }
 }

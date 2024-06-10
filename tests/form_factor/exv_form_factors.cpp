@@ -30,7 +30,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
         }
         plot.plot(dataset, plots::PlotOptions({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ff))}, {"color", style::color::next()}}));
     }
-    plot.save("temp/test/form_factor/exv_form_factors.png");
+    plot.save("temp/tests/form_factor/exv_form_factors.png");
 }
 
 // compare each exv form factor with its real one
@@ -47,6 +47,6 @@ TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
         plots::PlotDataset()
             .plot(dataset, plots::PlotOptions({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi))}, {"color", style::color::orange}}))
             .plot(datasetx, plots::PlotOptions({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi)) + "x"}, {"color", style::color::black}}))
-        .save("temp/test/form_factor/cmp/" + form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi)) + ".png");
+        .save("temp/tests/form_factor/cmp/" + form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi)) + ".png");
     }
 }

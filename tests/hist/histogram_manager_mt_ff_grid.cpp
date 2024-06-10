@@ -18,7 +18,7 @@
 #include <utility/Utility.h>
 
 #include "hist_test_helper.h"
-#include "../grid/grid_debug.h"
+#include "grid/grid_debug.h"
 
 using namespace hist;
 using namespace data;
@@ -124,7 +124,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
         settings::general::verbose = false;
         settings::grid::width = 1;
         settings::grid::exv_radius = 1;
-        Molecule protein("test/files/LAR1-2.pdb");
+        Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
         test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
     }
@@ -151,7 +151,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
         settings::general::verbose = false;
         settings::grid::width = 1;
         settings::grid::exv_radius = 1;
-        Molecule protein("test/files/LAR1-2.pdb");
+        Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
         test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
     }
@@ -159,7 +159,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
     SECTION("compare with Grid") {
         settings::grid::min_bins = 20;
 
-        Molecule protein("test/files/LAR1-2.pdb");
+        Molecule protein("tests/files/LAR1-2.pdb");
         protein.generate_new_hydration();
 
         auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
@@ -216,7 +216,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     settings::molecule::center = false;
     settings::hist::weighted_bins = true;
     settings::general::verbose = false;
-    Molecule protein("test/files/2epe.pdb");
+    Molecule protein("tests/files/2epe.pdb");
 
     SECTION("simple") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};

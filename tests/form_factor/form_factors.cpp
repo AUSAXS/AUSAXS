@@ -124,5 +124,5 @@ TEST_CASE("FormFactor: comparison with Waasmeier & Kirfel") {
     // plots::PlotDataset plot;
     // plot.plot(ff_s, plots::PlotOptions({{"xlabel", "s [Å]"}, {"ylabel", "f(s)"}, {"color", style::color::blue}}));
     // plot.plot(ff_q, plots::PlotOptions({{"xlabel", "q [Å⁻¹]"}, {"ylabel", "f(q)"}, {"color", style::color::red}}));
-    // plot.save("temp/test/form_factor/Waasmeier_Kirfel_comparison.png");
+    // plot.save("temp/tests/form_factor/Waasmeier_Kirfel_comparison.png");
 }

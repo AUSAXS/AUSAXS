@@ -41,7 +41,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     // SECTION("Single with radius") {
     //     settings::grid::save_exv = true;
-    //     settings::general::output = "temp/test/grid/";
+    //     settings::general::output = "temp/tests/grid/";
 
     //     // test a single atom with radius sqrt(3), such that it will occupy a 3x3x3 cube, with everything but the center being 'surface'. 
     //     settings::grid::rvol = std::sqrt(3)+1e-3;
@@ -72,7 +72,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     // SECTION("2x2x2 interior simple") {
     //     settings::grid::save_exv = true;
-    //     settings::general::output = "temp/test/grid/";
+    //     settings::general::output = "temp/tests/grid/";
 
     //     // test a simple 2x2x2 system with 1Å radii. Now the interior 2x2x2 cube should be 'interior', with the rest 'surface'.
     //     settings::grid::rvol = 1;
@@ -138,7 +138,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     // SECTION("larger radius, single") {
     //     settings::grid::save_exv = true;
-    //     settings::general::output = "temp/test/grid/";
+    //     settings::general::output = "temp/tests/grid/";
     //     settings::grid::rvol = 2;
     //     std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
 
@@ -152,7 +152,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     // SECTION("much larger radius, single") {
     //     settings::grid::save_exv = true;
-    //     settings::general::output = "temp/test/grid/";
+    //     settings::general::output = "temp/tests/grid/";
     //     settings::grid::rvol = 3;
     //     std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
 
@@ -166,7 +166,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     // SECTION("larger radius") {
     //     settings::grid::save_exv = true;
-    //     settings::general::output = "temp/test/grid/";
+    //     settings::general::output = "temp/tests/grid/";
     //     settings::grid::rvol = 2;
     //     std::vector<Atom> atoms;
     //     for (double x = -1; x <= 1; x+=1) {
@@ -189,7 +189,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     // SECTION("larger radius") {
     //     settings::grid::save_exv = true;
-    //     settings::general::output = "temp/test/grid/";
+    //     settings::general::output = "temp/tests/grid/";
     //     settings::grid::rvol = 2;
     //     std::vector<Atom> atoms = {
     //         Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
@@ -209,9 +209,9 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("6lyz_exv") {
         settings::grid::save_exv = true;
-        settings::general::output = "temp/test/grid/";
+        settings::general::output = "temp/tests/grid/";
         settings::grid::rvol = 3;
-        Molecule protein("test/files/6lyz_exv.pdb");
+        Molecule protein("tests/files/6lyz_exv.pdb");
         // protein.get_body(0).get_atoms().resize(20);
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);

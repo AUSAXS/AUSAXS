@@ -2,6 +2,8 @@
 
 #include <container/Container2D.h>
 
+#include <algorithm>
+
 using namespace container;
 
 TEST_CASE("Container2D::Container2D") {

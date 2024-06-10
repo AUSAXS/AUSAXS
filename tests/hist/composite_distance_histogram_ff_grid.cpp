@@ -10,14 +10,14 @@
 #include <plots/All.h>
 #include <settings/All.h>
 
-#include "../test/hist/hist_test_helper.h"
+#include "hist/hist_test_helper.h"
 
 using namespace data;
 using namespace data::record;
 
 TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     settings::general::verbose = false;
-    data::Molecule protein("test/files/2epe.pdb");
+    data::Molecule protein("tests/files/2epe.pdb");
     auto V = protein.get_volume_grid();
 
     std::vector<double> volumes;
@@ -42,7 +42,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     }
 
     SimpleDataset dataset(rxs, volumes);
-    plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "temp/test/hist/composite_distance_histogram_ff_grid/volumes.png");
+    plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "temp/tests/hist/composite_distance_histogram_ff_grid/volumes.png");
 }
 
 TEST_CASE("CompositeDistanceHistogramFFGridSurface: compare_profiles") {}

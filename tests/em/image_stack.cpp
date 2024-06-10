@@ -36,12 +36,12 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
             }
         }
     }
-    auto loc = "temp/test/em/sphere.pdb";
+    auto loc = "temp/tests/em/sphere.pdb";
     grid.save(loc);
 
     data::Molecule protein(loc);
     auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-    Iq.as_dataset().save("temp/test/em/sphere_Iq.dat");
+    Iq.as_dataset().save("temp/tests/em/sphere_Iq.dat");
 
     std::unique_ptr<em::detail::header::MRCHeader> header = std::make_unique<em::detail::header::MRCHeader>();
     std::unique_ptr<em::detail::header::MRCData> header_data = std::make_unique<em::detail::header::MRCData>();
@@ -66,8 +66,8 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
 
     em::ImageStack stack(images);
     // auto[fit, landscape] = stack.cutoff_scan_fit(100, std::move(Iq));
-    auto fit = stack.fit("temp/test/em/sphere_Iq.dat");
-    // plots::PlotLandscape::quick_plot(landscape, "temp/test/em/sphere_landscape.png");
+    auto fit = stack.fit("temp/tests/em/sphere_Iq.dat");
+    // plots::PlotLandscape::quick_plot(landscape, "temp/tests/em/sphere_landscape.png");
     REQUIRE(fit->fval/fit->dof < 1.1);
 }
 

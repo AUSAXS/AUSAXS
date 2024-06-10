@@ -6,7 +6,7 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <data/record/Atom.h>
 #include <data/Body.h>
-#include <data/BodySplitter.h>
+#include <rigidbody/BodySplitter.h>
 #include <rigidbody/RigidBody.h>
 #include <io/ExistingFile.h>
 #include <settings/MoleculeSettings.h>
@@ -39,7 +39,7 @@ TEST_CASE("LinearConstraints::generate") {
     }
 
     SECTION("real data") {
-        rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("test/files/LAR1-2.pdb", {9, 99});
+        rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
         REQUIRE(rigidbody.get_constraint_manager()->distance_constraints.size() == 0);
     }
 }

@@ -23,7 +23,7 @@ TEST_CASE("DistanceHistogram::is_highly_ordered") {
         );
 
         SECTION(false_file) {
-            auto hist = data::Molecule("test/files/" + std::string(false_file) + ".pdb").get_histogram();
+            auto hist = data::Molecule("tests/files/" + std::string(false_file) + ".pdb").get_histogram();
             REQUIRE_FALSE(hist->is_highly_ordered());
         }
     }
@@ -36,7 +36,7 @@ TEST_CASE("DistanceHistogram::is_highly_ordered") {
         );
 
         SECTION(true_file) {
-            auto hist = data::Molecule("test/files/" + std::string(true_file) + ".pdb").get_histogram(); 
+            auto hist = data::Molecule("tests/files/" + std::string(true_file) + ".pdb").get_histogram(); 
             REQUIRE(hist->is_highly_ordered());
         }
     }
@@ -58,7 +58,7 @@ TEST_CASE("DistanceHistogram: check relative errors") {
     );
 
     SECTION(file) {
-        auto protein = data::Molecule("test/files/" + std::string(file) + ".pdb");
+        auto protein = data::Molecule("tests/files/" + std::string(file) + ".pdb");
         protein.clear_hydration();
         auto hist = protein.get_histogram();
         auto I_estimated = hist->debye_transform();
@@ -67,7 +67,7 @@ TEST_CASE("DistanceHistogram: check relative errors") {
         plots::PlotDataset plot;
         plot.plot(I_estimated.as_dataset(), plots::PlotOptions({{"color", style::color::black}, {"logx", true}, {"logy", true}}));
         plot.plot(SimpleDataset(std::vector<double>(constants::axes::q_vals.begin(), constants::axes::q_vals.end()), I_exact), plots::PlotOptions({{"color", style::color::red}}));
-        plot.save(settings::general::output + "test/hist/distance_histogram/relative_errors.png");
+        plot.save(settings::general::output + "tests/hist/distance_histogram/relative_errors.png");
 
         for (unsigned int i = 0; i < I_estimated.size(); ++i) {
             auto rel_error = std::abs(I_estimated[i] - I_exact[i]) / I_exact[i];

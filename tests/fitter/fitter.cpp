@@ -28,14 +28,14 @@ using namespace data;
 //     // setting::axes::qmax = 0.4;
 
 //     // prepare measured data
-//     Molecule protein("test/files/2epe.pdb");
+//     Molecule protein("tests/files/2epe.pdb");
 //     SimpleDataset data = protein.get_histogram()->debye_transform();
 //     data.reduce(settings::fit::N, true);
 //     data.limit_x(Limit(settings::axes::qmin, settings::axes::qmax));
 //     data.simulate_errors();
 
 //     // prepare fit data
-//     em::ImageStack image("test/files/2epe.ccp4");
+//     em::ImageStack image("tests/files/2epe.ccp4");
 
 //     std::vector<double> optimal_vals;
 //     for (unsigned int i = 0; i < repeats; i++) {
@@ -46,7 +46,7 @@ using namespace data;
 //     hist::Histogram h(optimal_vals);
 //     h.generate_axis();
 
-//     plots::PlotHistogram::quick_plot(h, {}, settings::general::output + "test/fitter/consistency_check.png");
+//     plots::PlotHistogram::quick_plot(h, {}, settings::general::output + "tests/fitter/consistency_check.png");
 // }
 
 TEST_CASE("fitter: consistent_charge_scaling") {
@@ -77,8 +77,8 @@ TEST_CASE("fitter: consistent_charge_scaling") {
     };
 
     SECTION("simple, " + string_mapper(settings::hist::histogram_manager)) {
-        std::string mfile = "test/files/2epe.dat";
-        Molecule protein("test/files/2epe.pdb");
+        std::string mfile = "tests/files/2epe.dat";
+        Molecule protein("tests/files/2epe.pdb");
         protein.clear_hydration();
         fitter::HydrationFitter fitter(mfile, protein.get_histogram());
         auto fit1 = fitter.fit_chi2_only();

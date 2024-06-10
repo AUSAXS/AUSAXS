@@ -4,10 +4,10 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/BodySplitter.h>
+#include <rigidbody/RigidBody.h>
 #include <data/record/Atom.h>
 #include <data/Body.h>
-#include <data/BodySplitter.h>
-#include <rigidbody/RigidBody.h>
 #include <io/ExistingFile.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/RigidBodySettings.h>

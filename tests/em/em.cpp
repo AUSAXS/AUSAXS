@@ -9,6 +9,7 @@
 #include <em/ObjectBounds3D.h>
 #include <fitter/Fit.h>
 #include <plots/All.h>
+#include <plots/PlotImage.h>
 #include <fitter/FitReporter.h>
 #include <dataset/Multiset.h>
 #include <utility/Utility.h>
@@ -30,7 +31,7 @@ using std::vector;
 // TODO: refactor these tests to be automatic
 
 TEST_CASE("extract_image", "[manual]") {
-    em::ImageStack image("test/files/A2M_2020_Q4.ccp4"); 
+    em::ImageStack image("tests/files/A2M_2020_Q4.ccp4"); 
 
     plots::PlotImage plot(image.image(5), plots::PlotOptions());
     // plot.plot_atoms(0.1);
@@ -42,7 +43,7 @@ TEST_CASE("test_model", "[manual]") {
     settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
-    data::Molecule protein("test/A2M_native/native.pdb");
+    data::Molecule protein("tests/A2M_native/native.pdb");
     auto res = image.fit(protein.get_histogram());
 
     // set optimal cutoff
@@ -72,7 +73,7 @@ TEST_CASE("generate_contour", "[files],[slow],[manual]") {
     plots::PlotDataset()
         .plot(scan, plots::PlotOptions({{"color", style::color::black}}))
         .plot(fit, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}))
-    .save("figures/test/em/chi2_landscape.pdf");
+    .save("figures/tests/em/chi2_landscape.pdf");
 }
 
 /**
@@ -100,12 +101,12 @@ TEST_CASE("check_fit", "[files],[manual],[slow]") {
     auto scan = s.as_dataset();
 
     auto fitted_water_factors = map.get_fitted_water_factors_dataset();
-    plots::PlotDataset::quick_plot(fitted_water_factors, plots::PlotOptions(style::draw::points, {}), "figures/test/em/check_fit_landscape_wf.pdf");
+    plots::PlotDataset::quick_plot(fitted_water_factors, plots::PlotOptions(style::draw::points, {}), "figures/tests/em/check_fit_landscape_wf.pdf");
 
     plots::PlotDataset()
         .plot(scan, plots::PlotOptions({{"color", style::color::black}}))
         .plot(fit, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}))
-    .save("figures/test/em/check_fit_landscape.pdf");
+    .save("figures/tests/em/check_fit_landscape.pdf");
 }
 
 TEST_CASE("check_bound_savings", "[manual],[slow]") {
@@ -190,7 +191,7 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
             plots::PlotDataset()
                 .plot(scan, plots::PlotOptions(style::draw::line, {{"color", style::color::black}}))
                 .plot(fit, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}))
-            .save("figures/test/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
+            .save("figures/tests/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
 
             plot_c.plot(scan, plots::PlotOptions(style::draw::points, {{"color", style::color::black}}));
         }
@@ -208,7 +209,7 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
 
         plot_c.plot(fit_mins, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}}));
         plot_c.plot(scan_mins, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"ms", 8}, {"s", 0.8}}));
-        plot_c.save("figures/test/em/repeat_chi2_contours.pdf");
+        plot_c.save("figures/tests/em/repeat_chi2_contours.pdf");
 
 
         // Difference plot
@@ -220,7 +221,7 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
             double delta_y = fit_mins.y(i) - scan_mins.y(i);
             diff.push_back({delta_x, delta_y});
         }
-        plots::PlotDataset::quick_plot(diff, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}), "figures/test/em/diff.pdf");        
+        plots::PlotDataset::quick_plot(diff, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}), "figures/tests/em/diff.pdf");        
     }
 }
 
@@ -229,13 +230,13 @@ TEST_CASE("plot_images", "[files],[manual],[slow]") {
     settings::em::sample_frequency = 1;
     settings::axes::qmax = 0.4;
 
-    io::ExistingFile file = "test/files/A2M_2020_Q4.ccp4";
+    io::ExistingFile file = "tests/files/A2M_2020_Q4.ccp4";
     settings::plots::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i), plots::PlotOptions());
         // plot.plot_atoms(-1);
-        plot.save("figures/test/em/images/" + file.stem() + "/" + std::to_string(i) + ".png");
+        plot.save("figures/tests/em/images/" + file.stem() + "/" + std::to_string(i) + ".png");
     }
 }
 
@@ -243,20 +244,20 @@ TEST_CASE("plot_images", "[files],[manual],[slow]") {
 //     settings::molecule::use_effective_charge = false;
 //     settings::em::sample_frequency = 1;
 
-//     std::string file = "test/files/A2M_2020_Q4.ccp4";
+//     std::string file = "tests/files/A2M_2020_Q4.ccp4";
 //     std::cout << "DEBUG" << std::endl;
 //     em::ImageStack image(file);
 //     std::cout << "DEBUG" << std::endl;
 //     auto hist = image.get_histogram(2);
 //     std::cout << "DEBUG" << std::endl;
-//     plots::PlotHistogram::quick_plot(*hist, plots::PlotOptions(), "figures/test/em/histogram.pdf");
+//     plots::PlotHistogram::quick_plot(*hist, plots::PlotOptions(), "figures/tests/em/histogram.pdf");
 // }
 
 TEST_CASE("voxelplot", "[manual]") {
     settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 1;
     settings::axes::qmax = 0.4;
-    em::ImageStack image("test/files/A2M_2020_Q4.ccp4");
+    em::ImageStack image("tests/files/A2M_2020_Q4.ccp4");
 
     CHECK(image.image(95).count_voxels(15) == 32);
     CHECK(image.image(100).count_voxels(10) == 208);
@@ -265,18 +266,18 @@ TEST_CASE("voxelplot", "[manual]") {
     // The following generates the actual plots where the number of voxels can be manually counted.
     // plots::PlotImage p95(image.image(95));
     // p95.plot_atoms(15);
-    // p95.save("figures/test/em/voxels/95.png");
+    // p95.save("figures/tests/em/voxels/95.png");
     // std::cout << "95.png: " << image.image(95).count_voxels(15) << std::endl;
 
     // plots::PlotImage p100(image.image(100));
     // p100.plot_atoms(10);
-    // p100.save("figures/test/em/voxels/100.png");
-    // plots::PlotImage::quick_plot(image.image(100), "figures/test/em/voxels/100_clean.png");
+    // p100.save("figures/tests/em/voxels/100.png");
+    // plots::PlotImage::quick_plot(image.image(100), "figures/tests/em/voxels/100_clean.png");
     // std::cout << "100.png: " << image.image(100).count_voxels(10) << std::endl;
 
     // plots::PlotImage p105(image.image(105));
     // p105.plot_atoms(10);
-    // p105.save("figures/test/em/voxels/105.png");
+    // p105.save("figures/tests/em/voxels/105.png");
     // std::cout << "105.png: " << image.image(105).count_voxels(10) << std::endl;
 }
 
@@ -292,7 +293,7 @@ TEST_CASE("voxelcount", "[manual]") {
         data.push_back({val, double(image.count_voxels(val))});
     }
 
-    plots::PlotDataset::quick_plot(data, plots::PlotOptions("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}, {"logy", true}}), "temp/test/em/voxel_count.png"); 
+    plots::PlotDataset::quick_plot(data, plots::PlotOptions("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}, {"logy", true}}), "temp/tests/em/voxel_count.png"); 
 }
 
 TEST_CASE("mass_cutoff_plot", "[manual]") {
@@ -329,12 +330,12 @@ TEST_CASE("instability", "[files],[manual]") {
         prev = count;
     }
 
-    plots::PlotDataset::quick_plot(data, plots::PlotOptions("markers", {{"xlabel", "cutoff"}, {"ylabel", "change"}}), "figures/test/em/instability.pdf"); 
+    plots::PlotDataset::quick_plot(data, plots::PlotOptions("markers", {{"xlabel", "cutoff"}, {"ylabel", "change"}}), "figures/tests/em/instability.pdf"); 
 }
 
 TEST_CASE("save_as_pdb", "[manual]") {
     em::ImageStack image("data/A2M_2020_Q4/A2M_2020_Q4.ccp4");
-    image.get_protein(image.from_level(3))->save("figures/test/em/save_as_pdb.pdb");
+    image.get_protein(image.from_level(3))->save("figures/tests/em/save_as_pdb.pdb");
 }
 
 TEST_CASE("check_simulated_errors", "[files],[manual],[broken]") {

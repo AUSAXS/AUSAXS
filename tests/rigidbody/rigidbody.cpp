@@ -10,10 +10,10 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/transform/TransformGroup.h>
+#include <rigidbody/BodySplitter.h>
 #include <fitter/HydrationFitter.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
-#include <data/BodySplitter.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <grid/Grid.h>
@@ -35,13 +35,13 @@ TEST_CASE("RigidBody::get_constraint_manager") {}
 TEST_CASE("RigidBody: reusable fitter", "[files]") {
     settings::general::verbose = false;
 
-    Molecule protein_2epe("test/files/2epe.pdb");
-    Molecule protein_LAR12("test/files/LAR1-2.pdb");
+    Molecule protein_2epe("tests/files/2epe.pdb");
+    Molecule protein_LAR12("tests/files/LAR1-2.pdb");
     protein_2epe.generate_new_hydration();
     protein_LAR12.generate_new_hydration();
 
     SECTION("intensity_fitter") {
-        fitter::HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
+        fitter::HydrationFitter fitter("tests/files/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -54,7 +54,7 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
     }
 
     SECTION("simple_intensity_fitter") {
-        fitter::LinearFitter fitter("test/files/2epe.dat", protein_2epe.get_total_histogram());
+        fitter::LinearFitter fitter("tests/files/2epe.dat", protein_2epe.get_total_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
@@ -74,7 +74,7 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
 //         protein.generate_new_hydration();
 
 //         // fit the protein
-//         fitter::HydrationFitter fitter("test/files/2epe.dat", protein.get_histogram());
+//         fitter::HydrationFitter fitter("tests/files/2epe.dat", protein.get_histogram());
 //         auto chi2 = fitter.fit()->fval;
 
 //         Body&       body = protein.get_body(0);
@@ -260,7 +260,7 @@ class RigidBodyTest : public RigidBody {
 //     settings::grid::cubic = true;
 //     settings::grid::scaling = 2;
 //     settings::rigidbody::iterations = 100;
-//     RigidBodyTest body = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+//     RigidBodyTest body = BodySplitter::split("tests/files/LAR1-2.pdb", {2, 9, 99, 194});
 
 //     SECTION("test 1") {
 //         body.transform->apply(matrix::rotation_matrix({0, 1, 0}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
@@ -273,7 +273,7 @@ class RigidBodyTest : public RigidBody {
 //         hist.save("temp/rigidbody/test1.dat");
 //         body.save("temp/rigidbody/test1.pdb");
 
-//         RigidBody body2 = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+//         RigidBody body2 = BodySplitter::split("tests/files/LAR1-2.pdb", {2, 9, 99, 194});
 //         auto res = body2.optimize("temp/rigidbody/test1.dat");
 //         REQUIRE(res->fval/res->dof < 2);
 //     }
@@ -289,7 +289,7 @@ class RigidBodyTest : public RigidBody {
 //         hist.save("temp/rigidbody/test2.dat");
 //         body.save("temp/rigidbody/test2.pdb");
 
-//         RigidBody body2 = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+//         RigidBody body2 = BodySplitter::split("tests/files/LAR1-2.pdb", {2, 9, 99, 194});
 //         auto res = body2.optimize("temp/rigidbody/test2.dat");
 //         REQUIRE(res->fval/res->dof < 2);
 //     }
@@ -305,7 +305,7 @@ class RigidBodyTest : public RigidBody {
 //         hist.save("temp/rigidbody/test3.dat");
 //         body.save("temp/rigidbody/test3.pdb");
 
-//         RigidBody body2 = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+//         RigidBody body2 = BodySplitter::split("tests/files/LAR1-2.pdb", {2, 9, 99, 194});
 //         auto res = body2.optimize("temp/rigidbody/test3.dat");
 //         REQUIRE(res->fval/res->dof < 2);
 //     }

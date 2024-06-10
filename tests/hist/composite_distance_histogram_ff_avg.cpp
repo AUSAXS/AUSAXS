@@ -14,7 +14,7 @@
 #include <settings/All.h>
 #include <constants/Constants.h>
 
-#include "../test/hist/hist_test_helper.h"
+#include "hist/hist_test_helper.h"
 
 using namespace data::record;
 using namespace data;
@@ -189,7 +189,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     // TODO: fix this test
     // SECTION("real data") {
     //     settings::general::verbose = false;
-    //     DebugMolecule protein("test/files/2epe.pdb");
+    //     DebugMolecule protein("tests/files/2epe.pdb");
     //     double ZX = protein.get_volume_grid()*constants::charge::density::water/protein.atom_size();
     //     double ZC = 6;
     //     double ZO = 8;
@@ -213,7 +213,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 
 TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     settings::general::verbose = false;
-    data::Molecule protein("test/files/2epe.pdb");
+    data::Molecule protein("tests/files/2epe.pdb");
     auto hist_data = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
     auto hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
     auto Iq = hist->debye_transform();

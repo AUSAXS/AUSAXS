@@ -68,7 +68,7 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
     }
 
     SECTION("io::ExistingFile&") {
-        io::ExistingFile file("test/files/A2M_2020_Q4.ccp4");
+        io::ExistingFile file("tests/files/A2M_2020_Q4.ccp4");
         em::ImageStackBase isb(file);
         REQUIRE(isb.size() == 154);
 
@@ -99,7 +99,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
     settings::molecule::use_effective_charge = false;
-    em::ImageStackBase isb("test/files/A2M_2020_Q4.ccp4");
+    em::ImageStackBase isb("tests/files/A2M_2020_Q4.ccp4");
     REQUIRE(isb.get_histogram(5)->get_total_counts() == isb.get_protein_manager()->get_histogram(5)->get_total_counts());
 }
 
@@ -114,7 +114,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_protein") {
-    em::ImageStackBase isb("test/files/A2M_2020_Q4.ccp4");
+    em::ImageStackBase isb("tests/files/A2M_2020_Q4.ccp4");
     REQUIRE(isb.get_protein(5) == isb.get_protein_manager()->get_protein(5));
 }
 
@@ -125,7 +125,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_header") {
     }
 
     SECTION("with header") {
-        io::ExistingFile file("test/files/A2M_2020_Q4.ccp4");
+        io::ExistingFile file("tests/files/A2M_2020_Q4.ccp4");
         em::ImageStackBase isb(file);
         REQUIRE(isb.get_header() != nullptr);
     }
@@ -171,7 +171,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::size") {
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::save") {
     settings::general::verbose = false;
-    io::File file("test/temp/ImageStackBase.save.pdb");
+    io::File file("tests/temp/ImageStackBase.save.pdb");
     em::ImageStackBase isb(images);
 
     em::detail::header::MRCData header_data;
@@ -247,7 +247,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_minimum_bounds") {
 TEST_CASE("ImageStackBase::read") {
     // test that the header is read correctly
     SECTION("correct header") {
-        std::string file = "test/files/A2M_2020_Q4.ccp4";
+        std::string file = "tests/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
         auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
@@ -262,7 +262,7 @@ TEST_CASE("ImageStackBase::read") {
 
     // we want to test that the read function can correctly read map files with different row/column/layer orderings
     SECTION("order") {
-        std::string file = "test/files/A2M_2020_Q4.ccp4";
+        std::string file = "tests/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
         auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
@@ -281,7 +281,7 @@ TEST_CASE("ImageStackBase::read") {
                 {{19, 20, 21}, {22, 23, 24}, {25, 26, 27}}
             };
 
-            std::ofstream output("test/files/test.ccp4", std::ios::binary);
+            std::ofstream output("tests/files/test.ccp4", std::ios::binary);
             output.write(reinterpret_cast<char*>(header), sizeof(*header));
             for (auto& m : data) {
                 for (auto& v : m) {
@@ -292,7 +292,7 @@ TEST_CASE("ImageStackBase::read") {
 
         // x = 1, y = 2, z = 3
         save_test_file(1, 2, 3);
-        em::ImageStackBase isb1("test/files/test.ccp4");
+        em::ImageStackBase isb1("tests/files/test.ccp4");
         REQUIRE(isb1.size() == 3);
         {
             REQUIRE(isb1.image(0).index(0, 0) == 1);
@@ -331,7 +331,7 @@ TEST_CASE("ImageStackBase::read") {
 
         // x = 2, y = 1, z = 3
         save_test_file(2, 1, 3);
-        em::ImageStackBase isb2("test/files/test.ccp4");
+        em::ImageStackBase isb2("tests/files/test.ccp4");
         REQUIRE(isb2.size() == 3);
         {
             REQUIRE(isb2.image(0).index(0, 0) == 1);
@@ -370,7 +370,7 @@ TEST_CASE("ImageStackBase::read") {
 
         // x = 3, y = 1, z = 2
         save_test_file(3, 1, 2);
-        em::ImageStackBase isb3("test/files/test.ccp4");
+        em::ImageStackBase isb3("tests/files/test.ccp4");
         REQUIRE(isb3.size() == 3);
         {
             REQUIRE(isb3.image(0).index(0, 0) == 1);
@@ -409,7 +409,7 @@ TEST_CASE("ImageStackBase::read") {
 
         // x = 3, y = 2, z = 1
         save_test_file(3, 2, 1);
-        em::ImageStackBase isb4("test/files/test.ccp4");
+        em::ImageStackBase isb4("tests/files/test.ccp4");
         REQUIRE(isb4.size() == 3);
         {
             REQUIRE(isb4.image(0).index(0, 0) == 1);
