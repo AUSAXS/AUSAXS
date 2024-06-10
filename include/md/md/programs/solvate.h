@@ -1,9 +1,9 @@
 #pragma once
 
-#include <programs/gmx.h>
-#include <shell/Command.h>
-#include <utility/files/all.h>
-#include <utility/Exceptions.h>
+#include <md/programs/gmx.h>
+#include <md/shell/Command.h>
+#include <md/utility/files/all.h>
+#include <md/utility/Exceptions.h>
 
 #include <vector>
 #include <algorithm>

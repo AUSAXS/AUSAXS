@@ -1,6 +1,6 @@
-#include <programs/mdrun.h>
-#include <programs/mdrun/Execution.h>
-#include <utility/Exceptions.h>
+#include <md/programs/mdrun.h>
+#include <md/programs/mdrun/Execution.h>
+#include <md/utility/Exceptions.h>
 
 using namespace gmx;
 

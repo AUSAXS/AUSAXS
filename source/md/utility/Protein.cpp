@@ -1,5 +1,5 @@
-#include <utility/Protein.h>
-#include <utility/Exceptions.h>
+#include <md/utility/Protein.h>
+#include <md/utility/Exceptions.h>
 
 #include <fstream>
 #include <math.h>

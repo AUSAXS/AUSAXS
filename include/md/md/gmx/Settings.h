@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gmx/SmartOption.h>
+#include <md/gmx/SmartOption.h>
 
 namespace gmx {
     struct setting {

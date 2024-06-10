@@ -1,7 +1,7 @@
 #pragma once
 
-#include <programs/gmx.h>
-#include <utility/files/all.h>
+#include <md/programs/gmx.h>
+#include <md/utility/files/all.h>
 
 namespace gmx {
     class genenv : private gmx {

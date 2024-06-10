@@ -1,13 +1,13 @@
 #pragma once
 
-#include <programs/all.h>
-#include <programs/saxsmdrun.h>
-#include <programs/mdrun/MDRunResult.h>
-#include <simulate/GMXOptions.h>
-#include <utility/Exceptions.h>
-#include <utility/Protein.h>
-#include <utility/files/MDPCreator.h>
-#include <utility/Utility.h>
+#include <md/programs/all.h>
+#include <md/programs/saxsmdrun.h>
+#include <md/programs/mdrun/MDRunResult.h>
+#include <md/simulate/GMXOptions.h>
+#include <md/utility/Exceptions.h>
+#include <md/utility/Protein.h>
+#include <md/utility/files/MDPCreator.h>
+#include <md/utility/Utility.h>
 
 #include <math.h>
 

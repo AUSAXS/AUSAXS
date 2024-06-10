@@ -1,9 +1,9 @@
 #pragma once
 
-#include <programs/gmx.h>
-#include <utility/files/all.h>
-#include <programs/mdrun/Execution.h>
-#include <utility/files/MDPCreator.h>
+#include <md/programs/gmx.h>
+#include <md/utility/files/all.h>
+#include <md/programs/mdrun/Execution.h>
+#include <md/utility/files/MDPCreator.h>
 
 #include <memory>
 

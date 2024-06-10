@@ -1,7 +1,7 @@
 #pragma once
 
-#include <programs/all.h>
-#include <utility/files/MDPCreator.h>
+#include <md/programs/all.h>
+#include <md/utility/files/MDPCreator.h>
 
 namespace gmx::option {
     struct WaterModel {

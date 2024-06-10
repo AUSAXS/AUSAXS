@@ -1,7 +1,7 @@
 #pragma once
 
-#include <shell/Command.h>
-#include <utility/Exceptions.h>
+#include <md/shell/Command.h>
+#include <md/utility/Exceptions.h>
 
 #include <time.h>
 #include <thread>

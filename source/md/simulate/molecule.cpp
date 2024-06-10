@@ -1,4 +1,4 @@
-#include <simulate/molecule.h>
+#include <md/simulate/molecule.h>
 
 using namespace gmx;
 using namespace gmx::simulate;

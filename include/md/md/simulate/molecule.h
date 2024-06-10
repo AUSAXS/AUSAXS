@@ -1,10 +1,10 @@
 #pragma once
 
-#include <programs/all.h>
-#include <programs/mdrun/Execution.h>
-#include <simulate/GMXOptions.h>
-#include <utility/files/MDPCreator.h>
-#include <utility/Utility.h>
+#include <md/programs/all.h>
+#include <md/programs/mdrun/Execution.h>
+#include <md/simulate/GMXOptions.h>
+#include <md/utility/files/MDPCreator.h>
+#include <md/utility/Utility.h>
 
 namespace gmx {
     namespace simulate {

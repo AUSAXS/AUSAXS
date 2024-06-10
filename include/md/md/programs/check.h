@@ -1,9 +1,9 @@
 #pragma once
 
-#include <programs/gmx.h>
-#include <utility/files/all.h>
-#include <utility/Utility.h>
-#include <utility/Exceptions.h>
+#include <md/programs/gmx.h>
+#include <md/utility/files/all.h>
+#include <md/utility/Utility.h>
+#include <md/utility/Exceptions.h>
 
 namespace gmx {
     class check : private gmx {

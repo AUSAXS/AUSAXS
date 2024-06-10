@@ -1,9 +1,10 @@
 #pragma once
 
-#include <programs/gmx.h>
+#include <md/programs/gmx.h>
+#include <md/utility/files/all.h>
+
 #include <fstream>
 #include <filesystem>
-#include <utility/files/all.h>
 
 namespace gmx {
     class grompp : private gmx {

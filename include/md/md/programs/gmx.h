@@ -1,9 +1,9 @@
 #pragma once
 
-#include <shell/Command.h>
-#include <utility/Exceptions.h>
-#include <utility/files/SHFile.h>
-#include <gmx/Settings.h>
+#include <md/shell/Command.h>
+#include <md/utility/Exceptions.h>
+#include <md/utility/files/SHFile.h>
+#include <md/gmx/Settings.h>
 
 #include <string>
 #include <vector>

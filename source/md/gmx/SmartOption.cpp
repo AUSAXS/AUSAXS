@@ -1,4 +1,4 @@
-#include <gmx/SmartOption.h>
+#include <md/gmx/SmartOption.h>
 
 #include <fstream>
 #include <sstream>

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <programs/gmx.h>
-#include <programs/mdrun/MDRunResult.h>
-#include <programs/mdrun/Execution.h>
-#include <utility/files/all.h>
+#include <md/programs/gmx.h>
+#include <md/programs/mdrun/MDRunResult.h>
+#include <md/programs/mdrun/Execution.h>
+#include <md/utility/files/all.h>
 
 namespace gmx {
     class mdrun : private gmx {

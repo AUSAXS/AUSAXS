@@ -1,4 +1,4 @@
-#include <programs/gmx.h>
+#include <md/programs/gmx.h>
 
 using namespace gmx;
 

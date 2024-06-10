@@ -1,9 +1,9 @@
 #pragma once
 
-#include <shell/Jobscript.h>
-#include <utility/files/all.h>
-#include <programs/mdrun/MDRunResult.h>
-#include <gmx/Settings.h>
+#include <md/shell/Jobscript.h>
+#include <md/utility/files/all.h>
+#include <md/programs/mdrun/MDRunResult.h>
+#include <md/gmx/Settings.h>
 
 #include <functional>
 
