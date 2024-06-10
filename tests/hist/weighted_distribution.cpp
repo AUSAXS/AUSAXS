@@ -27,7 +27,7 @@
 #include <plots/PlotIntensity.h>
 #include <table/ArrayDebyeTable.h>
 
-#include "../tests/hist/hist_test_helper.h"
+#include "hist/hist_test_helper.h"
 #include "constants/Axes.h"
 #include "hist/intensity_calculator/DistanceHistogram.h"
 
@@ -172,7 +172,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::general::warnings = true;
-    auto d_exact = SimpleCube::d;
+    auto d_exact = SimpleCube::d_exact;
 
     SECTION("no water") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -189,7 +189,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
         {
             const auto& q_axis = constants::axes::q_vals;
             Iq_exp.resize(q_axis.size(), 0);
-            auto ff = [] (double q) {return std::exp(-q*q/2);};
+            auto ff2 = [] (double q) {return std::exp(-q*q);};
 
             for (unsigned int q = 0; q < q_axis.size(); ++q) {
                 double dsum = 
@@ -198,7 +198,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
                     24*std::sin(q_axis[q]*d_exact[2])/(q_axis[q]*d_exact[2]) + 
                     24*std::sin(q_axis[q]*d_exact[3])/(q_axis[q]*d_exact[3]) + 
                     8 *std::sin(q_axis[q]*d_exact[4])/(q_axis[q]*d_exact[4]);
-                Iq_exp[q] += dsum*std::pow(ff(q_axis[q]), 2);
+                Iq_exp[q] += dsum*ff2(q_axis[q]);
             }
         }
 

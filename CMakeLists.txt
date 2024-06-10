@@ -129,7 +129,7 @@ endif()
 ##                Doxygen                 ##
 ############################################
 find_package(Doxygen)
-if(DOXYGEN_FOUND)
+if (DOXYGEN_FOUND)
 	set(sim3a_Doxygen "${CMAKE_BINARY_DIR}/saxs.dox")
 	configure_file(${CMAKE_SOURCE_DIR}/scripts/ausaxs.dox.in ${sim3a_Doxygen} @ONLY)
 	add_custom_target(
@@ -138,14 +138,18 @@ if(DOXYGEN_FOUND)
     		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     		COMMENT "Generating API documentation with Doxygen" VERBATIM
 	)
-endif(DOXYGEN_FOUND)
+endif()
 
 
 ############################################
 ##           Build library                ##
 ############################################
-include(CheckIPOSupported)
-check_ipo_supported(RESULT LTO_SUPPORTED)
+if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+	include(CheckIPOSupported)
+	check_ipo_supported(RESULT LTO_SUPPORTED)
+else()
+	set(LTO_SUPPORTED OFF)
+endif()
 
 add_subdirectory(source)
 add_subdirectory(tests)
