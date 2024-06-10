@@ -1,7 +1,7 @@
-#include <programs/all.h>
-#include <simulate/buffer.h>
-#include <simulate/molecule.h>
-#include <simulate/saxs.h>
+#include <md/programs/all.h>
+#include <md/simulate/buffer.h>
+#include <md/simulate/molecule.h>
+#include <md/simulate/saxs.h>
 
 #include <CLI/CLI.hpp>
 

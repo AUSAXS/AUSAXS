@@ -1,7 +1,7 @@
-#include <programs/all.h>
-#include <simulate/buffer.h>
-#include <simulate/molecule.h>
-#include <simulate/frameanalysis.h>
+#include <md/programs/all.h>
+#include <md/simulate/buffer.h>
+#include <md/simulate/molecule.h>
+#include <md/simulate/frameanalysis.h>
 
 #include <CLI/CLI.hpp>
 
