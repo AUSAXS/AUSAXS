@@ -8,8 +8,6 @@ set(ELEMENTS_APP_VERSION "1.0")
 set(ELEMENTS_APP_SOURCES ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/saxs_fitter_gui.cpp)
 include(ElementsConfigApp)
 
-target_link_libraries("${ELEMENTS_APP_PROJECT}" PRIVATE ausaxs_static)
-set_target_properties("${ELEMENTS_APP_PROJECT}" PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
+target_link_libraries("${ELEMENTS_APP_PROJECT}" PRIVATE ausaxs_core ausaxs_math nfd)
+target_include_directories("${ELEMENTS_APP_PROJECT}" PRIVATE "${CMAKE_SOURCE_DIR}/include/gui")
 add_dependencies("${ELEMENTS_APP_PROJECT}" plotter)

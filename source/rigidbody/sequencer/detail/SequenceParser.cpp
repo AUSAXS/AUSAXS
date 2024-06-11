@@ -22,7 +22,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/transform/TransformFactory.h>
 
 #include <rigidbody/RigidBody.h>
-#include <data/BodySplitter.h>
+#include <rigidbody/BodySplitter.h>
 #include <utility/observer_ptr.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>

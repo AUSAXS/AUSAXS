@@ -1,6 +1,5 @@
 #include <elements.hpp>
 #include <nfd.hpp>
-#include <include.h>
 
 #include <io/File.h>
 #include <constants/Constants.h>
@@ -14,8 +13,9 @@
 #include <settings/All.h>
 #include <plots/All.h>
 
-#include <logo.h>
-#include <resources.h>
+#include <gui/helper.h>
+#include <gui/logo.h>
+#include <gui/resources.h>
 
 #include <bitset>
 #include <thread>

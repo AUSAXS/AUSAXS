@@ -1,4 +1,3 @@
-set(ELEMENTS_BUILD_EXAMPLES OFF)
 FetchContent_Declare(
 	elements
 	GIT_REPOSITORY https://github.com/cycfi/elements.git
@@ -8,9 +7,6 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
 )
 FetchContent_MakeAvailable(elements CLI11 nfd)
-
-link_libraries(nfd)
-include_directories(include)
 
 # set the path to the elements root & module path
 set(ELEMENTS_ROOT "${elements_SOURCE_DIR}")

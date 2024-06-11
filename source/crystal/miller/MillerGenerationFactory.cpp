@@ -26,7 +26,7 @@ std::unique_ptr<crystal::MillerGenerationStrategy> crystal::factory::construct_m
             return std::make_unique<crystal::ReducedMillers>(settings::crystal::h, settings::crystal::k, settings::crystal::l);
         }
         default: {
-            throw except::unknown_argument("crystal::factory::construct_miller_strategy: Unknown MillerGenerationStrategy. Did you forget to add it to the switch statement?");
+            throw std::invalid_argument("crystal::factory::construct_miller_strategy: Unknown MillerGenerationStrategy. Did you forget to add it to the switch statement?");
         }
     }
 }

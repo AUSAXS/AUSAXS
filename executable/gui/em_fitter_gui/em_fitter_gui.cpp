@@ -17,9 +17,9 @@
 #include <shell/Command.h>
 #include <settings/All.h>
 
-#include <logo.h>
-#include <include.h>
-#include <resources.h>
+#include <gui/helper.h>
+#include <gui/logo.h>
+#include <gui/resources.h>
 
 #include <filesystem>
 #include <algorithm>
@@ -29,6 +29,10 @@
 #include <bitset>
 
 namespace gui = cycfi::elements;
+
+namespace setup {
+	inline std::unique_ptr<em::ImageStack> map;
+}
 
 auto constexpr bg_color_accent = gui::rgba(55, 55, 57, 255);
 auto constexpr bg_color = gui::rgba(35, 35, 37, 255);
