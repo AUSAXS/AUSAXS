@@ -96,15 +96,13 @@ inline shell::Command get_plotter_cmd() {
 		if (python_available && python_script_available) {
 			return shell::Command("python scripts/plot.py");
 		}
-	#elif defined(__linux__)
+	#elif defined(__linux__) || defined(__APPLE__)
 		// check if python & the python script is available
-		bool python_available = shell::Command("python3 --version").mute().execute().exit_code == 0;
+		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
 		bool python_script_available = io::File("scripts/plot.py").exists();
 		if (python_available && python_script_available) {
-			return shell::Command("python3 scripts/plot.py");
+			return shell::Command("python scripts/plot.py");
 		}
-	#elif defined (__APPLE__)
-		throw std::runtime_error("macOS is not currently supported");
 	#endif
 
 	console::print_warning("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
