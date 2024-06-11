@@ -64,7 +64,4 @@ add_library(ausaxs_rigidbody OBJECT
 
 target_include_directories(ausaxs_rigidbody PUBLIC "${CMAKE_SOURCE_DIR}/include/rigidbody")
 target_link_libraries(ausaxs_rigidbody ausaxs_core)
-set_target_properties(ausaxs_rigidbody PROPERTIES
-	PROPERTIES_OUTPUT_NAME ausaxs_rigidbody
-	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
-)
+set_target_properties(ausaxs_rigidbody PROPERTIES POSITION_INDEPENDENT_CODE 1)

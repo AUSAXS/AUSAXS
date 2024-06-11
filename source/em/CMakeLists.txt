@@ -25,7 +25,4 @@ add_library(ausaxs_em OBJECT
 
 target_include_directories(ausaxs_em PUBLIC "${CMAKE_SOURCE_DIR}/include/em")
 target_link_libraries(ausaxs_em ausaxs_core)
-set_target_properties(ausaxs_em PROPERTIES
-	PROPERTIES_OUTPUT_NAME ausaxs_em
-	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
-)
+set_target_properties(ausaxs_em PROPERTIES POSITION_INDEPENDENT_CODE 1)
