@@ -24,7 +24,7 @@ For more information, please refer to the LICENSE file in the project root.
     #define DEBUG_PRINT(x)
 #endif
 
-struct Limit {double min = 0, max = 0;};
+namespace peak_finder {struct Limit {double min = 0, max = 0;};}
 std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const std::vector<double>& y, unsigned int min_spacing, double min_prominence) {
 	if (x.size() != y.size()) {throw std::invalid_argument("math::find_minima: x and y must have the same size.");}
     if (x.size() < 3) {return {};}
@@ -43,7 +43,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
      * 
      * @return std::pair<double, double> The first element is the slope, the second is the y-intercept
      */
-    auto bounds_eq = [&] (const Limit& bound) {
+    auto bounds_eq = [&] (const peak_finder::Limit& bound) {
         double x1 = x[bound.min];
         double x2 = x[bound.max];
         double y1 = bound.min == 0      && y[bound.min] < y[bound.max] ? y[bound.max] : y[bound.min]; // account for the fact that we might be at the edge of the array
@@ -60,7 +60,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
      * @param xmin The x value of the local minimum
      * @param ymin The y value of the local minimum
      */
-    auto calc_prominence = [&] (const Limit& bound, double xmin, double ymin) {
+    auto calc_prominence = [&] (const peak_finder::Limit& bound, double xmin, double ymin) {
         // we want to intrapolate a line between the bounds and calculate the difference between it and the minimum
         auto [a, b] = bounds_eq(bound);
         double prominence = (a*xmin + b) - ymin;
@@ -73,7 +73,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
      * @param bound The bounds of the local minimum.
      * @param index The index of the local minimum.
      */
-    auto relax_bound = [&] (Limit& bound, unsigned int index) {
+    auto relax_bound = [&] (peak_finder::Limit& bound, unsigned int index) {
         if (bound.max - bound.min < 5) {return;}
         if (bound.min == 0 || bound.max == size-1) {return;}
 
@@ -145,11 +145,11 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     //######################################################//
     //###                ESTIMATE BOUNDS                 ###//
     //######################################################//
-    std::vector<Limit> local_minima_bounds;
+    std::vector<peak_finder::Limit> local_minima_bounds;
     local_minima_bounds.reserve(local_minima.size());
     {
         for (int index : local_minima) {
-            Limit bounds;
+            peak_finder::Limit bounds;
 
             // first go left
             {
@@ -235,11 +235,11 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     //###            MERGE OVERLAPPING BOUNDS            ###//
     //######################################################//
     if (local_minima_bounds.size() > 1) {
-        std::vector<Limit> merged_bounds;
+        std::vector<peak_finder::Limit> merged_bounds;
         std::vector<unsigned int> merged_minima;
         merged_bounds.reserve(local_minima.size());
         for (unsigned int i = 0; i < local_minima_bounds.size(); i++) {
-            Limit bounds = local_minima_bounds[i];
+            peak_finder::Limit bounds = local_minima_bounds[i];
 
             // go through all bounds and merge with the next one if they overlap
             unsigned int merge_count = 0;
@@ -309,7 +309,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
 
         // filter out all local minima with a prominence smaller than the minimum prominence
         std::vector<unsigned int> filtered_minima;
-        std::vector<Limit> filtered_bounds;
+        std::vector<peak_finder::Limit> filtered_bounds;
         for (unsigned int i = 0; i < local_minima.size(); ++i) {
             // if the prominence is smaller than the minimum prominence, we remove it
             if (prominences[i] < min_prominence) {
@@ -319,7 +319,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                 // first check previous bound
                 if (i != 0 && local_minima_bounds[i-1].max == local_minima_bounds[i].min) {
                     DEBUG_PRINT("\t\tBound can be merged with " + std::to_string(i-1));
-                    Limit new_bounds;
+                    peak_finder::Limit new_bounds;
                     // restore original bounds and merge
                     new_bounds.min = original_bounds[i-1].min;
                     new_bounds.max = original_bounds[i].max;
@@ -364,7 +364,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                 // check next bound
                 if (i != size-1 && local_minima_bounds[i].max == local_minima_bounds[i+1].min) {
                     DEBUG_PRINT("\t\tBound can be merged with " + std::to_string(i+1));
-                    Limit new_bounds;
+                    peak_finder::Limit new_bounds;
                     // restore original bounds and merge
                     new_bounds.min = original_bounds[i].min;
                     new_bounds.max = original_bounds[i+1].max;
