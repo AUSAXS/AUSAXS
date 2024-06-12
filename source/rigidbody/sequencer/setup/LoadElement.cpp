@@ -17,6 +17,8 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
     if (auto loc = paths[0].find("%"); loc != std::string::npos) {
         rigidbody = std::make_unique<RigidBody>(data::Molecule(load_wildcarded(paths[0])));
     } else {
+        auto rel_paths = paths;
+        std::transform(paths.begin(), paths.end(), rel_paths.begin(), [this] (const std::string& path) {return lookup_file(path).first;});
         rigidbody = std::make_unique<RigidBody>(data::Molecule(paths));
     }
 
@@ -35,7 +37,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     if (auto loc = path.find("%"); loc != std::string::npos) {
         rigidbody = std::make_unique<RigidBody>(data::Molecule(load_wildcarded(path)));
     } else {
-        rigidbody = std::make_unique<RigidBody>(rigidbody::BodySplitter::split(path, splits));
+        rigidbody = std::make_unique<RigidBody>(rigidbody::BodySplitter::split(lookup_file(path).first, splits));
     }
 
     if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
@@ -47,6 +49,17 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from \"" << path.size() << "\"." << std::endl;
     }
+}
+
+std::pair<io::File, bool> LoadElement::lookup_file(const std::string& path) {
+    io::File file(path);
+    if (file.exists()) {return {file, true};}
+
+    auto config_folder = owner->_get_config_folder();
+    io::File relative(config_folder, file.stem(), file.extension());
+    if (relative.exists()) {return {relative, true};}
+
+    return {file, false};
 }
 
 std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
@@ -65,28 +78,32 @@ std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
     int counter = 0;
 
     // file numbered zero may or may not exist
-    io::File file(path.substr(0, start) + zero_pad_string(counter, end - start) + path.substr(end));
-    if (file.exists()) {            // check filename padded with zeros
-        wildcarded_files.push_back(file.path());
+    io::File file = path.substr(0, start) + zero_pad_string(counter, end - start) + path.substr(end);
+    if (auto res = lookup_file(file); res.second) { // check filename padded with zeros
+        wildcarded_files.push_back(res.first);
     } else if (1 < end - start) {   // check filename without padding
         file = path.substr(0, start) + std::to_string(counter) + path.substr(end);
-        if (file.exists()) {wildcarded_files.push_back(file.path());}
+        if (res = lookup_file(file); res.second) {wildcarded_files.push_back(res.first);}
     }
     ++counter;
 
     // check for wildcarded files with padding
     file = path.substr(0, start) + zero_pad_string(counter, end - start) + path.substr(end);
-    while (file.exists()) {
-        wildcarded_files.push_back(file.path());
+    auto res = lookup_file(file);
+    while (res.second) {
+        wildcarded_files.push_back(res.first);
         file = path.substr(0, start) + zero_pad_string(++counter, end - start) + path.substr(end);
+        res = lookup_file(file);
     }
 
     // check for wildcarded files without padding
     if (wildcarded_files.size() <= 1) { // only check if no files were found with padding
         file = path.substr(0, start) + std::to_string(counter) + path.substr(end);
-        while (file.exists()) {
+        res = lookup_file(file);
+        while (res.second) {
             wildcarded_files.push_back(file.path());
             file = path.substr(0, start) + std::to_string(++counter) + path.substr(end);
+            res = lookup_file(file);
         }
     }
 

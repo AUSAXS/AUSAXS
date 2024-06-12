@@ -508,7 +508,8 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config,
 
     std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>(saxs);
     loop_stack = {sequencer.get()};
-
+    sequencer->_set_config_folder(config.directory());
+    
     std::string line;
     while(!in.eof()) {
         // read the next line

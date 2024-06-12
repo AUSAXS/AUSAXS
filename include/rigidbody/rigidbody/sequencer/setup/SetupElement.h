@@ -119,8 +119,20 @@ namespace rigidbody::sequencer {
              */
             void _set_active_body(observer_ptr<RigidBody> body);
 
+            /**
+             * @brief Get the location of the configuration folder.
+             *        This may be empty if no configuration file was loaded. 
+             */
+            std::string _get_config_folder() const;
+
+            /**
+             * @brief Set the location of the configuration folder.
+             */
+            void _set_config_folder(const std::string& folder);
+
         private:
             std::unordered_map<std::string, unsigned int> body_names;
             observer_ptr<RigidBody> active_body = nullptr;
+            std::string config_folder;
     };
 }
