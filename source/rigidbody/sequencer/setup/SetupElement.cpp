@@ -102,6 +102,14 @@ SetupElement& SetupElement::distance_constraint_center_mass(const std::string& i
     return *this;
 }
 
+std::string SetupElement::_get_config_folder() const {
+    return config_folder;
+}
+
+void SetupElement::_set_config_folder(const std::string& folder) {
+    config_folder = folder;
+}
+
 SetupElement& SetupElement::fixed_constraint() {
     throw std::runtime_error("SetupElement::fixed_constraint: Not implemented.");
 }

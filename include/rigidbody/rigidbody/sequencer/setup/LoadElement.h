@@ -4,6 +4,7 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <utility/observer_ptr.h>
+#include <io/IOFwd.h>
 
 #include <string>
 #include <vector>
@@ -23,5 +24,6 @@ namespace rigidbody::sequencer {
             std::unique_ptr<rigidbody::RigidBody> rigidbody;
 
             std::vector<std::string> load_wildcarded(const std::string& path);
+            std::pair<io::File, bool> lookup_file(const std::string& path);
     };
 }
