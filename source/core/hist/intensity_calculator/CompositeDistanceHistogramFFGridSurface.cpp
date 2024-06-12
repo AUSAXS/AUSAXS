@@ -14,6 +14,25 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace hist;
 using namespace form_factor;
 
+CompositeDistanceHistogramFFGridSurface::XXContainer CompositeDistanceHistogramFFGridSurface::XXContainer::operator+=(const CompositeDistanceHistogramFFGridSurface::XXContainer& other) {
+    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), std::plus<>());
+    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), std::plus<>());
+    std::transform(cross.begin(), cross.end(), other.cross.begin(), cross.begin(), std::plus<>());
+    return *this;
+}
+
+CompositeDistanceHistogramFFGridSurface::AXContainer CompositeDistanceHistogramFFGridSurface::AXContainer::operator+=(const CompositeDistanceHistogramFFGridSurface::AXContainer& other) {
+    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), [](auto& a, const auto& b) {return a+b;});
+    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), [](auto& a, const auto& b) {return a+b;});
+    return *this;
+}
+
+CompositeDistanceHistogramFFGridSurface::WXContainer CompositeDistanceHistogramFFGridSurface::WXContainer::operator+=(const CompositeDistanceHistogramFFGridSurface::WXContainer& other) {
+    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), std::plus<>());
+    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), std::plus<>());
+    return *this;
+}
+
 CompositeDistanceHistogramFFGridSurface::CompositeDistanceHistogramFFGridSurface(
     hist::Distribution3D&& p_aa, 
     hist::Distribution2D&& p_aw, 
@@ -32,6 +51,10 @@ CompositeDistanceHistogramFFGridSurface::CompositeDistanceHistogramFFGridSurface
     initialize(p_tot_ax.get_weighted_axis(), p_tot_xx.get_weighted_axis());
 }
 
+void CompositeDistanceHistogramFFGridSurface::regenerate_table() {ff_table = CompositeDistanceHistogramFFGrid::generate_table();}
+
+form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGridSurface::ff_table = CompositeDistanceHistogramFFGrid::generate_table();
+
 Limit CompositeDistanceHistogramFFGridSurface::get_excluded_volume_scaling_factor_limits() const {
     return {0, 2};
 }
@@ -43,39 +66,6 @@ double CompositeDistanceHistogramFFGridSurface::exv_factor(double q, double cx) 
 
 double CompositeDistanceHistogramFFGridSurface::exv_factor(double q) const {
     return exv_factor(q, free_params.cx);
-}
-
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGridSurface::generate_table() {
-    form_factor::storage::atomic::table_t table;
-
-    auto V = std::pow(2*settings::grid::exv_radius, 3);
-    FormFactor ffx = ExvFormFactor(V);
-    // FormFactor ffx({1, 0, 0, 0, 0}, {std::pow(settings::grid::exv_radius, 2)/4, 0, 0, 0, 0}, 0);
-    // ffx.set_normalization(V*constants::charge::density::water);
-    for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
-        for (unsigned int j = 0; j < i; ++j) {
-            table.index(i, j) = PrecalculatedFormFactorProduct(
-                storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
-                storage::atomic::get_form_factor(static_cast<form_factor_t>(j))
-            );
-            table.index(j, i) = table.index(i, j);
-        }
-        table.index(i, i) = PrecalculatedFormFactorProduct(
-            storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
-            storage::atomic::get_form_factor(static_cast<form_factor_t>(i))
-        );
-
-        table.index(i, form_factor::exv_bin) = PrecalculatedFormFactorProduct(
-            storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
-            ffx
-        );
-        table.index(form_factor::exv_bin, i) = table.index(i, form_factor::exv_bin);
-        table.index(form_factor::exv_bin, form_factor::exv_bin) = PrecalculatedFormFactorProduct(
-            ffx, 
-            ffx
-        );
-    }
-    return table;
 }
 
 hist::Distribution1D CompositeDistanceHistogramFFGridSurface::evaluate_xx_profile(double cx) const {

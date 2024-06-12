@@ -41,7 +41,7 @@ namespace hist {
              * @brief Regenerate the form factor table.
              *        This is only necessary if the excluded volume radius has changed.
              */
-            static void regenerate_table() {ff_table = generate_table();}
+            static void regenerate_table();
 
             // @copydoc DistanceHistogram::debye_transform() const
             virtual ScatteringProfile debye_transform() const override;
@@ -65,9 +65,9 @@ namespace hist {
              */
             const std::vector<double>& get_d_axis_ax() const {return distance_axes.ax;}
 
-        private: 
             static form_factor::storage::atomic::table_t generate_table();
-            inline static form_factor::storage::atomic::table_t ff_table = generate_table();
+        private: 
+            static form_factor::storage::atomic::table_t ff_table;
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
 

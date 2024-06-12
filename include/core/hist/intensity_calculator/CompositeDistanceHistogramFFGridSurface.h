@@ -18,34 +18,21 @@ namespace hist {
                 WeightedDistribution1D interior;
                 WeightedDistribution1D surface;
                 WeightedDistribution1D cross;
-                XXContainer operator+=(const XXContainer& other) {
-                    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), std::plus<>());
-                    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), std::plus<>());
-                    std::transform(cross.begin(), cross.end(), other.cross.begin(), cross.begin(), std::plus<>());
-                    return *this;
-                }
+                XXContainer operator+=(const XXContainer& other);
             };
 
             struct AXContainer {
                 AXContainer(unsigned int ff, unsigned int size) : interior(ff, size), surface(ff, size) {}
                 WeightedDistribution2D interior;
                 WeightedDistribution2D surface;
-                AXContainer operator+=(const AXContainer& other) {
-                    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), [](auto& a, const auto& b) {return a+b;});
-                    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), [](auto& a, const auto& b) {return a+b;});
-                    return *this;
-                }
+                AXContainer operator+=(const AXContainer& other);
             };
 
             struct WXContainer {
                 WXContainer(unsigned int size) : interior(size), surface(size) {}
                 WeightedDistribution1D interior;
                 WeightedDistribution1D surface;
-                WXContainer operator+=(const WXContainer& other) {
-                    std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), std::plus<>());
-                    std::transform(surface.begin(), surface.end(), other.surface.begin(), surface.begin(), std::plus<>());
-                    return *this;
-                }
+                WXContainer operator+=(const WXContainer& other);
             };
 
             /**
@@ -70,16 +57,9 @@ namespace hist {
                 hist::WeightedDistribution1D&& p_tot_xx
             );
 
-            /**
-             * @brief Get the form factor table for the grid-based calculations.
-             */
-            const form_factor::storage::atomic::table_t& get_ff_table() const override {return ff_table;}
+            const form_factor::storage::atomic::table_t& get_ff_table() const override {return ff_table;} // @copydoc CompositeDistanceHistogramFFAvgBase::get_ff_table() const
 
-            /**
-             * @brief Regenerate the form factor table.
-             *        This is only necessary if the excluded volume radius has changed.
-             */
-            static void regenerate_table() {ff_table = generate_table();}
+            static void regenerate_table(); // @copydoc CompositeDistanceHistogramFFGrid::regenerate_table()
 
             // @copydoc DistanceHistogram::debye_transform() const
             virtual ScatteringProfile debye_transform() const override;
@@ -103,13 +83,18 @@ namespace hist {
              */
             const std::vector<double>& get_d_axis_ax() const {return distance_axes.ax;}
 
-            Limit get_excluded_volume_scaling_factor_limits() const override;
+            Limit get_excluded_volume_scaling_factor_limits() const override; // @copydoc ICompositeDistanceHistogramExv::get_excluded_volume_scaling_factor_limits() const
 
+            /**
+             * @brief Get the excluded volume scaling factor.
+             *
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             */
             static double exv_factor(double q, double cx);
 
         private: 
-            static form_factor::storage::atomic::table_t generate_table();
-            inline static form_factor::storage::atomic::table_t ff_table = generate_table();
+            static form_factor::storage::atomic::table_t ff_table;
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
 

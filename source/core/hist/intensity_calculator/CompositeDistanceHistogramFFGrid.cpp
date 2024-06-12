@@ -25,6 +25,10 @@ CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
     initialize(p_tot_ax.get_weighted_axis(), p_tot_xx.get_weighted_axis());
 }
 
+void CompositeDistanceHistogramFFGrid::regenerate_table() {ff_table = generate_table();}
+
+form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::ff_table = CompositeDistanceHistogramFFGrid::generate_table();
+
 double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
     // auto dV = std::pow(2*settings::grid::exv_radius, 3)*(cx-1);
     // return ExvFormFactor(dV).evaluate(q);
