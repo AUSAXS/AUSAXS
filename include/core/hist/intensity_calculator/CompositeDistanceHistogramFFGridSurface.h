@@ -7,9 +7,7 @@
 namespace hist {
     /**
      * @brief A class containing partial distance histograms for the different types of interactions and atomic types. 
-     *        Beyond the functionality of CompositeDistanceHistogram, this class also uses individual form factors for each atomic type.
-     *        The excluded volume is approximated using a space-filling grid of spheres, filling the volume of the molecule. 
-     *        This approach adds a substantial overhead to the calculations, but should give a more accurate representation of the excluded volume.
+     *        Beyond the functionality of CompositeDistanceHistogramFFGrid, this class allows scaling the form factors of only the surface grid cells. 
      */
     class CompositeDistanceHistogramFFGridSurface : public CompositeDistanceHistogramFFAvg {
         public:
