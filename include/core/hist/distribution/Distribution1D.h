@@ -63,5 +63,6 @@ namespace hist {
 
             Distribution1D& operator+=(const Distribution1D& other);
             Distribution1D& operator-=(const Distribution1D& other);
+            friend Distribution1D operator*(double factor, Distribution1D dist);
     };
 }

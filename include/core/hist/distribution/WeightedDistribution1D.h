@@ -78,5 +78,6 @@ namespace hist {
 
             WeightedDistribution1D& operator+=(const WeightedDistribution1D& other);
             WeightedDistribution1D& operator-=(const WeightedDistribution1D& other);
+            friend WeightedDistribution1D operator*(double factor, WeightedDistribution1D dist);
     };
 }

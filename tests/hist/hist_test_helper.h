@@ -4,6 +4,7 @@
 #include <utility/Utility.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <utility/Concepts.h>
 
 #include <iostream>
@@ -56,6 +57,13 @@ struct SimpleCube {
         data::record::Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
         data::record::Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
         data::record::Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)
+    };
+
+    inline static std::vector<data::record::Water> waters = {
+        data::record::Water::create_new_water(Vector3<double>(-1, -1, -1)), data::record::Water::create_new_water(Vector3<double>(-1, 1, -1)),
+        data::record::Water::create_new_water(Vector3<double>( 1, -1, -1)), data::record::Water::create_new_water(Vector3<double>( 1, 1, -1)),
+        data::record::Water::create_new_water(Vector3<double>(-1, -1,  1)), data::record::Water::create_new_water(Vector3<double>(-1, 1,  1)),
+        data::record::Water::create_new_water(Vector3<double>( 1, -1,  1)), data::record::Water::create_new_water(Vector3<double>( 1, 1,  1))
     };
 
     // calculation: 8 points

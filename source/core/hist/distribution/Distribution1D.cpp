@@ -54,3 +54,10 @@ Distribution1D& Distribution1D::operator-=(const Distribution1D& rhs) {
     std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::minus<>());
     return *this;
 }
+
+Distribution1D hist::operator*(double factor, Distribution1D dist) {
+    for (auto& val : dist) {
+        val *= factor;
+    }
+    return dist;
+}

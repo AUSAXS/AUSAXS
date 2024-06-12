@@ -135,8 +135,8 @@ ScatteringProfile CompositeDistanceHistogramFFGridSurface::debye_transform() con
         Iq[q-q0] += xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
 
         // exv-water
-        double ew_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
-        Iq[q-q0] -= 2*free_params.cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
+        double wx_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
+        Iq[q-q0] -= 2*free_params.cw*wx_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
 
         // water-water
         double ww_sum = std::inner_product(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table_aa->begin(q), 0.0);

@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 
-double hist::CompositeDistanceHistogramPepsi::exv_factor(double q) const {
+double hist::CompositeDistanceHistogramPepsi::exv_factor(double) const {
     // Approximation of the G(q) factor from the Pepsi-SAXS paper, doi: 10.1107/S2059798317005745
     // This is just a Maclaurin expansion of the original expression, containing only the linear terms and no q-dependence
     constexpr double rm = 1.64;

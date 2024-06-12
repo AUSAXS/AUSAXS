@@ -88,3 +88,10 @@ WeightedDistribution1D& WeightedDistribution1D::operator-=(const WeightedDistrib
     std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::minus<>());
     return *this;
 }
+
+WeightedDistribution1D hist::operator*(double factor, WeightedDistribution1D dist) {
+    for (auto& val : dist) {
+        val.value *= factor;
+    }
+    return dist;
+}

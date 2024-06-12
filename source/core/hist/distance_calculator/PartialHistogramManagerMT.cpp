@@ -350,15 +350,15 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_aw(unsigned int 
         for (unsigned int i = imin; i < imax; ++i) { // atom
             unsigned int j = 0;                      // water
             for (; j+7 < coords_w.size(); j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_aw, coords_i, coords_w, i, j);
+                evaluate8<use_weighted_distribution, 1>(p_aw, coords_i, coords_w, i, j);
             }
 
             for (; j+3 < coords_w.size(); j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_aw, coords_i, coords_w, i, j);
+                evaluate4<use_weighted_distribution, 1>(p_aw, coords_i, coords_w, i, j);
             }
 
             for (; j < coords_w.size(); ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_aw, coords_i, coords_w, i, j);
+                evaluate1<use_weighted_distribution, 1>(p_aw, coords_i, coords_w, i, j);
             }
         }
     };
@@ -458,9 +458,9 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_aw(unsigned i
     }
 
     master_hist_mutex.lock();
-    this->master -= this->partials_aw.index(index);
+    this->master -= 2*this->partials_aw.index(index);
     this->partials_aw.index(index) = std::move(p_aw);
-    this->master += this->partials_aw.index(index);
+    this->master += 2*this->partials_aw.index(index);
     master_hist_mutex.unlock();
 }
 
