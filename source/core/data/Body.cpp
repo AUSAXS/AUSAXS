@@ -20,7 +20,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data;
 
-Body::Body() {
+Body::Body() : uid(uid_counter++), file() {
     initialize();
 }
 
