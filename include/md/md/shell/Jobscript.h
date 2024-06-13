@@ -11,6 +11,8 @@ namespace shell {
     template<typename T>
     class Jobscript {
         public: 
+            virtual ~Jobscript() = default;
+
             /**
              * @brief Create a new jobscript without submitting it.
              */
@@ -40,6 +42,8 @@ namespace shell {
     template<typename T>
     class Slurmscript : public Jobscript<T> {
         public: 
+            virtual ~Slurmscript() = default;
+
             void submit() override {
                 if (!this->created) {this->create();}
                 if (this->filename.empty()) {throw except::unexpected("Jobscript: no file to submit!");}

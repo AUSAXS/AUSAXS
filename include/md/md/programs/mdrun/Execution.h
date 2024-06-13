@@ -23,6 +23,7 @@ namespace md {
     class NoExecution : public shell::Jobscript<T> {
         public: 
             NoExecution(const std::string& folder) : folder(folder) {}
+            virtual ~NoExecution() = default;
             void create() override {}
             void submit() override {}
             void wait() override {}
@@ -39,6 +40,7 @@ namespace md {
     class LocalExecution : public shell::Jobscript<T> {
         public: 
             LocalExecution(std::function<std::string()> func, const std::string& folder) : func(func), folder(folder) {}
+            ~LocalExecution() override = default;
             void create() override {}
 
             void submit() override {
@@ -68,6 +70,8 @@ namespace md {
     template<typename T>
     class SmaugExecution : public shell::Slurmscript<T> {
         public: 
+            ~SmaugExecution() override = default;
+
             SmaugExecution(const TPRFile& tpr, const std::string& folder, const std::string& name, const SHFile& jobscript) : folder(folder) {
                 this->filename = tpr.parent_path() + "/job.sh";
                 this->cmd.set("cd " + tpr.parent_path() + "; " + jobscript.path + " -j " + name + " -version release-2021.swaxs -gpu-gener any+ampere -tpr " + tpr.absolute());
