@@ -416,7 +416,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     return emfit;
 }
 
-std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<LinearFitter> fitter) {
+std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<LinearFitter> _fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
@@ -429,7 +429,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
     // 'this' is ok since prepare_function is private and thus only used within the class itself
-    return [this, fitter] (const std::vector<double>& params) {
+    return [this, fitter = std::move(_fitter)] (const std::vector<double>& params) {
         static unsigned int counter = 0;
         static double last_c = 5;
 

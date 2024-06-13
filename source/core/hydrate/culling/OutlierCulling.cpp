@@ -21,7 +21,7 @@ std::vector<data::record::Water> OutlierCulling::cull(std::vector<grid::GridMemb
 
     if (target_count == 0) {
         std::vector<Water> final_water(placed_water.size());
-        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (grid::GridMember<Water>& gm) {return gm.get_atom();});
+        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (const grid::GridMember<Water>& gm) -> const auto& {return gm.get_atom();});
         return final_water;
     }
 

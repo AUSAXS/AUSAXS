@@ -42,7 +42,7 @@ struct MovingAverage {
                 weights[mid+i] = val;
             }
 
-            return weighted_average(data, weights);
+            return weighted_average(data, std::move(weights));
         }
 
     private: 

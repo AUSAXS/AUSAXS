@@ -14,7 +14,7 @@ double ConstrainedFitter<T>::chi2(const std::vector<double>& params) {
 
 template<fitter::fitter_t T>
 void ConstrainedFitter<T>::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
-    this->constraints = constraints;
+    this->constraints = std::move(constraints);
 }
 
 template<fitter::fitter_t T>

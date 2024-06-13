@@ -423,7 +423,7 @@ const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
     volume += grid.is_empty(bin);
     bin = detail::A_CENTER;
 
-    GridMember gm(atom, loc);
+    GridMember gm(atom, std::move(loc));
     if (expand) {expand_volume(gm);}
     a_members.push_back(std::move(gm));
 
@@ -445,7 +445,7 @@ const GridMember<Water>& Grid::add(const Water& water, bool expand) {
         }
     #endif
 
-    GridMember gm(water, loc);
+    GridMember gm(water, std::move(loc));
     grid.index(i, j, k) = detail::W_CENTER;
     if (expand) {expand_volume(gm);}
     w_members.push_back(std::move(gm));

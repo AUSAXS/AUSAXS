@@ -7,9 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 
 #include <typeindex>
-#include <numeric>
 #include <algorithm>
-#include <initializer_list>
 #include <sstream>
 
 using namespace plots;
@@ -20,18 +18,18 @@ PlotOptions::PlotOptions() : draw_line(true) {}
 
 PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
 
-PlotOptions::PlotOptions(std::unordered_map<std::string, std::any> options) : draw_line(true) {set(options);}
+PlotOptions::PlotOptions(std::unordered_map<std::string, std::any> options) : draw_line(true) {set(std::move(options));}
 
 PlotOptions::PlotOptions(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
     parse(style, true);
-    set(options);
+    set(std::move(options));
 }
 
 PlotOptions& PlotOptions::set(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
     parse(style, true);
-    set(options);
+    set(std::move(options));
     return *this;
 }
 

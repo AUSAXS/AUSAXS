@@ -214,7 +214,7 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
             if (grid->grid.index(pos) == detail::EMPTY) {
                 continue;
             }
-            Vector3<int> center = find_center(pos);
+            Vector3<int> center = find_center(std::move(pos));
             unsigned int id2 = to_id(center);
 
             // if the other atom is not in a group, add it to this one

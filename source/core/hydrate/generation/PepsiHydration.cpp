@@ -95,7 +95,7 @@ std::vector<grid::GridMember<data::record::Water>> PepsiHydration::generate_expl
     double max_r = r+shell_width;
     double max_r2 = max_r*max_r;
     for (const auto& atom : grid->a_members) {
-        auto coords_abs = atom.get_atom().get_coordinates();
+        const auto& coords_abs = atom.get_atom().get_coordinates();
 
         // scan for free cells in a box of size [x-r, x+r][y-r, y+r][z-r, z+r]
         auto bin_min = grid->to_bins(coords_abs - max_r);

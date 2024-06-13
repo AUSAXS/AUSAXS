@@ -24,7 +24,7 @@ Water Water::create_new_water() {
 }
 
 Water Water::create_new_water(Vector3<double> coords) {
-    return Water(-1, "O", "", "HOH", ' ', -1, "", coords, 1, 0, constants::atom_t::O, "");
+    return Water(-1, "O", "", "HOH", ' ', -1, "", std::move(coords), 1, 0, constants::atom_t::O, "");
 }
 
 Water& Water::operator=(const Water& rhs) = default;

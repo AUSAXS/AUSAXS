@@ -48,7 +48,7 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::gener
         double r_eff_real = ra+rh; // the effective bin radius
         // int r_eff_bin = std::round(r_eff_real)/grid->get_width(); // the effective bin radius in bins
 
-        auto coords_abs = atom.get_atom().get_coordinates();
+        const auto& coords_abs = atom.get_atom().get_coordinates();
         auto x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
 
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]

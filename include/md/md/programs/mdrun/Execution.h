@@ -39,7 +39,7 @@ namespace md {
     template<typename T>
     class LocalExecution : public shell::Jobscript<T> {
         public: 
-            LocalExecution(std::function<std::string()> func, const std::string& folder) : func(func), folder(folder) {}
+            LocalExecution(std::function<std::string()> func, const std::string& folder) : func(std::move(func)), folder(folder) {}
             ~LocalExecution() override = default;
             void create() override {}
 

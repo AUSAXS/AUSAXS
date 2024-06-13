@@ -15,13 +15,13 @@ namespace constants {
         for (auto& ext : extensions) {
             ext = utility::to_lowercase(ext);
         }
-        this->extensions = extensions;
+        this->extensions = std::move(extensions);
     }
 
     bool filetypes::detail::FileType::validate(const io::File& path) const {
         if (!path.exists()) {return false;}
         std::string file_ext = utility::to_lowercase(path.extension()); 
-        for (auto ext : extensions) {
+        for (const auto& ext : extensions) {
             if (file_ext == ext) {
                 return true;
             }

@@ -60,10 +60,10 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
     std::shared_ptr<Fit> ab_fit = fitter.fit();
 
     // update fitter object
-    fitted = std::make_shared<Fit>(res, res.fval, data.size()-1); // start with the fit performed here
-    fitted->add_fit(ab_fit);                                  // add the a,b inner fit
-    fitted->add_plots(*this);                             // make the result plottable
-    fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
+    fitted = std::make_shared<Fit>(res, res.fval, data.size()-1);   // start with the fit performed here
+    fitted->add_fit(std::move(ab_fit));                             // add the a,b inner fit
+    fitted->add_plots(*this);                                       // make the result plottable
+    fitted->evaluated_points = mini->get_evaluated_points();        // add the evaluated points
     return fitted;
 }
 
@@ -134,7 +134,7 @@ SimpleDataset HydrationFitter::plot_residuals() {
 
     // prepare the TGraph
     std::vector<double> xerr(data.size(), 0);
-    return Dataset2D(data.x(), residuals, xerr, data.yerr());
+    return Dataset2D(data.x(), std::move(residuals), std::move(xerr), data.yerr());
 }
 
 double HydrationFitter::chi2(const std::vector<double>& params) {
