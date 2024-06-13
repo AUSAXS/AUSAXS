@@ -249,7 +249,7 @@ Vector3<T> operator+(Vector3<T> left, const Vector3<Q>& right) {return left += r
 
 template<numeric T>
 Vector3<T> operator+(Vector3<T> left, double right) {
-	Vector3<T> w = left;
+	Vector3<T> w = std::move(left);
 	w.x() += right;
 	w.y() += right;
 	w.z() += right;
@@ -261,7 +261,7 @@ Vector3<T> operator-(Vector3<T> left, const Vector3<Q>& right) {return left -= r
 
 template<numeric T>
 Vector3<T> operator-(Vector3<T> left, double right) {
-	Vector3<T> w = left;
+	Vector3<T> w = std::move(left);
 	w.x() -= right;
 	w.y() -= right;
 	w.z() -= right;

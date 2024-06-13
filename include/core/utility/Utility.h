@@ -13,11 +13,16 @@ namespace utility {
         print_element(const T& t, int width) : t(t), width(width) {}
 
         friend std::ostream& operator<<(std::ostream& os, const print_element<T> e) noexcept {
+            std::ios state(nullptr);
+            state.copyfmt(os);
+
             std::stringstream ss; ss << e.t;
             std::string val = ss.str();
             if (val.size() > e.width) {val = val.substr(0, e.width);}
 
-            os << std::left << std::setw(e.width) << e.t; return os;
+            os << std::left << std::setw(e.width) << e.t;
+            os.copyfmt(state);
+            return os;
         }
 
         T t;

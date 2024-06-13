@@ -66,7 +66,7 @@ namespace data {
 			Molecule(const std::vector<record::Atom>& molecule_atoms, const std::vector<record::Water>& hydration_atoms);
 			Molecule(const std::vector<record::Atom>& molecule_atoms);
 
-			~Molecule();
+			virtual ~Molecule();
 
 			/**
 			 * @brief Get the distances between each atom.

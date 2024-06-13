@@ -16,8 +16,6 @@ namespace rigidbody::constraints {
      */
     class OverlapConstraint : public Constraint {
         public:
-            OverlapConstraint();
-
             OverlapConstraint(data::Molecule* protein);
 
             virtual ~OverlapConstraint() override;

@@ -106,10 +106,10 @@ namespace rigidbody::constraints {
 
             double r_base;              // The normal distance between the two atoms. 
             data::Molecule* protein;    // The protein this constraint belongs to.
-            unsigned int ibody1;        // The index of the first body.
-            unsigned int ibody2;        // The index of the second body.
-            unsigned int iatom1;        // The index of the first atom.
-            unsigned int iatom2;        // The index of the second atom.
+            unsigned int ibody1 = -1;   // The index of the first body.
+            unsigned int ibody2 = -1;   // The index of the second body.
+            unsigned int iatom1 = -1;   // The index of the first atom.
+            unsigned int iatom2 = -1;   // The index of the second atom.
 
         private: 
             struct AtomLoc {int body, atom;};

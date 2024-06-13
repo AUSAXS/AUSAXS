@@ -63,5 +63,5 @@ utility::detail::__dummy utility::fixedwidth(double number, unsigned int width) 
         }
     #endif
     
-    return {o};
+    return {std::move(o)};
 } 

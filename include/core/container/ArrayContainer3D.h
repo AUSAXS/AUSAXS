@@ -11,7 +11,7 @@ namespace container {
     template <typename T, int size_x, int size_y, int size_z>
     class ArrayContainer3D {
         public:
-            ArrayContainer3D() : N(size_x), M(size_y), L(size_z) {}
+            ArrayContainer3D() : N(size_x), M(size_y), L(size_z), data{} {}
 
             /**
              * @brief Get the value at index i, j, k. 

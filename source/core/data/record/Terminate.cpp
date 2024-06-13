@@ -60,10 +60,10 @@ void Terminate::parse_pdb(const std::string& s) {
     // set all of the properties
     try {
         this->serial = std::stoi(serial);
-        this->resName = resName;
+        this->resName = std::move(resName);
         this->chainID = chainID;
         this->resSeq = std::stoi(resSeq);
-        this->iCode = iCode;
+        this->iCode = std::move(iCode);
     } catch (const std::exception&) { // catch conversion errors and output a more meaningful error message
         throw except::parse_error("Terminate::parse_pdb: Invalid field values in line \"" + s + "\".");
     }

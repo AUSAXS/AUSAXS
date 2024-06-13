@@ -174,9 +174,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     std::transform(p_aw.begin(form_factor::exv_bin), p_aw.end(form_factor::exv_bin), p_aw.begin(form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
 
     return std::make_unique<CompositeDistanceHistogramFFAvg>(
-        std::move(Distribution3D(p_aa)), 
-        std::move(Distribution2D(p_aw)), 
-        std::move(Distribution1D(p_ww)), 
+        std::move(Distribution3D(std::move(p_aa))), 
+        std::move(Distribution2D(std::move(p_aw))), 
+        std::move(Distribution1D(std::move(p_ww))), 
         std::move(p_tot)
     );
 }

@@ -14,13 +14,13 @@ using namespace mini;
 
 Golden::Golden(double(&func)(std::vector<double>)) : Minimizer(func) {}
 
-Golden::Golden(std::function<double(std::vector<double>)> func) : Minimizer(func) {}
+Golden::Golden(std::function<double(std::vector<double>)> func) : Minimizer(std::move(func)) {}
 
 Golden::Golden(double(&func)(std::vector<double>), const Parameter& param) : Minimizer(func) {
     add_parameter(param);
 }
 
-Golden::Golden(std::function<double(std::vector<double>)> func, const Parameter& param) : Minimizer(func) {
+Golden::Golden(std::function<double(std::vector<double>)> func, const Parameter& param) : Minimizer(std::move(func)) {
     add_parameter(param);
 }
 

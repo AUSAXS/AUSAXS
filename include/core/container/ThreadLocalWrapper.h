@@ -30,7 +30,7 @@ namespace container {
                 for (auto& id : ids) {
                     data.emplace(id, T(args...));
                 }
-                data.emplace(std::this_thread::get_id(), T(args...));
+                data.emplace(std::this_thread::get_id(), T(std::move(args)...));
             }
 
             /**

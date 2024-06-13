@@ -9,7 +9,7 @@ namespace em::detail::header {
      * @brief The 1024-byte header of MRC files as specified in https://www.ccpem.ac.uk/mrc_format/mrc2014.php.
      *        It assumes the endian of the data is the same as the system. 
      */
-    struct MRCData : public HeaderData {
+    struct MRCData {
         MRCData();
         ~MRCData();
 

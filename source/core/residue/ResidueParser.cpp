@@ -58,7 +58,7 @@ unsigned int Bond::parse_order(const std::string& order) {
 //### RESIDUE ###//
 Residue::Residue(const std::string& name) : name(name) {}
 
-Residue::Residue(const std::string& name, std::vector<Atom> atoms, std::vector<Bond> bonds) : name(name), atoms(atoms) {
+Residue::Residue(const std::string& name, std::vector<Atom> atoms, std::vector<Bond> bonds) : name(name), atoms(std::move(atoms)) {
     apply_bond(bonds);
 }
 

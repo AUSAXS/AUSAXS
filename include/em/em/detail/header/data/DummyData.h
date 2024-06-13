@@ -3,5 +3,5 @@
 #include <em/detail/header/data/HeaderData.h>
 
 namespace em::detail::header {
-    struct DummyData : public HeaderData {};
+    struct DummyData {};
 }

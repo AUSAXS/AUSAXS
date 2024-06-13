@@ -164,7 +164,7 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
     };
 
     // convert a position to a unique id
-    auto to_id = [] (const Vector3<int> pos) {
+    auto to_id = [] (const Vector3<int>& pos) {
         return pos.x()*1e8 + pos.y()*1e4 + pos.z();
     };
 
@@ -214,7 +214,7 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
             if (grid->grid.index(pos) == detail::EMPTY) {
                 continue;
             }
-            Vector3<int> center = find_center(pos);
+            Vector3<int> center = find_center(std::move(pos));
             unsigned int id2 = to_id(center);
 
             // if the other atom is not in a group, add it to this one

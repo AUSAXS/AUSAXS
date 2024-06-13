@@ -16,11 +16,16 @@ template<> std::string md::SmartOption<double>::get() const {return std::to_stri
 template<> std::string md::SmartOption<int>::get() const {return std::to_string(value);}
 template<> std::string md::SmartOption<std::string>::get() const {return value;}
 
+std::unordered_map<std::string, md::ISmartOption*>& md::ISmartOption::get_all_options() {
+    static std::unordered_map<std::string, ISmartOption*> all_options;
+    return all_options;
+}
+
 void md::settings::parse_option(const std::string& name, const std::string& value) {
-    if (ISmartOption::all_options.count(name) == 0) {
+    if (ISmartOption::get_all_options().count(name) == 0) {
         throw std::runtime_error("Unknown option: " + name);
     }
-    ISmartOption::all_options[name]->set(value);
+    ISmartOption::get_all_options()[name]->set(value);
 }
 
 bool md::settings::is_comment_char(char c) {
@@ -48,7 +53,7 @@ void md::settings::read(const std::string& filename) {
 
 void md::settings::write(const std::string& filename) {
     std::ofstream out(filename);
-    for (const auto& [name, option] : ISmartOption::all_options) {
+    for (const auto& [name, option] : ISmartOption::get_all_options()) {
         out << name << " " << option->get() << std::endl;
     }
 }

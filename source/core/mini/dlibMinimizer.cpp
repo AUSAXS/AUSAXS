@@ -25,11 +25,11 @@ For more information, please refer to the LICENSE file in the project root.
 
     template<mini::type algo>
     dlibMinimizer<algo>::dlibMinimizer(std::function<double(double)> function, const Parameter& param) {
-        auto f = [=] (std::vector<double> x) {
-            return function(x[0]);
+        auto f = [_function = std::move(function)] (std::vector<double> x) {
+            return _function(x[0]);
         };
         add_parameter(param);
-        set_function(f);
+        set_function(std::move(f));
     }
 
     template<mini::type algo>
@@ -37,7 +37,7 @@ For more information, please refer to the LICENSE file in the project root.
         for (auto& p : param) {
             add_parameter(p);
         }
-        set_function(function);
+        set_function(std::move(function));
     }
 
     template<mini::type algo>

@@ -23,7 +23,7 @@ Minimizer::Minimizer(double(&f)(std::vector<double>)) {
 }
 
 Minimizer::Minimizer(std::function<double(std::vector<double>)> f) {
-    set_function(f);
+    set_function(std::move(f));
 }
 
 Result Minimizer::minimize() {
@@ -43,7 +43,7 @@ void Minimizer::set_function(std::function<double(std::vector<double>)> f) {
     raw = std::move(f);
     wrapper = [this] (std::vector<double> p) {
         double fval = raw(p);
-        evaluations.evals.push_back(Evaluation(p, fval));
+        evaluations.evals.push_back(Evaluation(std::move(p), fval));
         fevals++;
         return fval;
     };

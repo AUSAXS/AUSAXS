@@ -12,13 +12,13 @@ namespace md {
         virtual ~ISmartOption() = default;
         virtual void set(const std::string& value) = 0;
         virtual std::string get() const = 0;
-        inline static std::unordered_map<std::string, ISmartOption*> all_options;
+        static std::unordered_map<std::string, ISmartOption*>& get_all_options();
     };
 
     template<typename T>
     struct SmartOption : public ISmartOption {
         SmartOption(const T& value, const std::vector<std::string>& name) : value(value) {
-            for (const auto& n : name) {all_options.emplace(n, this);}
+            for (const auto& n : name) {get_all_options().emplace(n, this);}
         }
         ~SmartOption() override = default;
 

@@ -16,7 +16,7 @@ using namespace data::record;
 std::vector<data::record::Water> hydrate::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     auto return_input = [&placed_water] () {
         std::vector<Water> final_water(placed_water.size());
-        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (const grid::GridMember<Water>& gm) {return gm.get_atom();});
+        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (const grid::GridMember<Water>& gm) -> const auto& {return gm.get_atom();});
         return final_water;
     };
 

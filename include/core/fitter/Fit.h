@@ -62,8 +62,8 @@ namespace fitter {
 
             [[nodiscard]] std::string to_string() const noexcept override;
 
-            double level;
-            double mass;
+            double level = 0;
+            double mass = 0;
     };
 
     template<typename C>

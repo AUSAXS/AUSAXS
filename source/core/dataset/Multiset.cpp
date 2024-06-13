@@ -56,9 +56,9 @@ void Multiset::push_back(const Dataset2D&& new_data) {
     data.push_back(std::move(new_data));
 }
 
-void Multiset::ylimits(double min, double max) noexcept {ylimits({min, max});}
+void Multiset::ylimits(double min, double max) {ylimits({min, max});}
 
-void Multiset::ylimits(const Limit& limit) noexcept {
+void Multiset::ylimits(const Limit& limit) {
     std::for_each(begin(), end(), [&limit] (Dataset2D& data) {data.limit_y(limit);});
 }
 
@@ -68,7 +68,6 @@ void Multiset::save(const io::File& path) const {
     }
 }
 
-#include <iostream>
 void Multiset::read(const io::Folder& path) {
     for (const auto& file : std::filesystem::recursive_directory_iterator(path.path())) { // loop over all files in the directory
         if (file.path().extension() == ".txt") {

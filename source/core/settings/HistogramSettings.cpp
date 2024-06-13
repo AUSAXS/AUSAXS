@@ -45,7 +45,7 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Histogra
         case settings::hist::HistogramManagerChoice::FoXSManager: return "foxs";
         case settings::hist::HistogramManagerChoice::PepsiManager: return "pepsi";
         case settings::hist::HistogramManagerChoice::CrysolManager: return "crysol";
-        case settings::hist::HistogramManagerChoice::DebugManager: return "debug";
+        // case settings::hist::HistogramManagerChoice::DebugManager: return "debug";
         default: return std::to_string(static_cast<int>(settingref));
     }
 }
@@ -62,7 +62,7 @@ template<> void settings::io::detail::SettingRef<settings::hist::HistogramManage
     else if (str == "phmmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
     else if (str == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg;}
     else if (str == "phmmtffx") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit;}
-    else if (str == "debug") {settingref = settings::hist::HistogramManagerChoice::DebugManager;}
+    // else if (str == "debug") {settingref = settings::hist::HistogramManagerChoice::DebugManager;}
     else if (str == "foxs") {settingref = settings::hist::HistogramManagerChoice::FoXSManager;}
     else if (str == "pepsi") {settingref = settings::hist::HistogramManagerChoice::PepsiManager;}
     else if (str == "crysol") {settingref = settings::hist::HistogramManagerChoice::CrysolManager;}

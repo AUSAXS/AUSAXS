@@ -9,6 +9,11 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <algorithm>
 
+std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRef>>& settings::io::detail::ISettingRef::get_stored_settings() {
+    static std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRef>> stored_settings;
+    return stored_settings;
+}
+
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const {return settingref;}
 template<> std::string settings::io::detail::SettingRef<double>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<int>::get() const {return std::to_string(settingref);}
@@ -72,7 +77,7 @@ template<> void settings::io::detail::SettingRef<std::vector<double>>::set(const
         new_val.push_back(std::stod(s));
     }
     if (new_val.empty()) {throw except::parse_error("Settings::SmartOption::parse: Option \"" + get() + "\" received no settings.");}
-    settingref = new_val;
+    settingref = std::move(new_val);
 }
 template<> void settings::io::detail::SettingRef<std::vector<int>>::set(const std::vector<std::string>& str) {
     std::vector<int> new_val;
@@ -81,5 +86,5 @@ template<> void settings::io::detail::SettingRef<std::vector<int>>::set(const st
         new_val.push_back(std::stoi(s));
     }
     if (new_val.empty()) {throw except::parse_error("Settings::SmartOption::parse: Option \"" + get() + "\" received no settings.");}
-    settingref = new_val;
+    settingref = std::move(new_val);
 }

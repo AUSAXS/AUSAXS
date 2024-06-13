@@ -60,7 +60,7 @@ Molecule::Molecule(const std::vector<Atom>& molecule_atoms, const std::vector<Wa
 
 Molecule::Molecule(const io::File& input) : Molecule() {
     Body b1(input);
-    bodies = {b1};
+    bodies = {std::move(b1)};
     this->get_waters() = std::move(bodies[0].get_waters());
     bodies[0].get_waters().clear();
     initialize();
@@ -349,12 +349,13 @@ std::vector<double> Molecule::debye_transform() const {
 void Molecule::update_effective_charge(double scaling) {
     static double previous_charge = 0;
 
+    std::size_t N = size_atom();
+    if (N == 0) [[unlikely]] {return;}
+
     double displaced_vol = scaling*get_volume_grid();
     double displaced_charge = constants::charge::density::water*displaced_vol - previous_charge;
     previous_charge += displaced_charge;
 
-    // number of atoms
-    std::size_t N = size_atom();
     double charge_per_atom = -displaced_charge/N;
     if (settings::general::verbose) {
         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
@@ -400,20 +401,23 @@ void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> ma
 
 void Molecule::generate_unit_cell() {
     if (grid == nullptr) {create_grid();}
-        // auto[min, max] = grid->bounding_box();
+    // auto[min, max] = grid->bounding_box();
+    Vector3<double> cell_w;
+    {
         Vector3<double> min, max;
 
-    // expand box by 10%
-    for (auto& v : min) {
-        if (v < 0) {v *= (1 + settings::grid::scaling);} // if v is smaller than 0, multiply by 1+s
-        else {      v *= (1 - settings::grid::scaling);} //                    else multiply by 1-s
+        // expand box by 10%
+        for (auto& v : min) {
+            if (v < 0) {v *= (1 + settings::grid::scaling);} // if v is smaller than 0, multiply by 1+s
+            else {      v *= (1 - settings::grid::scaling);} //                    else multiply by 1-s
+        }
+        for (auto& v : max) {
+            if (v > 0) {v *= (1 + settings::grid::scaling);} // if v is larger than 0, multiply by 1+s
+            else {      v *= (1 - settings::grid::scaling);} //                   else multiply by 1-s
+        }
+        cell_w = max - min;
+        translate(-min);
     }
-    for (auto& v : max) {
-        if (v > 0) {v *= (1 + settings::grid::scaling);} // if v is larger than 0, multiply by 1+s
-        else {      v *= (1 - settings::grid::scaling);} //                   else multiply by 1-s
-    }
-    auto cell_w = max - min;
-    translate(-min);
 
     // create unit cell
     auto& file = bodies[0].get_file();

@@ -6,12 +6,12 @@ namespace em::detail::header {
     /**
      * @brief Dummy header class. 
      */
-    class DummyHeader : public MapHeader {
+    class DummyHeader : public MapHeader<DummyData> {
         public:
             DummyHeader();
             ~DummyHeader() override;
 
-            std::string to_string() const noexcept override;
+            std::string to_string() const override;
 
             unsigned int get_header_size() const override;
 

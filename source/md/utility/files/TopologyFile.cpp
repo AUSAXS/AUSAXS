@@ -23,11 +23,11 @@ void TopologyFile::discover_includes() {
         if (line.find("#include") != std::string::npos) {
             std::string include = line.substr(line.find("\"") + 1);
             include = include.substr(0, include.find("\""));
-            includes.push_back({lineno, include});
+            includes.push_back({lineno, std::move(include)});
         }
         lineno++;
     }
-    this->includes = includes;
+    this->includes = std::move(includes);
 }
 
 void TopologyFile::fix_relative_includes() {
@@ -60,7 +60,7 @@ void TopologyFile::fix_relative_includes() {
     // write new contents
     std::string new_contents;
     for (const auto& line : contents) {new_contents += line + "\n";}
-    std::ofstream out(path);
+    std::ofstream out(std::move(path));
     out << new_contents;
     out.close();
 }

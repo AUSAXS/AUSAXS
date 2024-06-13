@@ -3,15 +3,6 @@
 #include <unordered_map>
 
 namespace em::detail::header {
-    /**
-     * @brief Abstract base class for header data. 
-     *        Should never be instantiated directly. 
-     */
-    struct HeaderData {
-        protected:
-            HeaderData() = default;
-    };
-
     enum class DataType {
         int8,       // int8 --> short int
         int16,      // int16 --> int

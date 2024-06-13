@@ -188,42 +188,42 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
     switch (settings::hist::histogram_manager) {
         case settings::hist::HistogramManagerChoice::FoXSManager:
             return std::make_unique<CompositeDistanceHistogramFoXS>(
-                std::move(Distribution3D(p_aa)), 
-                std::move(Distribution3D(p_ax)), 
-                std::move(Distribution3D(p_xx)),
-                std::move(Distribution2D(p_wa)), 
-                std::move(Distribution2D(p_wx)), 
-                std::move(Distribution1D(p_ww)),
+                std::move(Distribution3D(std::move(p_aa))), 
+                std::move(Distribution3D(std::move(p_ax))), 
+                std::move(Distribution3D(std::move(p_xx))),
+                std::move(Distribution2D(std::move(p_wa))), 
+                std::move(Distribution2D(std::move(p_wx))), 
+                std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
         case settings::hist::HistogramManagerChoice::PepsiManager:
             return std::make_unique<CompositeDistanceHistogramPepsi>(
-                std::move(Distribution3D(p_aa)), 
-                std::move(Distribution3D(p_ax)), 
-                std::move(Distribution3D(p_xx)),
-                std::move(Distribution2D(p_wa)), 
-                std::move(Distribution2D(p_wx)), 
-                std::move(Distribution1D(p_ww)),
+                std::move(Distribution3D(std::move(p_aa))), 
+                std::move(Distribution3D(std::move(p_ax))), 
+                std::move(Distribution3D(std::move(p_xx))),
+                std::move(Distribution2D(std::move(p_wa))), 
+                std::move(Distribution2D(std::move(p_wx))), 
+                std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
         case settings::hist::HistogramManagerChoice::CrysolManager:
             return std::make_unique<CompositeDistanceHistogramCrysol>(
-                std::move(Distribution3D(p_aa)), 
-                std::move(Distribution3D(p_ax)), 
-                std::move(Distribution3D(p_xx)),
-                std::move(Distribution2D(p_wa)), 
-                std::move(Distribution2D(p_wx)), 
-                std::move(Distribution1D(p_ww)),
+                std::move(Distribution3D(std::move(p_aa))), 
+                std::move(Distribution3D(std::move(p_ax))), 
+                std::move(Distribution3D(std::move(p_xx))),
+                std::move(Distribution2D(std::move(p_wa))), 
+                std::move(Distribution2D(std::move(p_wx))), 
+                std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
         default:
             return std::make_unique<CompositeDistanceHistogramFFExplicit>(
-                std::move(Distribution3D(p_aa)), 
-                std::move(Distribution3D(p_ax)), 
-                std::move(Distribution3D(p_xx)),
-                std::move(Distribution2D(p_wa)), 
-                std::move(Distribution2D(p_wx)), 
-                std::move(Distribution1D(p_ww)),
+                std::move(Distribution3D(std::move(p_aa))), 
+                std::move(Distribution3D(std::move(p_ax))), 
+                std::move(Distribution3D(std::move(p_xx))),
+                std::move(Distribution2D(std::move(p_wa))), 
+                std::move(Distribution2D(std::move(p_wx))), 
+                std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
     }

@@ -7,7 +7,7 @@ namespace mini {
     struct Evaluation {
         Evaluation() = default;
 
-        Evaluation(std::vector<double> vals, double fval) : vals(vals), fval(fval) {}
+        Evaluation(std::vector<double> vals, double fval) : vals(std::move(vals)), fval(fval) {}
 
         std::string to_string() const;
 

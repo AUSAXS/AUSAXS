@@ -20,7 +20,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data;
 
-Body::Body() {
+Body::Body() : uid(uid_counter++), file() {
     initialize();
 }
 
@@ -173,7 +173,7 @@ std::shared_ptr<signaller::Signaller> Body::get_signaller() const {
 }
 
 void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
-    this->signal = signal;
+    this->signal = std::move(signal);
 }
 
 std::vector<record::Atom>& Body::get_atoms() {return file.protein_atoms;}

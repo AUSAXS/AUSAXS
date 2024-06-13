@@ -18,14 +18,14 @@ MRCHeader::MRCHeader(MRCData&& data) : MapHeader(std::make_unique<MRCData>(std::
 MRCHeader::~MRCHeader() = default;
 
 bool MRCHeader::is_mrc(const io::ExistingFile& file) {
-    auto extension = file.extension();
+    const auto& extension = file.extension();
     if (extension == ".mrc") {return true;}
     if (extension == ".ccp4") {return true;}
     if (extension == ".map") {return true;}
     return false;
 }
 
-std::string MRCHeader::to_string() const noexcept {
+std::string MRCHeader::to_string() const {
     auto& p = cast_data();
 
     std::stringstream s;

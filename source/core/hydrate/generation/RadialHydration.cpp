@@ -99,15 +99,15 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::gen
     // we define a helper lambda
     std::vector<grid::GridMember<Water>> placed_water; 
     placed_water.reserve(grid->a_members.size());
-    auto add_loc = [&] (Vector3<double> exact_loc) {
-        Water a = Water::create_new_water(exact_loc);
+    auto add_loc = [&] (Vector3<double>&& exact_loc) {
+        Water a = Water::create_new_water(std::move(exact_loc));
         grid::GridMember<Water> gm = grid->add(a, true);
         placed_water.emplace_back(std::move(gm));
     };
 
     double rh = grid->get_hydration_radius();
     for (const auto& atom : grid->a_members) {
-        auto coords_abs = atom.get_atom().get_coordinates();
+        const auto& coords_abs = atom.get_atom().get_coordinates();
         double ra = grid->get_atomic_radius(atom.get_atom_type());
         double reff = ra + rh;
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
@@ -117,7 +117,7 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::gen
             Vector3<int> skip_bin(bins.x()-rot_bins_1rh[i].x(), bins.y()-rot_bins_1rh[i].y(), bins.z()-rot_bins_1rh[i].z());
             if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()), skip_bin)) {
                 Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff;
-                add_loc(exact_loc);
+                add_loc(std::move(exact_loc));
             }
         }
     }

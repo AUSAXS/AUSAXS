@@ -121,6 +121,6 @@ namespace rigidbody::sequencer {
 
         private:
             std::unordered_map<std::string, unsigned int> body_names;
-            observer_ptr<RigidBody> active_body;
+            observer_ptr<RigidBody> active_body = nullptr;
     };
 }

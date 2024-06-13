@@ -416,7 +416,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     return emfit;
 }
 
-std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<LinearFitter> fitter) {
+std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<LinearFitter> _fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
@@ -429,7 +429,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
     // 'this' is ok since prepare_function is private and thus only used within the class itself
-    std::function<double(std::vector<double>)> chi2 = [this, fitter] (const std::vector<double>& params) {
+    return [this, fitter = std::move(_fitter)] (const std::vector<double>& params) {
         static unsigned int counter = 0;
         static double last_c = 5;
 
@@ -463,13 +463,12 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
         }
         return val;
     }; 
-    return chi2;
 }
 
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, const io::ExistingFile& file) {
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
-    return cutoff_scan_helper(points, fitter);
+    return cutoff_scan_helper(points, std::move(fitter));
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingFile& file) {
@@ -480,7 +479,7 @@ mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingF
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-    return cutoff_scan_helper(points, fitter);
+    return cutoff_scan_helper(points, std::move(fitter));
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
@@ -495,19 +494,19 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int point
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const io::ExistingFile& file) {
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
-    return cutoff_scan_fit_helper(points, fitter);
+    return cutoff_scan_fit_helper(points, std::move(fitter));
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const io::ExistingFile& file) {
     Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
-    return cutoff_scan_fit_helper(axis, fitter);
+    return cutoff_scan_fit_helper(axis, std::move(fitter));
 }
 
 mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<LinearFitter> fitter) {
     update_charge_levels(points.limits());
     set_minimum_bounds(points.min);
-    auto func = prepare_function(fitter);
+    auto func = prepare_function(std::move(fitter));
 
     mini::Golden minimizer(func, mini::Parameter{"cutoff", points.limits()});
     return minimizer.landscape(points.bins);
@@ -516,7 +515,7 @@ mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_p
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-    return cutoff_scan_fit_helper(points, fitter);
+    return cutoff_scan_fit_helper(points, std::move(fitter));
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<LinearFitter> fitter) {
@@ -525,7 +524,7 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis&
     auto func = prepare_function(fitter);
 
     // cutoff scan
-    mini::Golden minimizer(func, mini::Parameter{"cutoff", points.limits()});
+    mini::Golden minimizer(std::move(func), mini::Parameter{"cutoff", points.limits()});
     mini::Landscape landscape = minimizer.landscape(points.bins);
 
     // fit

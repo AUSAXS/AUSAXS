@@ -38,7 +38,7 @@ bool Parameter::empty() const noexcept {
     return !(has_name() && (has_bounds() || has_guess()));
 }
 
-std::string Parameter::to_string() const noexcept {
+std::string Parameter::to_string() const {
     std::string s = name;
     if (has_guess()) {s += " guess " + std::to_string(guess.value());}
     if (has_bounds()) {s += " bounds [" + std::to_string(bounds.value().min) + std::to_string(bounds.value().max) + "]";}

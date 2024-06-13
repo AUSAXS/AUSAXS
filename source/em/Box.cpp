@@ -9,7 +9,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/File.h>
 
 #include <fstream>
-#include <numeric>
 
 using namespace em;
 

@@ -1,0 +1,25 @@
+name: Submit build for Coverity scan
+
+on:
+  - workflow_dispatch
+
+jobs:
+  coverity:
+    runs-on: ubuntu-latest
+    environment: coverity
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libcurl4-openssl-dev
+
+      - name: Configure build
+        run: cmake -B build -S . -DGUI=OFF
+
+      - uses: vapier/coverity-scan-action@v1.8.0
+        with:
+          command: cmake --build build --target ausaxs ausaxs_md -j12
+          email: ${{ secrets.COVERITY_SCAN_EMAIL }}
+          token: ${{ secrets.COVERITY_SCAN_TOKEN }}

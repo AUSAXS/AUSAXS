@@ -111,7 +111,7 @@ SimpleDataset LinearFitter::plot_residuals() {
 
     // prepare the dataset
     std::vector<double> xerr(data.size(), 0);
-    return Dataset2D(data.x(), residuals, xerr, data.yerr());
+    return Dataset2D(data.x(), std::move(residuals), std::move(xerr), data.yerr());
 }
 
 void LinearFitter::set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> h) {

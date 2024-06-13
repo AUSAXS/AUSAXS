@@ -20,7 +20,7 @@ Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y) noexcept : Da
     }
 }
 
-Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset2D(x, y) {
+Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset2D(std::move(x), std::move(y)) {
     set_col_names({xlabel, ylabel, std::string(ylabel)+"err", std::string(xlabel)+"err"});
 }
 

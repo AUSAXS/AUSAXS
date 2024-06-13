@@ -49,19 +49,19 @@ void RigidBody::initialize() {
 }
 
 void RigidBody::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
-    this->constraints = constraints;
+    this->constraints = std::move(constraints);
 }
 
 void RigidBody::set_body_select_manager(std::shared_ptr<rigidbody::selection::BodySelectStrategy> body_selector) {
-    this->body_selector = body_selector;
+    this->body_selector = std::move(body_selector);
 }
 
 void RigidBody::set_transform_manager(std::shared_ptr<rigidbody::transform::TransformStrategy> transform) {
-    this->transform = transform;
+    this->transform = std::move(transform);
 }
 
 void RigidBody::set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters) {
-    this->parameter_generator = parameters;
+    this->parameter_generator = std::move(parameters);
 }
 
 std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measurement_path) {

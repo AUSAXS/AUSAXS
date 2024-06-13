@@ -8,7 +8,7 @@ namespace em::detail::header {
     /**
      * @brief Wrapper class for MRCData.
      */
-    class MRCHeader : public MapHeader {
+    class MRCHeader : public MapHeader<MRCData> {
         public:
             MRCHeader();
 
@@ -19,7 +19,7 @@ namespace em::detail::header {
             /**
              * @brief Create a string representation of this object.
              */
-            std::string to_string() const noexcept override;
+            std::string to_string() const override;
 
             /**
              * @brief Get the size of the header.

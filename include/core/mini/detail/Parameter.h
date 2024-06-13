@@ -78,7 +78,7 @@ namespace mini {
         /**
          * @brief Get a string representation of this parameter.
          */
-        std::string to_string() const noexcept;
+        std::string to_string() const;
 
         /**
          * @brief Stream output operator. 

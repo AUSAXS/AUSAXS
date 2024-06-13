@@ -45,7 +45,7 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
 
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file + "\"");}
-    input.read(reinterpret_cast<char*>(header->get_data()), header->get_header_size());
+    input.read(header->get_data_ptr(), header->get_header_size());
 
     auto map_axes = header->get_axes();
     size_x = map_axes.x.bins;
@@ -170,11 +170,11 @@ float ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) 
     return data[layer].index(x, y);
 }
 
-observer_ptr<em::detail::header::MapHeader> ImageStackBase::get_header() const {
+observer_ptr<em::detail::header::IMapHeader> ImageStackBase::get_header() const {
     return header.get();
 }
 
-void ImageStackBase::set_header(std::unique_ptr<em::detail::header::MapHeader> header) {
+void ImageStackBase::set_header(std::unique_ptr<em::detail::header::IMapHeader> header) {
     this->header = std::move(header);
     for (auto& image : data) {
         image.set_header(this->header.get());

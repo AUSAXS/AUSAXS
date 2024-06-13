@@ -198,9 +198,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
 
     // overwrite the excluded volume calculations from the HistogramManagerMTFFAvg calculations with our new grid-based ones
     // first cast the weighted distributions to make iteration simpler
-    Distribution2D p_ax = Distribution2D(p_ax_generic);
-    Distribution1D p_wx = Distribution1D(p_wx_generic);
-    Distribution1D p_xx = Distribution1D(p_xx_generic);
+    Distribution2D p_ax = Distribution2D(std::move(p_ax_generic));
+    Distribution1D p_wx = Distribution1D(std::move(p_wx_generic));
+    Distribution1D p_xx = Distribution1D(std::move(p_xx_generic));
 
     // replace the calculations
     for (unsigned int i = 0; i < p_aa.size_x(); ++i) {

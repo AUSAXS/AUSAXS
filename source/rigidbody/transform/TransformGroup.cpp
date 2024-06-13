@@ -10,6 +10,6 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace rigidbody::transform;
 
 TransformGroup::TransformGroup(std::vector<data::Body*> bodies, std::vector<unsigned int> indices, const constraints::DistanceConstraint& target, Vector3<double> pivot) 
-    : bodies(bodies), indices(indices), target(target), pivot(pivot) {}
+    : bodies(std::move(bodies)), indices(std::move(indices)), target(target), pivot(std::move(pivot)) {}
 
 TransformGroup::~TransformGroup() = default;

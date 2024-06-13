@@ -8,18 +8,18 @@ namespace md {
     namespace MDPOptions {
         namespace detail {
             struct OptionVal {
-                OptionVal(std::string name, std::string value) : name(name), value(value) {}
-                OptionVal(std::string name, double value) : name(name), value(std::to_string(value)) {}
-                OptionVal(std::string name, int value) : name(name), value(std::to_string(value)) {}
-                OptionVal(std::string name, unsigned int value) : name(name), value(std::to_string(value)) {}
+                OptionVal(std::string name, std::string value) : name(std::move(name)), value(std::move(value)) {}
+                OptionVal(std::string name, double value) : name(std::move(name)), value(std::to_string(value)) {}
+                OptionVal(std::string name, int value) : name(std::move(name)), value(std::to_string(value)) {}
+                OptionVal(std::string name, unsigned int value) : name(std::move(name)), value(std::to_string(value)) {}
                 std::string name, value;
             };
 
             struct Option {
-                Option(std::string name) : name(name) {}
+                Option(std::string&& name) : name(std::move(name)) {}
                 Option(const char* name) : name(name) {}
 
-                OptionVal operator=(std::string value) const {return OptionVal(name, value);}
+                OptionVal operator=(std::string value) const {return OptionVal(std::move(name), value);}
                 OptionVal operator=(double value) const {return OptionVal(name, value);}
                 OptionVal operator=(int value) const {return OptionVal(name, value);}
                 OptionVal operator=(unsigned int value) const {return OptionVal(name, value);}

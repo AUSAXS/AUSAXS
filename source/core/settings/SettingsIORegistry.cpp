@@ -8,15 +8,19 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace settings::io;
 
-std::vector<SettingSection> SettingSection::sections = std::vector<SettingSection>();
+std::vector<SettingSection> SettingSection::get_sections() {
+    static std::vector<SettingSection> sections;
+    return sections;
+}
 
 SettingSection::SettingSection(std::string_view name, std::initializer_list<std::shared_ptr<detail::ISettingRef>> settings) : name(name), settings(settings) {
+    auto& stored_settings = detail::ISettingRef::get_stored_settings();
     for (auto& setting : settings) {
         for (auto& name : setting->names) {
-            if (detail::ISettingRef::stored_settings.contains(name)) {
+            if (stored_settings.contains(name)) {
                 throw std::runtime_error("Settings::add: Duplicate setting name: \"" + name + "\".");
             }
-            detail::ISettingRef::stored_settings[name] = std::move(setting);
+            stored_settings[name] = std::move(setting);
         }
     }
 }

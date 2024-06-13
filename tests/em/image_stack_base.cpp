@@ -72,7 +72,7 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
         em::ImageStackBase isb(file);
         REQUIRE(isb.size() == 154);
 
-        auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
+        auto header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
         REQUIRE(header->nx == 154);
         REQUIRE(header->ny == 154);
         REQUIRE(header->nz == 154);
@@ -132,7 +132,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_header") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
-    std::unique_ptr<em::detail::header::MapHeader> header; 
+    std::unique_ptr<em::detail::header::IMapHeader> header; 
     {
         em::detail::header::MRCData header_data;
         header_data.nx = 10;
@@ -147,7 +147,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
 
     em::ImageStackBase isb(images);
     isb.set_header(std::move(header));
-    auto h = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
+    auto h = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
     CHECK(h->nx == 10);
     CHECK(h->ny == 10);
     CHECK(h->nz == 10);
@@ -250,7 +250,7 @@ TEST_CASE("ImageStackBase::read") {
         std::string file = "tests/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
-        auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
+        auto header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
         REQUIRE(header->nx == 154);
         REQUIRE(header->ny == 154);
         REQUIRE(header->nz == 154);
@@ -265,7 +265,7 @@ TEST_CASE("ImageStackBase::read") {
         std::string file = "tests/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
-        auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
+        auto header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
         header->nx = 3;
         header->ny = 3;
         header->nz = 3;
