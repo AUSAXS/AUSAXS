@@ -31,7 +31,7 @@ std::vector<DistanceConstraint> LinearConstraints::generate() const {
         const Body& body2 = protein.get_body(ibody2);
 
         double min_dist = std::numeric_limits<double>::max();
-        int min_atom1 = -1, min_atom2 = -1;
+        unsigned int min_atom1 = -1, min_atom2 = -1;
         for (unsigned int iatom1 = 0; iatom1 < body1.size_atom(); iatom1++) {
             const Atom& atom1 = body1.get_atom(iatom1);
             if (atom1.element != constants::atom_t::C) {continue;}
@@ -49,6 +49,9 @@ std::vector<DistanceConstraint> LinearConstraints::generate() const {
             }
         }
 
+        if (min_atom1 == -1u || min_atom2 == -1u) {
+            throw except::unexpected("LinearConstraints::generate: No suitable atoms were found for constraint generation. ");
+        }
         constraints.emplace_back(manager->protein, ibody1, ibody2, min_atom1, min_atom2);
         if (settings::general::verbose) {
             std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.get_atom(min_atom1).get_group_name() << " and " << body2.get_atom(min_atom2).get_group_name() << std::endl;
@@ -56,7 +59,7 @@ std::vector<DistanceConstraint> LinearConstraints::generate() const {
     }
 
     if (constraints.empty()) {
-        throw except::unexpected("rigidbody::constraints::generation::LinearConstraints::generate: No constraints were generated. This is probably a bug.");
+        throw except::unexpected("LinearConstraints::generate: No constraints were generated. This is probably a bug.");
     }
 
     return constraints;
