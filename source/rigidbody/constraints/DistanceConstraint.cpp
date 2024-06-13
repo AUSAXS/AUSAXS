@@ -49,8 +49,8 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibo
 
     if (center_mass) {
         // find the atoms closest to the center of mass of the two bodies
-        double target_distance = body1.get_cm().distance2(body2.get_cm());
         double min_distance = std::numeric_limits<double>::max();
+        double target_distance = body1.get_cm().distance2(body2.get_cm());
         for (unsigned int i = 0; i < body1.get_atoms().size(); i++) {
             if (body1.get_atom(i).element != constants::atom_t::C) {continue;}
             for (unsigned int j = 0; j < body2.get_atoms().size(); j++) {
@@ -63,6 +63,7 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibo
                 }
             }
         }
+        r_base = min_distance;
     } else {
         // find the closest atoms in the two bodies
         double min_distance = std::numeric_limits<double>::max();
@@ -78,7 +79,17 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibo
                 }
             }
         }
-    } 
+        r_base = min_distance;
+        if (r_base > 4) {
+            auto& atom1 = body1.get_atom(iatom1);
+            auto& atom2 = body2.get_atom(iatom2);
+            throw except::invalid_argument(
+                "Constraint::Constraint: The atoms being constrained are too far apart!\n"
+                "Atom 1: " + atom1.name + " in body " + std::to_string(ibody1) + " at " + atom1.get_coordinates().to_string() + "\n"
+                "Atom 2: " + atom2.name + " in body " + std::to_string(ibody2) + " at " + atom2.get_coordinates().to_string() + "\n"
+            );
+        }
+    }
     if (iatom1 == iatom2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Could not find atoms to constrain.");}
 }
 
