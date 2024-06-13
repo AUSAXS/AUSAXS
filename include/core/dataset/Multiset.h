@@ -55,12 +55,12 @@ class Multiset {
         /**
          * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
          */
-        void ylimits(const Limit& limit) noexcept;
+        void ylimits(const Limit& limit);
 
         /**
          * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
          */
-        void ylimits(double min, double max) noexcept;
+        void ylimits(double min, double max);
 
         /**
          * @brief Save this Multiset at the given location.
