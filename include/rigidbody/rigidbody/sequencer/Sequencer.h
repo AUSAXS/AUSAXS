@@ -27,7 +27,7 @@ namespace rigidbody {
 
             private:
                 observer_ptr<RigidBody> rigidbody;
-                std::unique_ptr<detail::BestConf> best = nullptr;
+                std::unique_ptr<detail::BestConf> best;
                 std::string saxs;
         };
     }

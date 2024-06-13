@@ -14,7 +14,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::sequencer;
 
-Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), SetupElement(this), saxs(saxs) {}
+Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), SetupElement(this), best(nullptr), saxs(saxs) {}
 
 Sequencer::~Sequencer() = default;
 
