@@ -6,7 +6,7 @@ namespace em::detail::header {
     /**
      * @brief Wrapper class for RECData.
      */
-    class RECHeader : public MapHeader {
+    class RECHeader : public MapHeader<RECData> {
         public:
             RECHeader();
             ~RECHeader() override;

@@ -9,12 +9,9 @@
 #include <iosfwd>
 
 namespace em::detail::header {
-    struct HeaderData;
-    class MapHeader {
+    class IMapHeader {
         public:
-            MapHeader(std::unique_ptr<HeaderData> data);
-
-            virtual ~MapHeader();
+            virtual ~IMapHeader() = default;
 
             /**
              * @brief Create a string representation of this header.
@@ -44,22 +41,37 @@ namespace em::detail::header {
             virtual std::tuple<unsigned int, unsigned int, unsigned int> get_axis_order() const noexcept = 0;
 
             /**
+             * @brief Get a pointer to the start of the data section. 
+             */
+            virtual char* get_data_ptr() const = 0;
+
+            /**
              * @brief Get the byte size of each voxel.
              */
             unsigned int get_byte_size() const;
 
+            std::ostream& operator<<(std::ostream& os);
+    };
+
+    template<class T>
+    class MapHeader : public IMapHeader {
+        public:
+            MapHeader(std::unique_ptr<T> data);
+            virtual ~MapHeader() override;
+
             /**
              * @brief Get the header data.
              */
-            observer_ptr<HeaderData> get_data() const noexcept;
+            observer_ptr<T> get_data() const noexcept;
+
+            char* get_data_ptr() const final override;
 
             /**
              * @brief Set the header data.
              */
-            void set_data(std::unique_ptr<HeaderData> data);
+            void set_data(std::unique_ptr<T> data);
 
         private: 
-            std::unique_ptr<HeaderData> data;
+            std::unique_ptr<T> data;
     };
-    std::ostream& operator<<(std::ostream& os, const MapHeader& h);
 }

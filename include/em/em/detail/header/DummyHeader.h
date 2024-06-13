@@ -6,7 +6,7 @@ namespace em::detail::header {
     /**
      * @brief Dummy header class. 
      */
-    class DummyHeader : public MapHeader {
+    class DummyHeader : public MapHeader<DummyData> {
         public:
             DummyHeader();
             ~DummyHeader() override;

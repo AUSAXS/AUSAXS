@@ -8,7 +8,7 @@ namespace em::detail::header {
     /**
      * @brief Wrapper class for MRCData.
      */
-    class MRCHeader : public MapHeader {
+    class MRCHeader : public MapHeader<MRCData> {
         public:
             MRCHeader();
 

@@ -77,12 +77,12 @@ namespace em {
             /**
              * @brief Get the header of the input file. 
              */
-            observer_ptr<detail::header::MapHeader> get_header() const;
+            observer_ptr<detail::header::IMapHeader> get_header() const;
 
             /**
              * @brief Set the header. 
              */
-            void set_header(std::unique_ptr<detail::header::MapHeader> header);
+            void set_header(std::unique_ptr<detail::header::IMapHeader> header);
 
             /**
              * @brief Get the number of images stored in this object.
@@ -137,7 +137,7 @@ namespace em {
             void set_minimum_bounds(double min_val);
 
         private:
-            std::unique_ptr<detail::header::MapHeader> header;  // The header of the input file.
+            std::unique_ptr<detail::header::IMapHeader> header; // The header of the input file.
             std::unique_ptr<em::managers::ProteinManager> phm;  // The histogram manager. Manages both the backing protein & its scattering curve. 
             std::vector<Image> data;                            // The actual image data. 
             unsigned int size_x, size_y, size_z;                // The number of pixels in each dimension.
