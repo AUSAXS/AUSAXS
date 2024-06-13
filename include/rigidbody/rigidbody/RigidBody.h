@@ -14,7 +14,7 @@ namespace rigidbody {
 		public:
 			RigidBody(data::Molecule&& protein);
 
-			virtual ~RigidBody();
+			virtual ~RigidBody() override;
 
 			/**
 			 * @brief Perform a rigid-body optimization for this structure. 
