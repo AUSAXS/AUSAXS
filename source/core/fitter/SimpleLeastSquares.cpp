@@ -39,12 +39,12 @@ std::pair<double, double> SimpleLeastSquares::fit_params_only() {
 }
 
 double SimpleLeastSquares::fit_chi2_only() {
-    fit_params_only();
+    [[maybe_unused]] auto res = fit_params_only();
     return chi2({});
 }
 
 std::shared_ptr<Fit> SimpleLeastSquares::fit() {
-    if (delta == 0) {fit_params_only();}
+    if (delta == 0) {[[maybe_unused]] auto res = fit_params_only();}
     double a_err2 = S/delta; // squared sigmas
     double b_err2 = Sxx/delta; 
 

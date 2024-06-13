@@ -76,8 +76,8 @@ namespace fitter {
 
         private:
             const SimpleDataset data;
-            double S, Sx, Sy, Sxx, Sxy, delta = 0;
-            double a, b;
+            double S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0, delta = 0;
+            double a = 0, b = 0;
 
             /**
              * @brief Calculate chi2.
