@@ -12,8 +12,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::constraints;
 
-OverlapConstraint::OverlapConstraint() = default;
-
 OverlapConstraint::OverlapConstraint(data::Molecule* protein) {
     this->protein = protein;
     initialize();
