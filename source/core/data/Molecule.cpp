@@ -349,12 +349,13 @@ std::vector<double> Molecule::debye_transform() const {
 void Molecule::update_effective_charge(double scaling) {
     static double previous_charge = 0;
 
+    std::size_t N = size_atom();
+    if (N == 0) [[unlikely]] {return;}
+
     double displaced_vol = scaling*get_volume_grid();
     double displaced_charge = constants::charge::density::water*displaced_vol - previous_charge;
     previous_charge += displaced_charge;
 
-    // number of atoms
-    std::size_t N = size_atom();
     double charge_per_atom = -displaced_charge/N;
     if (settings::general::verbose) {
         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
