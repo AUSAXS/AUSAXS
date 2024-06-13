@@ -21,7 +21,6 @@ LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) 
     int escape_counter = 0;
     while (dynamic_cast<Sequencer*>(next_owner) == nullptr) {
         if (++escape_counter < 100) {throw std::runtime_error("LoopElement::LoopElement: owner chain too long");}
-        if (next_owner == nullptr) {break;}
         this_will_run *= next_owner->iterations;
         next_owner = next_owner->_get_owner();
     }
