@@ -14,7 +14,7 @@ using namespace em::detail::header;
 DummyHeader::DummyHeader() : MapHeader(std::make_unique<DummyData>()) {}
 DummyHeader::~DummyHeader() = default;
 
-std::string DummyHeader::to_string() const noexcept {
+std::string DummyHeader::to_string() const {
     return "DummyHeader";
 }
 

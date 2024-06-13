@@ -25,7 +25,7 @@ bool MRCHeader::is_mrc(const io::ExistingFile& file) {
     return false;
 }
 
-std::string MRCHeader::to_string() const noexcept {
+std::string MRCHeader::to_string() const {
     auto& p = cast_data();
 
     std::stringstream s;

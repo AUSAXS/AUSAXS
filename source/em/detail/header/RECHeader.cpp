@@ -17,12 +17,12 @@ RECHeader::RECHeader() : MapHeader(std::make_unique<RECData>()) {}
 RECHeader::~RECHeader() = default;
 
 bool RECHeader::is_rec(const io::ExistingFile& file) {
-    auto extension = file.extension();
+    const auto& extension = file.extension();
     if (extension == ".rec") {return true;}
     return false;
 }
 
-std::string RECHeader::to_string() const noexcept {
+std::string RECHeader::to_string() const {
     auto& p = cast_data();
 
     std::stringstream s;

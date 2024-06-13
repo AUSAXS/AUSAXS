@@ -16,7 +16,7 @@ namespace em::detail::header {
             /**
              * @brief Create a string representation of this header.
              */
-            virtual std::string to_string() const noexcept = 0;
+            virtual std::string to_string() const = 0;
 
             /**
              * @brief Get the data type for the map data. 

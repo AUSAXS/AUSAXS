@@ -14,7 +14,7 @@ namespace em::detail::header {
             /**
              * @brief Create a string representation of this object.
              */
-            std::string to_string() const noexcept override;
+            std::string to_string() const override;
 
             /**
              * @brief Get the data type for the map data. 

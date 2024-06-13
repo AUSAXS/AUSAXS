@@ -11,7 +11,7 @@ namespace em::detail::header {
             DummyHeader();
             ~DummyHeader() override;
 
-            std::string to_string() const noexcept override;
+            std::string to_string() const override;
 
             unsigned int get_header_size() const override;
 
