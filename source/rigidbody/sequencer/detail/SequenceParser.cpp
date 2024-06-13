@@ -196,7 +196,6 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
             iatom2
         );
     }
-    throw except::invalid_argument("SequenceParser::parse_arguments: Invalid arguments for \"constraint\".");
 }
 
 template<>
