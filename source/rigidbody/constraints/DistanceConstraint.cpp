@@ -63,7 +63,6 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibo
                 }
             }
         }
-        if (iatom1 == iatom2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Could not find atoms to constrain.");}
     } else {
         // find the closest atoms in the two bodies
         double min_distance = std::numeric_limits<double>::max();
@@ -79,8 +78,8 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibo
                 }
             }
         }
-        if (iatom1 == iatom2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Could not find atoms to constrain.");}
     } 
+    if (iatom1 == iatom2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Could not find atoms to constrain.");}
 }
 
 DistanceConstraint::DistanceConstraint(data::Molecule* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
