@@ -104,7 +104,7 @@ namespace em {
         private:
             observer_ptr<em::detail::header::IMapHeader> header; // Pointer to the header of the parent ImageStack.
             Matrix<float> data;                                  // The actual data storage. 
-            unsigned int z = 0;                                  // The z-index of this image in the ImageStack. 
+            unsigned int z;                                      // The z-index of this image in the ImageStack. 
             ObjectBounds2D bounds;
     };
 }

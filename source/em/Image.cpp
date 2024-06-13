@@ -15,7 +15,7 @@ using namespace em;
 
 Image::Image(observer_ptr<em::detail::header::IMapHeader> header, unsigned int layer) : N(header->get_axes().x.bins), M(header->get_axes().y.bins), header(header), data(N, M), z(layer), bounds(N, M) {}
 
-Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data), bounds(N, M) {}
+Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), header(nullptr), data(data), z(0), bounds(N, M) {}
 
 Image::Image(const Matrix<float>& data, observer_ptr<em::detail::header::IMapHeader> header, unsigned int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
 
