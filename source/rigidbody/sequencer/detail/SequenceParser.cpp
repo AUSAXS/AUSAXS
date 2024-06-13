@@ -284,10 +284,10 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     };
     if (args.size() != valid_args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"parameter\". Expected 5, but got " + std::to_string(args.size()) + ".");}
 
-    int iterations;
-    double radians, angstroms;
-    settings::rigidbody::ParameterGenerationStrategyChoice strategy;
-    settings::rigidbody::DecayStrategyChoice decay_strategy;
+    int iterations = -1;
+    double radians = -1, angstroms = -1;
+    settings::rigidbody::ParameterGenerationStrategyChoice strategy = settings::rigidbody::ParameterGenerationStrategyChoice::Simple;
+    settings::rigidbody::DecayStrategyChoice decay_strategy = settings::rigidbody::DecayStrategyChoice::Linear;
 
     std::string current_arg;
     try {
@@ -301,7 +301,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     } catch (std::invalid_argument& e) {
         throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for parameter iterations: \"" + current_arg + "\".");
     }
-    if (current_arg.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"iterations\".");}
+    if (current_arg.empty() || iterations == -1) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"iterations\".");}
 
     current_arg = "";
     try {
@@ -315,7 +315,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     } catch (std::invalid_argument& e) {
         throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for parameter angstroms: \"" + current_arg + "\".");
     }
-    if (current_arg.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"angstroms\".");}
+    if (current_arg.empty() || angstroms == -1) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"angstroms\".");}
 
     current_arg = "";
     try {
@@ -329,7 +329,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     } catch (std::invalid_argument& e) {
         throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for parameter radians: \"" + current_arg + "\".");
     }
-    if (current_arg.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"radians\".");}
+    if (current_arg.empty() || radians == -1) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"radians\".");}
 
     current_arg = "";
     for (const auto& name : valid_args[Args::strategy]) {
