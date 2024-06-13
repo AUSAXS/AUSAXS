@@ -10,7 +10,7 @@ namespace container {
     template <typename T, int size_x, int size_y>
     class ArrayContainer2D {
         public:
-            constexpr ArrayContainer2D() noexcept : N(size_x), M(size_y) {}
+            constexpr ArrayContainer2D() noexcept : N(size_x), M(size_y), data{} {}
 
             /**
              * @brief Get the value at index i, j, k. 
