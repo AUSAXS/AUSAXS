@@ -20,8 +20,12 @@ void curl::download(const std::string& url, const io::File& path) {
     curl = curl_easy_init();
     if (curl) {
         FILE* fp = fopen(path.path().c_str(), "wb");
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+        res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set URL: " + url);}
+
+        res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set write data: " + path.path());}
+
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
