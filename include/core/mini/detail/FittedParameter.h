@@ -11,7 +11,7 @@ namespace mini {
         /**
          * @brief Default constructor.
          */
-        FittedParameter() noexcept {}
+        FittedParameter() noexcept = default;
 
         /**
          * @brief Create a FittedParameter with asymmetric errors.
