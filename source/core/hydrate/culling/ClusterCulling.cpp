@@ -164,7 +164,7 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
     };
 
     // convert a position to a unique id
-    auto to_id = [] (const Vector3<int> pos) {
+    auto to_id = [] (const Vector3<int>& pos) {
         return pos.x()*1e8 + pos.y()*1e4 + pos.z();
     };
 

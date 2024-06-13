@@ -35,8 +35,8 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::gener
     // short lambda to actually place the generated water molecules
     std::vector<grid::GridMember<data::record::Water>> placed_water;
     placed_water.reserve(grid->a_members.size());
-    auto add_loc = [&] (Vector3<double> exact_loc) {
-        Water a = Water::create_new_water(exact_loc);
+    auto add_loc = [&] (Vector3<double>&& exact_loc) {
+        Water a = Water::create_new_water(std::move(exact_loc));
         grid::GridMember<Water> gm = grid->add(a, true);
         placed_water.emplace_back(std::move(gm));
     };
@@ -62,38 +62,38 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::gener
         if ((gref.is_empty(bin_min.x(), y, z)) && collision_check(Vector3<unsigned int>(bin_min.x(), y, z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.x() -= r_eff_real;
-            add_loc(exact_loc);
+            add_loc(std::move(exact_loc));
         }
         if ((gref.is_empty(bin_max.x(), y, z)) && collision_check(Vector3<unsigned int>(bin_max.x(), y, z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.x() += r_eff_real;
-            add_loc(exact_loc);
+            add_loc(std::move(exact_loc));
         }
 
         // check collisions for y ± r_eff
         if ((gref.is_empty(x, bin_min.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_min.y(), z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.y() -= r_eff_real;
-            add_loc(exact_loc);
+            add_loc(std::move(exact_loc));
         }
 
         if ((gref.is_empty(x, bin_max.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_max.x(), z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.y() += r_eff_real;
-            add_loc(exact_loc);
+            add_loc(std::move(exact_loc));
         }
 
         // check collisions for z ± r_eff
         if ((gref.is_empty(x, y, bin_min.z())) && collision_check(Vector3<unsigned int>(x, y, bin_min.z()), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.z() -= r_eff_real;
-            add_loc(exact_loc);
+            add_loc(std::move(exact_loc));
         }
 
         if ((gref.is_empty(x, y, bin_max.z())) && collision_check(Vector3<unsigned int>(x, y, bin_max.z()), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.z() += r_eff_real;
-            add_loc(exact_loc);
+            add_loc(std::move(exact_loc));
         }
     }
     return placed_water;

@@ -19,7 +19,7 @@ SaveElement::~SaveElement() = default;
 void SaveElement::run() {
     static int counter = 0;
     static std::unordered_map<std::string, io::XYZWriter> writers;
-    if (auto ext = path.extension(); ext == ".pdb") {
+    if (const auto& ext = path.extension(); ext == ".pdb") {
         owner->_get_rigidbody()->save(path.append(std::to_string(counter++)));
     } else if (ext == ".xyz") {
         auto p = path.path(); 

@@ -61,7 +61,7 @@ void StateManager::set_probe(unsigned int i, std::shared_ptr<signaller::Signalle
             throw std::out_of_range("StateManager::set_probe: index out of range (" + std::to_string(i) + " >= " + std::to_string(probes.size()) + ")");
         }
     #endif
-    probes[i] = probe;
+    probes[i] = std::move(probe);
 }
 
 std::shared_ptr<signaller::Signaller> StateManager::get_probe(unsigned int i) {

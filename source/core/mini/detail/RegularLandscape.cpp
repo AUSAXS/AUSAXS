@@ -40,7 +40,7 @@ Evaluation RegularLandscape::find_min_eval() const {
 
     double min = evals.front().fval;
     auto min_e = evals.front();
-    for (auto e : evals) {
+    for (const auto& e : evals) {
         if (e.fval < min) {
             min = e.fval;
             min_e = e;

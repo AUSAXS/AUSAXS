@@ -23,7 +23,7 @@ void TopologyFile::discover_includes() {
         if (line.find("#include") != std::string::npos) {
             std::string include = line.substr(line.find("\"") + 1);
             include = include.substr(0, include.find("\""));
-            includes.push_back({lineno, include});
+            includes.push_back({lineno, std::move(include)});
         }
         lineno++;
     }

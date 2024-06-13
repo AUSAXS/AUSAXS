@@ -147,9 +147,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
 
     if constexpr (use_weighted_distribution) {
         return std::make_unique<CompositeDistanceHistogram>(
-            std::move(Distribution1D(p_aa)), 
-            std::move(Distribution1D(p_aw)), 
-            std::move(Distribution1D(p_ww)), 
+            std::move(Distribution1D(std::move(p_aa))), 
+            std::move(Distribution1D(std::move(p_aw))), 
+            std::move(Distribution1D(std::move(p_ww))), 
             std::move(p_tot)
         );
     } else {

@@ -21,7 +21,7 @@ using namespace data::record;
 
 Atom::Atom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& resName, int serial) : uid(uid_counter++) {
     // we use our setters so we can validate the input if necessary
-    set_coordinates(v);
+    set_coordinates(std::move(v));
     set_occupancy(occupancy);
     set_element(element);
     set_residue_name(resName);
@@ -38,7 +38,7 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
         set_chainID(chainID);
         set_residue_sequence_number(resSeq);
         set_insertion_code(iCode);
-        set_coordinates(coords);
+        set_coordinates(std::move(coords));
         set_occupancy(occupancy);
         set_temperature_factor(tempFactor);
         set_element(element);
@@ -116,28 +116,28 @@ void Atom::parse_pdb(const std::string& str) {
 
     // set all of the properties
     try {
-        this->recName = recName;
+        this->recName = std::move(recName);
         this->serial = std::stoi(serial);
-        this->name = name;
-        this->altLoc = altLoc;
-        this->resName = resName;
+        this->name = std::move(name);
+        this->altLoc = std::move(altLoc);
+        this->resName = std::move(resName);
         this->chainID = chainID;
         this->resSeq = std::stoi(resSeq);
-        this->iCode = iCode;
+        this->iCode = std::move(iCode);
         set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
         if (occupancy.empty()) {this->occupancy = 1;} else {this->occupancy = std::stod(occupancy);}
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {
             // if the element is not set, we can try to infer it from the name
-            if (auto s = name.substr(0, 1); !std::isdigit(s[0])) [[likely]] {
+            if (auto s = this->name.substr(0, 1); !std::isdigit(s[0])) [[likely]] {
                 set_element(s);
             } else {
-                set_element(name.substr(1, 1)); // sometimes the first character is a number
+                set_element(this->name.substr(1, 1)); // sometimes the first character is a number
             }
         } else {
             set_element(element);
         }
-        this->charge = charge;
+        this->charge = std::move(charge);
     } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
         console::print_warning("Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
         throw e;
@@ -150,7 +150,7 @@ void Atom::parse_pdb(const std::string& str) {
                 effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
                 atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
             } catch (const except::base&) {
-                throw except::invalid_argument("Atom::parse_pdb: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+                throw except::invalid_argument("Atom::parse_pdb: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + this->resName + ", " + this->name + ")");
             }
         #else 
             effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);

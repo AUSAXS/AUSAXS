@@ -36,7 +36,7 @@ void PepsiHydration::modified_expand_volume(grid::GridMember<data::record::Atom>
     atom.set_expanded(true); // mark this location as expanded
 
     grid::detail::GridObj& gref = grid->grid;
-    auto axes = grid->get_axes();
+    const auto& axes = grid->get_axes();
 
     double r = 3/settings::grid::width; // fixed radius of 3Å
 

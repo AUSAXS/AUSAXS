@@ -16,7 +16,7 @@ MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), unsigned in
     set_max_evals(evals);
 }
 
-MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(func) {
+MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
 }
 
@@ -25,7 +25,7 @@ MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), const Param
     add_parameter(param);
 }
 
-MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(func) {
+MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
     add_parameter(param);
 }

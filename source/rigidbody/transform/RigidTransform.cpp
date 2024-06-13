@@ -101,8 +101,8 @@ TransformGroup RigidTransform::get_connected(const constraints::DistanceConstrai
 
     // return the path with the least atoms, since that will be the cheapest to transform
     if (N1 < N2) {
-        return TransformGroup(bodies1, path1, pivot, pivot.get_atom2().coords);
+        return TransformGroup(std::move(bodies1), std::move(path1), pivot, pivot.get_atom2().coords);
     } else {
-        return TransformGroup(bodies2, path2, pivot, pivot.get_atom1().coords);
+        return TransformGroup(std::move(bodies2), std::move(path2), pivot, pivot.get_atom1().coords);
     }
 }

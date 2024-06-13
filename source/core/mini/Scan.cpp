@@ -17,7 +17,7 @@ Scan::Scan(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(f
     set_max_evals(evals);
 }
 
-Scan::Scan(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(func) {
+Scan::Scan(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
 }
 
@@ -26,7 +26,7 @@ Scan::Scan(double(&func)(std::vector<double>), const Parameter& param, unsigned 
     add_parameter(param);
 }
 
-Scan::Scan(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(func) {
+Scan::Scan(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
     add_parameter(param);
 }
