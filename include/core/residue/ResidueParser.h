@@ -43,7 +43,7 @@ namespace residue::detail {
 
         std::string name, altname;
         constants::atom_t atom;
-        unsigned int valency;
+        unsigned int valency = 0;
         unsigned int hydrogen_bonds = 0;
     };
 
