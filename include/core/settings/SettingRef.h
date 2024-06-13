@@ -30,7 +30,7 @@ namespace settings {
                 virtual std::string get() const = 0;
 
                 std::vector<std::string> names; // The name of the setting.
-                inline static std::unordered_map<std::string, std::shared_ptr<ISettingRef>> stored_settings;
+                static std::unordered_map<std::string, std::shared_ptr<ISettingRef>>& get_stored_settings();
             };
 
             /**

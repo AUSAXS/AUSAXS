@@ -11,10 +11,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 
 void settings::detail::parse_option(const std::string& name, const std::vector<std::string>& value) {
-    if (!settings::io::detail::ISettingRef::stored_settings.contains(name)) {
+    if (!settings::io::detail::ISettingRef::get_stored_settings().contains(name)) {
         throw std::runtime_error("Unknown option: \"" + name + "\".");
     }
-    settings::io::detail::ISettingRef::stored_settings[name]->set(value);
+    settings::io::detail::ISettingRef::get_stored_settings()[name]->set(value);
 }
 
 bool settings::detail::is_comment_char(char c) {
@@ -52,7 +52,7 @@ void settings::write(const ::io::File& path) {
     if (!output.is_open()) {throw std::ios_base::failure("Settings::read: Could not open setup file.");}
 
     output << "### Auto-generated settings file ###\n";
-    for (const auto& section : settings::io::SettingSection::sections) {
+    for (const auto& section : settings::io::SettingSection::get_sections()) {
         output << "\n[" << section.name << "]\n";
         for (const auto& setting : section.settings) {
             output << setting->names.front() << " " << setting->get() << std::endl;

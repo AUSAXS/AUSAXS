@@ -9,6 +9,11 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <algorithm>
 
+std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRef>>& settings::io::detail::ISettingRef::get_stored_settings() {
+    static std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRef>> stored_settings;
+    return stored_settings;
+}
+
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const {return settingref;}
 template<> std::string settings::io::detail::SettingRef<double>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<int>::get() const {return std::to_string(settingref);}

@@ -19,7 +19,7 @@ namespace settings {
 
             std::string name;
             std::vector<std::shared_ptr<detail::ISettingRef>> settings;
-            static std::vector<SettingSection> sections;
+            static std::vector<SettingSection> get_sections();
         };
 
         template<typename T> std::unique_ptr<detail::SettingRef<T>> create(T& setting, const std::string& name) {
