@@ -9,6 +9,13 @@
 namespace data::record {
     class Atom : public Record {
         public:
+			Atom();
+			Atom(const Atom& rhs) = default;
+			Atom(Atom&& rhs) noexcept = default;
+			Atom &operator=(const Atom& rhs) = default;
+			Atom &operator=(Atom&& rhs) noexcept = default;
+			~Atom() override = default;
+
             /** 
              * @brief Construct a new Atom object.
              * 
@@ -27,16 +34,6 @@ namespace data::record {
              */
             Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, 
                 const std::string& iCode, Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge);
-
-            /**
-             * @brief Default constructor.
-             */
-            Atom();
-
-            /**
-             * @brief Destructor.
-             */
-            virtual ~Atom() override {}
 
             RecordType get_type() const override;
 

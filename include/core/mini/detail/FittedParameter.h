@@ -8,9 +8,6 @@
 
 namespace mini {
     struct FittedParameter {
-        /**
-         * @brief Default constructor.
-         */
         FittedParameter() noexcept = default;
 
         /**

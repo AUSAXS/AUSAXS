@@ -14,7 +14,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GeneralSettings.h>
 
 #include <fstream>
-#include <algorithm>
 
 using namespace io::detail;
 using namespace data::record;

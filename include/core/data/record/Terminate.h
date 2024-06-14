@@ -8,14 +8,12 @@ namespace data::record {
 	 */
 	class Terminate : public Record {
 		public: 
-			int serial, resSeq;
-			std::string resName, iCode;
-			char chainID;
-
-			/**
-			 * @brief Default constructor. 
-			 */
-			Terminate();
+			Terminate() = default;
+			Terminate(const Terminate& rhs) = default;
+			Terminate(Terminate&& rhs) noexcept = default;
+			Terminate &operator=(const Terminate& rhs) = default;
+			Terminate &operator=(Terminate&& rhs) noexcept = default;
+			~Terminate() override = default;
 
 			/**
 			 * @brief Constructor.
@@ -27,11 +25,6 @@ namespace data::record {
 			 * @param iCode iCode. 
 			 */
 			Terminate(int serial, const std::string& resName, char chainID, int resSeq, const std::string& iCode);
-
-			/**
-			 * @brief Destructor.
-			 */
-			~Terminate() override;
 
 			/**
 			 * @brief Get the RecordType of this object.
@@ -62,5 +55,9 @@ namespace data::record {
 			void set_serial(int serial);
 
 			bool operator==(const Terminate& rhs) const;
+
+			int serial, resSeq;
+			std::string resName, iCode;
+			char chainID;
 	};
 }

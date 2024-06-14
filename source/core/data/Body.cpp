@@ -20,9 +20,10 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data;
 
-Body::Body() : uid(uid_counter++), file() {
-    initialize();
-}
+Body::Body() : uid(uid_counter++), file() {initialize();}
+Body::Body(const Body& body) : uid(body.uid), file(body.file) {initialize();}
+Body::Body(Body&& body) noexcept : uid(body.uid), file(std::move(body.file)) {initialize();}
+Body::~Body() = default;
 
 Body::Body(const io::File& path) : uid(uid_counter++), file(path) {
     initialize();
@@ -33,16 +34,6 @@ Body::Body(const std::vector<record::Atom>& protein_atoms, const std::vector<rec
 }
 
 Body::Body(const std::vector<record::Atom>& protein_atoms) : Body(protein_atoms, std::vector<record::Water>()) {}
-
-Body::Body(const Body& body) : uid(body.uid), file(body.file) {
-    initialize();
-}
-
-Body::Body(Body&& body) : uid(body.uid), file(std::move(body.file)) {
-    initialize();
-}
-
-Body::~Body() = default;
 
 void Body::initialize() {
     signal = std::make_shared<signaller::UnboundSignaller>();
@@ -140,7 +131,7 @@ double Body::get_absolute_mass() const {
     return M;
 }
 
-Body& Body::operator=(Body&& rhs) {
+Body& Body::operator=(Body&& rhs) noexcept {
     file = std::move(rhs.file); 
     uid = rhs.uid;
     changed_internal_state();

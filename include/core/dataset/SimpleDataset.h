@@ -1,9 +1,9 @@
 #pragma once
 
+#include <hist/HistFwd.h>
+
 #include <dataset/PointSet.h>
 #include <dataset/Dataset.h>
-
-namespace hist {class Histogram;}
 
 /**
  * @brief A simple dataset is a collection of points of the form x | y | yerr. 
@@ -17,26 +17,14 @@ class SimpleDataset : public Dataset {
         SimpleDataset(unsigned int N, unsigned int M);
 
     public: 
-        /**
-         * @brief Construct a new empty dataset.
-         */
-        SimpleDataset() noexcept;
+        SimpleDataset();
+        SimpleDataset(const SimpleDataset& d);
+        SimpleDataset(SimpleDataset&& d);
+        SimpleDataset& operator=(const SimpleDataset& other);
+        SimpleDataset& operator=(SimpleDataset&& other) noexcept;
+        ~SimpleDataset() override;
 
         SimpleDataset(const hist::Histogram& h);
-
-        /**
-         * @brief Copy constructor.
-         */
-        SimpleDataset(const SimpleDataset& d);
-
-        /**
-         * @brief Move constructor.
-         */
-        SimpleDataset(SimpleDataset&& d);
-
-        /**
-         * @brief Convert a Dataset to a SimpleDataset.
-         */
         SimpleDataset(const Dataset& d);
 
         /**
@@ -69,11 +57,6 @@ class SimpleDataset : public Dataset {
          * @brief Construct a new dataset from an input file.
          */
         SimpleDataset(const io::ExistingFile& path);
-
-        /**
-         * @brief Destructor.
-         */
-        ~SimpleDataset() override = default;
 
         // Get the third column.
         [[nodiscard]] const ConstColumn<double> yerr() const {return col(2);}
@@ -239,8 +222,6 @@ class SimpleDataset : public Dataset {
         void remove_consecutive_duplicates();
 
         using Dataset::operator=;
-        SimpleDataset& operator=(const SimpleDataset& other);
-        SimpleDataset& operator=(SimpleDataset&& other) noexcept;
 
     private:
         void initialize(const std::vector<double>& x, const std::vector<double>& y);

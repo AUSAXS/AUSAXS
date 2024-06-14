@@ -6,6 +6,7 @@
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
+#include <dataset/SimpleDataset.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/Molecule.h>

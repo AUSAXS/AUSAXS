@@ -1,9 +1,10 @@
 #pragma once
 
-#include <math/MathConcepts.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 #include <math/Vector.h>
+#include <math/MathConcepts.h>
+#include <math/MathTypeTraits.h>
 
 #include <initializer_list>
 #include <stdexcept>
@@ -12,20 +13,11 @@
 template<numeric T> 
 class Vector3 {
 	public:
-		/**
-		 * @brief Default constructor.
-		 */
 		Vector3() : Vector3(0, 0, 0) {}
 
-		/**
-		 * @brief List constructor.
-		 */
 		Vector3(const std::initializer_list<T>& l) {
 			*this = l;
 		}
-
-		Vector3(const Vector3<T>& v) : Vector3(v.copy()) {}
-		Vector3(Vector3<T>&& v) : data(std::move(v.data)) {}
 
 		Vector3(const Vector<T>& v) : Vector3(v.copy()) {}
 		Vector3(Vector<T>&& v) {
@@ -61,19 +53,9 @@ class Vector3 {
 		 */
 		Vector3(T x, T y, T z) : data({x, y, z}) {}
 
-		/**
-		 * @brief Destructor.
-		 */
-		~Vector3() = default;
-
 		T operator[](unsigned int i) const;
 
 		T& operator[] (unsigned int i);
-
-		/**
-		 * @brief Set this vector equal to another. 
-		 */
-		Vector3<T>& operator=(const Vector3<T>& v);
 
 		/**
 		 * @brief Set this vector equal to an initializer list. 
@@ -174,22 +156,15 @@ class Vector3 {
          */
         std::string to_string(std::string message = "") const;
 
-		// Conversion to std::vector
         operator std::vector<T>();
-
-        // Conversion to Vector
         operator Vector<T>();
-
-        // Conversion to Matrix
         operator Matrix<T>();
 
 		T& x();
-		const T& x() const;
-
 		T& y();
-		const T& y() const;
-
 		T& z();
+		const T& x() const;
+		const T& y() const;
 		const T& z() const;
 
 		size_t size() const;
@@ -290,3 +265,5 @@ template<numeric T>
 std::ostream& operator<<(std::ostream& os, const Vector3<T>& v) {os << v.to_string(); return os;}
 
 #include <math/Vector3.tpp>
+
+static_assert(supports_nothrow_move_v<Vector3<double>>, "Vector3 should support nothrow move semantics.");

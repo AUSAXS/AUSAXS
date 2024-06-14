@@ -8,13 +8,18 @@ namespace io::detail {
      */
     class Reader {
         public:
+            Reader() = default;
+            Reader(const Reader&) = default;
+            Reader(Reader&&) noexcept = default;
+            Reader &operator=(const Reader&) = default;
+            Reader &operator=(Reader&&) noexcept = default;
             virtual ~Reader() = default;
+
+            bool operator==(const Reader& rhs) const = default;
 
             /**
              * @brief Read the data stored in a file. 
              */
             virtual void read(const io::File&) = 0;
-
-            bool operator==(const Reader& rhs) const = default;
     };
 }

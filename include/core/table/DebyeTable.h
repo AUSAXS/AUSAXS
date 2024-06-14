@@ -4,7 +4,7 @@
 
 namespace table {
     struct DebyeTable {
-        // note: constexpr destructor cannot be defaulted due to GCC bug 93413
+        //! note: constexpr destructor cannot be defaulted due to GCC bug 93413
         constexpr virtual ~DebyeTable() noexcept {}
 
         [[nodiscard]] virtual constants::axes::d_type lookup(unsigned int q_index, unsigned int d_index) const = 0;

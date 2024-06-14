@@ -2,6 +2,7 @@
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <utility/TypeTraits.h>
 
 namespace hist {
     /**
@@ -15,4 +16,5 @@ namespace hist {
             return form_factor::storage::atomic::get_precalculated_form_factor_table();
         }
     };
+    static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFAvg>, "CompositeDistanceHistogramAvg should support nothrow move semantics.");
 }

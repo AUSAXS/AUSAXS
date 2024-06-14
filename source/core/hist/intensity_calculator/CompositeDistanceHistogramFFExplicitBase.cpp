@@ -12,14 +12,24 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/HistogramSettings.h>
 #include <constants/ConstantsMath.h>
 #include <math/ConstexprMath.h>
+#include <dataset/SimpleDataset.h>
 
 using namespace hist;
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::CompositeDistanceHistogramFFExplicitBase() = default;
+template<typename AA, typename AXFormFactorTableType, typename XX>
+CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase() = default;
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::CompositeDistanceHistogramFFExplicitBase(
+template<typename AA, typename AX, typename XX>
+CompositeDistanceHistogramFFExplicitBase<AA, AX, XX>::CompositeDistanceHistogramFFExplicitBase(CompositeDistanceHistogramFFExplicitBase&&) noexcept = default;
+
+template<typename AA, typename AX, typename XX>
+CompositeDistanceHistogramFFExplicitBase<AA, AX, XX>& CompositeDistanceHistogramFFExplicitBase<AA, AX, XX>::operator=(CompositeDistanceHistogramFFExplicitBase&&) noexcept = default;
+
+template<typename AA, typename AXFormFactorTableType, typename XX>
+CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::~CompositeDistanceHistogramFFExplicitBase() = default;
+
+template<typename AA, typename AXFormFactorTableType, typename XX>
+CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase(
     hist::Distribution3D&& p_aa, 
     hist::Distribution3D&& p_ax, 
     hist::Distribution3D&& p_xx, 
@@ -27,10 +37,10 @@ CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTabl
     hist::Distribution2D&& p_wx, 
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot
-) : CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), exv_distance_profiles{.xx=std::move(p_xx), .ax=std::move(p_ax), .wx=std::move(p_wx)} {}
+) : CompositeDistanceHistogramFFAvgBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), exv_distance_profiles{.xx=std::move(p_xx), .ax=std::move(p_ax), .wx=std::move(p_wx)} {}
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::CompositeDistanceHistogramFFExplicitBase(
+template<typename AA, typename AXFormFactorTableType, typename XX>
+CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase(
     hist::Distribution3D&& p_aa, 
     hist::Distribution3D&& p_ax, 
     hist::Distribution3D&& p_xx, 
@@ -38,25 +48,21 @@ CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTabl
     hist::Distribution2D&& p_wx, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot
-) : CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), exv_distance_profiles{.xx=std::move(p_xx), .ax=std::move(p_ax), .wx=std::move(p_wx)} {}
+) : CompositeDistanceHistogramFFAvgBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), exv_distance_profiles{.xx=std::move(p_xx), .ax=std::move(p_ax), .wx=std::move(p_wx)} {}
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::~CompositeDistanceHistogramFFExplicitBase() = default;
-
-
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-const AAFormFactorTableType CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::get_ffaa_table() const {
+template<typename AA, typename AXFormFactorTableType, typename XX>
+const AA CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::get_ffaa_table() const {
     return this->get_ff_table();
 }
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-double CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::exv_factor(double q) const {
+template<typename AA, typename AXFormFactorTableType, typename XX>
+double CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::exv_factor(double q) const {
     constexpr double rm2 = constants::radius::average_atomic_radius*constants::radius::average_atomic_radius;
     return std::pow(this->free_params.cx, 3)*std::exp(-rm2*(std::pow(this->free_params.cx, 2) - 1)*q*q/4);
 }
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::debye_transform() const {
+template<typename AA, typename AXFormFactorTableType, typename XX>
+ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::debye_transform() const {
     const auto& ff_aa_table = get_ffaa_table();
     const auto& ff_ax_table = get_ffax_table();
     const auto& ff_xx_table = get_ffxx_table();
@@ -100,13 +106,13 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
     return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-SimpleDataset CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::debye_transform(const std::vector<double>&) const {
+template<typename AA, typename AXFormFactorTableType, typename XX>
+SimpleDataset CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::debye_transform(const std::vector<double>&) const {
     throw except::not_implemented("CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>& q) const");
 }
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::get_profile_ax() const {
+template<typename AA, typename AXFormFactorTableType, typename XX>
+ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::get_profile_ax() const {
     const auto& ff_ax_table = get_ffax_table();
     auto sinqd_table = this->get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -125,8 +131,8 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
     return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::get_profile_xx() const {
+template<typename AA, typename AXFormFactorTableType, typename XX>
+ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::get_profile_xx() const {
     const auto& ff_xx_table = get_ffxx_table();
     auto sinqd_table = this->get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -145,8 +151,8 @@ ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType
     return ScatteringProfile(std::move(Iq), debye_axis);
 }
 
-template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AAFormFactorTableType, AXFormFactorTableType, XXFormFactorTableType>::get_profile_wx() const {
+template<typename AA, typename AXFormFactorTableType, typename XX>
+ScatteringProfile CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::get_profile_wx() const {
     const auto& ff_ax_table = get_ffax_table();
     auto sinqd_table = this->get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);

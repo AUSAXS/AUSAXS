@@ -23,8 +23,12 @@ namespace data {
 	 */
 	class Molecule {
 		public: 
-			Molecule() noexcept;
+			Molecule();
+			Molecule(const Molecule& other) = delete;
+			Molecule& operator=(const Molecule& other) = delete;
 			Molecule(Molecule&& other);
+			Molecule& operator=(Molecule&& other);
+			virtual ~Molecule();
 
 			/**
 			 * @brief Create a new molecule based on a set of bodies.
@@ -65,8 +69,6 @@ namespace data {
 			 */
 			Molecule(const std::vector<record::Atom>& molecule_atoms, const std::vector<record::Water>& hydration_atoms);
 			Molecule(const std::vector<record::Atom>& molecule_atoms);
-
-			virtual ~Molecule();
 
 			/**
 			 * @brief Get the distances between each atom.
@@ -325,10 +327,6 @@ namespace data {
 			 * @param v the translation vector.
 			 */
 			void translate(const Vector3<double>& v);
-
-			Molecule& operator=(const Molecule& other) = delete;
-
-			bool operator==(const Molecule& other) const;
 
 			bool equals_content(const Molecule& other) const;
 

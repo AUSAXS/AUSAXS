@@ -8,10 +8,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data::record;
 
-Header::Header() noexcept = default;
-
-Header::~Header() = default;
-
 RecordType Header::get_type() const {return RecordType::HEADER;}
 
 void Header::parse_pdb(const std::string& s) {add(s);}

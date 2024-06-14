@@ -9,9 +9,11 @@ namespace signaller {
      */
     class BoundSignaller : public Signaller {
         public: 
-            BoundSignaller(unsigned int id, state::StateManager* const owner);
+			BoundSignaller(const BoundSignaller& rhs) = default;
+			BoundSignaller(BoundSignaller&& rhs) noexcept = default;
+			~BoundSignaller() override = default;
 
-            ~BoundSignaller() override;
+            BoundSignaller(unsigned int id, state::StateManager* const owner);
 
             /**
              * @brief Signal that the external state (i.e. position, rotation) of this object has changed. 

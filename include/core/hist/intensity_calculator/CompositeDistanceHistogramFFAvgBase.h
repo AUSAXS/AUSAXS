@@ -1,10 +1,11 @@
 #pragma once
 
-#include "hist/distribution/WeightedDistribution1D.h"
+#include <hist/distribution/DistributionFwd.h>
+
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/distribution/GenericDistribution1D.h>
-#include <hist/distribution/GenericDistribution2D.h>
-#include <hist/distribution/GenericDistribution3D.h>
+#include <hist/distribution/Distribution1D.h>
+#include <hist/distribution/Distribution2D.h>
+#include <hist/distribution/Distribution3D.h>
 #include <constants/Constants.h>
 
 #include <vector>
@@ -22,6 +23,8 @@ namespace hist {
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
             CompositeDistanceHistogramFFAvgBase();
+            CompositeDistanceHistogramFFAvgBase(CompositeDistanceHistogramFFAvgBase&&) noexcept;
+            CompositeDistanceHistogramFFAvgBase& operator=(CompositeDistanceHistogramFFAvgBase&&) noexcept;
 
             /**
              * @brief Create an unweighted composite distance histogram with form factors.

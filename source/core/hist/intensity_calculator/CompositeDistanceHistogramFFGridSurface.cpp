@@ -10,9 +10,14 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Exceptions.h>
+#include <dataset/SimpleDataset.h>
 
 using namespace hist;
 using namespace form_factor;
+
+CompositeDistanceHistogramFFGridSurface::CompositeDistanceHistogramFFGridSurface(CompositeDistanceHistogramFFGridSurface&&) noexcept = default;
+CompositeDistanceHistogramFFGridSurface& CompositeDistanceHistogramFFGridSurface::operator=(CompositeDistanceHistogramFFGridSurface&&) noexcept = default;
+CompositeDistanceHistogramFFGridSurface::~CompositeDistanceHistogramFFGridSurface() = default;
 
 CompositeDistanceHistogramFFGridSurface::XXContainer CompositeDistanceHistogramFFGridSurface::XXContainer::operator+=(const CompositeDistanceHistogramFFGridSurface::XXContainer& other) {
     std::transform(interior.begin(), interior.end(), other.interior.begin(), interior.begin(), std::plus<>());

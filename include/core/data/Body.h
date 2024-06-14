@@ -1,25 +1,24 @@
 #pragma once
 
-#include <utility/Concepts.h>
 #include <data/detail/AtomCollection.h>
+#include <data/state/DataStateFwd.h>
 #include <data/DataFwd.h>
 #include <io/IOFwd.h>
+#include <grid/GridFwd.h>
 #include <math/MathFwd.h>
 
 #include <vector>
 #include <memory>
 
-namespace grid {class Grid;}
-namespace signaller {class Signaller;}
 namespace data {
 	class Body {
 		public:
-			/**
-			 * @brief Default constructor.
-			 * 
-			 * This is not a very efficient way of constructing a Body.
-			 */
 			Body();
+			Body(const Body& body);
+			Body(Body&& body) noexcept;
+			Body &operator=(const Body& rhs);
+			Body &operator=(Body&& rhs) noexcept;
+			~Body();
 
 			/** 
 			 * @brief Create a new collection of atoms (body) from the input .pdb or .xml file. 
@@ -38,18 +37,6 @@ namespace data {
 			 * @brief Create a new collection of atoms (body) based on two vectors
 			 */
 			Body(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms);
-
-			/**
-			 * @brief Copy constructor. 
-			 */
-			Body(const Body& body);
-
-			/**
-			 * @brief Move constructor. 
-			 */
-			Body(Body&& body);
-
-			~Body();
 
 			/** 
 			 * @brief Writes this body to disk.
@@ -169,16 +156,6 @@ namespace data {
 			 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
 			 */
 			void register_probe(std::shared_ptr<signaller::Signaller> signal);
-
-			/**
-			 * @brief Assign another body to this object. 
-			 */
-			Body& operator=(const Body& rhs);
-
-			/**
-			 * @brief Assign another body to this object. 
-			 */
-			Body& operator=(Body&& rhs);
 
 			/**
 			 * @brief Check if this object is equal to another. 

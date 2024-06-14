@@ -5,11 +5,9 @@
 namespace data::record {
     class Water : public Atom {
         public:
-            using Atom::Atom; // inherit constructors from Atom
-            Water(const Atom&& a) noexcept;
+            using Atom::Atom;
+            Water(Atom&& a) noexcept;
             Water(const Atom& a);
-            Water(const Water& w);
-            ~Water() override;
 
             RecordType get_type() const override;
 
@@ -26,9 +24,7 @@ namespace data::record {
              * @brief Create a new water atom.
              * @param coords the coordinates for the new atom.
              */
-            static Water create_new_water(Vector3<double> coords);
-
-            Water& operator=(const Water& rhs);
+            static Water create_new_water(const Vector3<double>& coords);
 
             bool operator==(const Water& rhs) const;
     };

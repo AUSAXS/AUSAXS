@@ -5,13 +5,12 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <data/record/Water.h>
 #include <constants/Constants.h>
+#include <utility/Concepts.h>
 
 using namespace data::record;
 
-Water::Water(const Atom&& a) noexcept : Atom(std::move(a)) {}
+Water::Water(Atom&& a) noexcept : Atom(std::move(a)) {}
 Water::Water(const Atom& a) : Atom(a) {}
-Water::Water(const Water& w) = default;
-Water::~Water() = default;
 
 RecordType Water::get_type() const {return RecordType::WATER;}
 
@@ -20,14 +19,12 @@ std::string Water::get_recName() const {return "HETATM";}
 bool Water::is_water() const {return true;}
 
 Water Water::create_new_water() {
-    return create_new_water({0, 0, 0});
+    return create_new_water(Vector3<double>{0, 0, 0});
 }
 
-Water Water::create_new_water(Vector3<double> coords) {
-    return Water(-1, "O", "", "HOH", ' ', -1, "", std::move(coords), 1, 0, constants::atom_t::O, "");
+Water Water::create_new_water(const Vector3<double>& coords) {
+    return Water(-1, "O", "", "HOH", ' ', -1, "", coords, 1, 0, constants::atom_t::O, "");
 }
-
-Water& Water::operator=(const Water& rhs) = default;
 
 bool Water::operator==(const Water& rhs) const {
     if (name != rhs.name) {return false;}

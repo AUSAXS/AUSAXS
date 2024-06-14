@@ -9,24 +9,13 @@
  */
 class Dataset : public Matrix<double> {
     public: 
-        /**
-         * @brief Default constructor. 
-         */
         Dataset();
-
-        /**
-         * @brief Copy constructor.
-         */
         Dataset(const Dataset& d);
-
-        /**
-         * @brief Move constructor.
-         */
         Dataset(Dataset&& d);
+        Dataset& operator=(const Dataset& other);
+        Dataset& operator=(Dataset&& other);
+        virtual ~Dataset();
 
-        /**
-         * @brief Matrix constructor.
-         */
         Dataset(Matrix&& m);
 
         /**
@@ -53,11 +42,6 @@ class Dataset : public Matrix<double> {
          * @brief Create a new dataset from a data file.
          */
         Dataset(const io::ExistingFile& path);
-
-        /**
-         * @brief Destructor.
-         */
-        virtual ~Dataset();
 
         /**
          * @brief Get a column based on its name. 
@@ -227,10 +211,6 @@ class Dataset : public Matrix<double> {
         [[nodiscard]] std::string to_string() const;
 
         [[nodiscard]] bool operator==(const Dataset& other) const;
-
-        Dataset& operator=(const Dataset& other);
-
-        Dataset& operator=(Dataset&& other);
 
     //#####################//
     //### Alias methods ###//

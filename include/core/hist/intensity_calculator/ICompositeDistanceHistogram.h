@@ -6,8 +6,10 @@
 namespace hist {
     class ICompositeDistanceHistogram : public hist::DistanceHistogram {
         public:
-            ICompositeDistanceHistogram() = default;
             using hist::DistanceHistogram::DistanceHistogram;
+            ICompositeDistanceHistogram() = default;
+            ICompositeDistanceHistogram(ICompositeDistanceHistogram&&) noexcept = default;
+            ICompositeDistanceHistogram& operator=(ICompositeDistanceHistogram&&) noexcept = default;
             virtual ~ICompositeDistanceHistogram() = default;
 
             virtual const Distribution1D& get_aa_counts() const = 0;

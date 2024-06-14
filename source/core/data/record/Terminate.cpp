@@ -18,8 +18,6 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace data::record;
 using std::left, std::right, std::setw;
 
-Terminate::Terminate() = default;
-
 Terminate::Terminate(int serial, const std::string& resName, char chainID, int resSeq, const std::string& iCode) {
     this->serial = serial;
     this->resName = resName;
@@ -27,8 +25,6 @@ Terminate::Terminate(int serial, const std::string& resName, char chainID, int r
     this->resSeq = resSeq;
     this->iCode = iCode;
 }
-
-Terminate::~Terminate() = default;
 
 RecordType Terminate::get_type() const {return RecordType::TERMINATE;}
 

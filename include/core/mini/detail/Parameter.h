@@ -2,6 +2,7 @@
 
 #include <mini/MiniFwd.h>
 #include <utility/Limit.h>
+#include <utility/TypeTraits.h>
 
 #include <string>
 #include <optional>
@@ -11,7 +12,7 @@ namespace mini {
      * @brief A representation of a parameter.
      */
     struct Parameter {
-        Parameter() noexcept;
+        Parameter();
 
         /**
          * @brief Create a Parameter with a guess value and bounds.
@@ -43,8 +44,6 @@ namespace mini {
          * @brief Create a Parameter from a FittedParameter.
          */
         Parameter(const mini::FittedParameter& p) noexcept;
-
-        ~Parameter();
 
         /**
          * @brief Check if this parameter is bounded.
@@ -91,4 +90,5 @@ namespace mini {
         std::optional<double> guess; // The guess value.
         std::optional<Limit> bounds; // The bounds of this parameter. 
     };
+    static_assert(supports_nothrow_move_v<Parameter>, "Parameter should support nothrow move semantics.");
 }

@@ -9,9 +9,12 @@
 namespace data::record {
 	class Header : Record {
 		public: 
-			Header() noexcept;
-
-			~Header() override;
+			Header() = default;
+			Header(const Header& rhs) = default;
+			Header(Header&& rhs) noexcept = default;
+			Header &operator=(const Header& rhs) = default;
+			Header &operator=(Header&& rhs) noexcept = default;
+			~Header() override = default;
 
 			/**
 			 * @brief Get the RecordType of this object.

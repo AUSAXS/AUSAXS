@@ -6,6 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <plots/PlotDistance.h>
 #include <plots/PlotDataset.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/distribution/Distribution1D.h>
 #include <dataset/SimpleDataset.h>
 
 using namespace plots;

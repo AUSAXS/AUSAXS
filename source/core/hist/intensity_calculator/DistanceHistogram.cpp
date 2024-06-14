@@ -3,9 +3,9 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include "constants/Axes.h"
 #include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/distribution/Distribution1D.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <table/VectorDebyeTable.h>
@@ -16,8 +16,8 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace hist;
 
 DistanceHistogram::DistanceHistogram() = default;
-
-DistanceHistogram::DistanceHistogram(DistanceHistogram&& other) = default;
+DistanceHistogram::DistanceHistogram(DistanceHistogram&& other) noexcept = default;
+DistanceHistogram& DistanceHistogram::operator=(DistanceHistogram&& other) noexcept = default;
 
 DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram(std::move(p_tot.get_data()), Axis(0, p_tot.size()*constants::axes::d_axis.width(), p_tot.size())) {
     initialize();

@@ -15,11 +15,12 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <random>
 
-SimpleDataset::SimpleDataset() noexcept : SimpleDataset(0) {}
-
+SimpleDataset::SimpleDataset() : SimpleDataset(0) {}
 SimpleDataset::SimpleDataset(const SimpleDataset& d) = default;
-
 SimpleDataset::SimpleDataset(SimpleDataset&& d) = default;
+SimpleDataset& SimpleDataset::operator=(const SimpleDataset& other) = default;
+SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = default;
+SimpleDataset::~SimpleDataset() = default;
 
 SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
     if (d.M <= 1) {
@@ -41,7 +42,7 @@ SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<dou
 
 SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel) : SimpleDataset(x.size()) {
     initialize(x, y);
-    set_col_names({std::move(xlabel), std::move(ylabel), std::string(ylabel)+"err"});
+    set_col_names({std::move(xlabel), ylabel, std::move(ylabel)+"err"});
 }
 
 SimpleDataset::SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
@@ -348,6 +349,3 @@ bool SimpleDataset::operator==(const SimpleDataset& other) const {
     if (this->data != other.data) {return false;}
     return true;
 }
-
-SimpleDataset& SimpleDataset::operator=(const SimpleDataset& other) = default;
-SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = default;

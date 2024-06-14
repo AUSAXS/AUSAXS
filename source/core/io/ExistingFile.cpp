@@ -8,8 +8,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 io::ExistingFile::ExistingFile() = default;
 
-io::ExistingFile::~ExistingFile() = default;
-
 io::ExistingFile::ExistingFile(const File& file) : File(file) {
     validate();
 }

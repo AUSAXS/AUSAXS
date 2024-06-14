@@ -7,7 +7,6 @@ namespace signaller {
     class Signaller {
         public: 
             Signaller() = default;
-
             virtual ~Signaller() = default;
 
             /**

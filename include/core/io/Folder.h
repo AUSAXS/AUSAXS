@@ -1,16 +1,15 @@
 #pragma once
 
+#include <utility/TypeTraits.h>
+
 #include <string>
 #include <vector>
 
 namespace io {
     class Folder {
         public:
-            Folder();
-
+            Folder() = default;
             Folder(const std::string& path);
-
-            virtual ~Folder();
 
             [[nodiscard]] std::string path() const;
 
@@ -36,6 +35,7 @@ namespace io {
         private:
             std::string dir;
     };
+    static_assert(supports_nothrow_move_v<Folder>, "Folder should support nothrow move semantics.");
 }
 
 std::string operator+(const char* str, const io::Folder& folder);

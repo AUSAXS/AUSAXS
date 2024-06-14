@@ -1,9 +1,10 @@
 #pragma once
 
-#include "hist/distribution/WeightedDistribution1D.h"
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/distribution/DistributionFwd.h>
+#include <hist/distribution/Distribution1D.h>
 #include <container/Container1D.h>
+#include <utility/TypeTraits.h>
 
 namespace hist {
     /**
@@ -12,6 +13,11 @@ namespace hist {
      */
     class CompositeDistanceHistogram : public ICompositeDistanceHistogram {
         public: 
+            CompositeDistanceHistogram(const CompositeDistanceHistogram&);
+            CompositeDistanceHistogram(CompositeDistanceHistogram&&) noexcept;
+            CompositeDistanceHistogram& operator=(CompositeDistanceHistogram&&) noexcept;
+            virtual ~CompositeDistanceHistogram() override;
+
             /**
              * @brief Create an unweighted composite distance histogram.
              * 
@@ -33,8 +39,6 @@ namespace hist {
                 hist::Distribution1D&& p_ww, 
                 hist::WeightedDistribution1D&& p_tot
             );
-
-            virtual ~CompositeDistanceHistogram() override;
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
@@ -77,4 +81,5 @@ namespace hist {
         private:
             mutable struct {Distribution1D aa, aw, ww;} distance_profiles;
     };
+    static_assert(supports_nothrow_move_v<CompositeDistanceHistogram>, "CompositeDistanceHistogram should support nothrow move semantics.");
 }

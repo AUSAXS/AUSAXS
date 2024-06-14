@@ -68,7 +68,7 @@ namespace shell {
                     result += buffer.data();
                 }
                 int exit_code = pclose(pipe);
-                return {result, exit_code};
+                return {std::move(result), exit_code};
             }
             
         private: 

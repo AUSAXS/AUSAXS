@@ -1,8 +1,9 @@
 #pragma once
 
-#include <math/MathConcepts.h>
 #include <math/slices/Slice.h>
 #include <math/Vector.h>
+#include <math/MathConcepts.h>
+#include <math/MathTypeTraits.h>
 
 #include <initializer_list>
 
@@ -14,15 +15,12 @@
 template<numeric Q>
 class Matrix {
     public: 
-        /**
-         * @brief Move constructor. 
-         */
-        Matrix(Matrix<Q>&& A) noexcept;
-
-        /**
-         * @brief Copy constructor.
-         */
-        Matrix(const Matrix<Q>& A);
+        Matrix() = default;
+        Matrix(const Matrix<Q>& A) = default;
+        Matrix(Matrix<Q>&& A) = default;
+        Matrix& operator=(const Matrix<Q>& A) = default;
+        Matrix& operator=(Matrix<Q>&& A) = default;
+        virtual ~Matrix() = default;
 
         /**
          * @brief Construct a Matrix based on a nested initializer list. The lists must be of the same size. 
@@ -45,16 +43,6 @@ class Matrix {
         Matrix(unsigned int n, unsigned int m);
 
         /**
-         * @brief Default constructor.
-         */
-        Matrix();
-
-        /**
-         * @brief Destructor.
-         */
-        virtual ~Matrix();
-
-        /**
          * @brief Add a new row at the end of the matrix.
          */
         void push_back(const std::vector<double>& r);
@@ -64,8 +52,6 @@ class Matrix {
          */
         static Matrix<Q> identity(unsigned int dim);
 
-        Matrix<Q>& operator=(const Matrix<Q>& A);
-        Matrix<Q>& operator=(Matrix<Q>&& A);
         Matrix<Q> operator-() const;
         Matrix<Q>& operator*=(double a);
         Matrix<Q>& operator/=(double a);
@@ -86,22 +72,11 @@ class Matrix {
          */
         void resize(int n, int m);
 
-        // Read-only indexer
         const ConstRow<Q> operator[](unsigned int i) const;
-
-        // Read-write indexer
         MutableRow<Q> operator[](unsigned int i);
-
-        // Read-only column indexer
         const ConstColumn<Q> col(unsigned int j) const;
-
-        // Read-write column indexer
         MutableColumn<Q> col(unsigned int j);
-
-        // Read-only row indexer
         const ConstRow<Q> row(unsigned int i) const;
-
-        // Read-write row indexer
         MutableRow<Q> row(unsigned int i);
 
         // Approximate equality operator
@@ -219,3 +194,4 @@ Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
 }
 
 #include <math/Matrix.tpp>
+static_assert(supports_nothrow_move_v<Matrix<double>>, "Matrix should support nothrow move semantics.");

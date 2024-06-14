@@ -10,8 +10,6 @@ using namespace signaller;
 
 BoundSignaller::BoundSignaller(unsigned int id, state::StateManager* const owner) : owner(owner), id(id) {}
 
-BoundSignaller::~BoundSignaller() = default;
-
 void BoundSignaller::external_change() const {
     owner->externally_modified(id);
 }

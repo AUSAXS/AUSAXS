@@ -19,6 +19,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data::record;
 
+Atom::Atom() : uid(uid_counter++) {}
+
 Atom::Atom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& resName, int serial) : uid(uid_counter++) {
     // we use our setters so we can validate the input if necessary
     set_coordinates(std::move(v));
@@ -63,8 +65,6 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
         }
         uid = uid_counter++;
 }
-
-Atom::Atom() : uid(uid_counter++) {}
 
 void Atom::parse_pdb(const std::string& str) {
     auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return

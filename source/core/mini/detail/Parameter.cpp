@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace mini;
 
-Parameter::Parameter() noexcept = default;
+Parameter::Parameter() = default;
 
 Parameter::Parameter(const std::string& name, const Limit& bounds) noexcept: name(name), bounds(bounds) {}
 
@@ -19,8 +19,6 @@ Parameter::Parameter(const std::string& name, double guess, const Limit& bounds)
 Parameter::Parameter(const mini::FittedParameter& p) noexcept {
     *this = p;
 }
-
-Parameter::~Parameter() = default;
 
 bool Parameter::has_bounds() const noexcept {
     return bounds.has_value();

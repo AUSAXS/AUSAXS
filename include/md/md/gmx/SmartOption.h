@@ -3,8 +3,6 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <functional>
-#include <stdexcept>
 
 #include <iostream>
 namespace md {
