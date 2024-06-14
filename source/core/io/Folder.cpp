@@ -10,10 +10,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace io;
 
-Folder::Folder() = default;
-
-Folder::~Folder() = default;
-
 Folder::Folder(const std::string& path) {
     *this = path;
 }
@@ -65,6 +61,6 @@ std::string operator+(const char* str, const io::Folder& folder) {
 
 std::string operator+(const std::string& str, const io::Folder& folder) {
     auto s = str.back() == '/' ? str.substr(0, str.size() - 1) : str;
-    if (folder.path().front() == '/') {return std::string(s) + folder.path();}
+    if (folder.path().front() == '/') {return std::move(s) + folder.path();}
     else {return std::string(std::move(s)) + "/" + folder.path();}
 }

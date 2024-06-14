@@ -1,6 +1,7 @@
 #pragma once
 
 #include <io/Folder.h>
+#include <utility/TypeTraits.h>
 
 #include <string_view>
 #include <iosfwd>
@@ -9,16 +10,10 @@ namespace io {
     class File {
         public:
             File() = default;
-
             File(const io::Folder& folder, std::string_view name, std::string_view extension);
-
             File(std::string_view path);
-
             File(const char* path);
-
             File(const std::string& path);
-
-            virtual ~File() = default;
 
             [[nodiscard]] std::string path() const;
 
@@ -91,6 +86,7 @@ namespace io {
             std::string name;
             std::string ext;
     };
+    static_assert(supports_nothrow_move_v<File>, "File should support nothrow move semantics.");
 }
 
 std::string operator+(const std::string& str, const io::File& file);

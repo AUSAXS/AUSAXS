@@ -26,8 +26,8 @@ namespace data {
 			Molecule();
 			Molecule(const Molecule& other) = delete;
 			Molecule& operator=(const Molecule& other) = delete;
-			Molecule(Molecule&& other) noexcept;
-			Molecule& operator=(Molecule&& other) noexcept;
+			Molecule(Molecule&& other);
+			Molecule& operator=(Molecule&& other);
 			virtual ~Molecule();
 
 			/**

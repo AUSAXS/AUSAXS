@@ -38,7 +38,7 @@ using namespace data;
 using namespace data::record;
 
 Molecule::Molecule() : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(), updated_charge(false), centered(false), grid(nullptr), phm(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins)) {}
-Molecule::Molecule(Molecule&& other) noexcept {*this = std::move(other);}
+Molecule::Molecule(Molecule&& other) {*this = std::move(other);}
 Molecule::~Molecule() = default;
 
 Molecule::Molecule(std::vector<Body>&& bodies) : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(std::move(bodies)) {
@@ -76,7 +76,7 @@ Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
     initialize();
 }
 
-Molecule& Molecule::operator=(Molecule&& other) noexcept {
+Molecule& Molecule::operator=(Molecule&& other) {
     if (this == &other) {return *this;}
     hydration = std::move(other.hydration);
     bodies = std::move(other.bodies);
