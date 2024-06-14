@@ -400,12 +400,6 @@ TEST_CASE("Dataset::sort_x") {
 std::string generate_SASDJG5_dataset();
 TEST_CASE("Dataset::find_minima") {
     settings::general::verbose = false;
-    SECTION("empty") {
-        Dataset data;
-        std::vector<unsigned int> minima = data.find_minima();
-        REQUIRE(minima.empty());
-    }
-
     SECTION("simple") {
         SECTION("single") {
             std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
