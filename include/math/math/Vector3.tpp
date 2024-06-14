@@ -24,12 +24,6 @@ T& Vector3<T>::operator[] (unsigned int i) {
 }
 
 template<numeric T>
-Vector3<T>& Vector3<T>::operator=(const Vector3<T>& v) {
-    data = v.data;
-    return *this;
-}
-
-template<numeric T>
 Vector3<T>& Vector3<T>::operator=(std::initializer_list<T> l) {
     if (l.size() != 3) [[unlikely]] {
         throw std::invalid_argument("Vector3::operator=: Initializer list must have size 3");

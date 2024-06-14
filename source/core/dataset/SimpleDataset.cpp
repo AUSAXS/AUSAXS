@@ -20,6 +20,7 @@ SimpleDataset::SimpleDataset(const SimpleDataset& d) = default;
 SimpleDataset::SimpleDataset(SimpleDataset&& d) = default;
 SimpleDataset& SimpleDataset::operator=(const SimpleDataset& other) = default;
 SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = default;
+SimpleDataset::~SimpleDataset() = default;
 
 SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
     if (d.M <= 1) {

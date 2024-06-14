@@ -19,10 +19,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <sstream>
 
 Dataset::Dataset() = default;
-
 Dataset::Dataset(const Dataset& d) = default;
-
 Dataset::Dataset(Dataset&& d) = default;
+Dataset& Dataset::operator=(const Dataset& other) = default;
+Dataset& Dataset::operator=(Dataset&& other) = default;
 
 Dataset::Dataset(Matrix&& m) : Matrix(std::move(m)) {
     set_default_names();
@@ -316,5 +316,3 @@ unsigned int Dataset::size_cols() const noexcept {
 }
 
 bool Dataset::operator==(const Dataset& other) const = default;
-Dataset& Dataset::operator=(const Dataset& other) = default;
-Dataset& Dataset::operator=(Dataset&& other) = default;

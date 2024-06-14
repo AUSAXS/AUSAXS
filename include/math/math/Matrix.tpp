@@ -9,12 +9,6 @@
 #include <iomanip>
 
 template<numeric Q>
-Matrix<Q>::Matrix(Matrix<Q>&& A) noexcept : N(A.N), M(A.M), data(std::move(A.data)) {}
-
-template<numeric Q>
-Matrix<Q>::Matrix(const Matrix<Q>& A) : N(A.N), M(A.M), data(A.data) {}
-
-template<numeric Q>
 Matrix<Q>::Matrix(std::initializer_list<std::initializer_list<Q>> l) : N(l.size()), M(l.begin()->size()) {
     for (const auto& row : l) {
         #ifdef DEBUG
@@ -45,12 +39,6 @@ template<numeric Q>
 Matrix<Q>::Matrix(unsigned int n, unsigned int m) : N(n), M(m), data(N*M) {} 
 
 template<numeric Q>
-Matrix<Q>::Matrix() : N(0), M(0), data(0) {}
-
-template<numeric Q>
-Matrix<Q>::~Matrix() = default;
-
-template<numeric Q>
 void Matrix<Q>::push_back(const std::vector<double>& r) {
     compatibility_check_M(r.size());
     extend(1);
@@ -66,20 +54,6 @@ Matrix<Q>& Matrix<Q>::operator*=(double a) {
 template<numeric Q>
 Matrix<Q>& Matrix<Q>::operator/=(double a) {
     std::transform(begin(), end(), begin(), [a] (const Q& x) {return x/a;});
-    return *this;
-}
-
-template<numeric Q>
-Matrix<Q>& Matrix<Q>::operator=(const Matrix<Q>& A) {
-    N = A.N; M = A.M;
-    data = A.data;
-    return *this;
-}
-
-template<numeric Q>
-Matrix<Q>& Matrix<Q>::operator=(Matrix<Q>&& A) {
-    N = A.N; M = A.M;
-    data = std::move(A.data);
     return *this;
 }
 

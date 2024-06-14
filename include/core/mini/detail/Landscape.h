@@ -8,9 +8,6 @@
 namespace mini {
     class Landscape {
         public: 
-            /**
-             * @brief Default constructor.
-             */
             Landscape() noexcept = default;
 
             Landscape(unsigned int size) : evals(size) {}

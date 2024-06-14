@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math/MathConcepts.h>
+#include <math/MathTypeTraits.h>
 
 #include <initializer_list>
 #include <vector>
@@ -11,15 +12,7 @@
 template<numeric T>
 class Vector {
     public:
-        /**
-         * @brief Move constructor.
-         */
-        Vector(Vector<T>&& v) noexcept : N(v.N), data(std::move(v.data)) {}
-
-        /**
-         * @brief Copy constructor.
-         */
-        Vector(const Vector<T>& v) : N(v.size()), data(v.data) {}
+        Vector() = default;
 
         /**
          * @brief Construct a vector based on an initializer list.
@@ -41,57 +34,31 @@ class Vector {
          */
         Vector(unsigned int n) : N(n), data(n) {}
 
-        /**
-         * @brief Default constructor.
-         */
-        Vector() : N(0), data(0) {}
-
-        /**
-         * @brief Destructor. 
-         */
-        virtual ~Vector() = default;
-
-        // Assignment operator, w = v
-        Vector<T>& operator=(const Vector<T>& v);
-
-        // Assignment operator, w = v
-        Vector<T>& operator=(Vector<T>&& v);
-
-        // Initializer list assignment operator
         Vector<T>& operator=(std::initializer_list<T> l);
 
-        // Plus-assignment, w += v
         template<numeric Q>
         Vector<T>& operator+=(const Vector<Q>& v);
 
-        // Minus-assignment, w -= v
         template<numeric Q>
         Vector<T>& operator-=(const Vector<Q>& v);
 
-        // Scalar division-assignment, w /= a
         Vector<T>& operator/=(double a);
-
-        // Scalar multiplication-assignment, w /= a
         Vector<T>& operator*=(double a);
 
-        // Vector multiplication-assignment, w *= v
         template<numeric Q>
         Vector<T>& operator*=(const Vector<Q>& v);
 
         // Conversion to std::vector. This is a O(N) operation.
         operator std::vector<T>();
 
-        // Read-only indexing, w[i]
         const T& operator[](unsigned int i) const;
-        
-        // Read/write indexing, w[i] = ...
         T& operator[](unsigned int i);
 
         // Approximate equality, w ~ v
         template<numeric Q>
         bool operator==(const Vector<Q>& v) const;
 
-        // Approximate inequality operator, w != v
+        // Approximate inequality operator, w !~ v
         template<numeric Q>
         bool operator!=(const Vector<Q>& v) const;
 
@@ -133,16 +100,9 @@ class Vector {
          */
         std::string to_string() const;
 
-        // Read-only iterator
 		const typename std::vector<T>::const_iterator begin() const;
-
-        // Read-only iterator
         const typename std::vector<T>::const_iterator end() const;
-
-        // Read-write iterator
         typename std::vector<T>::iterator begin();
-
-        // Read-write iterator
         typename std::vector<T>::iterator end();
 
         // Add data to the end of this Vector. 
@@ -204,3 +164,4 @@ template<numeric T>
 std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {os << v.to_string(); return os;}
 
 #include <math/Vector.tpp>
+static_assert(supports_nothrow_move_v<Vector<double>>, "Vector should support nothrow move semantics.");

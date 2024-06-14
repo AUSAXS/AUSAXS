@@ -5,7 +5,7 @@
 
 namespace mini {
     struct Evaluation {
-        Evaluation() = default;
+        Evaluation() noexcept = default;
 
         Evaluation(std::vector<double> vals, double fval) : vals(std::move(vals)), fval(fval) {}
 

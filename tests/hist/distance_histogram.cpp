@@ -1,8 +1,7 @@
-#include "plots/PlotDataset.h"
-#include "plots/PlotOptions.h"
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <dataset/SimpleDataset.h>
 #include <data/Molecule.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
