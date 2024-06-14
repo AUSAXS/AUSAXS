@@ -136,8 +136,8 @@ SimpleDataset ExcludedVolumeFitter::get_dataset() const {
 }
 
 void ExcludedVolumeFitter::set_guess(mini::Parameter guess_hydration, mini::Parameter guess_exv) {
-    this->guess = guess_hydration;
-    this->guess_exv = guess_exv;
+    this->guess = std::move(guess_hydration);
+    this->guess_exv = std::move(guess_exv);
 }
 
 observer_ptr<hist::ICompositeDistanceHistogramExv> ExcludedVolumeFitter::cast_exv() const {
