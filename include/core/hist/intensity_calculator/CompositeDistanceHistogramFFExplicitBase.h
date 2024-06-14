@@ -1,9 +1,8 @@
 #pragma once
 
+#include <hist/distribution/DistributionFwd.h>
+
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <hist/distribution/GenericDistribution1D.h>
-#include <hist/distribution/GenericDistribution2D.h>
-#include <hist/distribution/GenericDistribution3D.h>
 
 namespace hist {
     /**
@@ -16,6 +15,9 @@ namespace hist {
     class CompositeDistanceHistogramFFExplicitBase : public CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType> {
         public: 
             CompositeDistanceHistogramFFExplicitBase();
+            CompositeDistanceHistogramFFExplicitBase(CompositeDistanceHistogramFFExplicitBase&&) noexcept;
+            CompositeDistanceHistogramFFExplicitBase& operator=(CompositeDistanceHistogramFFExplicitBase&&) noexcept;
+            virtual ~CompositeDistanceHistogramFFExplicitBase() override;
 
             /**
              * @brief Create a new unweighted composite distance histogram with form factors.
@@ -58,8 +60,6 @@ namespace hist {
                 hist::Distribution1D&& p_ww, 
                 hist::WeightedDistribution1D&& p_tot
             );
-
-            virtual ~CompositeDistanceHistogramFFExplicitBase() override;
 
             // @copydoc DistanceHistogram::debye_transform() const
             ScatteringProfile debye_transform() const override;

@@ -6,6 +6,7 @@
 #include <data/record/Terminate.h>
 #include <data/record/Footer.h>
 #include <data/record/Header.h>
+#include <utility/TypeTraits.h>
 
 #include <string>
 #include <vector>
@@ -17,20 +18,7 @@ namespace data::detail {
      */
     class AtomCollection {
         public:
-            /**
-             * @brief Default constructor.
-             */
             AtomCollection();
-
-            /**
-             * @brief Copy constructor.
-             */
-            AtomCollection(const AtomCollection& AtomCollection);
-
-            /**
-             * @brief Move constructor.
-             */
-            AtomCollection(AtomCollection&& AtomCollection) noexcept;
 
             /**
              * @brief Construct a new AtomCollection based on two vectors of atoms. 
@@ -57,11 +45,6 @@ namespace data::detail {
              * @param file Path to the input AtomCollection. 
              */
             AtomCollection(const io::File& file);
-
-            /**
-             * @brief Destructor.
-             */
-            ~AtomCollection();
 
             /**
              * @brief Update the contents of this AtomCollection.
@@ -136,12 +119,6 @@ namespace data::detail {
              */
             void refresh();
 
-            AtomCollection copy() const;
-
-            AtomCollection& operator=(const AtomCollection& rhs);
-
-            AtomCollection& operator=(AtomCollection&& rhs);
-
             bool operator==(const AtomCollection& rhs) const;
 
             bool equals_content(const AtomCollection& rhs) const;
@@ -153,9 +130,6 @@ namespace data::detail {
             std::vector<record::Water> hydration_atoms;
 
         private:
-            std::unique_ptr<io::detail::Reader> reader;
-            std::unique_ptr<io::detail::Writer> writer;
-
             /**
              * @brief Construct a Reader appropriate for the AtomCollection format deduced from the input data AtomCollection. 
              * @param path Path to the input data AtomCollection. 
@@ -167,4 +141,5 @@ namespace data::detail {
              */
             std::unique_ptr<io::detail::Writer> construct_writer(const io::File& path);
     };
+    static_assert(supports_nothrow_move_v<AtomCollection>, "AtomCollection must support nothrow move construction and assignment.");
 }

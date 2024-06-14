@@ -3,6 +3,7 @@
 #include <container/Container1D.h>
 #include <constants/Axes.h>
 #include <hist/distribution/detail/WeightedEntry.h>
+#include <utility/TypeTraits.h>
 
 namespace hist {
     class Distribution1D;
@@ -78,6 +79,7 @@ namespace hist {
 
             WeightedDistribution1D& operator+=(const WeightedDistribution1D& other);
             WeightedDistribution1D& operator-=(const WeightedDistribution1D& other);
-            friend WeightedDistribution1D operator*(double factor, WeightedDistribution1D dist);
     };
+    WeightedDistribution1D operator*(double factor, WeightedDistribution1D dist);
+    static_assert(supports_nothrow_move_v<WeightedDistribution1D>, "WeightedDistribution1D should support nothrow move semantics.");
 }

@@ -9,9 +9,12 @@ namespace signaller {
      */
     class UnboundSignaller : public Signaller {
         public: 
-            UnboundSignaller();
-
-            ~UnboundSignaller() override;
+			UnboundSignaller() = default;
+			UnboundSignaller(const UnboundSignaller& rhs) = default;
+			UnboundSignaller(UnboundSignaller&& rhs) noexcept = default;
+			UnboundSignaller &operator=(const UnboundSignaller& rhs) = default;
+			UnboundSignaller &operator=(UnboundSignaller&& rhs) noexcept = default;
+			~UnboundSignaller() override = default;
 
             /**
              * @brief Does nothing.

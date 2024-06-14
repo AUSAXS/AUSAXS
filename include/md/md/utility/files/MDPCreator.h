@@ -19,7 +19,7 @@ namespace md {
                 Option(std::string&& name) : name(std::move(name)) {}
                 Option(const char* name) : name(name) {}
 
-                OptionVal operator=(std::string value) const {return OptionVal(std::move(name), value);}
+                OptionVal operator=(std::string value) const {return OptionVal(name, std::move(value));}
                 OptionVal operator=(double value) const {return OptionVal(name, value);}
                 OptionVal operator=(int value) const {return OptionVal(name, value);}
                 OptionVal operator=(unsigned int value) const {return OptionVal(name, value);}

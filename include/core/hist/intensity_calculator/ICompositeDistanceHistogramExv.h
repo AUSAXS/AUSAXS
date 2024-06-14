@@ -8,8 +8,10 @@
 namespace hist {
     class ICompositeDistanceHistogramExv : public ICompositeDistanceHistogram {
         public:
-            ICompositeDistanceHistogramExv() = default;
             using ICompositeDistanceHistogram::ICompositeDistanceHistogram;
+            ICompositeDistanceHistogramExv() = default;
+            ICompositeDistanceHistogramExv(ICompositeDistanceHistogramExv&&) noexcept = default;
+            ICompositeDistanceHistogramExv& operator=(ICompositeDistanceHistogramExv&&) noexcept = default;
             virtual ~ICompositeDistanceHistogramExv() = default;
 
             /**

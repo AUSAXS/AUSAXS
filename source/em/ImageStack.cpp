@@ -51,7 +51,7 @@ std::unique_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceH
 
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-    return fit_helper(fitter, param);
+    return fit_helper(std::move(fitter), param);
 }
 
 std::unique_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file) {
@@ -63,12 +63,12 @@ std::unique_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file) {
 std::unique_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file, mini::Parameter& param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
-    return fit_helper(fitter, param);
+    return fit_helper(std::move(fitter), param);
 }
 
 std::unique_ptr<fitter::EMFit> ImageStack::fit_helper(std::shared_ptr<fitter::LinearFitter> fitter) {
     auto p = mini::Parameter();
-    return fit_helper(fitter, p);
+    return fit_helper(std::move(fitter), p);
 }
 
 std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitter, mini::Parameter& param) {
@@ -508,7 +508,7 @@ mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_p
     set_minimum_bounds(points.min);
     auto func = prepare_function(std::move(fitter));
 
-    mini::Golden minimizer(func, mini::Parameter{"cutoff", points.limits()});
+    mini::Golden minimizer(std::move(func), mini::Parameter{"cutoff", points.limits()});
     return minimizer.landscape(points.bins);
 }
 

@@ -1,10 +1,8 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicitBase.h>
-#include <hist/distribution/GenericDistribution1D.h>
-#include <hist/distribution/GenericDistribution2D.h>
-#include <hist/distribution/GenericDistribution3D.h>
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <utility/TypeTraits.h>
 
 namespace hist {
     /**
@@ -29,4 +27,5 @@ namespace hist {
                 return form_factor::storage::exv::get_precalculated_form_factor_table();
             }
     };
+    static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFExplicit>, "CompositeDistanceHistogramFFExplicit should be nothrow move constructible");
 }

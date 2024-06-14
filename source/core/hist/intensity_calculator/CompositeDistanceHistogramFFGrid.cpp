@@ -9,10 +9,15 @@ For more information, please refer to the LICENSE file in the project root.
 #include <table/ArrayDebyeTable.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
+#include <dataset/SimpleDataset.h>
 #include <utility/Exceptions.h>
 
 using namespace hist;
 using namespace form_factor;
+
+CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(CompositeDistanceHistogramFFGrid&&) noexcept = default;
+CompositeDistanceHistogramFFGrid& CompositeDistanceHistogramFFGrid::operator=(CompositeDistanceHistogramFFGrid&&) noexcept = default;
+CompositeDistanceHistogramFFGrid::~CompositeDistanceHistogramFFGrid() = default;
 
 CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
     hist::Distribution3D&& p_aa, 

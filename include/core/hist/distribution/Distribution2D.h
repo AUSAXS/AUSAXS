@@ -3,6 +3,7 @@
 #include <container/Container2D.h>
 #include <hist/distribution/WeightedDistribution2D.h>
 #include <constants/Axes.h>
+#include <utility/TypeTraits.h>
 
 namespace hist {
     /**
@@ -47,4 +48,5 @@ namespace hist {
              */
             void add(unsigned int x, int32_t i, constants::axes::d_type value);
     };
+    static_assert(supports_nothrow_move_v<Distribution2D>, "Distribution2D should support nothrow move semantics.");
 }

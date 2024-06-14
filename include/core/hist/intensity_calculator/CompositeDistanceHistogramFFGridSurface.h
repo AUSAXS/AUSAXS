@@ -3,6 +3,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <table/VectorDebyeTable.h>
+#include <utility/TypeTraits.h>
 
 namespace hist {
     /**
@@ -32,6 +33,10 @@ namespace hist {
                 WeightedDistribution1D surface;
                 WXContainer operator+=(const WXContainer& other);
             };
+
+            CompositeDistanceHistogramFFGridSurface(CompositeDistanceHistogramFFGridSurface&&) noexcept;
+            CompositeDistanceHistogramFFGridSurface& operator=(CompositeDistanceHistogramFFGridSurface&&) noexcept;
+            ~CompositeDistanceHistogramFFGridSurface() override;
 
             /**
              * @brief Create a weighted grid-based composite distance histogram with form factors.
@@ -115,4 +120,5 @@ namespace hist {
 
             void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
     };
+    static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGridSurface>, "CompositeDistanceHistogramFFGridSurface should support nothrow move semantics.");
 }

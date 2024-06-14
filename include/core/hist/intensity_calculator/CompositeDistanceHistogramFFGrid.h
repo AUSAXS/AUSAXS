@@ -3,6 +3,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <table/VectorDebyeTable.h>
+#include <utility/TypeTraits.h>
 
 namespace hist {
     /**
@@ -13,6 +14,10 @@ namespace hist {
      */
     class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFAvg {
         public:
+            CompositeDistanceHistogramFFGrid(CompositeDistanceHistogramFFGrid&&) noexcept;
+            CompositeDistanceHistogramFFGrid& operator=(CompositeDistanceHistogramFFGrid&&) noexcept;
+            ~CompositeDistanceHistogramFFGrid() override;
+
             /**
              * @brief Create a weighted grid-based composite distance histogram with form factors.
              * 
@@ -85,4 +90,5 @@ namespace hist {
 
             void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
     };
+    static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGrid>, "CompositeDistanceHistogramFFGrid should support nothrow move semantics.");
 }

@@ -3,6 +3,7 @@
 #include <container/Container2D.h>
 #include <constants/Axes.h>
 #include <hist/distribution/detail/WeightedEntry.h>
+#include <utility/TypeTraits.h>
 
 namespace hist {
     class Distribution2D;
@@ -41,4 +42,5 @@ namespace hist {
              */
             std::vector<double> get_weighted_axis() const;
     };
+    static_assert(supports_nothrow_move_v<WeightedDistribution2D>, "WeightedDistribution2D should support nothrow move semantics.");
 }

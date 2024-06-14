@@ -7,10 +7,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace signaller;
 
-UnboundSignaller::UnboundSignaller() = default;
-
-UnboundSignaller::~UnboundSignaller() = default;
-
 void UnboundSignaller::external_change() const {}
 
 void UnboundSignaller::internal_change() const {}

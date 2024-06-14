@@ -144,7 +144,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
 
 void RigidBody::apply_calibration(std::shared_ptr<fitter::Fit> calibration) {
     if (settings::general::verbose) {std::cout << "\tApplying calibration to rigid body." << std::endl;}
-    this->calibration = calibration;
+    this->calibration = std::move(calibration);
 }
 
 void RigidBody::prepare_fitter(const std::string& measurement_path) {

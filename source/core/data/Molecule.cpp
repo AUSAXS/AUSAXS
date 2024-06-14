@@ -37,11 +37,9 @@ using namespace hist;
 using namespace data;
 using namespace data::record;
 
-Molecule::Molecule() noexcept : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(), updated_charge(false), centered(false), grid(nullptr), phm(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins)) {}
-
-Molecule::Molecule(Molecule&& other) : hydration(std::move(other.hydration)), bodies(std::move(other.bodies)), updated_charge(other.updated_charge), centered(other.centered), grid(std::move(other.grid)) {
-    initialize(); // reinitialize since some of the members contains pointers to the old object
-}
+Molecule::Molecule() : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(), updated_charge(false), centered(false), grid(nullptr), phm(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins)) {}
+Molecule::Molecule(Molecule&& other) noexcept {*this = std::move(other);}
+Molecule::~Molecule() = default;
 
 Molecule::Molecule(std::vector<Body>&& bodies) : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(std::move(bodies)) {
     initialize();
@@ -78,7 +76,16 @@ Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
     initialize();
 }
 
-Molecule::~Molecule() = default;
+Molecule& Molecule::operator=(Molecule&& other) noexcept {
+    if (this == &other) {return *this;}
+    hydration = std::move(other.hydration);
+    bodies = std::move(other.bodies);
+    updated_charge = other.updated_charge;
+    centered = other.centered;
+    grid = std::move(other.grid);
+    initialize(); // reinitialize since some of the members contains pointers to the old object
+    return *this;
+}
 
 void Molecule::initialize() {
     set_histogram_manager(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins));
@@ -471,8 +478,6 @@ const Body& Molecule::get_body(unsigned int index) const {return bodies[index];}
 std::vector<Body>& Molecule::get_bodies() {return bodies;}
 
 const std::vector<Body>& Molecule::get_bodies() const {return bodies;}
-
-bool Molecule::operator==(const Molecule& other) const = default;
 
 bool Molecule::equals_content(const Molecule& other) const {
     if (size_body() != other.size_body()) {

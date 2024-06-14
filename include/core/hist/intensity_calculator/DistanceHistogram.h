@@ -1,15 +1,14 @@
 #pragma once
 
-#include "dataset/SimpleDataset.h"
-#include <utility/Axis.h>
-#include <hist/distribution/Distribution1D.h>
-#include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/Histogram.h>
 #include <hist/HistFwd.h>
+#include <hist/distribution/DistributionFwd.h>
 #include <table/DebyeTable.h>
 #include <dataset/DatasetFwd.h>
 #include <constants/Constants.h>
 #include <utility/observer_ptr.h>
+#include <utility/TypeTraits.h>
+#include <utility/Axis.h>
 
 #include <vector>
 #include <memory>
@@ -21,15 +20,9 @@ namespace hist {
      */
     class DistanceHistogram : protected Histogram {
         public: 
-            /**
-             * @brief Default constructor.
-             */
             DistanceHistogram();
-
-            /**
-             * @brief Move constructor.
-             */
-            DistanceHistogram(DistanceHistogram&& other);
+            DistanceHistogram(DistanceHistogram&& other) noexcept;
+            DistanceHistogram& operator=(DistanceHistogram&& other) noexcept;
 
             /**
              * @brief Create an unweighted distance histogram.
@@ -106,4 +99,5 @@ namespace hist {
             void initialize();
             void initialize(std::vector<double>&& d_axis);
     };
+    static_assert(supports_nothrow_move_v<DistanceHistogram>, "DistanceHistogram should support nothrow move semantics.");
 }

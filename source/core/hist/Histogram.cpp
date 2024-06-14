@@ -12,14 +12,9 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace hist;
 
 Histogram::Histogram(const Vector<double>& p) noexcept : p(p) {generate_axis();}
-
 Histogram::Histogram(const Vector<double>& p, const Axis& axis) : p(p), axis(axis) {}
-
 Histogram::Histogram(std::vector<double>&& p_tot, const Axis& axis) : p(std::move(p_tot)), axis(axis) {}
-
 Histogram::Histogram(const Axis& axis) noexcept : p(axis.bins), axis(axis) {}
-
-Histogram::~Histogram() = default;
 
 Histogram& Histogram::operator+=(const Histogram& rhs) {p += rhs.p; return *this;}
 Histogram hist::operator+(const Histogram& lhs, const Histogram& rhs) {

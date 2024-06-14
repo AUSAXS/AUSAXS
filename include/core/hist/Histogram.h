@@ -1,34 +1,33 @@
 #pragma once
 
 #include <math/Vector.h>
+#include <dataset/DatasetFwd.h>
 #include <utility/Axis.h>
+#include <utility/TypeTraits.h>
 
-class SimpleDataset;
 namespace hist {
     /**
      * @brief A representation of a histogram. 
      */
     class Histogram {
         public:
-            /**
-             * @brief Default constructor.
-             */
-            Histogram() noexcept = default;
+            Histogram() = default;
+            Histogram(const Histogram& rhs) = default;
+            Histogram(Histogram&& rhs) noexcept = default;
+            Histogram& operator=(const Histogram& rhs) = default;
+            Histogram& operator=(Histogram&& rhs) noexcept = default;
+            virtual ~Histogram() = default;
 
             /**
-             * @brief Constructor. 
-             * 
-             * Construct a new histogram based on a list of bin values. 
-             * The axis will be initialized to [0, p.size()].
+             * @brief Construct a new histogram based on a list of bin values. 
+             *        The axis will be initialized to [0, p.size()].
              * 
              * @param p The bin values. 
              */
             Histogram(const Vector<double>& p) noexcept;
 
             /**
-             * @brief Constructor.
-             * 
-             * Construct a new histogram based on a list of bin values and the axis it spans. 
+             * @brief Construct a new histogram based on a list of bin values and the axis it spans. 
              * 
              * @param p The bin values. 
              * @param axis The axis they span. 
@@ -36,9 +35,7 @@ namespace hist {
             Histogram(const Vector<double>& p, const Axis& axis);
 
             /**
-             * @brief Constructor.
-             * 
-             * Construct a new histogram based on a list of bin values and the axis it spans. 
+             * @brief Construct a new histogram based on a list of bin values and the axis it spans. 
              * 
              * @param p The bin values. 
              * @param axis The axis they span. 
@@ -46,15 +43,11 @@ namespace hist {
             Histogram(std::vector<double>&& p_tot, const Axis& axis);
 
             /**
-             * @brief Constructor.
-             * 
-             * Construct a new empty histogram. 
+             * @brief Construct a new empty histogram. 
              * 
              * @param axis The axis range. 
              */
             Histogram(const Axis& axis) noexcept;
-
-            virtual ~Histogram();
 
             /**
              * @brief Reduce the view axis to show only the non-zero area. 
@@ -138,4 +131,6 @@ namespace hist {
     Histogram operator*(const Histogram& lhs, double rhs);
     Histogram operator-(const Histogram& lhs, const Histogram& rhs);
     Histogram operator+(const Histogram& lhs, const Histogram& rhs);
+
+    static_assert(supports_nothrow_move_v<Histogram>, "Histogram should be noexcept move constructible.");
 }

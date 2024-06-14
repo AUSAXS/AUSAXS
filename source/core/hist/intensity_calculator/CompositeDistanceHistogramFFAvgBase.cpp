@@ -5,6 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
 #include <hist/Histogram.h>
+#include <dataset/SimpleDataset.h>
 #include <table/ArrayDebyeTable.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
@@ -14,6 +15,12 @@ using namespace hist;
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase() = default;
+
+template<typename FormFactorTableType>
+CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(CompositeDistanceHistogramFFAvgBase&&) noexcept = default;
+
+template<typename FormFactorTableType>
+CompositeDistanceHistogramFFAvgBase<FormFactorTableType>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::operator=(CompositeDistanceHistogramFFAvgBase&&) noexcept = default;
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(

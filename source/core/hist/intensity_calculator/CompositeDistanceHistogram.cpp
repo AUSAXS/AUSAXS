@@ -11,6 +11,10 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace hist;
 
+CompositeDistanceHistogram::CompositeDistanceHistogram(CompositeDistanceHistogram&&) noexcept = default;
+CompositeDistanceHistogram& CompositeDistanceHistogram::operator=(CompositeDistanceHistogram&&) noexcept = default;
+CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
+
 CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aa, 
     hist::Distribution1D&& p_aw, 
@@ -24,8 +28,6 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_ww, 
     hist::Distribution1D&& p_tot
 ) : ICompositeDistanceHistogram(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)} {}
-
-CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 
 const Distribution1D& CompositeDistanceHistogram::get_aa_counts() const {
     return distance_profiles.aa;

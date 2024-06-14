@@ -15,11 +15,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <random>
 
-SimpleDataset::SimpleDataset() noexcept : SimpleDataset(0) {}
-
+SimpleDataset::SimpleDataset() : SimpleDataset(0) {}
 SimpleDataset::SimpleDataset(const SimpleDataset& d) = default;
-
 SimpleDataset::SimpleDataset(SimpleDataset&& d) = default;
+SimpleDataset& SimpleDataset::operator=(const SimpleDataset& other) = default;
+SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = default;
 
 SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
     if (d.M <= 1) {
@@ -348,6 +348,3 @@ bool SimpleDataset::operator==(const SimpleDataset& other) const {
     if (this->data != other.data) {return false;}
     return true;
 }
-
-SimpleDataset& SimpleDataset::operator=(const SimpleDataset& other) = default;
-SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = default;

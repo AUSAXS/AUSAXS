@@ -20,35 +20,27 @@ using namespace data::detail;
 
 AtomCollection::AtomCollection() = default;
 
-AtomCollection::AtomCollection(const AtomCollection& AtomCollection) : header(AtomCollection.header), footer(AtomCollection.footer), terminate(AtomCollection.terminate), 
-    protein_atoms(AtomCollection.protein_atoms), hydration_atoms(AtomCollection.hydration_atoms) {}
-
-AtomCollection::AtomCollection(AtomCollection&& AtomCollection) noexcept : header(AtomCollection.header), footer(AtomCollection.footer), terminate(AtomCollection.terminate), 
-    protein_atoms(std::move(AtomCollection.protein_atoms)), hydration_atoms(std::move(AtomCollection.hydration_atoms)) {}
-
 AtomCollection::AtomCollection(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
 AtomCollection::AtomCollection(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms, const record::Header& header, const record::Footer& footer, const record::Terminate& terminate) 
     : header(header), footer(footer), terminate(terminate), protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
 AtomCollection::AtomCollection(const io::File& file) {
-    reader = construct_reader(file);
     read(file);
 }
-
-AtomCollection::~AtomCollection() = default;
 
 void AtomCollection::update(std::vector<record::Atom>& patoms, std::vector<record::Water>& hatoms) {
     protein_atoms = patoms;
     hydration_atoms = hatoms;
 }
 
-void AtomCollection::read(const io::File& path) {reader->read(path);}
+void AtomCollection::read(const io::File& path) {
+    construct_reader(path)->read(path);
+}
 
 void AtomCollection::write(const io::File& path) {
     refresh();
-    writer = construct_writer(path);
-    writer->write(path);
+    construct_writer(path)->write(path);
 }
 
 const std::vector<data::record::Atom>& AtomCollection::get_protein_atoms() const {return protein_atoms;}
@@ -85,21 +77,6 @@ void AtomCollection::add(const record::RecordType& type, const std::string& s) {
         throw except::invalid_argument("AtomCollection::add: Type is not \"HEADER\" or \"FOOTER\"!");
     }
 }
-
-AtomCollection AtomCollection::copy() const {
-    return AtomCollection(*this);
-}
-
-AtomCollection& AtomCollection::operator=(const AtomCollection& rhs) {
-    protein_atoms = rhs.protein_atoms;
-    hydration_atoms = rhs.hydration_atoms;
-    header = rhs.header;
-    footer = rhs.footer;
-    terminate = rhs.terminate;
-    return *this;
-}
-
-AtomCollection& AtomCollection::operator=(AtomCollection&& rhs) = default;
 
 void AtomCollection::refresh() {
     if (protein_atoms.empty()) {return;}

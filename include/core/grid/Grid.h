@@ -4,6 +4,7 @@
 #include <grid/detail/GridInternalFwd.h>
 #include <grid/detail/GridExcludedVolume.h>
 #include <utility/Axis3D.h>
+#include <utility/TypeTraits.h>
 #include <data/DataFwd.h>
 #include <io/IOFwd.h>
 #include <math/Vector3.h>
@@ -345,4 +346,5 @@ namespace grid {
 
 			void setup();
 	};
+	static_assert(supports_nothrow_move_v<Grid>, "Grid should be nothrow move constructible");
 }

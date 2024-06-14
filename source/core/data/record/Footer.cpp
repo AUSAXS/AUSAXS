@@ -8,10 +8,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data::record;
 
-Footer::Footer() noexcept = default;
-
-Footer::~Footer() = default;
-
 RecordType Footer::get_type() const {return RecordType::FOOTER;}
 
 void Footer::parse_pdb(const std::string& s) {add(s);}

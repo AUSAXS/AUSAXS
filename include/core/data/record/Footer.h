@@ -9,9 +9,12 @@
 namespace data::record {
 	class Footer : Record {
 		public: 
-			Footer() noexcept;
-
-			~Footer() override;
+			Footer() = default;
+			Footer(const Footer& rhs) = default;
+			Footer(Footer&& rhs) noexcept = default;
+			Footer &operator=(const Footer& rhs) = default;
+			Footer &operator=(Footer&& rhs) noexcept = default;
+			~Footer() override = default;
 
 			/**
 			 * @brief Get the RecordType of this object.

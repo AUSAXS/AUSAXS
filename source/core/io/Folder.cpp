@@ -29,7 +29,7 @@ void Folder::operator=(const std::string& path) {
 
 Folder& Folder::operator+(const std::string& str) noexcept {
     auto s = str.back() == '/' ? str.substr(0, str.size() - 1) : str;
-    dir += s.front() == '/' ? std::move(s) : "/" + s;
+    dir += s.front() == '/' ? std::move(s) : "/" + std::move(s);
     return *this;
 }
 
