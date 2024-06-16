@@ -5,8 +5,9 @@ cmake_minimum_required(VERSION 3.15)
 project(AUSAXS VERSION 1.0)
 option(GUI "Enable GUI executables" ON)
 option(DLIB "Download and use the dlib minimizers" ON)
-option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" FALSE)
+option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" OFF)
 option(CONSTEXPR_TABLES "Generate lookup tables at compile-time" OFF)
+option(TEST_COVERAGE "Compile with coverage support" OFF)
 set(ARCH "native" CACHE STRING "Target architecture. Default: native")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -55,6 +56,10 @@ elseif (UNIX)
 		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3>"
 		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},native>>:-march=native>"
 	)
+	if (TEST_COVERAGE)
+		add_compile_options("$<$<CONFIG:DEBUG>:--coverage>")
+		link_libraries(gcov )
+	endif()
 endif()
 
 ############################################
