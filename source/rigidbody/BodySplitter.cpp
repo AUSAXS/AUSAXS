@@ -36,26 +36,35 @@ Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
     int index_body = 0; // current index in the bodies vector
 
     // the two iterators marks the indices in the atoms vector where we want to split next time
-    std::vector<Atom>::const_iterator begin = atoms.begin(); // start at the beginning
-    std::vector<Atom>::const_iterator end; // no defined end yet
+    auto begin = atoms.begin();
     for (unsigned int i = 0; i < atoms.size(); i++) {
         int resSeq = std::max(atoms[i].resSeq, 0); // in some files resSeq starts negative
 
-        // we can now in constant time look in our split vector to see if we should split at this atom
         if (split_at[resSeq]) {
-            end = atoms.begin() + i;        // define the end index
-            std::vector<Atom> a(begin, end);// create a new vector of atoms based on the start and end iterators
-            bodies[index_body++] = Body(a); // create a body from this vector
-            begin = end;                    // change the start index for the next split
-            split_at[resSeq] = false;       // mark it as false so we won't split again on the next atom
+            std::vector<Atom> a(begin, begin+i);
+            bodies[index_body++] = Body(a);
+            split_at[resSeq] = false; // mark it as false so we won't split again on the next atom
         }
     }
+    bodies[index_body] = Body(std::vector<Atom>(begin, atoms.end()));
+    return Molecule(bodies);
+}
 
-    // add the final body
-    begin = end;
-    end = atoms.end();
-    std::vector<Atom> a(begin, end);
-    bodies[index_body] = Body(a);
+data::Molecule BodySplitter::split(const io::File& input) {
+    Body body(input);
+    std::vector<Atom>& atoms = body.get_atoms();
 
+    std::vector<Body> bodies;
+    auto begin = atoms.begin();
+    char current_id = atoms[0].chainID;
+    for (unsigned int i = 0; i < atoms.size(); i++) {
+        if (atoms[i].chainID != current_id) {
+            std::vector<Atom> a(begin, atoms.begin() + i);
+            bodies.push_back(Body(a));
+            begin = atoms.begin() + i;
+            current_id = atoms[i].chainID;
+        }
+    }
+    bodies.push_back(Body(std::vector<Atom>(begin, atoms.end())));
     return Molecule(bodies);
 }

@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::sequencer;
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names, const io::File& saxs_path) : owner(owner) {
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names, const std::string& saxs_path) : owner(owner) {
     if (auto loc = paths[0].find("%"); loc != std::string::npos) {
         rigidbody = std::make_unique<RigidBody>(data::Molecule(load_wildcarded(paths[0])));
     } else {
@@ -38,7 +38,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
     }
 }
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& splits, const std::vector<std::string>& body_names, const io::File& saxs_path) 
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& splits, const std::vector<std::string>& body_names, const std::string& saxs_path) 
     : owner(owner) 
 {
     if (auto loc = path.find("%"); loc != std::string::npos) {
@@ -59,11 +59,30 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
 
     if (settings::general::verbose) {
-        std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from \"" << path.size() << "\"." << std::endl;
+        std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from \"" << path << "\"." << std::endl;
     }
 }
 
-std::pair<io::File, bool> LoadElement::lookup_file(const std::string& path) {
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names, const std::string& saxs_path) : owner(owner) {
+    rigidbody = std::make_unique<RigidBody>(rigidbody::BodySplitter::split(lookup_file(path).first));
+
+    if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
+    for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
+        owner->_get_body_names().emplace(body_names.empty() ? "b" + std::to_string(i) : body_names[i], i);
+    }
+    owner->_set_active_body(rigidbody.get());
+
+    if (!saxs_path.empty()) {
+        auto path = lookup_file(saxs_path);
+        owner->_set_saxs_path(path.first);
+    }
+
+    if (settings::general::verbose) {
+        std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from \"" << path << "\"." << std::endl;
+    }
+}
+
+std::pair<std::string, bool> LoadElement::lookup_file(const std::string& path) {
     io::File file(path);
     if (file.exists()) {return {file, true};}
 

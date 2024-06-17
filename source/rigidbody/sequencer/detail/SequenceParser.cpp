@@ -240,21 +240,29 @@ template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     enum class Args {paths, splits, names, saxs};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::paths, {"path", "paths", "load", "anonymous"}},
+        {Args::paths, {"path", "paths", "load", "pdb", "anonymous"}},
         {Args::splits, {"splits", "split"}},
         {Args::names, {"names", "name"}},
         {Args::saxs, {"saxs_path", "saxs"}}
     };
-    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"load\". Expected at least one argument.");}
+    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Invalid number of arguments. Expected at least one.");}
 
     auto paths = check_arg<std::vector<std::string>>(valid_args[Args::paths], args);
-    auto splits = check_arg<std::vector<int>>(valid_args[Args::splits], args);
     auto names = check_arg<std::vector<std::string>>(valid_args[Args::names], args);
     auto saxs_path = check_arg<std::string>(valid_args[Args::saxs], args);
+    if (!paths.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Missing required argument \"paths\".");}
 
-    if (!paths.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"paths\".");}
+    {   // check the special case of splitting by chainID
+        auto split_test = check_arg<std::string>(valid_args[Args::splits], args);
+        if (split_test.found && split_test.value == "chain") {
+            if (paths.value.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Chain splitting can only be used with a single path.");}
+            return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], names.value, saxs_path.value);
+        }
+    }
+
+    auto splits = check_arg<std::vector<int>>(valid_args[Args::splits], args);
     if (splits.found) {
-        if (paths.value.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Splits can only be used with a single path.");}
+        if (paths.value.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Splits can only be used with a single path.");}
         return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], splits.value, names.value, saxs_path.value);
     }
     return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value, names.value, saxs_path.value);

@@ -8,10 +8,13 @@
 namespace rigidbody {
     struct BodySplitter {
         /**
-         * @brief Constructor. 
-         * 
-         * @param input The path to the input data file. 
+         * @brief Load the structural data from a file and split it into multiple bodies at the designated indices.
          */
         static data::Molecule split(const io::File& input, std::vector<int> splits);
+
+        /**
+         * @brief Load the structural data from a file and split it into multiple bodies based on the chainID. 
+         */
+        static data::Molecule split(const io::File& input);
     };
 }
