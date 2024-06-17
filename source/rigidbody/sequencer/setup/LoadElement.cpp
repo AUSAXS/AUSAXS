@@ -28,8 +28,9 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
     }
     owner->_set_active_body(rigidbody.get());
 
-    if (!saxs_path.empty() && saxs_path.exists()) {
-        owner->_set_saxs_path(saxs_path);
+    if (!saxs_path.empty()) {
+        auto path = lookup_file(saxs_path);
+        owner->_set_saxs_path(path.first);
     }
 
     if (settings::general::verbose) {
@@ -52,8 +53,9 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
     owner->_set_active_body(rigidbody.get());
 
-    if (!saxs_path.empty() && saxs_path.exists()) {
-        owner->_set_saxs_path(saxs_path);
+    if (!saxs_path.empty()) {
+        auto path = lookup_file(saxs_path);
+        owner->_set_saxs_path(path.first);
     }
 
     if (settings::general::verbose) {

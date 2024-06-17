@@ -139,10 +139,14 @@ namespace rigidbody::sequencer {
              */
             void _set_config_folder(const io::Folder& folder);
 
+            /**
+             * @brief Set the location of the SAXS measurement data.
+             */
             void _set_saxs_path(const io::ExistingFile& saxs);
 
         protected:
             io::ExistingFile saxs_path;
+            std::vector<std::unique_ptr<GenericElement>> elements;
 
         private:
             std::unordered_map<std::string, unsigned int> body_names;

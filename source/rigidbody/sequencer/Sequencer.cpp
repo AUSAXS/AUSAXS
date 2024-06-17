@@ -41,13 +41,21 @@ bool Sequencer::_optimize_step() const {
 }
 
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
-    for (auto& e : elements) {
+    if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path + "\"does not exist.");}
+    rigidbody->generate_new_hydration(); // some setup elements requires access to the hydration generators
+
+    // run the setup elements, defining all of the necessary parameters
+    for (auto& e : SetupElement::elements) {
         e->run();
     }
 
-    if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path + "\"does not exist.");}
-    rigidbody->generate_new_hydration();
+    // prepare the fitter for the actual optimization
     rigidbody->prepare_fitter(saxs_path);
     best = std::make_unique<detail::BestConf>(std::make_shared<grid::Grid>(*rigidbody->get_grid()), rigidbody->get_waters(), rigidbody->fitter->fit_chi2_only());
+
+    for (auto& e : LoopElement::elements) {
+        e->run();
+    }
+
     return rigidbody->get_unconstrained_fitter(saxs_path)->fit();
 }

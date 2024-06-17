@@ -11,6 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <data/Body.h>
 
+#include <cassert>
+
 using namespace rigidbody::constraints;
 
 ConstraintManager::ConstraintManager(data::Molecule* protein) : protein(protein), overlap_constraint(protein) {
@@ -68,9 +70,7 @@ double ConstraintManager::evaluate() const {
 }
 
 void ConstraintManager::update_constraint_map() {
-    #ifdef DEBUG
-        if (protein == nullptr) [[unlikely]] {throw except::nullptr_error("ConstraintManager::update_constraint_map: Molecule is not set.");}
-    #endif
+    assert(protein != nullptr && "ConstraintManager::update_constraint_map: Molecule is not set.");
 
     for (unsigned int i = 0; i < protein->size_body(); i++) {
         distance_constraints_map[i] = std::vector<std::reference_wrapper<DistanceConstraint>>();
