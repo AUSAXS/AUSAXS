@@ -4,6 +4,7 @@ import matplotlib.patheffects as pe
 import numpy as np
 import sys
 import os
+from enum import Enum
 
 params = {
     'legend.fontsize': 14,
@@ -15,7 +16,6 @@ params = {
     'lines.markersize': 5
 }
 
-<<<<<<< HEAD
 folder = "output/fit_all_exv/"
 match len(sys.argv):
     case 1: pass
@@ -28,39 +28,66 @@ match len(sys.argv):
     case _:
         print("Usage: python exv_comparison.py <folder>")
         exit(1)
-=======
-folder = ""
-match len(sys.argv):
-    case 1:
-        print("missing one required argument: folder")
-        exit(1)
-
-    case 2:
-        folder = sys.argv[1]
-        if not os.path.exists(folder):
-            print(f"Folder {sys.argv[1]} does not exist.")
-            exit(1)
-        
-if folder is None:
-    print("Folder not found.")
-    exit(1)
->>>>>>> 69e1a5b5 (update)
 
 # iterate through all files in the directory
 x_label_map = {
-    "HistogramManagerMT:": 0, 
-    "HistogramManagerMTFFAvg:": 1, 
-    "HistogramManagerMTFFAvg_fitted:": 2, 
-    "HistogramManagerMTFFExplicit:": 3, 
-    "HistogramManagerMTFFExplicit_fitted:": 4,
-<<<<<<< HEAD
-    "FoXS:": 5,
-    "FoXS_fitted:": 6,
-    "HistogramManagerMTFFGrid:": 7
+    "HistogramManagerMT:":                          0, 
+    "HistogramManagerMTFFAvg:":                     1, 
+    "HistogramManagerMTFFAvg_fitted:":              2, 
+    "HistogramManagerMTFFExplicit:":                3, 
+    "HistogramManagerMTFFExplicit_fitted:":         4,
+    "HistogramManagerMTFFGrid:":                    5,
+    "HistogramManagerMTFFGridSurface:":             6,
+    "HistogramManagerMTFFGridSurface_fitted_215:":  7,
+    "HistogramManagerMTFFGridSurface_fitted_300:":  8,
+    "FoXS:":                                        9,
+    "FoXS_fitted:":                                10,
+    "CRYSOL:":                                     11,
+    "CRYSOL_fitted:":                              12,
+    "Pepsi-SAXS:":                                 13,
+    "Pepsi-SAXS_fitted:":                          14,
 }
-x_labels_traube = ["Simple", "Averaged", "Averaged fitted", "Explicit", "Explicit fitted", "FoXS (ours)", "FoXS fitted (ours)", "Grid", "CRYSOL", "FoXS", "Pepsi-SAXS"]
-x_labels_pontius = ["Simple", "Averaged", "Averaged fitted", "Explicit", "Explicit fitted", "FoXS (ours)", "FoXS fitted (ours)", "Grid"]
-x_labels_diff = ["Explicit", "Explicit & fitted"]
+
+x_labels = [
+    "Simple", 
+    "Averaged", 
+    "Averaged fitted", 
+    "Explicit", 
+    "Explicit fitted", 
+    "Grid", 
+    "Grid surface",
+    "Grid fitted 2.15", 
+    "Grid fitted 3.00", 
+    "FoXS (ours)",
+    "FoXS fitted (ours)",
+    "CRYSOL (ours)",
+    "CRYSOL fitted (ours)",
+    "Pepsi-SAXS (ours)",
+    "Pepsi-SAXS fitted (ours)",
+    "CRYSOL", 
+    "FoXS", 
+    "Pepsi-SAXS"
+]
+
+class options(Enum):
+    Simple = 0
+    Average = 1
+    Average_f = 2
+    Explicit = 3
+    Explicit_f = 4
+    Grid = 5
+    Grid_SURFACE = 6
+    Grid_f_215 = 7
+    Grid_f_300 = 8
+    FoXS_o = 9
+    FoXS_of = 10
+    CRYSOL_o = 11
+    CRYSOL_of = 12
+    Pepsi_o = 13
+    Pepsi_of = 14
+    CRYSOL = 15
+    FoXS = 16
+    Pepsi = 17
 
 data = {"TRAUBE": [], "PONTIUS": []}       # indexing: [file_name, method]
 size = []
@@ -122,17 +149,69 @@ for file in os.listdir(folder):
                         if (int(line[1]) not in size):
                             size.append(int(line[1]))
                     else:
-                        chi2s[x_label_map[line[0]]] = float(line[1])
+                        if (line[0] in x_label_map and x_label_map[line[0]] is not None):
+                            chi2s[x_label_map[line[0]]] = float(line[1])
+                        else:
+                            print(f"Unknown method: {line[0]}")
                 data[tokens[0]].append(chi2s)
         continue
 
+def choose_data(method: str, choices: list[options]):
+    if method != "TRAUBE" and method != "PONTIUS":
+        print(f"Unknown method: {method}")
+        exit(1)
+
+    data_out = []
+    labels_out = []
+    method_data = np.array(data[method])
+    if len(method_data) is 0: return np.array(data_out), labels_out
+    for choice in choices:
+        if choice.value < options.CRYSOL.value:
+            data_out.append(method_data[:, choice.value])
+            labels_out.append(x_labels[choice.value])
+        else:
+            match choice:
+                case options.CRYSOL:
+                    data_out.append(crysol)
+                    labels_out.append(x_labels[choice.value])
+                case options.FoXS:
+                    data_out.append(foxs)
+                    labels_out.append(x_labels[choice.value])
+                case options.Pepsi:
+                    data_out.append(pepsi)
+                    labels_out.append(x_labels[choice.value])
+    return np.array(data_out).T, labels_out
+
+###################################################
+###                    SETUP                   ####
+###################################################
 size = np.array(size)
 data_pontius = np.array(data["PONTIUS"])
 data_traube = np.array(data["TRAUBE"])
 data_diff = None
 
-figsize_x = max(len(x_labels_diff)+2, 8)
-figsize_y = max(len(data), 6)
+data_traube, x_labels_traube = choose_data("TRAUBE", [
+    options.Simple, 
+    options.Average_f, 
+    options.Explicit_f, 
+    options.Grid, 
+    options.Grid_f_215, 
+    options.Grid_f_300, 
+    options.CRYSOL, 
+    options.FoXS, 
+    options.Pepsi
+])
+
+data_pontius, x_labels_pontius = choose_data("PONTIUS", [
+    options.Simple, 
+    options.Average, 
+    options.Average_f, 
+    options.Explicit, 
+    options.Explicit_f, 
+    options.Grid, 
+    options.Grid_f_215, 
+    options.Grid_f_300
+])
 
 # sort by size
 # indices = np.argsort(size)
@@ -144,30 +223,6 @@ figsize_y = max(len(data), 6)
 if (data_pontius.shape == data_traube.shape and data_pontius.shape[0] > 0):
     data_diff = (data_pontius - data_traube)[:, 3:5]
 
-data_traube = np.concatenate((data_traube, np.array([crysol, foxs, pepsi]).T), axis=1)
-=======
-    "HistogramManagerMTFFGrid:": 5
-}
-data = []       # indexing: [file_name, method]
-x_labels = ["Simple", "Averaged", "Averaged & fitted", "Explicit", "Explicit & fitted", "Grid"]   # method
-y_labels = []   # file_name
-for file in os.listdir(folder):
-    if not file.endswith(".txt"):
-        continue
-
-    # filenames are TRAUBE_name.txt or PONTIUS_name.txt; we want to keep only the name
-    y_labels.append(file.split("_")[1].split(".")[0])
-    with open(os.path.join(folder, file), "r") as f:
-        chi2s = np.array([0.0]*6)
-        for line in f:
-            line = line.strip().split()
-            chi2s[x_label_map[line[0]]] = float(line[1])
-        data.append(chi2s)
-
-data = np.array(data)
-fig, ax = plt.subplots()
-
->>>>>>> 69e1a5b5 (update)
 bounds = [1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 25, 100]
 cmap = plt.get_cmap('RdYlGn_r')
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
@@ -180,6 +235,8 @@ def round(x):
     return int(np.round(x))
 
 def plot_one(data, x_labels, method):
+    figsize_x = max(len(x_labels)+2, 8)
+    figsize_y = max(len(data), 6)
     fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
     plt.imshow(data, interpolation='nearest', cmap=cmap, norm=norm)
     for i in range(len(y_labels)):
@@ -217,9 +274,16 @@ if data_traube.shape[0] > 0:
 if data_pontius.shape[0] > 0:
     plot_one(data_pontius, x_labels_pontius, "Pontius")
 
-# plot difference
+
+###################################################
+###                 DIFFERENCE                 ####
+###################################################
+x_labels_diff = ["Explicit", "Explicit & fitted"]
 if data_diff is None:
     exit(0)
+
+figsize_x = max(len(x_labels_diff)+2, 8)
+figsize_y = max(len(data), 6)
 
 bounds = [-10, -5, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 5, 10]
 cmap = plt.get_cmap('RdYlGn_r')
