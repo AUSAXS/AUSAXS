@@ -528,7 +528,7 @@ stuff/%: build/bin/stuff
 ####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
-test_files = $(addprefix tests/, $(shell find test/ -name "*.cpp" -printf "%P "))
+test_files = $(addprefix tests/, $(shell find tests/ -name "*.cpp" -printf "%P "))
 
 memtest/%: | $$(shell find tests -wholename "*/$$*.cpp") $(source)
 	@ make -C build "test_$*" -j${cmake_threads}
@@ -568,7 +568,7 @@ runtest/%: | $$(shell find tests -wholename "*/$$*.cpp") $(source)
 .PHONY: runtest/$(basename $(notdir $(test_files)))
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
-build/test/%: $$(shell find source/ -print) $(shell find test -name *%.cpp) build/Makefile
+build/test/%: $$(shell find source/ -print) $(shell find tests -name *%.cpp) build/Makefile
 	@ cmake --build build --target $* -j${cmake_threads}
 
 
