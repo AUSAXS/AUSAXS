@@ -164,7 +164,7 @@ def choose_data(method: str, choices: list[options]):
     data_out = []
     labels_out = []
     method_data = np.array(data[method])
-    if len(method_data) is 0: return np.array(data_out), labels_out
+    if len(method_data) == 0: return np.array(data_out), labels_out
     for choice in choices:
         if choice.value < options.CRYSOL.value:
             data_out.append(method_data[:, choice.value])
