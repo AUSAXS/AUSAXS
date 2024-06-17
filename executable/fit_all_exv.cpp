@@ -70,6 +70,7 @@ int main(int argc, char const *argv[]) {
         loop = {
             settings::hist::HistogramManagerChoice::HistogramManagerMT,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid,
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface,
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg, 
             settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit,
             settings::hist::HistogramManagerChoice::FoXSManager,
@@ -80,6 +81,7 @@ int main(int argc, char const *argv[]) {
         loop_names = {
             "HistogramManagerMT",
             "HistogramManagerMTFFGrid",
+            "HistogramManagerMTFFGridSurface",
             "HistogramManagerMTFFAvg", 
             "HistogramManagerMTFFExplicit",
             "FoXS",
@@ -117,9 +119,19 @@ int main(int argc, char const *argv[]) {
         switch (loop[i]) {
             case settings::hist::HistogramManagerChoice::HistogramManagerMT:
                 settings::molecule::use_effective_charge = true;
+                perform_fit(loop_names[i], loop[i], false);
                 break;
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
                 settings::molecule::use_effective_charge = false;
+                perform_fit(loop_names[i], loop[i], false);
+                break;
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
+                settings::molecule::use_effective_charge = false;
+                perform_fit(loop_names[i], loop[i], false);
+                settings::grid::rvol = 2.15;
+                perform_fit(loop_names[i] + "_fitted_215", loop[i], true);
+                settings::grid::rvol = 3.00;
+                perform_fit(loop_names[i] + "_fitted_300", loop[i], true);
                 break;
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
@@ -127,12 +139,12 @@ int main(int argc, char const *argv[]) {
             case settings::hist::HistogramManagerChoice::PepsiManager:
             case settings::hist::HistogramManagerChoice::CrysolManager:
                 settings::molecule::use_effective_charge = false;
+                perform_fit(loop_names[i], loop[i], false);
                 perform_fit(loop_names[i] + "_fitted", loop[i], true);
                 break;
             default:
                 throw except::invalid_argument("Unknown histogram manager choice.");
         }
-        perform_fit(loop_names[i], loop[i], false);
     }
     return 0;
 }
