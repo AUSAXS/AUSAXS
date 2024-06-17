@@ -27,12 +27,10 @@ Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
     std::vector<bool> split_at(max_id, false);
 
     // we then mark the ids where we want to split as true
-    std::for_each(splits.begin(), splits.end(), [&split_at] (unsigned int id) 
-        {
-            if (id > split_at.size()) {throw except::parse_error("BodySplitter::split: Split index (" + std::to_string(id) + ") larger than highest residue sequence id (" + std::to_string(split_at.size()) + ").");}
-            split_at[id] = true;
-        }
-    );
+    std::for_each(splits.begin(), splits.end(), [&split_at] (unsigned int id) {
+        if (id > split_at.size()) {throw except::parse_error("BodySplitter::split: Split index (" + std::to_string(id) + ") larger than highest residue sequence id (" + std::to_string(split_at.size()) + ").");}
+        split_at[id] = true;
+    });
 
     std::vector<Body> bodies(splits.size()+1);
     int index_body = 0; // current index in the bodies vector

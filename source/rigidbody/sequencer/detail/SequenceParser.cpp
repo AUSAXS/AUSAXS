@@ -253,7 +253,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
     auto saxs_path = check_arg<std::string>(valid_args[Args::saxs], args);
 
     if (!paths.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"paths\".");}
-    if (!splits.found) {
+    if (splits.found) {
         if (paths.value.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Splits can only be used with a single path.");}
         return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], splits.value, names.value, saxs_path.value);
     }
@@ -394,30 +394,36 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Rel
         );
     }
 
+    int N = rigidbody->size_body();
+    std::unordered_map<int, bool> found_generic;
+    for (int i = 1; i <= N; ++i) {found_generic[i] = false;}
+
     std::vector<double> ratios;
     std::vector<std::string> names;
-    bool generic = false;
-    unsigned int i = 1;
     for (const auto& [name, value] : args) {
         double val = to_value(options[value[0]]);
 
-        // check if generic names are used
-        if (name == "body" + std::to_string(i++)) {
+        if (name.starts_with("body")) {
+            int body = std::stoi(name.substr(4));
+            if (body < 1 || body > N) {
+                throw except::invalid_argument("SequenceParser::parse_arguments: Invalid body index \"" + name + "\".");
+            }
             ratios.push_back(val);
-            generic = true;
+            found_generic[body] = true;
             continue;
-        }
-
-        if (generic) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
         }
 
         names.push_back(name);
         ratios.push_back(val);
     }
 
-    if (generic) {
+    if (names.empty()) { // only empty if no custom names were given
+        if (std::any_of(found_generic.begin(), found_generic.end(), [] (const auto& p) {return !p.second;})) {
+            throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
+        }
         return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), ratios);
+    } else if (names.size() != ratios.size()) {
+        throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
     }
     return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), ratios, names);
 }

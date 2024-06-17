@@ -13,6 +13,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <dataset/Dataset2D.h>
 #include <settings/EMSettings.h>
 
+#include <cassert>
+
 using namespace fitter;
 
 LinearFitter::LinearFitter() = default;
@@ -114,10 +116,12 @@ SimpleDataset LinearFitter::plot_residuals() {
 }
 
 void LinearFitter::set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> h) {
+    assert(h != nullptr && "LinearFitter::set_scattering_hist: Attempting to set a nullptr. This is probably not intended.");
     this->h = std::move(h);
 }
 
 observer_ptr<hist::DistanceHistogram> LinearFitter::get_scattering_hist() {
+    assert(h != nullptr && "LinearFitter::get_scattering_hist: The scattering histogram has not been set.");
     return h.get();
 }
 

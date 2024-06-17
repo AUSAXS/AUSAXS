@@ -26,7 +26,7 @@ SetupElement& SetupElement::set_overlap_function(std::function<double(double)> f
 }
 
 SetupElement& SetupElement::load(const std::vector<std::string>& paths, const std::vector<std::string>& names) {
-    owner->_get_elements().push_back(std::make_unique<LoadElement>(static_cast<Sequencer*>(owner), paths, names));
+    elements.push_back(std::make_unique<LoadElement>(static_cast<Sequencer*>(owner), paths, names));
     return *this;
 }
 
@@ -36,7 +36,7 @@ SetupElement& SetupElement::load(const io::ExistingFile& saxs) {
 }
 
 SetupElement& SetupElement::load_existing(observer_ptr<RigidBody> rigidbody) {
-    owner->_get_elements().push_back(std::make_unique<LoadExistingElement>(static_cast<Sequencer*>(owner), rigidbody));
+    elements.push_back(std::make_unique<LoadExistingElement>(static_cast<Sequencer*>(owner), rigidbody));
     return *this;
 }
 
@@ -53,9 +53,9 @@ SetupElement& SetupElement::distance_constraint(const std::string& body1, const 
     owner->_get_rigidbody()->get_constraint_manager()->add_constraint(
         std::make_unique<constraints::DistanceConstraint>(
             active_body,
-            body_names.at(body1), 
-            body_names.at(body2), 
-            iatom1, 
+            body_names.at(body1),
+            body_names.at(body2),
+            iatom1,
             iatom2
         )
     );
@@ -125,11 +125,11 @@ SetupElement& SetupElement::fixed_constraint() {
 }
 
 SetupElement& SetupElement::generate_linear_constraints() {
-    owner->_get_elements().push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Linear));
+    elements.push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Linear));
     return *this;
 }
 
 SetupElement& SetupElement::generate_volumetric_constraints() {
-    owner->_get_elements().push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric));
+    elements.push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric));
     return *this;
 }

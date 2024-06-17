@@ -11,6 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/culling/BodyCounterCulling.h>
 #include <hydrate/generation/GridBasedHydration.h>
 
+#include <cassert>
+
 using namespace rigidbody::sequencer;
 
 RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios) : owner(owner), ratios(ratios) {}
@@ -33,10 +35,10 @@ void RelativeHydrationElement::run() {
     auto culling_strategy = hydrate::factory::construct_culling_strategy(owner->_get_rigidbody(), settings::hydrate::CullingStrategy::RandomBodyCounterStrategy);
     static_cast<hydrate::BodyCounterCulling*>(culling_strategy.get())->set_body_ratios(ratios);
 
-    #ifdef DEBUG
-        auto cast = dynamic_cast<hydrate::GridBasedHydration*>(owner->_get_rigidbody()->get_hydration_generator());
-        if (cast == nullptr) {throw std::runtime_error("RelativeHydrationElement::run: owner->_get_rigidbody()->get_hydration_generator() is not a GridBasedHydration");}
-    #endif
+    assert(
+        dynamic_cast<hydrate::GridBasedHydration*>(owner->_get_rigidbody()->get_hydration_generator()) != nullptr && 
+        "RelativeHydrationElement::run: owner->_get_rigidbody()->get_hydration_generator() is not a GridBasedHydration"
+    );
 
     static_cast<hydrate::GridBasedHydration*>(owner->_get_rigidbody()->get_hydration_generator())->set_culling_strategy(std::move(culling_strategy));
     owner->_get_rigidbody()->generate_new_hydration();

@@ -30,7 +30,6 @@ double OverlapConstraint::evaluate() const {
     for (unsigned int i = 1; i < target.size(); i++) { // skip the self-correlation bin
         chi2 += std::pow((current[i] - target[i])*weights[i], 2);
     }
-    std::cout << "Overlap constraint: " << chi2 << std::endl;
     return chi2;
 }
 
