@@ -108,6 +108,10 @@ std::string File::filename() const noexcept {
     return name + ext;
 }
 
+bool File::empty() const noexcept {
+    return dir.empty() && name.empty() && ext.empty();
+}
+
 bool File::exists() const noexcept {
     return std::filesystem::exists(path());
 }

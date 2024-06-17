@@ -14,7 +14,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::sequencer;
 
-Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), SetupElement(this), rigidbody(nullptr), best(nullptr), saxs(saxs) {}
+Sequencer::Sequencer() : LoopElement(nullptr, 1), SetupElement(this), rigidbody(nullptr), best(nullptr) {}
+
+Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), SetupElement(this, saxs), rigidbody(nullptr), best(nullptr) {}
 
 Sequencer::~Sequencer() = default;
 
@@ -39,15 +41,13 @@ bool Sequencer::_optimize_step() const {
 }
 
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
-    // prepare rigidbody
-    rigidbody->generate_new_hydration();
-    rigidbody->prepare_fitter(saxs);
-    best = std::make_unique<detail::BestConf>(std::make_shared<grid::Grid>(*rigidbody->get_grid()), rigidbody->get_waters(), rigidbody->fitter->fit_chi2_only());
-
-    // run all elements in sequence
     for (auto& e : elements) {
         e->run();
     }
 
-    return rigidbody->get_unconstrained_fitter(saxs)->fit();
+    if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path + "\"does not exist.");}
+    rigidbody->generate_new_hydration();
+    rigidbody->prepare_fitter(saxs_path);
+    best = std::make_unique<detail::BestConf>(std::make_shared<grid::Grid>(*rigidbody->get_grid()), rigidbody->get_waters(), rigidbody->fitter->fit_chi2_only());
+    return rigidbody->get_unconstrained_fitter(saxs_path)->fit();
 }

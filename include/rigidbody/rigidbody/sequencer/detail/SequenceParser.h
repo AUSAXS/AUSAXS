@@ -1,7 +1,6 @@
 #pragma once
 
 #include <rigidbody/sequencer/Sequencer.h>
-#include <io/IOFwd.h>
 
 #include <unordered_map>
 
@@ -12,7 +11,7 @@ namespace rigidbody::sequencer {
         public:
             SequenceParser() = default;
 
-            std::unique_ptr<Sequencer> parse(const io::ExistingFile& config, const io::ExistingFile& saxs);
+            std::unique_ptr<Sequencer> parse(const io::ExistingFile& config);
 
         private:
             std::vector<observer_ptr<LoopElement>> loop_stack;

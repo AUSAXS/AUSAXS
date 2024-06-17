@@ -110,6 +110,19 @@ settings::rigidbody::ConstraintGenerationStrategyChoice get_constraint_strategy(
     throw except::invalid_argument("SequenceParser::get_constraint_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
+template<typename T>
+T check_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args);
+
+template<>
+std::string check_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    for (const auto& name : names) {
+        if (args.contains(name)) {
+            return args.at(name)[0];
+        }
+    }
+    throw except::invalid_argument("SequenceParser::check_arg: Missing required argument.");
+}
+
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     enum class Args {body1, body2, iatom1, iatom2, type};
@@ -206,16 +219,18 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Aut
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {paths, splits, names};
+    enum class Args {paths, splits, names, saxs};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
         {Args::paths, {"path", "paths", "load", "anonymous"}},
         {Args::splits, {"splits", "split"}},
-        {Args::names, {"names", "name"}}
+        {Args::names, {"names", "name"}},
+        {Args::saxs, {"saxs_path", "saxs"}}
     };
     if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"load\". Expected at least one argument.");}
 
     std::vector<std::string> paths, names;
     std::vector<int> splits;
+    std::string saxs_path;
 
     std::string current_arg;
     for (const auto& name : valid_args[Args::paths]) {
@@ -247,12 +262,19 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
         }
     }
 
-    if (!splits.empty()) {
-        if (paths.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Splits can only be used with a single path.");}
-        return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths[0], splits, names);
+    for (const auto& name : valid_args[Args::saxs]) {
+        if (args.contains(name)) {
+            saxs_path = args.at(name)[0];
+            break;
+        }
     }
 
-    return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths, names);
+    if (!splits.empty()) {
+        if (paths.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Splits can only be used with a single path.");}
+        return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths[0], splits, names, saxs_path);
+    }
+
+    return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths, names, saxs_path);
 }
 
 template<>
@@ -502,11 +524,11 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sav
     return nullptr;
 }
 
-std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config, const io::ExistingFile& saxs) {
+std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config) {
     std::ifstream in(config.path());
     if (!in.is_open()) {throw except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}
 
-    std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>(saxs);
+    std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>();
     loop_stack = {sequencer.get()};
     sequencer->_set_config_folder(config.directory());
     

@@ -4,7 +4,7 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <utility/observer_ptr.h>
-#include <io/IOFwd.h>
+#include <io/ExistingFile.h>
 
 #include <string>
 #include <vector>
@@ -13,8 +13,8 @@
 namespace rigidbody::sequencer {
     class LoadElement : public GenericElement {
         public:
-            LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {});
-            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {});
+            LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {}, const io::File& saxs_path = {});
+            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {}, const io::File& saxs_path = {});
             ~LoadElement() override = default;
 
             void run() override;
