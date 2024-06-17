@@ -10,11 +10,9 @@
 User-guides to all of these programs can be found in the [wiki](https://github.com/klytje/AUSAXS/wiki).
 
 # Installation
-## Download precompiled binaries
-The fastest way to get started is using the most recent precompiled executables available in the [releases](https://github.com/klytje/AUSAXS/releases). Alternatively you can follow the next section to compile the library yourself. 
+The fastest way to get started is using the most recent precompiled binaries available in the [releases](https://github.com/klytje/AUSAXS/releases).  
 
-## Compile from source
-The software can easily be compiled from source with only a few steps. GCC v11+, Clang v15+, and MSVC 2022+ are supported, though GCC is the preferred option for optimal efficiency. For more information on how this is done, see [this](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) page in the wiki. 
+Alternatively you can follow [compilation guide](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) to compile it yourself in just a few simple steps. 
 
 # References
 Several articles documenting the methods used in this project are currently in various stages of development. The first, on the EM validation methods, is expected to be published soon. Direct links will be provided in this section once they are publically available. 
