@@ -528,11 +528,11 @@ stuff/%: build/bin/stuff
 ####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
-test_files = $(addprefix test/, $(shell find test/ -name "*.cpp" -printf "%P "))
+test_files = $(addprefix tests/, $(shell find test/ -name "*.cpp" -printf "%P "))
 
-memtest/%: | $$(shell find test -wholename "*/$$*.cpp") $(source)
+memtest/%: | $$(shell find tests -wholename "*/$$*.cpp") $(source)
 	@ make -C build "test_$*" -j${cmake_threads}
-	valgrind --track-origins=yes --log-file="valgrind.txt" build/test/bin/test_$* ~[slow] ~[broken] ${tags}
+	valgrind --track-origins=yes --log-file="valgrind.txt" build/tests/bin/test_$* ~[slow] ~[broken] ${tags}
 
 debug_tests: $(test_files) $(source)
 	@ make -C build tests -j${cmake_threads}
@@ -542,7 +542,7 @@ debug_tests: $(test_files) $(source)
 
 tests-console: | $(source)
 	@ make -C build tests -j${cmake_threads} --no-print-directory
-	@ mkdir -p build/test/reports
+	@ mkdir -p build/tests/reports
 	@ for test in $$(find build/test/bin/test_*); do\
 		echo "##### Running tests from $$(basename $${test}) #####";\
 		$${test} $(exclude_tags) --reporter console;\
@@ -550,21 +550,21 @@ tests-console: | $(source)
 
 tests-html: | $(source)
 	@ make -C build tests -j${cmake_threads} --no-print-directory
-	@ mkdir -p build/test/reports
+	@ mkdir -p build/tests/reports
 	@ for test in $$(find build/test/bin/test_*); do\
-		$${test} $(exclude_tags) --reporter html --out build/test/report.html;\
+		$${test} $(exclude_tags) --reporter html --out build/tests/report.html;\
 	done
 
 tests: | $(source)
 	@ make -C build tests -j${cmake_threads} --no-print-directory
-	@ mkdir -p build/test/reports
-	@ for test in $$(find build/test/bin/test_*); do\
-		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
+	@ mkdir -p build/tests/reports
+	@ for test in $$(find build/tests/bin/test_*); do\
+		$${test} $(exclude_tags) --reporter junit --out build/tests/reports/$$(basename $${test}).xml;\
 	done
 
-runtest/%: | $$(shell find test -wholename "*/$$*.cpp") $(source)
+runtest/%: | $$(shell find tests -wholename "*/$$*.cpp") $(source)
 	@ make -C build "test_$(basename $(notdir $*))" -j${cmake_threads}
-	build/test/bin/test_$(basename $(notdir $*)) ~[slow] ~[broken] ${tags}
+	build/tests/bin/test_$(basename $(notdir $*)) ~[slow] ~[broken] ${tags}
 .PHONY: runtest/$(basename $(notdir $(test_files)))
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
