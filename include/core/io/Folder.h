@@ -28,6 +28,11 @@ namespace io {
             [[nodiscard]] std::vector<std::string> directories() const;
 
             /**
+             * @brief Check if this object is initialized.
+             */
+            [[nodiscard]] bool empty() const noexcept;
+
+            /**
              * @brief Create this directory and all its parents.
              */
             void create() const;

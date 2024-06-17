@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::sequencer;
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names) : owner(owner) {
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names, const io::File& saxs_path) : owner(owner) {
     if (auto loc = paths[0].find("%"); loc != std::string::npos) {
         rigidbody = std::make_unique<RigidBody>(data::Molecule(load_wildcarded(paths[0])));
     } else {
@@ -28,12 +28,18 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
     }
     owner->_set_active_body(rigidbody.get());
 
+    if (!saxs_path.empty() && saxs_path.exists()) {
+        owner->_set_saxs_path(saxs_path);
+    }
+
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from " << paths.size() << " files." << std::endl;
     }
 }
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& splits, const std::vector<std::string>& body_names) : owner(owner) {
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& splits, const std::vector<std::string>& body_names, const io::File& saxs_path) 
+    : owner(owner) 
+{
     if (auto loc = path.find("%"); loc != std::string::npos) {
         rigidbody = std::make_unique<RigidBody>(data::Molecule(load_wildcarded(path)));
     } else {
@@ -45,6 +51,10 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         owner->_get_body_names().emplace(body_names.empty() ? "b" + std::to_string(i) : body_names[i], i);
     }
     owner->_set_active_body(rigidbody.get());
+
+    if (!saxs_path.empty() && saxs_path.exists()) {
+        owner->_set_saxs_path(saxs_path);
+    }
 
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from \"" << path.size() << "\"." << std::endl;

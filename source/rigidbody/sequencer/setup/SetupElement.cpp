@@ -18,6 +18,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace rigidbody::sequencer;
 
 SetupElement::SetupElement(observer_ptr<Sequencer> owner) : LoopElementCallback(owner) {}
+SetupElement::SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs) : LoopElementCallback(owner), saxs_path(saxs) {}
 
 SetupElement& SetupElement::set_overlap_function(std::function<double(double)> func) {
     rigidbody::constraints::OverlapConstraint::set_overlap_function(std::move(func));
@@ -26,6 +27,11 @@ SetupElement& SetupElement::set_overlap_function(std::function<double(double)> f
 
 SetupElement& SetupElement::load(const std::vector<std::string>& paths, const std::vector<std::string>& names) {
     owner->_get_elements().push_back(std::make_unique<LoadElement>(static_cast<Sequencer*>(owner), paths, names));
+    return *this;
+}
+
+SetupElement& SetupElement::load(const io::ExistingFile& saxs) {
+    saxs_path = saxs;
     return *this;
 }
 
@@ -106,8 +112,12 @@ std::string SetupElement::_get_config_folder() const {
     return config_folder;
 }
 
-void SetupElement::_set_config_folder(const std::string& folder) {
+void SetupElement::_set_config_folder(const io::Folder& folder) {
     config_folder = folder;
+}
+
+void SetupElement::_set_saxs_path(const io::ExistingFile& saxs) {
+    saxs_path = saxs;
 }
 
 SetupElement& SetupElement::fixed_constraint() {

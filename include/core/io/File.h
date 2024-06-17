@@ -62,6 +62,11 @@ namespace io {
             [[nodiscard]] const std::string& extension() const noexcept;
 
             /**
+             * @brief Check if this object is initialized.
+             */
+            [[nodiscard]] bool empty() const noexcept;
+
+            /**
              * @brief Create this file with the given contents.
              */
             void create(std::string_view contents = "") const; 

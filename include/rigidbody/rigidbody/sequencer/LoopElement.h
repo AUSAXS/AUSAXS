@@ -10,84 +10,82 @@
 #include <memory>
 #include <vector>
 
-namespace rigidbody {
-    namespace sequencer {
-        /**
-         * @brief A loop element is a sequence element that repeats whatever is inside it a number of times.
-         */
-        class LoopElement : public GenericElement {
-            friend class OptimizeStepElement;
-            public:
-                LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats);
-                virtual ~LoopElement();
+namespace rigidbody::sequencer {
+    /**
+     * @brief A loop element is a sequence element that repeats whatever is inside it a number of times.
+     */
+    class LoopElement : public GenericElement {
+        friend class OptimizeStepElement;
+        public:
+            LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats);
+            virtual ~LoopElement();
 
-                virtual std::shared_ptr<fitter::FitResult> execute();
+            virtual std::shared_ptr<fitter::FitResult> execute();
 
-                /**
-                 * @brief Create a nested loop.
-                 */
-                LoopElement& loop(unsigned int repeats);
+            /**
+                * @brief Create a nested loop.
+                */
+            LoopElement& loop(unsigned int repeats);
 
-                /**
-                 * @brief Set the parameter strategy.
-                 */
-                ParameterElement& parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
+            /**
+                * @brief Set the parameter strategy.
+                */
+            ParameterElement& parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
 
-                /**
-                 * @brief Set the body selection strategy.
-                 */
-                BodySelectElement& body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
+            /**
+                * @brief Set the body selection strategy.
+                */
+            BodySelectElement& body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
 
-                /**
-                 * @brief Set the transformation strategy.
-                 */
-                TransformElement& transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
+            /**
+                * @brief Set the transformation strategy.
+                */
+            TransformElement& transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
 
-                /**
-                 * @brief Perform a single optimization step.
-                 */
-                OptimizeStepElement& optimize();
+            /**
+                * @brief Perform a single optimization step.
+                */
+            OptimizeStepElement& optimize();
 
-                /**
-                 * @brief End the current loop.
-                 */
-                LoopElement& end();
+            /**
+                * @brief End the current loop.
+                */
+            LoopElement& end();
 
-                /**
-                 * @brief Save the current state of the system.
-                 *
-                 * @param path The path to save the state to. The extension of the file will determine the format.
-                 */
-                LoopElement& save(const io::File& path);
+            /**
+                * @brief Save the current state of the system.
+                *
+                * @param path The path to save the state to. The extension of the file will determine the format.
+                */
+            LoopElement& save(const io::File& path);
 
-                /**
-                 * @brief Perform the subroutines for every n iterations of this loop.
-                 */
-                EveryNStepElement& every(unsigned int n);
+            /**
+                * @brief Perform the subroutines for every n iterations of this loop.
+                */
+            EveryNStepElement& every(unsigned int n);
 
-                /**
-                 * @brief Run an iteration of this loop. 
-                 */
-                void run() override;
+            /**
+                * @brief Run an iteration of this loop. 
+                */
+            void run() override;
 
-                virtual observer_ptr<RigidBody> _get_rigidbody() const;
+            virtual observer_ptr<RigidBody> _get_rigidbody() const;
 
-                virtual observer_ptr<detail::BestConf> _get_best_conf() const;
+            virtual observer_ptr<detail::BestConf> _get_best_conf() const;
 
-                virtual observer_ptr<const Sequencer> _get_sequencer() const;
+            virtual observer_ptr<const Sequencer> _get_sequencer() const;
 
-                std::vector<std::unique_ptr<GenericElement>>& _get_elements();
+            std::vector<std::unique_ptr<GenericElement>>& _get_elements();
 
-                observer_ptr<LoopElement> _get_owner() const;
+            observer_ptr<LoopElement> _get_owner() const;
 
-            protected: 
-                unsigned int iterations = 1;
-                std::vector<std::unique_ptr<GenericElement>> elements;
+        protected: 
+            unsigned int iterations = 1;
+            std::vector<std::unique_ptr<GenericElement>> elements;
 
-            private:
-                observer_ptr<LoopElement> owner;
-                inline static unsigned int total_loop_count = 0;
-                inline static unsigned int global_counter = 0;
-        };
-    }
+        private:
+            observer_ptr<LoopElement> owner;
+            inline static unsigned int total_loop_count = 0;
+            inline static unsigned int global_counter = 0;
+    };
 }

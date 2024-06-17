@@ -82,6 +82,10 @@ std::string File::path() const {return std::string(*this);}
 
 std::string File::absolute_path() const {return std::filesystem::absolute(path()).string();}
 
+bool File::empty() const noexcept {
+    return dir.empty() && name.empty() && ext.empty();
+}
+
 bool File::exists() const noexcept {
     return std::filesystem::exists(path());
 }
