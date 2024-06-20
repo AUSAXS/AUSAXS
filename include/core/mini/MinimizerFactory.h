@@ -31,18 +31,12 @@ namespace mini {
                     throw std::invalid_argument("all::create_minimizer: Unknown minimizer type.");
             }
         }
-    }
 
-    /**
-     * @brief Create a new minimizer.
-     *
-     * @param t The algorithm to use.
-     * @param func The function to minimize.
-     */
-    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func) {
-        auto minimizer = detail::create_minimizer(t);
-        minimizer->set_function(func);
-        return minimizer;
+        [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(type t, std::function<double(std::vector<double>)>&& func) {
+            auto minimizer = create_minimizer(t);
+            minimizer->set_function(std::move(func));
+            return minimizer;
+        }
     }
 
     /**
@@ -52,8 +46,8 @@ namespace mini {
      * @param func The function to minimize.
      * @param param The first parameter.
      */
-    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const Parameter& param) {
-        auto minimizer = create_minimizer(t, func);
+    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(type t, std::function<double(std::vector<double>)> func, const Parameter& param) {
+        auto minimizer = detail::create_minimizer(t, std::move(func));
         minimizer->add_parameter(param);
         return minimizer;
     }
@@ -65,8 +59,8 @@ namespace mini {
      * @param func The function to minimize.
      * @param param The parameter list.
      */
-    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const std::vector<Parameter>& param) {
-        auto minimizer = create_minimizer(t, func);
+    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(type t, std::function<double(std::vector<double>)> func, const std::vector<Parameter>& param) {
+        auto minimizer = detail::create_minimizer(t, std::move(func));
         std::for_each(param.begin(), param.end(), [&](const Parameter& p) { minimizer->add_parameter(p); });
         return minimizer;
     }
@@ -79,8 +73,9 @@ namespace mini {
      * @param param The first parameter.
      * @param evals The number of evaluations to perform. Not supported by all minimizers.
      */
-    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const Parameter& param, unsigned int evals) {
-        auto minimizer = create_minimizer(t, func, param);
+    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(type t, std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) {
+        auto minimizer = detail::create_minimizer(t, std::move(func));
+        minimizer->add_parameter(param);
         minimizer->set_max_evals(evals);
         return minimizer;
     }

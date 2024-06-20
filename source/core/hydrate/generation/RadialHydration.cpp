@@ -11,6 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/Constants.h>
 #include <settings/GridSettings.h>
 
+#include <cassert>
+
 using namespace data::record;
 
 hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
@@ -27,10 +29,43 @@ hydrate::RadialHydration::~RadialHydration() = default;
 
 void hydrate::RadialHydration::initialize() {
     hydrate::GridBasedHydration::initialize();
-    grid = protein->get_grid();
+}
+
+std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
+    assert(protein != nullptr && "RadialHydration::generate_explicit_hydration: protein is nullptr.");
+    auto grid = protein->get_grid();
+    assert(grid != nullptr && "RadialHydration::generate_explicit_hydration: grid is nullptr.");
+
+    // we define a helper lambda
+    std::vector<grid::GridMember<Water>> placed_water; 
+    placed_water.reserve(grid->a_members.size());
+    auto add_loc = [&] (Vector3<double>&& exact_loc) {
+        Water a = Water::create_new_water(std::move(exact_loc));
+        grid::GridMember<Water> gm = grid->add(a, true);
+        placed_water.emplace_back(std::move(gm));
+    };
+
+    double rh = grid->get_hydration_radius();
+    for (const auto& atom : grid->a_members) {
+        const auto& coords_abs = atom.get_atom().get_coordinates();
+        double ra = grid->get_atomic_radius(atom.get_atom_type());
+        double reff = ra + rh;
+        for (unsigned int i = 0; i < rot_locs.size(); i++) {
+            auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff);
+
+            // we have to make sure we don't check the direction of the atom we are trying to place this water on
+            Vector3<int> skip_bin(bins.x()-rot_bins_1rh[i].x(), bins.y()-rot_bins_1rh[i].y(), bins.z()-rot_bins_1rh[i].z());
+            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()), skip_bin)) {
+                Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff;
+                add_loc(std::move(exact_loc));
+            }
+        }
+    }
+    return placed_water;
 }
 
 void hydrate::RadialHydration::prepare_rotations(int divisions) {
+    auto grid = protein->get_grid();
     double width = grid->get_width();
 
     std::vector<Vector3<int>> bins_1rh;
@@ -95,36 +130,8 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     rot_locs = std::move(locs);
 }
 
-std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
-    // we define a helper lambda
-    std::vector<grid::GridMember<Water>> placed_water; 
-    placed_water.reserve(grid->a_members.size());
-    auto add_loc = [&] (Vector3<double>&& exact_loc) {
-        Water a = Water::create_new_water(std::move(exact_loc));
-        grid::GridMember<Water> gm = grid->add(a, true);
-        placed_water.emplace_back(std::move(gm));
-    };
-
-    double rh = grid->get_hydration_radius();
-    for (const auto& atom : grid->a_members) {
-        const auto& coords_abs = atom.get_atom().get_coordinates();
-        double ra = grid->get_atomic_radius(atom.get_atom_type());
-        double reff = ra + rh;
-        for (unsigned int i = 0; i < rot_locs.size(); i++) {
-            auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff);
-
-            // we have to make sure we don't check the direction of the atom we are trying to place this water on
-            Vector3<int> skip_bin(bins.x()-rot_bins_1rh[i].x(), bins.y()-rot_bins_1rh[i].y(), bins.z()-rot_bins_1rh[i].z());
-            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()), skip_bin)) {
-                Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff;
-                add_loc(std::move(exact_loc));
-            }
-        }
-    }
-    return placed_water;
-}
-
 bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
+    auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     int score = 0;

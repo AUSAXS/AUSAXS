@@ -32,26 +32,35 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/generation/GridBasedHydration.h>
 
 #include <numeric>
+#include <cassert>
 
 using namespace hist;
 using namespace data;
 using namespace data::record;
 
-Molecule::Molecule() : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(), updated_charge(false), centered(false), grid(nullptr), phm(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins)) {}
+Molecule::Molecule() : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(), grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr) {}
+
 Molecule::Molecule(Molecule&& other) {*this = std::move(other);}
+
 Molecule::~Molecule() = default;
 
-Molecule::Molecule(std::vector<Body>&& bodies) : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(std::move(bodies)) {
+Molecule::Molecule(std::vector<Body>&& bodies) : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(std::move(bodies)), grid(nullptr), 
+                                                 phm(nullptr), histogram(nullptr), hydration_strategy(nullptr)
+{
     initialize();
 }
 
 Molecule::Molecule(const std::vector<Body>& bodies) : Molecule(bodies, std::vector<Water>()) {}
-Molecule::Molecule(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration(std::make_unique<hydrate::ExplicitHydration>(hydration_atoms)), bodies(bodies) {
+Molecule::Molecule(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration(std::make_unique<hydrate::ExplicitHydration>(hydration_atoms)), bodies(bodies), 
+                                                                                                 grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr) 
+{
     initialize();
 }
 
 Molecule::Molecule(const std::vector<Atom>& molecule_atoms) : Molecule(molecule_atoms, std::vector<Water>()) {}
-Molecule::Molecule(const std::vector<Atom>& molecule_atoms, const std::vector<Water>& hydration_atoms) : hydration(std::make_unique<hydrate::ExplicitHydration>(hydration_atoms)) {
+Molecule::Molecule(const std::vector<Atom>& molecule_atoms, const std::vector<Water>& hydration_atoms) : hydration(std::make_unique<hydrate::ExplicitHydration>(hydration_atoms)),
+                                                                                                         grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr)
+{
     bodies = {Body(molecule_atoms, get_waters())};
     initialize();
 }
@@ -247,6 +256,7 @@ std::vector<Water>& Molecule::get_waters() {
 }
 
 observer_ptr<hydrate::HydrationStrategy> Molecule::get_hydration_generator() const {
+    assert(hydration_strategy != nullptr && "Molecule::get_hydration_generator: hydration_strategy is nullptr.");
     return hydration_strategy.get();
 }
 

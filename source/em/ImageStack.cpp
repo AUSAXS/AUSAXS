@@ -81,10 +81,9 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
     update_charge_levels(*param.bounds);
     set_minimum_bounds(param.bounds->min);
-    auto f = prepare_function(fitter);
+    auto func = prepare_function(fitter);
     mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
     unsigned int dof = fitter->dof()-1; // minus one because we're also fitting the cutoff
-    std::cout << "degrees of freedom: " << dof << std::endl;
 
     if (settings::general::verbose) {
         std::cout << "The mass range [" << std::left << std::setw(8) << get_mass(param.bounds->min) 
@@ -94,7 +93,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //##########################################################//
     //###                DETERMINE LANDSCAPE                 ###//
     //##########################################################//
-    mini::LimitedScan minimizer(f, param, settings::fit::max_iterations);
+    mini::LimitedScan minimizer(func, param, settings::fit::max_iterations);
     minimizer.set_limit(5, true);
     SimpleDataset chi2_data;
     {
@@ -123,7 +122,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
         // prepare a new minimizer with the new bounds
         console::print_warning("Function is varying strongly. Sampling more points around the minimum.");
-        mini::LimitedScan mini2(f, mini::Parameter("cutoff", bounds), settings::fit::max_iterations/4);
+        mini::LimitedScan mini2(func, mini::Parameter("cutoff", bounds), settings::fit::max_iterations/4);
         {
             auto l = mini2.landscape(settings::fit::max_iterations/2);
             evals.append(l);
@@ -319,7 +318,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         this->evals.clear();
 
         // sample the area around the minimum
-        mini::MinimumExplorer explorer(f, param, settings::fit::max_iterations);
+        mini::MinimumExplorer explorer(func, param, settings::fit::max_iterations);
         res = explorer.minimize();
 
         // check if we found a better absolute minima
@@ -376,7 +375,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     
     // otherwise do a quick fit to ensure we're at the very bottom of the valley
     else {
-        mini::Golden golden(f, param);
+        mini::Golden golden(func, param);
         res = golden.minimize();
         if (res.fval < min_abs.y) {
             min_abs = golden.get_evaluated_points().as_dataset().find_minimum();
@@ -399,7 +398,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
-    f({min_abs.x});
+    func({min_abs.x});
 
     std::unique_ptr<fitter::EMFit> emfit = std::make_unique<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = evals;

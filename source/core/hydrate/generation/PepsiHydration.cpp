@@ -12,6 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GridSettings.h>
 #include <settings/MoleculeSettings.h>
 
+#include <cassert>
+
 using namespace hydrate;
 using namespace data::record;
 
@@ -26,51 +28,9 @@ PepsiHydration::PepsiHydration(observer_ptr<data::Molecule> protein, std::unique
 void PepsiHydration::initialize() {
     settings::hydrate::culling_strategy = settings::hydrate::CullingStrategy::NoStrategy;
     GridBasedHydration::initialize();
-    grid = protein->get_grid();
 }
 
 PepsiHydration::~PepsiHydration() = default;
-
-void PepsiHydration::modified_expand_volume(grid::GridMember<data::record::Atom>& atom) {
-    if (atom.is_expanded()) {return;} // check if this location has already been expanded
-    atom.set_expanded(true); // mark this location as expanded
-
-    grid::detail::GridObj& gref = grid->grid;
-    const auto& axes = grid->get_axes();
-
-    double r = 3/settings::grid::width; // fixed radius of 3Å
-
-    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z(); 
-    double rvdw = r/settings::grid::width;
-    double rvdw2 = std::pow(rvdw, 2);
-
-    int xm = std::max<int>(x - std::ceil(r), 0), xp = std::min<int>(x + std::ceil(r) + 1, axes.x.bins); // xminus and xplus
-    int ym = std::max<int>(y - std::ceil(r), 0), yp = std::min<int>(y + std::ceil(r) + 1, axes.y.bins); // yminus and yplus
-    int zm = std::max<int>(z - std::ceil(r), 0), zp = std::min<int>(z + std::ceil(r) + 1, axes.z.bins); // zminus and zplus
-
-    // loop over each bin in the box
-    int added_volume = 0;
-
-    // i, j, k *must* be ints to avoid unsigned underflow
-    for (int i = xm; i < xp; ++i) {
-        double x2 = std::pow(x - i, 2);
-        for (int j = ym; j < yp; ++j) {
-            double x2y2 = x2 + std::pow(y - j, 2);
-            for (int k = zm; k < zp; ++k) {
-                // fill a sphere of radius [0, vdw] around the atom
-                double dist = x2y2 + std::pow(z - k, 2);
-                auto& bin = gref.index(i, j, k);
-                if (dist <= rvdw2) {
-                    if (!gref.is_empty_or_volume(bin)) {continue;}
-                    added_volume += !gref.is_volume(bin); // only add to the volume if the bin is not already part of the volume
-                    bin = grid::detail::A_AREA;
-                }
-            }
-        }
-    }
-    grid->add_volume(added_volume);
-}
 
 // linear interpolation of the shell width as described in the paper
 auto get_shell_width(double Rg) {
@@ -81,6 +41,10 @@ auto get_shell_width(double Rg) {
 std::vector<grid::GridMember<data::record::Water>> PepsiHydration::generate_explicit_hydration() {
     double shell_width = get_shell_width(protein->get_Rg());
     double r = 3; // distance from the atom to the hydration shell
+
+    assert(protein != nullptr && "PepsiHydration::generate_explicit_hydration: protein is nullptr.");
+    auto grid = protein->get_grid();
+    assert(grid != nullptr && "PepsiHydration::generate_explicit_hydration: grid is nullptr.");
 
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
@@ -123,4 +87,46 @@ std::vector<grid::GridMember<data::record::Water>> PepsiHydration::generate_expl
 
     auto placed = grid->add(placed_water);
     return placed;
+}
+
+void PepsiHydration::modified_expand_volume(grid::GridMember<data::record::Atom>& atom) {
+    if (atom.is_expanded()) {return;} // check if this location has already been expanded
+    atom.set_expanded(true); // mark this location as expanded
+
+    auto grid = protein->get_grid();
+    grid::detail::GridObj& gref = grid->grid;
+    const auto& axes = grid->get_axes();
+
+    double r = 3/settings::grid::width; // fixed radius of 3Å
+
+    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+    int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z(); 
+    double rvdw = r/settings::grid::width;
+    double rvdw2 = std::pow(rvdw, 2);
+
+    int xm = std::max<int>(x - std::ceil(r), 0), xp = std::min<int>(x + std::ceil(r) + 1, axes.x.bins); // xminus and xplus
+    int ym = std::max<int>(y - std::ceil(r), 0), yp = std::min<int>(y + std::ceil(r) + 1, axes.y.bins); // yminus and yplus
+    int zm = std::max<int>(z - std::ceil(r), 0), zp = std::min<int>(z + std::ceil(r) + 1, axes.z.bins); // zminus and zplus
+
+    // loop over each bin in the box
+    int added_volume = 0;
+
+    // i, j, k *must* be ints to avoid unsigned underflow
+    for (int i = xm; i < xp; ++i) {
+        double x2 = std::pow(x - i, 2);
+        for (int j = ym; j < yp; ++j) {
+            double x2y2 = x2 + std::pow(y - j, 2);
+            for (int k = zm; k < zp; ++k) {
+                // fill a sphere of radius [0, vdw] around the atom
+                double dist = x2y2 + std::pow(z - k, 2);
+                auto& bin = gref.index(i, j, k);
+                if (dist <= rvdw2) {
+                    if (!gref.is_empty_or_volume(bin)) {continue;}
+                    added_volume += !gref.is_volume(bin); // only add to the volume if the bin is not already part of the volume
+                    bin = grid::detail::A_AREA;
+                }
+            }
+        }
+    }
+    grid->add_volume(added_volume);
 }

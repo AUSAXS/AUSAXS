@@ -27,6 +27,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <numeric>
 #include <functional>
 #include <memory>
+#include <cassert>
 
 using namespace em;
 
@@ -59,7 +60,7 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
 ImageStackBase::~ImageStackBase() = default;
 
 void ImageStackBase::save(double cutoff, const io::File& path) const {
-    auto protein = phm->get_protein(cutoff);
+    auto protein = get_protein_manager()->get_protein(cutoff);
     protein->save(path);
 }
 
@@ -72,7 +73,7 @@ unsigned int ImageStackBase::size() const {return size_z;}
 const std::vector<Image>& ImageStackBase::images() const {return data;}
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram(double cutoff) const {
-    return phm->get_histogram(cutoff);
+    return get_protein_manager()->get_histogram(cutoff);
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFit> res) const {
@@ -80,7 +81,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram
 }
 
 observer_ptr<data::Molecule> ImageStackBase::get_protein(double cutoff) const {
-    return phm->get_protein(cutoff);
+    return get_protein_manager()->get_protein(cutoff);
 }
 
 unsigned int ImageStackBase::count_voxels(double cutoff) const {
@@ -171,6 +172,7 @@ float ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) 
 }
 
 observer_ptr<em::detail::header::IMapHeader> ImageStackBase::get_header() const {
+    assert(header != nullptr && "ImageStackBase::get_header: Header is not initialized.");
     return header.get();
 }
 
@@ -219,5 +221,6 @@ double ImageStackBase::rms() const {
 }
 
 observer_ptr<managers::ProteinManager> ImageStackBase::get_protein_manager() const {
+    assert(phm != nullptr && "ImageStackBase::get_protein_manager: Protein manager is not initialized.");
     return phm.get();
 }

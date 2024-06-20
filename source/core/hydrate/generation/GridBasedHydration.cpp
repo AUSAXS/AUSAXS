@@ -13,6 +13,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Console.h>
 #include <settings/GridSettings.h>
 
+#include <cassert>
+
 using namespace hydrate;
 
 GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein) : protein(protein), culling_strategy(factory::construct_culling_strategy(protein)) {}
@@ -31,7 +33,11 @@ void GridBasedHydration::set_culling_strategy(std::unique_ptr<CullingStrategy> c
 }
 
 std::unique_ptr<Hydration> GridBasedHydration::hydrate() {
+    assert(protein != nullptr && "GridBasedHydration::hydrate: protein is nullptr");
+
     auto grid = protein->get_grid();
+    assert(grid != nullptr && "GridBasedHydration::hydrate: grid is nullptr");
+
     if (grid->w_members.size() != 0) {grid->clear_waters();}
     grid->expand_volume();
     auto waters = generate_explicit_hydration();

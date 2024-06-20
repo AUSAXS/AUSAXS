@@ -15,6 +15,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/EMSettings.h>
 
 #include <vector>
+#include <cassert>
 #include <functional>
 
 using namespace em::managers;
@@ -186,9 +187,7 @@ void SmartProteinManager::update_protein(double cutoff) {
 }
 
 observer_ptr<const data::Molecule> SmartProteinManager::get_protein() const {
-    #ifdef DEBUG
-        if (protein == nullptr) {throw except::nullptr_error("SmartProteinManager::get_protein: Protein has not been initialized yet.");}
-    #endif
+    assert(protein != nullptr && "SmartProteinManager::get_protein: Protein has not been initialized yet.");
     return protein.get();
 }
 

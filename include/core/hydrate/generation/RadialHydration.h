@@ -24,8 +24,6 @@ namespace hydrate {
             std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
 
         private:
-            observer_ptr<grid::Grid> grid;
-
             void initialize() override;
             void prepare_rotations(int divisions = 8);
 

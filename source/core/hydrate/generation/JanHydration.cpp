@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <constants/Constants.h>
 
+#include <cassert>
+
 using namespace data::record;
 
 hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
@@ -21,7 +23,10 @@ hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein, std::u
 }
 
 std::vector<grid::GridMember<data::record::Water>> hydrate::JanHydration::generate_explicit_hydration() {
+    assert(protein != nullptr && "JanHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
+    assert(grid != nullptr && "JanHydration::generate_explicit_hydration: grid is nullptr.");
+
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 

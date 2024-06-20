@@ -27,28 +27,9 @@ namespace mini {
      */
     class Minimizer {
         public:
-            /**
-             * @brief Default constructor.
-             */
             Minimizer();
-
-            /**
-             * @brief Constructor.
-             * 
-             * Initialize this minimizer with a function and dimensionality.
-             */
             Minimizer(double(&function)(std::vector<double>));
-
-            /**
-             * @brief Constructor.
-             * 
-             * Initialize this minimizer with a function and dimensionality.
-             */
-            Minimizer(std::function<double(std::vector<double>)> function);
-
-            /**
-             * @brief Destructor.
-             */
+            Minimizer(std::function<double(std::vector<double>)>&& function);
             virtual ~Minimizer();
 
             /**
@@ -59,7 +40,7 @@ namespace mini {
             /**
              * @brief Set the function to be minimized.
              */
-            virtual void set_function(std::function<double(std::vector<double>)> function);
+            virtual void set_function(std::function<double(std::vector<double>)>&& function);
 
             /**
              * @brief Perform the minimization.

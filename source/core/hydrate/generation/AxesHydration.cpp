@@ -11,6 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <math/Vector3.h>
 #include <constants/Constants.h>
 
+#include <cassert>
+
 using namespace data::record;
 
 hydrate::AxesHydration::AxesHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
@@ -25,10 +27,13 @@ hydrate::AxesHydration::~AxesHydration() = default;
 
 void hydrate::AxesHydration::initialize() {
     hydrate::GridBasedHydration::initialize();
-    grid = protein->get_grid();
 }
 
 std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::generate_explicit_hydration() {
+    assert(protein != nullptr && "AxesHydration::generate_explicit_hydration: protein is nullptr.");
+    auto grid = protein->get_grid();
+    assert(grid != nullptr && "AxesHydration::generate_explicit_hydration: grid is nullptr.");
+
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
@@ -101,6 +106,7 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::gener
 
 bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, double ra) const {
     static double rh = constants::radius::get_vdw_radius(constants::atom_t::O); // radius of a water molecule
+    auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     
