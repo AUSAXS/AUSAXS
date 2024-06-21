@@ -130,6 +130,11 @@ namespace em {
             observer_ptr<em::managers::ProteinManager> get_protein_manager() const;
 
             /**
+             * @brief Set the histogram manager.
+             */
+            void set_protein_manager(std::unique_ptr<em::managers::ProteinManager> manager);
+
+            /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.
              * 
              * @param min_val The smallest possible value. Must be positive.

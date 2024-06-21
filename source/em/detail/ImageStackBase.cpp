@@ -224,3 +224,7 @@ observer_ptr<managers::ProteinManager> ImageStackBase::get_protein_manager() con
     assert(phm != nullptr && "ImageStackBase::get_protein_manager: Protein manager is not initialized.");
     return phm.get();
 }
+
+void ImageStackBase::set_protein_manager(std::unique_ptr<em::managers::ProteinManager> manager) {
+    phm = std::move(manager);
+}

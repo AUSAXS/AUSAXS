@@ -272,10 +272,12 @@ void Molecule::generate_new_hydration() {
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
+    assert(phm != nullptr && "Molecule::get_histogram: phm is nullptr.");
     return phm->calculate_all();
 }
 
 std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
+    assert(phm != nullptr && "Molecule::get_total_histogram: phm is nullptr.");
     return phm->calculate();
 }
 
@@ -409,7 +411,10 @@ std::shared_ptr<fitter::Fit> Molecule::fit(const io::ExistingFile& measurement) 
     return fitter.fit();
 }
 
-observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {return phm.get();}
+observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {
+    assert(phm != nullptr && "Molecule::get_histogram_manager: phm is nullptr.");
+    return phm.get();
+}
 
 void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager) {
     phm = std::move(manager);

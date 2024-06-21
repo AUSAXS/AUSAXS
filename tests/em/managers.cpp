@@ -5,6 +5,8 @@
 #include <em/detail/header/MRCHeader.h>
 #include <em/manager/ProteinManagerFactory.h>
 #include <em/manager/ProteinManager.h>
+#include <em/manager/SimpleProteinManager.h>
+#include <em/manager/SmartProteinManager.h>
 #include <em/ImageStack.h>
 #include <em/Image.h>
 #include <data/state/StateManager.h>
@@ -20,6 +22,8 @@
 
 #include <memory>
 #include <iostream>
+
+#include <hist/hist_test_helper.h>
 
 using namespace data;
 
@@ -151,11 +155,9 @@ TEST_CASE("em_partial_histogram_manager") {
             em::Image image(data, header.get(), 0);
             em::ImageStack images({image});
 
-            settings::em::fixed_weights = false;
-            std::shared_ptr<em::managers::ProteinManager> manager1 = em::factory::create_manager(&images);
-            settings::em::fixed_weights = true;
-            std::shared_ptr<em::managers::ProteinManager> manager2 = em::factory::create_manager(&images);
-            manager1->set_charge_levels({2, 4, 6, 8});
+            std::shared_ptr<em::managers::ProteinManager> manager1 = std::make_shared<em::managers::SimpleProteinManager>(&images);
+            std::shared_ptr<em::managers::ProteinManager> manager2 = std::make_shared<em::managers::SmartProteinManager>(&images);
+            manager2->set_charge_levels({2, 4, 6, 8});
 
             // try an arbitrary cutoff level
             REQUIRE(compare(manager1, manager2, 3));
@@ -175,11 +177,8 @@ TEST_CASE("em_partial_histogram_manager") {
 
         SECTION("real example") {
             em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
-
-            settings::em::fixed_weights = false;
-            std::shared_ptr<em::managers::ProteinManager> manager1 = em::factory::create_manager(&images);
-            settings::em::fixed_weights = true;
-            std::shared_ptr<em::managers::ProteinManager> manager2 = em::factory::create_manager(&images);
+            std::shared_ptr<em::managers::ProteinManager> manager1 = std::make_shared<em::managers::SimpleProteinManager>(&images);
+            std::shared_ptr<em::managers::ProteinManager> manager2 = std::make_shared<em::managers::SmartProteinManager>(&images);
 
             REQUIRE(compare(manager1, manager2, 4));
             REQUIRE(compare(manager1, manager2, 3));
@@ -189,4 +188,34 @@ TEST_CASE("em_partial_histogram_manager") {
             REQUIRE(compare(manager1, manager2, 6));
         }
     }
+}
+
+TEST_CASE("SmartProteinManager: consistent_profiles") {
+    settings::general::threads = 6;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
+    em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
+
+    SECTION("pure profile") {
+        for (int alpha = 1; alpha < 10; ++alpha) {
+            hist::ScatteringProfile hist = images.get_histogram(alpha)->debye_transform();
+            for (unsigned int charge_levels = 10; charge_levels < 100; charge_levels+= 10) {
+                settings::em::charge_levels = charge_levels;
+                images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
+                REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels);
+                REQUIRE(compare_hist(hist, images.get_histogram(alpha)->debye_transform()));
+            }
+        }
+    }
+
+    // SECTION("chi2") {
+    //     for (int alpha = 1; alpha < 10; ++alpha) {
+    //         hist::ScatteringProfile hist = images.get_histogram(alpha)->debye_transform();
+    //         for (unsigned int charge_levels = 10; charge_levels < 100; charge_levels+= 10) {
+    //             settings::em::charge_levels = charge_levels;
+    //             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
+    //             REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels);
+    //             auto res = images.fit("tests/files/A2M_native.dat");
+    //         }
+    //     }
+    // }
 }
