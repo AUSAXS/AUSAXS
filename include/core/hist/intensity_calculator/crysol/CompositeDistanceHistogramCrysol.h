@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
-#include <hist/intensity_calculator/crysol/ExvFormFactorCrysol.h>
+#include <hist/intensity_calculator/crysol/FormFactorCrysol.h>
 
 namespace hist {
     /**
@@ -14,7 +14,7 @@ namespace hist {
             ~CompositeDistanceHistogramCrysol() override = default;
 
             const form_factor::storage::atomic::table_t& get_ff_table() const override {
-                return form_factor::storage::atomic::get_precalculated_form_factor_table();
+                return ffaa_table;
             }
 
             const form_factor::storage::cross::table_t& get_ffax_table() const override {
@@ -30,7 +30,8 @@ namespace hist {
         protected:
             double exv_factor(double q) const override;
 
-            form_factor::storage::cross::table_t ffax_table = form_factor::crysol::storage::cross::generate_table();
-            form_factor::storage::exv::table_t ffxx_table = form_factor::crysol::storage::exv::generate_table();
+            form_factor::storage::atomic::table_t ffaa_table = form_factor::crysol::storage::atomic::generate_table();
+            form_factor::storage::cross::table_t ffax_table  = form_factor::crysol::storage::cross::generate_table();
+            form_factor::storage::exv::table_t ffxx_table    = form_factor::crysol::storage::exv::generate_table();
     };
 }

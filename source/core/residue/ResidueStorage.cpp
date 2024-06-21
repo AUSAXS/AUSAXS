@@ -3,7 +3,6 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include "settings/MoleculeSettings.h"
 #include <residue/ResidueStorage.h>
 #include <residue/ResidueMap.h>
 #include <io/ExistingFile.h>
@@ -113,7 +112,7 @@ void ResidueStorage::write_residue(const std::string& name) {
     auto map = get(name);
     file << "#" << "\n" << name << "\n"; // residue header
     for (const auto& [key, val] : map) {
-        file << constants::symbols::write_element_string(key.atom) << " " << key.name << " " << val << "\n";
+        file << constants::symbols::to_string(key.atom) << " " << key.name << " " << val << "\n";
     }
     file << std::endl;
 }

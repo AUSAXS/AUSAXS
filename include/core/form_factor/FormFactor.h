@@ -86,45 +86,28 @@ namespace form_factor {
 
         // average excluded volume
         constexpr FormFactor excluded_volume = FormFactor( constants::form_factor::excluded_volume::a, constants::form_factor::excluded_volume::b, constants::form_factor::excluded_volume::c);
-        // constexpr FormFactor excluded_volume = ExvFormFactor(constants::displaced_volume::avg_vol);
 
         // all others; this is just the form factor of argon
         constexpr FormFactor other           = FormFactor(           constants::form_factor::other::a,           constants::form_factor::other::b,           constants::form_factor::other::c);
 
         constexpr const FormFactor& get_form_factor(form_factor_t type) {
             switch (type) {
-                case form_factor_t::H:
-                    return H;
-                case form_factor_t::C:
-                    return C;
-                case form_factor_t::N:
-                    return N;
-                case form_factor_t::O:
-                    return O;
-                case form_factor_t::S:
-                    return S;
-                case form_factor_t::CH:
-                    return CH_sp3;
-                case form_factor_t::CH2:
-                    return CH2_sp3;
-                case form_factor_t::CH3:
-                    return CH3_sp3;
-                case form_factor_t::NH:
-                    return NH;
-                case form_factor_t::NH2:
-                    return NH2;
-                case form_factor_t::NH3:
-                    return NH3_plus;
-                case form_factor_t::OH:
-                    return OH_alc;
-                case form_factor_t::SH:
-                    return SH;
-                case form_factor_t::OTHER:
-                    return other;
-                case form_factor_t::EXCLUDED_VOLUME:
-                    return excluded_volume;
-                default:
-                    throw std::runtime_error("form_factor::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                case form_factor_t::H:                  return H;
+                case form_factor_t::C:                  return C;
+                case form_factor_t::N:                  return N;
+                case form_factor_t::O:                  return O;
+                case form_factor_t::S:                  return S;
+                case form_factor_t::CH:                 return CH_sp3;
+                case form_factor_t::CH2:                return CH2_sp3;
+                case form_factor_t::CH3:                return CH3_sp3;
+                case form_factor_t::NH:                 return NH2;
+                case form_factor_t::NH2:                return NH2;
+                case form_factor_t::NH3:                return NH3_plus;
+                case form_factor_t::OH:                 return OH_alc;
+                case form_factor_t::SH:                 return SH;
+                case form_factor_t::OTHER:              return other;
+                case form_factor_t::EXCLUDED_VOLUME:    return excluded_volume;
+                default: throw std::runtime_error("form_factor::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }
         }
     }

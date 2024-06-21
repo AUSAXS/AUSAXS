@@ -29,6 +29,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from measurement file.");
     app.add_option("--levelmin", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance and memory load.");
     app.add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
+    app.add_option("--charge-levels", settings::em::charge_levels, "Number of charge levels to use for the EM map.");
     app.add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
     app.add_option("--max-iterations", settings::fit::max_iterations, "Maximum number of iterations to perform. This is only approximate.");
     app.add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Generate a hydration shell for the protein before fitting.");
