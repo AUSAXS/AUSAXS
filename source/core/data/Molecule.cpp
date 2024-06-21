@@ -406,7 +406,7 @@ void Molecule::bind_body_signallers() {
     }
 }
 
-std::shared_ptr<fitter::Fit> Molecule::fit(const io::ExistingFile& measurement) const {
+std::shared_ptr<fitter::FitResult> Molecule::fit(const io::ExistingFile& measurement) const {
     fitter::HydrationFitter fitter(measurement, get_histogram());
     return fitter.fit();
 }

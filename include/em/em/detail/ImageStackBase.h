@@ -4,11 +4,12 @@
 #include <em/detail/EMInternalFwd.h>
 #include <hist/HistFwd.h>
 #include <data/DataFwd.h>
-#include <fitter/FitterFwd.h>
 #include <io/IOFwd.h>
+
+#include <em/detail/EMFit.h>
 #include <utility/observer_ptr.h>
-#include <em/Image.h>
 #include <em/detail/header/MapHeader.h>
+#include <em/Image.h>
 
 #include <vector>
 #include <memory>
@@ -67,7 +68,7 @@ namespace em {
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(const std::shared_ptr<fitter::EMFit> res) const;
+            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(const std::shared_ptr<fitter::EMFitResult> res) const;
 
             /**
              * @brief Get the protein generated with the chosen cutoff value.

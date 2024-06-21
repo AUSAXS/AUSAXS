@@ -5,7 +5,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fitter/HydrationFitter.h>
 #include <fitter/SimpleLeastSquares.h>
-#include <fitter/Fit.h>
 #include <math/CubicSpline.h>
 #include <hist/Histogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -32,7 +31,7 @@ void HydrationFitter::initialize_guess() {
 }
 
 void HydrationFitter::set_algorithm(const mini::type& t) {fit_type = t;}
-std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
+std::shared_ptr<FitResult> HydrationFitter::fit(const mini::type& algorithm) {
     fit_type = algorithm;
     return fit();
 }
@@ -41,7 +40,7 @@ observer_ptr<hist::ICompositeDistanceHistogram> HydrationFitter::cast_h() const 
     return static_cast<hist::ICompositeDistanceHistogram*>(h.get());
 }
 
-std::shared_ptr<Fit> HydrationFitter::fit() {
+std::shared_ptr<FitResult> HydrationFitter::fit() {
     mini::Parameter guess = {"c", 1, cast_h()->get_water_scaling_factor_limits()};
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
@@ -57,13 +56,13 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
     if (I0 > 0) {fit_data.normalize(I0);}
 
     SimpleLeastSquares fitter(fit_data);
-    std::shared_ptr<Fit> ab_fit = fitter.fit();
+    std::shared_ptr<FitResult> ab_fit = fitter.fit();
 
     // update fitter object
-    fitted = std::make_shared<Fit>(res, res.fval, data.size()-1);   // start with the fit performed here
-    fitted->add_fit(std::move(ab_fit));                             // add the a,b inner fit
-    fitted->add_plots(*this);                                       // make the result plottable
-    fitted->evaluated_points = mini->get_evaluated_points();        // add the evaluated points
+    fitted = std::make_shared<FitResult>(res, res.fval, data.size()-1); // start with the fit performed here
+    fitted->add_fit(ab_fit.get());                                      // add the a,b inner fit
+    fitted->add_plots(this);                                            // make the result plottable
+    fitted->evaluated_points = mini->get_evaluated_points();            // add the evaluated points
     return fitted;
 }
 
@@ -86,7 +85,7 @@ double HydrationFitter::fit_chi2_only() {
     return fitter.fit_chi2_only();
 }
 
-FitPlots HydrationFitter::plot() {
+FitResult::FitPlots HydrationFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("HydrationFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
@@ -104,14 +103,14 @@ FitPlots HydrationFitter::plot() {
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    FitPlots graphs;
-    graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
-    graphs.intensity = SimpleDataset(h->get_q_axis(), ym_scaled);
+    FitResult::FitPlots graphs;
+    graphs.fitted_intensity_interpolated = SimpleDataset(data.x(), I_scaled);
+    graphs.fitted_intensity = SimpleDataset(h->get_q_axis(), ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
 
     auto lim = graphs.data.get_xlimits();
     lim.expand(0.05);
-    graphs.intensity.limit_x(lim);
+    graphs.fitted_intensity.limit_x(lim);
     return graphs;
 }
 

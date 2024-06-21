@@ -57,11 +57,9 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
         throw except::out_of_bounds("SmartProteinManager::generate_protein: charge_levels is empty.");
     }
 
-    std::function<bool(double, double)> compare_func = 0 <= cutoff ? [] (double v1, double v2) {return v1 < v2;} : [] (double v1, double v2) {return v1 > v2;};
-
     // sort vector so we can slice it into levels of charge density
-    auto comparator = [&compare_func] (const Atom& atom1, const Atom& atom2) {return compare_func(atom1.tempFactor, atom2.tempFactor);};
-    std::sort(atoms.begin(), atoms.end(), comparator);
+    std::function<bool(double, double)> compare_func = [] (double v1, double v2) {return v1 < v2;};
+    std::sort(atoms.begin(), atoms.end(), [&compare_func] (const Atom& atom1, const Atom& atom2) {return compare_func(atom1.tempFactor, atom2.tempFactor);});
 
     unsigned int charge_index = 0, atom_index = 0, current_index = 0;
     double charge = charge_levels[charge_index]; // initialize charge

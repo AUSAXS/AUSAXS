@@ -32,7 +32,7 @@ void ProteinManager::set_charge_levels(const std::vector<double>& levels) noexce
 
     // make sure the last bin can contain all atoms
     if (std::abs(levels.back()) < 10000) {
-        tmp.push_back(levels.front() < 0 ? -10000 : 10000);
+        tmp.push_back(10000);
     } 
     charge_levels = std::move(tmp);
 }

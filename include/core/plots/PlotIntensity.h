@@ -45,7 +45,7 @@ namespace plots {
 			/**
 			 * @brief Plot the result of a fit. 
 			 */
-			PlotIntensity& plot(observer_ptr<fitter::Fit> fit, const plots::PlotOptions& options);
+			PlotIntensity& plot(observer_ptr<fitter::FitResult> fit, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 

@@ -5,7 +5,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fitter/LinearFitter.h>
 #include <fitter/SimpleLeastSquares.h>
-#include <fitter/FitPlots.h>
 #include <math/CubicSpline.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/Histogram.h>
@@ -43,7 +42,7 @@ double LinearFitter::fit_chi2_only() {
     return chi2({});
 }
 
-std::shared_ptr<Fit> LinearFitter::fit() {
+std::shared_ptr<FitResult> LinearFitter::fit() {
     std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
@@ -53,7 +52,7 @@ std::shared_ptr<Fit> LinearFitter::fit() {
 
     SimpleLeastSquares fitter(fit_data);
     fitted = fitter.fit();
-    fitted->add_plots(*this);
+    fitted->add_plots(this);
 
     return fitted;
 }
@@ -63,7 +62,7 @@ void LinearFitter::normalize_intensity(double new_I0) {
     I0 = new_I0;
 }
 
-FitPlots LinearFitter::plot() {
+FitResult::FitPlots LinearFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
@@ -83,14 +82,14 @@ FitPlots LinearFitter::plot() {
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    FitPlots graphs;
-    graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
-    graphs.intensity = SimpleDataset(h->get_q_axis(), ym_scaled);
+    FitResult::FitPlots graphs;
+    graphs.fitted_intensity_interpolated = SimpleDataset(data.x(), I_scaled);
+    graphs.fitted_intensity = SimpleDataset(h->get_q_axis(), ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
 
     auto lim = graphs.data.get_xlimits();
     lim.expand(0.05);
-    graphs.intensity.limit_x(lim);
+    graphs.fitted_intensity.limit_x(lim);
     return graphs;
 }
 
@@ -155,7 +154,7 @@ unsigned int LinearFitter::dof() const {
     return data.size() - 2;
 }
 
-std::shared_ptr<Fit> LinearFitter::get_fit() const {
+std::shared_ptr<FitResult> LinearFitter::get_fit() const {
     if (fitted == nullptr) {throw except::bad_order("LinearFitter::get_fit: Cannot get the fit results before a fit has been made!");}
     return fitted;
 }

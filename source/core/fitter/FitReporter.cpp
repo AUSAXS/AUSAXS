@@ -13,16 +13,11 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace fitter;
 
-template<FitType T>
-void FitReporter::report(const T& fit) {
-    std::cout << fit.to_string() << std::endl;
+void FitReporter::report(const observer_ptr<FitResult> fit) {
+    std::cout << fit->to_string() << std::endl;
 }
 
-template<FitType T>
-void FitReporter::report(const observer_ptr<T> fit) {report(*fit);}
-
-template<FitType T>
-void FitReporter::report(const std::vector<T>& fits, const std::vector<std::string>& titles) {
+void FitReporter::report(const std::vector<FitResult>& fits, const std::vector<std::string>& titles) {
     if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("FitReporter::report: Size of fits and titles must be equal.");}
 
     auto title_reporter = get_title_reporter(titles);
@@ -32,34 +27,17 @@ void FitReporter::report(const std::vector<T>& fits, const std::vector<std::stri
     }
 }
 
-template<FitType T>
-void FitReporter::save(const T& fit, const io::File& path) {
+void FitReporter::save(const observer_ptr<FitResult> fit, const io::File& path, const std::string& header) {
     path.directory().create();
 
     std::ofstream out(path);
     if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path + "\".");}
-    out << fit.to_string() << std::endl;
-    out.close();
-}
-
-template<FitType T>
-void FitReporter::save(const observer_ptr<T> fit, const io::File& path, const std::string& header) {
-    path.directory().create();
-
-    std::ofstream out(path);
-    if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path + "\".");}
-    out << header << std::endl;
+    if (!header.empty()) {out << header << std::endl;}
     out << fit->to_string() << std::endl;
     out.close();
 }
 
-template<FitType T>
-void FitReporter::save(const observer_ptr<T> fit, const io::File& path) {
-    save(*fit, path);
-}
-
-template<FitType T>
-void FitReporter::save(const std::vector<T>& fits, const io::File& path, const std::vector<std::string>& titles) {
+void FitReporter::save(const std::vector<FitResult>& fits, const io::File& path, const std::vector<std::string>& titles) {
     if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("FitReporter::report: Size of fits and titles must be equal.");}
     path.directory().create();
 
@@ -92,19 +70,3 @@ std::function<std::string(std::string)> FitReporter::get_title_reporter(const st
 
     return title_reporter;
 }
-
-template void FitReporter::report(const Fit&);
-template void FitReporter::report(const observer_ptr<Fit>);
-template void FitReporter::report(const std::vector<Fit>&, const std::vector<std::string>&);
-template void FitReporter::save(const Fit&, const io::File&);
-template void FitReporter::save(const observer_ptr<Fit>, const io::File&);
-template void FitReporter::save(const observer_ptr<Fit>, const io::File&, const std::string&);
-template void FitReporter::save(const std::vector<Fit>&, const io::File&, const std::vector<std::string>&);
-
-template void FitReporter::report(const EMFit&);
-template void FitReporter::report(const observer_ptr<EMFit>);
-template void FitReporter::report(const std::vector<EMFit>&, const std::vector<std::string>&);
-template void FitReporter::save(const EMFit&, const io::File&);
-template void FitReporter::save(const observer_ptr<EMFit>, const io::File&);
-template void FitReporter::save(const observer_ptr<EMFit>, const io::File&, const std::string&);
-template void FitReporter::save(const std::vector<EMFit>&, const io::File&, const std::vector<std::string>&);

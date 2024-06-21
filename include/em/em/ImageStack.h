@@ -2,12 +2,12 @@
 
 #include <em/detail/ImageStackBase.h>
 
+#include <io/IOFwd.h>
 #include <hist/HistFwd.h>
 #include <mini/MiniFwd.h>
-#include <fitter/FitterFwd.h>
-#include <io/IOFwd.h>
 #include <dataset/DatasetFwd.h>
 #include <em/detail/EMInternalFwd.h>
+
 #include <utility/Observable.h>
 
 #include <functional>
@@ -51,14 +51,14 @@ namespace em {
              * @param file Path to the measurement file. 
              * @param param The cutoff parameter.
              */
-            std::unique_ptr<fitter::EMFit> fit(const io::ExistingFile& file, mini::Parameter& param);
+            std::unique_ptr<fitter::EMFitResult> fit(const io::ExistingFile& file, mini::Parameter& param);
 
             /**
              * @brief Fit the cutoff value with the input experimental data file. 
              * 
              * @param file Path to the measurement file. 
              */
-            std::unique_ptr<fitter::EMFit> fit(const io::ExistingFile& file);
+            std::unique_ptr<fitter::EMFitResult> fit(const io::ExistingFile& file);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
@@ -66,14 +66,14 @@ namespace em {
              * @param h The histogram to fit to.  
              * @param param The cutoff parameter.
              */
-            std::unique_ptr<fitter::EMFit> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param);
+            std::unique_ptr<fitter::EMFitResult> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
              * 
              * @param h The histogram to fit to.  
              */
-            std::unique_ptr<fitter::EMFit> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            std::unique_ptr<fitter::EMFitResult> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -123,7 +123,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -133,7 +133,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -143,7 +143,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, const io::ExistingFile& file);
+            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(unsigned int points, const io::ExistingFile& file);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -153,7 +153,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, const io::ExistingFile& file);
+            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(const Axis& points, const io::ExistingFile& file);
 
             /**
              * @brief Get the fitted water scaling factors.
@@ -194,14 +194,14 @@ namespace em {
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::unique_ptr<fitter::EMFit> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter);
+            std::unique_ptr<fitter::EMFitResult> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter);
 
             /**
              * @brief A helper function for the fitting methods. This performs the actual fit. 
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::unique_ptr<fitter::EMFit> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter, mini::Parameter& param);
+            std::unique_ptr<fitter::EMFitResult> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter, mini::Parameter& param);
 
             /**
              * @brief A helper function for the cutoff scanning method.
@@ -217,6 +217,6 @@ namespace em {
              * @param points The range to scan.
              * @param fitter The fitting object.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<fitter::LinearFitter> fitter);
+            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<fitter::LinearFitter> fitter);
     };
 }

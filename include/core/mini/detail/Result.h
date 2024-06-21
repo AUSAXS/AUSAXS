@@ -7,29 +7,9 @@
 
 namespace mini {
     struct Result {
-        /**
-         * @brief Default constructor.
-         */
         Result() noexcept = default;
-
-        /**
-         * @brief Construct a Result. 
-         * 
-         * @param params The fitted parameters.
-         * @param fval The function value.
-         * @param fevals The number of function evaluations.
-         */
         Result(const FittedParameter& param, double fval, unsigned int fevals) noexcept;
-
-        /**
-         * @brief Construct a Result. 
-         * 
-         * @param params The fitted parameters.
-         * @param fval The function value.
-         * @param fevals The number of function evaluations.
-         */
         Result(const std::vector<FittedParameter>& params, double fval, unsigned int fevals) noexcept;
-
         virtual ~Result() = default;
 
         /**

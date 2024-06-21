@@ -20,9 +20,6 @@ namespace fitter {
         public:
             ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
-            /**
-             * @brief Destructor.
-             */
             ~ExcludedVolumeFitter() override = default;
 
             /**
@@ -30,12 +27,12 @@ namespace fitter {
              * 
              * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
              */
-            [[nodiscard]] std::shared_ptr<Fit> fit() override;
+            [[nodiscard]] std::shared_ptr<FitResult> fit() override;
 
             [[nodiscard]] double fit_chi2_only() override;
 
             template<mini::type t>
-            [[nodiscard]] std::shared_ptr<Fit> fit() {
+            [[nodiscard]] std::shared_ptr<FitResult> fit() {
                 fit_type = t;
                 return fit();
             }
@@ -45,7 +42,7 @@ namespace fitter {
              * 
              * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
              */
-            [[nodiscard]] FitPlots plot() override;
+            [[nodiscard]] FitResult::FitPlots plot() override;
 
             /**
              * @brief Make a residual plot of the fit.

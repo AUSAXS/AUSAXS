@@ -288,7 +288,7 @@ namespace data {
 			 * 
 			 * @param measurement Path to the measurement file to be fitted.
 			 */
-			[[nodiscard]] std::shared_ptr<fitter::Fit> fit(const io::ExistingFile& measurement) const;
+			[[nodiscard]] std::shared_ptr<fitter::FitResult> fit(const io::ExistingFile& measurement) const;
 
 			/**
 			 * @brief Get the histogram manager of this molecule.

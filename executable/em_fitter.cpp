@@ -71,8 +71,6 @@ int main(int argc, char const *argv[]) {
 
         std::cout << "Performing EM fit with map \"" << mapfile << "\" and measurement \"" << mfile << "\"" << std::endl;
         em::ImageStack map(mapfile); 
-
-        // Fit the measurements to the EM density map.
         auto res = map.fit(mfile);
 
         std::string cmd_line;
@@ -82,7 +80,7 @@ int main(int argc, char const *argv[]) {
         fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", cmd_line);
 
         res->figures.data.save(settings::general::output + mfile.stem() + ".scat");
-        res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");
+        res->figures.fitted_intensity_interpolated.save(settings::general::output + "fit.fit");
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

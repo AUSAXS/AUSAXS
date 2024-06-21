@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <plots/PlotIntensity.h>
-#include <fitter/Fit.h>
+#include <fitter/FitResult.h>
 #include <fitter/Fitter.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
@@ -58,8 +58,8 @@ PlotIntensity& PlotIntensity::plot(const hist::ScatteringProfile& data, const Pl
     return *this;
 }
 
-PlotIntensity& PlotIntensity::plot(observer_ptr<fitter::Fit> fit, const PlotOptions& options) {
-    return plot(fit->figures.intensity, options);
+PlotIntensity& PlotIntensity::plot(observer_ptr<fitter::FitResult> fit, const PlotOptions& options) {
+    return plot(fit->figures.fitted_intensity, options);
 }
 
 PlotIntensity& PlotIntensity::plot_guinier_approx(observer_ptr<hist::ICompositeDistanceHistogram>) {

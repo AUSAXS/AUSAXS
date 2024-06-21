@@ -45,9 +45,7 @@ namespace fitter {
             HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
-             * @brief Constructor.
-             * 
-             * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
+             * @brief Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
              * 
              * @param model The model histogram. 
              * @param limits The limits on the generated data points. 
@@ -55,18 +53,13 @@ namespace fitter {
             HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model);
 
             /**
-             * @brief Constructor.
-             * 
-             * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
+             * @brief Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
              * 
              * @param model The model histogram. 
              * @param limits The limits on the generated data points. 
              */
             HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model, const Limit& limits);
 
-            /**
-             * @brief Destructor.
-             */
             virtual ~HydrationFitter() override = default;
 
             /**
@@ -74,24 +67,14 @@ namespace fitter {
              * 
              * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
              */
-            [[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
+            [[nodiscard]] virtual std::shared_ptr<FitResult> fit() override;
 
             [[nodiscard]] virtual double fit_chi2_only() override;
 
-            [[nodiscard]] std::shared_ptr<Fit> fit(const mini::type& algorithm);
+            [[nodiscard]] std::shared_ptr<FitResult> fit(const mini::type& algorithm);
 
-            /**
-             * @brief Make a plot of the fit. 
-             * 
-             * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
-             */
-            [[nodiscard]] FitPlots plot() override;
+            [[nodiscard]] FitResult::FitPlots plot() override;
 
-            /**
-             * @brief Make a residual plot of the fit.
-             * 
-             * @return A TGraphErrors with the residuals and their uncertainties. 
-             */
             [[nodiscard]] SimpleDataset plot_residuals() override;
 
             /**

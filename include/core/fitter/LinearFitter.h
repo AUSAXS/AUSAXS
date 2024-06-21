@@ -93,7 +93,7 @@ namespace fitter {
 			 * 
 			 * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
 			 */
-			[[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
+			[[nodiscard]] virtual std::shared_ptr<FitResult> fit() override;
 
 			/**
 			 * @brief Perform the fit.
@@ -102,18 +102,8 @@ namespace fitter {
 			 */
             [[nodiscard]] virtual double fit_chi2_only() override;
 
-			/**
-			 * @brief Make a plot of the fit. 
-			 * 
-			 * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
-			 */
-			[[nodiscard]] virtual FitPlots plot() override;
+			[[nodiscard]] virtual FitResult::FitPlots plot() override;
 
-			/**
-			 * @brief Make a residual plot of the fit.
-			 * 
-			 * @return A TGraphErrors with the residuals and their uncertainties. 
-			 */
 			[[nodiscard]] virtual SimpleDataset plot_residuals() override;
 
 			/**
@@ -144,12 +134,12 @@ namespace fitter {
 			/**
 			 * @brief Get the result of the last fit() call. 
 			 */
-			[[nodiscard]] virtual std::shared_ptr<Fit> get_fit() const override;
+			[[nodiscard]] virtual std::shared_ptr<FitResult> get_fit() const override;
 
 			void operator=(LinearFitter&& other);
 
 		protected: 
-			std::shared_ptr<Fit> fitted; 				// The previous fit result
+			std::shared_ptr<FitResult> fitted; 			// The previous fit result
 			SimpleDataset data;          				// Observed data set
 			double I0 = -1;              				// Normalization intensity
 			std::unique_ptr<hist::DistanceHistogram> h; // The scattering histogram to fit
