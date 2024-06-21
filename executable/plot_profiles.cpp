@@ -30,6 +30,7 @@ int main(int argc, char const *argv[]) {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = true;
     settings::general::threads = 1;
+    settings::grid::min_bins = 20;
 
     SimpleDataset 
         ausaxs_crysol_aa, ausaxs_crysol_xx, 
@@ -74,12 +75,11 @@ int main(int argc, char const *argv[]) {
 
     //### CHECK FOR PRESENCE OF EXTERNAL DATA IN OUTPUT FOLDER ###//
     io::File crysol(settings::general::output + "crysol.dat");
-    io::File crysol_fit(settings::general::output + "crysol.fit");
     io::File foxs(settings::general::output + "foxs.dat");
     io::File pepsi(settings::general::output + "pepsi.dat");
     io::File waxsis(settings::general::output + "waxsresults/waxs_contrib.xvg");
 
-    if (!crysol.exists() || !crysol_fit.exists() || !foxs.exists() || !pepsi.exists() || !waxsis.exists()) {
+    if (!crysol.exists() || !foxs.exists() || !pepsi.exists()) {
         std::cout << "External data not found in output folder. Skipping external comparison." << std::endl;
         return 0;
     }
@@ -106,12 +106,21 @@ int main(int argc, char const *argv[]) {
         foxs_data_aa = SimpleDataset(tmp.x(), tmp.col(1));
         foxs_data_xx = SimpleDataset(tmp.x(), tmp.col(2));
         foxs_data_ww = SimpleDataset(tmp.x(), tmp.col(3));
-    } {
+    } if (waxsis.exists()) {
         auto tmp = detail::XVGReader::construct_multifile(waxsis);
         waxsis_data_aa = *tmp[0];
         waxsis_data_xx = *tmp[1];
         waxsis_data_ww = *tmp[2];
+
+        waxsis_data_aa.normalize();
+        waxsis_data_xx.normalize();
+        waxsis_data_ww.normalize();
     }
+
+    crysol_data_aa.save(settings::general::output + "crysol_aa.dat");
+    foxs_data_aa.save(settings::general::output + "foxs_aa.dat");
+    pepsi_data_aa.save(settings::general::output + "pepsi_aa.dat");
+    ausaxs_aa.save(settings::general::output + "ausaxs_aa.dat");
 
     crysol_data_aa.normalize();
     crysol_data_xx.normalize();
@@ -122,9 +131,6 @@ int main(int argc, char const *argv[]) {
     pepsi_data_aa.normalize();
     pepsi_data_xx.normalize();
     pepsi_data_ww.normalize();
-    waxsis_data_aa.normalize();
-    waxsis_data_xx.normalize();
-    waxsis_data_ww.normalize();
     ausaxs_crysol_aa.normalize();
     ausaxs_crysol_xx.normalize();
     ausaxs_foxs_aa.normalize();
@@ -165,7 +171,7 @@ int main(int argc, char const *argv[]) {
     SimpleDataset crysol_diff_xx = crysol_data_xx, crysol_diff_aa = crysol_data_aa;
     for (size_t i = 0; i < crysol_diff_xx.size(); ++i) {
         crysol_diff_xx.y(i) /= ausaxs_crysol_xx.interpolate_x(crysol_diff_xx.x(i), 1);
-        crysol_diff_aa.y(i) /= ausaxs_crysol_aa.interpolate_x(crysol_diff_aa.x(i), 1);
+        crysol_diff_aa.y(i) /= ausaxs_aa.interpolate_x(crysol_diff_aa.x(i), 1);
     }
 
     SimpleDataset foxs_diff_xx = foxs_data_xx, foxs_diff_aa = foxs_data_aa;
