@@ -29,7 +29,7 @@ LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) 
 
 LoopElement::~LoopElement() = default;
 
-std::shared_ptr<fitter::Fit> LoopElement::execute() {
+std::shared_ptr<fitter::FitResult> LoopElement::execute() {
     return owner->execute(); // propagate upwards to the main Sequencer
 }
 

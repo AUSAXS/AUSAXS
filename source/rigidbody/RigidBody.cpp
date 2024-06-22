@@ -18,7 +18,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/XYZWriter.h>
 #include <fitter/HydrationFitter.h>
 #include <fitter/LinearFitter.h>
-#include <fitter/Fit.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <data/record/Atom.h>
@@ -64,7 +63,7 @@ void RigidBody::set_parameter_manager(std::shared_ptr<rigidbody::parameter::Para
     this->parameter_generator = std::move(parameters);
 }
 
-std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measurement_path) {
+std::shared_ptr<fitter::FitResult> RigidBody::optimize(const io::ExistingFile& measurement_path) {
     generate_new_hydration();
     prepare_fitter(measurement_path);
 
@@ -142,7 +141,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     }
 }
 
-void RigidBody::apply_calibration(std::shared_ptr<fitter::Fit> calibration) {
+void RigidBody::apply_calibration(std::shared_ptr<fitter::FitResult> calibration) {
     if (settings::general::verbose) {std::cout << "\tApplying calibration to rigid body." << std::endl;}
     this->calibration = std::move(calibration);
 }

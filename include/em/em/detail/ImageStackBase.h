@@ -6,10 +6,10 @@
 #include <data/DataFwd.h>
 #include <io/IOFwd.h>
 
-#include <em/detail/EMFit.h>
-#include <utility/observer_ptr.h>
-#include <em/detail/header/MapHeader.h>
 #include <em/Image.h>
+#include <em/detail/EMFitResult.h>
+#include <em/detail/header/MapHeader.h>
+#include <utility/observer_ptr.h>
 
 #include <vector>
 #include <memory>

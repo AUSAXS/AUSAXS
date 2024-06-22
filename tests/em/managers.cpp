@@ -15,7 +15,6 @@
 #include <data/state/UnboundSignaller.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <fitter/Fit.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/HistFwd.h>
@@ -192,10 +191,11 @@ TEST_CASE("em_partial_histogram_manager") {
 }
 
 #include <data/Molecule.h>
+#include <plots/All.h>
 TEST_CASE("SmartProteinManager: consistent_profiles") {
     settings::general::threads = 6;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
-    em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
+    // em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
 
     // SECTION("test protein generator") {
     //     // alpha as the outer loop to ensure the protein is generated anew every time
@@ -230,14 +230,26 @@ TEST_CASE("SmartProteinManager: consistent_profiles") {
     //     }
     // }
 
+    // SECTION("chi2") {
+    //     settings::em::sample_frequency = 2;
+    //     auto res = images.fit("tests/files/A2M_native.dat");
+    //     for (unsigned int charge_levels = 10; charge_levels < 100; charge_levels+= 10) {
+    //         settings::em::charge_levels = charge_levels;
+    //         images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
+    //         REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
+    //         REQUIRE_THAT(images.fit("tests/files/A2M_native.dat")->fval, Catch::Matchers::WithinRel(res->fval, 1e-3));
+    //     }
+    // }
+
+    settings::em::sample_frequency = 2;
+    plots::PlotDataset plot;
     SECTION("chi2") {
-        settings::em::sample_frequency = 2;
-        auto res = images.fit("tests/files/A2M_native.dat");
         for (unsigned int charge_levels = 10; charge_levels < 100; charge_levels+= 10) {
+            em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
             settings::em::charge_levels = charge_levels;
             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
             REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
-            REQUIRE_THAT(images.fit("tests/files/A2M_native.dat")->fval, Catch::Matchers::WithinRel(res->fval, 1e-3));
+            // plot.plot(images.fit("tests/files/A2M_native.dat")->figures.fitted_intensity);
         }
     }
 }

@@ -12,5 +12,7 @@ namespace fitter {
 
             double level = 0;
             double mass = 0;
+
+            struct EMFitPlots {SimpleDataset chi2_full, chi2_limited, chi2_minimum, mass_full, mass_limited, mass_minimum;} em_plots;
     };
 }

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <em/manager/ProteinManager.h>
 #include <data/DataFwd.h>
 #include <hist/HistFwd.h>
+
+#include <em/manager/ProteinManager.h>
 #include <utility/observer_ptr.h>
 
 #include <vector>

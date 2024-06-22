@@ -14,7 +14,7 @@ namespace rigidbody {
                 Sequencer(const io::ExistingFile& saxs);
                 ~Sequencer();
 
-                std::shared_ptr<fitter::Fit> execute() override;
+                std::shared_ptr<fitter::FitResult> execute() override;
 
                 observer_ptr<RigidBody>& _get_rigidbody();
                 observer_ptr<RigidBody> _get_rigidbody() const override;

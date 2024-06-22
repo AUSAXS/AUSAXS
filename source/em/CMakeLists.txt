@@ -6,7 +6,7 @@ add_library(ausaxs_em OBJECT
 	"ObjectBounds3D.cpp"
 
 	"detail/ImageStackBase.cpp"
-	"detail/EMFit.cpp"
+	"detail/EMFitResult.cpp"
 	"detail/header/DummyHeader.cpp"
 	"detail/header/HeaderFactory.cpp"
 	"detail/header/MapHeader.cpp"
