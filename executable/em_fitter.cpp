@@ -1,9 +1,9 @@
-#include "utility/Console.h"
 #include <CLI/CLI.hpp>
 
 #include <plots/All.h>
 #include <em/ImageStack.h>
 #include <utility/Utility.h>
+#include <utility/Console.h>
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <constants/Constants.h>
@@ -79,8 +79,8 @@ int main(int argc, char const *argv[]) {
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", cmd_line);
 
-        res->figures.data.save(settings::general::output + mfile.stem() + ".scat");
-        res->figures.fitted_intensity_interpolated.save(settings::general::output + "fit.fit");
+        res->info.dataset.save(settings::general::output + mfile.stem() + ".scat");
+        res->info.fitted_intensity_interpolated.save(settings::general::output + "fit.fit");
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

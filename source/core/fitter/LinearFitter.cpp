@@ -62,7 +62,7 @@ void LinearFitter::normalize_intensity(double new_I0) {
     I0 = new_I0;
 }
 
-FitResult::FitPlots LinearFitter::plot() {
+FitResult::FitInfo LinearFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
@@ -82,12 +82,12 @@ FitResult::FitPlots LinearFitter::plot() {
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    FitResult::FitPlots graphs;
+    FitResult::FitInfo graphs;
     graphs.fitted_intensity_interpolated = SimpleDataset(data.x(), I_scaled);
     graphs.fitted_intensity = SimpleDataset(h->get_q_axis(), ym_scaled);
-    graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
+    graphs.dataset = SimpleDataset(data.x(), data.y(), data.yerr());
 
-    auto lim = graphs.data.get_xlimits();
+    auto lim = graphs.dataset.get_xlimits();
     lim.expand(0.05);
     graphs.fitted_intensity.limit_x(lim);
     return graphs;

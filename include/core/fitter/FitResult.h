@@ -38,7 +38,7 @@ namespace fitter {
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
             mini::Landscape evaluated_points;
-            struct FitPlots {SimpleDataset data, fitted_intensity, fitted_intensity_interpolated;} figures;
+            struct FitInfo {SimpleDataset dataset, fitted_intensity, fitted_intensity_interpolated;} info;
             SimpleDataset residuals;
             unsigned int dof;
     };

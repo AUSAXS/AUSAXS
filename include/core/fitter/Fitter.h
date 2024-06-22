@@ -26,7 +26,7 @@ namespace fitter {
             /**
              * @brief Plot the fitted function and the measured data points.
              */
-            [[nodiscard]] virtual FitResult::FitPlots plot() = 0;
+            [[nodiscard]] virtual FitResult::FitInfo plot() = 0;
 
             /**
              * @brief Make a residual plot of the fit.

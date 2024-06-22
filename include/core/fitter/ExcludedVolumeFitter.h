@@ -42,7 +42,7 @@ namespace fitter {
              * 
              * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
              */
-            [[nodiscard]] FitResult::FitPlots plot() override;
+            [[nodiscard]] FitResult::FitInfo plot() override;
 
             /**
              * @brief Make a residual plot of the fit.

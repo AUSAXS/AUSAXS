@@ -44,6 +44,6 @@ namespace plots {
 			static void quick_plot(observer_ptr<fitter::FitResult> fit, const io::File& path);
 
 		private:
-			void plot(const fitter::FitResult::FitPlots& graphs);
+			void plot(const fitter::FitResult::FitInfo& graphs);
 	};
 }

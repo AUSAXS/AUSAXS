@@ -68,7 +68,7 @@ double SimpleLeastSquares::chi2(const std::vector<double>&) {
     return chi;
 }
 
-FitResult::FitPlots SimpleLeastSquares::plot() {
+FitResult::FitInfo SimpleLeastSquares::plot() {
     throw except::unexpected("SimpleLeastSquares::plot: Not implemented yet. ");
 }
 

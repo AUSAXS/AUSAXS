@@ -87,7 +87,7 @@ double ExcludedVolumeFitter::fit_chi2_only() {
     return fitter.fit_chi2_only();
 }
 
-FitResult::FitPlots ExcludedVolumeFitter::plot() {
+FitResult::FitInfo ExcludedVolumeFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("ExcludedVolumeFitter::plot: Cannot plot before a fit has been made!");}
     update_excluded_volume(fitted->get_parameter("d").value);
     return HydrationFitter::plot();

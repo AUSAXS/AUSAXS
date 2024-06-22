@@ -73,7 +73,7 @@ namespace fitter {
 
             [[nodiscard]] std::shared_ptr<FitResult> fit(const mini::type& algorithm);
 
-            [[nodiscard]] FitResult::FitPlots plot() override;
+            [[nodiscard]] FitResult::FitInfo plot() override;
 
             [[nodiscard]] SimpleDataset plot_residuals() override;
 

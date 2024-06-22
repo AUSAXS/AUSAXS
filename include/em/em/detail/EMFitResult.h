@@ -13,6 +13,10 @@ namespace fitter {
             double level = 0;
             double mass = 0;
 
-            struct EMFitPlots {SimpleDataset chi2_full, chi2_limited, chi2_minimum, mass_full, mass_limited, mass_minimum;} em_plots;
+            struct EMFitInfo {
+                SimpleDataset chi2_full, chi2_limited, chi2_minimum;
+                SimpleDataset mass_full, mass_limited, mass_minimum;
+                SimpleDataset water_factors, volume;
+            } em_info;
     };
 }

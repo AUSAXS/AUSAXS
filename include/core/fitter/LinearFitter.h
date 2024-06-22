@@ -102,7 +102,7 @@ namespace fitter {
 			 */
             [[nodiscard]] virtual double fit_chi2_only() override;
 
-			[[nodiscard]] virtual FitResult::FitPlots plot() override;
+			[[nodiscard]] virtual FitResult::FitInfo plot() override;
 
 			[[nodiscard]] virtual SimpleDataset plot_residuals() override;
 

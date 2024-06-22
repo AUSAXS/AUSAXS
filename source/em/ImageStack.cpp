@@ -89,6 +89,8 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
                                 << ", " << std::left << std::setw(8) << get_mass(param.bounds->max) << "] kDa will be scanned." << std::endl;
     }
 
+    EMFitResult::EMFitInfo plots;
+
     //##########################################################//
     //###                DETERMINE LANDSCAPE                 ###//
     //##########################################################//
@@ -226,6 +228,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
                 avg_copy.x(i) = to_level(avg_copy.x(i));
                 avg_copy.y(i) /= dof;
             }
+            plots.chi2_limited = chi2_copy;
 
             // prepare rest of the plot
             plots::PlotDataset plot(avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi_r^2$"}}));
@@ -246,6 +249,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
                     }
                     mass_p_min.push_back(data_avg_int.col("mass")[m], data_avg_int.col("chi2")[m]/dof);
                 }
+                plots.mass_limited = mass_avg_copy;
 
                 // make the plot
                 plots::PlotDataset plot_mass(mass_avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}));
@@ -255,8 +259,9 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
             }
 
             if (settings::em::hydrate) {
+                plots.water_factors = get_fitted_water_factors_dataset();
                 plots::PlotDataset::quick_plot(
-                    get_fitted_water_factors_dataset(),
+                    plots.water_factors,
                     plots::PlotOptions(style::draw::points, {{"xlabel", "Iteration"}, {"ylabel", "Scaling factor"}}),
                     settings::general::output + "water_factors." + settings::plots::format
                 );
@@ -271,6 +276,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
                     l.x(i) = to_level(l.x(i));
                     l.y(i) /= dof;
                 }
+                plots.chi2_full = l;
 
                 plots::PlotDataset::quick_plot(
                     l, 
@@ -286,6 +292,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
                     volume_data.y(i) = this->evals[i].mass;
                 }
                 volume_data.sort_x();
+                plots.volume = volume_data;
 
                 plots::PlotDataset::quick_plot(
                     volume_data, 
@@ -337,6 +344,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min_abs.x, min_abs.y/dof);
+            plots.chi2_minimum = explored_points;
 
             // do the actual plotting
             plots::PlotDataset(explored_points, plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi_r^2$"}}))
@@ -360,6 +368,8 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
 
                 // interpolate start point
                 p_start.x(0) = mass_cutoff.interpolate_x(p_start.x(0), 1);
+
+                plots.mass_minimum = explored_points;
 
                 // make the plot
                 plots::PlotDataset(explored_points, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}))
@@ -400,6 +410,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
     func({min_abs.x});
 
     std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(fitter.get(), res, res.fval);
+    emfit->em_info = plots;
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min_abs.x);
@@ -439,6 +450,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
             // pointer cast is ok since the type should always be HydrationFitter when hydration is enabled
             std::static_pointer_cast<HydrationFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}});
+            std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN);
             fitter->set_scattering_hist(p->get_histogram());
 
             auto mass = p->get_excluded_volume_mass()/1e3;      // mass in kDa

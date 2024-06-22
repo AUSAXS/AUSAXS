@@ -85,7 +85,7 @@ double HydrationFitter::fit_chi2_only() {
     return fitter.fit_chi2_only();
 }
 
-FitResult::FitPlots HydrationFitter::plot() {
+FitResult::FitInfo HydrationFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("HydrationFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
@@ -102,13 +102,12 @@ FitResult::FitPlots HydrationFitter::plot() {
     std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
-    // prepare the TGraphs
-    FitResult::FitPlots graphs;
+    FitResult::FitInfo graphs;
     graphs.fitted_intensity_interpolated = SimpleDataset(data.x(), I_scaled);
     graphs.fitted_intensity = SimpleDataset(h->get_q_axis(), ym_scaled);
-    graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
+    graphs.dataset = SimpleDataset(data.x(), data.y(), data.yerr());
 
-    auto lim = graphs.data.get_xlimits();
+    auto lim = graphs.dataset.get_xlimits();
     lim.expand(0.05);
     graphs.fitted_intensity.limit_x(lim);
     return graphs;
@@ -131,7 +130,6 @@ SimpleDataset HydrationFitter::plot_residuals() {
         residuals[i] = ((data.y(i) - (a*Im[i]+b))/data.yerr(i));
     }
 
-    // prepare the TGraph
     std::vector<double> xerr(data.size(), 0);
     return Dataset2D(data.x(), std::move(residuals), std::move(xerr), data.yerr());
 }

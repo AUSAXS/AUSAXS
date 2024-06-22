@@ -25,7 +25,7 @@ FitResult::FitResult(const mini::Result& res, double chi2, unsigned int dof) noe
 }
 
 void FitResult::add_plots(observer_ptr<Fitter> fitter) {
-    figures = fitter->plot();
+    info = fitter->plot();
     residuals = fitter->plot_residuals();
 }
 

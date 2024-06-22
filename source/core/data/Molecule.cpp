@@ -269,6 +269,7 @@ void Molecule::generate_new_hydration() {
         hydration_strategy = hydrate::factory::construct_hydration_generator(this);
     }
     hydration = hydration_strategy->hydrate();
+    phm->signal_modified_hydration_layer();
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
