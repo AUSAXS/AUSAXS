@@ -50,7 +50,7 @@ namespace hist {
         protected:
             double exv_factor(double q) const override;
             form_factor::storage::atomic::table_t ff_aa_table = form_factor::foxs::storage::atomic::generate_table();
-            form_factor::storage::cross::table_t ff_ax_table = form_factor::foxs::storage::cross::generate_table();
-            form_factor::storage::exv::table_t ff_xx_table = form_factor::foxs::storage::exv::generate_table();
+            form_factor::storage::cross::table_t ff_ax_table  = form_factor::foxs::storage::cross::generate_table();
+            form_factor::storage::exv::table_t ff_xx_table    = form_factor::foxs::storage::exv::generate_table();
     };
 }

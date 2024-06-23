@@ -1,11 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
+#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
+#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
+#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
+#include <form_factor/FormFactor.h>
 #include <dataset/SimpleDataset.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -15,12 +20,42 @@
 #include <utility/Utility.h>
 #include <constants/Constants.h>
 #include <settings/All.h>
+#include <plots/All.h>
 
 #include "hist/hist_test_helper.h"
 
 using namespace data::record;
 using namespace data;
 
+// calculate the exact aa profile assuming all atoms are carbon
+auto exact_aa_carbon = [] (const data::Molecule& molecule) {
+    container::Container2D<double> distances(molecule.get_atoms().size(), molecule.get_atoms().size());
+    auto atoms = molecule.get_atoms();
+    for (unsigned int i = 0; i < atoms.size(); ++i) {
+        for (unsigned int j = 0; j < atoms.size(); ++j) {
+            distances(i, j) = atoms[i].distance(atoms[j]);
+        }
+    }
+
+    auto qaxis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    auto q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+    hist::ScatteringProfile I(qaxis);
+    for (unsigned int q = q0; q < q0+qaxis.bins; ++q) {
+        double sum = 0;
+        for (unsigned int i = 0; i < atoms.size(); ++i) {
+            for (unsigned int j = 0; j < atoms.size(); ++j) {
+                double qd = constants::axes::q_vals[q]*distances(i, j);
+                if (qd < 1e-6) {
+                    sum += 1;
+                } else {
+                    sum += std::sin(qd)/(qd);
+                }
+            }
+        }
+        I.index(q-q0) = sum;
+    }
+    return I;
+};
 
 hist::CompositeDistanceHistogram generate_random(unsigned int size) {
     hist::Distribution1D p_pp(size), p_hp(size), p_hh(size), p(size);
@@ -78,8 +113,9 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
     }
 }
 
-TEST_CASE("CompositeDistanceHistogram::debye_transform") {
+TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
     settings::general::warnings = true;
+    settings::general::verbose = false;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     auto d = SimpleCube::d;
@@ -233,6 +269,80 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform") {
             {
                 auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
                 REQUIRE(compare_hist(Iq_exp, Iq.y()));
+            }
+        }
+    }
+
+    SECTION("analytical") {
+        auto data = GENERATE(
+            "2epe",
+            "6lyz",
+            "c60",
+            "diamond",
+            "LAR1-2"
+        );
+
+        SECTION("real data (" + std::string(data) + ")") {
+            data::Molecule protein("tests/files/" + std::string(data) + ".pdb");
+            protein.clear_hydration();
+            for (auto& body : protein.get_bodies()) {
+                for (auto& atom : body.get_atoms()) {
+                    atom.set_element(constants::atom_t::C);
+                    atom.set_residue_name("UNK");
+                    atom.set_group_name("C");
+                    atom.set_effective_charge(1);
+                }
+            }
+
+            auto exact = exact_aa_carbon(protein);
+            auto ff = form_factor::storage::atomic::C;
+            { // hm
+                auto hm = hist::HistogramManager<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm.get_axis().as_vector();
+                std::transform(hm.get_counts().begin(), hm.get_counts().end(), axis.begin(), hm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, hm, 0, 1e-2)); // 1% error allowed
+            }
+            { // hm_mt
+                auto hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm_mt.get_axis().as_vector();
+                std::transform(hm_mt.get_counts().begin(), hm_mt.get_counts().end(), axis.begin(), hm_mt.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, hm_mt, 0, 1e-2));
+            }
+            { // hm_mt_ff_avg
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm_mt_ff_avg.get_axis().as_vector();
+                std::transform(hm_mt_ff_avg.get_counts().begin(), hm_mt_ff_avg.get_counts().end(), axis.begin(), hm_mt_ff_avg.get_counts().begin(), 
+                    [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
+                );
+                REQUIRE(compare_hist(exact, hm_mt_ff_avg, 0, 1e-2));
+            }
+            { // hm_mt_ff_explicit
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm_mt_ff_explicit.get_axis().as_vector();
+                std::transform(hm_mt_ff_explicit.get_counts().begin(), hm_mt_ff_explicit.get_counts().end(), axis.begin(), hm_mt_ff_explicit.get_counts().begin(), 
+                    [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
+                );
+                REQUIRE(compare_hist(exact, hm_mt_ff_explicit, 0, 1e-2));
+            }
+            { // hm_mt_ff_grid
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm_mt_ff_grid.get_axis().as_vector();
+                std::transform(hm_mt_ff_grid.get_counts().begin(), hm_mt_ff_grid.get_counts().end(), axis.begin(), hm_mt_ff_grid.get_counts().begin(), 
+                    [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
+                );
+                REQUIRE(compare_hist(exact, hm_mt_ff_grid, 0, 1e-2));
+            }
+            { // phm
+                auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = phm.get_axis().as_vector();
+                std::transform(phm.get_counts().begin(), phm.get_counts().end(), axis.begin(), phm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, phm, 0, 1e-2));
+            }
+            { // phm_mt
+                auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = phm_mt.get_axis().as_vector();
+                std::transform(phm_mt.get_counts().begin(), phm_mt.get_counts().end(), axis.begin(), phm_mt.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, phm_mt, 0, 1e-2));
             }
         }
     }
