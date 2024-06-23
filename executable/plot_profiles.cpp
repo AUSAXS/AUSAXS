@@ -26,6 +26,7 @@ auto exact_aa_debye = [] (const data::Molecule& molecule) {
         }
     }
 
+    auto ff = form_factor::storage::atomic::C;
     auto qaxis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     auto q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
     hist::ScatteringProfile I(qaxis);
@@ -41,7 +42,7 @@ auto exact_aa_debye = [] (const data::Molecule& molecule) {
                 }
             }
         }
-        I.index(q-q0) = sum;
+        I.index(q-q0) = sum*std::pow(ff.evaluate(constants::axes::q_vals[q]), 2);
     }
     return I;
 };
