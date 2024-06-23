@@ -2,10 +2,13 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <em/manager/SimpleProteinManager.h>
 #include <em/manager/SmartProteinManager.h>
 #include <em/ImageStack.h>
 #include <data/Molecule.h>
-#include <settings/HistogramSettings.h>
+#include <settings/All.h>
+
+#include <hist/hist_test_helper.h>
 
 struct fixture {
     fixture() {
@@ -41,4 +44,68 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein") {
 
 TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram") {
     CHECK(manager->get_histogram(1)->get_total_counts() == manager->get_protein(1)->get_histogram()->get_total_counts());
+}
+
+TEST_CASE("SmartProteinManager::generate_protein") {
+    settings::general::threads = 6;
+    settings::em::sample_frequency = 2;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+
+    // alpha as the outer loop to ensure the protein is generated anew every time
+    em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
+    for (int alpha = 5; alpha < 24; ++alpha) {
+        images.set_protein_manager(std::make_unique<em::managers::SimpleProteinManager>(&images));
+        hist::ScatteringProfile hist = images.get_histogram(alpha)->debye_transform();
+        for (unsigned int charge_levels = 10; charge_levels < 100; charge_levels += 10) {
+            settings::em::charge_levels = charge_levels;
+            images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
+            REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
+            REQUIRE(compare_hist(hist, images.get_histogram(alpha)->debye_transform()));
+            std::cout << "alpha: " << alpha << ", charge_levels: " << charge_levels << std::endl;
+        }
+    }
+}
+
+TEST_CASE("SmartProteinManager::update_protein") {
+    settings::general::threads = 6;
+    settings::em::sample_frequency = 2;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+
+    // alpha as the inner loop to check the protein update functionality 
+    int alpha_min = 5, alpha_max = 24;
+    em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
+    std::unordered_map<double, hist::ScatteringProfile> hists;
+    images.set_protein_manager(std::make_unique<em::managers::SimpleProteinManager>(&images));
+    for (int alpha = alpha_min; alpha < alpha_max; ++alpha) {
+        hists[alpha] = images.get_histogram(alpha)->debye_transform();
+    }
+
+    for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels += 10) {
+        for (int alpha = alpha_min; alpha < alpha_max; ++alpha) {
+            settings::em::charge_levels = charge_levels;
+            images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
+            REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
+            REQUIRE(compare_hist(hists.at(alpha), images.get_histogram(alpha)->debye_transform()));
+            std::cout << "alpha: " << alpha << ", charge_levels: " << charge_levels << std::endl;
+        }
+    }
+}
+
+TEST_CASE("SmartProteinManager: consistency") {
+    settings::general::threads = 6;
+    settings::em::sample_frequency = 2;
+    settings::em::alpha_levels = {6, 8};
+    settings::em::save_pdb = false;
+    settings::general::supplementary_plots = false;
+    settings::fit::max_iterations = 20;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+
+    em::ImageStack images("data/emd_24889/emd_24889.map");
+    auto res = images.fit("data/SASDJG5/SASDJG5.dat");
+    for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels+= 10) {
+        settings::em::charge_levels = charge_levels;
+        images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
+        REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
+        REQUIRE_THAT(images.fit("data/SASDJG5/SASDJG5.dat")->fval, Catch::Matchers::WithinRel(res->fval, 1e-3));
+    }
 }

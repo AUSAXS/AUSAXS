@@ -190,77 +190,26 @@ TEST_CASE("em_partial_histogram_manager") {
     }
 }
 
-#include <data/Molecule.h>
-#include <plots/All.h>
-TEST_CASE("SmartProteinManager: consistent_profiles") {
-    settings::general::threads = 6;
-    settings::em::sample_frequency = 2;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+// #include <data/Molecule.h>
+// #include <plots/All.h>
+// TEST_CASE("SmartProteinManager: consistent_profiles") {
+//     settings::general::threads = 6;
+//     settings::em::sample_frequency = 2;
+//     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+//     settings::em::sample_frequency = 2;
+//     plots::PlotDataset comparison, waters;
+//     for (unsigned int charge_levels = 25; charge_levels <= 100; charge_levels += 25) {
+//         settings::em::charge_levels = charge_levels;
+//         // em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
+//         em::ImageStack images("data/emd_24889/emd_24889.map");
+//         images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
+//         REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
 
-    // SECTION("test protein generator") {
-    //     // alpha as the outer loop to ensure the protein is generated anew every time
-    //     em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
-    //     for (int alpha = 5; alpha < 24; ++alpha) {
-    //         images.set_protein_manager(std::make_unique<em::managers::SimpleProteinManager>(&images));
-    //         hist::ScatteringProfile hist = images.get_histogram(alpha)->debye_transform();
-    //         for (unsigned int charge_levels = 10; charge_levels < 100; charge_levels += 10) {
-    //             settings::em::charge_levels = charge_levels;
-    //             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
-    //             REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
-    //             REQUIRE(compare_hist(hist, images.get_histogram(alpha)->debye_transform()));
-    //             std::cout << "alpha: " << alpha << ", charge_levels: " << charge_levels << std::endl;
-    //         }
-    //     }
-    // }
-
-    // SECTION("test protein updater") {
-    //     // alpha as the inner loop to check the protein update functionality 
-    //     int alpha_min = 5, alpha_max = 24;
-    //     em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
-    //     std::unordered_map<double, hist::ScatteringProfile> hists;
-    //     images.set_protein_manager(std::make_unique<em::managers::SimpleProteinManager>(&images));
-    //     for (int alpha = alpha_min; alpha < alpha_max; ++alpha) {
-    //         hists[alpha] = images.get_histogram(alpha)->debye_transform();
-    //     }
-
-    //     for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels += 10) {
-    //         for (int alpha = alpha_min; alpha < alpha_max; ++alpha) {
-    //             settings::em::charge_levels = charge_levels;
-    //             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
-    //             REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
-    //             REQUIRE(compare_hist(hists.at(alpha), images.get_histogram(alpha)->debye_transform()));
-    //             std::cout << "alpha: " << alpha << ", charge_levels: " << charge_levels << std::endl;
-    //         }
-    //     }
-    // }
-
-    SECTION("chi2") {
-        em::ImageStack images("data/emd_24889/emd_24889.map");
-        auto res = images.fit("data/SASDJG5/SASDJG5.dat");
-        for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels+= 10) {
-            settings::em::charge_levels = charge_levels;
-            images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
-            REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
-            REQUIRE_THAT(images.fit("data/SASDJG5/SASDJG5.dat")->fval, Catch::Matchers::WithinRel(res->fval, 1e-3));
-        }
-    }
-
-    // SECTION("chi2") {
-    //     settings::em::sample_frequency = 2;
-    //     plots::PlotDataset comparison, waters;
-    //     for (unsigned int charge_levels = 25; charge_levels <= 100; charge_levels += 25) {
-    //         settings::em::charge_levels = charge_levels;
-    //         // em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
-    //         em::ImageStack images("data/emd_24889/emd_24889.map");
-    //         images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
-    //         REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
-
-    //         // auto res = images.fit("tests/files/A2M_native.dat");
-    //         auto res = images.fit("data/SASDJG5/SASDJG5.dat");
-    //         comparison.plot(res->em_data.chi2_full, plots::PlotOptions({{"color", style::color::next()}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}}));
-    //         waters.plot(res->em_data.water_factors, plots::PlotOptions({{"color", style::color::next()}, {"xlabel", "cutoff"}, {"ylabel", "water factor"}}));
-    //     }
-    //     comparison.save("temp/tests/em/managers/chi2_consistency.png");
-    //     waters.save("temp/tests/em/managers/water_consistency.png");
-    // }
-}
+//         // auto res = images.fit("tests/files/A2M_native.dat");
+//         auto res = images.fit("data/SASDJG5/SASDJG5.dat");
+//         comparison.plot(res->em_info.chi2_full, plots::PlotOptions({{"color", style::color::next()}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}}));
+//         waters.plot(res->em_info.water_factors, plots::PlotOptions({{"color", style::color::next()}, {"xlabel", "cutoff"}, {"ylabel", "water factor"}}));
+//     }
+//     comparison.save("temp/tests/em/managers/chi2_consistency.png");
+//     waters.save("temp/tests/em/managers/water_consistency.png");
+// }
