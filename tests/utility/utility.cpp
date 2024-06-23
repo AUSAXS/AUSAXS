@@ -45,17 +45,17 @@ TEST_CASE("plots", "[manual]") {
         std::vector<double> y2 = {11,    10.5,  10,    9.5,   8.5,  7.4,  5.6, 3.3, 2.2, 2};
         std::vector<double> y2err = {0.5, 0.5,  0.5,   0.5,   0.5,  0.5,  0.5, 0.5, 0.5, 0.5};
 
-        std::shared_ptr<fitter::Fit> fit = std::make_shared<fitter::Fit>();
-        fit->figures.data = SimpleDataset(x, y1, y2err);
-        fit->figures.intensity = SimpleDataset(x, y2);
-        fit->figures.intensity_interpolated = SimpleDataset(x, y2);
+        auto fit = std::make_shared<fitter::FitResult>();
+        fit->info.dataset = SimpleDataset(x, y1, y2err);
+        fit->info.fitted_intensity = SimpleDataset(x, y2);
+        fit->info.fitted_intensity_interpolated = SimpleDataset(x, y2);
 
         plots::PlotIntensityFit::quick_plot(fit.get(), settings::general::output + "test/utility/plots/intensityfit.png");
     }
 }
 
 TEST_CASE("fitreporter", "[manual]") {
-    fitter::Fit fit;
+    fitter::FitResult fit;
     fit.status = true;
     fit.fevals = 100;
     fit.fval = 1000;
@@ -64,22 +64,22 @@ TEST_CASE("fitreporter", "[manual]") {
 
     SECTION("Single") {
         SECTION("Terminal printing") {
-            fitter::FitReporter::report(fit);
+            fitter::FitReporter::report(&fit);
         }
         SECTION("File printing") {
-            fitter::FitReporter::save(fit, "temp/fitreport1.txt");
+            fitter::FitReporter::save(&fit, "temp/fitreport1.txt");
         }
     }
 
     SECTION("Multi") {
-        fitter::Fit fit2;
+        fitter::FitResult fit2;
         fit.status = false;
         fit2.fevals = 20;
         fit2.fval = 200;
         fit2.dof = 6;
         fit2.parameters = {{"a", 1, 0.1}, {"b", 0.5, 0.3}, {"c", 8, 0.6}};
 
-        std::vector<fitter::Fit> fits = {fit, fit2};
+        std::vector<fitter::FitResult> fits = {fit, fit2};
         std::vector<std::string> titles = {"First fit", "Second fit"};
 
         SECTION("Terminal printing") {

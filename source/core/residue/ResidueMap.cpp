@@ -10,7 +10,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/MoleculeSettings.h>
 
 #include <string>
-#include <iostream>
 
 using namespace residue::detail;
 
@@ -40,7 +39,7 @@ double ResidueMap::get(const AtomKey& key) {
     if (average.contains(key.atom)) {
         return average.at(key.atom);
     } else {
-        throw except::map_error("SimpleResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::write_element_string(key.atom) + " is available.");
+        throw except::map_error("SimpleResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available.");
     }
 }
 

@@ -4,7 +4,6 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <fitter/ExcludedVolumeFitter.h>
-#include <fitter/Fit.h>
 #include <fitter/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
 #include <hist/Histogram.h>
@@ -39,7 +38,7 @@ void ExcludedVolumeFitter::initialize_guess() {
     guess_exv = mini::Parameter{"d", lim.min < 1 && 1 < lim.max ? 1 : lim.center(), lim};
 }
 
-std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
+std::shared_ptr<FitResult> ExcludedVolumeFitter::fit() {
     fit_type = mini::type::DEFAULT;
     settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
@@ -56,13 +55,13 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     if (I0 > 0) {fit_data.normalize(I0);}
 
     SimpleLeastSquares fitter(fit_data);
-    std::shared_ptr<Fit> ab_fit = fitter.fit();
+    std::shared_ptr<FitResult> ab_fit = fitter.fit();
 
     // update fitter object
-    fitted = std::make_shared<Fit>(res, res.fval, data.size()-2); // start with the fit performed here
-    fitted->add_fit(std::move(ab_fit));                           // add the a,b inner fit
-    fitted->add_plots(*this);                                     // make the result plottable
-    fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
+    fitted = std::make_shared<FitResult>(res, res.fval, data.size()-2); // start with the fit performed here
+    fitted->add_fit(ab_fit.get());                                      // add the a,b inner fit
+    fitted->add_plots(this);                                            // make the result plottable
+    fitted->evaluated_points = mini->get_evaluated_points();            // add the evaluated points
 
     settings::general::verbose = true;
     return fitted;
@@ -88,7 +87,7 @@ double ExcludedVolumeFitter::fit_chi2_only() {
     return fitter.fit_chi2_only();
 }
 
-FitPlots ExcludedVolumeFitter::plot() {
+FitResult::FitInfo ExcludedVolumeFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("ExcludedVolumeFitter::plot: Cannot plot before a fit has been made!");}
     update_excluded_volume(fitted->get_parameter("d").value);
     return HydrationFitter::plot();

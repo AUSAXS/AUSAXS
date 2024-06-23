@@ -1,7 +1,7 @@
 #pragma once
 
-#include <fitter/FitterFwd.h>
 #include <plots/Plot.h>
+#include <fitter/FitResult.h>
 #include <utility/observer_ptr.h>
 
 namespace plots {
@@ -23,14 +23,14 @@ namespace plots {
 			 * 
 			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
 			 */
-			PlotIntensityFit(const fitter::Fit& fit);
+			PlotIntensityFit(const fitter::FitResult& fit);
 
 			/**
 			 * @brief Constructor.
 			 * 
 			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
 			 */
-			PlotIntensityFit(observer_ptr<fitter::Fit> fit);
+			PlotIntensityFit(observer_ptr<fitter::FitResult> fit);
 
 			/**
 			 * @brief Destructor.
@@ -41,9 +41,9 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(observer_ptr<fitter::Fit> fit, const io::File& path);
+			static void quick_plot(observer_ptr<fitter::FitResult> fit, const io::File& path);
 
 		private:
-			void plot(const fitter::FitPlots& graphs);
+			void plot(const fitter::FitResult::FitInfo& graphs);
 	};
 }

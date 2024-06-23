@@ -4,7 +4,6 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <plots/PlotIntensityFitResiduals.h>
-#include <fitter/Fit.h>
 #include <fitter/LinearFitter.h>
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
@@ -16,17 +15,17 @@ PlotIntensityFitResiduals::PlotIntensityFitResiduals(fitter::LinearFitter& fitte
     plot(graph);
 }
 
-PlotIntensityFitResiduals::PlotIntensityFitResiduals(const fitter::Fit& fit) : Plot() {
+PlotIntensityFitResiduals::PlotIntensityFitResiduals(const fitter::FitResult& fit) : Plot() {
     plot(fit.residuals);
 }
 
-PlotIntensityFitResiduals::PlotIntensityFitResiduals(observer_ptr<fitter::Fit> fit) : Plot() {
+PlotIntensityFitResiduals::PlotIntensityFitResiduals(observer_ptr<fitter::FitResult> fit) : Plot() {
     plot(fit->residuals);
 }
 
 PlotIntensityFitResiduals::~PlotIntensityFitResiduals() = default;
 
-void PlotIntensityFitResiduals::quick_plot(observer_ptr<fitter::Fit> fit, const io::File& path) {
+void PlotIntensityFitResiduals::quick_plot(observer_ptr<fitter::FitResult> fit, const io::File& path) {
     PlotIntensityFitResiduals plot(fit);
     plot.save(path);
 }

@@ -1,10 +1,9 @@
 #pragma once
 
-#include <fitter/Fit.h>
+#include <fitter/FitResult.h>
 #include <fitter/Fitter.h>
 
 #include <vector>
-#include <memory>
 
 namespace fitter {
     /**
@@ -32,9 +31,6 @@ namespace fitter {
              */
             SimpleLeastSquares(SimpleDataset&& data);
 
-            /**
-             * @brief Destructor.
-             */
             virtual ~SimpleLeastSquares() override = default;
 
             /**
@@ -50,12 +46,12 @@ namespace fitter {
              * @brief Perform a linear least-squares fit. 
              * @return A Fit object containing various information for the fit. 
              */
-            [[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
+            [[nodiscard]] virtual std::shared_ptr<FitResult> fit() override;
 
             /**
              * @brief Get a multiset containing the fitted curve of the last fit() call. 
              */
-            [[nodiscard]] FitPlots plot() override;
+            [[nodiscard]] FitResult::FitInfo plot() override;
 
             /**
              * @brief Get a dataset containing the residuals of the last fit() call. 
@@ -65,7 +61,7 @@ namespace fitter {
             /**
              * @brief Get the result of the last fit() call.
              */
-            [[nodiscard]] virtual std::shared_ptr<Fit> get_fit() const override; 
+            [[nodiscard]] virtual std::shared_ptr<FitResult> get_fit() const override; 
 
             /**
              * @brief Get the number of degrees of freedom.

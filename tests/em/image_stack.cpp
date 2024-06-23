@@ -1,15 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <em/ImageStack.h>
 #include <em/detail/header/MRCHeader.h>
+#include <em/manager/SmartProteinManager.h>
 #include <settings/All.h>
 #include <data/record/Atom.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <fitter/Fit.h>
 #include <plots/All.h>
 
 #include <map>
@@ -118,6 +119,28 @@ TEST_CASE("ImageStack::get_protein") {
                 REQUIRE(atom.get_occupancy() == 1);
             }
             settings::em::fixed_weights = false;
+        }
+    }
+}
+
+// Check that the mass is calculated correctly
+TEST_CASE("ImageStack::get_mass") {
+    settings::em::sample_frequency = 2;
+    settings::em::alpha_levels = GENERATE(Limit{3, 6}, Limit{6, 8}, Limit{8, 14});
+
+    em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
+    std::unordered_map<double, double> vals;
+    for (int i = 5; i < 12; ++i) {vals[i] = images.get_mass(images.from_level(i));}
+    for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels += 10) {
+        settings::em::charge_levels = charge_levels;
+        images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
+
+        for (int i = 5; i < 12; ++i) {
+            REQUIRE_THAT(images.get_mass(images.from_level(i)), Catch::Matchers::WithinRel(vals.at(i), 1e-3));
+        }
+
+        for (int i = 12; i < 5; --i) {
+            REQUIRE_THAT(images.get_mass(images.from_level(i)), Catch::Matchers::WithinRel(vals.at(i), 1e-3));
         }
     }
 }

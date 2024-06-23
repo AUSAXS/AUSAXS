@@ -6,7 +6,6 @@ namespace em::managers {
     class SimpleProteinManager : public SmartProteinManager {
         public: 
             using SmartProteinManager::SmartProteinManager;
-
             ~SimpleProteinManager() override = default;
 
         protected:

@@ -10,7 +10,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <em/ObjectBounds3D.h>
 #include <em/Image.h>
 #include <data/Molecule.h>
-#include <fitter/Fit.h>
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
 #include <settings/EMSettings.h>
@@ -76,7 +75,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram
     return get_protein_manager()->get_histogram(cutoff);
 }
 
-std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFit> res) const {
+std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFitResult> res) const {
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
@@ -223,4 +222,8 @@ double ImageStackBase::rms() const {
 observer_ptr<managers::ProteinManager> ImageStackBase::get_protein_manager() const {
     assert(phm != nullptr && "ImageStackBase::get_protein_manager: Protein manager is not initialized.");
     return phm.get();
+}
+
+void ImageStackBase::set_protein_manager(std::unique_ptr<em::managers::ProteinManager> manager) {
+    phm = std::move(manager);
 }

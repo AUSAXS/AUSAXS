@@ -38,7 +38,7 @@ bool Sequencer::_optimize_step() const {
     return rigidbody->optimize_step(*best);
 }
 
-std::shared_ptr<fitter::Fit> Sequencer::execute() {
+std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     // prepare rigidbody
     rigidbody->generate_new_hydration();
     rigidbody->prepare_fitter(saxs);

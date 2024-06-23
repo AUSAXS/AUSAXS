@@ -53,7 +53,7 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
                     effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
                     atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
                 } catch (const except::base&) {
-                throw except::invalid_argument("Atom::Atom: Could not set effective charge or determine atomic group. Unknown element, residual or atom: (" + constants::symbols::write_element_string(element) + ", " + resName + ", " + name + ")");
+                throw except::invalid_argument("Atom::Atom: Could not set effective charge or determine atomic group. Unknown element, residual or atom: (" + constants::symbols::to_string(element) + ", " + resName + ", " + name + ")");
                 }
             #else
                 effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
@@ -186,7 +186,7 @@ std::string Atom::as_pdb() const {
         << right << setw(6) << utility::fixedwidth(occupancy, 6)                    // 55 - 60
         << right << setw(6) << utility::fixedwidth(tempFactor, 6)                   // 61 - 66
         << "          "                                                             // 67 - 76
-        << right << setw(2) << constants::symbols::write_element_string(element)    // 77 - 78
+        << right << setw(2) << constants::symbols::to_string(element)               // 77 - 78
         << left << setw(2) << charge                                                // 79 - 80
         << std::endl;
     return ss.str();
@@ -219,7 +219,7 @@ void Atom::set_element(constants::atom_t element) {
         try {
             constants::mass::get_mass(element);
         } catch (const std::exception&) {
-            throw except::invalid_argument("Atom::set_element: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
+            throw except::invalid_argument("Atom::set_element: The mass of element " + constants::symbols::to_string(element) + " is not defined.");
         }
     #endif
     this->element = element;
@@ -253,7 +253,7 @@ double Atom::get_mass() const {
             try {
                 return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
             } catch (const std::exception&) {
-                throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
+                throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::to_string(element) + " is not defined.");
             }
         #endif
         // mass of this nucleus + mass of attached H atoms

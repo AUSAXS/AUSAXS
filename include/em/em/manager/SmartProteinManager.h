@@ -1,8 +1,9 @@
 #pragma once
 
-#include <em/manager/ProteinManager.h>
 #include <data/DataFwd.h>
 #include <hist/HistFwd.h>
+
+#include <em/manager/ProteinManager.h>
 #include <utility/observer_ptr.h>
 
 #include <vector>
@@ -17,11 +18,7 @@ namespace em::managers {
     class SmartProteinManager : public ProteinManager {
         public:
             using ProteinManager::ProteinManager;
-
-            /**
-             * @brief Destructor.
-             */
-            virtual ~SmartProteinManager();
+            virtual ~SmartProteinManager() override;
 
             /**
              * @brief Get the histogram for a given cutoff.
@@ -56,6 +53,11 @@ namespace em::managers {
              */
             virtual void update_protein(double cutoff);
 
+            /**
+             * @brief Enable or disable the histogram manager initialization for generated proteins.
+             */
+            void toggle_histogram_manager_init(bool state);
+
         private:
             double previous_cutoff = 0;
 
@@ -63,10 +65,5 @@ namespace em::managers {
              * @brief Generate a new Protein for a given cutoff. 
              */
             std::unique_ptr<data::Molecule> generate_protein(double cutoff) const;
-
-            /**
-             * @brief Enable or disable the histogram manager initialization for generated proteins.
-             */
-            void toggle_histogram_manager_init(bool state);
     };
 }

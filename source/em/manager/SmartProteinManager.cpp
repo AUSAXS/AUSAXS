@@ -57,11 +57,9 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
         throw except::out_of_bounds("SmartProteinManager::generate_protein: charge_levels is empty.");
     }
 
-    std::function<bool(double, double)> compare_func = 0 <= cutoff ? [] (double v1, double v2) {return v1 < v2;} : [] (double v1, double v2) {return v1 > v2;};
-
     // sort vector so we can slice it into levels of charge density
-    auto comparator = [&compare_func] (const Atom& atom1, const Atom& atom2) {return compare_func(atom1.tempFactor, atom2.tempFactor);};
-    std::sort(atoms.begin(), atoms.end(), comparator);
+    std::function<bool(double, double)> compare_func = [] (double v1, double v2) {return v1 < v2;};
+    std::sort(atoms.begin(), atoms.end(), [&compare_func] (const Atom& atom1, const Atom& atom2) {return compare_func(atom1.tempFactor, atom2.tempFactor);});
 
     unsigned int charge_index = 0, atom_index = 0, current_index = 0;
     double charge = charge_levels[charge_index]; // initialize charge
@@ -138,11 +136,11 @@ void SmartProteinManager::update_protein(double cutoff) {
         unsigned int charge_index = 0;
         double current_cutoff = charge_levels[0];
         while (compare_func(current_cutoff, cutoff) && charge_index < charge_levels.size()) {
-            current_cutoff = charge_levels[++charge_index];}
+            current_cutoff = charge_levels[++charge_index];
+        }
 
         // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
-        for (; charge_index < charge_levels.size()-1; charge_index++) {
-            // std::cout << "Charge level " << charge_levels[i] << " compared with previous cutoff " << previous_cutoff << std::endl;
+        for (; charge_index < charge_levels.size(); ++charge_index) {
             // check if the current bin is inside the range
             if (compare_func(charge_levels[charge_index], previous_cutoff)) {
                 // if so, we replace it with the new contents
@@ -165,11 +163,11 @@ void SmartProteinManager::update_protein(double cutoff) {
         unsigned int charge_index = 0;
         double current_cutoff = charge_levels[0];
         while (compare_func(current_cutoff, previous_cutoff) && charge_index < charge_levels.size()) {
-            current_cutoff = charge_levels[++charge_index];}
+            current_cutoff = charge_levels[++charge_index];
+        }
 
         // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
-        for (; charge_index < charge_levels.size()-1; charge_index++) {
-            // std::cout << "Charge level " << charge_levels[i] << " compared with previous cutoff " << previous_cutoff << std::endl;
+        for (; charge_index < charge_levels.size(); ++charge_index) {
             // check if the current bin is inside the range
             if (compare_func(charge_levels[charge_index], cutoff)) {
                 // if so, we replace it with the new contents

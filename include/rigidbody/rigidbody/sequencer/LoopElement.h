@@ -21,7 +21,7 @@ namespace rigidbody {
                 LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats);
                 virtual ~LoopElement();
 
-                virtual std::shared_ptr<fitter::Fit> execute();
+                virtual std::shared_ptr<fitter::FitResult> execute();
 
                 /**
                  * @brief Create a nested loop.

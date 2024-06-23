@@ -2,8 +2,9 @@
 
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
-#include <grid/GridFwd.h>
 #include <fitter/FitterFwd.h>
+#include <grid/GridFwd.h>
+
 #include <data/Molecule.h>
 
 #include <memory>
@@ -19,14 +20,14 @@ namespace rigidbody {
 			/**
 			 * @brief Perform a rigid-body optimization for this structure. 
 			 */
-			std::shared_ptr<fitter::Fit> optimize(const io::ExistingFile& measurement_path);
+			std::shared_ptr<fitter::FitResult> optimize(const io::ExistingFile& measurement_path);
 
 			/**
 			 * @brief Apply a calibration to this rigid body. 
 			 * 
 			 * This will fix the solvent scattering density to the fitted value.
 			 */
-			void apply_calibration(std::shared_ptr<fitter::Fit> calibration);
+			void apply_calibration(std::shared_ptr<fitter::FitResult> calibration);
 
 			/**
 			 * @brief Update the given fitter with the current rigid body parameters.
@@ -58,7 +59,7 @@ namespace rigidbody {
 
 		protected:
 			std::shared_ptr<constraints::ConstraintManager> constraints = nullptr;
-			std::shared_ptr<fitter::Fit> calibration = nullptr;
+			std::shared_ptr<fitter::FitResult> calibration = nullptr;
 			std::shared_ptr<selection::BodySelectStrategy> body_selector;
 			std::shared_ptr<transform::TransformStrategy> transform;
 			std::shared_ptr<parameter::ParameterGenerationStrategy> parameter_generator;

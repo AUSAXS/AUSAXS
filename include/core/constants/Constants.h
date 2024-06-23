@@ -165,7 +165,7 @@ namespace constants {
         }
 
         atom_t parse_element_string(const std::string& element_string);
-        std::string write_element_string(atom_t atom);
+        std::string to_string(atom_t atom);
 
         /**
          * @brief Get the atomic group of an atom.

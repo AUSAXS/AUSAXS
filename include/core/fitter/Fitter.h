@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fitter/FitterFwd.h>
-#include <fitter/Fit.h>
+#include <fitter/FitResult.h>
 #include <dataset/SimpleDataset.h>
 #include <mini/Minimizer.h>
 
@@ -11,12 +11,12 @@
 namespace fitter {
     class Fitter {
         public:
-            virtual ~Fitter() {}
+            virtual ~Fitter() = default;
 
             /**
              * @brief Perform a fit and return a fit object containing various information. 
              */
-            [[nodiscard]] virtual std::shared_ptr<Fit> fit() = 0;
+            [[nodiscard]] virtual std::shared_ptr<FitResult> fit() = 0;
 
             /**
              * @brief Perform a fit and return the minimum function value.
@@ -24,20 +24,16 @@ namespace fitter {
             [[nodiscard]] virtual double fit_chi2_only() = 0;
 
             /**
-             * @brief Make a plot of the fit. 
-             * 
-             * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
+             * @brief Plot the fitted function and the measured data points.
              */
-            [[nodiscard]] virtual FitPlots plot() = 0;
+            [[nodiscard]] virtual FitResult::FitInfo plot() = 0;
 
             /**
              * @brief Make a residual plot of the fit.
-             * 
-             * @return A TGraphErrors with the residuals and their uncertainties. 
              */
             [[nodiscard]] virtual SimpleDataset plot_residuals() = 0;
 
-            [[nodiscard]] virtual std::shared_ptr<Fit> get_fit() const = 0;
+            [[nodiscard]] virtual std::shared_ptr<FitResult> get_fit() const = 0;
 
             /**
              * @brief Get the number of degrees of freedom.

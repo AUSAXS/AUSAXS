@@ -17,14 +17,7 @@ namespace em {
          */
         class ProteinManager {
             public:
-                /**
-                 * @brief Construct a Manager from an ImageStack.
-                 */
                 ProteinManager(observer_ptr<const em::ImageStackBase> images);
-
-                /**
-                 * @brief Destructor.
-                 */
                 virtual ~ProteinManager();
 
                 /**

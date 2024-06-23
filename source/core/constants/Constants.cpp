@@ -90,7 +90,7 @@ constants::atom_t constants::symbols::parse_element_string(const std::string& el
     return constants::symbols::detail::string_to_atomt_map.get(element_string);
 }
 
-std::string constants::symbols::write_element_string(atom_t atom) {
+std::string constants::symbols::to_string(atom_t atom) {
     switch(atom) {
         case atom_t::e: return "e";
         case atom_t::H: return "H";
@@ -126,7 +126,7 @@ std::string constants::symbols::write_element_string(atom_t atom) {
         case atom_t::W: return "W";
         case atom_t::M: return "M";
         case atom_t::dummy: return "#";
-        default: throw std::runtime_error("constants::symbols::write_element_string: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
+        default: throw std::runtime_error("constants::symbols::to_string: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
     }
 }
 

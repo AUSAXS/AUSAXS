@@ -4,9 +4,8 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <fitter/SimpleLeastSquares.h>
-#include <fitter/Fit.h>
+#include <fitter/FitResult.h>
 #include <fitter/Fitter.h>
-#include <fitter/FitPlots.h>
 #include <utility/Exceptions.h>
 
 #include <cmath>
@@ -43,7 +42,7 @@ double SimpleLeastSquares::fit_chi2_only() {
     return chi2({});
 }
 
-std::shared_ptr<Fit> SimpleLeastSquares::fit() {
+std::shared_ptr<FitResult> SimpleLeastSquares::fit() {
     if (delta == 0) {[[maybe_unused]] auto res = fit_params_only();}
     double a_err2 = S/delta; // squared sigmas
     double b_err2 = Sxx/delta; 
@@ -51,7 +50,7 @@ std::shared_ptr<Fit> SimpleLeastSquares::fit() {
     // double cov_ab = -Sx/delta;
     // double Q = ROOT::Math::inc_gamma((double) data.size()/2 -1, chi2()/2);
 
-    std::shared_ptr<Fit> f = std::make_shared<Fit>();
+    std::shared_ptr<FitResult> f = std::make_shared<FitResult>();
     f->parameters = {{"a", a, sqrt(a_err2)}, {"b", b, sqrt(b_err2)}};
     f->dof = data.size() - 2;
     f->fval = chi2({});
@@ -69,7 +68,7 @@ double SimpleLeastSquares::chi2(const std::vector<double>&) {
     return chi;
 }
 
-FitPlots SimpleLeastSquares::plot() {
+FitResult::FitInfo SimpleLeastSquares::plot() {
     throw except::unexpected("SimpleLeastSquares::plot: Not implemented yet. ");
 }
 
@@ -81,6 +80,6 @@ unsigned int SimpleLeastSquares::dof() const {return data.size() - 2;}
 
 unsigned int SimpleLeastSquares::size() const {return data.size();}
 
-std::shared_ptr<Fit> SimpleLeastSquares::get_fit() const {
+std::shared_ptr<FitResult> SimpleLeastSquares::get_fit() const {
     throw except::unexpected("SimpleLeastSquares::get_fit: Not implemented yet. ");
 }
