@@ -17,6 +17,7 @@ add_executable(plot_profiles "plot_profiles.cpp")
 add_executable(thea "thea.cpp")
 add_executable(vary_exv_radius "vary_exv_radius.cpp")
 add_executable(vary_grid_radii "vary_grid_radii.cpp")
+add_executable(pdb_to_single_atom_type "pdb_to_single_atom_type.cpp")
 
 target_link_libraries(saxs_fitter PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(em_fitter PRIVATE ausaxs_core ausaxs_math ausaxs_em CLI11::CLI11)
@@ -28,6 +29,7 @@ target_link_libraries(plot_profiles PRIVATE ausaxs_core ausaxs_math CLI11::CLI11
 target_link_libraries(thea PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(vary_exv_radius PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(vary_grid_radii PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
+target_link_libraries(pdb_to_single_atom_type PRIVATE ausaxs_core ausaxs_math)
 
 add_subdirectory(md)
 if (GUI)
