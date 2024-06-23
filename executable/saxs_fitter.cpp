@@ -38,8 +38,9 @@ int main(int argc, char const *argv[]) {
     // protein options group
     app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered.")->default_val(settings::molecule::center)->group("Protein options");
     app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::molecule::use_effective_charge)->group("Protein options");
-    app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
+    app.add_flag("--use-existing-hydration,!--ignore-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
     app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", settings::hist::fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(settings::hist::fit_excluded_volume)->group("Protein options");
+    app.add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy)->group("Protein options");
 
     // advanced options group
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");

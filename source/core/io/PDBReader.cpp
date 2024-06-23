@@ -11,6 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Water.h>
 #include <utility/Exceptions.h>
 #include <settings/GeneralSettings.h>
+#include <settings/MoleculeSettings.h>
 #include <constants/ConstantsFwd.h>
 #include <utility/Console.h>
 
@@ -64,6 +65,10 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
         };
     }
     input.close();
+    
+    if (!settings::molecule::use_occupancy) {
+        for (auto& a : collection.protein_atoms) {a.occupancy = 1.0;}
+    }
 };
 
 void PDBReader::read(const io::File& path) {

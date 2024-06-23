@@ -11,6 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 bool settings::molecule::center = true;
 bool settings::molecule::implicit_hydrogens = true;
 bool settings::molecule::use_effective_charge = true;
+bool settings::molecule::use_occupancy = true;
 
 #if DEBUG
     bool settings::molecule::throw_on_unknown_atom = true;
@@ -23,7 +24,8 @@ namespace settings::molecule::io {
         settings::io::create(center, "center"),
         settings::io::create(use_effective_charge, "use_effective_charge"),
         settings::io::create(throw_on_unknown_atom, "throw_on_unknown_atom"),
-        settings::io::create(implicit_hydrogens, "implicit_hydrogens")
+        settings::io::create(implicit_hydrogens, "implicit_hydrogens"),
+        settings::io::create(use_occupancy, "use_occupancy")
     });
 
     settings::io::SettingSection hydrate_settings("Hydrate", {
