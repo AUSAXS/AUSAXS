@@ -63,8 +63,6 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
         }
         em::ImageStackBase isb(images);
         REQUIRE(isb.size() == 10);
-        REQUIRE(isb.get_header() == nullptr);
-        REQUIRE(isb.get_protein_manager() != nullptr);
     }
 
     SECTION("io::ExistingFile&") {

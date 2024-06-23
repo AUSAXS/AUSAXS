@@ -7,7 +7,6 @@
 #include <em/Image.h>
 #include <em/ImageStack.h>
 #include <em/ObjectBounds3D.h>
-#include <fitter/Fit.h>
 #include <plots/All.h>
 #include <plots/PlotImage.h>
 #include <fitter/FitReporter.h>

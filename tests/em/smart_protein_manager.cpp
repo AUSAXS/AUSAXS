@@ -61,7 +61,6 @@ TEST_CASE("SmartProteinManager::generate_protein") {
             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
             REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
             REQUIRE(compare_hist(hist, images.get_histogram(alpha)->debye_transform()));
-            std::cout << "alpha: " << alpha << ", charge_levels: " << charge_levels << std::endl;
         }
     }
 }
@@ -86,17 +85,17 @@ TEST_CASE("SmartProteinManager::update_protein") {
             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
             REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
             REQUIRE(compare_hist(hists.at(alpha), images.get_histogram(alpha)->debye_transform()));
-            std::cout << "alpha: " << alpha << ", charge_levels: " << charge_levels << std::endl;
         }
     }
 }
 
 TEST_CASE("SmartProteinManager: consistency") {
     settings::general::threads = 6;
+    settings::general::verbose = false;
+    settings::general::supplementary_plots = false;
     settings::em::sample_frequency = 2;
     settings::em::alpha_levels = {6, 8};
     settings::em::save_pdb = false;
-    settings::general::supplementary_plots = false;
     settings::fit::max_iterations = 20;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
 
