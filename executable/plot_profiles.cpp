@@ -60,6 +60,7 @@ int main(int argc, char const *argv[]) {
     settings::axes::qmax = 1;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = true;
+    settings::molecule::use_occupancy = false;
     settings::general::threads = 1;
     settings::grid::min_bins = 20;
 
