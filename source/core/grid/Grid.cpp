@@ -674,6 +674,8 @@ void Grid::save(const io::File& path) const {
                     case detail::W_AREA:
                         waters.push_back(Atom(c++, "C", "", "LYS", 'E', 5, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
+                    case detail::VACUUM:
+                        atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                     default:
                         break;
                 }
@@ -715,7 +717,7 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
     }
 
     if (!determine_surface) {
-        return {vol.interior, {}};
+        return {vol.interior, {}, {}};
     }
     return vol;
 }
