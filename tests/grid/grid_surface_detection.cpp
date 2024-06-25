@@ -203,5 +203,30 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 }
 
 TEST_CASE("GridSurfaceDetection::detect_voxels") {
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = true;
 
+    settings::grid::save_exv = true;
+    settings::general::output = "temp/tests/grid/";
+
+    settings::grid::rvol = 2.5;
+    std::vector<Atom> atoms = {
+        Atom({-4,  0,  0}, 1, constants::atom_t::dummy, "C", 1),
+        Atom({ 4,  0,  0}, 1, constants::atom_t::dummy, "C", 1),
+        Atom({ 0, -4,  0}, 1, constants::atom_t::dummy, "C", 1),
+        Atom({ 0,  4,  0}, 1, constants::atom_t::dummy, "C", 1),
+        Atom({ 0,  0,  4}, 1, constants::atom_t::dummy, "C", 1),
+        Atom({ 0,  0, -4}, 1, constants::atom_t::dummy, "C", 1)
+    };
+
+    Molecule protein(atoms);
+    GridDebug::generate_debug_grid(protein);
+    static_cast<GridDebug*>(protein.get_grid())->set_hydration_radius(3);
+    protein.generate_new_hydration();
+    auto vol = protein.get_grid()->generate_excluded_volume(true);
+    protein.get_grid()->save("temp/tests/grid/exv_full.pdb");
+
+    CHECK(vol.interior.size() == 21);
+    CHECK(vol.surface.size() == 92);
 }

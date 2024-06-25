@@ -23,6 +23,10 @@ namespace grid::detail {
 
             bool vacuum_collision_check(const Vector3<int>& loc) const;
 
-            std::vector<Vector3<double>> determine_vacuum_holes(const std::vector<Vector3<int>>& surface) const;
+            /**
+             * @brief Determine the vacuum holes in the protein.
+             *        This simply fills all non-water small gaps in the interior with vacuum voxels.
+             */
+            std::vector<Vector3<double>> determine_vacuum_holes() const;
     };
 }
