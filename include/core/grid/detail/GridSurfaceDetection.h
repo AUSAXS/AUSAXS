@@ -16,7 +16,7 @@ namespace grid::detail {
         private:
             observer_ptr<grid::Grid> grid;
 
-            template<bool detect>
+            template<bool detect, bool unity_width>
             GridExcludedVolume helper() const;
 
             bool collision_check(const Vector3<int>& loc) const;

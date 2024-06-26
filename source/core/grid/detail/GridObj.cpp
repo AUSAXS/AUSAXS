@@ -10,6 +10,34 @@ using namespace grid::detail;
 
 GridObj::GridObj(unsigned int x, unsigned int y, unsigned int z) : container::Container3D<State>(x, y, z, EMPTY) {}
 
+State grid::detail::operator|(State lhs, State rhs) {
+    return static_cast<State>(
+        static_cast<std::underlying_type<State>::type>(lhs) |
+        static_cast<std::underlying_type<State>::type>(rhs)
+    );
+}
+
+State grid::detail::operator&(State lhs, State rhs) {
+    return static_cast<State>(
+        static_cast<std::underlying_type<State>::type>(lhs) &
+        static_cast<std::underlying_type<State>::type>(rhs)
+    );
+}
+
+State grid::detail::operator~(State s) {
+    return static_cast<State>(~static_cast<std::underlying_type<State>::type>(s));
+}
+
+State grid::detail::operator|=(State& lhs, State rhs) {
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+State grid::detail::operator&=(State& lhs, State rhs) {
+    lhs = lhs & rhs;
+    return lhs;
+}
+
 State& GridObj::index(const Vector3<int>& v) {return index(v.x(), v.y(), v.z());}
 const State& GridObj::index(const Vector3<int>& v) const {return index(v.x(), v.y(), v.z());}
 

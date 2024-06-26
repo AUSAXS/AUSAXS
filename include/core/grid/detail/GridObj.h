@@ -10,15 +10,26 @@ namespace grid {
          * @brief A simple enum to represent the different states of a grid cell. 
          *        We use bit flags to allow more efficient bitwise operations on them. 
          */
-        enum State : char {
-            EMPTY =    (1 << 0),    // An empty cell.
-            W_CENTER = (1 << 1),    // Center of a water atom.
-            A_CENTER = (1 << 2),    // Center of an atom.
-            W_AREA =   (1 << 3),    // Area surrounding the center of a water atom.
-            A_AREA =   (1 << 4),    // Area surrounding the center of an atom.
-            VOLUME =   (1 << 5),    // Similar to EMPTY, but used to indicate that the cell is part of the volume of the protein. We need this to avoid double-counting cells when evaluating the volume.
-            VACUUM =   (1 << 6),    // A vacuum voxel. This is different from being empty. 
+        enum State : uint8_t {
+            EMPTY       = (1 << 0),
+            VOLUME      = (1 << 1),
+            VACUUM      = (1 << 2),
+            CENTER      = (1 << 3),
+            AREA        = (1 << 4),
+            WATER       = (1 << 5),
+            ATOM        = (1 << 6),
+            RESERVED_1  = (1 << 7),
+
+            A_AREA      = ATOM  | AREA,
+            A_CENTER    = ATOM  | CENTER,
+            W_AREA      = WATER | AREA,
+            W_CENTER    = WATER | CENTER
         };
+        State operator|(State lhs, State rhs);
+        State operator&(State lhs, State rhs);
+        State operator|=(State& lhs, State rhs);
+        State operator&=(State& lhs, State rhs);
+        State operator~(State s);
 
         /**
          * @brief A simple class that represents a 3D grid.

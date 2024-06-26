@@ -714,9 +714,9 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
             atoms.emplace_back(i+j, "C", "", "LYS", 'B', 2, "", vol.surface[j], 1, 0, constants::atom_t::C, "");
         }
 
-        // for (unsigned int k = 0; k < vol.vacuum.size(); ++k) {
-        //     atoms.emplace_back(i+j+k, "C", "", "LYS", 'C', 3, "", vol.vacuum[k], 1, 0, constants::atom_t::C, "");
-        // }
+        for (unsigned int k = 0; k < vol.vacuum.size(); ++k) {
+            atoms.emplace_back(i+j+k, "C", "", "LYS", 'C', 3, "", vol.vacuum[k], 1, 0, constants::atom_t::C, "");
+        }
 
         data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
     }

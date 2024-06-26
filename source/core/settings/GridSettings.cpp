@@ -15,6 +15,7 @@ double settings::grid::rvol = 2.15;
 double settings::grid::exv_radius = 0.5;
 bool settings::grid::save_exv = false;
 unsigned int settings::grid::min_bins = 0;
+double settings::grid::surface_thickness = 1;
 
 namespace settings::grid::detail {
     double min_score = 0.1;
@@ -29,6 +30,7 @@ namespace settings::grid::io {
         settings::io::create(rvol, "rvol"),
         settings::io::create(exv_radius, "exv_radius"),
         settings::io::create(save_exv, "save_exv"),
+        settings::io::create(surface_thickness, "surface_thickness"),
         settings::io::create(detail::min_score, "detail.min_score"),
     });
 }

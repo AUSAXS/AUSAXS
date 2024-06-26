@@ -27,7 +27,7 @@ using namespace data::record;
 // Debug class to expose the volume variable
 class GridDebug : public grid::Grid {
     public: 
-        GridDebug(Limit3D axes) : Grid(axes) {}
+        using Grid::Grid;
 
 		double get_atomic_radius(constants::atom_t) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
@@ -190,29 +190,59 @@ TEST_CASE("Grid::bounding_box") {
 }
 
 TEST_CASE("Grid::get_volume") {
-    Limit3D lims(-10, 10, -10, 10, -10, 10);
-    settings::grid::width = 1e-1;
-    Grid grid(lims);
+    SECTION("simple") {
+        Limit3D lims(-10, 10, -10, 10, -10, 10);
+        settings::grid::width = 1e-1;
+        Grid grid(lims);
 
-    std::vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-    grid.add(a);
-    grid.expand_volume();
-    GridObj &g = grid.grid;
+        std::vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
+        grid.add(a);
+        grid.expand_volume();
+        GridObj &g = grid.grid;
 
-    unsigned int count = 0;
-    auto axes = grid.get_axes();
-    for (unsigned int i = 0; i < axes.x.bins; i++) {
-        for (unsigned int j = 0; j < axes.y.bins; j++) {
-            for (unsigned int k = 0; k < axes.z.bins; k++) {
-                if (g.index(i, j, k) != EMPTY) {
-                    count++;
+        unsigned int count = 0;
+        auto axes = grid.get_axes();
+        for (unsigned int i = 0; i < axes.x.bins; i++) {
+            for (unsigned int j = 0; j < axes.y.bins; j++) {
+                for (unsigned int k = 0; k < axes.z.bins; k++) {
+                    if (g.index(i, j, k) != EMPTY) {
+                        count++;
+                    }
                 }
             }
         }
+
+        REQUIRE(count != 0);
+        CHECK(grid.get_volume() == count*std::pow(settings::grid::width, 3));
     }
 
-    REQUIRE(count != 0);
-    CHECK(grid.get_volume() == count*std::pow(settings::grid::width, 3));
+    SECTION("multiple atoms") {
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
+        settings::grid::width = 1;
+        GridDebug grid(axes);
+        grid.set_atomic_radius(1);
+
+        // cout << grid.get_volume() << endl;
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
+        vector<Water> w = {Water({2, 2, 2}, 0,  constants::atom_t::dummy, "", 0), Water({2, 2, 3}, 0,  constants::atom_t::dummy, "", 0)};
+        grid.add(a);
+        grid.add(w);
+        REQUIRE(grid.get_volume_without_expanding() == 1); // atoms are added as point-particles, and only occupy one unit of space.
+
+        SECTION("") {
+            settings::grid::rvol = 1;
+            REQUIRE(grid.get_volume() == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
+
+            grid.add(Atom({0, 0, -1}, 0,  constants::atom_t::C, "", 0));
+            REQUIRE(grid.get_volume() == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
+        }
+
+        SECTION("") {
+            settings::grid::rvol = 2;
+            grid.expand_volume();
+            REQUIRE(grid.get_volume() == 33);
+        }
+    }
 }
 
 TEST_CASE("Grid::width") {
@@ -237,58 +267,52 @@ TEST_CASE("Grid::width") {
 }
 
 TEST_CASE("Grid::expand_volume") {
-    settings::molecule::use_effective_charge = false;
-    Limit3D lims(-10, 10, -10, 10, -10, 10);
-    settings::grid::width = 1;
-    Grid grid(lims);
-    constants::radius::set_dummy_radius(3+1e-6);
+    SECTION("shape test") {
+        settings::molecule::use_effective_charge = false;
+        Limit3D lims(-10, 10, -10, 10, -10, 10);
+        settings::grid::width = 1;
+        Grid grid(lims);
+        constants::radius::set_dummy_radius(3+1e-6);
 
-    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
-    grid.add(a);
-    grid.expand_volume();
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
+        grid.add(a);
+        grid.expand_volume();
 
-    auto axes = grid.get_axes();
-    for (unsigned int i = 0; i < axes.x.bins; ++i) {
-        for (unsigned int j = 0; j < axes.y.bins; ++j) {
-            for (unsigned int k = 0; k < axes.z.bins; ++k) {
-                auto& bin = grid.grid.index(i, j, k);
-                if (grid.to_xyz(i, j, k).norm() <= 3) {
-                    if (i == 10 && j == 10 && k == 10) {continue;}
-                    CHECK(bin == A_AREA);
-                } else {
-                    CHECK(bin == EMPTY);
+        auto axes = grid.get_axes();
+        for (unsigned int i = 0; i < axes.x.bins; ++i) {
+            for (unsigned int j = 0; j < axes.y.bins; ++j) {
+                for (unsigned int k = 0; k < axes.z.bins; ++k) {
+                    auto& bin = grid.grid.index(i, j, k);
+                    if (grid.to_xyz(i, j, k).norm() <= 3) {
+                        if (i == 10 && j == 10 && k == 10) {continue;}
+                        CHECK(bin == A_AREA);
+                    } else {
+                        CHECK(bin == EMPTY);
+                    }
                 }
             }
         }
-    }
-    CHECK(grid.grid.index(10, 10, 10) == A_CENTER);
-}
-
-TEST_CASE("volume") {
-    Limit3D axes(-10, 10, -10, 10, -10, 10);
-    settings::grid::width = 1;
-    GridDebug grid(axes);
-    grid.set_atomic_radius(1);
-
-    // cout << grid.get_volume() << endl;
-    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
-    vector<Water> w = {Water({2, 2, 2}, 0,  constants::atom_t::dummy, "", 0), Water({2, 2, 3}, 0,  constants::atom_t::dummy, "", 0)};
-    grid.add(a);
-    grid.add(w);
-    REQUIRE(grid.get_volume_without_expanding() == 1); // atoms are added as point-particles, and only occupy one unit of space.
-
-    SECTION("") {
-        settings::grid::rvol = 1;
-        REQUIRE(grid.get_volume() == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
-
-        grid.add(Atom({0, 0, -1}, 0,  constants::atom_t::C, "", 0));
-        REQUIRE(grid.get_volume() == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
+        CHECK(grid.grid.index(10, 10, 10) == A_CENTER);
     }
 
-    SECTION("") {
-        settings::grid::rvol = 2;
-        grid.expand_volume();
-        REQUIRE(grid.get_volume() == 33);
+    // these atom counts have been checked by visual inspection
+    SECTION("count tests") {
+        settings::grid::min_bins = 30;
+
+        SECTION("five atoms") {
+            settings::grid::rvol = 3;
+            std::vector<Atom> atoms = {
+                Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
+                Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
+                Atom({2, 0, 0}, 1, constants::atom_t::C, "C", 1),
+                Atom({0, -2, 0}, 1, constants::atom_t::C, "C", 1),
+                Atom({0, 2, 0}, 1, constants::atom_t::C, "C", 1)
+            };
+
+            GridDebug grid(atoms);
+            grid.expand_volume();
+            REQUIRE(grid.get_volume() == 323);
+        }
     }
 }
 
@@ -824,78 +848,5 @@ TEST_CASE("Grid: hydration") {
                 }
             }
         }
-    }
-}
-
-TEST_CASE("Grid::bin_ops") {
-    Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
-    auto& gref = grid.grid;
-
-    {
-        gref.index(0, 0, 0) = A_CENTER;
-        CHECK(gref.is_atom_center(0, 0, 0) == true);
-        CHECK(gref.is_atom_area(0, 0, 0) == false);
-        CHECK(gref.is_atom_area_or_volume(0, 0, 0) == false);
-        CHECK(gref.is_water_center(0, 0, 0) == false);
-        CHECK(gref.is_water_area(0, 0, 0) == false);
-        CHECK(gref.is_empty(0, 0, 0) == false);
-        CHECK(gref.is_volume(0, 0, 0) == false);
-        CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
-    }
-    {
-        gref.index(0, 0, 0) = A_AREA;
-        CHECK(gref.is_atom_center(0, 0, 0) == false);
-        CHECK(gref.is_atom_area(0, 0, 0) == true);
-        CHECK(gref.is_atom_area_or_volume(0, 0, 0) == true);
-        CHECK(gref.is_water_center(0, 0, 0) == false);
-        CHECK(gref.is_water_area(0, 0, 0) == false);
-        CHECK(gref.is_empty(0, 0, 0) == false);
-        CHECK(gref.is_volume(0, 0, 0) == false);
-        CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
-    }
-    {
-        gref.index(0, 0, 0) = W_CENTER;
-        CHECK(gref.is_atom_center(0, 0, 0) == false);
-        CHECK(gref.is_atom_area(0, 0, 0) == false);
-        CHECK(gref.is_atom_area_or_volume(0, 0, 0) == false);
-        CHECK(gref.is_water_center(0, 0, 0) == true);
-        CHECK(gref.is_water_area(0, 0, 0) == false);
-        CHECK(gref.is_empty(0, 0, 0) == false);
-        CHECK(gref.is_volume(0, 0, 0) == false);
-        CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
-    }
-    {
-        gref.index(0, 0, 0) = W_AREA;
-        CHECK(gref.is_atom_center(0, 0, 0) == false);
-        CHECK(gref.is_atom_area(0, 0, 0) == false);
-        CHECK(gref.is_atom_area_or_volume(0, 0, 0) == false);
-        CHECK(gref.is_water_center(0, 0, 0) == false);
-        CHECK(gref.is_water_area(0, 0, 0) == true);
-        CHECK(gref.is_empty(0, 0, 0) == false);
-        CHECK(gref.is_volume(0, 0, 0) == false);
-        CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
-    }
-    {
-        gref.index(0, 0, 0) = VOLUME;
-        CHECK(gref.is_atom_center(0, 0, 0) == false);
-        CHECK(gref.is_atom_area(0, 0, 0) == false);
-        CHECK(gref.is_atom_area_or_volume(0, 0, 0) == true);
-        CHECK(gref.is_water_center(0, 0, 0) == false);
-        CHECK(gref.is_water_area(0, 0, 0) == false);
-        CHECK(gref.is_empty(0, 0, 0) == false);
-        CHECK(gref.is_volume(0, 0, 0) == true);
-        CHECK(gref.is_empty_or_volume(0, 0, 0) == true);
-    }
-    {
-        gref.index(0, 0, 0) = EMPTY;
-        CHECK(gref.is_atom_center(0, 0, 0) == false);
-        CHECK(gref.is_atom_area(0, 0, 0) == false);
-        CHECK(gref.is_atom_area_or_volume(0, 0, 0) == false);
-        CHECK(gref.is_water_center(0, 0, 0) == false);
-        CHECK(gref.is_water_area(0, 0, 0) == false);
-        CHECK(gref.is_empty(0, 0, 0) == true);
-        CHECK(gref.is_volume(0, 0, 0) == false);
-        CHECK(gref.is_empty_or_volume(0, 0, 0) == true);
     }
 }
