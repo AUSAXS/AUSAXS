@@ -27,7 +27,7 @@ using namespace data::record;
 // Debug class to expose the volume variable
 class GridDebug : public grid::Grid {
     public: 
-        using Grid::Grid;
+        GridDebug(Limit3D axes) : Grid(axes) {}
 
 		double get_atomic_radius(constants::atom_t) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
@@ -271,6 +271,7 @@ TEST_CASE("Grid::expand_volume") {
         settings::molecule::use_effective_charge = false;
         Limit3D lims(-10, 10, -10, 10, -10, 10);
         settings::grid::width = 1;
+        settings::grid::rvol = 2.15;
         Grid grid(lims);
         constants::radius::set_dummy_radius(3+1e-6);
 
@@ -309,7 +310,8 @@ TEST_CASE("Grid::expand_volume") {
                 Atom({0, 2, 0}, 1, constants::atom_t::C, "C", 1)
             };
 
-            GridDebug grid(atoms);
+            GridDebug grid({-10, 10, -10, 10, -10, 10});
+            grid.add(atoms);
             grid.expand_volume();
             REQUIRE(grid.get_volume() == 323);
         }
@@ -701,6 +703,7 @@ TEST_CASE("Grid::find_free_locs") {
 // Test that expansion and deflation completely cancels each other. 
 TEST_CASE("Grid::deflate_volume") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 0;
 
     Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
