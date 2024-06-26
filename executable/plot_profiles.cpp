@@ -173,23 +173,23 @@ int main(int argc, char const *argv[]) {
     ausaxs_aa.normalize();
     ausaxs_ww.normalize();
 
-    auto exact_aa = exact_aa_debye(data::Molecule(pdb)).as_dataset();
-    exact_aa.normalize();
+    // auto exact_aa = exact_aa_debye(data::Molecule(pdb)).as_dataset();
+    // exact_aa.normalize();
 
     plots::PlotIntensity()
         .plot(crysol_data_aa, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{aa}$ profiles"}, {"xrange", Limit(1e-2, 1)}}))
         .plot(foxs_data_aa, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_data_aa, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
-        // .plot(waxsis_data_aa, plots::PlotOptions({{"legend", "WAXSiS"}, {"color", style::color::green}}))
+        .plot(waxsis_data_aa, plots::PlotOptions({{"legend", "WAXSiS"}, {"color", style::color::green}}))
         .plot(ausaxs_aa, plots::PlotOptions({{"legend", "AUSAXS"}, {"color", style::color::black}}))
-        .plot(exact_aa, plots::PlotOptions({{"legend", "Exact"}, {"color", style::color::red}, {"linestyle", style::line::dashed}}))
+        // .plot(exact_aa, plots::PlotOptions({{"legend", "Exact"}, {"color", style::color::red}, {"linestyle", style::line::dashed}}))
     .save(settings::general::output + "profiles_aa.png");
 
     plots::PlotIntensity()
         .plot(crysol_data_ww, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{ww}$ profiles"}, {"xrange", Limit(1e-2, 1)}, {"yrange", Limit(1e-5, 1.1)}}))
         .plot(foxs_data_ww, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_data_ww, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
-        // .plot(waxsis_data_ww, plots::PlotOptions({{"legend", "WAXSiS"}, {"color", style::color::green}}))
+        .plot(waxsis_data_ww, plots::PlotOptions({{"legend", "WAXSiS"}, {"color", style::color::green}}))
         .plot(ausaxs_ww, plots::PlotOptions({{"legend", "AUSAXS"}, {"color", style::color::black}}))
     .save(settings::general::output + "profiles_ww.png");
 
@@ -197,7 +197,7 @@ int main(int argc, char const *argv[]) {
         .plot(crysol_data_xx, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"xrange", Limit(1e-2, 1)}}))
         .plot(foxs_data_xx, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_data_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
-        // .plot(waxsis_data_xx, plots::PlotOptions({{"legend", "WAXSiS_xx"}, {"color", style::color::brown}}))
+        .plot(waxsis_data_xx, plots::PlotOptions({{"legend", "WAXSiS_xx"}, {"color", style::color::brown}}))
         .plot(ausaxs_crysol_xx, plots::PlotOptions({{"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
         .plot(ausaxs_foxs_xx, plots::PlotOptions({{"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
         .plot(ausaxs_pepsi_xx, plots::PlotOptions({{"legend", "AUSAXS$_{mimics}$"}, {"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
@@ -222,16 +222,16 @@ int main(int argc, char const *argv[]) {
         pepsi_diff_aa.y(i) /= ausaxs_pepsi_aa.interpolate_x(pepsi_diff_aa.x(i), 1);
     }
 
-    SimpleDataset exact_aa_diff = exact_aa;
-    for (size_t i = 0; i < exact_aa_diff.size(); ++i) {
-        exact_aa_diff.y(i) /= ausaxs_aa.interpolate_x(exact_aa_diff.x(i), 1);
-    }
+    // SimpleDataset exact_aa_diff = exact_aa;
+    // for (size_t i = 0; i < exact_aa_diff.size(); ++i) {
+    //     exact_aa_diff.y(i) /= ausaxs_aa.interpolate_x(exact_aa_diff.x(i), 1);
+    // }
 
     plots::PlotDataset()
         .plot(crysol_diff_aa, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "THEIRS / AUSAXS"}, {"title", pdb.stem() + " $I_{aa}$ profiles"}, {"yrange", Limit(0.5, 1.5)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}}))
         .plot(foxs_diff_aa, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_diff_aa, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
-        .plot(exact_aa_diff, plots::PlotOptions({{"legend", "Exact"}, {"color", style::color::red}, {"linestyle", style::line::dashed}}))
+        // .plot(exact_aa_diff, plots::PlotOptions({{"legend", "Exact"}, {"color", style::color::red}, {"linestyle", style::line::dashed}}))
         .hline(1, plots::PlotOptions({{"linestyle", style::line::dashed}, {"color", style::color::black}}))
     .save(settings::general::output + "profiles_aa_diff.png");
 
