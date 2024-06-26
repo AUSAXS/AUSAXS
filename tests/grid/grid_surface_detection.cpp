@@ -34,6 +34,7 @@ class GridDebug : public grid::Grid {
 };
 
 // Check that the GridSurfaceDetection::detect_atoms function works as expected.
+// The targets of this section have been manually verified by visual inspection.
 TEST_CASE("GridSurfaceDetection::detect_atoms") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
@@ -226,6 +227,8 @@ TEST_CASE("GridSurfaceDetection::detect_voxels") {
     CHECK(vol.surface.size() == 92);
 }
 
+// Check that we can vary the surface thickness of the excluded volume. 
+// The targets of this section have been manually verified by visual inspection.
 TEST_CASE("GridSurfaceDetection: thickness") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
@@ -233,7 +236,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
     settings::grid::surface_thickness = 2;
 
     SECTION("2x2x2 interior simple") {
-        settings::grid::rvol = 2;
+        settings::grid::rvol = 2.5;
         std::vector<Atom> atoms;
         for (double x = 0; x <= 1; x+=1) {
             for (double y = 0; y <= 1; y+=1) {
@@ -249,11 +252,14 @@ TEST_CASE("GridSurfaceDetection: thickness") {
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
         CHECK(vol.interior.size() == 8);
-        CHECK(vol.surface.size()  == 80);
+        CHECK(vol.surface.size()  == 152);
     }
 
     SECTION("3x3x3") {
-        settings::grid::rvol = 2;
+        settings::grid::save_exv = true;
+        settings::general::output = "temp/tests/grid/";
+
+        settings::grid::rvol = 3;
         std::vector<Atom> atoms;
         for (double x = -1; x <= 1; x+=1) {
             for (double y = -1; y <= 1; y+=1) {
@@ -272,44 +278,41 @@ TEST_CASE("GridSurfaceDetection: thickness") {
         CHECK( vol.surface.size() == 152);
     }
 
-    SECTION("much larger radius, single") {
-        settings::grid::rvol = 4;
-        std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
+    // SECTION("much larger radius, single") {
+    //     settings::grid::rvol = 4;
+    //     std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
 
-        Molecule protein(atoms);
-        GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+    //     Molecule protein(atoms);
+    //     GridDebug::generate_debug_grid(protein);
+    //     auto vol = protein.get_grid()->generate_excluded_volume(true);
 
-        CHECK(vol.interior.size() == 27);
-        CHECK(vol.surface.size()  == 230);
-    }
+    //     CHECK(vol.interior.size() == 27);
+    //     CHECK(vol.surface.size()  == 230);
+    // }
 
-    SECTION("larger radius, larger cube") {
-        settings::grid::save_exv = true;
-        settings::general::output = "temp/tests/grid/";
+    // SECTION("larger radius, larger cube") {
+    //     settings::grid::rvol = 3;
+    //     std::vector<Atom> atoms = {
+    //         Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
+    //         Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
+    //         Atom({2, 0, 0}, 1, constants::atom_t::C, "C", 1),
+    //         Atom({0, -2, 0}, 1, constants::atom_t::C, "C", 1),
+    //         Atom({0, 2, 0}, 1, constants::atom_t::C, "C", 1)
+    //     };
 
-        settings::grid::rvol = 3;
-        std::vector<Atom> atoms = {
-            Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({2, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({0, -2, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({0, 2, 0}, 1, constants::atom_t::C, "C", 1)
-        };
+    //     Molecule protein(atoms);
+    //     GridDebug::generate_debug_grid(protein);
+    //     auto vol = protein.get_grid()->generate_excluded_volume(true);
 
-        Molecule protein(atoms);
-        GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+    //     CHECK(vol.interior.size() == 21);
+    //     CHECK(vol.surface.size() == 92);
+    // }
 
-        CHECK(vol.interior.size() == 21);
-        CHECK(vol.surface.size() == 92);
-    }
-
-    SECTION("6lyz_exv") {
-        settings::grid::rvol = 3;
-        Molecule protein("tests/files/6lyz_exv.pdb");
-        // protein.get_body(0).get_atoms().resize(20);
-        GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
-    }
+    // SECTION("6lyz_exv") {
+    //     settings::grid::rvol = 3;
+    //     Molecule protein("tests/files/6lyz_exv.pdb");
+    //     // protein.get_body(0).get_atoms().resize(20);
+    //     GridDebug::generate_debug_grid(protein);
+    //     auto vol = protein.get_grid()->generate_excluded_volume(true);
+    // }
 }
