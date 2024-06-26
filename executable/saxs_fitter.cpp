@@ -52,8 +52,9 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--implicit-hydrogens,!--no-implicit-hydrogens", settings::molecule::implicit_hydrogens, "Decides whether implicit hydrogens will be added to the structure.")->default_val(settings::molecule::implicit_hydrogens)->group("Advanced options");
 
     // hidden options group
-    app.add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("");
     app.add_option("--rvol", settings::grid::rvol, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::rvol)->group("");
+    app.add_option("--surface-thickness", settings::grid::surface_thickness, "The thickness of the surface layer in Ångström.")->default_val(settings::grid::surface_thickness)->group("");
+    app.add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("");
     app.add_flag("--save-exv", settings::grid::save_exv, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::save_exv)->group("");
     CLI11_PARSE(app, argc, argv);
 

@@ -11,5 +11,6 @@ namespace grid::detail {
     struct GridExcludedVolume {
         std::vector<Vector3<double>> interior;
         std::vector<Vector3<double>> surface;
+        std::vector<Vector3<double>> vacuum;
     };
 }

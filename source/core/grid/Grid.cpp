@@ -674,6 +674,8 @@ void Grid::save(const io::File& path) const {
                     case detail::W_AREA:
                         waters.push_back(Atom(c++, "C", "", "LYS", 'E', 5, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
+                    case detail::VACUUM:
+                        atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                     default:
                         break;
                 }
@@ -701,21 +703,26 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
 
     if (settings::grid::save_exv) {
         std::vector<Atom> atoms;
-        atoms.reserve(vol.interior.size()+vol.surface.size());
+        atoms.reserve(vol.interior.size()+vol.surface.size()+vol.vacuum.size());
     
-        unsigned int i = 0;
+        unsigned int i = 0, j = 0;
         for (; i < vol.interior.size(); ++i) {
             atoms.emplace_back(i, "C", "", "LYS", 'A', 1, "", vol.interior[i], 1, 0, constants::atom_t::C, "");
         }
 
-        for (unsigned int j = 0; j < vol.surface.size(); ++j) {
+        for (;j < vol.surface.size(); ++j) {
             atoms.emplace_back(i+j, "C", "", "LYS", 'B', 2, "", vol.surface[j], 1, 0, constants::atom_t::C, "");
         }
+
+        for (unsigned int k = 0; k < vol.vacuum.size(); ++k) {
+            atoms.emplace_back(i+j+k, "C", "", "LYS", 'C', 3, "", vol.vacuum[k], 1, 0, constants::atom_t::C, "");
+        }
+
         data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
     }
 
     if (!determine_surface) {
-        return {vol.interior, {}};
+        return {vol.interior, {}, {}};
     }
     return vol;
 }

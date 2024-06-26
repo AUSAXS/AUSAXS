@@ -9,6 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Atom.h>
 #include <settings/GridSettings.h>
 
+#include <cassert>
+
 using namespace grid::detail;
 
 GridSurfaceDetection::GridSurfaceDetection(observer_ptr<grid::Grid> grid) : RadialLineGenerator(grid, {std::sqrt(grid->get_width())+1e-3, 2*grid->get_width(), 3*grid->get_width(), 4*grid->get_width()}), grid(grid) {}
@@ -34,7 +36,7 @@ bool GridSurfaceDetection::collision_check(const Vector3<int>& loc) const {
             auto yr = loc.y() + rot_bins_1[i].y();
             auto zr = loc.z() + rot_bins_1[i].z();
             if (is_out_of_bounds({xr, yr, zr})) [[unlikely]] {
-                score += 3;
+                score += 7;
                 continue;
             }
 
@@ -48,12 +50,12 @@ bool GridSurfaceDetection::collision_check(const Vector3<int>& loc) const {
             auto yr = loc.y() + rot_bins_2[i].y();
             auto zr = loc.z() + rot_bins_2[i].z();
             if (is_out_of_bounds({xr, yr, zr})) [[unlikely]] {
-                score += 3;
+                score += 7;
                 continue;
             }
 
             if (!gref.is_empty_or_water(xr, yr, zr)) {
-                score += 1;
+                score += 3;
                 continue;
             }
         }
@@ -63,47 +65,102 @@ bool GridSurfaceDetection::collision_check(const Vector3<int>& loc) const {
             auto yr = loc.y() + rot_bins_3[i].y();
             auto zr = loc.z() + rot_bins_3[i].z();
             if (is_out_of_bounds({xr, yr, zr})) [[unlikely]] {
-                score += 3;
+                score += 7;
                 continue;
             }
 
             if (!gref.is_empty_or_water(xr, yr, zr)) {
-                score += 2;
+                score += 5;
                 continue;
             }
         }
 
-        score += 3;
+        score += 7;
     }
-    return score < 14;
+    return score < 42;
 }
 
-template<bool detect_surface>
+std::vector<Vector3<double>> GridSurfaceDetection::determine_vacuum_holes() const {
+    assert(!grid->w_members.empty() && "grid must first be hydrated to determine vacuum holes");
+
+    int empty_limit = std::round(3*constants::radius::get_vdw_radius(constants::atom_t::O)/settings::grid::width);
+    int stride = std::round(2*settings::grid::exv_radius/settings::grid::width);
+    auto& gobj = grid->grid;
+    auto[vmin, vmax] = grid->bounding_box_index();
+    std::vector<Vector3<double>> vacuum_voxels;
+    for (int i = vmin.x(); i < vmax.x(); i += stride) {
+        for (int j = vmin.y(); j < vmax.y(); j += stride) {
+            int k = vmin.z();
+
+            // skip empty voxels outside the surface
+            while (gobj.is_empty_or_water(i, j, ++k) && ++k < vmax.z()) {}
+
+            // the following finds and fills one strip of connected empty voxels
+            while (k < vmax.z()) {
+                // skip all non-empty voxels
+                while (!gobj.is_empty(i, j, k) && ++k < vmax.z()) {continue;}
+
+                // count the number of connected empty voxels
+                int empty = 0;
+                while (gobj.is_empty(i, j, k) && ++k < vmax.z()) {
+                    if (gobj.is_water_area(i, j, k)) {empty = 1e6; break;}
+                    ++empty;
+                }
+
+                // if the gap is too big or we're at the boundary, skip
+                if (empty_limit < empty || k == vmax.z()) {continue;}
+
+                // otherwise fill this strip with vacuum voxels
+                for (int l = k-empty; l < k; ++l) {
+                    gobj.index(i, j, l) = grid::detail::VACUUM;
+                    vacuum_voxels.push_back(grid->to_xyz(i, j, l));
+                }
+            }
+        }
+    }
+
+    return vacuum_voxels;
+}
+
+template<bool detect_surface, bool unity_width>
 GridExcludedVolume GridSurfaceDetection::helper() const {
     GridExcludedVolume vol;
     vol.interior.reserve(grid->get_volume());
 
     int stride = std::round(2*settings::grid::exv_radius/settings::grid::width);
-    int buffer = 2./settings::grid::width; // 2Å buffer in each direction should be enough to capture all filled voxels
+    int buffer = std::round(std::max<double>(settings::grid::rvol, 2)/settings::grid::width);
     const auto& axes = grid->get_axes();
-    const auto& gobj = grid->grid;
+    auto& gobj = grid->grid;
     auto[vmin, vmax] = grid->bounding_box_index();
-    for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer, axes.x.bins); i+=stride) {
-        for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer, axes.y.bins); j+=stride) {
-            for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer, axes.z.bins); k+=stride) {
-                switch (gobj.index(i, j, k)) {
-                    case grid::detail::VOLUME:
-                    case grid::detail::A_AREA:
-                    case grid::detail::A_CENTER: 
-                        if constexpr (detect_surface) {
-                            if (collision_check({i, j, k})) {
-                                vol.interior.push_back(grid->to_xyz(i, j, k));
-                            } else {
-                                vol.surface.push_back(grid->to_xyz(i, j, k));
+    for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
+        for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
+            for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
+                auto& val = gobj.index(i, j, k);
+                switch (val) {
+                    case grid::detail::State::VOLUME:
+                    case grid::detail::State::A_AREA:
+                    case grid::detail::State::A_CENTER: 
+                        // if we're not detecting the surface, everything is interior
+                        if constexpr (!detect_surface) {
+                            vol.interior.push_back(grid->to_xyz(i, j, k));
+                            continue;
+                        }
+
+                        // with non-unity widths we don't need the actual vectors yet since we have more work to do later
+                        if constexpr (!unity_width) {
+                            if (!collision_check({i, j, k})) {
+                                val |= grid::detail::RESERVED_1;
                             }
+                            continue;
+                        } 
+
+                        // with unity widths we can directly determine the surface voxels
+                        if (!collision_check({i, j, k})) {
+                            vol.surface.push_back(grid->to_xyz(i, j, k));
                         } else {
                             vol.interior.push_back(grid->to_xyz(i, j, k));
                         }
+
                     default:
                         break;
                 }
@@ -111,15 +168,77 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
         }
     }
 
+    if constexpr (!unity_width) {
+        int expand = std::round(settings::grid::surface_thickness/settings::grid::width)/2;
+        int expand2 = expand*expand;
+        auto mark_adjacent = [&gobj, expand, expand2] (int i, int j, int k) {
+            Vector3<int> origin{i, j, k};
+            for (int l = -expand; l <= expand; l++) {
+                for (int m = -expand; m <= expand; m++) {
+                    for (int n = -expand; n <= expand; n++) {
+                        if (gobj.is_atom_area_or_volume(i+l, j+m, k+n) && origin.distance2(Vector3<int>{i+l, j+m, k+n}) <= expand2) {
+                            // we're out of grid keywords, so we reuse VACUUM here since it should't be present in the grid at this point anyway
+                            gobj.index(i+l, j+m, k+n) |= grid::detail::VACUUM;
+                        }
+                    }
+                }
+            }
+        };
+
+        // expand the area around each surface voxel
+        for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
+            for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
+                for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
+                    if (gobj.index(i, j, k) & grid::detail::RESERVED_1) {
+                        mark_adjacent(i, j, k);
+                    }
+                }
+            }
+        }
+
+        // collect the surface voxels
+        for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
+            for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
+                for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
+                    auto& val = gobj.index(i, j, k);
+                    if (val & (grid::detail::RESERVED_1 | grid::detail::VACUUM)) {
+                        vol.surface.push_back(grid->to_xyz(i, j, k));
+                        val &= ~(grid::detail::RESERVED_1 | grid::detail::VACUUM);
+                        continue;
+                    }
+
+                    switch (gobj.index(i, j, k)) {
+                        case grid::detail::State::VOLUME:
+                        case grid::detail::State::A_AREA:
+                        case grid::detail::State::A_CENTER: 
+                            vol.interior.push_back(grid->to_xyz(i, j, k));
+                            break;
+                        case grid::detail::State::W_CENTER:
+                            vol.vacuum.push_back(grid->to_xyz(i, j, k));
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    // vol.vacuum = determine_vacuum_holes();
     return vol;
 }
-template GridExcludedVolume GridSurfaceDetection::helper<true>() const;
-template GridExcludedVolume GridSurfaceDetection::helper<false>() const;
+template GridExcludedVolume GridSurfaceDetection::helper<true, true>() const;
+template GridExcludedVolume GridSurfaceDetection::helper<true, false>() const;
+template GridExcludedVolume GridSurfaceDetection::helper<false, true>() const;
+template GridExcludedVolume GridSurfaceDetection::helper<false, false>() const;
 
 GridExcludedVolume GridSurfaceDetection::no_detect() const {
-    return helper<false>();
+    return helper<false, false>();
 }
 
 GridExcludedVolume GridSurfaceDetection::detect() const {
-    return helper<true>();
+    int expand = std::round(settings::grid::surface_thickness/settings::grid::width);
+    if (expand != 1) {
+        return helper<true, false>();
+    }
+    return helper<true, true>();
 }

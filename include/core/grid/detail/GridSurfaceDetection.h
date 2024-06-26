@@ -16,9 +16,17 @@ namespace grid::detail {
         private:
             observer_ptr<grid::Grid> grid;
 
-            template<bool detect>
+            template<bool detect, bool unity_width>
             GridExcludedVolume helper() const;
 
             bool collision_check(const Vector3<int>& loc) const;
+
+            bool vacuum_collision_check(const Vector3<int>& loc) const;
+
+            /**
+             * @brief Determine the vacuum holes in the protein.
+             *        This simply fills all non-water small gaps in the interior with vacuum voxels.
+             */
+            std::vector<Vector3<double>> determine_vacuum_holes() const;
     };
 }
