@@ -110,9 +110,9 @@ TEST_CASE("Slice::operator=") {
 TEST_CASE("Slice::operator Vector") {
     Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
     Vector<double> a = A.col(2);
-    REQUIRE((a.N == 3 && a.data.size() == 3));
+    REQUIRE((a.size() == 3 && a.data.size() == 3));
     REQUIRE(a == Vector{2, 2, 1});
-    REQUIRE((A.col(2).operator Vector<double>().N == 3 && A.col(2).operator Vector<double>().data.size() == 3)); // chain cast
+    REQUIRE((A.col(2).operator Vector<double>().size() == 3 && A.col(2).operator Vector<double>().data.size() == 3)); // chain cast
 }
 
 TEST_CASE("Slice::operator vector") {

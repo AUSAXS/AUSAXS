@@ -4,7 +4,14 @@
 
 #include <math/Vector.h>
 
-TEST_CASE("basic operations") {
+TEST_CASE("Vector::Vector") {
+    SECTION("empty") {
+        Vector<double> x;
+        REQUIRE(x.size() == 0);
+    }
+}
+
+TEST_CASE("Vector: basic operations") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};
     Vector<double> z = {4, 3, 2, 1};
@@ -58,7 +65,7 @@ TEST_CASE("basic operations") {
     REQUIRE(z/8 == Vector<double>{4./8, 3./8, 2./8, 1./8});
 }
 
-TEST_CASE("assignment") {
+TEST_CASE("Vector: assignment") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};
     Vector<double> z = {4, 3, 2, 1};
@@ -85,7 +92,7 @@ TEST_CASE("assignment") {
     REQUIRE(y == Vector<double>{1, 2, 3, 4, 5});
 }
 
-TEST_CASE("distance") {
+TEST_CASE("Vector::distance") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};
     Vector<double> z = {4, 3, 2, 1};
@@ -99,7 +106,7 @@ TEST_CASE("distance") {
     REQUIRE(y.distance(z) == sqrt(4+0+4+16));
 }
 
-TEST_CASE("iterator") {
+TEST_CASE("Vector: iterator") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};
     Vector<double> z = {4, 3, 2, 1};

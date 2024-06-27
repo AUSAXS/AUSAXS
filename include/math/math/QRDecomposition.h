@@ -25,10 +25,10 @@
 		// solve an equation of the form QRx = b
 		Vector<double> solve(Vector<double> b) const {
 			b = Q.T()*b;
-			Vector<double> x(b.N);
-			for (int i = x.N-1; i >= 0; i--) {
+			Vector<double> x(b.size());
+			for (int i = x.size()-1; i >= 0; i--) {
 				x[i] = b[i];
-				for (size_t j = i+1; j < b.N; j++)
+				for (size_t j = i+1; j < b.size(); j++)
 					x[i] -= R[i][j]*x[j];
 				x[i] /= R[i][i];
 			}

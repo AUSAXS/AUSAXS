@@ -19,29 +19,24 @@ class Vector3 {
 			*this = l;
 		}
 
-		Vector3(const Vector<T>& v) : Vector3(v.copy()) {}
-		Vector3(Vector<T>&& v) {
-			if (v.size() != 3) [[unlikely]] {
-				throw std::invalid_argument("Vector3::Vector3: Vector must have size 3");
-			}
-			x() = v[0];
-			y() = v[1];
-			z() = v[2];
+		Vector3(const Vector<T>& v) {
+			assert(v.size() == 3 && "Vector3: Vector must have size 3");
+			std::copy_n(v.begin(), 3, data.begin());
 		}
 
-		Vector3(const Matrix<T>& m) : Vector3(m.copy()) {}
+		Vector3(Vector<T>&& v) {
+			assert(v.size() == 3 && "Vector3: Vector must have size 3");
+			std::copy_n(v.begin(), 3, data.begin());
+		}
+
+		Vector3(const Matrix<T>& M) {
+			assert(M.data.size() == 3 && "Vector3: Matrix must have size 3");
+			std::copy_n(M.begin(), 3, data.begin());
+		}
+
 		Vector3(Matrix<T>&& M) {
-			if (M.N == 3 && M.M == 1) {
-				x() = M.index(0, 0);
-				y() = M.index(1, 0);
-				z() = M.index(2, 0);
-			} else if (M.N == 1 && M.M == 3) {
-				x() = M.index(0, 0);
-				y() = M.index(0, 1);
-				z() = M.index(0, 2);
-			} else {
-				throw std::invalid_argument("Vector3::Vector3: Matrix must be 1x3 or 3x1");
-			}
+			assert(M.data.size() == 3 && "Vector3: Matrix must have size 3");
+			std::copy_n(M.begin(), 3, data.begin());
 		}
 
 		/**
