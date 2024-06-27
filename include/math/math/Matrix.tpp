@@ -33,7 +33,7 @@ Matrix<Q>::Matrix(const std::vector<std::vector<Q>>& cols) : N(cols[0].size()), 
 }
 
 template<numeric Q>
-Matrix<Q>::Matrix(const Vector<Q>& v) : N(v.N), M(1), data(v.data) {}
+Matrix<Q>::Matrix(const Vector<Q>& v) : N(v.size()), M(1), data(v.data) {}
 
 template<numeric Q>
 Matrix<Q>::Matrix(unsigned int n, unsigned int m) : N(n), M(m), data(N*M) {} 

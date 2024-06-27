@@ -12,27 +12,27 @@
 template<numeric T>
 class Vector {
     public:
-        Vector() = default;
+        Vector() : data(0) {};
 
         /**
          * @brief Construct a vector based on an initializer list.
          */
-        Vector(const std::initializer_list<T> l) : N(l.size()), data(l) {}
+        Vector(const std::initializer_list<T> l) : data(l) {}
 
         /**
          * @brief Construct a vector based on a std::vector. 
          */
-        Vector(const std::vector<T>& v) : N(v.size()), data(v) {}
+        Vector(const std::vector<T>& v) : data(v) {}
 
         /**
          * @brief Construct a vector based on a std::vector. 
          */
-        Vector(std::vector<T>&& v) : N(v.size()), data(std::move(v)) {}
+        Vector(std::vector<T>&& v) : data(std::move(v)) {}
 
         /**
          * @brief Construct an empty vector of a given size. 
          */
-        Vector(unsigned int n) : N(n), data(n) {}
+        Vector(unsigned int n) : data(n) {}
 
         Vector<T>& operator=(std::initializer_list<T> l);
 
@@ -91,11 +91,6 @@ class Vector {
         double distance2(const Vector<Q>& v) const;
 
         /**
-         * @brief Get a copy of this Vector.
-         */
-        Vector copy() const;
-
-        /**
          * @brief Get a string representation of this Vector.
          */
         std::string to_string() const;
@@ -128,7 +123,6 @@ class Vector {
          */
         bool empty() const;
 
-        unsigned int N;
         std::vector<T> data;
 
     protected:

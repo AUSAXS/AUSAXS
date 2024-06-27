@@ -160,8 +160,8 @@ Matrix<Q> operator/(Matrix<Q> left, double right) {return left /= right;}
 template<numeric Q, numeric R>
 Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
     #if (SAFE_MATH)
-        if (A.M != v.N) [[unlikely]] {
-            throw std::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
+        if (A.M != v.size()) [[unlikely]] {
+            throw std::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(A.M) + "]).");
         }
     #endif
 

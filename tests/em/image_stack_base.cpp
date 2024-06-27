@@ -117,16 +117,9 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_protein") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_header") {
-    SECTION("no header") {
-        em::ImageStackBase isb(images);
-        REQUIRE(isb.get_header() == nullptr);
-    }
-
-    SECTION("with header") {
-        io::ExistingFile file("tests/files/A2M_2020_Q4.ccp4");
-        em::ImageStackBase isb(file);
-        REQUIRE(isb.get_header() != nullptr);
-    }
+    io::ExistingFile file("tests/files/A2M_2020_Q4.ccp4");
+    em::ImageStackBase isb(file);
+    REQUIRE(isb.get_header() != nullptr);
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {

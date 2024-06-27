@@ -149,7 +149,7 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
                         // with non-unity widths we don't need the actual vectors yet since we have more work to do later
                         auto collision = collision_check({i, j, k});
                         if constexpr (!unity_width) {
-                            if (collision) {val |= grid::detail::RESERVED_1;}
+                            if (!collision) {val |= grid::detail::RESERVED_1;}
                         } else { // with unity widths our work is already done here
                             if (collision) {vol.interior.push_back(grid->to_xyz(i, j, k));}
                             else           {vol.surface.push_back( grid->to_xyz(i, j, k));}

@@ -11,7 +11,6 @@
 
 template<numeric T>
 Vector<T>& Vector<T>::operator=(std::initializer_list<T> l) {
-    N = l.size();
     data.assign(l);
     return *this;
 }
@@ -88,16 +87,9 @@ double Vector<T>::distance(const Vector<Q>& v) const {return sqrt(distance2(v));
 template<numeric T> template<numeric Q>
 double Vector<T>::distance2(const Vector<Q>& v) const {
     compatibility_check(v);
-    Vector<T> w(N);
+    Vector<T> w(size());
     std::transform(begin(), end(), v.begin(), w.begin(), [] (T x1, Q x2) {return pow((x1-x2), 2);});
     return std::accumulate(w.begin(), w.end(), 0);
-}
-
-template<numeric T>
-Vector<T> Vector<T>::copy() const {
-    Vector w(N);
-    std::copy(begin(), end(), w.begin());
-    return w;
 }
 
 template<numeric T>
@@ -123,17 +115,16 @@ template<numeric T>
 typename std::vector<T>::iterator Vector<T>::end() {return data.end();}
 
 template<numeric T>
-void Vector<T>::push_back(T val) {data.push_back(val); N++;}
+void Vector<T>::push_back(T val) {data.push_back(val);}
 
 template<numeric T>
-unsigned Vector<T>::size() const {return N;}
+unsigned Vector<T>::size() const {return data.size();}
 
 template<numeric T>
 unsigned Vector<T>::dim() const {return size();}
 
 template<numeric T>
 void Vector<T>::resize(unsigned int size) {
-    N = size;
     data.resize(size);
 }
 
@@ -143,8 +134,8 @@ bool Vector<T>::empty() const {return data.empty();}
 template<numeric T> template<numeric Q>
 void Vector<T>::compatibility_check(const Vector<Q>& v) const {
     #if (SAFE_MATH)
-        if (N != v.N) [[unlikely]] {
-            throw std::invalid_argument("Vector::compatibility_check: Vector dimensions do not match (got: " + std::to_string(v.N) + ", expected: " + std::to_string(N) + ").");
+        if (size() != v.size()) [[unlikely]] {
+            throw std::invalid_argument("Vector::compatibility_check: Vector dimensions do not match (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(size()) + ").");
         }
     #endif
 }

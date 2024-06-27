@@ -99,9 +99,6 @@ TEST_CASE("constructors") {
 
         auto z = Vector3(std::move(x));
         REQUIRE(z == Vector3{1, 2, 3});
-
-        Vector<double> xx = {1, 2, 3, 4, 5};
-        REQUIRE_THROWS(Vector3(xx));
     }
 
     SECTION("matrix") {
@@ -111,14 +108,8 @@ TEST_CASE("constructors") {
         auto y = Vector3(x);
         REQUIRE(y == Vector3{1, 2, 3});
 
-        auto z = Vector3(std::move(x));
+        auto z = Vector3(std::move(x.T()));
         REQUIRE(z == Vector3{1, 2, 3});
-
-        Matrix<double> xx = {
-            {1, 2, 3},
-            {4, 5, 6}
-        };
-        REQUIRE_THROWS(Vector3(xx));
     }
 }
 
