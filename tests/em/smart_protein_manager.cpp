@@ -99,12 +99,13 @@ TEST_CASE("SmartProteinManager: consistency") {
     settings::fit::max_iterations = 20;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
 
-    em::ImageStack images("data/emd_24889/emd_24889.map");
-    auto res = images.fit("data/SASDJG5/SASDJG5.dat");
+    // we need a hydration-sensitive map for this test
+    em::ImageStack images("tests/files/emd_24889.map");
+    auto res = images.fit("tests/files/SASDJG5.dat");
     for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels+= 10) {
         settings::em::charge_levels = charge_levels;
         images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
         REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
-        REQUIRE_THAT(images.fit("data/SASDJG5/SASDJG5.dat")->fval, Catch::Matchers::WithinRel(res->fval, 1e-3));
+        REQUIRE_THAT(images.fit("tests/files/SASDJG5.dat")->fval, Catch::Matchers::WithinRel(res->fval, 1e-3));
     }
 }
