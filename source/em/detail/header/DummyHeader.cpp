@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <em/detail/header/data/DummyData.h>
 #include <utility/Axis3D.h>
 
+#include <string>
+
 using namespace em::detail::header;
 
 DummyHeader::DummyHeader() : MapHeader(std::make_unique<DummyData>()) {}
