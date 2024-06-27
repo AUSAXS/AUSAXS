@@ -139,7 +139,7 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
                 switch (val) {
                     case grid::detail::State::VOLUME:
                     case grid::detail::State::A_AREA:
-                    case grid::detail::State::A_CENTER: 
+                    case grid::detail::State::A_CENTER: {
                         // if we're not detecting the surface, everything is interior
                         if constexpr (!detect_surface) {
                             vol.interior.push_back(grid->to_xyz(i, j, k));
@@ -147,19 +147,15 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
                         }
 
                         // with non-unity widths we don't need the actual vectors yet since we have more work to do later
+                        auto collision = collision_check({i, j, k});
                         if constexpr (!unity_width) {
-                            if (!collision_check({i, j, k})) {
-                                val |= grid::detail::RESERVED_1;
-                            }
-                            continue;
-                        } 
-
-                        // with unity widths we can directly determine the surface voxels
-                        if (!collision_check({i, j, k})) {
-                            vol.surface.push_back(grid->to_xyz(i, j, k));
-                        } else {
-                            vol.interior.push_back(grid->to_xyz(i, j, k));
+                            if (collision) {val |= grid::detail::RESERVED_1;}
+                        } else { // with unity widths our work is already done here
+                            if (collision) {vol.interior.push_back(grid->to_xyz(i, j, k));}
+                            else           {vol.surface.push_back( grid->to_xyz(i, j, k));}
                         }
+                        break;
+                    }
 
                     default:
                         break;
@@ -213,8 +209,6 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
                         case grid::detail::State::A_CENTER: 
                             vol.interior.push_back(grid->to_xyz(i, j, k));
                             break;
-                        case grid::detail::State::W_CENTER:
-                            vol.vacuum.push_back(grid->to_xyz(i, j, k));
                         default:
                             break;
                     }
@@ -223,7 +217,6 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
         }
     }
 
-    // vol.vacuum = determine_vacuum_holes();
     return vol;
 }
 template GridExcludedVolume GridSurfaceDetection::helper<true, true>() const;
@@ -232,7 +225,7 @@ template GridExcludedVolume GridSurfaceDetection::helper<false, true>() const;
 template GridExcludedVolume GridSurfaceDetection::helper<false, false>() const;
 
 GridExcludedVolume GridSurfaceDetection::no_detect() const {
-    return helper<false, false>();
+    return helper<false, true>();
 }
 
 GridExcludedVolume GridSurfaceDetection::detect() const {
