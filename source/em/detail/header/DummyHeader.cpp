@@ -8,6 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Axis3D.h>
 
 #include <string>
+#include <iostream>
 
 using namespace em::detail::header;
 
