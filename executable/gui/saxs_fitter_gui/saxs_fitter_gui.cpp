@@ -9,7 +9,6 @@
 #include <fitter/HydrationFitter.h>
 #include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/FitReporter.h>
-#include <fitter/Fit.h>
 #include <settings/All.h>
 #include <plots/All.h>
 
@@ -87,7 +86,7 @@ auto make_start_button(gui::view& view) {
 			std::shared_ptr<fitter::HydrationFitter> fitter;
 			if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(settings::saxs_file, setup::pdb->get_histogram());}
 			else {fitter = std::make_shared<fitter::HydrationFitter>(settings::saxs_file, setup::pdb->get_histogram());}
-			std::shared_ptr<fitter::Fit> result = fitter->fit();
+			auto result = fitter->fit();
 
 			fitter::FitReporter::report(result.get());
 			fitter::FitReporter::save(result.get(), settings::general::output + "report.txt");

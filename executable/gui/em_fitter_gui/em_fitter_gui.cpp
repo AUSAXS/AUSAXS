@@ -589,8 +589,8 @@ auto make_start_button(gui::view& view) {
 			}
 
 			// perform the plots
-			res->figures.data.save(settings::general::output + io::File(settings::saxs_file).stem() + ".scat");
-			res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");
+			res->info.dataset.save(settings::general::output + io::File(settings::saxs_file).stem() + ".scat");
+			res->info.fitted_intensity_interpolated.save(settings::general::output + "fit.fit");
 			fitter::FitReporter::save(res.get(), settings::general::output + "report.txt");
 			perform_plot(settings::general::output);
 
