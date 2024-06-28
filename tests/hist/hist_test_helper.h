@@ -52,19 +52,23 @@ void set_unity_charge(T& protein) {
 }
 
 struct SimpleCube {
-    inline static std::vector<data::record::Atom> atoms = {
-        data::record::Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1),
-        data::record::Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
-        data::record::Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
-        data::record::Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)
-    };
+    inline static std::vector<data::record::Atom> get_atoms() {
+        return {
+            data::record::Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1),
+            data::record::Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
+            data::record::Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
+            data::record::Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)
+        };
+    }
 
-    inline static std::vector<data::record::Water> waters = {
-        data::record::Water::create_new_water(Vector3<double>(-1, -1, -1)), data::record::Water::create_new_water(Vector3<double>(-1, 1, -1)),
-        data::record::Water::create_new_water(Vector3<double>( 1, -1, -1)), data::record::Water::create_new_water(Vector3<double>( 1, 1, -1)),
-        data::record::Water::create_new_water(Vector3<double>(-1, -1,  1)), data::record::Water::create_new_water(Vector3<double>(-1, 1,  1)),
-        data::record::Water::create_new_water(Vector3<double>( 1, -1,  1)), data::record::Water::create_new_water(Vector3<double>( 1, 1,  1))
-    };
+    inline static std::vector<data::record::Water> get_waters() {
+        return {
+            data::record::Water::create_new_water(Vector3<double>(-1, -1, -1)), data::record::Water::create_new_water(Vector3<double>(-1, 1, -1)),
+            data::record::Water::create_new_water(Vector3<double>( 1, -1, -1)), data::record::Water::create_new_water(Vector3<double>( 1, 1, -1)),
+            data::record::Water::create_new_water(Vector3<double>(-1, -1,  1)), data::record::Water::create_new_water(Vector3<double>(-1, 1,  1)),
+            data::record::Water::create_new_water(Vector3<double>( 1, -1,  1)), data::record::Water::create_new_water(Vector3<double>( 1, 1,  1))
+        };
+    }
 
     // calculation: 8 points
     //          1 line  of length 0

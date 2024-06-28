@@ -163,11 +163,11 @@ TEST_CASE("HistogramManagerMTFFGridSurface::debye_transform") {
     settings::grid::exv_radius = 0.5;
     settings::grid::rvol = 0;
 
-    std::vector<Atom> atoms = SimpleCube::atoms;
+    std::vector<Atom> atoms = SimpleCube::get_atoms();
     atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
     std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
 
-    std::vector<Water> waters = SimpleCube::waters;
+    std::vector<Water> waters = SimpleCube::get_waters();
     waters.push_back(Water::create_new_water(Vector3<double>(0, 0, 0)));
     std::for_each(waters.begin(), waters.end(), [](Water& w) {w.set_effective_charge(1);});
 
@@ -195,7 +195,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     settings::grid::exv_radius = 0.5;
     settings::grid::rvol = 0;
 
-    std::vector<Atom> atoms = SimpleCube::atoms;
+    std::vector<Atom> atoms = SimpleCube::get_atoms();
     atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
     std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
 

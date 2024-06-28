@@ -253,7 +253,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
 
     SECTION("simple, all") {
         settings::grid::rvol = 0;
-        std::vector<Atom> atoms = SimpleCube::atoms;
+        std::vector<Atom> atoms = SimpleCube::get_atoms();
         atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
         std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
 

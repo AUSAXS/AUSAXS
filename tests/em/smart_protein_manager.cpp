@@ -21,7 +21,7 @@ struct fixture {
     std::unique_ptr<em::managers::SmartProteinManager> manager;
 };
 
-TEST_CASE_METHOD(fixture, "SmartProteinManager::ProteinManager") {
+TEST_CASE_METHOD(fixture, "SmartProteinManager::SmartProteinManager", "[files]") {
     SECTION("ImageStackBase*") {
         CHECK(!manager->get_charge_levels().empty());
     }
@@ -33,7 +33,7 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::set_charge_levels") {
     CHECK(manager->get_charge_levels() == std::vector<double>{1, 2, 3, 10000});
 }
 
-TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein") {
+TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein", "[files]") {
     // we just check the size of the returned protein
     unsigned int size = manager->get_protein(2)->size_atom();
     CHECK(size != 0);
@@ -42,11 +42,11 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein") {
     CHECK(manager->get_protein(2)->size_atom() == size);
 }
 
-TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram") {
+TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram", "[files]") {
     CHECK(manager->get_histogram(1)->get_total_counts() == manager->get_protein(1)->get_histogram()->get_total_counts());
 }
 
-TEST_CASE("SmartProteinManager::generate_protein") {
+TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
     settings::general::threads = 6;
     settings::em::sample_frequency = 2;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
@@ -65,7 +65,7 @@ TEST_CASE("SmartProteinManager::generate_protein") {
     }
 }
 
-TEST_CASE("SmartProteinManager::update_protein") {
+TEST_CASE("SmartProteinManager::update_protein", "[files]") {
     settings::general::threads = 6;
     settings::em::sample_frequency = 2;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
@@ -89,7 +89,7 @@ TEST_CASE("SmartProteinManager::update_protein") {
     }
 }
 
-TEST_CASE("SmartProteinManager: consistency") {
+TEST_CASE("SmartProteinManager: consistency", "[files]") {
     settings::general::threads = 6;
     settings::general::verbose = false;
     settings::general::supplementary_plots = false;
