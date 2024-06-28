@@ -120,7 +120,7 @@ TEST_CASE("Dataset: different unit") {
         Dataset loaded_dataset("temp/tests/dataset/save.dat");
         REQUIRE(loaded_dataset.size() == dataset.size());
         for (unsigned int i = 0; i < dataset.size(); i++) {
-            REQUIRE(loaded_dataset.x(i) == 10*dataset.x(i));
+            REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
             REQUIRE(loaded_dataset.y(i) == dataset.y(i));
         }
     }
@@ -131,7 +131,7 @@ TEST_CASE("Dataset: different unit") {
         Dataset loaded_dataset("temp/tests/dataset/save.dat");
         REQUIRE(loaded_dataset.size() == dataset.size());
         for (unsigned int i = 0; i < dataset.size(); i++) {
-            REQUIRE(loaded_dataset.x(i) == 10*dataset.x(i));
+            REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
             REQUIRE(loaded_dataset.y(i) == dataset.y(i));
         }
         settings::general::input_q_unit = settings::general::QUnit::A;

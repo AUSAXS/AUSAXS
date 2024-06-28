@@ -120,7 +120,7 @@ for f in files:
         y = np.interp(data[:, 0], x, fitdata[:, 1])
         load_fit(y, stem.lower())
 
-    elif "fit".lower() in stem.lower():
+    elif "ausaxs".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 1])
         y = np.interp(data[:, 0], fitdata[:, 0], fitdata[:, 1])
         load_fit(y, stem.lower())

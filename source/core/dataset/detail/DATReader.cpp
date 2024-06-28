@@ -156,7 +156,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     if (unit == settings::general::QUnit::NM) {
         if (settings::general::verbose) {std::cout << "\tScaling all q-values by 1/10 to convert from [nm] to [A]." << std::endl;}
         for (unsigned int i = 0; i < dataset->size_rows(); i++) {
-            dataset->index(i, 0) *= 10;
+            dataset->index(i, 0) /= 10;
         }
     }
 
