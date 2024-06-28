@@ -121,7 +121,7 @@ int main(int argc, char const *argv[]) {
 
         auto res = rigidbody.get_unconstrained_fitter(mfile)->fit();
         fitter::FitReporter::report(res.get());
-        fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
+        fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt", argc, argv);
         plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
     } catch (const std::exception& e) {
         console::print_warning(e.what());

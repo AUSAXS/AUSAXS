@@ -74,11 +74,8 @@ int main(int argc, char const *argv[]) {
         em::ImageStack map(mapfile); 
         auto res = map.fit(mfile);
 
-        std::string cmd_line;
-        for (int i = 0; i < argc; ++i) {cmd_line.append(argv[i]).append(" ");}
-
         fitter::FitReporter::report(res.get());
-        fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", cmd_line);
+        fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", argc, argv);
 
         res->info.dataset.save(settings::general::output + mfile.stem() + ".scat");
         res->info.fitted_intensity_interpolated.save(settings::general::output + "ausaxs.fit");

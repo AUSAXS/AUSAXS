@@ -27,6 +27,12 @@ void FitReporter::report(const std::vector<FitResult>& fits, const std::vector<s
     }
 }
 
+void FitReporter::save(const observer_ptr<FitResult> fit, const io::File& path, int argc, char const* argv[]) {
+    std::string cmd_line;
+    for (int i = 0; i < argc; ++i) {cmd_line.append(argv[i]).append(" ");}
+    save(fit, path, cmd_line);
+}
+
 void FitReporter::save(const observer_ptr<FitResult> fit, const io::File& path, const std::string& header) {
     path.directory().create();
 

@@ -106,7 +106,7 @@ int main(int argc, char const *argv[]) {
         else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
         auto result = fitter->fit();
         fitter::FitReporter::report(result.get());
-        fitter::FitReporter::save(result.get(), settings::general::output + "report.txt");
+        fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);
 
         plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "p(r)." + settings::plots::format);
         plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
