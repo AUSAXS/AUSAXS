@@ -1,21 +1,19 @@
 #pragma once
 
-namespace settings {
-    namespace crystal {
-        extern unsigned int h;        // The maximum Miller index along the x direction.
-        extern unsigned int k;        // The maximum Miller index along the y direction.
-        extern unsigned int l;        // The maximum Miller index along the z direction.
+namespace settings::crystal {
+    extern unsigned int h;        // The maximum Miller index along the x direction.
+    extern unsigned int k;        // The maximum Miller index along the y direction.
+    extern unsigned int l;        // The maximum Miller index along the z direction.
 
-        extern double max_q;          // The maximum length of the Miller indices. 
-        extern double grid_expansion; // The factor by which the grid is expanded when loading a pdb structure. 
+    extern double max_q;          // The maximum length of the Miller indices. 
+    extern double grid_expansion; // The factor by which the grid is expanded when loading a pdb structure. 
 
-        namespace reduced {
-            extern double basis_q;    // The maximum q value for which the basis is generated.
-        }
+    namespace reduced {
+        extern double basis_q;    // The maximum q value for which the basis is generated.
+    }
 
-        namespace detail {
-            extern bool use_checkpointing; // Whether to use checkpointing during the calculation. 
-        }
+    namespace detail {
+        extern bool use_checkpointing; // Whether to use checkpointing during the calculation. 
     }
 }
 

@@ -137,23 +137,27 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     }
 
     // scan the headers for units. must be either [Å] or [nm]
-    bool found_unit = false;
+    settings::general::QUnit unit = settings::general::input_q_unit;
     for (auto& s : header) {
         if (s.find("[nm]") != std::string::npos) {
-            if (settings::general::verbose) {std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;}
-            for (unsigned int i = 0; i < dataset->size_rows(); i++) {
-                dataset->index(i, 0) /= 10;
+            if (settings::general::input_q_unit != settings::general::QUnit::NM) {
+                console::print_warning("Warning: File contains unit [nm], but default is set to [A]. Assuming [nm] is correct.");
             }
-            found_unit = true;
+            unit = settings::general::QUnit::NM;
             break;
         } else if ((s.find("[Å]") != std::string::npos) || (s.find("[AA]") != std::string::npos)) {
-            if (settings::general::verbose) {std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;}
-            found_unit = true;
+            if (settings::general::input_q_unit != settings::general::QUnit::A) {
+                console::print_warning("Warning: File contains unit [A], but default is set to [nm]. Assuming [A] is correct.");
+            }
+            unit = settings::general::QUnit::A;
             break;
         }
     }
-    if (!found_unit) {
-        if (settings::general::verbose) {std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;}
+    if (unit == settings::general::QUnit::NM) {
+        if (settings::general::verbose) {std::cout << "\tScaling all q-values by 1/10 to convert from [nm] to [A]." << std::endl;}
+        for (unsigned int i = 0; i < dataset->size_rows(); i++) {
+            dataset->index(i, 0) *= 10;
+        }
     }
 
     // remove all rows outside the specified q-range

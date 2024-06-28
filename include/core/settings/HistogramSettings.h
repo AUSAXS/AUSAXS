@@ -1,11 +1,9 @@
 #pragma once
 
-namespace settings {
-    namespace axes {
-        extern unsigned int skip;   // The number of points to skip from the top of the scattering curve.
-        extern double qmin;         // Lower limit on the used q-values
-        extern double qmax;         // Upper limit on the used q-values
-    }
+namespace settings::axes {
+    extern unsigned int skip;   // The number of points to skip from the top of the scattering curve.
+    extern double qmin;         // Lower limit on the used q-values
+    extern double qmax;         // Upper limit on the used q-values
 }
 
 namespace settings::hist {

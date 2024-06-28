@@ -30,6 +30,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("input_m", s_mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/saxs_fitter/")->group("General options");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("General options");
+    app.add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, "The unit of the q values in the measurement file. Options: A, nm.")->group("General options");
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax)->group("General options");
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("General options");
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
@@ -111,7 +112,7 @@ int main(int argc, char const *argv[]) {
         plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
 
         // save fit
-        fitter->get_model_dataset().save(settings::general::output + "fit.fit");
+        fitter->get_model_dataset().save(settings::general::output + "ausaxs.fit");
         fitter->get_dataset().save(settings::general::output + mfile.stem() + ".scat");
 
         // calculate rhoM

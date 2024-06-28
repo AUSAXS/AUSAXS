@@ -9,58 +9,52 @@
 #include <unordered_map>
 #include <stdexcept>
 
-namespace settings {
-    namespace io {
-        namespace detail {
-            /**
-             * @brief Virtual interface for a reference to some setting. 
-             */
-            struct ISettingRef {
-                ISettingRef(const std::vector<std::string>& name) : names(name) {}
-                virtual ~ISettingRef() = default;
+namespace settings::io::detail {
+    /**
+     * @brief Virtual interface for a reference to some setting. 
+     */
+    struct ISettingRef {
+        ISettingRef(const std::vector<std::string>& name) : names(name) {}
+        virtual ~ISettingRef() = default;
 
-                /**
-                 * @brief Set the setting value.
-                 */
-                virtual void set(const std::vector<std::string>&) = 0;
+        /**
+         * @brief Set the setting value.
+         */
+        virtual void set(const std::vector<std::string>&) = 0;
 
-                /**
-                 * @brief Get the setting value as a string.
-                 */
-                virtual std::string get() const = 0;
+        /**
+         * @brief Get the setting value as a string.
+         */
+        virtual std::string get() const = 0;
 
-                std::vector<std::string> names; // The name of the setting.
-                static std::unordered_map<std::string, std::shared_ptr<ISettingRef>>& get_stored_settings();
-            };
+        std::vector<std::string> names; // The name of the setting.
+        static std::unordered_map<std::string, std::shared_ptr<ISettingRef>>& get_stored_settings();
+    };
 
-            /**
-             * @brief A reference to a setting. 
-             */
-            template<typename T> struct SettingRef : public ISettingRef {
-                SettingRef(T& setting, const std::vector<std::string>& names) : ISettingRef(names), settingref(setting) {}
-                virtual ~SettingRef() = default;
+    /**
+     * @brief A reference to a setting. 
+     */
+    template<typename T> struct SettingRef : public ISettingRef {
+        SettingRef(T& setting, const std::vector<std::string>& names) : ISettingRef(names), settingref(setting) {}
+        virtual ~SettingRef() = default;
 
-                /**
-                 * @brief Set the setting value.
-                 */
-                void set(const std::vector<std::string>&) override {
-                    throw std::runtime_error("settings::io::detail::SettingRef::set: missing implementation for type \"" + type(settingref) + "\".");
-                }
-
-                /**
-                 * @brief Get the setting value as a string.
-                 */
-                std::string get() const override {
-                    throw std::runtime_error("settings::io::detail::SettingRef::get: missing implementation for type \"" + type(settingref) + "\".");
-                }
-
-                T& settingref; // A reference to the setting.
-            };
-
+        /**
+         * @brief Set the setting value.
+         */
+        void set(const std::vector<std::string>&) override {
+            throw std::runtime_error("settings::io::detail::SettingRef::set: missing implementation for type \"" + type(settingref) + "\".");
         }
-    }
-}
 
+        /**
+         * @brief Get the setting value as a string.
+         */
+        std::string get() const override {
+            throw std::runtime_error("settings::io::detail::SettingRef::get: missing implementation for type \"" + type(settingref) + "\".");
+        }
+
+        T& settingref; // A reference to the setting.
+    };
+}
 
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const;
 template<> std::string settings::io::detail::SettingRef<double>::get() const;

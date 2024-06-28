@@ -24,6 +24,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("input-exp", mfile, "Path to the SAXS measurement.")->required()->check(CLI::ExistingFile);
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/em_fitter/");
+    app.add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, "The unit of the q values in the measurement file. Options: A, nm.");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from measurement file.");
@@ -80,7 +81,7 @@ int main(int argc, char const *argv[]) {
         fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", cmd_line);
 
         res->info.dataset.save(settings::general::output + mfile.stem() + ".scat");
-        res->info.fitted_intensity_interpolated.save(settings::general::output + "fit.fit");
+        res->info.fitted_intensity_interpolated.save(settings::general::output + "ausaxs.fit");
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

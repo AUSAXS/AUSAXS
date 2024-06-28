@@ -1,4 +1,3 @@
-#include "settings/GeneralSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -7,6 +6,8 @@
 #include <dataset/PointSet.h>
 #include <utility/Limit.h>
 #include <io/ExistingFile.h>
+#include <settings/GeneralSettings.h>
+#include <settings/HistogramSettings.h>
 
 #include <fstream>
 
@@ -137,10 +138,43 @@ TEST_CASE("Dataset::save") {
         std::vector<double>{1,    2,    3,    4,    5,    6,    7,    8,    9,    10}
     });
 
-    std::string path = "temp/dataset/save.dat";
+    std::string path = "temp/tests/dataset/save.dat";
     dataset.save(path);
     Dataset loaded_dataset(path);
     CHECK(dataset == loaded_dataset);
+}
+
+TEST_CASE("Dataset: different unit") {
+    settings::general::verbose = false;
+
+    Dataset dataset({
+        std::vector<double>{0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10}, 
+        std::vector<double>{1,    2,    3,    4,    5,    6,    7,    8,    9,    10}
+    });
+
+    SECTION("specified in file") {
+        settings::axes::qmax = 1;
+
+        dataset.save(          "temp/tests/dataset/save.dat", "[nm]");
+        Dataset loaded_dataset("temp/tests/dataset/save.dat");
+        REQUIRE(loaded_dataset.size() == dataset.size());
+        for (unsigned int i = 0; i < dataset.size(); i++) {
+            REQUIRE(loaded_dataset.x(i) == 10*dataset.x(i));
+            REQUIRE(loaded_dataset.y(i) == dataset.y(i));
+        }
+    }
+
+    SECTION("specified by setting") {
+        settings::general::input_q_unit = settings::general::QUnit::NM;
+        dataset.save(          "temp/tests/dataset/save.dat");
+        Dataset loaded_dataset("temp/tests/dataset/save.dat");
+        REQUIRE(loaded_dataset.size() == dataset.size());
+        for (unsigned int i = 0; i < dataset.size(); i++) {
+            REQUIRE(loaded_dataset.x(i) == 10*dataset.x(i));
+            REQUIRE(loaded_dataset.y(i) == dataset.y(i));
+        }
+        settings::general::input_q_unit = settings::general::QUnit::A;
+    }
 }
 
 TEST_CASE_METHOD(fixture, "Dataset::col_names") {
