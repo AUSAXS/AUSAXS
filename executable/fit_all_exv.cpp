@@ -89,8 +89,20 @@ int main(int argc, char const *argv[]) {
         };
         volumes = "TRAUBE";
     #elif PONTIUS_FF
-        loop = {settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit};
-        loop_names = {"HistogramManagerMTFFExplicit", "FoXS"};
+        loop = {
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg,
+            settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit,
+            settings::hist::HistogramManagerChoice::FoXSManager,
+            settings::hist::HistogramManagerChoice::CrysolManager,
+            settings::hist::HistogramManagerChoice::PepsiManager
+        };
+        loop_names = {
+            "HistogramManagerMTFFAvg",
+            "HistogramManagerMTFFExplicit", 
+            "FoXS",
+            "CRYSOL",
+            "Pepsi-SAXS"
+        };
         volumes = "PONTIUS";
     #endif
     std::cout << volumes << std::endl;
