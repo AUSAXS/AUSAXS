@@ -339,8 +339,8 @@ saxs_fit/%: build/bin/saxs_fitter
 fit_all_ausaxs/%: build/bin/fit_all_exv
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
-	if [ -f "$${folder}/$*_dehydrated.pdb" ]; then \
-		structure="$${folder}/$*_dehydrated.pdb";\
+	if [ -f "$${folder}/$*_stripped.pdb" ]; then \
+		structure="$${folder}/$*_stripped.pdb";\
 	else \
 		structure=$$(find $${folder}/ -name "$*.pdb");\
 	fi;\
@@ -358,23 +358,26 @@ fit_all_foxs/%:
 	cp $${structure} temp/foxs;\
 	cp $${measurement} temp/foxs;\
 	cd temp/foxs; \
-	foxs $$(basename "$${structure}") $$(basename "$${measurement}") $${options};\
+	foxs $$(basename "$${structure}") $$(basename "$${measurement}") --max_q=1 $${options};\
 	cd ../..;\
 	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
 	cp output/fit_all_exv/$*/foxs.fit output/saxs_fitter/$*
 
-fit_all_pepsi/%: 
-	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
+# Pepsi breaks with four-column datasets, so we have to strip the fourth column first
+fit_all_pepsi/%: build/bin/remove_fourth_column_data
+	@ measurement=$$(find data -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
 	structure=$$(find $${folder}/ -name "$*.pdb");\
 	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
 	structure="$${folder}/$*_stripped.pdb";\
+	$< $${measurement};\
+	measurement=$$(find data -name "$*_stripped.RSR" -or -name "$*_stripped.dat" -or -name "$*_stripped.xvg");\
 	rm -rf temp/pepsi;\
 	mkdir -p temp/pepsi;\
-	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" $${options};\
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" -ms 1 $${options};\
 	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
 	cp output/fit_all_exv/$*/pepsi.fit output/saxs_fitter/$*
-
+	
 fit_all_crysol/%: 
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
@@ -382,56 +385,19 @@ fit_all_crysol/%:
 	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
 	structure="$${folder}/$*_stripped.pdb";\
 	mkdir -p temp/crysol;\
-	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 $${options};\
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 --smax=1 $${options};\
 	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
 	cp output/fit_all_exv/$*/crysol.fit output/saxs_fitter/$*
 
-fit_all_foxs/%: 
+fit_all/%: build/bin/fit_all_exv build/bin/remove_fourth_column_data
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
 	structure=$$(find $${folder}/ -name "$*.pdb");\
 	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
 	structure="$${folder}/$*_stripped.pdb";\
-	rm -rf temp/foxs;\
-	mkdir -p temp/foxs;\
-	cp $${structure} temp/foxs;\
-	cp $${measurement} temp/foxs;\
-	cd temp/foxs; \
-	foxs $$(basename "$${structure}") $$(basename "$${measurement}") $${options};\
-	cd ../..;\
-	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
-	cp output/fit_all_exv/$*/foxs.fit output/saxs_fitter/$*
-
-fit_all_pepsi/%: 
-	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
-	folder=$$(dirname $${measurement});\
-	structure=$$(find $${folder}/ -name "$*.pdb");\
-	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
-	structure="$${folder}/$*_stripped.pdb";\
-	rm -rf temp/pepsi;\
-	mkdir -p temp/pepsi;\
-	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" $${options};\
-	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
-	cp output/fit_all_exv/$*/pepsi.fit output/saxs_fitter/$*
-
-fit_all_crysol/%: 
-	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
-	folder=$$(dirname $${measurement});\
-	structure=$$(find $${folder}/ -name "$*.pdb");\
-	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
-	structure="$${folder}/$*_stripped.pdb";\
-	mkdir -p temp/crysol;\
-	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 $${options};\
-	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit
-	cp output/fit_all_exv/$*/crysol.fit output/saxs_fitter/$*
-
-fit_all/%: build/bin/fit_all_exv
-	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
-	folder=$$(dirname $${measurement});\
-	structure=$$(find $${folder}/ -name "$*.pdb");\
-	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb";\
-	structure="$${folder}/$*_stripped.pdb";\
-	echo "Fitting $$structure ...";\
+	build/bin/remove_fourth_column_data $${measurement};\
+	measurement=$$(find data -name "$*_stripped.RSR" -or -name "$*_stripped.dat" -or -name "$*_stripped.xvg");\
+	echo "Fitting $$structure with $$measurement ...";\
 	$< $${structure} $${measurement} --no-exit-on-unknown-atom $${options};\
 	mkdir -p output/saxs_fitter/$*;\
 	rm -rf temp/foxs;\
@@ -439,16 +405,17 @@ fit_all/%: build/bin/fit_all_exv
 	cp $${structure} temp/foxs;\
 	cp $${measurement} temp/foxs;\
 	cd temp/foxs; \
-	foxs $$(basename "$${structure}") $$(basename "$${measurement}") ;\
+	foxs $$(basename "$${structure}") $$(basename "$${measurement}") --max_q=1;\
 	cd ../..;\
 	mv temp/foxs/*.fit output/fit_all_exv/$*/foxs.fit;\
 	rm -rf temp/pepsi;\
 	mkdir -p temp/pepsi;\
-	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit";\
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" -ms 1;\
 	mv temp/pepsi/pepsi.fit output/fit_all_exv/$*/pepsi.fit;\
 	mkdir -p temp/crysol;\
-	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1;\
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant --implicit-hydrogen=1 --smax=1;\
 	mv temp/crysol/out.fit output/fit_all_exv/$*/crysol.fit;\
+	mkdir -p output/saxs_fitter/$*;\
 	cp output/fit_all_exv/$*/*.fit output/saxs_fitter/$*
 
 # Check the consistency of the program. 
