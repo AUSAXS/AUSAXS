@@ -15,8 +15,14 @@ namespace io {
             File(const char* path);
             File(const std::string& path);
 
+            /**
+             * @brief Get the path to this file relative to the current directory.
+             */
             [[nodiscard]] std::string path() const;
 
+            /**
+             * @brief Get the absolute path to this file.
+             */
             [[nodiscard]] std::string absolute_path() const;
 
             [[nodiscard]] operator std::string() const;
@@ -30,44 +36,35 @@ namespace io {
              * @brief Append to the name of the file.
              */
             File& append(std::string_view name) noexcept;
-
-            /**
-             * @brief Append to the name of the file.
-             */
-            [[nodiscard]] File append(std::string_view name) const noexcept;
+            [[nodiscard]] File append(std::string_view name) const noexcept; //< @copydoc append()
 
             /**
              * @brief Get the stem of the file.
              */
-            [[nodiscard]] std::string stem() const noexcept;
+            [[nodiscard]] std::string& stem() noexcept;
+            [[nodiscard]] std::string stem() const noexcept; //< @copydoc stem()
 
             /**
              * @brief Get the directory of the file.
              */
             [[nodiscard]] Folder& directory() noexcept;
-
-            /**
-             * @brief Get the directory of the file.
-             */
-            [[nodiscard]] const Folder& directory() const noexcept;
+            [[nodiscard]] const Folder& directory() const noexcept; //< @copydoc directory()
 
             /**
              * @brief Get the extension of the file, including the dot.
              */
             [[nodiscard]] std::string& extension() noexcept;
+            [[nodiscard]] const std::string& extension() const noexcept; //< @copydoc extension()
 
             /**
-             * @brief Get the extension of the file, including the dot. 
-             */
-            [[nodiscard]] const std::string& extension() const noexcept;
-
-            /**
-             * @brief Create this file with the given contents.
+             * @brief Create this file on disk with the given contents.
+             *        Parent directories are created if they do not already exist.
+             *        If the file already exists, it is overwritten.
              */
             void create(std::string_view contents = "") const; 
 
             /**
-             * @brief Remove this file.
+             * @brief Delete this file from disk. 
              */
             void remove() const;
 

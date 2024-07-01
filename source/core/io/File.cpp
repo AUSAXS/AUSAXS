@@ -66,6 +66,8 @@ const std::string& File::extension() const noexcept {return ext;}
 
 std::string File::stem() const noexcept {return name;}
 
+std::string& File::stem() noexcept {return name;}
+
 void File::create(std::string_view contents) const {
     if (!dir.exists()) {dir.create();}
     std::ofstream file(*this);
