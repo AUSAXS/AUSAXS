@@ -90,7 +90,7 @@ jobs:
         include: 
           - runner: macos-13
             name: "MacOS x86"
-            arch: x86-64
+            arch: x86_64
             
           - runner: macos-14
             name: "MacOS arm64"
