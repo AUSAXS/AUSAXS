@@ -113,7 +113,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: macos-gui-binaries
+          name: macos-${{ matrix.arch }}-gui-binaries
           path: |
             build/lib/*
             build/bin/*
