@@ -6,7 +6,6 @@
 #include <fitter/HydrationFitter.h>
 #include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/FitReporter.h>
-#include <fitter/Fit.h>
 #include <plots/All.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
@@ -109,7 +108,7 @@ int main(int argc, char const *argv[]) {
         std::shared_ptr<fitter::HydrationFitter> fitter;
         if (fit_exv) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
         else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
-        std::shared_ptr<fitter::Fit> result = fitter->fit();
+        auto result = fitter->fit();
         std::cout << name << ": " << result->fval/result->dof << std::endl;
         out << name << ": " << result->fval/result->dof << std::endl;
         fitter::FitReporter::save(result.get(), settings::general::output + volumes + "/" + name + ".txt");
