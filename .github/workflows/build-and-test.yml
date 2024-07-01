@@ -12,150 +12,184 @@ env:
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
-  build-win: 
-    name: "Windows MSVC"
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ilammy/msvc-dev-cmd@v1
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+  # build-win: 
+  #   name: "Windows MSVC"
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: ilammy/msvc-dev-cmd@v1
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.12'
+  #     - uses: actions/github-script@v7
+  #       with:
+  #         script: |
+  #           core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+  #           core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Install dependencies (windows)
-        run: |
-          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
-          choco install ninja
-          pip install matplotlib numpy pyinstaller
+  #     - name: Install dependencies (windows)
+  #       run: |
+  #         vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
+  #         choco install ninja
+  #         pip install matplotlib numpy pyinstaller
           
-      - name: Build the library
-        shell: bash
-        run: |
-          mkdir build
-          cmake -B build -S . -G "Ninja" \
-            -DGUI=ON \
-            -DBUILD_PLOT_EXE=ON \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_C_COMPILER=cl \
-            -DCMAKE_CXX_COMPILER=cl \
-            -DARCH=x86-64 \
-            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="x64-windows-static"
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+  #     - name: Build the library
+  #       shell: bash
+  #       run: |
+  #         mkdir build
+  #         cmake -B build -S . -G "Ninja" \
+  #           -DGUI=ON \
+  #           -DBUILD_PLOT_EXE=ON \
+  #           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  #           -DCMAKE_C_COMPILER=cl \
+  #           -DCMAKE_CXX_COMPILER=cl \
+  #           -DARCH=x86-64 \
+  #           -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+  #           -DVCPKG_TARGET_TRIPLET="x64-windows-static"
+  #         cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
   
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-binaries
-          path: |
-            build/lib/*
-            build/bin/*
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: windows-binaries
+  #         path: |
+  #           build/lib/*
+  #           build/bin/*
 
-  build-mac:
-    name: "MacOS Clang"
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: | 
-          brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
-          if [ $BUILD_TYPE == 'Debug' ]; then
-            brew install libdwarf
-          fi
+  # build-mac:
+  #   name: "MacOS universal"
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Install dependencies
+  #       run: | 
+  #         brew install curl
           
-      - name: Build the library (macos)
-        shell: bash
-        run: |
-          mkdir build
-          cmake -B build -S . \
-            -DGUI=OFF \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12  
+  #     - name: Build the library
+  #       shell: bash
+  #       run: |
+  #         mkdir build
+  #         cmake -B build -S . \
+  #           -DGUI=OFF \
+  #           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  #           -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+  #         cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12  
   
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-binaries
-          path: |
-            build/lib/*
-            build/bin/*
-
-  build-ubuntu:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-    strategy: 
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: macos-binaries
+  #         path: |
+  #           build/lib/*
+  #           build/bin/*
+  
+  build-mac-gui:
+    name: "${{ matrix.name }}"
+    runs-on: ${{ matrix.runner }}
+    strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            name: "Ubuntu latest with GCC"
-            c_compiler: gcc
-            cpp_compiler: g++
+      matrix: 
+        include: 
+          - runner: macos-13
+            name: "MacOS x86"
             arch: x86-64
-
-          - os: ubuntu-20.04
-            name: "Ubuntu 20.04 with GCC"
-            c_compiler: gcc-10
-            cpp_compiler: g++-10
-            arch: x86-64
-
+            
+          - runner: macos-14
+            name: "MacOS arm64"
+            arch: arm64
+            
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install libcurl4-openssl-dev libcairo2-dev libgtk-3-dev libwebp-dev
-          if [ $BUILD_TYPE == 'Debug' ]; then
-            sudo apt-get install libdwarf-dev
-          fi
-          
-      - name: Build the library (ubuntu latest)
-        if: matrix.os == 'ubuntu-latest'
-        shell: bash
+          brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
+
+      - name: Build the library           
         run: |
           mkdir build
           cmake -B build -S . \
             -DGUI=ON \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-            -DARCH=${{ matrix.arch }}
+            -DCMAKE_OSX_ARCHITECTURES="{{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
-
-      - name: Build the library (ubuntu 20.04)
-        if: matrix.os == 'ubuntu-20.04'
-        shell: bash
-        run: |
-          mkdir build
-          cmake -B build -S . \
-            -DGUI=OFF \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-            -DARCH=${{ matrix.arch }}
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-binaries
+          name: macos-gui-binaries
           path: |
             build/lib/*
             build/bin/*
+
+  # build-ubuntu:
+  #   name: ${{ matrix.name }}
+  #   runs-on: ${{ matrix.os }}
+  #   strategy: 
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - os: ubuntu-latest
+  #           name: "Ubuntu latest with GCC"
+  #           c_compiler: gcc
+  #           cpp_compiler: g++
+  #           arch: x86-64
+
+  #         - os: ubuntu-20.04
+  #           name: "Ubuntu 20.04 with GCC"
+  #           c_compiler: gcc-10
+  #           cpp_compiler: g++-10
+  #           arch: x86-64
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Install dependencies
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install libcurl4-openssl-dev libcairo2-dev libgtk-3-dev libwebp-dev
+  #         if [ $BUILD_TYPE == 'Debug' ]; then
+  #           sudo apt-get install libdwarf-dev
+  #         fi
+          
+  #     - name: Build the library (ubuntu latest)
+  #       if: matrix.os == 'ubuntu-latest'
+  #       shell: bash
+  #       run: |
+  #         mkdir build
+  #         cmake -B build -S . \
+  #           -DGUI=ON \
+  #           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  #           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+  #           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+  #           -DARCH=${{ matrix.arch }}
+  #         cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+
+  #     - name: Build the library (ubuntu 20.04)
+  #       if: matrix.os == 'ubuntu-20.04'
+  #       shell: bash
+  #       run: |
+  #         mkdir build
+  #         cmake -B build -S . \
+  #           -DGUI=OFF \
+  #           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  #           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+  #           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+  #           -DARCH=${{ matrix.arch }}
+  #         cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
+
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ${{ matrix.os }}-binaries
+  #         path: |
+  #           build/lib/*
+  #           build/bin/*
  
-      - name: Build tests
-        if: matrix.os == 'ubuntu-latest'
-        run: cmake --build build --target tests -j12
+  #     - name: Build tests
+  #       if: matrix.os == 'ubuntu-latest'
+  #       run: cmake --build build --target tests -j12
 
-      - name: Run tests (ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: ctest --output-on-failure --test-dir build/tests
+  #     - name: Run tests (ubuntu)
+  #       if: matrix.os == 'ubuntu-latest'
+  #       run: ctest --output-on-failure --test-dir build/tests
 
-      - name: Generate test report (ubuntu)
-        uses: mikepenz/action-junit-report@v4
-        if: matrix.os == 'ubuntu-latest' && (success() || failure())
-        with:
-          report_paths: build/tests/reports/*.xml
+  #     - name: Generate test report (ubuntu)
+  #       uses: mikepenz/action-junit-report@v4
+  #       if: matrix.os == 'ubuntu-latest' && (success() || failure())
+  #       with:
+  #         report_paths: build/tests/reports/*.xml
