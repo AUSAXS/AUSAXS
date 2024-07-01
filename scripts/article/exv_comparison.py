@@ -203,14 +203,8 @@ data_traube, x_labels_traube = choose_data("TRAUBE", [
 ])
 
 data_pontius, x_labels_pontius = choose_data("PONTIUS", [
-    options.Simple, 
-    options.Average, 
     options.Average_f, 
-    options.Explicit, 
-    options.Explicit_f, 
-    options.Grid, 
-    options.Grid_f_215, 
-    options.Grid_f_300
+    options.Explicit_f
 ])
 
 # sort by size
@@ -220,8 +214,11 @@ data_pontius, x_labels_pontius = choose_data("PONTIUS", [
 # data_traube = data_traube[indices]
 # y_labels = [y_labels[i] for i in indices]
 
-if (data_pontius.shape == data_traube.shape and data_pontius.shape[0] > 0):
-    data_diff = (data_pontius - data_traube)[:, 3:5]
+data_diff, x_labels_diff = choose_data("TRAUBE", [
+    options.Average_f, 
+    options.Explicit_f
+])
+data_diff -= data_pontius
 
 bounds = [1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 25, 100]
 cmap = plt.get_cmap('RdYlGn_r')
@@ -278,12 +275,11 @@ if data_pontius.shape[0] > 0:
 ###################################################
 ###                 DIFFERENCE                 ####
 ###################################################
-x_labels_diff = ["Explicit", "Explicit & fitted"]
 if data_diff is None:
     exit(0)
 
 figsize_x = max(len(x_labels_diff)+2, 8)
-figsize_y = max(len(data), 6)
+figsize_y = max(len(data_diff), 6)
 
 bounds = [-10, -5, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 5, 10]
 cmap = plt.get_cmap('RdYlGn_r')
@@ -298,7 +294,7 @@ for i in range(len(y_labels)):
 for i in range(len(x_labels_diff)):
     plt.axvline(i+0.5, color="black", linewidth=1)
 
-plt.title("Difference between Pontius and Traube")
+plt.title("Difference between Traube and Pontius")
 plt.xticks(np.arange(len(x_labels_diff)), x_labels_diff, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(y_labels)), y_labels)
 plt.tight_layout()
@@ -314,7 +310,7 @@ for i in range(len(x_labels_diff)):
 for i in range(len(y_labels)):
     plt.axvline(i+0.5, color="black", linewidth=1)
 
-plt.title("Difference between Pontius and Traube")
+plt.title("Difference between Traube and Pontius")
 plt.xticks(np.arange(len(y_labels)), y_labels, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(x_labels_diff)), x_labels_diff)
 plt.tight_layout()
