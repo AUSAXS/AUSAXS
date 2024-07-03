@@ -3,6 +3,7 @@
 /output
 /data
 temp
+tests/benchmarks
 
 # developer stuff
 **/__pycache__
