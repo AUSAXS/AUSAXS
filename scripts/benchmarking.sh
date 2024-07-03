@@ -1,6 +1,8 @@
 #!/bin/bash
 
 index=13;
+iterations=10;
+warmup=3
 #	Index	Name		Count
 #	0		SASDPT4		1960
 #	1		SASDPP4		2000
@@ -15,7 +17,7 @@ index=13;
 #	10		SASDPR4		12376
 #	11		SASDEL9		16640
 #	12		SASDPQ4		18792
-#	13		SASDA45		?
+#	13		SASDA92		?
 #	14		A2M_native	43652
 
 pdbs=(
@@ -32,7 +34,7 @@ pdbs=(
 	data/consensus/SASDPR4/SASDPR4_stripped.pdb
 	data/SASDEL9/SASDEL9_stripped.pdb
 	data/consensus/SASDPQ4/SASDPQ4_stripped.pdb
-	data/SASDA45/SASDA45_stripped.pdb
+	data/SASDA92/SASDA92_stripped.pdb
 	data/A2M_native/A2M_native_stripped.pdb
 )
 
@@ -50,7 +52,7 @@ dats=(
 	data/consensus/SASDPR4/SASDPR4.dat
 	data/SASDEL9/SASDEL9.dat
 	data/consensus/SASDPQ4/SASDPQ4.dat
-	data/SASDA45/SASDA45.dat
+	data/SASDA92/SASDA92.dat
 	data/A2M_native/A2M_native.dat
 )
 
@@ -68,7 +70,7 @@ pathnames=(
 	SASDPR4
 	SASDEL9
 	SASDPQ4
-	SASDA45
+	SASDA92
 	A2M_native
 )
 
@@ -81,13 +83,12 @@ generate_stripped() {
 pdb=${pdbs[index]}
 dat=${dats[index]}
 pathname=${pathnames[index]}
-warmup=3
 
 hyperfine_cmd="hyperfine --warmup $warmup --time-unit second"
 
 crysol_bench_all() {
 	for ((i=0;i<14;i++)) do
-		mkdir -p "test/benchmarks/${pathnames[i]}"
+		mkdir -p "tests/benchmarks/${pathnames[i]}"
 		mkdir -p "temp/crysol/${pathnames[i]}"
 		echo "temp/crysol/${pathnames[i]}"
 		cp "${dats[i]}" "temp/crysol/${pathnames[i]}"
@@ -101,7 +102,7 @@ crysol_bench_all() {
 }
 
 crysol_bench() {
-	mkdir -p "test/benchmarks/$pathname"
+	mkdir -p "tests/benchmarks/$pathname"
 	mkdir -p "temp/crysol/$pathname"
 	cp "$dat" "temp/crysol/$pathname"
 	cp "$pdb" "temp/crysol/$pathname"
@@ -115,8 +116,8 @@ crysol_bench() {
 pepsi_bench_all() {
 	for ((i=0;i<14;i++))
 	do
-		mkdir -p "test/benchmarks/${pathnames[i]}"
-	    eval "$hyperfine_cmd --command-name pepsi --export-json tests/benchmarks/${pathnames[i]}/pepsi.json '~/tools/Pepsi-SAXS/Pepsi-SAXS ${pdbs[i]} ${dats[i]} -o temp/pepsi/${pathnames[i]}.fit'"
+		mkdir -p "tests/benchmarks/${pathnames[i]}"
+	    eval "$hyperfine_cmd --command-name pepsi-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/pepsi.json '~/tools/Pepsi-SAXS/Pepsi-SAXS ${pdbs[i]} ${dats[i]} -o temp/pepsi/${pathnames[i]}.fit'"
 	done
 }
 
@@ -125,65 +126,70 @@ pepsi_bench() {
 }
 
 foxs_bench_all() {
-	for ((i=0;i<14;i++)) do
-		mkdir -p "test/benchmarks/${pathnames[i]}"
-		mkdir -p "temp/foxs/${pathnames[i]}"
-		cp "${dats[i]}" "temp/foxs/${pathnames[i]}"
-		cp "${pdbs[i]}" "temp/foxs/${pathnames[i]}"
-		pdb_filename=$(basename "${pdbs[i]}")
-		dat_filename=$(basename "${dats[i]}")
-		cd "temp/foxs/${pathnames[i]}"
-		eval "$hyperfine_cmd --command-name foxs --export-json ../../../tests/benchmarks/${pathnames[i]}/foxs.json 'foxs $pdb_filename $dat_filename'"
-		cd "../../.."
-	done
+    mkdir -p "temp/foxs"
+    for ((i=0;i<14;i++)) do
+        mkdir -p "tests/benchmarks/${pathnames[i]}"
+        mkdir -p "temp/foxs/${pathnames[i]}"
+        cp "${dats[i]}" "temp/foxs/${pathnames[i]}"
+        cp "${pdbs[i]}" "temp/foxs/${pathnames[i]}"
+        pdb_filename=$(basename "${pdbs[i]}")
+        dat_filename=$(basename "${dats[i]}")
+        cd "temp/foxs/${pathnames[i]}"
+        eval "$hyperfine_cmd --command-name foxs-${pathnames[i]} --export-json ../../../tests/benchmarks/${pathnames[i]}/foxs.json 'foxs $pdb_filename $dat_filename'"
+        cd "../../.."
+    done
 }
 
 foxs_bench() {
+    mkdir -p "temp/foxs"
     cp "$dat" "temp/foxs"
     cp "$pdb" "temp/foxs"
     pdb_filename=$(basename "$pdb")
     dat_filename=$(basename "$dat")
     cd "temp/foxs"
-    eval "$hyperfine_cmd --runs $iterations --command-name foxs --export-json ../../tests/benchmarks/$pathname/foxs.json 'foxs $pdb_filename $dat_filename'"
+    eval "$hyperfine_cmd --show-output --runs $iterations --command-name foxs --export-json ../../tests/benchmarks/$pathname/foxs.json 'foxs $pdb_filename $dat_filename'"
 }
 
 ausaxs_bench_simple_all() {
 	for ((i=0;i<14;i++)) do
-		mkdir -p test/benchmarks/${pathnames[i]}
-	    eval "$hyperfine_cmd --command-name ausaxs-simple --export-json tests/benchmarks/${pathnames[i]}/ausaxs_simple.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --no-exit-on-unknown-atom'"
+		mkdir -p tests/benchmarks/${pathnames[i]}
+	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_simple.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --no-exit-on-unknown-atom'"
 	done
 }
 
 ausaxs_bench_simple() {
+    mkdir -p tests/benchmarks/$pathname
     eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-simple --export-json tests/benchmarks/$pathname/ausaxs_simple.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ --no-exit-on-unknown-atom'"
 }
 
 ausaxs_bench_fraser_all() {
 	for ((i=0;i<14;i++)) do
-		mkdir -p test/benchmarks/${pathnames[i]}
-	    eval "$hyperfine_cmd --command-name ausaxs-fraser --export-json tests/benchmarks/${pathnames[i]}/ausaxs_fraser.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --hm hmmtffx --fit-excluded-volume --no-exit-on-unknown-atom'"
+		mkdir -p tests/benchmarks/${pathnames[i]}
+	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_fraser.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --hm hmmtffx --fit-excluded-volume --no-exit-on-unknown-atom'"
 	done
 }
 
 ausaxs_bench_fraser() {
+    mkdir -p tests/benchmarks/$pathname
     eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-fraser --export-json tests/benchmarks/$pathname/ausaxs_fraser.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ --hm hmmtffx --fit-excluded-volume --no-exit-on-unknown-atom'"
 }
 
 ausaxs_bench_grid_all() {
 	for ((i=0;i<14;i++)) do
-		mkdir -p test/benchmarks/${pathnames[i]}
-	    eval "$hyperfine_cmd --command-name ausaxs-grid --export-json tests/benchmarks/${pathnames[i]}/ausaxs_grid.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --hm hmmtffgs --fit-excluded-volume --no-exit-on-unknown-atom'"
+		mkdir -p tests/benchmarks/${pathnames[i]}
+	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_grid.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --hm hmmtffgs --fit-excluded-volume --no-exit-on-unknown-atom'"
 	done
 }
 
 ausaxs_bench_grid() {
+    mkdir -p tests/benchmarks/$pathname
     eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-grid --export-json tests/benchmarks/$pathname/ausaxs_grid.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ --hm hmmtffgs --fit-excluded-volume --no-exit-on-unknown-atom'"
 }
 
 ausaxs_bench_st_all() {
 	for ((i=0;i<14;i++)) do
-		mkdir -p test/benchmarks/${pathnames[i]}
-	    eval "$hyperfine_cmd --command-name ausaxs-st --export-json tests/benchmarks/${pathnames[i]}/ausaxs_st.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} -t 1 --output temp/ausaxs/ --no-exit-on-unknown-atom'"
+		mkdir -p tests/benchmarks/${pathnames[i]}
+	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_st.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} -t 1 --output temp/ausaxs/ --no-exit-on-unknown-atom'"
 	done
 }
 
@@ -212,7 +218,7 @@ crysol_serial_bench() {
 }
 
 ausaxs_serial_bench_all() {
-	mkdir -p "test/benchmarks/$pathname"
+	mkdir -p "tests/benchmarks/$pathname"
 	for ((i=17;i>=2;i--)); do
 		min=$i
 		max=$((i+1))
