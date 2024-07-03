@@ -15,6 +15,8 @@ The fastest way to get started is using the most recent precompiled binaries ava
 Alternatively you can follow [compilation guide](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) to compile it yourself in just a few simple steps. 
 
 # References
-Several articles documenting the methods used in this project are currently in various stages of development. The first, on the EM validation methods, is expected to be published soon. Direct links will be provided in this section once they are publically available. 
+* Validation of electron-microscopy maps using solution small-angle X-ray scattering (doi: [10.1107/S2059798324005497](https://doi.org/10.1107/S2059798324005497))
+
+Two other articles documenting the SAXS fitter and rigidbody optimizer are currently under development. 
 
 _This project is licenced under the GNU Lesser General Public Licence v3.0. Alternative licencing arrangements can be discussed upon request. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
