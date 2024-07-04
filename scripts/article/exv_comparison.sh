@@ -68,7 +68,7 @@ for ((i=0; i<${size}; i++)); do
 
 	# ausaxs
 	build/bin/fit_all_exv ${stripped}.pdb ${stripped}.dat --no-exit-on-unknown-atom
-	mkdir -p output/saxs_fitter/$*
+	mkdir -p output/saxs_fitter/${stem}
 
 	# foxs
 	rm -rf temp/foxs

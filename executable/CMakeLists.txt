@@ -19,6 +19,7 @@ add_executable(vary_exv_radius "vary_exv_radius.cpp")
 add_executable(vary_grid_radii "vary_grid_radii.cpp")
 add_executable(pdb_to_single_atom_type "pdb_to_single_atom_type.cpp")
 add_executable(remove_fourth_column_data "remove_fourth_column_data.cpp")
+add_executable(generate_datcombine_dummy_datasets "generate_datcombine_dummy_datasets.cpp")
 
 target_link_libraries(saxs_fitter PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(em_fitter PRIVATE ausaxs_core ausaxs_math ausaxs_em CLI11::CLI11)
@@ -32,6 +33,7 @@ target_link_libraries(vary_exv_radius PRIVATE ausaxs_core ausaxs_math CLI11::CLI
 target_link_libraries(vary_grid_radii PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(pdb_to_single_atom_type PRIVATE ausaxs_core ausaxs_math)
 target_link_libraries(remove_fourth_column_data PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
+target_link_libraries(generate_datcombine_dummy_datasets PRIVATE ausaxs_core ausaxs_math)
 
 add_subdirectory(md)
 if (GUI)

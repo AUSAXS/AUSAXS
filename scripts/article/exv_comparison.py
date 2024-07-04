@@ -6,6 +6,8 @@ import sys
 import os
 from enum import Enum
 
+skip_similar_results = True
+
 params = {
     'legend.fontsize': 14,
     'figure.figsize': (10, 8),
@@ -98,6 +100,8 @@ y_labels = []   # file_name
 for file in os.listdir(folder):
     # open nested folders
     if os.path.isdir(os.path.join(folder, file)):
+        found_traube = False
+        found_pontius = False
         for nested_file in os.listdir(os.path.join(folder, file)):
             if not (nested_file.endswith(".txt") or nested_file.endswith("fit")):
                 continue
@@ -154,6 +158,17 @@ for file in os.listdir(folder):
                         else:
                             print(f"Unknown method: {line[0]}")
                 data[tokens[0]].append(chi2s)
+                if tokens[0] == "TRAUBE":
+                    found_traube = True
+                if tokens[0] == "PONTIUS":
+                    found_pontius = True
+
+        if not found_traube:
+            print(f"TRAUBE not found in {file}")
+            exit(1)
+        if not found_pontius and data["PONTIUS"] is not None:
+            print(f"PONTIUS not found in {file}")
+            exit(1)
         continue
 
 def choose_data(method: str, choices: list[options]):
@@ -192,18 +207,18 @@ data_diff = None
 
 data_traube, x_labels_traube = choose_data("TRAUBE", [
     options.Simple, 
-    options.Average_f, 
+    # options.Average_f, 
     options.Explicit_f, 
-    options.Grid, 
+    # options.Grid, 
     options.Grid_f_215, 
-    options.Grid_f_300, 
+    # options.Grid_f_300, 
     options.CRYSOL, 
     options.FoXS, 
     options.Pepsi
 ])
 
 data_pontius, x_labels_pontius = choose_data("PONTIUS", [
-    options.Average_f, 
+    # options.Average_f, 
     options.Explicit_f
 ])
 
@@ -214,10 +229,42 @@ data_pontius, x_labels_pontius = choose_data("PONTIUS", [
 # data_traube = data_traube[indices]
 # y_labels = [y_labels[i] for i in indices]
 
+# remove similar results
+if skip_similar_results:
+    indices = []
+    reason_less_than_two = 0
+    reason_similar = 0
+    for i in range(len(data_traube)):
+        chi2 = data_traube[i][0]
+        add = False
+        for j in range(1, len(data_traube[i])):
+            if (0.2 < abs(chi2 - data_traube[i][j])/chi2):
+                add = True
+                break
+        for j in range(len(data_pontius[i])):
+            if (0.2 < abs(chi2 - data_pontius[i][j])/chi2):
+                add = True
+                break
+        if (data_traube[i] < 2).all() and (data_pontius[i] < 2).all():
+            reason_less_than_two += 1
+            add = False
+        elif not add:
+            reason_similar += 1
+
+        if add:
+            indices.append(i)
+
+    print(f"Skipped {len(data_traube) - len(indices)} similar results")
+    print(f"\t{reason_less_than_two} less than 2, {reason_similar} too similar")
+    data_traube = data_traube[indices]
+    data_pontius = data_pontius[indices]
+    y_labels = [y_labels[i] for i in indices]
+
 data_diff, x_labels_diff = choose_data("TRAUBE", [
-    options.Average_f, 
+    # options.Average_f, 
     options.Explicit_f
 ])
+if skip_similar_results: data_diff = data_diff[indices]
 data_diff -= data_pontius
 
 bounds = [1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 25, 100]
