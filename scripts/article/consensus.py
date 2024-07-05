@@ -220,11 +220,11 @@ data_pontius, x_labels_pontius = choose_data("PONTIUS", [
 ])
 
 # sort by name
-# indices = np.argsort(y_labels)
-# size = size[indices]
-# data_pontius = data_pontius[indices]
-# data_traube = data_traube[indices]
-# y_labels = [y_labels[i] for i in indices]
+indices = np.argsort(y_labels)
+size = size[indices]
+data_pontius = data_pontius[indices]
+data_traube = data_traube[indices]
+y_labels = [y_labels[i] for i in indices]
 
 data_diff, x_labels_diff = choose_data("TRAUBE", [
     # options.Average_f, 
