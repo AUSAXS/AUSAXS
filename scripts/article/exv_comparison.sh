@@ -1,7 +1,6 @@
 #!/bin/bash
 
 files=(
-	data/SASDNQ3
 	data/1ubq
 	data/6lyz
 	data/SASDA45
@@ -59,6 +58,17 @@ files=(
 )
 
 size=${#files[@]}
+all_exist=true
+for ((i=0; i<${size}; i++)); do
+	if [[ ! -d ${files[i]} ]]; then
+		echo "Folder ${files[i]} does not exist!"
+		all_exist=false
+	fi
+done
+if ! $all_exist; then
+	exit
+fi
+
 for ((i=0; i<${size}; i++)); do
 	stem=$(basename ${files[i]})
 	base=${files[i]}/${stem}
