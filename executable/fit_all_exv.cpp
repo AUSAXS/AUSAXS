@@ -54,8 +54,7 @@ int main(int argc, char const *argv[]) {
     //### PARSE INPUT ###//
     //###################//
     io::ExistingFile pdb(s_pdb), mfile(s_mfile), settings(s_settings);
-    if (mfile.stem().ends_with("_stripped")) {mfile.stem() = mfile.stem().substr(0, mfile.stem().size() - 9);}
-    settings::general::output += mfile.stem() + "/";
+    settings::general::output += mfile.stem().ends_with("_stripped") ? mfile.stem().substr(0, mfile.stem().size()-9) + "/" : mfile.stem() + "/";
     settings::axes::qmax = 1;
 
     //######################//
