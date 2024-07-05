@@ -38,6 +38,6 @@ namespace hist {
              * @brief Get the limits for the excluded volume scaling factor parameter. 
              *        This is intended to be used by the fitter to set correct limits. 
              */
-            virtual Limit get_excluded_volume_scaling_factor_limits() const {return {0.5, 1.5};}
+            virtual Limit get_excluded_volume_scaling_factor_limits() const {return {0.92, 1.08};}
     };
 }

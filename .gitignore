@@ -6,6 +6,7 @@ temp
 
 # developer stuff
 **/__pycache__
+tests/benchmarks
 resources
 Makefile
 resources
