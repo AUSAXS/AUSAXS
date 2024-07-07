@@ -35,7 +35,7 @@ auto plot_names = std::vector<std::pair<std::string, std::string>>{
 };
 
 auto make_start_button(gui::view& view) {
-	static auto start_button = gui::button("start");
+	static auto start_button = gui::button("Start");
 	start_button->set_body_color(ColorManager::get_color_success());
 
 	auto start_button_layout = gui::margin(
@@ -75,7 +75,7 @@ auto make_start_button(gui::view& view) {
 		}
 
 		start_button->set_body_color(ColorManager::get_color_accent());
-		start_button->set_text("working...");
+		start_button->set_text("Working...");
 
 		// use a worker thread to avoid locking the gui
 		worker = std::thread([&view] () {
@@ -135,7 +135,7 @@ auto make_start_button(gui::view& view) {
 			);
 
 			start_button->set_body_color(ColorManager::get_color_success());
-			start_button->set_text("start");
+			start_button->set_text("Start");
 
 			deck[1] = gui::share(image_viewer_layout);
 			deck.select(1);
@@ -151,9 +151,9 @@ auto io_menu(gui::view& view) {
 	static auto pdb_box_bg = ColorManager::new_background_color();
 	static auto output_box_bg = ColorManager::new_background_color();
 
-	static auto saxs_box = gui::input_box("saxs path");
-	static auto pdb_box = gui::input_box("pdb path");
-	static auto output_box = gui::input_box("output path");
+	static auto saxs_box = gui::input_box("SAXS path");
+	static auto pdb_box = gui::input_box("Structure path");
+	static auto output_box = gui::input_box("Output path");
 	ColorManager::manage_input_box(saxs_box.second);
 	ColorManager::manage_input_box(pdb_box.second);
 	ColorManager::manage_input_box(output_box.second);
@@ -323,9 +323,8 @@ auto selection_menu_settings(gui::view&) {
 	static auto deck = gui::deck_composite();
 
 	std::vector<std::pair<std::string, settings::hydrate::HydrationStrategy>> options1 {
-		{"1. Radial placement", settings::hydrate::HydrationStrategy::RadialStrategy},
-		{"2. Axial placement", settings::hydrate::HydrationStrategy::AxesStrategy},
-		{"3. No hydration", settings::hydrate::HydrationStrategy::NoStrategy}
+		{"1. Radial", settings::hydrate::HydrationStrategy::RadialStrategy},
+		{"2. None", settings::hydrate::HydrationStrategy::NoStrategy}
 	};
 	static auto hydration_model = gui::selection_menu(
 		[options1] (std::string_view selection) {
@@ -337,17 +336,15 @@ auto selection_menu_settings(gui::view&) {
 		}, 
 		{
 			options1[0].first,
-			options1[1].first,
-			options1[2].first
+			options1[1].first
 		}
 	);
 	ColorManager::manage_text([] (gui::color color) {hydration_model.second->font_color(color);});
 
 	std::vector<std::pair<std::string, settings::hist::HistogramManagerChoice>> options2 {
-		{"1. Default form-factor", settings::hist::HistogramManagerChoice::HistogramManagerMT},
-		{"2. Unique form-factors", settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg},
-		{"3. Atomic volumes", settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
-		{"4. Occupied grid cells", settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid}
+		{"1. Simple", settings::hist::HistogramManagerChoice::HistogramManagerMT},
+		{"2. Fraser", settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
+		{"3. Grid", settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid}
 	};
 
 	static auto excluded_volume_model = gui::selection_menu(
@@ -375,8 +372,7 @@ auto selection_menu_settings(gui::view&) {
 		{
 			options2[0].first,
 			options2[1].first,
-			options2[2].first,
-			options2[3].first
+			options2[2].first
 		}
 	);
 	ColorManager::manage_text([] (gui::color color) {excluded_volume_model.second->font_color(color);});
@@ -386,11 +382,11 @@ auto selection_menu_settings(gui::view&) {
 		settings::fit_excluded_volume = value;
 	};
 
-	static auto hydration_text = gui::label("hydration model")
+	static auto hydration_text = gui::label("Hydration model")
 		.font_color(ColorManager::get_text_color())
 		.font_size(18);
 	ColorManager::manage_text([] (gui::color color) {hydration_text.set_font_color(color);});
-	static auto exv_text = gui::label("excluded volume model")
+	static auto exv_text = gui::label("Excluded volume model")
 		.font_color(ColorManager::get_text_color())
 		.font_size(18);
 	ColorManager::manage_text([] (gui::color color) {exv_text.set_font_color(color);});
