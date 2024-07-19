@@ -3,7 +3,7 @@
 #include <md/shell/Command.h>
 #include <md/utility/Exceptions.h>
 #include <md/utility/files/SHFile.h>
-#include <md/gmx/Settings.h>
+#include <settings/MDSettings.h>
 
 #include <string>
 #include <vector>
@@ -17,7 +17,7 @@ namespace md {
         public: 
             // shell::Command cmd = shell::Command("/data/shared/opt/gromacs/2021.5/bin/gmx");
             // shell::Command cmd = shell::Command("/data/shared/opt/gromacs/release-2021.swaxs/bin/gmx");
-            shell::Command cmd = shell::Command(setting::gmx_path);
+            shell::Command cmd = shell::Command(settings::md::gmx_path);
 
             std::vector<std::shared_ptr<shell::Option>> options;
             virtual shell::Command& command() {
@@ -44,7 +44,7 @@ namespace md {
                 return result.out;
             }
 
-            bool test_executable() {
+            bool valid_executable() {
                 auto tmp = cmd.append("-version");
                 write_cmdlog(tmp.get());
                 auto res = tmp.execute();

@@ -7,9 +7,10 @@
 #include <md/utility/Exceptions.h>
 #include <md/utility/Protein.h>
 #include <md/utility/files/MDPCreator.h>
-#include <md/utility/Utility.h>
+#include <utility/StringUtils.h>
+#include <utility/Console.h>
 
-#include <math.h>
+#include <cmath>
 
 namespace md {
     SAXSOutput simulate_saxs(SAXSOptions& options) {
@@ -25,7 +26,7 @@ namespace md {
         auto[molgro, moledr, molxtc] = options.molecule.job->result();
         auto[bufgro, bufedr, bufxtc] = options.buffer.job->result();
 
-        utility::print_info("\nPreparing calculation of SAXS profile");
+        console::print_info("\nPreparing calculation of SAXS profile");
         //##################################//
         //###           GLOBALS          ###//
         //##################################//

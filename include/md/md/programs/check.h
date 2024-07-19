@@ -2,8 +2,8 @@
 
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
-#include <md/utility/Utility.h>
 #include <md/utility/Exceptions.h>
+#include <utility/StringUtils.h>
 
 namespace md {
     class check : private gmx {

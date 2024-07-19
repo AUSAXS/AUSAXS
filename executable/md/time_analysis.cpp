@@ -14,7 +14,7 @@ int main(int argc, char const *argv[]) {
     CLI11_PARSE(app, argc, argv);
 
     // test executable
-    if (!gmx().test_executable()) {
+    if (!gmx().valid_executable()) {
         throw except::io_error("Gromacs executable not found. Please install Gromacs and add it to your PATH.");
     }
 

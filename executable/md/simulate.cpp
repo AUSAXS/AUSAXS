@@ -2,24 +2,35 @@
 #include <md/simulate/buffer.h>
 #include <md/simulate/molecule.h>
 #include <md/simulate/saxs.h>
-#include <md/gmx/Settings.h>
+#include <settings/MDSettings.h>
+#include <settings/SettingsIO.h>
+#include <io/ExistingFile.h>
+#include <constants/Version.h>
 
 #include <CLI/CLI.hpp>
 
 using namespace md;
 
 int main(int argc, char const *argv[]) {
-    settings::discover(".");
-
-    std::string s_pdb;
+    io::ExistingFile s_pdb, s_settings;
     CLI::App app{"MD simulation pipeline."};
     app.add_option("input", s_pdb, "PDB structure file.")->required()->check(CLI::ExistingFile);
-    app.add_option("--buffer", setting::buffer_path.value, "Pre-simulated buffer. Set this to the base output folder.");
+    app.add_option("--buffer", settings::md::buffer_path, "Pre-simulated buffer. Set this to the base output folder.");
+    auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
+    app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     CLI11_PARSE(app, argc, argv);
 
-    // test executable
-    if (!gmx().test_executable()) {
-        throw except::io_error("Gromacs executable not found. Please install Gromacs and add it to your PATH.");
+    // if a settings file was provided
+    if (p_settings->count() != 0) {
+        settings::read(s_settings);     // read it
+        CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
+    } else {                            // otherwise check if there is a settings file in the same directory
+        if (settings::discover(".")) {
+            CLI11_PARSE(app, argc, argv);
+        }
+    }
+    if (!gmx().valid_executable()) {
+        throw except::io_error("GROMACS path \"" + settings::md::gmx_path + "\"");
     }
 
     GMXOptions sele {
@@ -29,8 +40,8 @@ int main(int argc, char const *argv[]) {
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
 
-        .name = std::filesystem::path(s_pdb).stem().string(),
-        .output = "output/" + std::filesystem::path(s_pdb).stem().string() + "/",
+        .name = s_pdb.stem(),
+        .output = "output/md/" + s_pdb.stem() + "/",
         .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute(),
         .setupsim = location::local,
         .mainsim = location::local,
@@ -47,13 +58,13 @@ int main(int argc, char const *argv[]) {
     auto molecule = simulate_molecule(mo);
 
     SimulateBufferOutput buffer;
-    if (setting::buffer_path.get().empty()) {
+    if (settings::md::buffer_path.empty()) {
         BufferOptions bo(sele, molecule.gro);
         buffer = simulate_buffer(bo);
     } else {
-        utility::print_info("\nPreparing buffer simulation");
+        console::print_info("\nPreparing buffer simulation");
         // find production gro
-        for (auto& p : std::filesystem::directory_iterator(setting::buffer_path.get() + "/prod")) {
+        for (auto& p : std::filesystem::directory_iterator(settings::md::buffer_path + "/prod")) {
             if (p.path().extension() == ".gro") {
                 buffer.gro = GROFile(p.path());
                 std::cout << "\tFound production gro file: " << buffer.gro.path << std::endl;
@@ -61,7 +72,7 @@ int main(int argc, char const *argv[]) {
         }
 
         // find topology file
-        for (auto& p : std::filesystem::directory_iterator(setting::buffer_path.get() + "/setup")) {
+        for (auto& p : std::filesystem::directory_iterator(settings::md::buffer_path + "/setup")) {
             if (p.path().extension() == ".top") {
                 buffer.top = TOPFile(p.path());
                 std::cout << "\tFound topology file: " << buffer.top.path << std::endl;
@@ -69,11 +80,11 @@ int main(int argc, char const *argv[]) {
         }
 
         // create dummy job
-        buffer.job = std::make_unique<NoExecution<MDRunResult>>(setting::buffer_path.get() + "/prod/");
+        buffer.job = std::make_unique<NoExecution<MDRunResult>>(settings::md::buffer_path + "/prod/");
 
         // check that all files are found
         if (buffer.gro.empty() || buffer.top.empty()) {
-            throw except::io_error("Could not find all files in supplied buffer folder \"" + setting::buffer_path.get() + "\".");
+            throw except::io_error("Could not find all files in supplied buffer folder \"" + settings::md::buffer_path + "\".");
         }
     }
 

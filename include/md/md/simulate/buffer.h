@@ -4,11 +4,12 @@
 #include <md/programs/mdrun/Execution.h>
 #include <md/simulate/GMXOptions.h>
 #include <md/utility/files/MDPCreator.h>
-#include <md/utility/Utility.h>
+#include <utility/StringUtils.h>
+#include <utility/Console.h>
 
 namespace md {
-    SimulateBufferOutput simulate_buffer(const BufferOptions& options) {
-        utility::print_info("\nPreparing buffer simulation");
+    inline SimulateBufferOutput simulate_buffer(const BufferOptions& options) {
+        console::print_info("\nPreparing buffer simulation");
 
         //##################################//
         //###           GLOBALS          ###//

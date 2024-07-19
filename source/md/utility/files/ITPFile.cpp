@@ -4,8 +4,8 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <md/utility/files/ITPFile.h>
-#include <md/utility/Utility.h>
 #include <md/utility/Exceptions.h>
+#include <utility/StringUtils.h>
 
 #include <fstream>
 

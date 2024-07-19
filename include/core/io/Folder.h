@@ -10,6 +10,7 @@ namespace io {
         public:
             Folder() = default;
             Folder(const std::string& path);
+            Folder(const char* path);
 
             [[nodiscard]] std::string path() const;
 

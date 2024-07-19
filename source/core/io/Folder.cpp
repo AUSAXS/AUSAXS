@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace io;
 
+
+Folder::Folder(const char* path) : Folder(std::string(path)) {}
 Folder::Folder(const std::string& path) {
     *this = path;
 }

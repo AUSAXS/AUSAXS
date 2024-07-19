@@ -8,15 +8,13 @@
 using namespace md;
 
 int main(int argc, char const *argv[]) {
-    settings::discover(".");
-
     std::string s_pdb;
     CLI::App app{"Perform an MD buffer simulation."};
     app.add_option("input", s_pdb, "PDB structure file.")->required();
     CLI11_PARSE(app, argc, argv);
 
     // test executable
-    if (!gmx().test_executable()) {
+    if (!gmx().valid_executable()) {
         throw except::io_error("Gromacs executable not found. Please install Gromacs and add it to your PATH.");
     }
 

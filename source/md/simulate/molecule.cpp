@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <md/simulate/molecule.h>
+#include <utility/Console.h>
 
 using namespace md;
 
@@ -18,7 +19,7 @@ GROFile md::simulate::Molecule::minimize() {return GROFile();}
 std::tuple<GROFile, NDXFile> md::simulate::Molecule::thermalize() {return std::make_tuple(GROFile(), NDXFile());}
 
 SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
-    utility::print_info("\nPreparing simulation for " + options.pdbfile.filename());
+    console::print_info("\nPreparing simulation for " + options.pdbfile.filename());
 
     //##################################//
     //###           GLOBALS          ###//
