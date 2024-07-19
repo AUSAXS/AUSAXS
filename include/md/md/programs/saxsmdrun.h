@@ -11,7 +11,7 @@ namespace md {
             saxsmdrun();
             saxsmdrun(const TPRFile& moltpr, const TPRFile& buftpr);
             saxsmdrun& input(const TPRFile& moltpr, const TPRFile& buftpr);
-            saxsmdrun& output(const Folder& folder, const std::string& prefix);
+            saxsmdrun& output(const io::Folder& folder, const std::string& prefix);
             saxsmdrun& rerun(const XTCFile& mol, const XTCFile& buf);
             saxsmdrun& env_var(const std::string& var, const std::string& value);
             std::unique_ptr<shell::Jobscript<SAXSRunResult>> run(location where, std::string jobscript = "");

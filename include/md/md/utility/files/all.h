@@ -1,6 +1,5 @@
 #pragma once
 
-#include <md/utility/files/Folder.h>
 #include <md/utility/files/CPTFile.h> 
 #include <md/utility/files/EDRFile.h>
 #include <md/utility/files/GROFile.h>

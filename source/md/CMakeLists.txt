@@ -3,11 +3,13 @@ add_library(ausaxs_md OBJECT
 	"programs/mdrun.cpp"
 	"programs/saxsmdrun.cpp"
 	
+	"simulate/buffer.cpp"
+	"simulate/frameanalysis.cpp"
 	"simulate/molecule.cpp"
+	"simulate/saxs.cpp"
+	"simulate/timeanalysis.cpp"
 	
 	"utility/Protein.cpp"
-	"utility/files/File.cpp"
-	"utility/files/Folder.cpp"
 	"utility/files/GROFile.cpp"
 	"utility/files/ITPFile.cpp"
 	"utility/files/MDPCreator.cpp"

@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/SettingsIORegistry.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
+#include <utility/Console.h>
 
 #include <fstream>
 
@@ -30,6 +31,8 @@ bool settings::detail::is_comment_char(char c) {
 }
 
 void settings::read(const ::io::ExistingFile& path) {
+    console::print_info("Reading settings from file: \"" + path + "\"");
+
     std::ifstream input(path);
     if (!input.is_open()) {throw std::ios_base::failure("settings::read: Could not open setup file.");}
 

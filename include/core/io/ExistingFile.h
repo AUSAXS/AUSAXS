@@ -9,10 +9,12 @@ namespace io {
             ExistingFile();
             ExistingFile(const File& file);
             ExistingFile(File&& file);
-            ExistingFile(const std::string& path);
-            ExistingFile(const char* path);
 
-            ExistingFile& operator=(const std::string& path);
+            template<::detail::string_type T>
+            ExistingFile(const T& path);
+
+            template<::detail::string_type T>
+            ExistingFile& operator=(const T& path);
 
         private:
             void validate() const;

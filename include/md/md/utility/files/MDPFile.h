@@ -1,10 +1,10 @@
 #pragma once
 
-#include <md/utility/files/File.h>
+#include <io/File.h>
 
 namespace md {
     // Molecular dynamics parameter file
-    struct MDPFile : public detail::File {
+    struct MDPFile : public io::File {
         MDPFile() = default;
         MDPFile(const std::string& name) : File(name, "mdp") {}
         MDPFile(const char* name) : MDPFile(std::string(name)) {}

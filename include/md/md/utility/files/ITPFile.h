@@ -1,12 +1,12 @@
 #pragma once
 
-#include <md/utility/files/File.h>
+#include <io/File.h>
 
 #include <vector>
 
 namespace md {
     // Include topology file
-    struct ITPFile : public detail::File {
+    struct ITPFile : public io::File {
         ITPFile() = default;
         ITPFile(const std::string& name) : File(name, "itp") {}
         ITPFile(const char* name) : ITPFile(std::string(name)) {}

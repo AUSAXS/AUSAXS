@@ -2,6 +2,8 @@
 
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
+#include <io/Folder.h>
+#include <io/File.h>
 
 namespace md {
     class genenv : private gmx {
@@ -20,7 +22,7 @@ namespace md {
                 return *this;
             }
 
-            genenv& output(const Folder& folder) {
+            genenv& output(const io::Folder& folder) {
                 this->folder = folder;
                 return *this;
             }
@@ -57,8 +59,9 @@ namespace md {
                 GROFile gro;
                 PYFile py;
                 DATFile dat;
-                for (auto const& entry : std::filesystem::directory_iterator(".")) {
-                    auto path = entry.path().string();
+                io::Folder root(".");
+                for (auto& entry : root.files()) {
+                    auto path = entry.path();
                     if (path.find("envelope") != std::string::npos) {
                         if (path.find(".gro") != std::string::npos) {
                             gro = GROFile(path);
@@ -71,7 +74,7 @@ namespace md {
                 }
 
                 // move to output folder
-                if (!folder.path.empty()) {
+                if (!folder.path().empty()) {
                     gro.move(folder);
                     py.move(folder);
                     dat.move(folder);
@@ -90,7 +93,7 @@ namespace md {
             }
 
         private: 
-            Folder folder;
+            io::Folder folder;
             void validate() const override {}
     };
 }

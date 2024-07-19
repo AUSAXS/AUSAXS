@@ -18,4 +18,19 @@ namespace console {
      *        Should only be used as a header for a info section. Use tabs to indent other text in the section. 
      */
     void print_info(std::string_view text);
+
+    /**
+     * @brief Print a text message. The text will be white in the terminal. 
+     */
+    void print_text(std::string_view text);
+
+    /**
+     * @brief Add another indentation to print_text output.
+     */
+    void indent();
+
+    /**
+     * @brief Remove an indentation from print_text output.
+     */
+    void unindent();
 }

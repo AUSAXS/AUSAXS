@@ -12,7 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace md;
 
 unsigned int ITPFile::size() const {
-    std::ifstream in(path);
+    std::ifstream in(path());
     std::string line, last_atom_line;
     bool in_atom_section = false;
     unsigned int count = 0;
@@ -39,27 +39,27 @@ unsigned int ITPFile::size() const {
         auto tokens = utility::split(last_atom_line, " \t");
         try {
             if (std::stoi(tokens[0]) != static_cast<int>(count)) {
-                throw except::invalid_argument("ITPFile::size: inconsistent atom count in file \"" + path + "\". Expected " + std::to_string(count) + " but found " + tokens[0] + ".");
+                throw except::invalid_argument("ITPFile::size: inconsistent atom count in file \"" + path() + "\". Expected " + std::to_string(count) + " but found " + tokens[0] + ".");
             }
         } 
         catch (const std::invalid_argument& e) {
-            throw except::invalid_argument("ITPFile::size: could not parse atom index from line \"" + last_atom_line + "\" in file \"" + path + "\".");
+            throw except::invalid_argument("ITPFile::size: could not parse atom index from line \"" + last_atom_line + "\" in file \"" + path() + "\".");
         }
     }
 
     if (1e6 < count) {
-        throw except::invalid_argument("ITPFile::size: atom count in file \"" + path + "\" seems unreasonably large (" + std::to_string(count) + "). Contact the developer if this is an error.");
+        throw except::invalid_argument("ITPFile::size: atom count in file \"" + path() + "\" seems unreasonably large (" + std::to_string(count) + "). Contact the developer if this is an error.");
     }
 
     return count;
 }
 
 std::vector<ITPFile> ITPFile::split_restraints(const std::vector<ITPFile>& topologies) const {
-    std::ifstream in(path);
-    if (!in.is_open()) {throw except::io_error("ITPFile::split_restraints: could not open file \"" + path + "\".");}
+    std::ifstream in(path());
+    if (!in.is_open()) {throw except::io_error("ITPFile::split_restraints: could not open file \"" + path() + "\".");}
     if (topologies.size() == 0) {throw except::invalid_argument("ITPFile::split_restraints: topologies must not be empty.");}
     for (const auto& topol : topologies) {
-        if (topol.path.find("topol") == std::string::npos) {
+        if (topol.path().find("topol") == std::string::npos) {
             throw except::invalid_argument("ITPFile::split_restraints: topologies must be the original include topologies, named topol_*.itp.");
         }
     }
@@ -96,10 +96,12 @@ std::vector<ITPFile> ITPFile::split_restraints(const std::vector<ITPFile>& topol
         auto tokens = utility::split(line, " \t");
         unsigned int index;
         try {index = std::stoi(tokens[0]);} 
-        catch (const std::invalid_argument& e) {throw except::invalid_argument("ITPFile::split_restraints: could not parse atom index from line \"" + line + "\" in file \"" + path + "\".");}
+        catch (const std::invalid_argument& e) {throw except::invalid_argument("ITPFile::split_restraints: could not parse atom index from line \"" + line + "\" in file \"" + path() + "\".");}
         if (index >= split_indices[current_topology]) {
             current_topology++;
-            if (current_topology == topologies.size()) {throw except::invalid_argument("ITPFile::split_restraints: atom index " + std::to_string(index) + " exceeds the number of atoms in the topologies (" + std::to_string(split_indices.back()) + ").");}
+            if (current_topology == topologies.size()) {
+                throw except::invalid_argument("ITPFile::split_restraints: atom index " + std::to_string(index) + " exceeds the number of atoms in the topologies (" + std::to_string(split_indices.back()) + ").");
+            }
         }
 
         index -= split_indices[current_topology-1];

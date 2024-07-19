@@ -1,24 +1,21 @@
 #pragma once
 
-#include <md/utility/files/File.h>
+#include <io/File.h>
 #include <md/utility/files/ITPFile.h>
 
 #include <vector>
 
 namespace md {
     // Topology file
-    struct TOPFile : public detail::File {
+    struct TOPFile : public io::File {
         public:
-            TOPFile() {}
-
+            TOPFile() = default;
             TOPFile(const std::string& name) : File(name, "top") {
                 includes = discover_includes();
             }
-
             TOPFile(const char* name) : TOPFile(std::string(name)) {
                 includes = discover_includes();
             }
-
             ~TOPFile() override = default;
 
             /**
@@ -54,7 +51,7 @@ namespace md {
              */
             void extract_single_chain();
 
-            std::string copy(const Folder& folder) const override;
+            std::string copy(const io::Folder& folder) const;
 
             const std::vector<ITPFile>& get_includes() {
                 if (includes.empty()) {includes = discover_includes();}

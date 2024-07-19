@@ -1,10 +1,10 @@
 #pragma once
 
-#include <md/utility/files/File.h>
+#include <io/File.h>
 
 namespace md {
     // Energy file
-    struct EDRFile : public detail::File {
+    struct EDRFile : public io::File {
         EDRFile() = default;
         EDRFile(const std::string& name) : File(name, "edr") {}
         EDRFile(const char* name) : EDRFile(std::string(name)) {}

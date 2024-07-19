@@ -6,6 +6,7 @@
 #include <settings/SettingsIO.h>
 #include <io/ExistingFile.h>
 #include <constants/Version.h>
+#include <utility/Console.h>
 
 #include <CLI/CLI.hpp>
 
@@ -25,7 +26,7 @@ int main(int argc, char const *argv[]) {
         settings::read(s_settings);     // read it
         CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
     } else {                            // otherwise check if there is a settings file in the same directory
-        if (settings::discover(".")) {
+        if (settings::discover({"."})) {
             CLI11_PARSE(app, argc, argv);
         }
     }
@@ -41,8 +42,8 @@ int main(int argc, char const *argv[]) {
         .anion = option::Anion::CL,
 
         .name = s_pdb.stem(),
-        .output = "output/md/" + s_pdb.stem() + "/",
-        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute(),
+        .output = {"output/md/" + s_pdb.stem() + "/"},
+        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
         .setupsim = location::local,
         .mainsim = location::local,
         .bufmdp = std::make_shared<PRMDPCreatorSol>(),
@@ -58,24 +59,29 @@ int main(int argc, char const *argv[]) {
     auto molecule = simulate_molecule(mo);
 
     SimulateBufferOutput buffer;
+    console::print_info("\nPreparing buffer simulation");
     if (settings::md::buffer_path.empty()) {
         BufferOptions bo(sele, molecule.gro);
         buffer = simulate_buffer(bo);
     } else {
-        console::print_info("\nPreparing buffer simulation");
         // find production gro
-        for (auto& p : std::filesystem::directory_iterator(settings::md::buffer_path + "/prod")) {
-            if (p.path().extension() == ".gro") {
+        io::Folder prod_folder(settings::md::buffer_path + "/prod");
+        if (!prod_folder.exists()) {
+            throw except::io_error("Could not find nested production folder (\"prod\") in supplied buffer folder \"" + settings::md::buffer_path + "\".");
+        }
+        for (auto& p : prod_folder.files()) {
+            if (p.extension() == ".gro") {
                 buffer.gro = GROFile(p.path());
-                std::cout << "\tFound production gro file: " << buffer.gro.path << std::endl;
+                console::print_text("\tFound production gro file: " + buffer.gro.path());
             }
         }
 
         // find topology file
-        for (auto& p : std::filesystem::directory_iterator(settings::md::buffer_path + "/setup")) {
-            if (p.path().extension() == ".top") {
+        io::Folder setup_folder(settings::md::buffer_path + "/setup");
+        for (auto& p : setup_folder.files()) {
+            if (p.extension() == ".top") {
                 buffer.top = TOPFile(p.path());
-                std::cout << "\tFound topology file: " << buffer.top.path << std::endl;
+                console::print_text("\tFound topology file: " + buffer.top.path());
             }
         }
 
@@ -83,14 +89,16 @@ int main(int argc, char const *argv[]) {
         buffer.job = std::make_unique<NoExecution<MDRunResult>>(settings::md::buffer_path + "/prod/");
 
         // check that all files are found
-        if (buffer.gro.empty() || buffer.top.empty()) {
+        if (buffer.gro.exists() || buffer.top.exists()) {
             throw except::io_error("Could not find all files in supplied buffer folder \"" + settings::md::buffer_path + "\".");
         }
+
+        console::print_text("\tOK");
     }
 
     // prepare saxs
     GMXOptions saxs_sele = sele;
-    saxs_sele.jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute();
+    saxs_sele.jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path();
     
     SAXSOptions so(saxs_sele, std::move(molecule), std::move(buffer), pdb);
     auto saxs = simulate_saxs(so);

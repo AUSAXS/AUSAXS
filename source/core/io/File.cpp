@@ -13,19 +13,18 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace io;
 
 File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {}
+File::File(std::string_view name, std::string_view extension) : File(Folder(), name, extension) {}
 
-File::File(std::string_view path) {
-    if (path.empty()) {return;}
-
+template<::detail::string_type T>
+File::File(const T& path) {
     auto [dir, file, ext] = split(path);
     this->dir = std::move(dir);
     this->name = std::move(file);
     this->ext = std::move(ext);
 }
-
-File::File(const char* path) : File(std::string_view(path)) {}
-
-File::File(const std::string& path) : File(std::string_view(path)) {}
+template File::File(const char* const&);
+template File::File(const std::string&);
+template File::File(const std::string_view&);
 
 std::tuple<std::string, std::string, std::string> File::split(std::string_view path) {
     auto p = std::filesystem::path(path);
@@ -76,6 +75,26 @@ void File::create(std::string_view contents) const {
     file << contents;
 }
 
+io::File File::rename(std::string_view name) const {
+    io::File new_file(dir, name, ext);
+    std::filesystem::rename(path(), new_file.path());
+    return new_file;
+}
+
+io::File File::move(const io::Folder& folder) const {
+    if (!folder.exists()) {folder.create();}
+    io::File new_file(folder, name, ext);
+    std::filesystem::rename(path(), new_file.path());
+    return new_file;
+}
+
+io::File File::copy(const io::Folder& folder) const {
+    if (!folder.exists()) {folder.create();}
+    io::File new_file(folder, name, ext);
+    std::filesystem::copy(path(), new_file.path());
+    return new_file;
+}
+
 void File::remove() const {
     if (exists()) {std::filesystem::remove(path());}
 }
@@ -83,6 +102,15 @@ void File::remove() const {
 std::string File::path() const {return std::string(*this);}
 
 std::string File::absolute_path() const {return std::filesystem::absolute(path()).string();}
+
+std::string File::relative_path(const File& other) const {
+    if (name.empty() || other.name.empty()) {throw except::io_error("File::relative_path: Cannot get relative path of empty path.");}
+    return std::filesystem::relative(other.absolute_path(), absolute_path()).string();
+}
+
+std::string File::filename() const noexcept {
+    return name + ext;
+}
 
 bool File::exists() const noexcept {
     return std::filesystem::exists(path());

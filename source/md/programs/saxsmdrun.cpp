@@ -20,18 +20,18 @@ saxsmdrun::saxsmdrun(const TPRFile& mol, const TPRFile& buf) : saxsmdrun() {
 saxsmdrun& saxsmdrun::input(const TPRFile& mol, const TPRFile& buf) {
     this->moltpr = mol;
     this->buftpr = buf;
-    options.push_back(std::make_shared<shell::Argument>("-s", mol.absolute()));
-    options.push_back(std::make_shared<shell::Argument>("-sw", buf.absolute()));
+    options.push_back(std::make_shared<shell::Argument>("-s", mol.absolute_path()));
+    options.push_back(std::make_shared<shell::Argument>("-sw", buf.absolute_path()));
     return *this;
 }
 
 saxsmdrun& saxsmdrun::rerun(const XTCFile& mol, const XTCFile& buf) {
-    options.push_back(std::make_shared<shell::Argument>("-rerun", mol.absolute()));
-    options.push_back(std::make_shared<shell::Argument>("-fw", buf.absolute()));
+    options.push_back(std::make_shared<shell::Argument>("-rerun", mol.absolute_path()));
+    options.push_back(std::make_shared<shell::Argument>("-fw", buf.absolute_path()));
     return *this;
 }
 
-saxsmdrun& saxsmdrun::output(const Folder& folder, const std::string&) {
+saxsmdrun& saxsmdrun::output(const io::Folder& folder, const std::string&) {
     this->folder = folder;
     // options.push_back(std::make_shared<shell::Argument>("-deffnm", folder + prefix));
     return *this;
@@ -79,7 +79,7 @@ std::unique_ptr<shell::Jobscript<SAXSRunResult>> saxsmdrun::run(location where, 
 }
 
 void saxsmdrun::validate() const {
-    if (moltpr.empty() || buftpr.empty()) {
+    if (!moltpr.exists() || !buftpr.exists()) {
         throw except::missing_option("saxsmdrun: No tpr file specified");
     }
 }

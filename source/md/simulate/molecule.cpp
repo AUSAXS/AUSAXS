@@ -24,11 +24,11 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    Folder mdp_folder = options.output + "mdp/";
-    Folder setup_path = options.output + "protein/setup/";
-    Folder em_path = options.output + "protein/em/";
-    Folder eq_path = options.output + "protein/eq/";
-    Folder prod_path = options.output + "protein/prod/";
+    io::Folder mdp_folder = options.output + "mdp/";
+    io::Folder setup_path = options.output + "protein/setup/";
+    io::Folder em_path = options.output + "protein/em/";
+    io::Folder eq_path = options.output + "protein/eq/";
+    io::Folder prod_path = options.output + "protein/prod/";
 
     // gmx::gmx::set_outputlog(output + "gmx.log");
     //##################################//

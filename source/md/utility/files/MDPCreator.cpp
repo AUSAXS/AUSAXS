@@ -18,7 +18,7 @@ MDPCreator& MDPCreator::add(const MDPOptions::detail::OptionVal& option) {
 
 MDPFile MDPCreator::write(const std::string& name) const {
     MDPFile file(name);
-    std::ofstream out(file.path);                
+    std::ofstream out(file.path());                
     for (const auto& option : options) {
         out << std::left << std::setw(30) << option.name << " = " << option.value << std::endl;
     }

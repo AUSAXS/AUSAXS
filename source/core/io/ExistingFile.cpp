@@ -16,17 +16,15 @@ io::ExistingFile::ExistingFile(File&& file) : File(std::move(file)) {
     validate();
 }
 
-io::ExistingFile::ExistingFile(const std::string& path) : File(path) {
+template<::detail::string_type T>
+io::ExistingFile::ExistingFile(const T& path) : File(path) {
     validate();
 }
 
-io::ExistingFile::ExistingFile(const char* path) : File(path) {
-    validate();
-}
-
-io::ExistingFile& io::ExistingFile::operator=(const std::string& path) {
-    validate();
+template<::detail::string_type T>
+io::ExistingFile& io::ExistingFile::operator=(const T& path) {
     File::operator=(path);
+    validate();
     return *this;
 }
 
@@ -35,3 +33,10 @@ void io::ExistingFile::validate() const {
         throw except::io_error("io::ExistingFile: File \"" + path() + "\" does not exist.");
     }
 }
+
+template io::ExistingFile::ExistingFile(const char* const&);
+template io::ExistingFile::ExistingFile(const std::string&);
+template io::ExistingFile::ExistingFile(const std::string_view&);
+template io::ExistingFile& io::ExistingFile::operator=(const char* const&);
+template io::ExistingFile& io::ExistingFile::operator=(const std::string&);
+template io::ExistingFile& io::ExistingFile::operator=(const std::string_view&);

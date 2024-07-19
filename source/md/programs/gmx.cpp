@@ -5,7 +5,79 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <md/programs/gmx.h>
 
+#include <filesystem>
+#include <fstream>
+#include <chrono>
+#include <ctime>
+
 using namespace md;
+
+shell::Command& gmx::command() {
+    validate();
+    for (auto& opt : options) {
+        cmd.append(opt->get());
+    }
+    cmd.append("-nocopyright -quiet");
+    return cmd;
+}
+
+std::string gmx::execute() {
+    auto cmd = command();
+    if (!outputlog.empty()) {
+        cmd.prepend("set -o pipefail; ");
+        cmd.append("2>&1 | tee -a " + outputlog);                
+    }
+    write_cmdlog(cmd.get());
+
+    auto result = cmd.execute();
+    if (result.exit_code != 0) {
+        throw except::io_error("gmx::gmx: Error executing command: \"" + cmd.get() + "\".");
+    }
+    return result.out;
+}
+
+bool gmx::valid_executable() {
+    auto tmp = cmd.append("-version");
+    write_cmdlog(tmp.get());
+    auto res = tmp.execute();
+    return res.exit_code == 0;
+};
+
+void gmx::set_outputlog(const std::string& path) {
+    if (std::filesystem::path(path).extension() != ".log") {
+        throw except::invalid_format("gmx::gmx: Output log file must have extension \".log\".");
+    }
+    std::filesystem::remove(path);
+    outputlog = path;
+}
+
+void gmx::set_cmdlog(const std::string& path) {
+    if (std::filesystem::path(path).extension() != ".log") {
+        throw except::invalid_format("gmx::gmx: Command log file must have extension \".log\".");
+    }
+
+    cmdlog = path;
+    auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    write_cmdlog(
+        "\n#################################################"
+        "\n   Program started on " + std::string(std::ctime(&time)) + 
+        "#################################################"
+    );
+}
+
+void gmx::validate() const {}
+
+void gmx::write_cmdlog(const std::string& entry) {
+    if (cmdlog.empty()) {return;}
+    std::ofstream log(cmdlog, std::ios_base::app);
+    log << entry << std::endl;
+}
+
+void gmx::write_log(const std::string& entry) {
+    if (outputlog.empty()) {return;}
+    std::ofstream log(outputlog, std::ios_base::app);
+    log << entry << std::endl;
+}
 
 std::string option::to_string(Forcefield opt) {
     switch (opt) {

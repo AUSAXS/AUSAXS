@@ -21,7 +21,7 @@ namespace md {
                 return *this;
             }
 
-            pdb2gmx& output(const Folder& path) {
+            pdb2gmx& output(const io::Folder& path) {
                 folder = path;
                 options.push_back(std::make_shared<shell::Argument>("-o", path + "conf.gro"));
                 options.push_back(std::make_shared<shell::Argument>("-p", path + "topol.top"));
@@ -64,7 +64,7 @@ namespace md {
             }
 
         private: 
-            Folder folder;
+            io::Folder folder;
 
             void validate() const override {}
     };

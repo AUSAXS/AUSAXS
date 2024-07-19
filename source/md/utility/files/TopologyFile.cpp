@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <md/utility/files/TopologyFile.h>
 #include <md/utility/Exceptions.h>
-#include <md/utility/files/File.h>
+#include <io/File.h>
 
 #include <filesystem>
 #include <fstream>
@@ -43,7 +43,7 @@ void TopologyFile::fix_relative_includes() {
     in.close();
 
     // fix includes
-    detail::File file(path);
+    io::File file(path);
     for (const auto& include : includes) {
         std::string rpath = file.relative_path(include.path);
         if (!rpath.empty()) {

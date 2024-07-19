@@ -23,13 +23,13 @@ mdrun& mdrun::input(const TPRFile& tpr) {
     return *this;
 }
 
-mdrun& mdrun::output(const Folder& folder, const std::string& prefix) {
+mdrun& mdrun::output(const io::Folder& folder, const std::string& prefix) {
     this->folder = folder;
     options.push_back(std::make_shared<shell::Argument>("-deffnm", folder + prefix));
     return *this;
 }
 
-mdrun& mdrun::output(const Folder& folder) {
+mdrun& mdrun::output(const io::Folder& folder) {
     this->folder = folder;
     options.push_back(std::make_shared<shell::Argument>("-multidir", folder));
     return *this;
@@ -59,7 +59,7 @@ std::unique_ptr<shell::Jobscript<MDRunResult>> mdrun::run(location where, std::s
 }
 
 void mdrun::validate() const {
-    if (tpr.empty()) {
+    if (!tpr.exists()) {
         throw except::missing_option("mdrun: No tpr file specified");
     }
 }

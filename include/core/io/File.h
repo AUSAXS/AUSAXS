@@ -10,10 +10,17 @@ namespace io {
     class File {
         public:
             File() = default;
+            File(const File&) = default;
+            File(File&&) noexcept = default;
+            File &operator=(const File&) = default;
+            File &operator=(File&&) noexcept = default;
             File(const io::Folder& folder, std::string_view name, std::string_view extension);
-            File(std::string_view path);
-            File(const char* path);
-            File(const std::string& path);
+            File(std::string_view name, std::string_view extension);
+
+            template<::detail::string_type T>
+            File(const T& path);
+
+            virtual ~File() = default;
 
             /**
              * @brief Get the path to this file relative to the current directory.
@@ -24,6 +31,11 @@ namespace io {
              * @brief Get the absolute path to this file.
              */
             [[nodiscard]] std::string absolute_path() const;
+
+            /**
+             * @brief Get the relative path to another file with this as the base.
+             */
+            [[nodiscard]] std::string relative_path(const File& other) const;
 
             [[nodiscard]] operator std::string() const;
 
@@ -37,6 +49,12 @@ namespace io {
              */
             File& append(std::string_view name) noexcept;
             [[nodiscard]] File append(std::string_view name) const noexcept; //< @copydoc append()
+
+            /**
+             * @brief Get the filename.
+             *       This is just the combined stem and extension of the file.
+             */
+            [[nodiscard]] std::string filename() const noexcept;
 
             /**
              * @brief Get the stem of the file.
@@ -67,6 +85,29 @@ namespace io {
              * @brief Delete this file from disk. 
              */
             void remove() const;
+
+            /**
+             * @brief Move this file to the given folder.
+             *        The destination folder is created if it does not already exist.
+             *
+             * @returns The path to the new file.
+             */
+            io::File move(const io::Folder& folder) const;
+
+            /**
+             * @brief Copy this file to the given folder.
+             *        The destination folder is created if it does not already exist.
+             *
+             * @returns The path to the new file.
+             */
+            io::File copy(const io::Folder& folder) const;
+
+            /**
+             * @brief Rename this file on disk.
+             *
+             * @returns The path to the new file.
+             */
+            io::File rename(std::string_view name) const;
 
             /**
              * @brief Check if the file exists.

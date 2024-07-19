@@ -72,13 +72,13 @@ namespace md {
             ~SmaugExecution() override = default;
 
             SmaugExecution(const TPRFile& tpr, const std::string& folder, const std::string& name, const SHFile& jobscript) : folder(folder) {
-                this->filename = tpr.parent_path() + "/job.sh";
-                this->cmd.set("cd " + tpr.parent_path() + "; " + jobscript.path + " -j " + name + " -version release-2021.swaxs -gpu-gener any+ampere -tpr " + tpr.absolute());
+                this->filename = tpr.directory() + "/job.sh";
+                this->cmd.set("cd " + tpr.directory() + "; " + jobscript.path() + " -j " + name + " -version release-2021.swaxs -gpu-gener any+ampere -tpr " + tpr.absolute_path());
             }
 
             SmaugExecution(const std::string& args, const std::string& _export, const std::string& folder, const std::string& name, const SHFile& jobscript) : folder(folder) {
                 this->filename = folder + "/job.sh";
-                this->cmd.set(_export + "cd " + folder + "; " + jobscript.path + " -j " + name + " -version release-2021.swaxs -gpu-gener any+ampere " + args);
+                this->cmd.set(_export + "cd " + folder + "; " + jobscript.path() + " -j " + name + " -version release-2021.swaxs -gpu-gener any+ampere " + args);
             }
 
             T result() override {return T(folder);}
