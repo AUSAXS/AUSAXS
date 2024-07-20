@@ -3,7 +3,7 @@
 #include <io/File.h>
 #include <utility/observer_ptr.h>
 
-namespace io {
+namespace io::detail {
     namespace {
         template<typename T> concept file_validation_t = requires(observer_ptr<File> file) {
             {T::validate(file)};

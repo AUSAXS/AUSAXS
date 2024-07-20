@@ -13,6 +13,7 @@ add_library(ausaxs_md OBJECT
 	"utility/files/GROFile.cpp"
 	"utility/files/ITPFile.cpp"
 	"utility/files/MDPCreator.cpp"
+	"utility/files/NDXFile.cpp"
 	"utility/files/TOPFile.cpp"
 	"utility/files/TopologyFile.cpp"
 )

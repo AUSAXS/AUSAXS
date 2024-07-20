@@ -1,41 +1,28 @@
 #pragma once
 
-#include <io/File.h>
+#include <io/detail/IValidatedFile.h>
+#include <utility/observer_ptr.h>
 
-#include <fstream>
+#include <stdexcept>
 
 namespace md {
-    // Index file
-    struct NDXFile : public io::File {
-        NDXFile() = default;
-        NDXFile(const std::string& name) : File(name, "ndx") {}
-        NDXFile(const char* name) : NDXFile(std::string(name)) {}
-        ~NDXFile() override = default;
+    namespace detail {
+        struct validate_ndx_file {
+            static void validate(observer_ptr<io::File> f) {
+                if (f->extension() != ".ndx") {throw std::runtime_error("NDXFile::validate: File \"" + f->path() + "\" is not an index file (.ndx).");}
+            }
+        };
+    }
 
-        void append_file(const NDXFile& other) {
-            std::ifstream ifs(other);
-            std::ofstream ofs(*this, std::ios::app);
-            ofs << ifs.rdbuf();
-        }
+    // Index file
+    struct NDXFile : public io::detail::IValidatedFile<detail::validate_ndx_file> {
+        using IValidatedFile::IValidatedFile;
+
+        void append_file(const NDXFile& other);
 
         /**
          * @brief Check if the index file contains a group
          */
-        bool contains(const std::string& group) const {
-            std::ifstream ifs(*this);
-            std::string line;
-            while (std::getline(ifs, line)) {
-                if (line.empty()) {continue;}
-                if (line[0] != '[') {continue;}
-                auto end = line.find(']');
-                if (end == std::string::npos) {throw std::runtime_error("Invalid index file \"" + path() + "\": line \"" + line + "\" does not contain a closing bracket.");}
-                if (line[1] != ' ' || line[end-1] != ' ') {throw std::runtime_error("Invalid index file\"" + path() + "\": line \"" + line + "\" does not contain a space before and after the group name.");}
-                line = line.substr(2, end-3);
-                if (line == group) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        bool contains(const std::string& group) const;
     };
 }

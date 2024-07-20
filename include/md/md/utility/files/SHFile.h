@@ -1,13 +1,21 @@
 #pragma once
 
-#include <io/File.h>
+#include <io/detail/IValidatedFile.h>
+#include <utility/observer_ptr.h>
+
+#include <stdexcept>
 
 namespace md {
-    // Binary run input file
-    struct SHFile : public io::File {
-        SHFile() = default;
-        SHFile(const std::string& name) : File(name, "sh") {}
-        SHFile(const char* name) : SHFile(std::string(name)) {}
-        ~SHFile() override = default;
+    namespace detail {
+        struct validate_sh_file {
+            static void validate(observer_ptr<io::File> f) {
+                if (f->extension() != ".sh") {throw std::runtime_error("SHFile::validate: File \"" + f->path() + "\" is not a shell script (.sh).");}
+            }
+        };
+    }
+
+    // Shell script file
+    struct SHFile : public io::detail::IValidatedFile<detail::validate_sh_file> {
+        using IValidatedFile::IValidatedFile;
     };
 }

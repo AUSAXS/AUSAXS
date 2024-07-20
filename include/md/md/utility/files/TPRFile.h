@@ -1,13 +1,21 @@
 #pragma once
 
-#include <io/File.h>
+#include <io/detail/IValidatedFile.h>
+#include <utility/observer_ptr.h>
+
+#include <stdexcept>
 
 namespace md {
+    namespace detail {
+        struct validate_tpr_file {
+            static void validate(observer_ptr<io::File> f) {
+                if (f->extension() != ".tpr") {throw std::runtime_error("TPRFile::validate: File \"" + f->path() + "\" is not a binary run input file (.tpr).");}
+            }
+        };
+    }
+
     // Binary run input file
-    struct TPRFile : public io::File {
-        TPRFile() = default;
-        TPRFile(const std::string& name) : File(name, "tpr") {}
-        TPRFile(const char* name) : TPRFile(std::string(name)) {}
-        ~TPRFile() override = default;
+    struct TPRFile : public io::detail::IValidatedFile<detail::validate_tpr_file> {
+        using IValidatedFile::IValidatedFile;
     };
 }

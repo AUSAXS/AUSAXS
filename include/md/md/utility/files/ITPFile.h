@@ -1,16 +1,22 @@
 #pragma once
 
-#include <io/File.h>
+#include <io/detail/IValidatedFile.h>
+#include <utility/observer_ptr.h>
 
-#include <vector>
+#include <stdexcept>
 
 namespace md {
+    namespace detail {
+        struct validate_itp_file {
+            static void validate(observer_ptr<io::File> f) {
+                if (f->extension() != ".itp") {throw std::runtime_error("ITPFile::validate: File \"" + f->path() + "\" is not a include topology file (.itp).");}
+            }
+        };
+    }
+
     // Include topology file
-    struct ITPFile : public io::File {
-        ITPFile() = default;
-        ITPFile(const std::string& name) : File(name, "itp") {}
-        ITPFile(const char* name) : ITPFile(std::string(name)) {}
-        ~ITPFile() override = default;
+    struct ITPFile : public io::detail::IValidatedFile<detail::validate_itp_file> {
+        using IValidatedFile::IValidatedFile;
 
         unsigned int size() const;
 

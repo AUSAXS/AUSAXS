@@ -135,7 +135,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
         console::print_text("Generating scattering parameters.");
         console::indent();
-        MDPFile dummymdp = MDPFile(output + "empty.mdp").create();
+        MDPFile dummymdp = MDPFile(output + "empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
             .output(output + "saxs.tpr")
             .warnings(1)

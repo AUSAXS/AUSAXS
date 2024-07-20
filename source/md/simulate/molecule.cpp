@@ -74,7 +74,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         std::cout << " done." << std::endl;
 
         // generate an empty tpr file 
-        MDPFile mdp = MDPFile(setup_path + "empty.mdp").create();
+        MDPFile mdp = MDPFile(setup_path + "empty.mdp"); mdp.create();
         auto[ions] = grompp(mdp, top, solv)
             .output(setup_path + "ions.tpr")
             .warnings(1)

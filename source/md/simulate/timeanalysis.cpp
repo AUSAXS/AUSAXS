@@ -89,7 +89,7 @@ std::vector<md::SAXSOutput> md::timeanalysis(SAXSOptions& options, double timest
     MDPFile molmdp(mdp_folder + "rerun_mol.mdp");
 
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
-        MDPFile dummymdp = MDPFile(output + "empty.mdp").create();
+        MDPFile dummymdp = MDPFile(output + "empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
             .output(output + "saxs.tpr")
             .warnings(1)

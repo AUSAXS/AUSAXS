@@ -14,7 +14,7 @@ namespace io {
         };
     }
 
-    class ExistingFile : public IValidatedFile<detail::validate_existing_file> {
+    class ExistingFile : public detail::IValidatedFile<detail::validate_existing_file> {
         using IValidatedFile::IValidatedFile;
     };
     static_assert(supports_nothrow_move_v<ExistingFile>, "ExistingFile should support nothrow move semantics.");

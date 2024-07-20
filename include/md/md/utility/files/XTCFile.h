@@ -1,13 +1,21 @@
 #pragma once
 
-#include <io/File.h>
+#include <io/detail/IValidatedFile.h>
+#include <utility/observer_ptr.h>
+
+#include <stdexcept>
 
 namespace md {
+    namespace detail {
+        struct validate_xtc_file {
+            static void validate(observer_ptr<io::File> f) {
+                if (f->extension() != ".xtc") {throw std::runtime_error("XTCFile::validate: File \"" + f->path() + "\" is not a trajectory file (.xtc).");}
+            }
+        };
+    }
+
     // Trajectory file
-    struct XTCFile : public io::File {
-        XTCFile() = default;
-        XTCFile(const std::string& name) : File(name, "xtc") {}
-        XTCFile(const char* name) : XTCFile(std::string(name)) {}
-        ~XTCFile() override = default;
+    struct XTCFile : public io::detail::IValidatedFile<detail::validate_xtc_file> {
+        using IValidatedFile::IValidatedFile;
     };
 }
