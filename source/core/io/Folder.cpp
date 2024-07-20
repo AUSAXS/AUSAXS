@@ -11,7 +11,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace io;
 
-void Folder::operator=(const std::string& path) {
+Folder::Folder(std::string_view path) {*this = path;}
+
+void Folder::operator=(std::string_view path) {
     if (path.empty()) {dir = "."; return;}
     if (path.back() == '/') {
         dir = path.substr(0, path.size() - 1);
@@ -58,3 +60,9 @@ std::string operator+(std::string_view str, const io::Folder& folder) {
     auto s = str.back() == '/' ? str.substr(0, str.size() - 1) : str;
     return std::string(s) + "/" + folder.path();
 }
+
+template Folder::Folder(const char* const&);
+template Folder::Folder(const std::string&);
+template Folder::Folder(const std::string_view&);
+template void Folder::operator=(const std::string&);
+template void Folder::operator=(const std::string_view&);

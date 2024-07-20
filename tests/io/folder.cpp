@@ -112,19 +112,19 @@ TEST_CASE("Folder::operator+") {
     SECTION("folder after") {
         SECTION("without slash") {
             io::Folder folder("tests");
-            folder = folder + io::Folder("folder");
+            folder = folder + "folder";
             CHECK(folder.path() == "tests/folder");
         }
 
         SECTION("with slash") {
             io::Folder folder("tests");
-            folder = folder + io::Folder("folder/");
+            folder = folder + "folder/";
             CHECK(folder.path() == "tests/folder");
         }
 
         SECTION("nested") {
             io::Folder folder("tests");
-            folder = folder + io::Folder("folder/nested");
+            folder = folder + "folder/nested";
             CHECK(folder.path() == "tests/folder/nested");
         }
     }

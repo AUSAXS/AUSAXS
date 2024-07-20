@@ -11,8 +11,9 @@ namespace io {
         public:
             Folder() = default;
 
-            template<::detail::string_type T>
-            Folder(T path) : dir(path) {}
+            template<::detail::string_like T>
+            Folder(const T& path) : Folder(std::string_view(path)) {}
+            Folder(std::string_view path);
 
             /**
              * @brief Get the non-'/' terminated path of this folder.
@@ -24,7 +25,9 @@ namespace io {
              */
             [[nodiscard]] bool exists() const noexcept;
 
-            void operator=(const std::string& path);
+            template<::detail::string_like T>
+            void operator=(const T& path) {*this = std::string_view(path);}
+            void operator=(std::string_view path);
 
             [[nodiscard]] operator std::string() const;
 

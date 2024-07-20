@@ -6,6 +6,5 @@
 
 namespace detail {
     template<typename T>
-    concept string_type = std::same_as<T, std::string> || std::same_as<T, std::string_view> || std::same_as<T, const char*>;
-
+    concept string_like = std::is_convertible_v<T, std::string_view>;
 }

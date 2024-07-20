@@ -15,16 +15,12 @@ using namespace io;
 File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {}
 File::File(std::string_view name, std::string_view extension) : File(Folder(), name, extension) {}
 
-template<::detail::string_type T>
-File::File(const T& path) {
+File::File(std::string_view path) {
     auto [dir, file, ext] = split(path);
     this->dir = std::move(dir);
     this->name = std::move(file);
     this->ext = std::move(ext);
 }
-template File::File(const char* const&);
-template File::File(const std::string&);
-template File::File(const std::string_view&);
 
 std::tuple<std::string, std::string, std::string> File::split(std::string_view path) {
     auto p = std::filesystem::path(path);
@@ -116,20 +112,12 @@ bool File::exists() const noexcept {
     return std::filesystem::exists(path());
 }
 
-std::string operator+(const char* str, const io::File& file) {
-    return std::string(str) + std::string(file);
+std::string operator+(std::string_view str, const io::File& file) {
+    return std::string(str) + file.path();
 }
 
-std::string operator+(const io::File& file, const char* str) {
-    return std::string(file) + std::string(str);
-}
-
-std::string operator+(const std::string& str, const io::File& file) {
-    return str + std::string(file);
-}
-
-std::string operator+(const io::File& file, const std::string& str) {
-    return std::string(file) + str;
+std::string operator+(const io::File& file, std::string_view str) {
+    return file.path() + std::string(str);
 }
 
 std::ostream& operator<<(std::ostream& os, const io::File& file) {

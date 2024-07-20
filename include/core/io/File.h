@@ -17,8 +17,9 @@ namespace io {
             File(const io::Folder& folder, std::string_view name, std::string_view extension);
             File(std::string_view name, std::string_view extension);
 
-            template<::detail::string_type T>
-            File(const T& path);
+            template<::detail::string_like T>
+            File(const T& path) : File(std::string_view(path)) {}
+            File(std::string_view path);
 
             virtual ~File() = default;
 
@@ -127,8 +128,6 @@ namespace io {
     static_assert(supports_nothrow_move_v<File>, "File should support nothrow move semantics.");
 }
 
-std::string operator+(const std::string& str, const io::File& file);
-std::string operator+(const io::File& file, const std::string& str);
-std::string operator+(const char* str, const io::File& file);
-std::string operator+(const io::File& file, const char* str);
+std::string operator+(std::string_view str, const io::File& file);
+std::string operator+(const io::File& file, std::string_view str);
 std::ostream& operator<<(std::ostream& os, const io::File& file);
