@@ -5,7 +5,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <md/programs/gmx.h>
 
-#include <filesystem>
 #include <fstream>
 #include <chrono>
 #include <ctime>
@@ -23,11 +22,22 @@ shell::Command& gmx::command() {
 
 std::string gmx::execute() {
     auto cmd = command();
-    if (!outputlog.empty()) {
+    if (log) {
         write_cmdlog(cmd.get());
 
         // ensure we're running as bash to use 'set -o pipefail' to avoid the piping hiding errors
         // this will crash if using a shell script, so run everything in bash and encapsulate entire cmd with ''
+
+        // to encasuplate the entire command with '', we need to escape all ' characters in the command itself
+        std::string escaped_str;
+        for (auto c : cmd.get()) {
+            if (c == '\'') {
+                escaped_str += "'\\''";
+            } else {
+                escaped_str += c;
+            }
+        }
+        cmd.set(escaped_str);
         cmd.prepend("exec bash -c 'set -o pipefail; ");
         cmd.append("2>&1 | tee -a " + outputlog + "'");
     }
@@ -46,38 +56,38 @@ bool gmx::valid_executable() {
     return res.exit_code == 0;
 };
 
-void gmx::set_outputlog(const std::string& path) {
-    if (std::filesystem::path(path).extension() != ".log") {
+void gmx::set_logfile(const io::File& log, const io::File& cmdlog) {
+    if (log.extension() != ".log" || cmdlog.extension() != ".log"){
         throw except::invalid_format("gmx::gmx: Output log file must have extension \".log\".");
     }
-    std::filesystem::remove(path);
-    outputlog = path;
-}
-
-void gmx::set_cmdlog(const std::string& path) {
-    if (std::filesystem::path(path).extension() != ".log") {
-        throw except::invalid_format("gmx::gmx: Command log file must have extension \".log\".");
-    }
-
-    cmdlog = path;
+    log.remove();
+    gmx::outputlog = log;
+    gmx::cmdlog = cmdlog;
+    
     auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    write_cmdlog(
+    auto msg = 
         "\n#################################################"
         "\n   Program started on " + std::string(std::ctime(&time)) + 
-        "#################################################"
-    );
+        "#################################################";
+    write_log(msg);
+    write_cmdlog(msg);
+    gmx::log = true;
+
+    if (!gmx::outputlog.exists() || !gmx::cmdlog.exists()) {
+        throw except::io_error("gmx::gmx: Could not create log files.");
+    }
 }
 
 void gmx::validate() const {}
 
-void gmx::write_cmdlog(const std::string& entry) {
-    if (cmdlog.empty()) {return;}
+void gmx::write_cmdlog(std::string_view entry) {
+    if (cmdlog.path().empty()) {return;}
     std::ofstream log(cmdlog, std::ios_base::app);
     log << entry << std::endl;
 }
 
-void gmx::write_log(const std::string& entry) {
-    if (outputlog.empty()) {return;}
+void gmx::write_log(std::string_view entry) {
+    if (outputlog.path().empty()) {return;}
     std::ofstream log(outputlog, std::ios_base::app);
     log << entry << std::endl;
 }

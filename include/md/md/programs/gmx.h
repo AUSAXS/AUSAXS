@@ -20,18 +20,18 @@ namespace md {
 
             bool valid_executable();
 
-            static void set_outputlog(const std::string& path);
-            static void set_cmdlog(const std::string& path);
+            static void set_logfile(const io::File& log, const io::File& cmdlog);
 
         protected:
             virtual void validate() const;
 
         private: 
-            inline static std::string outputlog;
-            inline static std::string cmdlog;
+            inline static bool log = false;
+            inline static io::File outputlog;
+            inline static io::File cmdlog;
 
-            static void write_cmdlog(const std::string& entry);
-            static void write_log(const std::string& entry);
+            static void write_cmdlog(std::string_view entry);
+            static void write_log(std::string_view entry);
     };
 
     namespace option {

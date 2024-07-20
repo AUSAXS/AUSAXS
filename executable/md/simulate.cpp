@@ -50,8 +50,8 @@ int main(int argc, char const *argv[]) {
         .molmdp = std::make_shared<PRMDPCreatorMol>(),
     };
 
-    gmx::gmx::set_cmdlog(sele.output + "cmd.log");
-    gmx::gmx::set_outputlog(sele.output + "output.log");
+    if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
+    gmx::gmx::set_logfile(sele.output + "output.log", sele.output + "cmd.log");
     PDBFile pdb(s_pdb);
 
     // prepare sims

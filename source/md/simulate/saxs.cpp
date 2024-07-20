@@ -74,32 +74,32 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         if (!molindex.contains("RealWater_and_Ions")) {
             // if there are no Ion group, adding "or group \"Ion\" will cause an error
             auto[tmp] = select(options.molecule.gro)
-                .output("tmp.ndx")
+                .output("temp/md/tmp1.ndx")
                 .define("\"RealWater_and_Ions\" name \"OW\" or name \"HW1\" or name \"HW2\" or name \"HW3\"" + ion_placeholder)
             .run();
 
             molindex.append_file(tmp);
-            tmp.remove();
+            // tmp.remove();
         }
 
         if (!molindex.contains("Water_and_Ions")) {
             auto[tmp] = select(options.molecule.gro)
-                .output("tmp.ndx")
+                .output("temp/md/tmp2.ndx")
                 .define("\"Water_and_Ions\" name \"OW\" or name \"HW1\" or name \"HW2\" or name \"HW3\"" + ion_placeholder)
             .run();
 
             molindex.append_file(tmp);
-            tmp.remove();
+            // tmp.remove();
         }
 
         if (!molindex.contains("Protein_and_Ions")) {
             auto[tmp] = select(options.molecule.gro)
-                .output("tmp.ndx")
+                .output("temp/md/tmp3.ndx")
                 .define("\"Protein_and_Ions\" group \"Protein\"" + ion_placeholder)
             .run();
 
             molindex.append_file(tmp);
-            tmp.remove();
+            // tmp.remove();
         }
     } else {
         console::print_text("Reusing index file for molecule.");
