@@ -53,6 +53,9 @@ int main(int argc, char const *argv[]) {
     // gmx::gmx::set_cmdlog(sele.output + "cmd.log");
     // gmx::gmx::set_outputlog(sele.output + "output.log");
     PDBFile pdb(s_pdb);
+    std::cout << "Using PDB file: " << pdb.path() << std::endl;
+    std::cout << "\t" << s_pdb.directory().path() << " " << s_pdb.stem() << " " << s_pdb.extension() << std::endl;
+    std::cout << "\t" << pdb.directory().path() << " " << pdb.stem() << " " << pdb.extension() << std::endl;
 
     // prepare sims
     MoleculeOptions mo(sele, pdb);

@@ -16,7 +16,7 @@ File::File(const io::Folder& folder, std::string_view name, std::string_view ext
 File::File(std::string_view name, std::string_view extension) : File(Folder(), name, extension) {}
 
 File::File(std::string_view path) {
-    auto [dir, file, ext] = split(path);
+    auto[dir, file, ext] = split(path);
     this->dir = std::move(dir);
     this->name = std::move(file);
     this->ext = std::move(ext);
