@@ -4,19 +4,18 @@
 #include <md/utility/files/all.h>
 
 #include <string>
-#include <memory>
 
 namespace md {
     struct MDRunResult {
         MDRunResult(const std::string& folder) {
             if (folder.back() == '/') {
-                gro = GROFile(folder + "confout.gro");
-                edr = EDRFile(folder + "ener.edr");
-                xtc = XTCFile(folder + "traj_comp.xtc");
+                gro = GROFile(folder + "prod.gro");
+                edr = EDRFile(folder + "prod.edr");
+                xtc = XTCFile(folder + "prod.xtc");
             } else {
-                gro = GROFile(folder + "/confout.gro");
-                edr = EDRFile(folder + "/ener.edr");
-                xtc = XTCFile(folder + "/traj_comp.xtc");
+                gro = GROFile(folder + "/prod.gro");
+                edr = EDRFile(folder + "/prod.edr");
+                xtc = XTCFile(folder + "/prod.xtc");
             }
         }
         GROFile gro;

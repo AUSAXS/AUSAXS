@@ -101,7 +101,7 @@ std::string File::absolute_path() const {return std::filesystem::absolute(path()
 
 std::string File::relative_path(const File& other) const {
     if (name.empty() || other.name.empty()) {throw except::io_error("File::relative_path: Cannot get relative path of empty path.");}
-    return std::filesystem::relative(other.absolute_path(), absolute_path()).string();
+    return std::filesystem::relative(other.absolute_path(), directory().path()).string();
 }
 
 std::string File::filename() const noexcept {

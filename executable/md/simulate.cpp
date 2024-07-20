@@ -50,12 +50,9 @@ int main(int argc, char const *argv[]) {
         .molmdp = std::make_shared<PRMDPCreatorMol>(),
     };
 
-    // gmx::gmx::set_cmdlog(sele.output + "cmd.log");
-    // gmx::gmx::set_outputlog(sele.output + "output.log");
+    gmx::gmx::set_cmdlog(sele.output + "cmd.log");
+    gmx::gmx::set_outputlog(sele.output + "output.log");
     PDBFile pdb(s_pdb);
-    std::cout << "Using PDB file: " << pdb.path() << std::endl;
-    std::cout << "\t" << s_pdb.directory().path() << " " << s_pdb.stem() << " " << s_pdb.extension() << std::endl;
-    std::cout << "\t" << pdb.directory().path() << " " << pdb.stem() << " " << pdb.extension() << std::endl;
 
     // prepare sims
     MoleculeOptions mo(sele, pdb);
@@ -78,6 +75,9 @@ int main(int argc, char const *argv[]) {
                 console::print_text("\tFound production gro file: " + buffer.gro.path());
             }
         }
+        if (!buffer.gro.exists()) {
+            throw except::io_error("Could not find production gro file in supplied buffer folder \"" + settings::md::buffer_path + "/prod/\".");
+        }
 
         // find topology file
         io::Folder setup_folder(settings::md::buffer_path + "/setup");
@@ -87,16 +87,12 @@ int main(int argc, char const *argv[]) {
                 console::print_text("\tFound topology file: " + buffer.top.path());
             }
         }
+        if (!buffer.top.exists()) {
+            throw except::io_error("Could not find topology file in supplied buffer folder \"" + settings::md::buffer_path + "/setup/\".");
+        }
 
         // create dummy job
         buffer.job = std::make_unique<NoExecution<MDRunResult>>(settings::md::buffer_path + "/prod/");
-
-        // check that all files are found
-        if (buffer.gro.exists() || buffer.top.exists()) {
-            throw except::io_error("Could not find all files in supplied buffer folder \"" + settings::md::buffer_path + "\".");
-        }
-
-        console::print_text("\tOK");
     }
 
     // prepare saxs

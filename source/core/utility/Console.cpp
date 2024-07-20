@@ -34,3 +34,9 @@ void console::unindent() {
 void console::print_text(std::string_view text) {
     console::print(std::string(indentation, '\t') + std::string(text), console::color::white);
 }
+
+bool minor_messages = true;
+void console::print_text_minor(std::string_view text) {
+    if (!minor_messages) {return;}
+    console::print(std::string(indentation, '\t') + std::string(text), console::color::white);
+}

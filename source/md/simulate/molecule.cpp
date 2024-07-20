@@ -20,6 +20,7 @@ std::tuple<GROFile, NDXFile> md::simulate::Molecule::thermalize() {return std::m
 
 SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     console::print_info("\nPreparing simulation for " + options.pdbfile.filename());
+    console::indent();
 
     //##################################//
     //###           GLOBALS          ###//
@@ -29,6 +30,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     io::Folder em_path = options.output + "protein/em/";
     io::Folder eq_path = options.output + "protein/eq/";
     io::Folder prod_path = options.output + "protein/prod/";
+    mdp_folder.create(); setup_path.create(); em_path.create(); eq_path.create(); prod_path.create();
 
     // gmx::gmx::set_outputlog(output + "gmx.log");
     //##################################//
@@ -39,39 +41,36 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     if (!solv_ion.exists() || !top.exists()) {
         GROFile conf(setup_path + "conf.gro");
         if (!conf.exists()) {
-            std::cout << "\tConverting structure to GROMACS format..." << std::flush;
+            console::print_text("Converting structure to GROMACS format...");
 
             // prepare the pdb file for gromacs
-            auto[conf, _, posre] = pdb2gmx(options.pdbfile)
+            auto[conf, top, posre] = pdb2gmx(options.pdbfile)
                 .output(setup_path)
                 .ignore_hydrogens()
                 // .virtual_sites()
                 .water_model(options.watermodel)
                 .forcefield(options.forcefield)
             .run();
-            std::cout << " done." << std::endl;
         } else {
-            std::cout << "\tReusing previously generated GROMACS structure." << std::endl;
+            console::print_text("Reusing previously generated GROMACS structure.");
         }
 
         // create a box around the protein
-        std::cout << "\tGenerating unit cell..." << std::flush;
+        console::print_text("Generating unit cell...");
         auto[uc] = editconf(conf)
             .output(setup_path + "uc.gro")
             .box_type(options.boxtype)
             .extend(1.5)
         .run();
-        std::cout << " done." << std::endl;
 
         // add water to the box
-        std::cout << "\tSolvating unit cell..." << std::flush;
+        console::print_text("Solvating unit cell...");
         auto[solv] = solvate(uc)
             .output(setup_path + "solv.gro")
             .solvent(options.forcefield, options.watermodel)
             .radius(0.2)
             .topology(top)
         .run();
-        std::cout << " done." << std::endl;
 
         // generate an empty tpr file 
         MDPFile mdp = MDPFile(setup_path + "empty.mdp"); mdp.create();
@@ -82,7 +81,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         mdp.remove();
 
         // add ions to the box
-        std::cout << "\tAdding ions to unit cell..." << std::flush;
+        console::print_text("Adding ions to unit cell...");
         genion(ions)
             .output(solv_ion)
             .topology(top)
@@ -91,9 +90,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
             .anion(options.anion)
             .ion_group("SOL")
         .run();
-        std::cout << " done." << std::endl;
     } else {
-        std::cout << "\tReusing previously generated system setup." << std::endl;
+        console::print_text("Reusing previously generated system setup.");
     }
 
     //##################################//
@@ -101,7 +99,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     //##################################//
     GROFile emgro(em_path + "em.gro");
     if (!emgro.exists()) {
-        std::cout << "\tRunning energy minimization..." << std::flush;
+        console::print_text("Running energy minimization...");
 
         // prepare energy minimization sim
         MDPFile mdp = EMMDPCreator().write(mdp_folder + "emmol.mdp");
@@ -115,9 +113,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
             .output(em_path, "em")
             .jobname(options.name + "_mol")
         .run(options.setupsim, options.jobscript)->submit();
-        std::cout << " done." << std::endl;
     } else {
-        std::cout << "\tReusing previously generated energy minimization." << std::endl;
+        console::print_text("Reusing previously generated energy minimization.");
     }
 
     //##################################//
@@ -126,7 +123,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     GROFile eqgro(eq_path + "eq.gro");
     NDXFile index(eq_path + "index.ndx");
     if (!eqgro.exists()) {
-        std::cout << "\tRunning thermalization..." << std::flush;
+        console::print_text("Running thermalization...");
 
         // make a basic index file without any special groups
         auto[_] = make_ndx(emgro)
@@ -178,17 +175,16 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
             .output(eq_path, "eq")
             .jobname(options.name + "_mol")
         .run(options.setupsim, options.jobscript)->submit();
-        std::cout << " done." << std::endl;
     } else {
-        std::cout << "\tReusing previously generated thermalization." << std::endl;
+        console::print_text("Reusing previously generated thermalization.");
     }
 
     //##################################//
     //###       PRODUCTION           ###//
     //##################################//
-    GROFile prodgro(prod_path + "confout.gro");
+    GROFile prodgro(prod_path + "prod.gro");
     if (!prodgro.exists()) {
-        std::cout << "\tGenerating backbone restraints..." << std::flush;
+        console::print_text("Generating backbone restraints...");
         auto[backbone] = genrestr(eq_path + "eq.gro")
             .output(setup_path + "backbone.itp")
             .index(index)
@@ -197,10 +193,9 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         auto backbone_chains = backbone.split_restraints(top.get_includes());
         top.include(backbone_chains, "POSRESBACKBONE");
         // top.include(top.relative_path(backbone), "POSRESBACKBONE", "chain topol");
-        std::cout << " done." << std::endl;
 
         // prepare production sim
-        std::cout << "\tRunning production..." << std::flush;
+        console::print_text("Running production...");
         MDPFile mdp = options.molmdp->write(mdp_folder + "prmol.mdp");
         auto[prodtpr] = grompp(mdp, top, eqgro)
             .output(prod_path + "prod.tpr")
@@ -214,12 +209,13 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
             .output(prod_path, "prod")
             .jobname(options.name + "_mol")
         .run(options.mainsim, options.jobscript);
-        std::cout << " done." << std::endl;
 
+        console::unindent();
         return {std::move(job), top, solv_ion};
     } else {
-        std::cout << "\tReusing previous position-restrained simulation." << std::endl;
+        console::print_text("Reusing previous position-restrained simulation.");
     }
+    console::unindent();
     auto job = std::make_unique<NoExecution<MDRunResult>>(prod_path);
     return {std::move(job), top, solv_ion};
 }

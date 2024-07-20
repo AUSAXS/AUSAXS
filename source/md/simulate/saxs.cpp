@@ -65,7 +65,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     // since this is not guaranteed, we have to generate it manually
     NDXFile molindex(protein_path + "index.ndx");
     if (!molindex.exists()) {
-        console::print_text("Creating index file for molecule.");
+        console::print_text("Creating index file for molecule...");
         make_ndx(molgro)
             .output(molindex)
         .run();
@@ -107,7 +107,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
 
     NDXFile bufindex(buffer_path + "index.ndx");
     if (!bufindex.exists()) {
-        console::print_text("Creating index file for buffer.");
+        console::print_text("Creating index file for buffer...");
         make_ndx(bufgro)
             .output(bufindex)
         .run();
@@ -133,7 +133,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     MDPFile molmdp(mdp_folder + "rerun_mol.mdp");
 
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
-        console::print_text("Generating scattering parameters.");
+        console::print_text("Generating scattering parameters...");
         console::indent();
         MDPFile dummymdp = MDPFile(output + "empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
@@ -159,14 +159,14 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         moltop.include(itps, "");
 
         // dump the first 50 frames
-        console::print_text("Dumping first 50 frames.");
+        console::print_text("Dumping first 50 frames...");
         auto[traj] = trjconv(molxtc)
             .output(protein_path + "protein.xtc")
             .startframe(50)
         .run();
 
         // center the trajectories
-        console::print_text("Centering trajectories.");
+        console::print_text("Centering trajectories...");
         auto[cluster] = trjconv(traj)
             .output(protein_path + "cluster.xtc")
             .group("Protein")
@@ -188,7 +188,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         .run();
 
         // generate the envelope
-        console::print_text("Generating envelope.");
+        console::print_text("Generating envelope...");
         auto[goodpbc, envgro, envpy, envdat] = genenv(centered, molindex)
             .output(protein_path)
             .structure(molgro)

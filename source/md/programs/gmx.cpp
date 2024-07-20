@@ -24,10 +24,13 @@ shell::Command& gmx::command() {
 std::string gmx::execute() {
     auto cmd = command();
     if (!outputlog.empty()) {
-        cmd.prepend("set -o pipefail; ");
-        cmd.append("2>&1 | tee -a " + outputlog);                
+        write_cmdlog(cmd.get());
+
+        // ensure we're running as bash to use 'set -o pipefail' to avoid the piping hiding errors
+        // this will crash if using a shell script, so run everything in bash and encapsulate entire cmd with ''
+        cmd.prepend("exec bash -c 'set -o pipefail; ");
+        cmd.append("2>&1 | tee -a " + outputlog + "'");
     }
-    write_cmdlog(cmd.get());
 
     auto result = cmd.execute();
     if (result.exit_code != 0) {

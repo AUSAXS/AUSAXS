@@ -5,10 +5,10 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <md/utility/files/TOPFile.h>
 #include <md/utility/Exceptions.h>
+#include <utility/Console.h>
 
 #include <algorithm>
 #include <fstream>
-#include <filesystem>
 #include <vector>
 #include <iostream>
 #include <numeric>
@@ -219,18 +219,20 @@ std::vector<ITPFile> TOPFile::discover_includes() const {
 }
 
 void TOPFile::fix_relative_includes() {
+    if (!exists()) {throw except::io_error("TOPFile: \"" + path() + "\" does not exist.");}
     fix_relative_includes(*this);
     for (auto& include : includes) {
         fix_relative_includes(include);
     }
 }
 
-void TOPFile::fix_relative_includes(const std::string& path) {
-    if (!std::filesystem::exists(path)) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" does not exist.");}
+void TOPFile::fix_relative_includes(const io::File& path) {
+    if (!path.exists()) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" does not exist.");}
+    console::print_text_minor("Fixing relative includes in \"" + path + "\".");
+    console::indent();
     std::ifstream in(path);
 
     // copy old contents
-    File f(path);
     std::string line;
     std::vector<std::string> contents;
     while (std::getline(in, line)) {
@@ -242,24 +244,30 @@ void TOPFile::fix_relative_includes(const std::string& path) {
             if (index == std::string::npos) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" contains an include quote which is not terminated.");}
             include = include.substr(0, index);
 
-            std::string relpath = f.relative_path(include);
-            // std::cout << "Relative path from \"" << path << "\" to \"" << include << "\": \"" << relpath << "\"" << std::endl;
-            if (!relpath.empty()) {
-                contents.push_back("\t#include \"" + f.relative_path(include) + "\"");
-            } else {
+            // non-existing files are likely relative to the GROMACS directory and shouldn't be touched
+            if (!io::File(include).exists()) {
                 contents.push_back(line);
+                continue;
             }
-            continue;
+
+            std::string relpath = path.relative_path(include);
+            if (!relpath.empty()) {
+                console::print_text_minor("Changed relative path from \"" + include + "\" to \"" + relpath + "\"");
+                contents.push_back("\t#include \"" + relpath + "\"");
+                continue;
+            }
         }
         contents.push_back(line);
     }
     in.close();
+    console::unindent();
 
     // write new contents
     std::string new_contents;
     for (const auto& line : contents) {new_contents += line + "\n";}
     std::ofstream out(path);
     out << new_contents;
+    out.close();
 }
 
 void TOPFile::extract_single_chain() {
@@ -295,6 +303,7 @@ void TOPFile::extract_single_chain() {
     in.close();
 
     if (chain_contents.empty()) {return;}
+    console::print_text("Structure is a single chain. Extracting chain information from topology file to \"" + newfile + "\".");
 
     // write new contents
     std::string top;

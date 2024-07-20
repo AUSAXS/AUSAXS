@@ -52,11 +52,18 @@ namespace md {
 
         void include(const std::vector<ITPFile>& itps, const std::string& symbol);
 
+        /**
+         * @brief Fix relative includes in the topology file.
+         *        Includes will be resolved relative to the topology file.
+         *
+         * This is useful when the topology file is moved to a different location.
+         */
         void fix_relative_includes();
 
         /**
-            * @brief If the topology file contains only a single chain, extract it to a separate file.
-            */
+         * @brief If the topology file contains only a single chain, extract it to a separate file.
+         *        Though this is not strictly necessary, it makes the topology file much easier to read.
+         */
         void extract_single_chain();
 
         std::string copy(const io::Folder& folder) const;
@@ -69,6 +76,6 @@ namespace md {
     private:
         std::vector<ITPFile> includes;
         std::vector<ITPFile> discover_includes() const;
-        static void fix_relative_includes(const std::string& path);
+        static void fix_relative_includes(const io::File& path);
     };
 }

@@ -25,6 +25,12 @@ namespace console {
     void print_text(std::string_view text);
 
     /**
+     * @brief Print a minor text message. The text will be white in the terminal. 
+     *        Will only be printed if minor messages are enabled.
+     */
+    void print_text_minor(std::string_view text);
+
+    /**
      * @brief Add another indentation to print_text output.
      */
     void indent();
