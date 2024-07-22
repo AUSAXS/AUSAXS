@@ -50,7 +50,30 @@ namespace md {
          */
         void include(const ITPFile& itp, const std::string& symbol, const std::string& section);
 
-        void include(const std::vector<ITPFile>& itps, const std::string& symbol);
+        /**
+         * @brief Include a new type of include file in this topology file. 
+         *        This is useful for including e.g. backbone restraints or scattering topologies.
+         *        Each chain topology include file must have a corresponding include file of the new type. 
+         * 
+         * @example Assuming the topology file contains the following includes:
+         *          #include "topol_Protein_chain_A.itp"
+         *          #include "topol_Protein_chain_B.itp"
+         *
+         *          Then we can add backbone restraints for each chain by calling:
+         *          include_new_type({"backbone_restraints_A.itp", "backbone_restraints_B.itp"}, "POSRESBACKBONE");
+         *
+         *          Resulting in the following includes:
+         *          #include "topol_Protein_chain_A.itp"
+         *          #ifdef POSRESBACKBONE
+         *              #include "backbone_restraints_A.itp"
+         *          #endif
+         *          ...
+         *
+         * @param itps The scattering ITP files to include.
+         * @param symbol The symbol guard. Will be used as #ifdef symbol.
+         *               If empty, no symbol guard will be used.
+         */
+        void include_new_type(const std::vector<ITPFile>& itps, const std::string& symbol = "");
 
         /**
          * @brief Fix relative includes in the topology file.
@@ -75,7 +98,18 @@ namespace md {
 
     private:
         std::vector<ITPFile> includes;
+
+        /**
+         * @brief Scan the topology file directory for include files, and check that they are included in the topology file itself. 
+         *        A warning will be printed if an include file is not included in the topology file.
+         * 
+         * @return A list of ITP files that are included in the topology file.
+         */
         std::vector<ITPFile> discover_includes() const;
+
+        /**
+         * @brief Helper function to fix relative includes in the topology file.
+         */
         static void fix_relative_includes(const io::File& path);
     };
 }

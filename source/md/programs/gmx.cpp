@@ -20,6 +20,19 @@ shell::Command& gmx::command() {
     return cmd;
 }
 
+// to encasuplate the entire command with '', we need to escape all ' characters in the command itself
+auto escape_single_quotes = [] (std::string_view cmd) {
+    std::string escaped_str;
+    for (auto c : cmd) {
+        if (c == '\'') {
+            escaped_str += "'\\''";
+            continue;
+        }
+        escaped_str += c;
+    }
+    return escaped_str;
+};
+
 std::string gmx::execute() {
     auto cmd = command();
     if (log) {
@@ -27,17 +40,7 @@ std::string gmx::execute() {
 
         // ensure we're running as bash to use 'set -o pipefail' to avoid the piping hiding errors
         // this will crash if using a shell script, so run everything in bash and encapsulate entire cmd with ''
-
-        // to encasuplate the entire command with '', we need to escape all ' characters in the command itself
-        std::string escaped_str;
-        for (auto c : cmd.get()) {
-            if (c == '\'') {
-                escaped_str += "'\\''";
-            } else {
-                escaped_str += c;
-            }
-        }
-        cmd.set(escaped_str);
+        cmd.set(escape_single_quotes(cmd.get()));
         cmd.prepend("exec bash -c 'set -o pipefail; ");
         cmd.append("2>&1 | tee -a " + outputlog + "'");
     }
@@ -63,7 +66,9 @@ void gmx::set_logfile(const io::File& log, const io::File& cmdlog) {
     log.remove();
     gmx::outputlog = log;
     gmx::cmdlog = cmdlog;
-    
+
+    log.create();
+    cmdlog.create();
     auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     auto msg = 
         "\n#################################################"

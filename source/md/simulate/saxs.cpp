@@ -29,7 +29,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     auto[molgro, moledr, molxtc] = options.molecule.job->result();
     auto[bufgro, bufedr, bufxtc] = options.buffer.job->result();
 
-    console::print_info("Preparing calculation of SAXS profile");
+    console::print_info("\nPreparing calculation of SAXS profile");
     console::indent();
     //##################################//
     //###           GLOBALS          ###//
@@ -39,6 +39,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     io::Folder buffer_path = output + "buffer/";
     io::Folder mdp_folder = output + "mdp/";
     io::Folder prod_folder = output + "prod/";
+    mdp_folder.create(); prod_folder.create();
 
     TOPFile moltop(protein_path + "topol.top");
     TOPFile buftop(buffer_path + "topol.top");
@@ -133,7 +134,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     MDPFile molmdp(mdp_folder + "rerun_mol.mdp");
 
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
-        console::print_text("Generating scattering parameters...");
+        console::print_text("Preparing SAXS rerun...");
         console::indent();
         MDPFile dummymdp = MDPFile(output + "empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
@@ -142,6 +143,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         .run();
         dummymdp.remove();
 
+        console::print_text("Generating scattering parameters...");
         auto[itps] = genscatt(dummytpr, molindex)
             .output(protein_path + "scatt.itp")
             .group("Protein_and_Ions")
@@ -156,7 +158,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
             }
         }
 
-        moltop.include(itps, "");
+        moltop.include_new_type(itps);
 
         // dump the first 50 frames
         console::print_text("Dumping first 50 frames...");
@@ -207,7 +209,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
 
             _mdp.add(MDPOptions::waxs_pbcatom = goodpbc);
             _mdp.add(MDPOptions::waxs_nsphere = int(0.2*std::pow((dmax*qmax), 2)));
-            _mdp.write(molmdp);
+            molmdp = _mdp.write(molmdp);
         }
         console::unindent();
     } else {
@@ -219,8 +221,8 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         SAXSMDPCreatorSol().write(bufmdp);
     }
 
-    GROFile gro(prod_folder + "confout.gro");
-    if (!gro.exists()) {            
+    GROFile gro(prod_folder + "prod.gro");
+    if (!gro.exists()) {
         auto[moltpr] = grompp(molmdp, moltop, molgro)
             .output(prod_folder + "rerun_mol.tpr")
             .index(molindex)

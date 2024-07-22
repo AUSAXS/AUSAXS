@@ -101,7 +101,7 @@ std::vector<md::SAXSOutput> md::timeanalysis(SAXSOptions& options, double timest
             .group("Protein")
         .run();
 
-        moltop.include(itps, "");
+        moltop.include_new_type(itps);
 
         // dump the first 50 frames
         auto[traj] = trjconv(molxtc)

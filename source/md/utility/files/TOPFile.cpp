@@ -10,7 +10,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <fstream>
 #include <vector>
-#include <iostream>
 #include <numeric>
 
 using namespace md;
@@ -88,31 +87,43 @@ void TOPFile::include(const ITPFile& itp, const std::string& symbol, const std::
     out << new_contents;
 }
 
-void TOPFile::include(const std::vector<ITPFile>& itps, const std::string& symbol) {
-    if (!exists()) {throw except::io_error("TOPFile: \"" + path() + "\" does not exist.");}
-    if (includes.empty()) {discover_includes();}
+void TOPFile::include_new_type(const std::vector<ITPFile>& itps, const std::string& symbol) {
+    if (!exists()) {throw except::io_error("TOPFile::include: \"" + path() + "\" does not exist.");}
+    if (includes.empty()) {includes = discover_includes();}
     if (itps.size() != includes.size()) {
-        std::cout << "TOPFile: Number of includes does not match number of supplied itp files." << std::endl;
-        std::cout << "itps:";
-        for (const auto& itp : itps) {std::cout << " " << itp.path();}
-        std::cout << std::endl;
-        std::cout << "includes:";
-        for (const auto& include : includes) {std::cout << " " << include.path();}
-        std::cout << std::endl;
-        throw except::io_error("TOPFile: Number of includes does not match number of supplied itp files.");
+        console::print_critical("TOPFile::include: Number of includes does not match number of supplied itp files.");
+        console::print_text_critical("\tPassed include topology files:");
+        for (const auto& itp : itps) {
+            console::print_text_critical("\t\t" + itp.path());
+        }
+        console::print_text_critical("\tCurrent include topology files:");
+        for (const auto& include : includes) {
+            console::print_text_critical("\t\t" + include.path());
+        }
+        throw except::io_error("TOPFile::include: Number of includes does not match number of supplied itp files.");
     }
 
     // extract name from filename (scatt_XXX.itp -> XXX)
     std::vector<std::string> name(itps.size());
-    for (unsigned int i = 0; i < itps.size(); i++) {
-        auto fname = itps[i].filename();
-        auto begin = fname.find_first_of('_');
-        auto end = fname.find_last_of('.');
-        if (begin == std::string::npos || end == std::string::npos) {
-            throw except::io_error("TOPFile: Could not extract name from filename \"" + itps[i].path() + "\".");
+    {
+        std::string type = "";
+        for (unsigned int i = 0; i < itps.size(); i++) {
+            auto fname = itps[i].filename();
+            auto begin = fname.find_first_of('_');
+            auto end = fname.find_last_of('.');
+            if (begin == std::string::npos || end == std::string::npos) {
+                throw except::io_error("TOPFile::include: Could not extract name from filename \"" + itps[i].path() + "\".");
+            }
+            if (type.empty()) {
+                type = fname.substr(0, begin);
+                console::print_text_minor("Adding \"" + type + "\" includes to topology file.");
+            }
+            else if (type != fname.substr(0, begin)) {
+                throw except::io_error("TOPFile::include: Type mismatch. All itp files must have the same type. Detected \"" + type + "\" and \"" + fname.substr(0, begin) + "\".");
+            }
+            name[i] = fname.substr(begin + 1, end - begin - 1);
+            // std::cout << "TOPFile: " << itps[i].path << " -> " << name[i] << std::endl;
         }
-        name[i] = fname.substr(begin + 1, end - begin - 1);
-        // std::cout << "TOPFile: " << itps[i].path << " -> " << name[i] << std::endl;
     }
 
     // find chain include in topology file and insert itp file after
@@ -146,13 +157,18 @@ void TOPFile::include(const std::vector<ITPFile>& itps, const std::string& symbo
     }
 
     // if all itp files were already present, do nothing
-    if (std::all_of(already_present.begin(), already_present.end(), [] (bool b) {return b;})) {return;}
+    if (std::all_of(already_present.begin(), already_present.end(), [] (bool b) {return b;})) {
+        console::print_text_minor("\tAll includes were already present in topology file.");
+        return;
+    }
 
     // validate that all itp files were inserted
     auto sum = std::accumulate(inserted.begin(), inserted.end(), 0);
     if (sum < static_cast<int>(name.size())) {
-        std::cout << "TOPFile: Could not find include locations for the following itp files:" << std::endl;
-        for (const auto& itp : itps) {std::cout << itp.path() << std::endl;}
+        console::print_critical("TOPFile::include: Could not find include locations for the following itp files:");
+        for (const auto& itp : itps) {
+            console::print_text_critical('\t' + itp.path());
+        }
         throw except::io_error("TOPFile::include: Could not find include locations for all itp files.");
     } else if (sum > static_cast<int>(name.size())) {
         throw except::io_error("TOPFile::include: Multiple include locations found for itp files.");
@@ -163,6 +179,7 @@ void TOPFile::include(const std::vector<ITPFile>& itps, const std::string& symbo
     for (const auto& line : contents) {new_contents += line + "\n";}
     std::ofstream out(path());
     out << new_contents;
+    out.close();
 }
 
 std::vector<ITPFile> TOPFile::discover_includes() const {
@@ -185,10 +202,10 @@ std::vector<ITPFile> TOPFile::discover_includes() const {
     while (std::getline(in, line)) {
         if (line.find("#include") != std::string::npos) {
             auto index = line.find("\"");
-            if (index == std::string::npos) {throw except::io_error("TOPFile: \"" + path() + "\" contains an include that is not in quotes.");}
+            if (index == std::string::npos) {throw except::io_error("TOPFile::discover_includes: \"" + path() + "\" contains an include that is not in quotes.");}
             std::string include = line.substr(index + 1);
             index = include.find("\"");
-            if (index == std::string::npos) {throw except::io_error("TOPFile: \"" + path() + "\" contains an include quote which is not terminated.");}
+            if (index == std::string::npos) {throw except::io_error("TOPFile::discover_includes: \"" + path() + "\" contains an include quote which is not terminated.");}
             include = include.substr(0, index);
 
             // check if the include is in the same directory
@@ -203,23 +220,28 @@ std::vector<ITPFile> TOPFile::discover_includes() const {
     }
 
     if (includes_file.size() != includes_dir.size()) {
-        std::cout << "TOPFile: \"" << path() << "\" does not include all itp files in the same directory." << std::endl;
-        std::cout << "Includes in file \"" << path() << "\":" << std::endl;
+        console::print_warning("TOPFile::discover_includes: \"" + path() + "\" does not include all itp files in the same directory.");
+        console::indent();
+        console::print_text("Includes in file \"" + path() + "\":");
+        console::indent();
         for (const auto& itp : includes_file) {
-            std::cout << "\t" << itp.path() << std::endl;
+            console::print_text(itp.path());
         }
-        std::cout << "Includes in directory \"" << directory().path() << "\":" << std::endl;
+        console::unindent();
+        console::print_text("Include files in directory \"" + directory().path() + "\":");
+        console::indent();
         for (const auto& itp : includes_dir) {
-            std::cout << "\t" << itp.path() << std::endl;
+            console::print_text(itp.path());
         }
-        throw except::io_error("TOPFile: \"" + path() + "\" does not include all itp files in the same directory.");
+        console::unindent();
+        console::unindent();
     }
 
     return includes_file;
 }
 
 void TOPFile::fix_relative_includes() {
-    if (!exists()) {throw except::io_error("TOPFile: \"" + path() + "\" does not exist.");}
+    if (!exists()) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path() + "\" does not exist.");}
     fix_relative_includes(*this);
     for (auto& include : includes) {
         fix_relative_includes(include);

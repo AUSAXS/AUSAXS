@@ -6,7 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <md/utility/files/MDPCreator.h>
 #include <md/utility/Exceptions.h>
 
-#include <fstream>
 #include <iomanip>
 
 using namespace md;
@@ -18,10 +17,11 @@ MDPCreator& MDPCreator::add(const MDPOptions::detail::OptionVal& option) {
 
 MDPFile MDPCreator::write(const std::string& name) const {
     MDPFile file(name);
-    std::ofstream out(file.path());                
+    std::stringstream ss;
     for (const auto& option : options) {
-        out << std::left << std::setw(30) << option.name << " = " << option.value << std::endl;
+        ss << std::left << std::setw(30) << option.name << " = " << option.value << std::endl;
     }
+    file.create(ss.str());
     return file;
 }
 

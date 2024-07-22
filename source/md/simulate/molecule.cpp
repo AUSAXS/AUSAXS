@@ -191,7 +191,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
             .force(2000, 2000, 2000)
         .run();
         auto backbone_chains = backbone.split_restraints(top.get_includes());
-        top.include(backbone_chains, "POSRESBACKBONE");
+        top.include_new_type(backbone_chains, "POSRESBACKBONE");
         // top.include(top.relative_path(backbone), "POSRESBACKBONE", "chain topol");
 
         // prepare production sim

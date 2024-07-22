@@ -12,8 +12,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
 
+#include <curl/curl.h>
+
 #include <stdexcept>
 
+// based on the example from https://curl.se/libcurl/c/url2file.html
 void curl::download(const std::string& url, const io::File& path) {
     CURL *curl;
     CURLcode res = CURLE_FAILED_INIT;
@@ -36,6 +39,6 @@ void curl::download(const std::string& url, const io::File& path) {
         if (settings::general::verbose) {console::print_success("\tSuccessfully downloaded " + url + " to " + path);}
         return;
     }
-    console::print_warning("\tFailed to download " + url);
+    console::print_warning("\tcurl::download: Failed to download " + url);
     throw std::runtime_error("Failed to download " + url);
 }

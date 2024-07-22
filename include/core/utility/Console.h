@@ -4,29 +4,46 @@
 
 namespace console {
     /**
+     * @brief Print a critical message. The text will be red in the terminal. 
+     *        This will always be printed. 
+     */
+    void print_critical(std::string_view text);
+
+    /**
+     * @brief Print further critical text. The text will be white in the terminal.
+     *        This will always be printed. 
+     */
+    void print_text_critical(std::string_view text);
+
+    /**
      * @brief Print a warning message. The text will be red in the terminal. 
+     *        This will only be printed if verbose output is enabled. 
      */
     void print_warning(std::string_view text);
 
     /**
      * @brief Print a success message. The text will be green in the terminal. 
+     *        This will only be printed if verbose output is enabled.
      */
     void print_success(std::string_view text);
 
     /**
      * @brief Print a info message. The text will be blue in the terminal. 
-     *        Should only be used as a header for a info section. Use tabs to indent other text in the section. 
+     *        This will only be printed if verbose output is enabled.
      */
     void print_info(std::string_view text);
 
     /**
      * @brief Print a text message. The text will be white in the terminal. 
+     *        This will only be printed if verbose output is enabled.
+     *        Automatic indentation based on the current indentation level will be added to the text.
      */
     void print_text(std::string_view text);
 
     /**
      * @brief Print a minor text message. The text will be white in the terminal. 
-     *        Will only be printed if minor messages are enabled.
+     *        This will only be printed if minor messages are enabled.
+     *        Automatic indentation based on the current indentation level will be added to the text.
      */
     void print_text_minor(std::string_view text);
 

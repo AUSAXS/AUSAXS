@@ -19,6 +19,7 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     io::Folder em_path = options.output + "buffer/em/";
     io::Folder eq_path = options.output + "buffer/eq/";
     io::Folder prod_path = options.output + "buffer/prod/";
+    mdp_folder.create(); setup_path.create(); em_path.create(); eq_path.create(); prod_path.create();
 
     if (!options.refgro.exists()) {
         throw except::io_error("Unit cell reference file not found");
@@ -117,10 +118,6 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //###       EQUILIBRATION        ###//
     //##################################//
     GROFile eqgro(eq_path + "eq.gro");
-    if (!eqgro.exists()) {
-        eqgro = GROFile(eq_path + "confout.gro");
-    }
-
     if (!eqgro.exists()) {
         std::cout << "\tRunning thermalization..." << std::flush;
 
