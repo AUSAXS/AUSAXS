@@ -1,18 +1,21 @@
 #pragma once
 
-#include <md/utility/files/File.h>
+#include <io/detail/IValidatedFile.h>
+#include <utility/observer_ptr.h>
+
+#include <stdexcept>
 
 namespace md {
-    // Molecular dynamics parameter file
-    struct MDPFile : public detail::File {
-        MDPFile() = default;
-        MDPFile(const std::string& name) : File(name, "mdp") {}
-        MDPFile(const char* name) : MDPFile(std::string(name)) {}
-        ~MDPFile() override = default;
+    namespace detail {
+        struct validate_mdp_file {
+            static void validate(observer_ptr<io::File> f) {
+                if (f->extension() != ".mdp") {throw std::runtime_error("MDPFile::validate: File \"" + f->path() + "\" is not a molecular dynamics parameter file (.mdp).");}
+            }
+        };
+    }
 
-        MDPFile& create() {
-            File::create();
-            return *this;
-        }
+    // Molecular dynamics parameter file
+    struct MDPFile : public io::detail::IValidatedFile<detail::validate_mdp_file> {
+        using IValidatedFile::IValidatedFile;
     };
 }

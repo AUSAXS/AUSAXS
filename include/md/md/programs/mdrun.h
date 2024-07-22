@@ -11,8 +11,8 @@ namespace md {
             mdrun();
             mdrun(const TPRFile& tpr);
             mdrun& input(const TPRFile& tpr);
-            mdrun& output(const Folder& folder, const std::string& prefix);
-            mdrun& output(const Folder& folder);
+            mdrun& output(const io::Folder& folder, const std::string& prefix);
+            mdrun& output(const io::Folder& folder);
             mdrun& jobname(const std::string& name);
             std::unique_ptr<shell::Jobscript<MDRunResult>> run(location where, std::string jobscript = "");
 

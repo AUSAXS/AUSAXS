@@ -2,6 +2,8 @@
 
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
+#include <io/Folder.h>
+#include <io/File.h>
 
 namespace md {
     class genscatt : private gmx {
@@ -21,8 +23,9 @@ namespace md {
             }
 
             genscatt& output(const std::string& prefix) {
-                this->folder = detail::File(prefix).parent_path();
-                this->prefix = detail::File(prefix).filename();
+                io::File tmp(prefix);
+                this->folder = tmp.directory();
+                this->prefix = tmp.stem() + tmp.extension();
                 options.push_back(std::make_shared<shell::Argument>("-o", prefix));
                 return *this;
             }
@@ -51,18 +54,17 @@ namespace md {
                 gmx::execute();
 
                 std::vector<ITPFile> itps;
-                for (auto const& entry : std::filesystem::directory_iterator(folder.path)) {
-                    auto path = entry.path();
-                    if (path.extension() != ".itp") {continue;}
-                    if (path.stem().string().substr(0, 6) != "scatt_") {continue;}
-                    itps.emplace_back(path.string());
+                for (auto const& file : folder.files()) {
+                    if (file.extension() != ".itp") {continue;}
+                    if (file.stem().substr(0, 6) != "scatt_") {continue;}
+                    itps.emplace_back(file.path());
                 }
 
                 return std::make_tuple(itps);
             }
 
         private: 
-            Folder folder;
+            io::Folder folder;
             std::string prefix;
             void validate() const override {}
     };

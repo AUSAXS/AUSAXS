@@ -1,13 +1,21 @@
 #pragma once
 
-#include <md/utility/files/File.h>
+#include <io/detail/IValidatedFile.h>
+#include <utility/observer_ptr.h>
+
+#include <stdexcept>
 
 namespace md {
-    // Include topology file
-    struct XVGFile : public detail::File {
-        XVGFile() = default;
-        XVGFile(const std::string& name) : File(name, "xvg") {}
-        XVGFile(const char* name) : XVGFile(std::string(name)) {}
-        ~XVGFile() override = default;
+    namespace detail {
+        struct validate_xvg_file {
+            static void validate(observer_ptr<io::File> f) {
+                if (f->extension() != ".xvg") {throw std::runtime_error("XVGFile::validate: File \"" + f->path() + "\" is not a GROMACS data output file (.xvg).");}
+            }
+        };
+    }
+
+    // Molecular dynamics parameter file
+    struct XVGFile : public io::detail::IValidatedFile<detail::validate_xvg_file> {
+        using IValidatedFile::IValidatedFile;
     };
 }

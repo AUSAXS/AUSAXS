@@ -42,7 +42,7 @@ Dataset2D::Dataset2D(const SimpleDataset& data) : Dataset2D(data.size()) {
     }
 }
 
-Dataset2D::Dataset2D(std::string path) : Dataset2D() {
+Dataset2D::Dataset2D(std::string_view path) : Dataset2D() {
     auto data = factory::DatasetFactory::construct(path, 4);
     this->data = std::move(data->data);
     this->N = data->N;

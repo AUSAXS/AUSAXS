@@ -5,45 +5,44 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <md/utility/files/TOPFile.h>
 #include <md/utility/Exceptions.h>
+#include <utility/Console.h>
 
 #include <algorithm>
 #include <fstream>
-#include <filesystem>
 #include <vector>
-#include <iostream>
 #include <numeric>
 
 using namespace md;
 
 void TOPFile::include(const ITPFile& itp, const std::string& symbol) {
-    if (!std::filesystem::exists(path)) {throw except::io_error("TOPFile: \"" + path + "\" does not exist.");}
-    std::ifstream in(path);
+    if (!exists()) {throw except::io_error("TOPFile: \"" + path() + "\" does not exist.");}
+    std::ifstream in(path());
 
     // copy old contents
     std::string line, contents;
     while (std::getline(in, line)) {
-        if (line.find(itp.path) != std::string::npos) {return;}
+        if (line.find(itp.path()) != std::string::npos) {return;}
         contents += line + "\n";}
     in.close();
     
     // insert restraints
     if (symbol.empty()) {
-        contents += "\n\n#include \"" + itp.path + "\"\n";
+        contents += "\n\n#include \"" + itp.path() + "\"\n";
     } else {
         contents += "\n\n#ifdef " + symbol + "\n";
-        contents += "\t#include \"" + itp.path + "\"\n";
+        contents += "\t#include \"" + itp.path() + "\"\n";
         contents += "#endif\n";
     }
 
     // write new contents
-    std::ofstream out(path);
+    std::ofstream out(path());
     out << contents;
     out.close();
 }
 
 void TOPFile::include(const ITPFile& itp, const std::string& symbol, const std::string& section) {
-    if (!std::filesystem::exists(path)) {throw except::io_error("TOPFile: \"" + path + "\" does not exist.");}
-    std::ifstream in(path);
+    if (!exists()) {throw except::io_error("TOPFile: \"" + path() + "\" does not exist.");}
+    std::ifstream in(path());
 
     // copy old contents
     std::string line;
@@ -51,7 +50,7 @@ void TOPFile::include(const ITPFile& itp, const std::string& symbol, const std::
     bool in_block = false;
     bool inserted = false;
     while (std::getline(in, line)) {
-        if (line.find(itp.path) != std::string::npos) {return;}
+        if (line.find(itp.path()) != std::string::npos) {return;}
         if (line.find(section) != std::string::npos) {
             if (inserted) {throw except::io_error("TOPFile: Multiple lines matching \"" + section + "\" found.");}
             in_block = true;
@@ -64,13 +63,13 @@ void TOPFile::include(const ITPFile& itp, const std::string& symbol, const std::
             if (symbol.empty()) {
                 contents.push_back(
                     "\n"
-                    "#include \"" + itp.path + "\"\n"
+                    "#include \"" + itp.path() + "\"\n"
                 );
             } else {
                 contents.push_back(
                     "\n"
                     "#ifdef " + symbol + "\n"
-                    "\t#include \"" + itp.path + "\"\n"
+                    "\t#include \"" + itp.path() + "\"\n"
                     "#endif\n"
                 );
             }
@@ -78,51 +77,63 @@ void TOPFile::include(const ITPFile& itp, const std::string& symbol, const std::
         }
         contents.push_back(line);
     }
-    if (!inserted) {throw except::io_error("TOPFile: Could not find section \"" + section + "\" in \"" + path + "\".");}
+    if (!inserted) {throw except::io_error("TOPFile: Could not find section \"" + section + "\" in \"" + path() + "\".");}
     in.close();
 
     // write new contents
     std::string new_contents;
     for (const auto& line : contents) {new_contents += line + "\n";}
-    std::ofstream out(path);
+    std::ofstream out(path());
     out << new_contents;
 }
 
-void TOPFile::include(const std::vector<ITPFile>& itps, const std::string& symbol) {
-    if (!std::filesystem::exists(path)) {throw except::io_error("TOPFile: \"" + path + "\" does not exist.");}
-    if (includes.empty()) {discover_includes();}
+void TOPFile::include_new_type(const std::vector<ITPFile>& itps, const std::string& symbol) {
+    if (!exists()) {throw except::io_error("TOPFile::include: \"" + path() + "\" does not exist.");}
+    if (includes.empty()) {includes = discover_includes();}
     if (itps.size() != includes.size()) {
-        std::cout << "TOPFile: Number of includes does not match number of supplied itp files." << std::endl;
-        std::cout << "itps:";
-        for (const auto& itp : itps) {std::cout << " " << itp.path;}
-        std::cout << std::endl;
-        std::cout << "includes:";
-        for (const auto& include : includes) {std::cout << " " << include.path;}
-        std::cout << std::endl;
-        throw except::io_error("TOPFile: Number of includes does not match number of supplied itp files.");
+        console::print_critical("TOPFile::include: Number of includes does not match number of supplied itp files.");
+        console::print_text_critical("\tPassed include topology files:");
+        for (const auto& itp : itps) {
+            console::print_text_critical("\t\t" + itp.path());
+        }
+        console::print_text_critical("\tCurrent include topology files:");
+        for (const auto& include : includes) {
+            console::print_text_critical("\t\t" + include.path());
+        }
+        throw except::io_error("TOPFile::include: Number of includes does not match number of supplied itp files.");
     }
 
     // extract name from filename (scatt_XXX.itp -> XXX)
     std::vector<std::string> name(itps.size());
-    for (unsigned int i = 0; i < itps.size(); i++) {
-        auto fname = itps[i].filename();
-        auto begin = fname.find_first_of('_');
-        auto end = fname.find_last_of('.');
-        if (begin == std::string::npos || end == std::string::npos) {
-            throw except::io_error("TOPFile: Could not extract name from filename \"" + itps[i].path + "\".");
+    {
+        std::string type = "";
+        for (unsigned int i = 0; i < itps.size(); i++) {
+            auto fname = itps[i].filename();
+            auto begin = fname.find_first_of('_');
+            auto end = fname.find_last_of('.');
+            if (begin == std::string::npos || end == std::string::npos) {
+                throw except::io_error("TOPFile::include: Could not extract name from filename \"" + itps[i].path() + "\".");
+            }
+            if (type.empty()) {
+                type = fname.substr(0, begin);
+                console::print_text_minor("Adding \"" + type + "\" includes to topology file.");
+            }
+            else if (type != fname.substr(0, begin)) {
+                throw except::io_error("TOPFile::include: Type mismatch. All itp files must have the same type. Detected \"" + type + "\" and \"" + fname.substr(0, begin) + "\".");
+            }
+            name[i] = fname.substr(begin + 1, end - begin - 1);
+            // std::cout << "TOPFile: " << itps[i].path << " -> " << name[i] << std::endl;
         }
-        name[i] = fname.substr(begin + 1, end - begin - 1);
-        // std::cout << "TOPFile: " << itps[i].path << " -> " << name[i] << std::endl;
     }
 
     // find chain include in topology file and insert itp file after
-    std::ifstream in(path);
+    std::ifstream in(path());
     std::string line;
     std::vector<std::string> contents;
     std::vector<unsigned int> inserted(name.size(), 0);
     std::vector<bool> already_present(name.size(), 0);
     std::vector<std::string> relative_paths(itps.size());
-    std::transform(itps.begin(), itps.end(), relative_paths.begin(), [this] (const ITPFile& itp) {return relative_path(itp.path);});
+    std::transform(itps.begin(), itps.end(), relative_paths.begin(), [this] (const ITPFile& itp) {return relative_path(itp.path());});
     while (std::getline(in, line)) {
         contents.push_back(line);
         for (unsigned int i = 0; i < name.size(); i++) {
@@ -146,13 +157,18 @@ void TOPFile::include(const std::vector<ITPFile>& itps, const std::string& symbo
     }
 
     // if all itp files were already present, do nothing
-    if (std::all_of(already_present.begin(), already_present.end(), [] (bool b) {return b;})) {return;}
+    if (std::all_of(already_present.begin(), already_present.end(), [] (bool b) {return b;})) {
+        console::print_text_minor("\tAll includes were already present in topology file.");
+        return;
+    }
 
     // validate that all itp files were inserted
     auto sum = std::accumulate(inserted.begin(), inserted.end(), 0);
     if (sum < static_cast<int>(name.size())) {
-        std::cout << "TOPFile: Could not find include locations for the following itp files:" << std::endl;
-        for (const auto& itp : itps) {std::cout << itp.path << std::endl;}
+        console::print_critical("TOPFile::include: Could not find include locations for the following itp files:");
+        for (const auto& itp : itps) {
+            console::print_text_critical('\t' + itp.path());
+        }
         throw except::io_error("TOPFile::include: Could not find include locations for all itp files.");
     } else if (sum > static_cast<int>(name.size())) {
         throw except::io_error("TOPFile::include: Multiple include locations found for itp files.");
@@ -161,8 +177,9 @@ void TOPFile::include(const std::vector<ITPFile>& itps, const std::string& symbo
     // write new contents
     std::string new_contents;
     for (const auto& line : contents) {new_contents += line + "\n";}
-    std::ofstream out(path);
+    std::ofstream out(path());
     out << new_contents;
+    out.close();
 }
 
 std::vector<ITPFile> TOPFile::discover_includes() const {
@@ -170,25 +187,25 @@ std::vector<ITPFile> TOPFile::discover_includes() const {
     
     // look for itp files in the same directory
     std::vector<ITPFile> includes_dir;
-    for (const auto& entry : std::filesystem::directory_iterator(parent_path())) {
+    for (const auto& entry : directory().files()) {
         // only include itp files that contain "topol" in their name
-        auto str = entry.path().filename().string();
-        if (entry.path().extension() == ".itp" && str.substr(0, 5) == "topol") {
+        auto str = entry.filename();
+        if (entry.extension() == ".itp" && str.substr(0, 5) == "topol") {
             includes_dir.push_back(ITPFile(entry.path()));
         }
     }
 
     // check that they are actually included in the topology file
-    std::ifstream in(path);
+    std::ifstream in(path());
     std::string line;
     std::vector<ITPFile> includes_file;
     while (std::getline(in, line)) {
         if (line.find("#include") != std::string::npos) {
             auto index = line.find("\"");
-            if (index == std::string::npos) {throw except::io_error("TOPFile: \"" + path + "\" contains an include that is not in quotes.");}
+            if (index == std::string::npos) {throw except::io_error("TOPFile::discover_includes: \"" + path() + "\" contains an include that is not in quotes.");}
             std::string include = line.substr(index + 1);
             index = include.find("\"");
-            if (index == std::string::npos) {throw except::io_error("TOPFile: \"" + path + "\" contains an include quote which is not terminated.");}
+            if (index == std::string::npos) {throw except::io_error("TOPFile::discover_includes: \"" + path() + "\" contains an include quote which is not terminated.");}
             include = include.substr(0, index);
 
             // check if the include is in the same directory
@@ -203,34 +220,41 @@ std::vector<ITPFile> TOPFile::discover_includes() const {
     }
 
     if (includes_file.size() != includes_dir.size()) {
-        std::cout << "TOPFile: \"" << path << "\" does not include all itp files in the same directory." << std::endl;
-        std::cout << "Includes in file \"" << path << "\":" << std::endl;
+        console::print_warning("TOPFile::discover_includes: \"" + path() + "\" does not include all itp files in the same directory.");
+        console::indent();
+        console::print_text("Includes in file \"" + path() + "\":");
+        console::indent();
         for (const auto& itp : includes_file) {
-            std::cout << "\t" << itp.path << std::endl;
+            console::print_text(itp.path());
         }
-        std::cout << "Includes in directory \"" << parent_path() << "\":" << std::endl;
+        console::unindent();
+        console::print_text("Include files in directory \"" + directory().path() + "\":");
+        console::indent();
         for (const auto& itp : includes_dir) {
-            std::cout << "\t" << itp.path << std::endl;
+            console::print_text(itp.path());
         }
-        throw except::io_error("TOPFile: \"" + path + "\" does not include all itp files in the same directory.");
+        console::unindent();
+        console::unindent();
     }
 
     return includes_file;
 }
 
 void TOPFile::fix_relative_includes() {
+    if (!exists()) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path() + "\" does not exist.");}
     fix_relative_includes(*this);
     for (auto& include : includes) {
         fix_relative_includes(include);
     }
 }
 
-void TOPFile::fix_relative_includes(const std::string& path) {
-    if (!std::filesystem::exists(path)) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" does not exist.");}
+void TOPFile::fix_relative_includes(const io::File& path) {
+    if (!path.exists()) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" does not exist.");}
+    console::print_text_minor("Fixing relative includes in \"" + path + "\".");
+    console::indent();
     std::ifstream in(path);
 
     // copy old contents
-    File f(path);
     std::string line;
     std::vector<std::string> contents;
     while (std::getline(in, line)) {
@@ -242,29 +266,35 @@ void TOPFile::fix_relative_includes(const std::string& path) {
             if (index == std::string::npos) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" contains an include quote which is not terminated.");}
             include = include.substr(0, index);
 
-            std::string relpath = f.relative_path(include);
-            // std::cout << "Relative path from \"" << path << "\" to \"" << include << "\": \"" << relpath << "\"" << std::endl;
-            if (!relpath.empty()) {
-                contents.push_back("\t#include \"" + f.relative_path(include) + "\"");
-            } else {
+            // non-existing files are likely relative to the GROMACS directory and shouldn't be touched
+            if (!io::File(include).exists()) {
                 contents.push_back(line);
+                continue;
             }
-            continue;
+
+            std::string relpath = path.relative_path(include);
+            if (!relpath.empty()) {
+                console::print_text_minor("Changed relative path from \"" + include + "\" to \"" + relpath + "\"");
+                contents.push_back("\t#include \"" + relpath + "\"");
+                continue;
+            }
         }
         contents.push_back(line);
     }
     in.close();
+    console::unindent();
 
     // write new contents
     std::string new_contents;
     for (const auto& line : contents) {new_contents += line + "\n";}
     std::ofstream out(path);
     out << new_contents;
+    out.close();
 }
 
 void TOPFile::extract_single_chain() {
-    if (!exists()) {throw except::io_error("TOPFile: \"" + path + "\" does not exist.");}
-    std::ifstream in(path);
+    if (!exists()) {throw except::io_error("TOPFile: \"" + path() + "\" does not exist.");}
+    std::ifstream in(path());
 
     std::string newfile = "topol_Protein_chain_A.itp";
 
@@ -295,29 +325,30 @@ void TOPFile::extract_single_chain() {
     in.close();
 
     if (chain_contents.empty()) {return;}
+    console::print_text("Structure is a single chain. Extracting chain information from topology file to \"" + newfile + "\".");
 
     // write new contents
     std::string top;
     for (const auto& line : top_contents) {top += line + "\n";}
-    std::ofstream out(path);
+    std::ofstream out(path());
     out << top;
 
     std::string itp;
     for (const auto& line : chain_contents) {itp += line + "\n";}
-    std::ofstream out2(parent_path() + "/" + newfile);
+    std::ofstream out2(directory() + "/" + newfile);
     out2 << itp;
 
     // update includes
-    includes.push_back(ITPFile(parent_path() + "/" + newfile));
+    includes.push_back(ITPFile(directory() + "/" + newfile));
 }
 
-std::string TOPFile::copy(const Folder& folder) const {
+std::string TOPFile::copy(const io::Folder& folder) const {
     if (!exists()) {return "";}
     
     // look for itp files in the same directory
     std::vector<ITPFile> includes_dir;
-    for (const auto& entry : std::filesystem::directory_iterator(parent_path())) {
-        if (entry.path().extension() == ".itp") {
+    for (const auto& entry : directory().files()) {
+        if (entry.extension() == ".itp") {
             includes_dir.push_back(ITPFile(entry.path()));
         }
     }
@@ -328,5 +359,5 @@ std::string TOPFile::copy(const Folder& folder) const {
         itp.copy(folder);
     }
 
-    return folder.path + "/" + filename();
+    return folder.path() + "/" + filename();
 }

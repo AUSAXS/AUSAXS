@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility/TypeTraits.h>
+#include <io/IOFwd.h>
 
 #include <string>
 #include <vector>
@@ -9,23 +10,36 @@ namespace io {
     class Folder {
         public:
             Folder() = default;
-            Folder(const std::string& path);
 
+            template<::detail::string_like T>
+            Folder(const T& path) : Folder(std::string_view(path)) {}
+            Folder(std::string_view path);
+
+            /**
+             * @brief Get the non-'/' terminated path of this folder.
+             */
             [[nodiscard]] std::string path() const;
 
+            /**
+             * @brief Check if this folder exists on disk.
+             */
             [[nodiscard]] bool exists() const noexcept;
 
-            [[nodiscard]] Folder& operator+(const std::string& str) noexcept;
-
-            [[nodiscard]] Folder& operator+(const Folder& folder) noexcept;
-
-            void operator=(const std::string& path);
+            template<::detail::string_like T>
+            void operator=(const T& path) {*this = std::string_view(path);}
+            void operator=(std::string_view path);
 
             [[nodiscard]] operator std::string() const;
 
-            [[nodiscard]] std::vector<std::string> files() const;
+            /**
+             * @brief Get a list of all files inside this directory.
+             */
+            [[nodiscard]] std::vector<io::File> files() const;
 
-            [[nodiscard]] std::vector<std::string> directories() const;
+            /**
+             * @brief Get a list of all nested directories inside this directory.
+             */
+            [[nodiscard]] std::vector<io::Folder> directories() const;
 
             /**
              * @brief Create this directory and all its parents.
@@ -38,5 +52,6 @@ namespace io {
     static_assert(supports_nothrow_move_v<Folder>, "Folder should support nothrow move semantics.");
 }
 
-std::string operator+(const char* str, const io::Folder& folder);
-std::string operator+(const std::string& str, const io::Folder& folder);
+// Must return a string since the result can also be a file path 
+[[nodiscard]] std::string operator+(std::string_view str, const io::Folder& folder);
+[[nodiscard]] std::string operator+(const io::Folder& folder, std::string_view str);

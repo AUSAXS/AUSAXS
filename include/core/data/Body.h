@@ -38,6 +38,11 @@ namespace data {
 			 */
 			Body(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms);
 
+			/**
+			 * @brief Add implicit hydrogens to each atom in this body.
+			 */
+			void add_implicit_hydrogens();
+
 			/** 
 			 * @brief Writes this body to disk.
 			 * 

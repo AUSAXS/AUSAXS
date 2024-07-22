@@ -42,7 +42,7 @@ class Dataset2D : public SimpleDataset {
         /**
          * @brief Construct a new dataset from an input file.
          */
-        Dataset2D(std::string path);
+        Dataset2D(std::string_view path);
 
         /**
          * @brief Destructor.

@@ -1,13 +1,21 @@
 #pragma once
 
-#include <md/utility/files/File.h>
+#include <io/detail/IValidatedFile.h>
+#include <utility/observer_ptr.h>
+
+#include <stdexcept>
 
 namespace md {
+    namespace detail {
+        struct validate_edr_file {
+            static void validate(observer_ptr<io::File> f) {
+                if (f->extension() != ".edr") {throw std::runtime_error("EDRFile::validate: File \"" + f->path() + "\" is not an energy file (.edr).");}
+            }
+        };
+    }
+
     // Energy file
-    struct EDRFile : public detail::File {
-        EDRFile() = default;
-        EDRFile(const std::string& name) : File(name, "edr") {}
-        EDRFile(const char* name) : EDRFile(std::string(name)) {}
-        ~EDRFile() override = default;
+    struct EDRFile : public io::detail::IValidatedFile<detail::validate_edr_file> {
+        using IValidatedFile::IValidatedFile;
     };
 }

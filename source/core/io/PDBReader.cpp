@@ -29,6 +29,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
     std::ifstream input(file);
     if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + file + "\"");}
 
+    unsigned int discarded_hydrogens = 0;
     std::string line; // placeholder for the current line
     while(getline(input, line)) {
         if (line.empty()) {continue;}
@@ -40,7 +41,10 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
                 atom.parse_pdb(line);
 
                 // check if this is a hydrogen atom
-                if (atom.element == constants::atom_t::H && !settings::general::keep_hydrogens) {continue;}
+                if (atom.element == constants::atom_t::H && !settings::general::keep_hydrogens) {
+                    discarded_hydrogens++;
+                    continue;
+                }
 
                 // check if this is a water molecule
                 if (atom.is_water()) {collection.add(Water(std::move(atom)));} 
@@ -69,18 +73,21 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
     if (!settings::molecule::use_occupancy) {
         for (auto& a : collection.protein_atoms) {a.occupancy = 1.0;}
     }
+
+    if (discarded_hydrogens != 0) {
+        console::print_text("Discarded " + std::to_string(discarded_hydrogens) + " explicit hydrogen atoms.");
+    }
 };
 
 void PDBReader::read(const io::File& path) {
-    if (settings::general::verbose) {
-        console::print_info("\nReading PDB file from \"" + path + "\"");
-    }
+    console::print_info("Reading PDB file from \"" + path + "\"");
+    console::indent();
 
     if (path.append("_part1").exists()) {
-        std::cout << "\tFile is split into multiple parts." << std::endl;
+        console::print_text("File is split into multiple parts.");
         unsigned int i = 1;
         while (path.append("_part" + std::to_string(i)).exists()) {
-            std::cout << "\t\tParsed file " << path.append("_part" + std::to_string(i)) << std::endl; 
+            console::print_text("\tParsed file " + path.append("_part" + std::to_string(i)));
             parse_single_file(path.append("_part" + std::to_string(i)), *file);
             i++;
         }
@@ -90,11 +97,7 @@ void PDBReader::read(const io::File& path) {
 
     unsigned int n_pa = file->protein_atoms.size();
     unsigned int n_ha = file->hydration_atoms.size();
-    
-    if (settings::general::verbose) {
-        std::cout << "\tSuccessfully read " << n_pa + n_ha << " atomic records." << std::endl;
-        if (n_ha != 0) {
-            std::cout << "\t\t" << file->hydration_atoms.size() << " of these are hydration atoms." << std::endl;
-        }
-    }
+
+    console::print_text("Successfully read " + std::to_string(n_pa + n_ha) + " atomic records.");
+    if (n_ha != 0) {console::print_text("\t" + std::to_string(file->hydration_atoms.size()) + " of these are hydration atoms.");}
 }

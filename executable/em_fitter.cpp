@@ -75,10 +75,10 @@ int main(int argc, char const *argv[]) {
         auto res = map.fit(mfile);
 
         fitter::FitReporter::report(res.get());
-        fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", argc, argv);
+        fitter::FitReporter::save(res.get(), {settings::general::output + "report.txt"}, argc, argv);
 
-        res->info.dataset.save(settings::general::output + mfile.stem() + ".scat");
-        res->info.fitted_intensity_interpolated.save(settings::general::output + "ausaxs.fit");
+        res->info.dataset.save({settings::general::output + mfile.stem() + ".scat"});
+        res->info.fitted_intensity_interpolated.save({settings::general::output + "ausaxs.fit"});
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

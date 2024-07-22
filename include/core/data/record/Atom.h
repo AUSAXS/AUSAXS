@@ -38,6 +38,12 @@ namespace data::record {
             RecordType get_type() const override;
 
             /**
+             * @brief Add implicit hydrogens to this atom. 
+             *        This is done by adding the number of implicit hydrogens to the effective charge of the atom and modifying its form factor. 
+             */
+            void add_implicit_hydrogens();
+
+            /**
              * @brief Set the properties of this Atom based on a .pdb format ATOM string. 
              */
             void parse_pdb(const std::string& s) override;

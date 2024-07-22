@@ -4,7 +4,7 @@
 #include <md/programs/mdrun/Execution.h>
 #include <md/simulate/GMXOptions.h>
 #include <md/utility/files/MDPCreator.h>
-#include <md/utility/Utility.h>
+#include <utility/StringUtils.h>
 
 namespace md {
     namespace simulate {

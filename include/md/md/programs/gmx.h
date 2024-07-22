@@ -3,94 +3,35 @@
 #include <md/shell/Command.h>
 #include <md/utility/Exceptions.h>
 #include <md/utility/files/SHFile.h>
-#include <md/gmx/Settings.h>
+#include <settings/MDSettings.h>
 
 #include <string>
 #include <vector>
-#include <filesystem>
-#include <fstream>
-#include <chrono>
-#include <ctime>
 
 namespace md {
     class gmx {
         public: 
-            // shell::Command cmd = shell::Command("/data/shared/opt/gromacs/2021.5/bin/gmx");
-            // shell::Command cmd = shell::Command("/data/shared/opt/gromacs/release-2021.swaxs/bin/gmx");
-            shell::Command cmd = shell::Command(setting::gmx_path);
+            shell::Command cmd = shell::Command(settings::md::gmx_path);
 
             std::vector<std::shared_ptr<shell::Option>> options;
-            virtual shell::Command& command() {
-                validate();
-                for (auto& opt : options) {
-                    cmd.append(opt->get());
-                }
-                cmd.append("-nocopyright -quiet");
-                return cmd;
-            }
+            virtual shell::Command& command();
 
-            std::string execute() {
-                auto cmd = command();
-                if (!outputlog.empty()) {
-                    cmd.prepend("set -o pipefail; ");
-                    cmd.append("2>&1 | tee -a " + outputlog);                
-                }
-                write_cmdlog(cmd.get());
+            std::string execute();
 
-                auto result = cmd.execute();
-                if (result.exit_code != 0) {
-                    throw except::io_error("gmx::gmx: Error executing command: \"" + cmd.get() + "\".");
-                }
-                return result.out;
-            }
+            bool valid_executable();
 
-            bool test_executable() {
-                auto tmp = cmd.append("-version");
-                write_cmdlog(tmp.get());
-                auto res = tmp.execute();
-                return res.exit_code == 0;
-            };
-
-            static void set_outputlog(const std::string& path) {
-                if (std::filesystem::path(path).extension() != ".log") {
-                    throw except::invalid_format("gmx::gmx: Output log file must have extension \".log\".");
-                }
-                std::filesystem::remove(path);
-                outputlog = path;
-            }
-
-            static void set_cmdlog(const std::string& path) {
-                if (std::filesystem::path(path).extension() != ".log") {
-                    throw except::invalid_format("gmx::gmx: Command log file must have extension \".log\".");
-                }
-
-                cmdlog = path;
-                auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                write_cmdlog(
-                    "\n#################################################"
-                    "\n   Program started on " + std::string(std::ctime(&time)) + 
-                    "#################################################"
-                );
-            }
+            static void set_logfile(const io::File& log, const io::File& cmdlog);
 
         protected:
-            virtual void validate() const {}
+            virtual void validate() const;
 
         private: 
-            inline static std::string outputlog;
-            inline static std::string cmdlog;
+            inline static bool log = false;
+            inline static io::File outputlog;
+            inline static io::File cmdlog;
 
-            static void write_cmdlog(const std::string& entry) {
-                if (cmdlog.empty()) {return;}
-                std::ofstream log(cmdlog, std::ios_base::app);
-                log << entry << std::endl;
-            }
-
-            static void write_log(const std::string& entry) {
-                if (outputlog.empty()) {return;}
-                std::ofstream log(outputlog, std::ios_base::app);
-                log << entry << std::endl;
-            }
+            static void write_cmdlog(std::string_view entry);
+            static void write_log(std::string_view entry);
     };
 
     namespace option {

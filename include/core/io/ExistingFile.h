@@ -1,21 +1,21 @@
 #pragma once
 
-#include <io/File.h>
-#include <utility/TypeTraits.h>
+#include <io/detail/IValidatedFile.h>
+#include <stdexcept>
 
 namespace io {
-    class ExistingFile : public File {
-        public:
-            ExistingFile();
-            ExistingFile(const File& file);
-            ExistingFile(File&& file);
-            ExistingFile(const std::string& path);
-            ExistingFile(const char* path);
+    namespace detail {
+        struct validate_existing_file {
+            static void validate(observer_ptr<File> f) {
+                if (!f->exists()) {
+                    throw std::runtime_error("ExistingFile::validate: File \"" + f->path() + "\" does not exist.");
+                }
+            }
+        };
+    }
 
-            ExistingFile& operator=(const std::string& path);
-
-        private:
-            void validate() const;
+    class ExistingFile : public detail::IValidatedFile<detail::validate_existing_file> {
+        using IValidatedFile::IValidatedFile;
     };
     static_assert(supports_nothrow_move_v<ExistingFile>, "ExistingFile should support nothrow move semantics.");
 }

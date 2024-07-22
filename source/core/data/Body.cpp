@@ -39,6 +39,13 @@ void Body::initialize() {
     signal = std::make_shared<signaller::UnboundSignaller>();
 }
 
+void Body::add_implicit_hydrogens() {
+    changed_internal_state();
+    for (auto& a: get_atoms()) {
+        a.add_implicit_hydrogens();
+    }
+}
+
 void Body::save(const io::File& path) {file.write(path);}
 
 void Body::center() {

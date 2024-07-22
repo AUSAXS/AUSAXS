@@ -137,6 +137,56 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
     }
 }
 
+TEST_CASE("Molecule::add_implicit_hydrogens", "[files]") {
+    settings::molecule::use_effective_charge = false;
+    vector<Atom> atoms = {
+        Atom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+        Atom(2, "CA", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        Atom(3, "C",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        Atom(4, "O",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::O, "0"),
+        Atom(5, "CB", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        Atom(6, "CG", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        Atom(7, "CD", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        Atom(8, "CE", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        Atom(9, "NZ", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+    };
+    Molecule protein(atoms);
+
+    for (auto a : protein.get_atoms()) {
+        CHECK(a.effective_charge == constants::charge::get_charge(a.get_element()));
+        CHECK(a.get_atomic_group() == constants::atomic_group_t::unknown);
+    }
+
+    protein.add_implicit_hydrogens();
+    atoms = protein.get_atoms();
+    CHECK(atoms[0].effective_charge == constants::charge::get_charge(atoms[0].get_element()) + 1);
+    CHECK(atoms[0].get_atomic_group() == constants::atomic_group_t::NH);
+
+    CHECK(atoms[1].effective_charge == constants::charge::get_charge(atoms[1].get_element()) + 1);
+    CHECK(atoms[1].get_atomic_group() == constants::atomic_group_t::CH);
+
+    CHECK(atoms[2].effective_charge == constants::charge::get_charge(atoms[2].get_element()) + 0);
+    CHECK(atoms[2].get_atomic_group() == constants::atomic_group_t::unknown);
+
+    CHECK(atoms[3].effective_charge == constants::charge::get_charge(atoms[3].get_element()) + 0);
+    CHECK(atoms[3].get_atomic_group() == constants::atomic_group_t::unknown);
+
+    CHECK(atoms[4].effective_charge == constants::charge::get_charge(atoms[4].get_element()) + 2);
+    CHECK(atoms[4].get_atomic_group() == constants::atomic_group_t::CH2);
+
+    CHECK(atoms[5].effective_charge == constants::charge::get_charge(atoms[5].get_element()) + 2);
+    CHECK(atoms[5].get_atomic_group() == constants::atomic_group_t::CH2);
+
+    CHECK(atoms[6].effective_charge == constants::charge::get_charge(atoms[6].get_element()) + 2);
+    CHECK(atoms[6].get_atomic_group() == constants::atomic_group_t::CH2);
+
+    CHECK(atoms[7].effective_charge == constants::charge::get_charge(atoms[7].get_element()) + 2);
+    CHECK(atoms[7].get_atomic_group() == constants::atomic_group_t::CH2);
+
+    CHECK(atoms[8].effective_charge == constants::charge::get_charge(atoms[8].get_element()) + 3);
+    CHECK(atoms[8].get_atomic_group() == constants::atomic_group_t::NH3);
+}
+
 TEST_CASE("Molecule::get_Rg", "[files]") {
     // tests without effective charge are compared against the electron Rg from CRYSOL
     settings::general::verbose = false;

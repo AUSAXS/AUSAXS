@@ -25,13 +25,13 @@ std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vect
     if (!header.empty() && header.back().find("type") != std::string::npos) {
         std::string type = header.back().substr(6);
         if (mode == 2) {
-            if (type != "xy") {console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I].");}
+            if (type != "xy") {console::print_warning("The column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I].");}
         }
         else if (mode == 3) {
-            if (type != "xydy") {console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I | Ierr].");}
+            if (type != "xydy") {console::print_warning("The column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I | Ierr].");}
         }
         else if (mode == 4) {
-            if (type != "xydxdy") {console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I | Ierr | qerr].");}
+            if (type != "xydxdy") {console::print_warning("The column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I | Ierr | qerr].");}
         }
     }
 
@@ -77,8 +77,8 @@ std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vect
     dataset->set_col_names(col_names);
 
     // skip the first few rows if requested
-    if (settings::axes::skip != 0 && settings::general::verbose) {
-        std::cout << "\tSkipped " << count - dataset->size_rows() << " data points from beginning of file." << std::endl;
+    if (settings::axes::skip != 0) {
+        console::print_text("Skipped " + std::to_string(count - dataset->size_rows()) + " data points from beginning of file.");
     }
 
     // verify that at least one row was read correctly
@@ -87,7 +87,7 @@ std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vect
     }
 
     // unit conversion
-    if (settings::general::verbose) {std::cout << "\tAssuming q is given in units of [nm]." << std::endl;}
+    console::print_text("Assuming q is given in units of [nm].");
     for (unsigned int i = 0; i < dataset->size_rows(); i++) {
         dataset->index(i, 0) /= 10;
     }
@@ -95,17 +95,19 @@ std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vect
     // remove all rows outside the specified q-range
     unsigned int N = dataset->size_rows();
     dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
-    if (N != dataset->size_rows() && settings::general::verbose) {
-        std::cout << "\tRemoved " << N - dataset->size_rows() << " data points outside specified q-range [" << settings::axes::qmin << ", " << settings::axes::qmax << "]." << std::endl;
+    if (N != dataset->size_rows()) {
+        console::print_text(
+            "Removed " + std::to_string(N - dataset->size_rows()) + " data points outside specified q-range "
+            "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(settings::axes::qmax) + "]."
+        );
     }
 
     return dataset;
 };
 
 std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
-    if (settings::general::verbose) {
-        console::print_info("Loading dataset from \"" + path + "\"");
-    }
+    console::print_info("\nReading dataset from \"" + path + "\"");
+    console::indent();
 
     // check if file was succesfully opened
     std::ifstream input(path);
@@ -160,23 +162,19 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
         // check if file has already been rebinned
         if (line.find("REBINNED") == std::string::npos) {
             // if not, suggest it to the user
-            if (settings::general::verbose) {
-                std::cout << "\tFile contains more than 300 rows. Consider rebinning the data." << std::endl;
-            }
+            console::print_text("File contains more than 300 rows. Consider rebinning the data.");
         }
     }
 
-    if (settings::general::verbose) {
-        std::cout << "\tSuccessfully read " << dataset->size_rows() << " data points from " << path << std::endl;
-    }
-
+    console::print_text("Successfully read " + std::to_string(dataset->size_rows()) + " data points");
+    console::unindent();
     return dataset;
 }
 
 std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(const io::ExistingFile& path) {
-    if (settings::general::verbose) {
-        console::print_info("Loading dataset from \"" + path + "\"");
-    }
+    console::print_info("Reading dataset from \"" + path + "\"");
+
+    // disable text from parsing of each dataset section
     auto verbose = settings::general::verbose;
     settings::general::verbose = false;
 
@@ -230,9 +228,6 @@ std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(con
     }
 
     settings::general::verbose = verbose;
-    if (settings::general::verbose) {
-        std::cout << "\tSuccessfully read " << datasets.size() << " datasets from " << path << std::endl;
-    }
-
+    console::print_text("Successfully read " + std::to_string(datasets.size()) + " datasets.");
     return datasets;
 }

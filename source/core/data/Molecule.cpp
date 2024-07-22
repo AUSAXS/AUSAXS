@@ -3,7 +3,6 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include "utility/Exceptions.h"
 #include <data/Molecule.h>
 #include <data/record/Water.h>
 #include <data/record/Atom.h>
@@ -30,6 +29,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <hydrate/generation/GridBasedHydration.h>
+#include <utility/Console.h>
 
 #include <numeric>
 #include <cassert>
@@ -100,6 +100,19 @@ void Molecule::initialize() {
     set_histogram_manager(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins));
     if (!centered && settings::molecule::center) {center();} // Centering *must* happen before generating the grid in 'update_effective_charge'!
     if (!updated_charge && settings::molecule::use_effective_charge) {update_effective_charge();}
+}
+
+void Molecule::add_implicit_hydrogens() {
+    // sanity check: if the structure already contains hydrogens, don't implicitly add more
+    for (auto a : get_atoms()) {
+        if (a.get_element() != constants::atom_t::H) {continue;}
+        console::print_warning("Molecule::add_implicit_hydrogens: The molecule already contains hydrogen atoms. Skipping implicit addition.");
+        return;
+    }
+
+    for (auto& body : bodies) {
+        body.add_implicit_hydrogens();
+    }
 }
 
 void Molecule::translate(const Vector3<double>& v) {

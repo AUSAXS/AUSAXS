@@ -16,7 +16,7 @@ namespace md {
         option::Anion anion;
 
         std::string name;
-        Folder output;
+        io::Folder output;
         SHFile jobscript;
         location setupsim;
         location mainsim;

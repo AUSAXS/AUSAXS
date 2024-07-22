@@ -7,7 +7,7 @@ namespace md {
     class grompp : private gmx {
         public: 
             grompp() {
-                cmd.append("grompp");
+                cmd.append("grompp -po temp/md/mdout.mdp");
             }
 
             grompp(const MDPFile& mdp, const TOPFile& top, const GROFile& gro) : grompp() {

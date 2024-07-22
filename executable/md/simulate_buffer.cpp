@@ -2,21 +2,20 @@
 #include <md/simulate/buffer.h>
 #include <md/simulate/molecule.h>
 #include <md/simulate/saxs.h>
+#include <io/ExistingFile.h>
 
 #include <CLI/CLI.hpp>
 
 using namespace md;
 
 int main(int argc, char const *argv[]) {
-    settings::discover(".");
-
-    std::string s_pdb;
+    io::ExistingFile s_pdb;
     CLI::App app{"Perform an MD buffer simulation."};
     app.add_option("input", s_pdb, "PDB structure file.")->required();
     CLI11_PARSE(app, argc, argv);
 
     // test executable
-    if (!gmx().test_executable()) {
+    if (!gmx().valid_executable()) {
         throw except::io_error("Gromacs executable not found. Please install Gromacs and add it to your PATH.");
     }
 
@@ -27,9 +26,9 @@ int main(int argc, char const *argv[]) {
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
 
-        .name = std::filesystem::path(s_pdb).stem().string(),
-        .output = "output/buffer/" + option::to_string(option::WaterModel::TIP4P2005) + "/",
-        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute(),
+        .name = s_pdb.stem(),
+        .output = {"output/buffer/" + option::to_string(option::WaterModel::TIP4P2005) + "/"},
+        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
         .setupsim = location::lucy,
         .mainsim = location::smaug,
         // .bufmdp = std::make_shared<PRMDPCreatorSol>(),
@@ -47,7 +46,7 @@ int main(int argc, char const *argv[]) {
         if (!conf.exists()) {
         // prepare the pdb file for gromacs
         auto[conf, _, posre] = pdb2gmx(pdb)
-            .output(sele.output + "setup/")
+            .output({sele.output + "setup/"})
             .ignore_hydrogens()
             .water_model(sele.watermodel)
             .forcefield(sele.forcefield)

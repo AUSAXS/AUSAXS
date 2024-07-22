@@ -13,19 +13,14 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace io;
 
 File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {}
+File::File(std::string_view name, std::string_view extension) : File(Folder(), name, extension) {}
 
 File::File(std::string_view path) {
-    if (path.empty()) {return;}
-
-    auto [dir, file, ext] = split(path);
+    auto[dir, file, ext] = split(path);
     this->dir = std::move(dir);
     this->name = std::move(file);
     this->ext = std::move(ext);
 }
-
-File::File(const char* path) : File(std::string_view(path)) {}
-
-File::File(const std::string& path) : File(std::string_view(path)) {}
 
 std::tuple<std::string, std::string, std::string> File::split(std::string_view path) {
     auto p = std::filesystem::path(path);
@@ -76,6 +71,26 @@ void File::create(std::string_view contents) const {
     file << contents;
 }
 
+io::File File::rename(std::string_view name) const {
+    io::File new_file(dir, name, ext);
+    std::filesystem::rename(path(), new_file.path());
+    return new_file;
+}
+
+io::File File::move(const io::Folder& folder) const {
+    if (!folder.exists()) {folder.create();}
+    io::File new_file(folder, name, ext);
+    std::filesystem::rename(path(), new_file.path());
+    return new_file;
+}
+
+io::File File::copy(const io::Folder& folder) const {
+    if (!folder.exists()) {folder.create();}
+    io::File new_file(folder, name, ext);
+    std::filesystem::copy(path(), new_file.path());
+    return new_file;
+}
+
 void File::remove() const {
     if (exists()) {std::filesystem::remove(path());}
 }
@@ -84,24 +99,25 @@ std::string File::path() const {return std::string(*this);}
 
 std::string File::absolute_path() const {return std::filesystem::absolute(path()).string();}
 
+std::string File::relative_path(const File& other) const {
+    if (name.empty() || other.name.empty()) {throw except::io_error("File::relative_path: Cannot get relative path of empty path.");}
+    return std::filesystem::relative(other.absolute_path(), directory().path()).string();
+}
+
+std::string File::filename() const noexcept {
+    return name + ext;
+}
+
 bool File::exists() const noexcept {
     return std::filesystem::exists(path());
 }
 
-std::string operator+(const char* str, const io::File& file) {
-    return std::string(str) + std::string(file);
+std::string operator+(std::string_view str, const io::File& file) {
+    return std::string(str) + file.path();
 }
 
-std::string operator+(const io::File& file, const char* str) {
-    return std::string(file) + std::string(str);
-}
-
-std::string operator+(const std::string& str, const io::File& file) {
-    return str + std::string(file);
-}
-
-std::string operator+(const io::File& file, const std::string& str) {
-    return std::string(file) + str;
+std::string operator+(const io::File& file, std::string_view str) {
+    return file.path() + std::string(str);
 }
 
 std::ostream& operator<<(std::ostream& os, const io::File& file) {

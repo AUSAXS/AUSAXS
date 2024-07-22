@@ -16,6 +16,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility>
 #include <iomanip>
 #include <iostream>
+#include <cassert>
 
 using namespace data::record;
 
@@ -45,24 +46,8 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
         set_temperature_factor(tempFactor);
         set_element(element);
         set_charge(charge);
-
-        // use a try-catch block to throw more sensible errors
-        if (settings::molecule::implicit_hydrogens) {
-            #ifdef DEBUG
-                try {
-                    effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-                    atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
-                } catch (const except::base&) {
-                throw except::invalid_argument("Atom::Atom: Could not set effective charge or determine atomic group. Unknown element, residual or atom: (" + constants::symbols::to_string(element) + ", " + resName + ", " + name + ")");
-                }
-            #else
-                effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-                atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
-            #endif
-        } else {
-            effective_charge = constants::charge::get_charge(this->element);
-            atomic_group = constants::atomic_group_t::unknown;
-        }
+        effective_charge = constants::charge::get_charge(this->element);
+        atomic_group = constants::atomic_group_t::unknown;
         uid = uid_counter++;
 }
 
@@ -143,22 +128,20 @@ void Atom::parse_pdb(const std::string& str) {
         throw e;
     }
 
-    // use a try-catch block to throw more sensible errors
-    if (settings::molecule::implicit_hydrogens) {
-        #ifdef DEBUG
-            try {
-                effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-                atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
-            } catch (const except::base&) {
-                throw except::invalid_argument("Atom::parse_pdb: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + this->resName + ", " + this->name + ")");
-            }
-        #else 
-            effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-            atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
-        #endif
-    } else {
-        effective_charge = constants::charge::get_charge(this->element);
-        atomic_group = constants::atomic_group_t::unknown;
+    effective_charge = constants::charge::get_charge(this->element);
+    atomic_group = constants::atomic_group_t::unknown;
+}
+
+void Atom::add_implicit_hydrogens() {
+    assert(get_element() != constants::atom_t::H && "Atom::add_implicit_hydrogens: Attempted to add implicit hydrogens to a hydrogen atom.");
+    try {
+        effective_charge = constants::charge::get_charge(element) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
+        atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
+    } catch (const except::base&) {
+        throw except::invalid_argument(
+            "Atom::parse_pdb: Could not set effective charge. Unknown element, residual or atom: "
+            "(" + constants::symbols::to_string(element) + ", " + this->resName + ", " + this->name + ")"
+        );
     }
 }
 
@@ -215,13 +198,7 @@ void Atom::set_residue_name(const std::string& resName) {this->resName = resName
 void Atom::set_group_name(const std::string& name) {this->name = name;}
 
 void Atom::set_element(constants::atom_t element) {
-    #ifdef DEBUG
-        try {
-            constants::mass::get_mass(element);
-        } catch (const std::exception&) {
-            throw except::invalid_argument("Atom::set_element: The mass of element " + constants::symbols::to_string(element) + " is not defined.");
-        }
-    #endif
+    assert(element != constants::atom_t::unknown && "Atom::set_element: Attempted to set element to unknown.");
     this->element = element;
 }
 
