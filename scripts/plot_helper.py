@@ -408,6 +408,7 @@ def plot_file(file: str):
         file: The input file.
     """
 
+    print("Plotting file: " + file)
     def determine_type(line: str) -> PlotType:
         for t in PlotType:
             if line == t.value:
@@ -473,48 +474,109 @@ def plot_file(file: str):
 
     return
 
-def plot_intensity_fit(data_file, fit_file, report_file, title=""):
-    """Plots an intensity fit."""
+from scipy.optimize import curve_fit
+def plot_fits(data_file, fit_files, report_file, title=""):
+    """
+    Plots the given fit files. 
+    """
+
+    fits = []
+    labels = []
+    colors = []
     data = np.loadtxt(data_file, skiprows=1)
-    fit = np.loadtxt(fit_file, skiprows=1, usecols=[0, 1])
 
-    # calculate dof
-    dof = 1
-    if report_file != "":
-        # find dof in report
-        with open(report_file, "r") as f:
-            par_section = False
-            for line in f:
-                if "PAR" in line:
-                    par_section = True
-                if par_section:
-                    if "+----" in line:
-                        break
-                    dof += 1
-
-    # calculate chi2
     def chi2(ymodel):
         return np.sum(((data[:, 1] - ymodel) / data[:, 2]) ** 2)
 
-    chi2r = chi2(fit[:, 1]) / (len(data[:, 1]) - dof)
+    def load_fit(fitdata, title, dof = 3):
+        # perform a linear fit of fitdata to the measurement
+        popt, _ = curve_fit(lambda x, a, b: a*x + b, fitdata[:, 1], data[:, 1], sigma=data[:, 2], absolute_sigma=True, p0=[1, 0])
+        fitdata[:, 1] = popt[0] * fitdata[:, 1] + popt[1]
+        fits.append(fitdata)
+        # print(f"Fit {title} to {mfile} with parameters {popt}.")
 
-    # plot the data in loglog and with residuals underneath
+        chi2r = chi2(fits[-1][:, 1]) / (len(data[:, 1]) - dof)
+        labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$ " + title)
 
+    # parse each file
+    for f in fit_files:
+        # get the stem of f without the path or extension
+        stem = os.path.splitext(os.path.basename(f))[0]
+        print("\tParsing file: " + stem)
+
+        if "foxs".lower() in stem.lower():
+            fitdata = np.loadtxt(f, skiprows=3, usecols=[0, 3])
+            load_fit(fitdata, "FoXS")
+            colors.append("tab:orange")
+
+        elif "crysol".lower() in stem.lower():
+            fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 3])
+            load_fit(fitdata, "CRYSOL")
+            colors.append("tab:cyan")
+
+        elif "pepsi".lower() in stem.lower():
+            fitdata = np.loadtxt(f, skiprows=0, comments="#", usecols=[0, 3])
+            load_fit(fitdata, "Pepsi-SAXS")
+            colors.append("tab:blue")
+
+        elif "waxsis".lower() in stem.lower():
+            fitdata = np.loadtxt(f, skiprows=0, comments="#", usecols=[0, 1])
+            x = fitdata[:, 0]
+            y = np.interp(data[:, 0], x, fitdata[:, 1])
+            fitdata = np.vstack((data[:, 0], y)).T
+            load_fit(fitdata, "WAXSiS")
+            colors.append("tab:purple")
+
+        elif "waxs_final".lower() in stem.lower():
+            fitdata = np.loadtxt(f, skiprows=0, comments=["@", "#", "&"], usecols=[0, 1])
+            # interpolate the data to match the dataset
+            x = fitdata[:, 0]/10
+            y = np.interp(data[:, 0], x, fitdata[:, 1])
+            fitdata = np.vstack((data[:, 0], y)).T
+            load_fit(fitdata, "GROMACS")
+            colors.append("tab:green")
+
+        elif "ausaxs".lower() in stem.lower():
+            fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 1])
+
+            # calculate exact dof
+            dof = 1
+            if report_file != "":
+                # find dof in report
+                with open(report_file, "r") as f:
+                    par_section = False
+                    for line in f:
+                        if "PAR" in line:
+                            par_section = True
+                        if par_section:
+                            if "+----" in line:
+                                break
+                            dof += 1
+            load_fit(fitdata, "AUSAXS", dof)
+            colors.append("tab:red")
+        else:
+            print(f"Unknown fit file: \"{f}\"")
+
+    # plot the data
     fig, ax = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
-    ax[0].errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', zorder=0)
-    ax[0].plot(fit[:, 0], fit[:, 1], label=r"$\chi^2_{red} = " + f"{chi2r:.3f}$", color='red')
-    ax[0].set_ylabel("I(q)")
-    ax[0].legend()
-    ax[0].semilogy()
+    plt.sca(ax[0])
+    plt.errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', zorder=0)
+    for f, l, c in zip(fits, labels, colors):
+        plt.plot(f[:, 0], f[:, 1], label=l, color=c)
+    plt.ylabel("I(q)")
+    plt.legend()
+    plt.semilogy()
     if title != "":
-        ax[0].set_title(title)
+        plt.title(title)
     else:
-        ax[0].set_title(os.path.basename(os.path.abspath(data_file.split('.')[0])))
+        plt.title(os.path.basename(os.path.abspath(data_file.split('.')[0])))
 
-    ax[1].axhline(0, color='k', lw=0.5)
-    ax[1].plot(data[:, 0], (data[:, 1] - fit[:, 1]) / data[:, 2], 'k.')
-    ax[1].set_xlabel("q [$Å^{-1}$]")
-    ax[1].set_ylabel("Residuals")
+    plt.sca(ax[1])
+    plt.axhline(0, color='k', lw=0.5)
+    for f, c in zip(fits, colors):
+        plt.plot(f[:, 0], (data[:, 1] - f[:, 1]) / data[:, 2], ".", color=c)
+    plt.xlabel("q [$Å^{-1}$]")
+    plt.ylabel("Residuals")
 
     plt.tight_layout()
     fig.savefig(os.path.dirname(data_file) + '/log.png', dpi=600)
