@@ -71,11 +71,10 @@ namespace constants {
     std::string symbols::oxygen = "O";
 
     const saxs::detail::SimpleMap<constants::atom_t> symbols::detail::string_to_atomt_map = std::unordered_map<std::string, constants::atom_t>{
-        {"e", atom_t::e}, {"H", atom_t::H}, {"He", atom_t::He}, {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B}, {"C", atom_t::C}, {"N", atom_t::N},
-        {"O", atom_t::O}, {"F", atom_t::F}, {"Ne", atom_t::Ne}, {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P},
-        {"S", atom_t::S}, {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, {"K", atom_t::K}, {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V},
-        {"Cr", atom_t::Cr}, {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"W", atom_t::W},
-        {"M", atom_t::M}
+        {"H", atom_t::H},   {"He", atom_t::He}, {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B},   {"C", atom_t::C},   {"N", atom_t::N}, {"O", atom_t::O}, 
+        {"F", atom_t::F},   {"Ne", atom_t::Ne}, {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P}, {"S", atom_t::S}, 
+        {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, {"K", atom_t::K},   {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V}, {"Cr", atom_t::Cr}, 
+        {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"W", atom_t::W}, {"M", atom_t::M}
     };
 
     //* note: this must be initialized *after* symbols::detail::string_to_atomt_map
@@ -92,7 +91,6 @@ constants::atom_t constants::symbols::parse_element_string(const std::string& el
 
 std::string constants::symbols::to_string(atom_t atom) {
     switch(atom) {
-        case atom_t::e: return "e";
         case atom_t::H: return "H";
         case atom_t::He: return "He";
         case atom_t::Li: return "Li";
@@ -168,7 +166,6 @@ constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t
 
 unsigned int constants::charge::get_charge(atom_t atom) {
     switch(atom) {
-        case atom_t::e: return -1;
         case atom_t::H: return 1;
         case atom_t::He: return 2;
         case atom_t::Li: return 3;
@@ -257,7 +254,8 @@ double constants::mass::get_mass(atom_t atom) {
         case atom_t::W: return 183.84;
         case atom_t::M: return 0;
         case atom_t::dummy: return 1;
-        default: throw std::runtime_error("constants::mass::get_mass: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");   
+        case atom_t::unknown: throw std::runtime_error("constants::mass::get_mass: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
+        default: throw std::runtime_error("constants::mass:get_mass: Missing switch case for atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
     }
 }
 

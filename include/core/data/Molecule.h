@@ -99,6 +99,11 @@ namespace data {
 			void generate_new_hydration();
 
 			/**
+			 * @brief Add implicit hydrogens to each atom in this molecule.
+			 */
+			void add_implicit_hydrogens();
+
+			/**
 			 * @brief Calculate the volume of this molecule based on the number of grid bins it spans.
 			 * 
 			 * @return The volume in Å^3.

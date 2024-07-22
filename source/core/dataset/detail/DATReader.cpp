@@ -19,9 +19,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 
 std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
-    if (settings::general::verbose) {
-        console::print_info("\nReading dataset from \"" + path + "\"");
-    }
+    console::print_info("\nReading dataset from \"" + path + "\"");
+    console::indent();
 
     // check if file was succesfully opened
     std::ifstream input(path);
@@ -69,20 +68,15 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
 
     // determine the most common number of columns, since that will likely be the data
     unsigned int mode = stats::mode(col_number);
-    if (settings::general::verbose) {
-        switch (mode) {
-            case 2: 
-                std::cout << "\t2 columns detected. Assuming the format is [q | I]" << std::endl;
-                break;
-            case 3:
-                std::cout << "\t3 columns detected. Assuming the format is [q | I | Ierr]" << std::endl;
-                break;
-            case 4:
-                std::cout << "\t4 columns detected. Assuming the format is [q | I | Ierr | qerr]" << std::endl;
-                break;
-            default:
-                std::cout << "\t" << mode << " columns detected. Assuming the format is [q | I | Ierr | qerr | ...]" << std::endl;
-        }
+    switch (mode) {
+        case 2: 
+            console::print_text("2 columns detected. Assuming the format is [q | I]");
+            break;
+        case 3:
+            console::print_text("3 columns detected. Assuming the format is [q | I | Ierr]");
+            break;
+        default:
+            console::print_text(std::to_string(mode) + " columns detected. Assuming the format is [q | I | Ierr | ... ]");
     }
 
     // check that we have at least the expected number of columns
@@ -127,8 +121,8 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     dataset->set_col_names(col_names);
 
     // skip the first few rows if requested
-    if (settings::axes::skip != 0 && settings::general::verbose) {
-        std::cout << "\tSkipped " << count - dataset->size_rows() << " data points from beginning of file." << std::endl;
+    if (settings::axes::skip != 0) {
+        console::print_text("Skipped " + std::to_string(count - dataset->size_rows()) + " data points from beginning of file.");
     }
 
     // verify that at least one row was read correctly
@@ -154,7 +148,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
         }
     }
     if (unit == settings::general::QUnit::NM) {
-        if (settings::general::verbose) {std::cout << "\tScaling all q-values by 1/10 to convert from [nm] to [A]." << std::endl;}
+        console::print_text("Scaling all q-values by 1/10 to convert from [nm] to [A].");
         for (unsigned int i = 0; i < dataset->size_rows(); i++) {
             dataset->index(i, 0) /= 10;
         }
@@ -163,8 +157,11 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     // remove all rows outside the specified q-range
     unsigned int N = dataset->size_rows();
     dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
-    if (N != dataset->size_rows() && settings::general::verbose) {
-        std::cout << "\tRemoved " << N - dataset->size_rows() << " data points outside specified q-range [" << settings::axes::qmin << ", " << settings::axes::qmax << "]." << std::endl;
+    if (N != dataset->size_rows()) {
+        console::print_text(
+            "Removed " + std::to_string(N - dataset->size_rows()) + " data points outside specified q-range "
+            "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(settings::axes::qmax) + "]."
+        );
     }
 
     // check if the file is abnormally large
@@ -177,14 +174,11 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
         // check if file has already been rebinned
         if (line.find("REBINNED") == std::string::npos) {
             // if not, suggest it to the user
-            if (settings::general::verbose) {
-                std::cout << "\tFile contains more than 300 rows. Consider rebinning the data." << std::endl;
-            }
+            console::print_text("File contains more than 300 rows. Consider rebinning the data.");
         }
     }
 
-    if (settings::general::verbose) {
-        std::cout << "\tSuccessfully read " << dataset->size_rows() << " data points from " << path << std::endl;
-    }
+    console::print_text("Successfully read " + std::to_string(dataset->size_rows()) + " data points");
+    console::unindent();
     return dataset;
 }
