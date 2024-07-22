@@ -2,7 +2,7 @@ name: Compile & test
 
 on:
   pull_request:
-    types: [review_requested]
+    branches: [master]
 
 permissions:
   checks: write
