@@ -41,9 +41,10 @@ Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
         int resSeq = std::max(atoms[i].resSeq, 0); // in some files resSeq starts negative
 
         if (split_at[resSeq]) {
-            std::vector<Atom> a(begin, begin+i);
+            std::vector<Atom> a(begin, atoms.begin()+i);
             bodies[index_body++] = Body(a);
             split_at[resSeq] = false; // mark it as false so we won't split again on the next atom
+            begin = atoms.begin() + i;
         }
     }
     bodies[index_body] = Body(std::vector<Atom>(begin, atoms.end()));
