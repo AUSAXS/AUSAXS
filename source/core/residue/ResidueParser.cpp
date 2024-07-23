@@ -201,6 +201,15 @@ Residue Residue::parse(const io::ExistingFile& filename) {
         residue.atoms[(residue.name_map.at("N"))].hydrogen_bonds -= 1;
     }
 
+    // add aliases for O and OXT that are used in e.g. GROMACS output files
+    // ? it does not seem like there is any way to distinguish between the single and double bonded O's
+    // ? since there is at most a single O-terminus, the impact of switching them is minimal anyway
+    residue.add_atom("OC1", "OC1", constants::atom_t::O);
+    residue.atoms.back().hydrogen_bonds = 1;
+    residue.atoms.back().valency = 1; // single-bonded
+    residue.add_atom("OC2", "OC2", constants::atom_t::O);
+    residue.atoms.back().valency = 0; // double-bonded
+
     // check that the file was read correctly
     if (!found_atom_section || !found_bond_section) {
         throw except::io_error("Could not find atom or bond section in file \"" + filename + "\"");

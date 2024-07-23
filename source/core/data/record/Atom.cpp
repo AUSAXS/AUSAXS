@@ -139,7 +139,7 @@ void Atom::add_implicit_hydrogens() {
         atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
     } catch (const except::base&) {
         throw except::invalid_argument(
-            "Atom::parse_pdb: Could not set effective charge. Unknown element, residual or atom: "
+            "Atom::add_implicit_hydrogens: Could not identify group of atom " + std::to_string(serial) + ". Unknown element, residual or atom: "
             "(" + constants::symbols::to_string(element) + ", " + this->resName + ", " + this->name + ")"
         );
     }
