@@ -281,7 +281,7 @@ namespace data::record {
              * 
              * @return The mass in u.
              */
-            double get_mass() const;
+            virtual double get_mass() const;
 
             /**
              * @brief Get the atomic group this Atom belongs to.

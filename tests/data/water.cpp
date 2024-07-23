@@ -21,7 +21,7 @@ TEST_CASE_METHOD(fixture, "Water::Water") {
         CHECK(w1.serial == 1);
         CHECK(w1.name == "C");
         CHECK(w1.altLoc == "");
-        CHECK(w1.resName == "LYS");
+        CHECK(w1.resName == "HOH");
         CHECK(w1.chainID == 'A');
         CHECK(w1.resSeq == 1);
         CHECK(w1.iCode == "");
@@ -38,7 +38,7 @@ TEST_CASE_METHOD(fixture, "Water::Water") {
         CHECK(w1.serial == 1);
         CHECK(w1.name == "C");
         CHECK(w1.altLoc == "");
-        CHECK(w1.resName == "LYS");
+        CHECK(w1.resName == "HOH");
         CHECK(w1.chainID == 'A');
         CHECK(w1.resSeq == 1);
         CHECK(w1.iCode == "");
@@ -66,6 +66,10 @@ TEST_CASE_METHOD(fixture, "Water::Water") {
         CHECK(w2.charge == "0");
         CHECK(w2.is_water() == true);
     }
+}
+
+TEST_CASE_METHOD(fixture, "Water::get_mass") {
+    CHECK(w1.get_mass() == constants::mass::get_mass(constants::atom_t::O) + 2*constants::mass::get_mass(constants::atom_t::H));
 }
 
 TEST_CASE_METHOD(fixture, "Water::get_type") {
