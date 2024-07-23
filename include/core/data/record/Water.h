@@ -9,6 +9,8 @@ namespace data::record {
             Water(Atom&& a) noexcept;
             Water(const Atom& a);
 
+            double get_mass() const override;
+
             RecordType get_type() const override;
 
             std::string get_recName() const override;

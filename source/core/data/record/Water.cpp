@@ -9,12 +9,14 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data::record;
 
-Water::Water(Atom&& a) noexcept : Atom(std::move(a)) {}
-Water::Water(const Atom& a) : Atom(a) {}
+Water::Water(Atom&& a) noexcept : Atom(std::move(a)) {set_residue_name("HOH");}
+Water::Water(const Atom& a) : Atom(a) {set_residue_name("HOH");}
 
 RecordType Water::get_type() const {return RecordType::WATER;}
 
 std::string Water::get_recName() const {return "HETATM";}
+
+double Water::get_mass() const {return constants::mass::get_mass(constants::atom_t::O) + 2*constants::mass::get_mass(constants::atom_t::H);}
 
 bool Water::is_water() const {return true;}
 
