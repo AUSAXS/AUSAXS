@@ -5,8 +5,8 @@
 #include <math/ConstexprMath.h>
 #include <constants/ConstantsMath.h>
 
-#define TRAUBE_FF false
-#define PONTIUS_FF true
+#define TRAUBE false
+#define SCHAEFER true
 namespace constants::displaced_volume {
     namespace {
         constexpr double volume(double radius) {
@@ -14,8 +14,8 @@ namespace constants::displaced_volume {
         }
     }
 
-    #if TRAUBE_FF
-        // from original CRYSOL paper: https://doi.org/10.1107/S0021889895007047
+    #if TRAUBE
+        // from original CRYSOL paper, 1995: https://doi.org/10.1107/S0021889895007047
         constexpr double CH  = 0.02159*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
         constexpr double CH2 = 0.02674*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
         constexpr double CH3 = 0.03189*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
@@ -31,7 +31,24 @@ namespace constants::displaced_volume {
         constexpr double O = 0.00913*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
         constexpr double S = 0.01986*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
 
-    #elif PONTIUS_FF
+    #elif SCHAEFER
+        // table I from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
+        constexpr double CH  = 12.430;
+        constexpr double CH2 = 22.033;
+        constexpr double CH3 = 34.092;
+        constexpr double NH  = 14.944;
+        constexpr double NH2 = 22.129;
+        constexpr double NH3 = 20.641;
+        constexpr double OH  = 23.266;
+        constexpr double SH  = 34.192;
+
+        constexpr double H   = volume(constants::radius::vdw::H);
+        constexpr double C   = 8.895;
+        constexpr double N   = 9.558;
+        constexpr double O   = 22.315;
+        constexpr double S   = 26.356;
+
+    #elif PONTIUS
         // from Pontius et al, 1996: https://doi.org/10.1006/jmbi.1996.0628
         constexpr double CH = 11.8;
         constexpr double CH2 = 20.9;
