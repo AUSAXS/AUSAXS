@@ -1,9 +1,12 @@
 #pragma once
 
+#include <rigidbody/sequencer/SequencerFwd.h>
+
 #include <rigidbody/sequencer/GenericElement.h>
 #include <rigidbody/sequencer/LoopElementCallback.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
 #include <utility/observer_ptr.h>
+#include <io/ExistingFile.h>
+#include <io/Folder.h>
 
 #include <string>
 #include <vector>
@@ -18,6 +21,7 @@ namespace rigidbody::sequencer {
     class SetupElement : public LoopElementCallback {
         public:
             SetupElement(observer_ptr<Sequencer> owner);
+            SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs);
             virtual ~SetupElement() = default;
 
             /**
@@ -35,6 +39,11 @@ namespace rigidbody::sequencer {
              * @param body_names Optional names for the bodies contained in the file.
              */
             SetupElement& load(const std::vector<std::string>& path, const std::vector<std::string>& body_names = {});
+
+            /**
+             * @brief Load a SAXS file. 
+             */
+            SetupElement& load(const io::ExistingFile& saxs);
 
             /**
              * @brief Load an existing rigidbody. 
@@ -119,8 +128,29 @@ namespace rigidbody::sequencer {
              */
             void _set_active_body(observer_ptr<RigidBody> body);
 
+            /**
+             * @brief Get the location of the configuration folder.
+             *        This may be empty if no configuration file was loaded. 
+             */
+            std::string _get_config_folder() const;
+
+            /**
+             * @brief Set the location of the configuration folder.
+             */
+            void _set_config_folder(const io::Folder& folder);
+
+            /**
+             * @brief Set the location of the SAXS measurement data.
+             */
+            void _set_saxs_path(const io::ExistingFile& saxs);
+
+        protected:
+            io::ExistingFile saxs_path;
+            std::vector<std::unique_ptr<GenericElement>> elements;
+
         private:
             std::unordered_map<std::string, unsigned int> body_names;
             observer_ptr<RigidBody> active_body = nullptr;
+            io::Folder config_folder;
     };
 }

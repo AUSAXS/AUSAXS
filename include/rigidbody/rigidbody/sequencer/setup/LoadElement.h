@@ -4,6 +4,7 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <utility/observer_ptr.h>
+#include <io/ExistingFile.h>
 
 #include <string>
 #include <vector>
@@ -12,8 +13,21 @@
 namespace rigidbody::sequencer {
     class LoadElement : public GenericElement {
         public:
-            LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {});
-            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {});
+            /**
+             * @brief Load multiple bodies from multiple files. One body is loaded from each file.
+             */
+            LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {}, const std::string& saxs_path = {});
+
+            /**
+             * @brief Load multiple bodies from a single file, separated at the designated indices. 
+             */
+            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {}, const std::string& saxs_path = {});
+
+            /**
+             * @brief Load multiple bodies from a single file, separated by the chainID. 
+             */
+            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names = {}, const std::string& saxs_path = {});
+
             ~LoadElement() override = default;
 
             void run() override;
@@ -23,5 +37,6 @@ namespace rigidbody::sequencer {
             std::unique_ptr<rigidbody::RigidBody> rigidbody;
 
             std::vector<std::string> load_wildcarded(const std::string& path);
+            std::pair<std::string, bool> lookup_file(const std::string& path);
     };
 }

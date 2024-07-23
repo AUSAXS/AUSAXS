@@ -358,7 +358,7 @@ TEST_CASE_METHOD(fixture, "Body::atom_size") {
 }
 
 // TODO: move to grid tests instead
-TEST_CASE("body_grid") {
+TEST_CASE("Body: body_grid") {
     SECTION("single") {
         Body b({Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)});
         grid::Grid g(Limit3D(-2, 2, -2, 2, -2, 2));

@@ -76,6 +76,11 @@ namespace io {
             [[nodiscard]] const std::string& extension() const noexcept; //< @copydoc extension()
 
             /**
+             * @brief Check if this object is initialized.
+             */
+            [[nodiscard]] bool empty() const noexcept;
+
+            /**
              * @brief Create this file on disk with the given contents.
              *        Parent directories are created if they do not already exist.
              *        If the file already exists, it is overwritten.

@@ -110,6 +110,76 @@ settings::rigidbody::ConstraintGenerationStrategyChoice get_constraint_strategy(
     throw except::invalid_argument("SequenceParser::get_constraint_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
+template<typename T>
+struct ArgResult {T value; bool found;};
+
+template<typename T>
+ArgResult<T> check_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args);
+
+template<>
+ArgResult<std::string> check_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    for (const auto& name : names) {
+        if (args.contains(name)) {
+            return {args.at(name)[0], true};
+        }
+    }
+    return {"", false};
+}
+
+template<>
+ArgResult<std::vector<std::string>> check_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    for (const auto& name : names) {
+        if (args.contains(name)) {
+            return {args.at(name), true};
+        }
+    }
+    return {{}, false};
+}
+
+template<>
+ArgResult<int> check_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    for (const auto& name : names) {
+        if (args.contains(name)) {
+            try {
+                return {std::stoi(args.at(name)[0]), true};
+            } catch (std::exception&) {
+                throw except::invalid_argument("SequenceParser::check_arg: \"" + args.at(name)[0] + "\" cannot be interpreted as an integer.");
+            }
+        }
+    }
+    return {0, false};
+}
+
+template<>
+ArgResult<std::vector<int>> check_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    for (const auto& name : names) {
+        if (args.contains(name)) {
+            std::vector<int> values;
+            try {
+                for (const auto& value : args.at(name)) {values.push_back(std::stoi(value));}
+            } catch (std::exception&) {
+                throw except::invalid_argument("SequenceParser::check_arg: \"" + args.at(name)[values.size()] + "\" cannot be interpreted as an integer.");
+            }
+            return {values, true};
+        }
+    }
+    return {{}, false};
+}
+
+template<>
+ArgResult<double> check_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    for (const auto& name : names) {
+        if (args.contains(name)) {
+            try {
+                return {std::stod(args.at(name)[0]), true};
+            } catch (std::exception&) {
+                throw except::invalid_argument("SequenceParser::check_arg: \"" + args.at(name)[0] + "\" cannot be interpreted as a decimal value.");
+            }
+        }
+    }
+    return {0.0, false};
+}
+
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     enum class Args {body1, body2, iatom1, iatom2, type};
@@ -122,78 +192,40 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
     };
     if (args.size() < 3) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"constraint\". Expected at least 3, but got " + std::to_string(args.size()) + ".");}
 
-    std::string body1, body2, type;
-    int iatom1, iatom2;
+    auto body1 = check_arg<std::string>(valid_args[Args::body1], args);
+    auto body2 = check_arg<std::string>(valid_args[Args::body2], args);
+    auto type  = check_arg<std::string>(valid_args[Args::type], args);
+    auto iatom1 = check_arg<int>(valid_args[Args::iatom1], args);
+    auto iatom2 = check_arg<int>(valid_args[Args::iatom2], args);
 
-    bool found_body1 = false, found_body2 = false, found_iatom1 = false, found_iatom2 = false, found_type = false;
-    for (const auto& name : valid_args[Args::body1]) {
-        if (args.contains(name)) {
-            found_body1 = true;
-            body1 = args.at(name)[0];
-            break;
-        }
-    }
+    if (!body1.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body1\".");}
+    if (!body1.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body2\".");}
 
-    for (const auto& name : valid_args[Args::body2]) {
-        if (args.contains(name)) {
-            found_body2 = true;
-            body2 = args.at(name)[0];
-            break;
-        }
-    }
-
-    for (const auto& name : valid_args[Args::type]) {
-        if (args.contains(name)) {
-            found_type = true;
-            type = args.at(name)[0];
-            break;
-        }
-    }
-
-    for (const auto& name : valid_args[Args::iatom1]) {
-        if (args.contains(name)) {
-            found_iatom1 = true;
-            iatom1 = std::stoi(args.at(name)[0]);
-            break;
-        }
-    }
-
-    for (const auto& name : valid_args[Args::iatom2]) {
-        if (args.contains(name)) {
-            found_iatom2 = true;
-            iatom2 = std::stoi(args.at(name)[0]);
-            break;
-        }
-    }
-
-    if (!found_body1) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body1\".");}
-    if (!found_body2) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body2\".");}
-
-    if (!(found_iatom1 && found_iatom2)) {
-        if (!found_type) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"iatom1\", and \"iatom2\", or \"type\".");}
-        if (type == "closest") {
+    if (!(iatom1.found && iatom2.found)) {
+        if (!type.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"iatom1\", and \"iatom2\", or \"type\".");}
+        if (type.value == "closest") {
             return std::make_unique<ConstraintElement>(
                 static_cast<Sequencer*>(loop_stack.front()), 
-                body1, 
-                body2
+                body1.value, 
+                body2.value
             );
         }
-        if (type == "center_mass") {
+        if (type.value == "center_mass") {
             return std::make_unique<ConstraintElement>(
                 static_cast<Sequencer*>(loop_stack.front()), 
-                body1, 
-                body2,
+                body1.value, 
+                body2.value,
                 true
             );
         }
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for \"type\": \"" + type + "\".");
+        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for \"type\": \"" + type.value + "\".");
     } else {
         return std::make_unique<ConstraintElement>(
             static_cast<Sequencer*>(loop_stack.front()), 
-            body1, 
-            body2,
-            iatom1,
-            iatom2
+            body1.value, 
+            body2.value,
+            iatom1.value,
+            iatom2.value
         );
     }
 }
@@ -206,53 +238,34 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Aut
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {paths, splits, names};
+    enum class Args {paths, splits, names, saxs};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::paths, {"path", "paths", "load", "anonymous"}},
+        {Args::paths, {"path", "paths", "load", "pdb", "anonymous"}},
         {Args::splits, {"splits", "split"}},
-        {Args::names, {"names", "name"}}
+        {Args::names, {"names", "name"}},
+        {Args::saxs, {"saxs_path", "saxs"}}
     };
-    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"load\". Expected at least one argument.");}
+    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Invalid number of arguments. Expected at least one.");}
 
-    std::vector<std::string> paths, names;
-    std::vector<int> splits;
+    auto paths = check_arg<std::vector<std::string>>(valid_args[Args::paths], args);
+    auto names = check_arg<std::vector<std::string>>(valid_args[Args::names], args);
+    auto saxs_path = check_arg<std::string>(valid_args[Args::saxs], args);
+    if (!paths.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Missing required argument \"paths\".");}
 
-    std::string current_arg;
-    for (const auto& name : valid_args[Args::paths]) {
-        if (args.contains(name)) {
-            current_arg = name;
-            paths = args.at(name);
-            break;
-        }
-    }
-    if (current_arg.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"paths\".");}
-
-    for (const auto& name : valid_args[Args::splits]) {
-        if (args.contains(name)) {
-            for (const auto& split : args.at(name)) {
-                try {
-                    splits.push_back(std::stoi(split));
-                } catch (std::invalid_argument& e) {
-                    throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for splits: \"" + split + "\".");
-                }
-            }
-            break;
+    {   // check the special case of splitting by chainID
+        auto split_test = check_arg<std::string>(valid_args[Args::splits], args);
+        if (split_test.found && split_test.value == "chain") {
+            if (paths.value.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Chain splitting can only be used with a single path.");}
+            return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], names.value, saxs_path.value);
         }
     }
 
-    for (const auto& name : valid_args[Args::names]) {
-        if (args.contains(name)) {
-            names = args.at(name);
-            break;
-        }
+    auto splits = check_arg<std::vector<int>>(valid_args[Args::splits], args);
+    if (splits.found) {
+        if (paths.value.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Splits can only be used with a single path.");}
+        return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], splits.value, names.value, saxs_path.value);
     }
-
-    if (!splits.empty()) {
-        if (paths.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Splits can only be used with a single path.");}
-        return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths[0], splits, names);
-    }
-
-    return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths, names);
+    return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value, names.value, saxs_path.value);
 }
 
 template<>
@@ -283,54 +296,18 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     };
     if (args.size() != valid_args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"parameter\". Expected 5, but got " + std::to_string(args.size()) + ".");}
 
-    int iterations = -1;
-    double radians = -1, angstroms = -1;
     settings::rigidbody::ParameterGenerationStrategyChoice strategy = settings::rigidbody::ParameterGenerationStrategyChoice::Simple;
     settings::rigidbody::DecayStrategyChoice decay_strategy = settings::rigidbody::DecayStrategyChoice::Linear;
 
-    std::string current_arg;
-    try {
-        for (const auto& name : valid_args[Args::iterations]) {
-            if (args.contains(name)) {
-                current_arg = name;
-                iterations = std::stoi(args.at(name)[0]);
-                break;
-            }
-        }
-    } catch (std::invalid_argument& e) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for parameter iterations: \"" + current_arg + "\".");
-    }
-    if (current_arg.empty() || iterations == -1) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"iterations\".");}
+    auto iterations = check_arg<int>(valid_args[Args::iterations], args);
+    auto angstroms = check_arg<double>(valid_args[Args::angstroms], args);
+    auto radians = check_arg<double>(valid_args[Args::radians], args);
 
-    current_arg = "";
-    try {
-        for (const auto& name : valid_args[Args::angstroms]) {
-            if (args.contains(name)) {
-                current_arg = name;
-                angstroms = std::stoi(args.at(name)[0]);
-                break;
-            }
-        }
-    } catch (std::invalid_argument& e) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for parameter angstroms: \"" + current_arg + "\".");
-    }
-    if (current_arg.empty() || angstroms == -1) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"angstroms\".");}
+    if (!iterations.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"iterations\".");}
+    if (!angstroms.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"angstroms\".");}
+    if (!radians.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"radians\".");}
 
-    current_arg = "";
-    try {
-        for (const auto& name : valid_args[Args::radians]) {
-            if (args.contains(name)) {
-                current_arg = name;
-                radians = std::stod(args.at(name)[0]);
-                break;
-            }
-        }
-    } catch (std::invalid_argument& e) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for parameter radians: \"" + current_arg + "\".");
-    }
-    if (current_arg.empty() || radians == -1) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"radians\".");}
-
-    current_arg = "";
+    std::string current_arg = "";
     for (const auto& name : valid_args[Args::strategy]) {
         if (args.contains(name)) {
             current_arg = name;
@@ -353,9 +330,9 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     return std::make_unique<ParameterElement>(
         loop_stack.back(),
         rigidbody::factory::create_parameter_strategy(
-            rigidbody::factory::create_decay_strategy(iterations, decay_strategy),
-            angstroms,
-            radians,
+            rigidbody::factory::create_decay_strategy(iterations.value, decay_strategy),
+            angstroms.value,
+            radians.value,
             strategy
         )
     );
@@ -425,30 +402,36 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Rel
         );
     }
 
+    int N = rigidbody->size_body();
+    std::unordered_map<int, bool> found_generic;
+    for (int i = 1; i <= N; ++i) {found_generic[i] = false;}
+
     std::vector<double> ratios;
     std::vector<std::string> names;
-    bool generic = false;
-    unsigned int i = 1;
     for (const auto& [name, value] : args) {
         double val = to_value(options[value[0]]);
 
-        // check if generic names are used
-        if (name == "body" + std::to_string(i++)) {
+        if (name.starts_with("body")) {
+            int body = std::stoi(name.substr(4));
+            if (body < 1 || body > N) {
+                throw except::invalid_argument("SequenceParser::parse_arguments: Invalid body index \"" + name + "\".");
+            }
             ratios.push_back(val);
-            generic = true;
+            found_generic[body] = true;
             continue;
-        }
-
-        if (generic) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
         }
 
         names.push_back(name);
         ratios.push_back(val);
     }
 
-    if (generic) {
+    if (names.empty()) { // only empty if no custom names were given
+        if (std::any_of(found_generic.begin(), found_generic.end(), [] (const auto& p) {return !p.second;})) {
+            throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
+        }
         return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), ratios);
+    } else if (names.size() != ratios.size()) {
+        throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
     }
     return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), ratios, names);
 }
@@ -479,15 +462,13 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Ove
         {Args::distance, {"max", "max_distance", "distance"}}
     };
     if (args.size() != valid_args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"overlap_strength\". Expected 2, but got " + std::to_string(args.size()) + ".");}
-    double scaling, distance;
-    try {
-        scaling = std::stod(args.at("scaling")[0]);
-        distance = std::stod(args.at("distance")[0]);
-    } catch (std::invalid_argument& e) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for \"overlap_strength\". Expected decimal values.");
-    }
 
-    static_cast<Sequencer*>(loop_stack.front())->set_overlap_function([scaling, distance] (double x) {return x < distance ? scaling*std::pow((distance-x)/distance, 2) : 0;});
+    auto scaling  = check_arg<double>(valid_args[Args::scaling], args);
+    auto distance = check_arg<double>(valid_args[Args::distance], args);
+    if (!scaling.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"scaling\".");}
+    if (!distance.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"distance\".");}
+
+    static_cast<Sequencer*>(loop_stack.front())->set_overlap_function([a=scaling.value, d=distance.value] (double x) {return x < d ? a*std::pow((d-x)/d, 2) : 0;});
     return nullptr;
 }
 
@@ -502,13 +483,14 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sav
     return nullptr;
 }
 
-std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config, const io::ExistingFile& saxs) {
+std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config) {
     std::ifstream in(config.path());
     if (!in.is_open()) {throw except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}
 
-    std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>(saxs);
+    std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>();
     loop_stack = {sequencer.get()};
-
+    sequencer->_set_config_folder(config.directory());
+    
     std::string line;
     while(!in.eof()) {
         // read the next line

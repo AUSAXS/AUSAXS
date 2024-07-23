@@ -8,20 +8,83 @@
 
 TEST_CASE("BodySplitter::split") {
     settings::general::verbose = false;
-    std::vector<int> splits = {9, 99};
-    data::Molecule protein = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", splits);
 
-    // check sizes
-    REQUIRE(protein.size_body() == 3);
-    data::Body &b1 = protein.get_body(0), &b2 = protein.get_body(1), &b3 = protein.get_body(2);
+    auto test_splits = [] (std::string_view file, std::vector<int>&& splits) {
+        data::Molecule protein = rigidbody::BodySplitter::split(file, splits);
+        
+        std::vector<unsigned int> expected_sizes;
+        int count = 0;
+        for (int split = 0; auto& a : protein.get_atoms()) {
+            if (a.get_residue_sequence_number() == splits[split]) {
+                expected_sizes.push_back(count);
+                ++split;
+                count = 1;
+            } else {
+                ++count;
+            }
+        }
+        expected_sizes.push_back(count);
 
-    REQUIRE(b1.get_atoms().size() == 136);
-    REQUIRE(b2.get_atoms().size() == 812-136);
-    REQUIRE(b3.get_atoms().size() == 1606-812);
+        REQUIRE(protein.size_body() == expected_sizes.size());
+        for (unsigned int i = 0; i < expected_sizes.size(); ++i) {
+            auto& atoms = protein.get_body(i).get_atoms();
+            REQUIRE(atoms.size() == expected_sizes[i]);
 
-    // check start and end resseq
-    CHECK(b1.get_atoms().back().resSeq == 8);
-    CHECK(b2.get_atom(0).resSeq == 9);
-    CHECK(b2.get_atoms().back().resSeq == 98);
-    CHECK(b3.get_atom(0).resSeq == 99);
+            if (1 <= i) {
+                CHECK(atoms.front().get_residue_sequence_number() == splits[i-1]);
+            }
+            if (i < splits.size()) {
+                CHECK(atoms.back().get_residue_sequence_number() == splits[i]-1);
+            }
+        }
+    };
+
+    SECTION("LAR1-2") {
+        SECTION("1 split") {
+            test_splits("tests/files/LAR1-2.pdb", {9});
+        }
+
+        SECTION("2 splits") {
+            test_splits("tests/files/LAR1-2.pdb", {9, 99});
+        }
+
+        SECTION("many splits") {
+            test_splits("tests/files/LAR1-2.pdb", {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 200});
+        }
+    }
+
+    SECTION("2epe") {
+        SECTION("1 split") {
+            test_splits("tests/files/2epe.pdb", {10});
+        }
+
+        SECTION("2 splits") {
+            test_splits("tests/files/2epe.pdb", {10, 50});
+        }
+
+        SECTION("many splits") {
+            test_splits("tests/files/2epe.pdb", {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100});
+        }
+    }
+
+    SECTION("SASDJG5") {
+        SECTION("1 split") {
+            test_splits("tests/files/SASDJG5.pdb", {10});
+        }
+
+        SECTION("2 splits") {
+            test_splits("tests/files/SASDJG5.pdb", {10, 50});
+        }
+
+        SECTION("many splits") {
+            test_splits("tests/files/SASDJG5.pdb", {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100});
+        }
+
+        SECTION("by chain") {
+            data::Molecule protein = rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb");
+            REQUIRE(protein.size_body() == 2);
+            REQUIRE(protein.get_body(0).size_atom() == 2367);
+            REQUIRE(protein.get_body(1).size_atom() == 2367);
+        }
+    }
 }
