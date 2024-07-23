@@ -1,8 +1,14 @@
 ![title_light](../media/title_dark.png?raw=true#gh-light-mode-only)
 ![title_dark](../media/title_light.png?raw=true#gh-dark-mode-only)
 
-![GitHub Release](https://img.shields.io/github/v/release/AUSAXS/AUSAXS)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AUSAXS/AUSAXS/build-and-test.yml?branch=master)
+<a href="https://github.com/AUSAXS/AUSAXS/releases/latest">
+  <img alt="Release shield"
+       src="https://img.shields.io/github/v/release/AUSAXS/AUSAXS"/>
+</a>
+<a href="https://github.com/AUSAXS/AUSAXS/actions/workflows/build-and-test.yml?query=branch%3Amaster">
+  <img alt="Latest build shield"
+       src="https://img.shields.io/github/actions/workflow/status/AUSAXS/AUSAXS/build-and-test.yml?branch=master"/>
+</a>
 <a href="https://scan.coverity.com/projects/ausaxs-ausaxs">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/30350/badge.svg"/>
