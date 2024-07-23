@@ -1,6 +1,13 @@
 ![title_light](../media/title_dark.png?raw=true#gh-light-mode-only)
 ![title_dark](../media/title_light.png?raw=true#gh-dark-mode-only)
 
+![GitHub Release](https://img.shields.io/github/v/release/AUSAXS/AUSAXS)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AUSAXS/AUSAXS/build-and-test.yml?branch=master)
+<a href="https://scan.coverity.com/projects/ausaxs-ausaxs">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/30350/badge.svg"/>
+</a>
+
 # Main features
 - **Simple foundation**: We have implemented the methods in the simplest possible way, making as few assumptions about your data as possible. With the Debye equation as the basis for the scattering profiles, the only loss of accuracy is through the histogram approximation, where we support using both weighted and unweighted bins depending on your preferences. By implementing the technique in modern C++ with efficiency in mind, we have managed to achieve some of the [best performance available](https://github.com/klytje/AUSAXS/blob/media/benchmark.png).
 - **Fitting of high-resolution models to SAXS curves**: Fit atomic structure files using experimental SAXS data using an efficient implementation of the Debye equation. Various options are available regarding the handling of both the excluded volume and hydration shell. 
