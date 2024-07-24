@@ -39,7 +39,7 @@ int main(int argc, char const *argv[]) {
     // protein options group
     app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered.")->default_val(settings::molecule::center)->group("Protein options");
     app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::molecule::use_effective_charge)->group("Protein options");
-    app.add_flag("--use-existing-hydration,!--ignore-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
+    app.add_flag("--keep-hydration,!--discard-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
     app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", settings::hist::fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(settings::hist::fit_excluded_volume)->group("Protein options");
     app.add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy)->group("Protein options");
 
@@ -51,7 +51,7 @@ int main(int argc, char const *argv[]) {
     app.add_option_function<std::string>("--histogram-manager,--hm", [] (const std::string& s) {settings::detail::parse_option("histogram_manager", {s});}, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
     app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, "Decides whether the program will exit if an unknown atom is encountered.")->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
     app.add_flag("--implicit-hydrogens,!--no-implicit-hydrogens", settings::molecule::implicit_hydrogens, "Decides whether implicit hydrogens will be added to the structure.")->default_val(settings::molecule::implicit_hydrogens)->group("Advanced options");
-    app.add_flag("--keep-hydrogens,!--no-keep-hydrogens", settings::general::keep_hydrogens, "Decides whether hydrogens will be kept in the structure.")->default_val(settings::general::keep_hydrogens)->group("Advanced options");
+    app.add_flag("--keep-hydrogens,!--discard-hydrogens", settings::general::keep_hydrogens, "Decides whether hydrogens will be kept in the structure.")->default_val(settings::general::keep_hydrogens)->group("Advanced options");
 
     // hidden options group
     app.add_option("--rvol", settings::grid::rvol, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::rvol)->group("");
@@ -99,7 +99,10 @@ int main(int argc, char const *argv[]) {
         //######################//
         data::Molecule protein(pdb);
         if (settings::molecule::implicit_hydrogens) {protein.add_implicit_hydrogens();}
-        if (!use_existing_hydration || protein.size_water() == 0) {protein.generate_new_hydration();}
+        if (!use_existing_hydration || protein.size_water() == 0) {
+            if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
+            protein.generate_new_hydration();
+        }
 
         std::shared_ptr<fitter::HydrationFitter> fitter;
         if (settings::hist::fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
