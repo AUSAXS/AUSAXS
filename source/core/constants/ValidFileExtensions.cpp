@@ -1,10 +1,10 @@
-#include <constants/FileExtensions.h>
+#include <constants/ValidFileExtensions.h>
 
 #include <io/File.h>
 #include <utility/StringUtils.h>
 
 template<std::size_t N>
-bool constants::filetypes::detail::FileType<N>::validate(const io::File& path) const {
+bool constants::filetypes::detail::FileType<N>::check(const io::File& path) const {
     if (!path.exists()) {return false;}
     auto file_ext = utility::to_lowercase(path.extension()); 
     for (const auto& ext : extensions) {

@@ -57,7 +57,7 @@ int main(int argc, char const *argv[]) {
         settings::general::output += mfile.stem() + "/";
 
         // check if pdb is a config script
-        if (constants::filetypes::rigidbody_config.validate(pdb)) {
+        if (constants::filetypes::config.check(pdb)) {
             auto res = rigidbody::sequencer::SequenceParser().parse(pdb)->execute();
             fitter::FitReporter::report(res.get());
             fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
@@ -84,15 +84,11 @@ int main(int argc, char const *argv[]) {
         if (p_cal->count() != 0) {
             if (settings::rigidbody::detail::calibration_file.empty()) {
                 // look for calibration file in the same directory as the measurement file
-                std::vector<std::string> valid_names = {"calibration", "gromacs", "waxs_final"};
-                for (const auto& name : valid_names) {
-                    for (const auto& ext : constants::filetypes::saxs_data.extensions) {
-                        std::string path = std::filesystem::path(mfile.path()).parent_path().string() + "/" + name + "." + ext;
-                        if (std::filesystem::exists(path)) {
-                            settings::rigidbody::detail::calibration_file = path;
-                            std::cout << "\tUsing calibration file: \"" << path << "\"" << std::endl;
-                            break;
-                        }
+                for (const auto& f : mfile.directory().files()) {
+                    if (constants::filetypes::saxs_data.check(f)) {
+                        settings::rigidbody::detail::calibration_file = f.path();
+                        std::cout << "\tUsing calibration file: \"" << f.path() << "\"" << std::endl;
+                        break;
                     }
                 }
             }

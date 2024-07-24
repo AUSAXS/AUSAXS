@@ -81,16 +81,16 @@ int main(int argc, char const *argv[]) {
         settings::validate_settings();
 
         // validate input
-        if (!constants::filetypes::structure.validate(pdb)) {
+        if (!constants::filetypes::structure.check(pdb)) {
             // check if the two inputs are switched
-            if (constants::filetypes::structure.validate(mfile)) {
+            if (constants::filetypes::structure.check(mfile)) {
                 // if so, silently swap them and proceed
                 std::swap(pdb, mfile);
             } else {
                 throw except::invalid_argument("Unknown PDB extensions: " + pdb + " and " + mfile);
             }
         }
-        if (!constants::filetypes::saxs_data.validate(mfile)) {
+        if (!constants::filetypes::saxs_data.check(mfile)) {
             throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
         }
 
