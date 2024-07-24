@@ -12,7 +12,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
 #include <settings/GeneralSettings.h>
-#include <constants/Axes.h>
 #include <utility/MultiThreading.h>
 
 using namespace hist;

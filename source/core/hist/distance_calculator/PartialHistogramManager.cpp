@@ -3,7 +3,6 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <algorithm>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution1D.h>
@@ -12,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/state/StateManager.h>
 #include <data/Molecule.h>
 #include <settings/HistogramSettings.h>
-#include <constants/Axes.h>
+
+#include <algorithm>
 
 using namespace hist;
 

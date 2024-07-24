@@ -59,14 +59,14 @@ int main(int argc, char const *argv[]) {
         settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 
         // validate input
-        if (!constants::filetypes::em_map.validate(mapfile)) {
-            if (constants::filetypes::em_map.validate(mfile)) {
+        if (!constants::filetypes::em_map.check(mapfile)) {
+            if (constants::filetypes::em_map.check(mfile)) {
                 std::swap(mapfile, mfile);
             } else {
                 throw except::invalid_argument("Unknown EM extensions: \"" + mapfile + "\" and \"" + mfile + "\"");
             }
         }
-        if (!constants::filetypes::saxs_data.validate(mfile)) {
+        if (!constants::filetypes::saxs_data.check(mfile)) {
             throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile + "\"");
         }
 

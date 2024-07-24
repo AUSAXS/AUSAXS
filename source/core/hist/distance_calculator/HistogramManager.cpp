@@ -8,14 +8,14 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
+#include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/detail/CompactCoordinates.h>
 #include <hist/distribution/GenericDistribution1D.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <settings/HistogramSettings.h>
-#include <constants/Axes.h>
-#include <hist/distance_calculator/detail/TemplateHelpers.h>
+#include <constants/ConstantsAxes.h>
 
 using namespace hist;
 

@@ -2,7 +2,7 @@
 
 #include <container/Container3D.h>
 #include <hist/distribution/WeightedDistribution3D.h>
-#include <constants/Axes.h>
+#include <constants/ConstantsAxes.h>
 #include <utility/TypeTraits.h>
 
 namespace hist {

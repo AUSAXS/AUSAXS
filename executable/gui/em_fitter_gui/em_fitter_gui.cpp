@@ -76,14 +76,14 @@ auto io_menu(gui::view& view) {
 		}
 
 		static unsigned int last_size = 0;
-		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::em_map.validate(p);});
+		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::em_map.check(p);});
 		if (!fill.first.empty()) {map_box.second->set_text(fill.first);}
 		if (fill.second) {map_box.second->on_enter(fill.first);}
 	};
 
 	map_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
-		if (!constants::filetypes::em_map.validate(file)) {
+		if (!constants::filetypes::em_map.check(file)) {
 			std::cout << "invalid map file " << file.path() << std::endl;
 			map_box_bg = bred;
 			map_ok = false;
@@ -107,7 +107,7 @@ auto io_menu(gui::view& view) {
 			if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return true;}
 			for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
 				io::File tmp(p.path().string());
-				if (constants::filetypes::saxs_data.validate(tmp)) {
+				if (constants::filetypes::saxs_data.check(tmp)) {
 					settings::saxs_file = tmp.path();
 					saxs_box.second->set_text(tmp.path());
 					saxs_box.second->on_enter(tmp.path());
@@ -137,14 +137,14 @@ auto io_menu(gui::view& view) {
 		}
 
 		static unsigned int last_size = 0;
-		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::saxs_data.validate(p);});
+		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::saxs_data.check(p);});
 		if (!fill.first.empty()) {saxs_box.second->set_text(fill.first);}
 		if (fill.second) {saxs_box.second->on_enter(fill.first);}
 	};
 
 	saxs_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
-		if (!constants::filetypes::saxs_data.validate(file)) {
+		if (!constants::filetypes::saxs_data.check(file)) {
 			std::cout << "invalid saxs file " << file.path() << std::endl;
 			saxs_box_bg = bred;
 			saxs_ok = false;

@@ -8,16 +8,15 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <numeric>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
 #include <data/Molecule.h>
-#include <constants/Axes.h>
 #include <utility/MultiThreading.h>
 #include <container/ThreadLocalWrapper.h>
 
 #include <mutex>
+#include <numeric>
 
 using namespace hist;
 

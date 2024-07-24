@@ -1,7 +1,7 @@
 #pragma once
 
 #include <container/Container1D.h>
-#include <constants/Axes.h>
+#include <constants/ConstantsAxes.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <utility/TypeTraits.h>
 

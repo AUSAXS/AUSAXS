@@ -34,8 +34,9 @@ int main(int argc, char const *argv[]) {
         .bufmdp = std::make_shared<TimeAnalysisMDPCreatorSol>(),
         .molmdp = std::make_shared<TimeAnalysisMDPCreatorMol>(),
     };
-    gmx::gmx::set_cmdlog(sele.output + "cmd.log");
-    gmx::gmx::set_outputlog(sele.output + "output.log");
+
+    if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
+    gmx::gmx::set_logfile(sele.output + "output.log", sele.output + "cmd.log");
     PDBFile pdb(s_pdb);
 
     // prepare sims
