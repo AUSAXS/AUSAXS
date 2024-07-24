@@ -92,7 +92,7 @@ namespace form_factor::crysol {
                     case form_factor_t::O:                  return O;
                     case form_factor_t::S:                  return S;
                     case form_factor_t::CH:                 return CH_sp3;
-                    case form_factor_t::CH2:                return CH_sp2;
+                    case form_factor_t::CH2:                return CH2_sp3;
                     case form_factor_t::CH3:                return CH3_sp3;
                     case form_factor_t::NH:                 return NH;
                     case form_factor_t::NH2:                return NH2;

@@ -100,7 +100,7 @@ namespace form_factor {
                 case form_factor_t::CH:                 return CH_sp3;
                 case form_factor_t::CH2:                return CH2_sp3;
                 case form_factor_t::CH3:                return CH3_sp3;
-                case form_factor_t::NH:                 return NH2;
+                case form_factor_t::NH:                 return NH;
                 case form_factor_t::NH2:                return NH2;
                 case form_factor_t::NH3:                return NH3_plus;
                 case form_factor_t::OH:                 return OH_alc;
