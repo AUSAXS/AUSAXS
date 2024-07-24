@@ -40,7 +40,7 @@ ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images
 }
 
 ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
-    constants::filetypes::em_map.validate(file);
+    constants::filetypes::em_map.check(file);
     header = em::detail::factory::create_header(file);
 
     std::ifstream input(file, std::ios::binary);
