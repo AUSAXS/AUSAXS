@@ -497,19 +497,19 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh() c
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(q);}
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-            pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table, &ff_table] () {
-                for (unsigned int q = q0; q < q0+bins; ++q) {
+            // pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table, &ff_table] () {
+                for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     if constexpr (refresh_sinqd) {
                         cache.sinqd.aa.index(ff1, ff2) = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                         cache.intensity_profiles.aa[q-q0] += cache.sinqd.aa.index(ff1, ff2)*ff_table.index(ff1, ff2).evaluate(q);
                     }
                 }
-            });
+            // });
         }
-
         pool->detach_task([this, q0, bins=debye_axis.bins, ff1, sinqd_table, &ff_table, &cx] () {
             for (unsigned int q = q0; q < q0+bins; ++q) {
                 if constexpr (refresh_sinqd) {
+                    std::ignore = distance_profiles.aa.end(ff1, form_factor::exv_bin);
                     cache.sinqd.ax.index(ff1) = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
                     cache.sinqd.aw.index(ff1) = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
                 }
@@ -522,8 +522,8 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh() c
             }
         });
     }
-    pool->detach_task([this, q0, bins=debye_axis.bins, sinqd_table, &ff_table, &cx] () {
-        for (unsigned int q = q0; q < q0+bins; ++q) {
+    pool->detach_task([&] () {
+        for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             if constexpr (refresh_sinqd) {
                 cache.sinqd.xx = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
                 cache.sinqd.wx = std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
