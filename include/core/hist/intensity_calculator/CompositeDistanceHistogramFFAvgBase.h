@@ -151,13 +151,53 @@ namespace hist {
             struct {double cw=1, cx=1;} free_params;
             struct {Distribution3D aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
 
-        private:
-            // cached profiles for the different interactions
-            mutable struct {Distribution1D p_aa, p_aw, p_ww;} cached_profiles;
-
+        public:
             /**
              * @brief Get the q-dependent multiplicative factor for the excluded volume form factor.
              */
             virtual double exv_factor(double q) const;
+
+            //#################################//
+            //###           CACHE           ###//
+            //#################################//
+            template<bool refresh_sinqd, bool cw_changed, bool cx_changed>
+            void cache_refresh() const;
+
+            template<bool sinqd_changed, bool cw_changed, bool cx_changed>
+            void cache_refresh_intensity_profiles() const;
+            void cache_refresh_sinqd() const;
+
+            /**
+             * @brief Get the cached intensity profiles.
+             * 
+             * @return [aa, ax, aw, xx, wx, ww]
+             */
+            [[nodiscard]] std::tuple<
+                const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
+                const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
+            > cache_get_intensity_profiles() const;
+
+            mutable struct {
+                // cached sinqd vals for each form factor combination
+                // indexing as [ff1][ff2]
+                mutable struct {
+                    container::Container2D<double> aa;
+                    container::Container1D<double> ax;
+                    container::Container1D<double> aw;
+                    double xx;
+                    double wx;
+                    double ww;
+                    bool valid = false;
+                } sinqd;
+
+                mutable struct {
+                    Distribution1D p_aa, p_aw, p_ww;
+                } distance_profiles;
+
+                mutable struct {
+                    std::vector<double> aa, ax, aw, xx, wx, ww;
+                    double cached_cx = -1, cached_cw = -1;
+                } intensity_profiles;
+            } cache;
     };
 }
