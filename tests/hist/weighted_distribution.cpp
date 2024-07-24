@@ -28,7 +28,6 @@
 #include <table/ArrayDebyeTable.h>
 
 #include "hist/hist_test_helper.h"
-#include "constants/Axes.h"
 #include "hist/intensity_calculator/DistanceHistogram.h"
 
 using namespace hist;
