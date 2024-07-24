@@ -1,6 +1,6 @@
 #pragma once
 
-#include <constants/Axes.h>
+#include <constants/ConstantsAxes.h>
 #include <utility/Utility.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>

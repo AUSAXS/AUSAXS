@@ -1,6 +1,6 @@
 #pragma once
 
-#include <constants/Axes.h>
+#include <constants/ConstantsAxes.h>
 #include <utility/TypeTraits.h>
 
 #include <iosfwd>

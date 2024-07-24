@@ -15,7 +15,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <container/ThreadLocalWrapper.h>
-#include <constants/Axes.h>
 #include <utility/MultiThreading.h>
 
 using namespace container;

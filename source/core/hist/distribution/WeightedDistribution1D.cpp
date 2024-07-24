@@ -3,9 +3,6 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include "constants/Axes.h"
-#include "hist/distribution/detail/WeightedEntry.h"
-#include <algorithm>
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/Distribution1D.h>
 #include <constants/Constants.h>
@@ -13,6 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cmath>
 #include <vector>
 #include <cassert>
+#include <algorithm>
 
 using namespace hist;
 

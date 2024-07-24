@@ -4,8 +4,9 @@
 #include <residue/ResidueStorage.h>
 #include <constants/ConstantsMath.h>
 #include <constants/ConstantsFwd.h>
+#include <constants/ConstantsAxes.h>
+#include <constants/FileExtensions.h>
 #include <constants/Version.h>
-#include <constants/Axes.h>
 #include <constants/SI.h>
 #include <io/IOFwd.h>
 #include <math/ConstexprMath.h>
@@ -16,35 +17,6 @@
  * @brief This namespace contains all constants used in this project. 
  */
 namespace constants {
-    namespace filetypes {
-        namespace detail {
-            struct FileType {
-                FileType(std::vector<std::string> extensions);
-
-                /**
-                 * @brief Validate if a file exists and has one of the allowed extensions for this file type.
-                 */
-                bool validate(const io::File& path) const;
-                std::vector<std::string> extensions;
-            };
-
-            struct SettingsType {
-                /**
-                 * @brief Validate if a file exists and has one of the default setting file names.
-                 */
-                bool validate(const io::File& path) const;
-            };
-        }
-
-        const detail::FileType structure =        {{".pdb",  ".ent"}};
-        const detail::FileType saxs_data =        {{".dat",  ".rsr",  ".xvg"}};
-        const detail::FileType em_map =           {{".map",  ".ccp4", ".mrc", ".rec"}};
-        const detail::FileType unit_cell =        {{".cell", ".uc"}};
-        const detail::FileType grid =             {{".grid"}};
-        const detail::FileType rigidbody_config = {{".config", ".conf", ".txt"}};
-        const detail::SettingsType setting;
-    }
-
     /**
      * @brief Radius
      * 

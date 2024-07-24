@@ -11,37 +11,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <stdexcept>
 
 namespace constants {
-    filetypes::detail::FileType::FileType(std::vector<std::string> extensions) {
-        for (auto& ext : extensions) {
-            ext = utility::to_lowercase(ext);
-        }
-        this->extensions = std::move(extensions);
-    }
-
-    bool filetypes::detail::FileType::validate(const io::File& path) const {
-        if (!path.exists()) {return false;}
-        std::string file_ext = utility::to_lowercase(path.extension()); 
-        for (const auto& ext : extensions) {
-            if (file_ext == ext) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool filetypes::detail::SettingsType::validate(const io::File& path) const {
-        static std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
-
-        if (!path.exists()) {return false;}
-        auto filename = utility::to_lowercase(::io::File(path).stem());
-        for (const auto& e : valid_names) {
-            if (filename == e) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     const saxs::detail::SimpleMap<char> name_1symbol_map = std::unordered_map<std::string, char>{
         {"glycine", 'G'}, {"alanine", 'A'}, {"valine", 'V'}, {"leucine", 'L'}, {"isoleucine", 'I'}, {"phenylalanine", 'F'}, {"tyrosine", 'Y'}, 
         {"tryptophan", 'W'}, {"aspartic_acid", 'D'}, {"glutamic_acid", 'E'}, {"serine", 'S'}, {"threonine", 'T'}, {"asparagine", 'N'}, 

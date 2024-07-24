@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <settings/GeneralSettings.h>
-#include <constants/Axes.h>
+#include <constants/ConstantsAxes.h>
 #include <utility/Console.h>
 
 using namespace rigidbody::constraints;
