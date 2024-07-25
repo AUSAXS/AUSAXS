@@ -308,24 +308,3 @@ TEST_CASE("plot_cmp", "[manual]") {
         .plot(ww, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{ww}$"}, {"color", style::color::brown}}))
     .save("temp/tests/composite_distance_histogram_ff_explicit/compare_ausaxs_x.png");
 }
-
-TEST_CASE("TEMP") {
-    settings::general::verbose = false;
-    data::Molecule protein("tests/files/2epe.pdb");
-    auto hist_data = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
-    auto hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());
-    auto ww = hist->get_profile_ww();
-    auto wx = hist->get_profile_wx();
-    auto xx = hist->get_profile_xx();
-    auto aw = hist->get_profile_aw();
-    auto ax = hist->get_profile_ax();
-    auto aa = hist->get_profile_aa();
-    auto[_aa, _ax, _aw, _xx, _wx, _ww] = hist->cache_get_intensity_profiles();
-
-    CHECK(compare_hist(ww, _ww));
-    CHECK(compare_hist(wx, _wx));
-    CHECK(compare_hist(xx, _xx));
-    CHECK(compare_hist(aw, _aw));
-    CHECK(compare_hist(ax, _ax));
-    CHECK(compare_hist(aa, _aa));
-}

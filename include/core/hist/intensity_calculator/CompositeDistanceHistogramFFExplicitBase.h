@@ -71,7 +71,7 @@ namespace hist {
 
             struct {hist::Distribution3D xx, ax; hist::Distribution2D wx;} exv_distance_profiles;
 
-        public:
+        private:
             //#################################//
             //###           CACHE           ###//
             //#################################//
