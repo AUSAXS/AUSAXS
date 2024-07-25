@@ -181,12 +181,12 @@ namespace hist {
                 // cached sinqd vals for each form factor combination
                 // indexing as [ff1][ff2]
                 mutable struct {
-                    container::Container2D<double> aa;
-                    container::Container1D<double> ax;
-                    container::Container1D<double> aw;
-                    double xx;
-                    double wx;
-                    double ww;
+                    container::Container3D<double> aa;
+                    container::Container2D<double> ax;
+                    container::Container2D<double> aw;
+                    container::Container1D<double> xx;
+                    container::Container1D<double> wx;
+                    container::Container1D<double> ww;
                     bool valid = false;
                 } sinqd;
 
