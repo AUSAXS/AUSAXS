@@ -61,16 +61,6 @@ namespace hist {
                 hist::WeightedDistribution1D&& p_tot
             );
 
-            // @copydoc DistanceHistogram::debye_transform() const
-            ScatteringProfile debye_transform() const override;
-
-            // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
-            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
-
-            virtual ScatteringProfile get_profile_ax() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_ax() const
-            virtual ScatteringProfile get_profile_xx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_xx() const
-            virtual ScatteringProfile get_profile_wx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_wx() const
-
             const AAFormFactorTableType get_ffaa_table() const;
             virtual const AXFormFactorTableType& get_ffax_table() const = 0;
             virtual const XXFormFactorTableType& get_ffxx_table() const = 0;
