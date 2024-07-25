@@ -160,11 +160,9 @@ namespace hist {
             //#################################//
             //###           CACHE           ###//
             //#################################//
-            template<bool refresh_sinqd, bool cw_changed, bool cx_changed>
-            void cache_refresh() const;
-
             template<bool sinqd_changed, bool cw_changed, bool cx_changed>
             void cache_refresh_intensity_profiles() const;
+            void cache_refresh_distance_profiles() const;
             void cache_refresh_sinqd() const;
 
             /**
@@ -177,21 +175,22 @@ namespace hist {
                 const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
             > cache_get_intensity_profiles() const;
 
+            [[nodiscard]] std::tuple<const Distribution1D&, const Distribution1D&, const Distribution1D&> 
+            cache_get_distance_profiles() const;
+
             mutable struct {
                 // cached sinqd vals for each form factor combination
                 // indexing as [ff1][ff2]
                 mutable struct {
                     container::Container3D<double> aa;
-                    container::Container2D<double> ax;
-                    container::Container2D<double> aw;
-                    container::Container1D<double> xx;
-                    container::Container1D<double> wx;
-                    container::Container1D<double> ww;
+                    container::Container2D<double> ax, aw;
+                    container::Container1D<double> xx, wx, ww;
                     bool valid = false;
                 } sinqd;
 
                 mutable struct {
                     Distribution1D p_aa, p_aw, p_ww;
+                    bool valid = false;
                 } distance_profiles;
 
                 mutable struct {

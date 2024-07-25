@@ -93,14 +93,8 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa
 
 template<typename FormFactorTableType>
 const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts() const {
-    if (!cache.distance_profiles.p_aa.empty()) {return cache.distance_profiles.p_aa;}
-    cache.distance_profiles.p_aa = Distribution1D(axis.bins, 0);
-    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-        for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-            std::transform(cache.distance_profiles.p_aa.begin(), cache.distance_profiles.p_aa.end(), distance_profiles.aa.begin(ff1, ff2), cache.distance_profiles.p_aa.begin(), std::plus<>());
-        }
-    }
-    return cache.distance_profiles.p_aa;
+    auto[aa, _, __] = cache_get_distance_profiles();
+    return aa;
 }
 
 template<typename FormFactorTableType>
@@ -108,12 +102,8 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw
 
 template<typename FormFactorTableType>
 const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts() const {
-    if (!cache.distance_profiles.p_aw.empty()) {return cache.distance_profiles.p_aw;}
-    cache.distance_profiles.p_aw = Distribution1D(axis.bins, 0);
-    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-        std::transform(cache.distance_profiles.p_aw.begin(), cache.distance_profiles.p_aw.end(), distance_profiles.aw.begin(ff1), cache.distance_profiles.p_aw.begin(), std::plus<>());
-    }
-    return cache.distance_profiles.p_aw;
+    auto[_, aw, __] = cache_get_distance_profiles();
+    return aw;
 }
 
 template<typename FormFactorTableType>
@@ -121,10 +111,8 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww
 
 template<typename FormFactorTableType>
 const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts() const {
-    if (!cache.distance_profiles.p_ww.empty()) {return cache.distance_profiles.p_ww;}
-    cache.distance_profiles.p_ww = Distribution1D(axis.bins, 0);
-    std::transform(cache.distance_profiles.p_ww.begin(), cache.distance_profiles.p_ww.end(), distance_profiles.ww.begin(), cache.distance_profiles.p_ww.begin(), std::plus<>());
-    return cache.distance_profiles.p_ww;
+    auto[_, __, ww] = cache_get_distance_profiles();
+    return ww;
 }
 
 template<typename FormFactorTableType>
@@ -210,6 +198,13 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_
 }
 
 template<typename FormFactorTableType>
+std::tuple<const Distribution1D&, const Distribution1D&,const Distribution1D&> 
+CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_distance_profiles() const {
+    if (!cache.distance_profiles.valid) {cache_refresh_distance_profiles();}
+    return std::forward_as_tuple(cache.distance_profiles.p_aa, cache.distance_profiles.p_aw, cache.distance_profiles.p_ww);
+}
+
+template<typename FormFactorTableType>
 std::tuple<const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_intensity_profiles() const {
     if (!cache.sinqd.valid) {
@@ -224,12 +219,37 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_intensity_pr
         }
     }
 
-    cache.intensity_profiles.cached_cx = free_params.cx;
-    cache.intensity_profiles.cached_cw = free_params.cw;
     return std::forward_as_tuple(
         cache.intensity_profiles.aa, cache.intensity_profiles.ax, cache.intensity_profiles.aw, 
         cache.intensity_profiles.xx, cache.intensity_profiles.wx, cache.intensity_profiles.ww
     );
+}
+
+template<typename FormFactorTableType>
+void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_distance_profiles() const {
+    auto pool = utility::multi_threading::get_global_pool();
+
+    cache.distance_profiles.p_aa = Distribution1D(axis.bins, 0);
+    cache.distance_profiles.p_aw = Distribution1D(axis.bins, 0);
+    cache.distance_profiles.p_ww = Distribution1D(axis.bins, 0);
+
+    pool->detach_task([this] () {
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+                std::transform(cache.distance_profiles.p_aa.begin(), cache.distance_profiles.p_aa.end(), distance_profiles.aa.begin(ff1, ff2), cache.distance_profiles.p_aa.begin(), std::plus<>());
+            }
+        }
+    });
+    pool->detach_task([this] () {
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+            std::transform(cache.distance_profiles.p_aw.begin(), cache.distance_profiles.p_aw.end(), distance_profiles.aw.begin(ff1), cache.distance_profiles.p_aw.begin(), std::plus<>());
+        }
+    });
+    pool->detach_task([this] () {
+        std::transform(cache.distance_profiles.p_ww.begin(), cache.distance_profiles.p_ww.end(), distance_profiles.ww.begin(), cache.distance_profiles.p_ww.begin(), std::plus<>());
+    });
+    cache.distance_profiles.valid = true;
+    pool->wait();
 }
 
 template<typename FormFactorTableType>
@@ -273,6 +293,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
             cache.sinqd.ww.index(q-q0) = std::inner_product(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table->begin(q), 0.0);
         }
     });
+    cache.sinqd.valid = true;
     pool->wait();
 }
 
@@ -351,6 +372,8 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
             }
         });
     }
+    cache.intensity_profiles.cached_cx = free_params.cx;
+    cache.intensity_profiles.cached_cw = free_params.cw;
     pool->wait();
 }
 template void CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t>::cache_refresh_intensity_profiles<true,  true,  true>()  const;
