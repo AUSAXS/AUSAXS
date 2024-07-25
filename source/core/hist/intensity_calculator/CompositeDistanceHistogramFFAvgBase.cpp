@@ -87,32 +87,38 @@ const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableTy
 }
 
 template<typename FormFactorTableType>
-Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts() {
-    return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_aa_counts());
-}
-
-template<typename FormFactorTableType>
 const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts() const {
     auto[aa, _, __] = cache_get_distance_profiles();
+    assert(!aa.empty() && "CompositeDistanceHistogramFFAvgBase:::get_aa_counts: Count is zero.");
     return aa;
 }
 
 template<typename FormFactorTableType>
-Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts() {return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_aw_counts());}
-
-template<typename FormFactorTableType>
 const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts() const {
     auto[_, aw, __] = cache_get_distance_profiles();
+    assert(!aw.empty() && "CompositeDistanceHistogramFFAvgBase:::get_aw_counts: Count is zero.");
     return aw;
 }
 
 template<typename FormFactorTableType>
-Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts() {return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_ww_counts());}
-
-template<typename FormFactorTableType>
 const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts() const {
     auto[_, __, ww] = cache_get_distance_profiles();
+    assert(!ww.empty() && "CompositeDistanceHistogramFFAvgBase:::get_ww_counts: Count is zero.");
     return ww;
+}
+
+template<typename FormFactorTableType>
+Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts() {
+    return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_aa_counts());
+}
+template<typename FormFactorTableType>
+Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts() {
+    return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_aw_counts());
+}
+
+template<typename FormFactorTableType>
+Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts() {
+    return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_ww_counts());
 }
 
 template<typename FormFactorTableType>
@@ -232,7 +238,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_dis
     cache.distance_profiles.p_aa = Distribution1D(axis.bins, 0);
     cache.distance_profiles.p_aw = Distribution1D(axis.bins, 0);
     cache.distance_profiles.p_ww = Distribution1D(axis.bins, 0);
-
+    
     pool->detach_task([this] () {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
