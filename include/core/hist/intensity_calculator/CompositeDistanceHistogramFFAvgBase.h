@@ -151,7 +151,6 @@ namespace hist {
             struct {double cw=1, cx=1;} free_params;
             struct {Distribution3D aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
 
-        public:
             /**
              * @brief Get the q-dependent multiplicative factor for the excluded volume form factor.
              */
@@ -160,22 +159,23 @@ namespace hist {
             //#################################//
             //###           CACHE           ###//
             //#################################//
-            template<bool sinqd_changed, bool cw_changed, bool cx_changed>
-            void cache_refresh_intensity_profiles() const;
-            void cache_refresh_distance_profiles() const;
-            void cache_refresh_sinqd() const;
 
             /**
              * @brief Get the cached intensity profiles.
              * 
              * @return [aa, ax, aw, xx, wx, ww]
              */
-            [[nodiscard]] std::tuple<
+            [[nodiscard]] virtual std::tuple<
                 const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
                 const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
             > cache_get_intensity_profiles() const;
 
-            [[nodiscard]] std::tuple<const Distribution1D&, const Distribution1D&, const Distribution1D&> 
+            /**
+             * @brief Get the cached total distance profiles. 
+             * 
+             * @return [aa, aw, ww]
+             */
+            [[nodiscard]] virtual std::tuple<const Distribution1D&, const Distribution1D&, const Distribution1D&> 
             cache_get_distance_profiles() const;
 
             mutable struct {
@@ -198,5 +198,11 @@ namespace hist {
                     double cached_cx = -1, cached_cw = -1;
                 } intensity_profiles;
             } cache;
+
+        private:
+            template<bool sinqd_changed, bool cw_changed, bool cx_changed>
+            void cache_refresh_intensity_profiles() const;
+            void cache_refresh_distance_profiles() const;
+            void cache_refresh_sinqd() const;
     };
 }

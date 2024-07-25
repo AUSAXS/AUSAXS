@@ -80,5 +80,35 @@ namespace hist {
             double exv_factor(double q) const override;
 
             struct {hist::Distribution3D xx, ax; hist::Distribution2D wx;} exv_distance_profiles;
+
+        public:
+            //#################################//
+            //###           CACHE           ###//
+            //#################################//
+            mutable struct {
+                // cached sinqd vals for each form factor combination
+                // indexing as [ff1][ff2]
+                mutable struct {
+                    container::Container3D<double> aa, ax, xx;
+                    container::Container2D<double> aw, wx;
+                    container::Container1D<double> ww;
+                    bool valid = false;
+                } sinqd;
+            } exv_cache;
+
+            /**
+             * @brief Get the cached intensity profiles.
+             * 
+             * @return [aa, ax, aw, xx, wx, ww]
+             */
+            [[nodiscard]] std::tuple<
+                const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
+                const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
+            > cache_get_intensity_profiles() const override;
+
+            template<bool sinqd_changed, bool cw_changed, bool cx_changed>
+            void cache_refresh_intensity_profiles() const;
+            void cache_refresh_distance_profiles() const;
+            void cache_refresh_sinqd() const;
     };
 }
