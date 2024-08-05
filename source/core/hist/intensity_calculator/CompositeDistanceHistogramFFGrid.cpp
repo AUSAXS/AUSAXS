@@ -11,6 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/HistogramSettings.h>
 #include <dataset/SimpleDataset.h>
 #include <utility/Exceptions.h>
+#include <utility/MultiThreading.h>
 
 using namespace hist;
 using namespace form_factor;
@@ -73,99 +74,50 @@ form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate
     return table;
 }
 
-ScatteringProfile CompositeDistanceHistogramFFGrid::debye_transform() const {
-    const auto& ff_table = get_ff_table();
+void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
+    auto pool = utility::multi_threading::get_global_pool();
     auto sinqd_table_aa = get_sinc_table();
     auto sinqd_table_ax = get_sinc_table_ax();
     auto sinqd_table_xx = get_sinc_table_xx();
 
-    // calculate the Debye scattering intensity
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
+    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
-    std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double cx = exv_factor(q);
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            // atom-atom
-            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table_aa->begin(q), 0.0);
-                Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
+    if (cache.sinqd.aa.empty()) {
+        cache.sinqd.aa = container::Container3D<double>(form_factor::get_count(), form_factor::get_count(), debye_axis.bins);
+        cache.sinqd.ax = container::Container2D<double>(form_factor::get_count(), debye_axis.bins);
+        cache.sinqd.aw = container::Container2D<double>(form_factor::get_count(), debye_axis.bins);
+        cache.sinqd.xx = container::Container1D<double>(debye_axis.bins);
+        cache.sinqd.wx = container::Container1D<double>(debye_axis.bins);
+        cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
+    }
+
+    std::vector<double> cx(debye_axis.bins, 0);
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(q);}
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+            pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table_aa] () {
+                for (unsigned int q = q0; q < q0+bins; ++q) {
+                    cache.sinqd.aa.index(ff1, ff2, q-q0) = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table_aa->begin(q), 0.0);
+                }
+            });
+        }
+        pool->detach_task([this, q0, bins=debye_axis.bins, ff1, sinqd_table_aa, sinqd_table_ax] () {
+            for (unsigned int q = q0; q < q0+bins; ++q) {
+                cache.sinqd.ax.index(ff1, q-q0) = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table_ax->begin(q), 0.0);
+                cache.sinqd.aw.index(ff1, q-q0) = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table_aa->begin(q), 0.0);
             }
-
-            // atom-exv
-            double ax_sum = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table_ax->begin(q), 0.0);
-            Iq[q-q0] -= 2*cx*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
-
-            // atom-water
-            double aw_sum = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table_aa->begin(q), 0.0);
-            Iq[q-q0] += 2*free_params.cw*aw_sum*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
+        });
+    }
+    pool->detach_task([&] () {
+        for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+            cache.sinqd.xx.index(q-q0) = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table_xx->begin(q), 0.0);
+            cache.sinqd.wx.index(q-q0) = std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table_ax->begin(q), 0.0);
+            cache.sinqd.ww.index(q-q0) = std::inner_product(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table_aa->begin(q), 0.0);
         }
-
-        // exv-exv
-        double xx_sum = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table_xx->begin(q), 0.0);
-        Iq[q-q0] += cx*cx*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
-
-        // exv-water
-        double wx_sum = std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table_ax->begin(q), 0.0);
-        Iq[q-q0] -= 2*cx*free_params.cw*wx_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
-
-        // water-water
-        double ww_sum = std::inner_product(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table_aa->begin(q), 0.0);
-        Iq[q-q0] += std::pow(free_params.cw, 2)*ww_sum*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
-    }
-    return ScatteringProfile(std::move(Iq), debye_axis);
-}
-
-SimpleDataset CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>&) const {
-    throw except::not_implemented("CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>& q) const");
-}
-
-ScatteringProfile CompositeDistanceHistogramFFGrid::get_profile_ax() const {
-    const auto& ff_table = get_ff_table();
-    auto sinqd_table = get_sinc_table_ax();
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-
-    std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double cx = exv_factor(q);
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            double ax_sum = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] += 2*cx*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
-        }
-    }
-    return ScatteringProfile(std::move(Iq), debye_axis);
-}
-
-ScatteringProfile CompositeDistanceHistogramFFGrid::get_profile_wx() const {
-    const auto& ff_table = get_ff_table();
-    auto sinqd_table = get_sinc_table_ax();
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-
-    std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double cx = exv_factor(q);
-        double ew_sum = std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-        Iq[q-q0] += 2*cx*free_params.cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
-    }
-    return ScatteringProfile(std::move(Iq), debye_axis);
-}
-
-ScatteringProfile CompositeDistanceHistogramFFGrid::get_profile_xx() const {
-    const auto& ff_table = get_ff_table();
-    auto sinqd_table = get_sinc_table_xx();
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-
-    std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double cx = exv_factor(q);
-        double xx_sum = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-        Iq[q-q0] += cx*cx*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
-    }
-    return ScatteringProfile(std::move(Iq), debye_axis);
+    });
+    cache.sinqd.valid = true;
+    pool->wait();
 }
 
 observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGrid::get_sinc_table_ax() const {

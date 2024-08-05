@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
@@ -154,7 +155,7 @@ auto calc_scat_water = [] () {
 };
 
 // Check that the debye transform is correct
-TEST_CASE("HistogramManagerMTFFGridSurface::debye_transform") {
+TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
@@ -174,15 +175,28 @@ TEST_CASE("HistogramManagerMTFFGridSurface::debye_transform") {
     Molecule protein(atoms);
     GridDebug::generate_debug_grid(protein);
     protein.get_waters() = waters;
-    auto h = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
-    auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(h.get());
 
-    REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
-    REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
-    REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_xx()));
+    SECTION("Grid") {
+        auto h = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(h.get());
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_xx()));
 
-    auto Iq_exp = calc_scat_water();
-    REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+        auto Iq_exp = calc_scat_water();
+        REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+    }
+
+    SECTION("GridSurface") {
+        auto h = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(h.get());
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_xx()));
+
+        auto Iq_exp = calc_scat_water();
+        REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+    }
 }
 
 // Check that the surface scaling works as expected

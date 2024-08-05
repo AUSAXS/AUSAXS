@@ -48,16 +48,6 @@ namespace hist {
              */
             static void regenerate_table();
 
-            // @copydoc DistanceHistogram::debye_transform() const
-            virtual ScatteringProfile debye_transform() const override;
-
-            // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
-            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
-
-            virtual ScatteringProfile get_profile_ax() const override; // @copydoc ICompositeDistanceHistogram::get_profile_ax() const
-            virtual ScatteringProfile get_profile_wx() const override; // @copydoc ICompositeDistanceHistogram::get_profile_wx() const
-            virtual ScatteringProfile get_profile_xx() const override; // @copydoc ICompositeDistanceHistogram::get_profile_xx() const
-
             /**
              * @brief Get the distance axis for the excluded volume calculations. 
              *        If weighted bins are used, this will be distinct from the regular distance axis.
@@ -75,6 +65,7 @@ namespace hist {
             static form_factor::storage::atomic::table_t ff_table;
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
+            void cache_refresh_sinqd() const;
 
             double exv_factor(double q) const override;
 
