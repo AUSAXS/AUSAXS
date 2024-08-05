@@ -88,6 +88,7 @@ namespace hist {
 
             /**
              * @brief Get the cached intensity profiles.
+             *        This may trigger a refresh if the cache is invalid.
              * 
              * @return [aa, ax, aw, xx, wx, ww]
              */

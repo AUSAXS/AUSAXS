@@ -162,6 +162,7 @@ namespace hist {
 
             /**
              * @brief Get the cached intensity profiles.
+             *        This may trigger a refresh if the cache is invalid.
              * 
              * @return [aa, ax, aw, xx, wx, ww]
              */
@@ -172,6 +173,7 @@ namespace hist {
 
             /**
              * @brief Get the cached total distance profiles. 
+             *        This may trigger a refresh if the cache is invalid.
              * 
              * @return [aa, aw, ww]
              */
