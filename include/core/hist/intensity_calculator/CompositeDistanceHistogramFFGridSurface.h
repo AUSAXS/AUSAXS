@@ -70,10 +70,6 @@ namespace hist {
             // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
             virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
-            virtual ScatteringProfile get_profile_ax() const override;  // @copydoc ICompositeDistanceHistogram::get_profile_ax() const
-            virtual ScatteringProfile get_profile_wx() const override;  // @copydoc ICompositeDistanceHistogram::get_profile_wx() const
-            virtual ScatteringProfile get_profile_xx() const override;  // @copydoc ICompositeDistanceHistogram::get_profile_xx() const
-
             /**
              * @brief Get the distance axis for the excluded volume calculations. 
              *        If weighted bins are used, this will be distinct from the regular distance axis.
@@ -119,6 +115,13 @@ namespace hist {
             observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
 
             void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
+
+            //#################################//
+            //###           CACHE           ###//
+            //#################################//
+            template<bool sinqd_changed, bool cw_changed, bool cx_changed>
+            void cache_refresh_intensity_profiles() const;
+            void cache_refresh_sinqd() const;
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGridSurface>, "CompositeDistanceHistogramFFGridSurface should support nothrow move semantics.");
 }

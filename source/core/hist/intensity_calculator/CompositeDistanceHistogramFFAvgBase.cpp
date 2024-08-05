@@ -275,8 +275,6 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
         cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
     }
 
-    std::vector<double> cx(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(q);}
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
             pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table] () {
