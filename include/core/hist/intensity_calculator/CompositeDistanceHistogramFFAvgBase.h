@@ -161,17 +161,6 @@ namespace hist {
             //#################################//
 
             /**
-             * @brief Get the cached intensity profiles.
-             *        This may trigger a refresh if the cache is invalid.
-             * 
-             * @return [aa, ax, aw, xx, wx, ww]
-             */
-            [[nodiscard]] virtual std::tuple<
-                const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
-                const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
-            > cache_get_intensity_profiles() const;
-
-            /**
              * @brief Get the cached total distance profiles. 
              *        This may trigger a refresh if the cache is invalid.
              * 
@@ -200,6 +189,18 @@ namespace hist {
                     double cached_cx = -1, cached_cw = -1;
                 } intensity_profiles;
             } cache;
+
+        public:
+            /**
+             * @brief Get the cached intensity profiles.
+             *        This may trigger a refresh if the cache is invalid.
+             * 
+             * @return [aa, ax, aw, xx, wx, ww]
+             */
+            [[nodiscard]] virtual std::tuple<
+                const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
+                const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
+            > cache_get_intensity_profiles() const;
 
         private:
             template<bool sinqd_changed, bool cw_changed, bool cx_changed>

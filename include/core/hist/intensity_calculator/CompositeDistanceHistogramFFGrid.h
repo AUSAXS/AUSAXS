@@ -61,14 +61,8 @@ namespace hist {
             const std::vector<double>& get_d_axis_ax() const {return distance_axes.ax;}
 
             static form_factor::storage::atomic::table_t generate_table();
-        private: 
-            static form_factor::storage::atomic::table_t ff_table;
-            struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
-            struct {std::vector<double> xx, ax;} distance_axes;
-            void cache_refresh_sinqd() const;
 
-            double exv_factor(double q) const override;
-
+        protected:
             /**
              * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.
              */
@@ -78,6 +72,14 @@ namespace hist {
              * @brief Get the sinc(x) lookup table for the cross terms for the Debye transform.
              */
             observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
+
+            double exv_factor(double q) const override;
+
+        private: 
+            static form_factor::storage::atomic::table_t ff_table;
+            struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
+            struct {std::vector<double> xx, ax;} distance_axes;
+            void cache_refresh_sinqd() const;
 
             void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
     };

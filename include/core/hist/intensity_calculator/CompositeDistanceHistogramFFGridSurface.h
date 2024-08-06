@@ -64,12 +64,6 @@ namespace hist {
 
             static void regenerate_table(); // @copydoc CompositeDistanceHistogramFFGrid::regenerate_table()
 
-            // @copydoc DistanceHistogram::debye_transform() const
-            virtual ScatteringProfile debye_transform() const override;
-
-            // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
-            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
-
             /**
              * @brief Get the distance axis for the excluded volume calculations. 
              *        If weighted bins are used, this will be distinct from the regular distance axis.
@@ -92,18 +86,7 @@ namespace hist {
              */
             static double exv_factor(double q, double cx);
 
-        private: 
-            static form_factor::storage::atomic::table_t ff_table;
-            struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
-            struct {std::vector<double> xx, ax;} distance_axes;
-
-            struct {hist::Distribution1D xx_i, xx_s, xx_c, wx_i, wx_s; hist::Distribution2D ax_i, ax_s;} exv_distance_profiles;
-            hist::Distribution1D evaluate_xx_profile(double cx) const;
-            hist::Distribution1D evaluate_wx_profile(double cx) const;
-            hist::Distribution2D evaluate_ax_profile(double cx) const;
-
-            double exv_factor(double q) const override;
-
+        protected:
             /**
              * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.
              */
@@ -113,6 +96,18 @@ namespace hist {
              * @brief Get the sinc(x) lookup table for the cross terms for the Debye transform.
              */
             observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
+
+            hist::Distribution1D evaluate_xx_profile(double cx) const;
+            hist::Distribution1D evaluate_wx_profile(double cx) const;
+            hist::Distribution2D evaluate_ax_profile(double cx) const;
+
+            double exv_factor(double q) const override;
+
+        private: 
+            static form_factor::storage::atomic::table_t ff_table;
+            struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
+            struct {std::vector<double> xx, ax;} distance_axes;
+            struct {hist::Distribution1D xx_i, xx_s, xx_c, wx_i, wx_s; hist::Distribution2D ax_i, ax_s;} exv_distance_profiles;
 
             void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
 

@@ -93,58 +93,6 @@ hist::Distribution2D CompositeDistanceHistogramFFGridSurface::evaluate_ax_profil
     return ax;
 }
 
-ScatteringProfile CompositeDistanceHistogramFFGridSurface::debye_transform() const {
-    const auto& ff_table = get_ff_table();
-    auto sinqd_table_aa = get_sinc_table();
-    auto sinqd_table_ax = get_sinc_table_ax();
-    auto sinqd_table_xx = get_sinc_table_xx();
-
-    // calculate the Debye scattering intensity
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-
-    std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double cx = exv_factor(constants::axes::q_vals[q]);
-        auto xx = evaluate_xx_profile(cx);
-        auto wx = evaluate_wx_profile(cx);
-        auto ax = evaluate_ax_profile(cx);
-
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            // atom-atom
-            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table_aa->begin(q), 0.0);
-                Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
-            }
-
-            // atom-exv
-            double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table_ax->begin(q), 0.0);
-            Iq[q-q0] -= 2*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
-
-            // atom-water
-            double aw_sum = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table_aa->begin(q), 0.0);
-            Iq[q-q0] += 2*free_params.cw*aw_sum*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
-        }
-
-        // exv-exv
-        double xx_sum = std::inner_product(xx.begin(), xx.end(), sinqd_table_xx->begin(q), 0.0);
-        Iq[q-q0] += xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
-
-        // exv-water
-        double wx_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
-        Iq[q-q0] -= 2*free_params.cw*wx_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
-
-        // water-water
-        double ww_sum = std::inner_product(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table_aa->begin(q), 0.0);
-        Iq[q-q0] += std::pow(free_params.cw, 2)*ww_sum*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
-    }
-    return ScatteringProfile(std::move(Iq), debye_axis);
-}
-
-SimpleDataset CompositeDistanceHistogramFFGridSurface::debye_transform(const std::vector<double>&) const {
-    throw except::not_implemented("CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>& q) const");
-}
-
 observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGridSurface::get_sinc_table_ax() const {
     if (use_weighted_table) {return sinc_tables.ax.get();}
     return &table::ArrayDebyeTable::get_default_table();
@@ -212,6 +160,8 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_sinqd() const {
 
 template<bool sinqd_changed, bool cw_changed, bool cx_changed>
 void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles() const {
+    std::cout << "CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles" << std::endl;
+
     auto pool = utility::multi_threading::get_global_pool();
     const auto& ff_table = get_ff_table();
     auto sinqd_table_ax = get_sinc_table_ax();
