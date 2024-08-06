@@ -685,15 +685,23 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
     data::Molecule protein(test_files);
 
     SECTION(test_files + " full profile") {
+        auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
+
         auto hist_new = HistogramManagerMTFFAvg<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFAvg*>(hist_new.get());
+        new_cast->apply_water_scaling_factor(params.first);
+        new_cast->apply_excluded_volume_scaling_factor(params.second);
         auto new_profile = hist_new->debye_transform();
 
         auto hist_old = DebugCompositeDistanceHistogramFFAvg(std::move(*new_cast));
+        hist_old.apply_water_scaling_factor(params.first);
+        hist_old.apply_excluded_volume_scaling_factor(params.second);
         auto old_profile = hist_old.debye_transform();
 
-        CHECK(compare_hist(new_profile, old_profile));
-        REQUIRE(DebugCompositeDistanceHistogramFFAvg::called_debye);
+        SECTION("cw = " + std::to_string(params.first) + ", cx = " + std::to_string(params.second)) {
+            CHECK(compare_hist(new_profile, old_profile));
+            REQUIRE(DebugCompositeDistanceHistogramFFAvg::called_debye);
+        }
     }
 
     SECTION(test_files + " individual profiles") {
@@ -733,15 +741,23 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
     data::Molecule protein(test_files);
 
     SECTION(test_files + " full profile") {
+        auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
+
         auto hist_new = HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFExplicit*>(hist_new.get());
+        new_cast->apply_water_scaling_factor(params.first);
+        new_cast->apply_excluded_volume_scaling_factor(params.second);
         auto new_profile = hist_new->debye_transform();
 
         auto hist_old = DebugCompositeDistanceHistogramFFExplicit(std::move(*new_cast));
+        hist_old.apply_water_scaling_factor(params.first);
+        hist_old.apply_excluded_volume_scaling_factor(params.second);
         auto old_profile = hist_old.debye_transform();
 
-        CHECK(compare_hist(new_profile, old_profile));
-        REQUIRE(DebugCompositeDistanceHistogramFFExplicit::called_debye);
+        SECTION("cw = " + std::to_string(params.first) + ", cx = " + std::to_string(params.second)) {
+            CHECK(compare_hist(new_profile, old_profile));
+            REQUIRE(DebugCompositeDistanceHistogramFFExplicit::called_debye);
+        }
     }
 
     SECTION(test_files + " individual profiles") {
@@ -781,15 +797,23 @@ TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
     data::Molecule protein(test_files);
 
     SECTION(test_files + " full profile") {
+        auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
+
         auto hist_new = HistogramManagerMTFFGrid(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGrid*>(hist_new.get());
+        new_cast->apply_water_scaling_factor(params.first);
+        new_cast->apply_excluded_volume_scaling_factor(params.second);
         auto new_profile = hist_new->debye_transform();
 
         auto hist_old = DebugCompositeDistanceHistogramFFGrid(std::move(*new_cast));
+        hist_old.apply_water_scaling_factor(params.first);
+        hist_old.apply_excluded_volume_scaling_factor(params.second);
         auto old_profile = hist_old.debye_transform();
 
-        CHECK(compare_hist(new_profile, old_profile));
-        REQUIRE(DebugCompositeDistanceHistogramFFGrid::called_debye);
+        SECTION("cw = " + std::to_string(params.first) + ", cx = " + std::to_string(params.second)) {
+            CHECK(compare_hist(new_profile, old_profile));
+            REQUIRE(DebugCompositeDistanceHistogramFFGrid::called_debye);
+        }
     }
 
     SECTION(test_files + " individual profiles") {
@@ -829,15 +853,23 @@ TEST_CASE("CompositeDistanceHistogramFFGridSurface: legacy comparison") {
     data::Molecule protein(test_files);
 
     SECTION(test_files + " full profile") {
+        auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
+
         auto hist_new = HistogramManagerMTFFGridSurface(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(hist_new.get());
+        new_cast->apply_water_scaling_factor(params.first);
+        new_cast->apply_excluded_volume_scaling_factor(params.second);
         auto new_profile = hist_new->debye_transform();
 
         auto hist_old = DebugCompositeDistanceHistogramFFGridSurface(std::move(*new_cast));
+        hist_old.apply_water_scaling_factor(params.first);
+        hist_old.apply_excluded_volume_scaling_factor(params.second);
         auto old_profile = hist_old.debye_transform();
 
-        CHECK(compare_hist(new_profile, old_profile));
-        REQUIRE(DebugCompositeDistanceHistogramFFGridSurface::called_debye);
+        SECTION("cw = " + std::to_string(params.first) + ", cx = " + std::to_string(params.second)) {
+            CHECK(compare_hist(new_profile, old_profile));
+            REQUIRE(DebugCompositeDistanceHistogramFFGridSurface::called_debye);
+        }
     }
 
     SECTION(test_files + " individual profiles") {

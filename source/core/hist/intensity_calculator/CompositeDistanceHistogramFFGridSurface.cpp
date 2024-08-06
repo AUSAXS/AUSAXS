@@ -182,6 +182,9 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
         this->cache.intensity_profiles.wx = std::vector<double>(debye_axis.bins, 0);
     }
 
+    std::vector<double> cx(debye_axis.bins, 0);
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(constants::axes::q_vals[q]);}
+
     if (sinqd_changed) {
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
@@ -197,9 +200,9 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
 
     if (cx_changed) {
         pool->detach_task([&] () {
-            auto ax = evaluate_ax_profile(this->free_params.cx);
-            for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-                for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+            for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+                auto ax = evaluate_ax_profile(cx[q]);
+                for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                     double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table_ax->begin(q), 0.0);
                     this->cache.intensity_profiles.ax[q-q0] += 
                         2*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
@@ -207,8 +210,8 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
             }
         });
         pool->detach_task([&] () {
-            auto xx = evaluate_xx_profile(this->free_params.cx);
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+                auto xx = evaluate_xx_profile(cx[q]);
                 double xx_sum = std::inner_product(xx.begin(), xx.end(), sinqd_table_xx->begin(q), 0.0);
                 this->cache.intensity_profiles.xx[q-q0] += 
                     xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
@@ -237,8 +240,8 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
 
     if (cw_changed || cx_changed) {
         pool->detach_task([&] () {
-            auto wx = evaluate_wx_profile(this->free_params.cx);
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+                auto wx = evaluate_wx_profile(cx[q]);
                 double wx_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
                 this->cache.intensity_profiles.wx[q-q0] += 
                     2*wx_sum*this->free_params.cw*ff_table.index(form_factor::water_bin, form_factor::exv_bin).evaluate(q);

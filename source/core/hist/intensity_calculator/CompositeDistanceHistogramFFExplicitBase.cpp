@@ -134,7 +134,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     }
 
     std::vector<double> cx(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(q);}
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(constants::axes::q_vals[q]);}
 
     if (sinqd_changed) {
         pool->detach_task([&] () {
@@ -155,7 +155,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         this->cache.intensity_profiles.ax[q-q0] += 
-                            2*cx[q-q0]*exv_cache.sinqd.ax.index(ff1, ff2, q-q0)*ff_ax_table.index(ff1, ff2).evaluate(q);
+                            2*cx[q]*exv_cache.sinqd.ax.index(ff1, ff2, q-q0)*ff_ax_table.index(ff1, ff2).evaluate(q);
                     }
                 }
             }
@@ -165,7 +165,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         this->cache.intensity_profiles.xx[q-q0] += 
-                            cx[q-q0]*cx[q-q0]*exv_cache.sinqd.xx.index(ff1, ff2, q-q0)*ff_xx_table.index(ff1, ff2).evaluate(q);
+                            cx[q]*cx[q]*exv_cache.sinqd.xx.index(ff1, ff2, q-q0)*ff_xx_table.index(ff1, ff2).evaluate(q);
                     }
                 }
             }
@@ -196,7 +196,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     this->cache.intensity_profiles.wx[q-q0] += 
-                        2*cx[q-q0]*this->free_params.cw*exv_cache.sinqd.wx.index(ff1, q-q0)
+                        2*cx[q]*this->free_params.cw*exv_cache.sinqd.wx.index(ff1, q-q0)
                         *ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q);
                 }
             }
