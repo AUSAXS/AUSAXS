@@ -106,9 +106,6 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
 }
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
-void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_distance_profiles() const {}
-
-template<typename AA, typename AXFormFactorTableType, typename XX>
 void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
     auto pool = utility::multi_threading::get_global_pool();
     const auto& ff_aa_table = get_ffaa_table();

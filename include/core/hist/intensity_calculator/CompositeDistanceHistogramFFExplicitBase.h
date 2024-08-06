@@ -88,7 +88,6 @@ namespace hist {
 
         private:
             void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const override;
-            void cache_refresh_distance_profiles() const override;
             void cache_refresh_sinqd() const override;
     };
 }

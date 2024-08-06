@@ -77,11 +77,10 @@ SimpleDataset CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::debye_tr
 template<typename FormFactorTableType>
 const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_counts() const {
     p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);
-    auto& p_pp = get_aa_counts();
-    auto& p_hp = get_aw_counts();
-    auto& p_hh = get_ww_counts();
+    auto[aa, aw, ww] = cache_get_distance_profiles();
+    assert(aa.size() == p.size() && aw.size() == p.size() && ww.size() == p.size() && "CompositeDistanceHistogramFFAvgBase::get_counts(): Count mismatch.");
     for (unsigned int i = 0; i < p.size(); ++i) {
-        p[i] = p_pp.index(i) + 2*free_params.cw*p_hp.index(i) + free_params.cw*free_params.cw*p_hh.index(i);
+        p[i] = aa.index(i) + 2*free_params.cw*aw.index(i) + free_params.cw*free_params.cw*ww.index(i);
     }
     return p.data;
 }
