@@ -63,29 +63,6 @@ double CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::
 }
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
-std::tuple<
-    const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
-    const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
-> CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_get_intensity_profiles() const {
-    if (!this->cache.sinqd.valid) {
-        cache_refresh_sinqd();
-        cache_refresh_intensity_profiles<true, true, true>();
-        this->cache.sinqd.valid = true;
-    } else {
-        if (this->cache.intensity_profiles.cached_cx != this->free_params.cx) {
-            this->cache.intensity_profiles.cached_cw != this->free_params.cw ? cache_refresh_intensity_profiles<false, true, true>() : cache_refresh_intensity_profiles<false, false, true>();
-        } else if (this->cache.intensity_profiles.cached_cw != this->free_params.cw) {
-            cache_refresh_intensity_profiles<false, true, false>();
-        }
-    }
-
-    return std::forward_as_tuple(
-        this->cache.intensity_profiles.aa, this->cache.intensity_profiles.ax, this->cache.intensity_profiles.aw, 
-        this->cache.intensity_profiles.xx, this->cache.intensity_profiles.wx, this->cache.intensity_profiles.ww
-    );
-}
-
-template<typename AA, typename AXFormFactorTableType, typename XX>
 void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_sinqd() const {
     auto pool = utility::multi_threading::get_global_pool();
     auto sinqd_table = this->get_sinc_table();
@@ -132,8 +109,7 @@ template<typename AA, typename AXFormFactorTableType, typename XX>
 void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_distance_profiles() const {}
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
-template<bool sinqd_changed, bool cw_changed, bool cx_changed>
-void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_intensity_profiles() const {
+void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
     auto pool = utility::multi_threading::get_global_pool();
     const auto& ff_aa_table = get_ffaa_table();
     const auto& ff_ax_table = get_ffax_table();
@@ -142,25 +118,25 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
-    if constexpr (sinqd_changed) {
+    if (sinqd_changed) {
         this->cache.intensity_profiles.aa = std::vector<double>(debye_axis.bins, 0);
     }
-    if constexpr (cw_changed) {
+    if (cw_changed) {
         this->cache.intensity_profiles.aw = std::vector<double>(debye_axis.bins, 0);
         this->cache.intensity_profiles.ww = std::vector<double>(debye_axis.bins, 0);
     }
-    if constexpr (cx_changed) {
+    if (cx_changed) {
         this->cache.intensity_profiles.ax = std::vector<double>(debye_axis.bins, 0);
         this->cache.intensity_profiles.xx = std::vector<double>(debye_axis.bins, 0);
     }
-    if constexpr (cw_changed || cx_changed) {
+    if (cw_changed || cx_changed) {
         this->cache.intensity_profiles.wx = std::vector<double>(debye_axis.bins, 0);
     }
 
     std::vector<double> cx(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(q);}
 
-    if constexpr (sinqd_changed) {
+    if (sinqd_changed) {
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -173,7 +149,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         });
     }
 
-    if constexpr (cx_changed) {
+    if (cx_changed) {
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -196,7 +172,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         });
     }
 
-    if constexpr (cw_changed) {
+    if (cw_changed) {
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
@@ -215,7 +191,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         });
     }
 
-    if constexpr (cw_changed || cx_changed) {
+    if (cw_changed || cx_changed) {
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
@@ -230,27 +206,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     this->cache.intensity_profiles.cached_cw = this->free_params.cw;
     pool->wait();    
 }
-template void hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
->::cache_refresh_intensity_profiles<true, true, true>() const;
-template void hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
->::cache_refresh_intensity_profiles<true, true, false>() const;
-template void hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
->::cache_refresh_intensity_profiles<true, false, true>() const;
-template void hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
->::cache_refresh_intensity_profiles<true, false, false>() const;
-template void hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
->::cache_refresh_intensity_profiles<false, true, true>() const;
-template void hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
->::cache_refresh_intensity_profiles<false, true, false>() const;
-template void hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
->::cache_refresh_intensity_profiles<false, false, true>() const;
+
 template class hist::CompositeDistanceHistogramFFExplicitBase<
     form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
 >;

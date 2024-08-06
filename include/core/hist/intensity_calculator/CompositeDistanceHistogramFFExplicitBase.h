@@ -86,22 +86,9 @@ namespace hist {
                 } sinqd;
             } exv_cache;
 
-        public:
-            /**
-             * @brief Get the cached intensity profiles.
-             *        This may trigger a refresh if the cache is invalid.
-             * 
-             * @return [aa, ax, aw, xx, wx, ww]
-             */
-            [[nodiscard]] std::tuple<
-                const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
-                const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
-            > cache_get_intensity_profiles() const override;
-        
         private:
-            template<bool sinqd_changed, bool cw_changed, bool cx_changed>
-            void cache_refresh_intensity_profiles() const;
-            void cache_refresh_distance_profiles() const;
-            void cache_refresh_sinqd() const;
+            void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const override;
+            void cache_refresh_distance_profiles() const override;
+            void cache_refresh_sinqd() const override;
     };
 }

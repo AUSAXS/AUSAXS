@@ -114,9 +114,8 @@ namespace hist {
             //#################################//
             //###           CACHE           ###//
             //#################################//
-            template<bool sinqd_changed, bool cw_changed, bool cx_changed>
-            void cache_refresh_intensity_profiles() const;
-            void cache_refresh_sinqd() const;
+            void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const override;
+            void cache_refresh_sinqd() const override;
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGridSurface>, "CompositeDistanceHistogramFFGridSurface should support nothrow move semantics.");
 }

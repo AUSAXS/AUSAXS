@@ -79,9 +79,13 @@ namespace hist {
             static form_factor::storage::atomic::table_t ff_table;
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
-            void cache_refresh_sinqd() const;
 
             void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
+
+            //#################################//
+            //###           CACHE           ###//
+            //#################################//
+            void cache_refresh_sinqd() const override;
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGrid>, "CompositeDistanceHistogramFFGrid should support nothrow move semantics.");
 }

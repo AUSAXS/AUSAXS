@@ -158,10 +158,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_sinqd() const {
     pool->wait();
 }
 
-template<bool sinqd_changed, bool cw_changed, bool cx_changed>
-void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles() const {
-    std::cout << "CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles" << std::endl;
-
+void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
     auto pool = utility::multi_threading::get_global_pool();
     const auto& ff_table = get_ff_table();
     auto sinqd_table_ax = get_sinc_table_ax();
@@ -170,22 +167,22 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles()
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
-    if constexpr (sinqd_changed) {
+    if (sinqd_changed) {
         this->cache.intensity_profiles.aa = std::vector<double>(debye_axis.bins, 0);
     }
-    if constexpr (cw_changed) {
+    if (cw_changed) {
         this->cache.intensity_profiles.aw = std::vector<double>(debye_axis.bins, 0);
         this->cache.intensity_profiles.ww = std::vector<double>(debye_axis.bins, 0);
     }
-    if constexpr (cx_changed) {
+    if (cx_changed) {
         this->cache.intensity_profiles.ax = std::vector<double>(debye_axis.bins, 0);
         this->cache.intensity_profiles.xx = std::vector<double>(debye_axis.bins, 0);
     }
-    if constexpr (cw_changed || cx_changed) {
+    if (cw_changed || cx_changed) {
         this->cache.intensity_profiles.wx = std::vector<double>(debye_axis.bins, 0);
     }
 
-    if constexpr (sinqd_changed) {
+    if (sinqd_changed) {
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -198,7 +195,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles()
         });
     }
 
-    if constexpr (cx_changed) {
+    if (cx_changed) {
         pool->detach_task([&] () {
             auto ax = evaluate_ax_profile(this->free_params.cx);
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
@@ -219,7 +216,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles()
         });
     }
 
-    if constexpr (cw_changed) {
+    if (cw_changed) {
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
@@ -238,7 +235,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles()
         });
     }
 
-    if constexpr (cw_changed || cx_changed) {
+    if (cw_changed || cx_changed) {
         pool->detach_task([&] () {
             auto wx = evaluate_wx_profile(this->free_params.cx);
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
@@ -250,12 +247,5 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles()
     }
     this->cache.intensity_profiles.cached_cx = this->free_params.cx;
     this->cache.intensity_profiles.cached_cw = this->free_params.cw;
-    pool->wait();    
+    pool->wait();
 }
-template void hist::CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles<true, true, true>() const;
-template void hist::CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles<true, true, false>() const;
-template void hist::CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles<true, false, true>() const;
-template void hist::CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles<true, false, false>() const;
-template void hist::CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles<false, true, true>() const;
-template void hist::CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles<false, true, false>() const;
-template void hist::CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles<false, false, true>() const;

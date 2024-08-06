@@ -203,9 +203,8 @@ namespace hist {
             > cache_get_intensity_profiles() const;
 
         private:
-            template<bool sinqd_changed, bool cw_changed, bool cx_changed>
-            void cache_refresh_intensity_profiles() const;
-            void cache_refresh_distance_profiles() const;
-            void cache_refresh_sinqd() const;
+            virtual void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const;
+            virtual void cache_refresh_distance_profiles() const;
+            virtual void cache_refresh_sinqd() const;
     };
 }
