@@ -218,7 +218,9 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     settings::molecule::center = false;
     settings::hist::weighted_bins = true;
     settings::general::verbose = false;
-    Molecule protein("tests/files/2epe.pdb");
+
+    std::string file = GENERATE("tests/files/2epe.pdb", "tests/files/LAR1-2.pdb", "tests/files/diamond.pdb", "tests/files/c60.pdb");
+    Molecule protein(file);
 
     SECTION("simple") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};

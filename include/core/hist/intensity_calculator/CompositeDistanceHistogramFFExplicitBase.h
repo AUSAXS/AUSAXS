@@ -61,16 +61,6 @@ namespace hist {
                 hist::WeightedDistribution1D&& p_tot
             );
 
-            // @copydoc DistanceHistogram::debye_transform() const
-            ScatteringProfile debye_transform() const override;
-
-            // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
-            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
-
-            virtual ScatteringProfile get_profile_ax() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_ax() const
-            virtual ScatteringProfile get_profile_xx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_xx() const
-            virtual ScatteringProfile get_profile_wx() const override; // @copydoc ICompositeDistanceHistogramExv::get_profile_wx() const
-
             const AAFormFactorTableType get_ffaa_table() const;
             virtual const AXFormFactorTableType& get_ffax_table() const = 0;
             virtual const XXFormFactorTableType& get_ffxx_table() const = 0;
@@ -80,5 +70,24 @@ namespace hist {
             double exv_factor(double q) const override;
 
             struct {hist::Distribution3D xx, ax; hist::Distribution2D wx;} exv_distance_profiles;
+
+            //#################################//
+            //###           CACHE           ###//
+            //#################################//
+
+            mutable struct {
+                // cached sinqd vals for each form factor combination
+                // indexing as [ff1][ff2]
+                mutable struct {
+                    container::Container3D<double> aa, ax, xx;
+                    container::Container2D<double> aw, wx;
+                    container::Container1D<double> ww;
+                    bool valid = false;
+                } sinqd;
+            } exv_cache;
+
+        private:
+            void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const override;
+            void cache_refresh_sinqd() const override;
     };
 }
