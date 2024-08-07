@@ -97,21 +97,23 @@ int main(int argc, char const *argv[]) {
 
         // add water to the box
         console::print_text("Solvating unit cell...");
-        GROFile solv;
-        {
+        GROFile solv(setup_path + "solv.gro");
+        if (!solv.exists()) {
             // dummy solvent purely to get the number of solvent molecules
             auto[tmp] = solvate(uc)
-                .output(setup_path + "solv.gro")
+                .output(setup_path + "tmp.gro")
                 .solvent(option::Forcefield::AMBER99SB_ILDN, option::WaterModel::TIP4P2005)
                 .radius(0.2)
                 .topology(top)
             .run();
 
             // generate the actual solvent in random positions
-            std::tie(solv) = insert_molecules(uc)
+            insert_molecules(uc)
                 .solvent(option::WaterModel::TIP4P2005)
                 .nmol(tmp.size_solvent())
+                .output(solv)
             .run();
+            tmp.remove();
         }
 
         // generate an empty tpr file 
@@ -136,26 +138,89 @@ int main(int argc, char const *argv[]) {
         console::print_text("Reusing previously generated system setup.");
     }
 
-    GROFile emgro(em_path + "em.gro");
-    if (!emgro.exists()) {
-        console::print_text("Running energy minimization...");
-
-        // prepare energy minimization sim
-        MDPFile mdp = EMMDPCreator().write(mdp_folder + "emmol.mdp");
-        auto[emtpr] = grompp(mdp, top, solv_ion)
-            .output(em_path + "em.tpr")
+    //##################################//
+    //###         ENVELOPE           ###//
+    //##################################//
+    NDXFile molindex(setup_path + "index.ndx");
+    if (!molindex.exists()) {
+        console::print_text("Creating index file for molecule...");
+        make_ndx(solv_ion)
+            .output(molindex)
         .run();
 
-        // run energy minimization
-        mdrun(emtpr)
-            .output(em_path, "em")
-            .jobname(pdb.filename() + "_mol")
-        .run(location::local)->submit();
+        std::string ion_placeholder = molindex.contains("Ion") ? " or group \"Ion\"" : "";
+        if (!molindex.contains("RealWater_and_Ions")) {
+            // if there are no Ion group, adding "or group \"Ion\" will cause an error
+            auto[tmp] = md::select(solv_ion)
+                .output("temp/md/tmp1.ndx")
+                .define("\"RealWater_and_Ions\" name \"OW\" or name \"HW1\" or name \"HW2\" or name \"HW3\"" + ion_placeholder)
+            .run();
+
+            molindex.append_file(tmp);
+            // tmp.remove();
+        }
+
+        if (!molindex.contains("Water_and_Ions")) {
+            auto[tmp] = md::select(solv_ion)
+                .output("temp/md/tmp2.ndx")
+                .define("\"Water_and_Ions\" name \"OW\" or name \"HW1\" or name \"HW2\" or name \"HW3\"" + ion_placeholder)
+            .run();
+
+            molindex.append_file(tmp);
+            // tmp.remove();
+        }
+
+        if (!molindex.contains("Protein_and_Ions")) {
+            auto[tmp] = md::select(solv_ion)
+                .output("temp/md/tmp3.ndx")
+                .define("\"Protein_and_Ions\" group \"Protein\"" + ion_placeholder)
+            .run();
+
+            molindex.append_file(tmp);
+            // tmp.remove();
+        }
     } else {
-        console::print_text("Reusing previously generated energy minimization.");
+        console::print_text("Reusing index file for molecule.");
     }
 
+    // first envelope containing random waters
+    {
+        GROFile envgro(setup_path + "envelope_random/envelope-ref.gro");
+        PYFile  envpy (setup_path + "envelope_random/envelope.py");
+        DATFile envdat(setup_path + "envelope_random/envelope.dat");
 
+        if (!envgro.exists() || !envpy.exists() || !envdat.exists()) {
+            console::print_text("Generating first envelope...");
+            XTCFile dummyxtc(setup_path + "dummy.xtc");
+            auto[_, envgro, envpy, envdat] = genenv(dummyxtc, molindex)
+                .structure(solv_ion)
+                .output(setup_path + "envelope_random")
+                .sphere(pdb, 0.5)
+            .run();
+        } else {
+            console::print_text("Reusing previously generated random envelope.");
+        }
+    }
+
+    // second envelope containing the waters from the simulation
+    {
+        GROFile envgro(setup_path + "envelope_sim/envelope-ref.gro");
+        PYFile  envpy (setup_path + "envelope_sim/envelope.py");
+        DATFile envdat(setup_path + "envelope_sim/envelope.dat");
+
+        io::Folder sim_folder("output/md/" + s_pdb.stem() + "/saxs/protein");
+        if (!envgro.exists() || !envpy.exists() || !envdat.exists()) {
+            console::print_text("Generating second envelope...");
+
+            XTCFile dummyxtc(setup_path + "dummy.xtc");
+            auto[_, envgro, envpy, envdat] = genenv(dummyxtc, solv_ion)
+                .output(setup_path + "envelope_sim")
+                .sphere(pdb, 0.5)
+            .run();
+        } else {
+            console::print_text("Reusing previously generated simulation envelope.");
+        }
+    }    
 
     return 0;
 }
