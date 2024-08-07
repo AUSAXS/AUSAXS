@@ -4,12 +4,18 @@
 #include <md/utility/files/all.h>
 #include <io/Folder.h>
 #include <io/File.h>
+#include <md/utility/Protein.h>
 
 namespace md {
     class genenv : private gmx {
         public: 
             genenv() {
                 cmd.append("genenv");
+            }
+
+            genenv(const XTCFile& xtc, const GROFile& gro) : genenv() {
+                input(xtc);
+                structure(gro);
             }
 
             genenv(const XTCFile& xtc, const NDXFile& ndx) : genenv() {
@@ -48,6 +54,30 @@ namespace md {
             }
 
             /**
+             * @brief Generate a spherical envelope around the structure.
+             *        Note that when using this option, the input trajectory and structure are ignored. 
+             */
+            genenv& sphere(double radius) {
+                options.push_back(std::make_shared<shell::Flag>("-sphere"));
+                options.push_back(std::make_shared<shell::Argument>("-d_sphere", radius));
+                return *this;
+            }
+
+            /**
+             * @brief Generate a spherical envelope around the structure.
+             *        Note that when using this option, the input trajectory and structure are ignored. 
+             *
+             * @param gro: The structure file. The radius will be added to the half of the maximum extent of the structure.
+             * @param radius: The additional extent of the radius of the sphere.
+             */
+            genenv& sphere(const PDBFile& gro, double radius) {
+                auto dmax = Protein(gro).maximum_distance()/20 + 0.2; // half of the maximum extent converted to nm plus generous 2Å vdw buffer 
+                options.push_back(std::make_shared<shell::Flag>("-sphere"));
+                options.push_back(std::make_shared<shell::Argument>("-d_sphere", dmax + radius));
+                return *this;
+            }
+
+            /**
              * @return unsigned int: The good pbc index
              *         GROFile: The envelope gro file
              *         PYFile: The envelope python file
@@ -75,7 +105,7 @@ namespace md {
 
                 // move to output folder
                 if (!folder.path().empty()) {
-                    gro.move(folder);
+                    if (gro.exists()) {gro.move(folder);}
                     py.move(folder);
                     dat.move(folder);
                 }
@@ -89,6 +119,7 @@ namespace md {
                     else {break;}
                 }
 
+                if (pbc.empty()) {return std::make_tuple(0, gro, py, dat);}
                 return std::make_tuple(std::stoi(pbc), gro, py, dat);
             }
 

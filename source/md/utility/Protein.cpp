@@ -29,9 +29,9 @@ double Protein::maximum_distance() const {
     double result = 0;
     for (auto i = atoms.begin(); i != atoms.end(); ++i) {
         for (auto j = i + 1; j != atoms.end(); ++j) {
-            double distance = std::sqrt(std::pow(i->x - j->x, 2) + std::pow(i->y - j->y, 2) + std::pow(i->z - j->z, 2));
+            double distance = std::pow(i->x - j->x, 2) + std::pow(i->y - j->y, 2) + std::pow(i->z - j->z, 2);
             if (distance > result) {result = distance;}
         }
     }
-    return result;
+    return std::sqrt(result);
 }
