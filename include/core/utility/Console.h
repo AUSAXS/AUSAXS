@@ -55,5 +55,5 @@ namespace console {
     /**
      * @brief Remove an indentation from print_text output.
      */
-    void unindent();
+    void dedent();
 }

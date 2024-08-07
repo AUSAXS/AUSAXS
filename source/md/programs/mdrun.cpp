@@ -45,7 +45,7 @@ std::unique_ptr<shell::Jobscript<MDRunResult>> mdrun::run(location where, std::s
         case location::local: {
             return std::make_unique<LocalExecution<MDRunResult>>([*this]() {auto tmp = *this; return tmp.execute();}, folder);
         }
-        case location::lucy: {
+        case location::lusi: {
             cmd.append("-nt 12 -nice 19 -pin on -pinstride 1 -pinoffset 0 -gpu_id 0");
             return std::make_unique<LocalExecution<MDRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
         }

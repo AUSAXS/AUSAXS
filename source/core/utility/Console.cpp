@@ -12,7 +12,7 @@ void console::indent() {
     indentation += "\t";
 }
 
-void console::unindent() {
+void console::dedent() {
     if (indentation.empty()) {
         throw std::runtime_error("Cannot unindent console output below 0.");
     }

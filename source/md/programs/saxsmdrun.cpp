@@ -54,7 +54,7 @@ std::unique_ptr<shell::Jobscript<SAXSRunResult>> saxsmdrun::run(location where, 
             cmd.prepend(_export);
             return std::make_unique<LocalExecution<SAXSRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
         }
-        case location::lucy: {
+        case location::lusi: {
             cmd.append("-nt 12 -nice 19 -pin on -pinstride 1 -pinoffset 0 -gpu_id 0");
             cmd.prepend(_export + "cd " + folder + ";");
             return std::make_unique<LocalExecution<SAXSRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);

@@ -9,7 +9,7 @@
 namespace md {
     enum class location {
         local,
-        lucy,
+        lusi,
         smaug
     };
 
