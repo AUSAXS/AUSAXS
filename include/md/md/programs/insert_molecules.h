@@ -21,8 +21,8 @@ namespace md {
                 return *this;
             }
 
-            insert_molecules& solvent(const option::Forcefield ff, const option::WaterModel& solv) {
-                options.push_back(std::make_shared<shell::Argument>("-ci", option::to_string(ff) + ".ff/" + option::to_string(solv) + ".gro"));
+            insert_molecules& solvent(const option::WaterModel& solv) {
+                options.push_back(std::make_shared<shell::Argument>("-ci", "share/" + option::to_string(solv) + "_single.gro"));
                 return *this;
             }
 
