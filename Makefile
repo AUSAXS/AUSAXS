@@ -418,6 +418,9 @@ fit_all/%: build/bin/fit_all_exv build/bin/remove_fourth_column_data
 	mkdir -p output/saxs_fitter/$*;\
 	cp output/fit_all_exv/$*/*.fit output/saxs_fitter/$*
 
+data/%_stripped.pdb: data/%.pdb
+	grep '^ATOM' $< | grep -v '  H' > data/$*_stripped.pdb
+
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
 consistency/%: build/bin/consistency
