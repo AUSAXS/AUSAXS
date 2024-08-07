@@ -213,7 +213,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
             _mdp.add(MDPOptions::waxs_nsphere = int(0.2*std::pow((dmax*qmax), 2)));
             molmdp = _mdp.write(molmdp);
         }
-        console::unindent();
+        console::dedent();
     } else {
         console::print_text("Reusing previously generated envelope.");
     }
@@ -245,12 +245,12 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
             .jobname(options.name + "_saxs")
         .run(options.mainsim, options.jobscript);
 
-        console::unindent();
+        console::dedent();
         return SAXSOutput{std::move(job)};
     } else {
         console::print_text("Reusing previously generated final simulation.");
     }
-    console::unindent();
+    console::dedent();
     auto job = std::make_unique<NoExecution<SAXSRunResult>>(prod_folder);
     return SAXSOutput{std::move(job)};
 }

@@ -211,12 +211,12 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
             .jobname(options.name + "_mol")
         .run(options.mainsim, options.jobscript);
 
-        console::unindent();
+        console::dedent();
         return {std::move(job), top, solv_ion};
     } else {
         console::print_text("Reusing previous position-restrained simulation.");
     }
-    console::unindent();
+    console::dedent();
     auto job = std::make_unique<NoExecution<MDRunResult>>(prod_path);
     return {std::move(job), top, solv_ion};
 }

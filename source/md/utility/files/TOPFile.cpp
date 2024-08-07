@@ -228,14 +228,14 @@ std::vector<ITPFile> TOPFile::discover_includes() const {
         for (const auto& itp : includes_file) {
             console::print_text(itp.path());
         }
-        console::unindent();
+        console::dedent();
         console::print_text("Include files in directory \"" + directory().path() + "\":");
         console::indent();
         for (const auto& itp : includes_dir) {
             console::print_text(itp.path());
         }
-        console::unindent();
-        console::unindent();
+        console::dedent();
+        console::dedent();
     }
 
     return includes_file;
@@ -283,7 +283,7 @@ void TOPFile::fix_relative_includes(const io::File& path) {
         contents.push_back(line);
     }
     in.close();
-    console::unindent();
+    console::dedent();
 
     // write new contents
     std::string new_contents;
