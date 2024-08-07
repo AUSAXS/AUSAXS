@@ -78,6 +78,7 @@ io::File File::rename(std::string_view name) const {
 }
 
 io::File File::move(const io::Folder& folder) const {
+    if (folder == dir) {return *this;}
     if (!folder.exists()) {folder.create();}
     io::File new_file(folder, name, ext);
     std::filesystem::rename(path(), new_file.path());
@@ -85,6 +86,7 @@ io::File File::move(const io::Folder& folder) const {
 }
 
 io::File File::copy(const io::Folder& folder) const {
+    if (folder == dir) {return *this;}
     if (!folder.exists()) {folder.create();}
     io::File new_file(folder, name, ext);
     std::filesystem::copy(path(), new_file.path());
@@ -113,7 +115,7 @@ bool File::empty() const noexcept {
 }
 
 bool File::exists() const noexcept {
-    return std::filesystem::exists(path());
+    return std::filesystem::is_regular_file(path());
 }
 
 std::string operator+(std::string_view str, const io::File& file) {

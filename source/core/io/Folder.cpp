@@ -30,7 +30,7 @@ bool Folder::empty() const noexcept {return dir.empty();}
 
 bool Folder::exists() const noexcept {
     if (dir.empty()) {return false;}
-    return std::filesystem::exists(dir);
+    return std::filesystem::is_directory(dir);
 }
 
 std::vector<io::File> Folder::files() const {

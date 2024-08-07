@@ -10,6 +10,10 @@ namespace io {
     class Folder {
         public:
             Folder() = default;
+            Folder(const Folder&) = default;
+            Folder(Folder&&) noexcept = default;
+            Folder& operator=(const Folder&) = default;
+            Folder& operator=(Folder&&) noexcept = default;
 
             template<::detail::string_like T>
             Folder(const T& path) : Folder(std::string_view(path)) {}
@@ -28,6 +32,7 @@ namespace io {
             template<::detail::string_like T>
             void operator=(const T& path) {*this = std::string_view(path);}
             void operator=(std::string_view path);
+            bool operator==(const Folder& other) const noexcept = default;
 
             [[nodiscard]] operator std::string() const;
 
