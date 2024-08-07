@@ -5,6 +5,7 @@ import numpy as np
 import sys
 import os
 from enum import Enum
+from scipy.optimize import curve_fit
 
 skip_similar_results = True
 
@@ -68,7 +69,8 @@ x_labels = [
     "Pepsi-SAXS fitted (ours)",
     "CRYSOL", 
     "FoXS", 
-    "Pepsi-SAXS"
+    "Pepsi-SAXS",
+    "WAXSiS"
 ]
 
 class options(Enum):
@@ -90,24 +92,64 @@ class options(Enum):
     CRYSOL = 15
     FoXS = 16
     Pepsi = 17
+    WAXSiS = 18
+
+def waxsis_fit(folder):
+    def chi2(ymodel):
+        return np.sum(((data[:, 1] - ymodel) / data[:, 2]) ** 2)
+
+    def perform_fit(fitdata, dof = 3):
+        popt, _ = curve_fit(lambda x, a, b: a*x + b, fitdata[:, 1], data[:, 1], sigma=data[:, 2], absolute_sigma=True, p0=[1, 0])
+        fitdata[:, 1] = popt[0] * fitdata[:, 1] + popt[1]
+        chi2r = chi2(fitdata[:, 1]) / (len(data[:, 1]) - dof)
+        return chi2r
+
+    data_file = None
+    fit_file = None
+    for nested_file in os.listdir(folder):
+        if nested_file == "intensity.dat":
+            fit_file = os.path.join(folder, nested_file)
+            continue
+
+        elif nested_file[-4:] == ".dat":
+            data_file = os.path.join(folder, nested_file)
+            continue
+
+    if data_file is None or fit_file is None:
+        print(f"waxsis_fit: Missing files in {folder}")
+        return None
+
+    data = np.loadtxt(data_file, skiprows=1)
+    fitdata = np.loadtxt(fit_file, skiprows=0, comments="#", usecols=[0, 1])
+    x = fitdata[:, 0]
+    y = np.interp(data[:, 0], x, fitdata[:, 1])
+    fitdata = np.vstack((data[:, 0], y)).T
+    return perform_fit(fitdata)
 
 data = {"TRAUBE": [], "PONTIUS": []}       # indexing: [file_name, method]
 size = []
 foxs = []
 pepsi = []
 crysol = []
+waxsis = []
 y_labels = []   # file_name
 for file in os.listdir(folder):
     # open nested folders
     if os.path.isdir(os.path.join(folder, file)):
         found_traube = False
         found_pontius = False
+        found_waxsis = False
         for nested_file in os.listdir(os.path.join(folder, file)):
-            if not (nested_file.endswith(".txt") or nested_file.endswith("fit")):
+            obj = os.path.join(folder, file, nested_file)
+            if os.path.isdir(obj):
+                if "waxsresults" in nested_file:
+                    chi2r = waxsis_fit(os.path.join(folder, file, nested_file))
+                    waxsis.append(chi2r)
+                    found_waxsis = True
                 continue
-            
+
             if nested_file == "crysol.fit":
-                with open(os.path.join(folder, file, nested_file), "r") as f:
+                with open(obj, "r") as f:
                     tokens = f.readline().strip().split()
                     for i, token in enumerate(tokens):
                         if token.startswith("Chi"):
@@ -122,7 +164,7 @@ for file in os.listdir(folder):
                             break
 
             elif nested_file == "pepsi.fit":
-                with open(os.path.join(folder, file, nested_file), "r") as f:
+                with open(obj, "r") as f:
                     tokens = f.readlines()[4].strip().split()
                     for i, token in enumerate(tokens):
                         if token.startswith("Chi"):
@@ -130,7 +172,7 @@ for file in os.listdir(folder):
                             break
 
             elif nested_file == "foxs.fit":
-                with open(os.path.join(folder, file, nested_file), "r") as f:
+                with open(obj, "r") as f:
                     tokens = f.readlines()[1].strip().split()
                     for i, token in enumerate(tokens):
                         if token.startswith("Chi"):
@@ -146,7 +188,7 @@ for file in os.listdir(folder):
             if (name not in y_labels):
                 y_labels.append(name)
             chi2s = np.array([0.0]*len(x_label_map))
-            with open(os.path.join(folder, file, nested_file), "r") as f:
+            with open(obj, "r") as f:
                 for line in f:
                     line = line.strip().split()
                     if (line[0].startswith("size")):
@@ -169,6 +211,8 @@ for file in os.listdir(folder):
         if not found_pontius and data["PONTIUS"] is not None:
             print(f"PONTIUS not found in {file}")
             exit(1)
+        if not found_waxsis:
+            waxsis.append(0)
         continue
 
 def choose_data(method: str, choices: list[options]):
@@ -195,6 +239,9 @@ def choose_data(method: str, choices: list[options]):
                 case options.Pepsi:
                     data_out.append(pepsi)
                     labels_out.append(x_labels[choice.value])
+                case options.WAXSiS:
+                    data_out.append(waxsis)
+                    labels_out.append(x_labels[choice.value])
     return np.array(data_out).T, labels_out
 
 ###################################################
@@ -214,7 +261,8 @@ data_traube, x_labels_traube = choose_data("TRAUBE", [
     # options.Grid_f_300, 
     options.CRYSOL, 
     options.FoXS, 
-    options.Pepsi
+    options.Pepsi,
+    options.WAXSiS
 ])
 
 data_pontius, x_labels_pontius = choose_data("PONTIUS", [
