@@ -109,7 +109,7 @@ int main(int argc, char const *argv[]) {
 
             // generate the actual solvent in random positions
             std::tie(solv) = insert_molecules(uc)
-                .solvent(option::Forcefield::AMBER99SB_ILDN, option::WaterModel::TIP4P2005)
+                .solvent(option::WaterModel::TIP4P2005)
                 .nmol(tmp.size_solvent())
             .run();
         }
@@ -135,6 +135,27 @@ int main(int argc, char const *argv[]) {
     } else {
         console::print_text("Reusing previously generated system setup.");
     }
+
+    GROFile emgro(em_path + "em.gro");
+    if (!emgro.exists()) {
+        console::print_text("Running energy minimization...");
+
+        // prepare energy minimization sim
+        MDPFile mdp = EMMDPCreator().write(mdp_folder + "emmol.mdp");
+        auto[emtpr] = grompp(mdp, top, solv_ion)
+            .output(em_path + "em.tpr")
+        .run();
+
+        // run energy minimization
+        mdrun(emtpr)
+            .output(em_path, "em")
+            .jobname(pdb.filename() + "_mol")
+        .run(location::local)->submit();
+    } else {
+        console::print_text("Reusing previously generated energy minimization.");
+    }
+
+
 
     return 0;
 }

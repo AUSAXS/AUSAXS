@@ -30,7 +30,7 @@ int main(int argc, char const *argv[]) {
         .name = s_pdb.stem(),
         .output = {"output/buffer/" + option::to_string(option::WaterModel::TIP4P2005) + "/"},
         .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
-        .setupsim = location::lucy,
+        .setupsim = location::lusi,
         .mainsim = location::smaug,
         // .bufmdp = std::make_shared<PRMDPCreatorSol>(),
         // .molmdp = std::make_shared<PRMDPCreatorMol>(),

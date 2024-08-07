@@ -30,7 +30,7 @@ int main(int argc, char const *argv[]) {
         .name = s_pdb.stem(),
         .output = std::string_view("output/time_analysis/" + s_pdb.stem() + "/"),
         .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
-        .setupsim = location::lucy,
+        .setupsim = location::lusi,
         .mainsim = location::smaug,
         .bufmdp = std::make_shared<TimeAnalysisMDPCreatorSol>(),
         .molmdp = std::make_shared<TimeAnalysisMDPCreatorMol>(),
