@@ -31,7 +31,7 @@ int main(int argc, char const *argv[]) {
         }
     }
     if (!gmx().valid_executable()) {
-        throw except::io_error("GROMACS path \"" + settings::md::gmx_path + "\"");
+        throw except::io_error("Invalid GROMACS path \"" + settings::md::gmx_path + "\"");
     }
 
     GMXOptions sele {

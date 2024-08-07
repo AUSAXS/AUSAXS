@@ -14,3 +14,4 @@
 #include <md/programs/genenv.h>
 #include <md/programs/select.h>
 #include <md/programs/check.h>
+#include <md/programs/insert_molecules.h>
