@@ -79,7 +79,10 @@ void AtomCollection::add(const record::RecordType& type, const std::string& s) {
 }
 
 void AtomCollection::refresh() {
-    if (protein_atoms.empty()) {return;}
+    if (protein_atoms.empty()) {
+        terminate = record::Terminate(-1, "", ' ', -1, ""); 
+        return;
+    }
 
     bool terminate_inserted = false;
     char chainID = '0'; int resSeq = 0; int serial = protein_atoms[0].serial;

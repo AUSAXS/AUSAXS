@@ -22,18 +22,19 @@
 
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
-    std::string s_pdb, s_mfile, s_settings, histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
+    io::ExistingFile pdb, mfile, settings;
+    std::string histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
     bool use_existing_hydration = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
-    app.add_option("input_s", s_pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
-    app.add_option("input_m", s_mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
+    app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
+    app.add_option("input_m", mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/saxs_fitter/")->group("General options");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("General options");
     app.add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, "The unit of the q values in the measurement file. Options: A, nm.")->group("General options");
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax)->group("General options");
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("General options");
-    auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
+    auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
 
     // protein options group
@@ -66,7 +67,6 @@ int main(int argc, char const *argv[]) {
     //### PARSE INPUT ###//
     //###################//
     try {
-        io::ExistingFile pdb(s_pdb), mfile(s_mfile), settings(s_settings);
         settings::general::output += mfile.stem() + "/";
 
         // if a settings file was provided

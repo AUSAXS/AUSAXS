@@ -51,10 +51,10 @@ std::vector<std::string> PDBWriter::as_pdb() const {
     std::string s = f.header.get();
 
     unsigned int count = 0;
-    unsigned int i_ter = f.terminate.serial;
-    bool printed_ter = false;
+    int i_ter = f.terminate.serial;
+    bool printed_ter = i_ter == -1;
     for (unsigned int i = 0; i < f.protein_atoms.size(); i++) {
-        if (i == i_ter) { // check if this is where the terminate is supposed to go
+        if (static_cast<int>(i) == i_ter) { // check if this is where the terminate is supposed to go
             f.terminate.set_serial(f.terminate.serial % 100000);
             s += f.terminate.as_pdb(); // write it if so
             printed_ter = true;
