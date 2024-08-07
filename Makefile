@@ -513,7 +513,7 @@ debug_tests: $(test_files) $(source)
 tests-console: | $(source)
 	@ make -C build tests -j${cmake_threads} --no-print-directory
 	@ mkdir -p build/tests/reports
-	@ for test in $$(find build/test/bin/test_*); do\
+	@ for test in $$(find build/tests/bin/test_*); do\
 		echo "##### Running tests from $$(basename $${test}) #####";\
 		$${test} $(exclude_tags) --reporter console;\
 	done
