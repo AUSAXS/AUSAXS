@@ -9,3 +9,6 @@ target_link_libraries(time_analysis ausaxs_core ausaxs_math ausaxs_md CLI11::CLI
 
 add_executable(frame_analysis frame_analysis.cpp)
 target_link_libraries(frame_analysis ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)
+
+add_executable(extract_profile_water extract_profile_water.cpp)
+target_link_libraries(extract_profile_water ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)

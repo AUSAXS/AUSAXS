@@ -18,5 +18,6 @@ namespace ausaxs::md {
     struct GROFile : public io::detail::IValidatedFile<detail::validate_gro_file> {
         using IValidatedFile::IValidatedFile;
         std::string get_unit_cell() const;
+        unsigned int size_solvent() const;
     };
 }

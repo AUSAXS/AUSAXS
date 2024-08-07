@@ -20,3 +20,22 @@ std::string GROFile::get_unit_cell() const {
     while (std::getline(in, line)) {cell = line;}
     return cell;
 }
+
+unsigned int GROFile::size_solvent() const {
+    if (!exists()) {throw except::io_error("GROFile::size_solvent: \"" + path() + "\" does not exist.");}
+    std::ifstream in(path());
+
+    std::string line;
+    std::getline(in, line);
+    std::getline(in, line);
+    int total = std::stoi(line);
+
+    // skip the coordinates
+    int count_mol = 0;
+    while(std::getline(in, line)) {
+        if (line.substr(5, 3) == "SOL") {break;}
+        ++count_mol;
+    }
+
+    return (total - count_mol)/4;
+}
