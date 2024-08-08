@@ -168,23 +168,24 @@ unsigned int constants::charge::get_charge(atom_t atom) {
         case atom_t::W: return 74;
         case atom_t::M: return 0;
         case atom_t::dummy: return 1;
-        default: throw std::runtime_error("constants::charge::get_charge: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
+        default: throw std::runtime_error("constants::charge::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 
 unsigned int constants::valence::get_valence(atom_t atom) {
     switch(atom) {
-        case atom_t::H: return 1;
-        case atom_t::C: return 4;
-        case atom_t::N: return 3;
-        case atom_t::O: return 2;
-        case atom_t::F: return 1;
+        case atom_t::H:  return 1;
+        case atom_t::C:  return 4;
+        case atom_t::N:  return 3;
+        case atom_t::O:  return 2;
+        case atom_t::F:  return 1;
         case atom_t::Ne: return 0;
-        case atom_t::S: return 2;
-        case atom_t::P: return 1;
+        case atom_t::S:  return 2;
+        case atom_t::P:  return 1;
         case atom_t::Cl: return 1;
-        case atom_t::M: return 0;
-        default: throw std::runtime_error("constants::valence::get_valence: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
+        case atom_t::Fe: return 4;
+        case atom_t::M:  return 0;
+        default: throw std::runtime_error("constants::valence::get_valence: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 
@@ -223,8 +224,8 @@ double constants::mass::get_mass(atom_t atom) {
         case atom_t::W: return 183.84;
         case atom_t::M: return 0;
         case atom_t::dummy: return 1;
-        case atom_t::unknown: throw std::runtime_error("constants::mass::get_mass: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
-        default: throw std::runtime_error("constants::mass:get_mass: Missing switch case for atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
+        case atom_t::unknown: throw std::runtime_error("constants::mass::get_mass: Attempting to get mass of \"unknown\" atom type");
+        default: throw std::runtime_error("constants::mass:get_mass: Missing switch case for atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 
@@ -265,6 +266,6 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         // fake elements
         case atom_t::M: return 0;
         case atom_t::dummy: {return radius::detail::dummy_radius;}
-        default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
+        default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }

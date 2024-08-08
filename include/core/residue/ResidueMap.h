@@ -63,6 +63,11 @@ namespace residue::detail {
             double get(const std::string& atom_name, constants::atom_t atom) {return this->get(AtomKey(atom_name, atom));}
 
             /**
+             * @brief Check if a key is present in the map. 
+             */
+            bool contains(const std::string& name, constants::atom_t atom) const;
+
+            /**
              * @brief Insert a new element into the map. 
              * 
              * @param key The key to insert.

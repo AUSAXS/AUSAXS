@@ -21,6 +21,11 @@ namespace residue {
             detail::ResidueMap& get(const std::string& name);
 
             /**
+             * @brief Check if a residue is present in the storage. 
+             */
+            bool contains(const std::string& name);
+
+            /**
              * @brief Get the atomic group based on the residue name and atom type.
              * 
              * @param residue_name The name of the residue, e.g. GLY or ALA.

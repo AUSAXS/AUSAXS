@@ -27,6 +27,10 @@ ResidueMap::ResidueMap(const std::unordered_map<AtomKey, int>& map) {
     this->calculate_average();
 }
 
+bool ResidueMap::contains(const std::string& name, constants::atom_t atom) const {
+    return map.contains(AtomKey(name, atom));
+}
+
 double ResidueMap::get(const AtomKey& key) {
     // first check if the key is in the map
     if (map.contains(key)) {return map.at(key);}

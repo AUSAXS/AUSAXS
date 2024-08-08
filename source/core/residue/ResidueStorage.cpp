@@ -30,6 +30,10 @@ void ResidueStorage::insert(const std::string& name, const ResidueMap& residue) 
     data.emplace(name, residue);
 }
 
+bool ResidueStorage::contains(const std::string& name) {
+    return data.contains(name);
+}
+
 ResidueMap& ResidueStorage::get(const std::string& name) {
     if (data.find(name) == data.end()) {
         console::print_info("Unknown residue: \"" + name + "\". Attempting to download specification.");
