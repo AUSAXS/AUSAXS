@@ -19,7 +19,8 @@ int main(int argc, char const *argv[]) {
     CLI11_PARSE(app, argc, argv);
 
     settings::grid::scaling = 1;
-    settings::grid::rvol = 3; // water + atom
+    settings::grid::width = 0.5;
+    settings::grid::rvol = 2.2; // water + atom
     settings::general::output = "output/";
 
     io::ExistingFile env_unordered(input + "excludedvolume_0.pdb");
