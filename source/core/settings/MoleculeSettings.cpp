@@ -13,6 +13,8 @@ bool settings::molecule::implicit_hydrogens = true;
 bool settings::molecule::use_effective_charge = true;
 bool settings::molecule::use_occupancy = true;
 
+settings::molecule::DisplacedVolumeSet settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::Default;
+
 #if DEBUG
     bool settings::molecule::throw_on_unknown_atom = true;
 #else
