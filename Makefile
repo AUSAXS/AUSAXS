@@ -278,7 +278,7 @@ pepsi_exv/%:
 	@ mkdir -p temp/pepsi/
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
-	structure=$$(find $${folder}/ -name "$*.pdb"); \
+	structure=$$(find $${folder}/ -name "$*_stripped.pdb"); \
 	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} -o "temp/pepsi/pepsi.fit" -ms 1 -n 100 ${options}
 	@ mv temp/pepsi/pepsi.fit output/saxs_fitter/$*/pepsi.dat
 
@@ -286,7 +286,7 @@ crysol_exv/%:
 	@ mkdir -p temp/crysol/
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
-	structure=$$(find $${folder}/ -name "$*.pdb"); \
+	structure=$$(find $${folder}/ -name "$*_stripped.pdb"); \
 	crysol $${structure} --prefix="temp/crysol/out" --smax=1 --skip-minimization --lm 100 ${options}
 	@ mv temp/crysol/out.int output/saxs_fitter/$*/crysol.dat
 
@@ -296,12 +296,12 @@ foxs_exv/%:
 	@ cd temp/foxs; \
 	measurement=$$(find ../../data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
-	structure=$$(find $${folder}/ -name "$*.pdb"); \
+	structure=$$(find $${folder}/ -name "$*_stripped.pdb"); \
 	cp $${structure} .; \
 	cp $${measurement} .; \
 	foxs $$(basename "$${structure}") $$(basename "$${measurement}") --max_q 1 --write-partial-profile true ${options}
 	@ mv temp/foxs/*.fit output/saxs_fitter/$*/foxs.fit
-	@ mv temp/foxs/$*.pdb.dat output/saxs_fitter/$*/foxs.dat
+	@ mv temp/foxs/$*_stripped.pdb.dat output/saxs_fitter/$*/foxs.dat
 
 foxs_exv_bounds/%:
 	@ rm -rf temp/foxs
