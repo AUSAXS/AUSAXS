@@ -5,6 +5,10 @@
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <settings/All.h>
+#include <constants/Constants.h>
+#include <table/ArrayDebyeTable.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <dataset/SimpleDataset.h>
 
 #include <vector>
 #include <string>
@@ -20,27 +24,74 @@ int main(int argc, char const *argv[]) {
 
     settings::grid::scaling = 1;
     settings::grid::width = 0.5;
-    settings::grid::rvol = 2.2; // water + atom
+    settings::grid::rvol = 3; // water + atom
     settings::general::output = "output/";
 
-    io::ExistingFile env_unordered(input + "excludedvolume_0.pdb");
-    io::ExistingFile env_ordered(input + "prot+solvlayer_0.pdb");
+    // io::ExistingFile env_unordered(input + "excludedvolume_0.pdb");
+    // io::ExistingFile env_ordered(input + "prot+solvlayer_0.pdb");
 
-    data::Molecule unordered(env_unordered);
-    data::Molecule ordered(env_ordered);
-    auto ordered_layer = ordered.get_waters();
+    // data::Molecule unordered(env_unordered);
+    // data::Molecule ordered(env_ordered);
+    // auto ordered_layer = ordered.get_waters();
 
-    ordered.clear_hydration();
-    auto grid = ordered.get_grid();
-    std::vector<data::record::Water> random_waters;
-    for (auto& water : unordered.get_waters()) {
-        auto bin = grid->to_bins(water.get_coordinates());
-        if (grid->grid.is_empty(bin.x(), bin.y(), bin.z())) {
-            random_waters.emplace_back(water);
+    // ordered.clear_hydration();
+    // auto grid = ordered.get_grid();
+    // std::vector<data::record::Water> random_waters;
+    // for (auto& water : unordered.get_waters()) {
+    //     auto bin = grid->to_bins(water.get_coordinates());
+    //     if (grid->grid.is_empty(bin.x(), bin.y(), bin.z())) {
+    //         random_waters.emplace_back(water);
+    //     }
+    // }
+
+    // data::Molecule ordered(std::vector<data::record::Atom>{}, ordered_layer);
+    // data::Molecule disordered(std::vector<data::record::Atom>{}, random_waters);
+
+    // ordered.save(settings::general::output + "ordered.pdb");
+    // disordered.save(settings::general::output + "disordered.pdb");
+
+    data::Molecule ordered("output/ordered.pdb");
+    data::Molecule disordered("output/disordered.pdb");
+
+    //#######################//
+    //### CALC SCATTERING ###//
+    //#######################//
+    auto sinqd_table = table::ArrayDebyeTable::get_default_table();
+    std::vector<data::record::Water> waters = ordered.get_waters();
+    waters.insert(waters.end(), disordered.get_waters().begin(), disordered.get_waters().end());
+    for (unsigned int i = disordered.size_water(); i < waters.size(); ++i) {
+        waters[i].set_occupancy(-1);
+    }
+
+    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    std::vector<double> Iq(debye_axis.bins, 0);
+
+    container::Container2D<double> distances(waters.size(), waters.size());
+    for (unsigned int i = 0; i < waters.size(); ++i) {
+        for (unsigned int j = 0; j < i; ++j) {
+            distances.index(i, j) = waters[i].distance(waters[j]);
+            distances.index(j, i) = distances.index(i, j);
         }
     }
 
-    data::Molecule(std::vector<data::record::Atom>{}, ordered_layer).save(settings::general::output + "ordered.pdb");
-    data::Molecule(std::vector<data::record::Atom>{}, random_waters).save(settings::general::output + "random.pdb");
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        std::cout << std::round(double(q)/(q0+debye_axis.bins)*100) << "%\r" << std::flush;
+        for (unsigned int i = 0; i < waters.size(); ++i) {
+            for (unsigned int j = 0; j < waters.size(); ++j) {
+                double qd = constants::axes::q_vals[q]*distances.index(i, j);
+                if (qd < 1e-3) {
+                    double qd2 = qd*qd;
+                    Iq[q-q0] += waters[i].get_occupancy()*waters[j].get_occupancy()*(1 - qd2/6 + qd2*qd2/120);
+                } else {
+                    Iq[q-q0] += waters[i].get_occupancy()*waters[j].get_occupancy()*std::sin(qd)/qd;
+                }
+            }
+        }
+        Iq[q] *= std::exp(-constants::axes::q_vals[q]*constants::axes::q_vals[q]);
+    }
+
+    SimpleDataset dataset(debye_axis.as_vector(), Iq);
+    dataset.save(settings::general::output + "scattering.dat");
     return 0;
 }
