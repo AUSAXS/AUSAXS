@@ -317,6 +317,7 @@ data_diff -= data_pontius
 
 bounds = [1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 25, 100]
 cmap = plt.get_cmap('RdYlGn_r')
+cmap.set_bad(color='white')
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 
 def round(x):
@@ -330,10 +331,13 @@ def plot_one(data, x_labels, method):
     figsize_x = max(len(x_labels)+2, 8)
     figsize_y = max(len(data), 6)
     fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
+    data[data[:, :] == 0] = np.NaN
     plt.imshow(data, interpolation='nearest', cmap=cmap, norm=norm)
     for i in range(len(y_labels)):
         for j in range(len(x_labels)):
-            text = ax.text(j, i, round(data[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+            if np.isnan(data[i, j]):
+                continue
+            ax.text(j, i, round(data[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
         plt.axhline(i+0.5, color="black", linewidth=1)
     for i in range(len(x_labels)):
         plt.axvline(i+0.5, color="black", linewidth=1)
@@ -349,6 +353,8 @@ def plot_one(data, x_labels, method):
     plt.imshow(data.T, interpolation='nearest', cmap=cmap, norm=norm)
     for i in range(len(x_labels)):
         for j in range(len(y_labels)):
+            if np.isnan(data[j, i]):
+                continue
             ax.text(j, i, round(data[j, i]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
         plt.axhline(i+0.5, color="black", linewidth=1)
     for i in range(len(y_labels)):
