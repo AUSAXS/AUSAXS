@@ -142,7 +142,11 @@ int main(int argc, char const *argv[]) {
         auto tmp = detail::XVGReader::construct_multifile(waxsis);
         waxsis_data_aa = *tmp[0];
         waxsis_data_xx = *tmp[1];
-        waxsis_data_ww = *tmp[2];
+
+        io::File ww(settings::general::output + "waxsis_ww.dat");
+        if (ww.exists()) {
+            waxsis_data_ww = SimpleDataset(ww);
+        }
 
         waxsis_data_aa.normalize();
         waxsis_data_xx.normalize();
