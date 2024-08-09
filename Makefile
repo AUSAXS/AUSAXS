@@ -462,6 +462,12 @@ bin_size_analysis/%: build/bin/bin_size_analysis
 	$< $*
 	make plot/output/bin_size_analysis
 
+vary_exv_tables/%: build/bin/vary_exv_tables
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${structure} $${measurement}
+	make plot/output/vary_exv_tables
+
 ####################################################################################
 ###			     SIMULATIONS					 ###
 ####################################################################################

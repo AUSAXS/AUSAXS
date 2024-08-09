@@ -135,14 +135,11 @@ int main(int argc, char const *argv[]) {
             "CRYSOL",
             "Pepsi-SAXS"
         };
-        runner(loop, loop_names, "");
+        // runner(loop, loop_names, "");
     }
     {   // dependent
         std::vector<settings::hist::HistogramManagerChoice> loop = {settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit};
         std::vector<std::string> loop_names = {"HistogramManagerMTFFExplicit"};
-
-        settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::Traube;
-        runner(loop, loop_names, "_traube");
 
         settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::Voronoi_implicit_H;
         runner(loop, loop_names, "_voronoi");
@@ -152,6 +149,9 @@ int main(int argc, char const *argv[]) {
 
         settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::vdw;
         runner(loop, loop_names, "_vdw");
+
+        settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::Traube;
+        runner(loop, loop_names, "_traube");
     }
 
 
