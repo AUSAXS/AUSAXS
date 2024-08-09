@@ -23,7 +23,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
     }
 
     for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {
-        const form_factor::ExvFormFactor& ff_obj = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(ff));
+        const form_factor::ExvFormFactor& ff_obj = form_factor::storage::exv::standard.get_form_factor(static_cast<form_factor::form_factor_t>(ff));
         SimpleDataset dataset;
         for (const double& q : q_vals) {
             dataset.push_back(q, ff_obj.evaluate_normalized(q));
@@ -37,7 +37,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
 TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
     for (unsigned int ffi = 0; ffi < form_factor::get_count_without_excluded_volume(); ++ffi) {
         const form_factor::FormFactor& ff = form_factor::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
-        const form_factor::ExvFormFactor& ffx = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
+        const form_factor::ExvFormFactor& ffx = form_factor::storage::exv::standard.get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
 
         SimpleDataset dataset, datasetx;
         for (const double& q : q_vals) {

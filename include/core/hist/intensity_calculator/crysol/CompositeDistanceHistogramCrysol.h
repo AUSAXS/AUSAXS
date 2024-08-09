@@ -21,7 +21,7 @@ namespace hist {
 
         protected:
             double exv_factor(double q) const override;
-            inline static form_factor::storage::atomic::table_t ffaa_table = form_factor::crysol::storage::atomic::generate_table();
+            inline static form_factor::storage::atomic::table_t ffaa_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
             inline static form_factor::storage::cross::table_t  ffax_table = form_factor::crysol::storage::cross::generate_table();
             inline static form_factor::storage::exv::table_t    ffxx_table = form_factor::crysol::storage::exv::generate_table();
     };
