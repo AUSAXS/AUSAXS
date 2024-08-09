@@ -94,3 +94,21 @@ TEST_CASE("fitter: consistent_charge_scaling") {
         REQUIRE_THAT(fit1, Catch::Matchers::WithinAbs(fit2, 1e-6));
     }
 }
+
+TEST_CASE("fitter: correct dof") {
+    SimpleDataset data("tests/files/2epe.dat");
+    int dof = data.size() - 1;
+
+    SECTION("LinearFitter") {
+        fitter::LinearFitter fitter(data);
+
+    }
+
+    SECTION("HydrationFitter") {
+
+    }
+
+    SECTION("ExcludedVolumeFitter") {
+
+    }
+}
