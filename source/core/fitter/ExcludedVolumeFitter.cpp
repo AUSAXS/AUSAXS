@@ -16,14 +16,10 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : HydrationFitter() {
-    HydrationFitter hfit(saxs, std::move(h));
-    auto hres = hfit.fit();
-    double c = hres->get_parameter("c").value;
-    HydrationFitter::operator=(std::move(hfit));
-    initialize_guess();
-    validate_histogram();
-    guess.guess = c;
+ExcludedVolumeFitter::ExcludedVolumeFitter(const SimpleDataset& data) : HydrationFitter(data) {}
+
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : ExcludedVolumeFitter(saxs) {
+    set_scattering_hist(std::move(h));
 }
 
 void ExcludedVolumeFitter::validate_histogram() const {
@@ -58,7 +54,7 @@ std::shared_ptr<FitResult> ExcludedVolumeFitter::fit() {
     std::shared_ptr<FitResult> ab_fit = fitter.fit();
 
     // update fitter object
-    fitted = std::make_shared<FitResult>(res, res.fval, data.size()-2); // start with the fit performed here
+    fitted = std::make_shared<FitResult>(res, res.fval, data.size()-1); // start with the fit performed here
     fitted->add_fit(ab_fit.get());                                      // add the a,b inner fit
     fitted->add_plots(this);                                            // make the result plottable
     fitted->evaluated_points = mini->get_evaluated_points();            // add the evaluated points
@@ -134,6 +130,10 @@ SimpleDataset ExcludedVolumeFitter::get_dataset() const {
     return data;
 }
 
+unsigned int ExcludedVolumeFitter::dof() const {
+    return data.size() - 5;
+}
+
 void ExcludedVolumeFitter::set_guess(mini::Parameter guess_hydration, mini::Parameter guess_exv) {
     this->guess = std::move(guess_hydration);
     this->guess_exv = std::move(guess_exv);
@@ -144,6 +144,11 @@ observer_ptr<hist::ICompositeDistanceHistogramExv> ExcludedVolumeFitter::cast_ex
 }
 
 void ExcludedVolumeFitter::set_scattering_hist(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
-    this->h = std::move(h);
+    HydrationFitter hfit(data, std::move(h));
+    auto hres = hfit.fit();
+    double c = hres->get_parameter("c").value;
+    HydrationFitter::operator=(std::move(hfit));
+    initialize_guess();
     validate_histogram();
+    guess.guess = c;
 }

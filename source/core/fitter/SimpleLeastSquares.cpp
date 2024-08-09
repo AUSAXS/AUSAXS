@@ -52,7 +52,7 @@ std::shared_ptr<FitResult> SimpleLeastSquares::fit() {
 
     std::shared_ptr<FitResult> f = std::make_shared<FitResult>();
     f->parameters = {{"a", a, sqrt(a_err2)}, {"b", b, sqrt(b_err2)}};
-    f->dof = data.size() - 2;
+    f->dof = data.size() - 3;
     f->fval = chi2({});
     f->fevals = 1;
     // f->status = Q > 0.001 ? 0 : 1;

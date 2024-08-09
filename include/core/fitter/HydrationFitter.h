@@ -28,6 +28,11 @@ namespace fitter {
              */
             HydrationFitter(const io::ExistingFile& input);
 
+			/**
+			 * Prepare a fit to the dataset.
+			 */
+            HydrationFitter(const SimpleDataset& data);
+
             /**
              * Prepare a fit of the histogram to the measured values. 
              * 
