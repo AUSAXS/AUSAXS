@@ -100,4 +100,5 @@ void PDBReader::read(const io::File& path) {
 
     console::print_text("Successfully read " + std::to_string(n_pa + n_ha) + " atomic records.");
     if (n_ha != 0) {console::print_text("\t" + std::to_string(file->hydration_atoms.size()) + " of these are hydration atoms.");}
+    console::unindent();
 }

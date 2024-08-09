@@ -111,7 +111,7 @@ std::string File::filename() const noexcept {
 }
 
 bool File::empty() const noexcept {
-    return dir.empty() && name.empty() && ext.empty();
+    return name.empty() && ext.empty();
 }
 
 bool File::exists() const noexcept {
