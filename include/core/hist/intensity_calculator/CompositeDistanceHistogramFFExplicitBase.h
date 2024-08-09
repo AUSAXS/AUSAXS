@@ -15,8 +15,10 @@ namespace hist {
     class CompositeDistanceHistogramFFExplicitBase : public CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType> {
         public: 
             CompositeDistanceHistogramFFExplicitBase();
+            CompositeDistanceHistogramFFExplicitBase(const CompositeDistanceHistogramFFExplicitBase&);
             CompositeDistanceHistogramFFExplicitBase(CompositeDistanceHistogramFFExplicitBase&&) noexcept;
             CompositeDistanceHistogramFFExplicitBase& operator=(CompositeDistanceHistogramFFExplicitBase&&) noexcept;
+            CompositeDistanceHistogramFFExplicitBase& operator=(const CompositeDistanceHistogramFFExplicitBase&);
             virtual ~CompositeDistanceHistogramFFExplicitBase() override;
 
             /**

@@ -18,7 +18,7 @@ using namespace fitter;
 
 ExcludedVolumeFitter::ExcludedVolumeFitter(const SimpleDataset& data) : HydrationFitter(data) {}
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : ExcludedVolumeFitter(saxs) {
+ExcludedVolumeFitter::ExcludedVolumeFitter(const SimpleDataset& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : ExcludedVolumeFitter(saxs) {
     set_scattering_hist(std::move(h));
 }
 

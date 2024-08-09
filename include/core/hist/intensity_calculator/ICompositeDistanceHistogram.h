@@ -8,7 +8,9 @@ namespace hist {
         public:
             using hist::DistanceHistogram::DistanceHistogram;
             ICompositeDistanceHistogram() = default;
+            ICompositeDistanceHistogram(const ICompositeDistanceHistogram&) = default;
             ICompositeDistanceHistogram(ICompositeDistanceHistogram&&) noexcept = default;
+            ICompositeDistanceHistogram& operator=(const ICompositeDistanceHistogram&) = default;
             ICompositeDistanceHistogram& operator=(ICompositeDistanceHistogram&&) noexcept = default;
             virtual ~ICompositeDistanceHistogram() = default;
 

@@ -74,6 +74,6 @@ namespace form_factor {
     }
 
     namespace storage::exv {
-        constexpr detail::ExvFormFactorSet standard(constants::displaced_volume::standard);
+        constexpr form_factor::detail::ExvFormFactorSet standard(constants::displaced_volume::standard);
     }
 }

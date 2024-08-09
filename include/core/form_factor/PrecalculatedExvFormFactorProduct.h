@@ -40,3 +40,7 @@ namespace form_factor::storage::cross {
      */
     const table_t& get_precalculated_form_factor_table() noexcept;
 }
+
+namespace form_factor::storage::detail {
+    void set_custom_displaced_volume_table(const constants::displaced_volume::detail::DisplacedVolumeSet& set);
+}

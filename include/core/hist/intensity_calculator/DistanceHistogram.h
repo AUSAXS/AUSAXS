@@ -21,7 +21,9 @@ namespace hist {
     class DistanceHistogram : protected Histogram {
         public: 
             DistanceHistogram();
+            DistanceHistogram(const DistanceHistogram& other);
             DistanceHistogram(DistanceHistogram&& other) noexcept;
+            DistanceHistogram& operator=(const DistanceHistogram& other);
             DistanceHistogram& operator=(DistanceHistogram&& other) noexcept;
 
             /**
@@ -81,7 +83,7 @@ namespace hist {
 
         protected:
             std::vector<double> d_axis;                             // The distance axis.
-            std::unique_ptr<table::DebyeTable> weighted_sinc_table; // The weighted sinc table
+            std::shared_ptr<table::DebyeTable> weighted_sinc_table; // The weighted sinc table
             bool use_weighted_table = false;                        // Whether to use the weighted sinc table
 
             /**

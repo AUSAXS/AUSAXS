@@ -16,8 +16,10 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace hist;
 
 DistanceHistogram::DistanceHistogram() = default;
-DistanceHistogram::DistanceHistogram(DistanceHistogram&& other) noexcept = default;
-DistanceHistogram& DistanceHistogram::operator=(DistanceHistogram&& other) noexcept = default;
+DistanceHistogram::DistanceHistogram(const DistanceHistogram&) = default;
+DistanceHistogram::DistanceHistogram(DistanceHistogram&&) noexcept = default;
+DistanceHistogram& DistanceHistogram::operator=(DistanceHistogram&&) noexcept = default;
+DistanceHistogram& DistanceHistogram::operator=(const DistanceHistogram&) = default;
 
 DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram(std::move(p_tot.get_data()), Axis(0, p_tot.size()*constants::axes::d_axis.width(), p_tot.size())) {
     initialize();

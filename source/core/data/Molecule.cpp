@@ -110,6 +110,7 @@ void Molecule::add_implicit_hydrogens() {
         return;
     }
 
+    console::print_text("\tAdding implicit hydrogens to the molecule.");
     for (auto& body : bodies) {
         body.add_implicit_hydrogens();
     }

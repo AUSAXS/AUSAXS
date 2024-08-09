@@ -10,7 +10,9 @@ namespace hist {
         public:
             using ICompositeDistanceHistogram::ICompositeDistanceHistogram;
             ICompositeDistanceHistogramExv() = default;
+            ICompositeDistanceHistogramExv(const ICompositeDistanceHistogramExv&) = default;
             ICompositeDistanceHistogramExv(ICompositeDistanceHistogramExv&&) noexcept = default;
+            ICompositeDistanceHistogramExv& operator=(const ICompositeDistanceHistogramExv&) = default;
             ICompositeDistanceHistogramExv& operator=(ICompositeDistanceHistogramExv&&) noexcept = default;
             virtual ~ICompositeDistanceHistogramExv() = default;
 

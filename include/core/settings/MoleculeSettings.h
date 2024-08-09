@@ -16,6 +16,9 @@ namespace settings {
             MinimumFluctutation_explicit_H, // Minimum fluctuation volume with explicit hydrogens
             vdw,                            // Volumes calculated from the van der Waals radii
 
+            //? Custom displaced volume set. Make sure to define it first with form_factor::storage::detail::set_custom_displaced_volume_set
+            Custom,
+
             //! Remember to update constants::displaced_volume::standard if this is changed
             Default = Voronoi_implicit_H    // Default displaced volume set
         };

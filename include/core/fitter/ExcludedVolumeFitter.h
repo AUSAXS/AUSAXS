@@ -19,7 +19,7 @@ namespace fitter {
     class ExcludedVolumeFitter : public HydrationFitter {
         public:
             ExcludedVolumeFitter(const SimpleDataset& data);
-            ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            ExcludedVolumeFitter(const SimpleDataset& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             ~ExcludedVolumeFitter() override = default;
 

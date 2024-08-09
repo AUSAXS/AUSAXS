@@ -23,7 +23,9 @@ namespace hist {
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
             CompositeDistanceHistogramFFAvgBase();
+            CompositeDistanceHistogramFFAvgBase(const CompositeDistanceHistogramFFAvgBase&);
             CompositeDistanceHistogramFFAvgBase(CompositeDistanceHistogramFFAvgBase&&) noexcept;
+            CompositeDistanceHistogramFFAvgBase& operator=(const CompositeDistanceHistogramFFAvgBase&);
             CompositeDistanceHistogramFFAvgBase& operator=(CompositeDistanceHistogramFFAvgBase&&) noexcept;
 
             /**

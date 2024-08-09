@@ -20,10 +20,16 @@ template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase() = default;
 
 template<typename FormFactorTableType>
+CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(const CompositeDistanceHistogramFFAvgBase&) = default;
+
+template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(CompositeDistanceHistogramFFAvgBase&&) noexcept = default;
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::operator=(CompositeDistanceHistogramFFAvgBase&&) noexcept = default;
+
+template<typename FormFactorTableType>
+CompositeDistanceHistogramFFAvgBase<FormFactorTableType>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::operator=(const CompositeDistanceHistogramFFAvgBase&) = default;
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(

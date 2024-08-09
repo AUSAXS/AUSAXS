@@ -20,11 +20,17 @@ using namespace hist;
 template<typename AA, typename AXFormFactorTableType, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase() = default;
 
+template<typename AA, typename AXFormFactorTableType, typename XX>
+CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase(const CompositeDistanceHistogramFFExplicitBase&) = default;
+
 template<typename AA, typename AX, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AX, XX>::CompositeDistanceHistogramFFExplicitBase(CompositeDistanceHistogramFFExplicitBase&&) noexcept = default;
 
 template<typename AA, typename AX, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AX, XX>& CompositeDistanceHistogramFFExplicitBase<AA, AX, XX>::operator=(CompositeDistanceHistogramFFExplicitBase&&) noexcept = default;
+
+template<typename AA, typename AX, typename XX>
+CompositeDistanceHistogramFFExplicitBase<AA, AX, XX>& CompositeDistanceHistogramFFExplicitBase<AA, AX, XX>::operator=(const CompositeDistanceHistogramFFExplicitBase&) = default;
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::~CompositeDistanceHistogramFFExplicitBase() = default;
