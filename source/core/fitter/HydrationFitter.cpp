@@ -18,6 +18,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace fitter;
 
+HydrationFitter::HydrationFitter(const SimpleDataset& data) : LinearFitter(data) {}
 HydrationFitter::HydrationFitter(HydrationFitter&& other) : LinearFitter(std::move(other)), guess(std::move(other.guess)) {}
 HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {}
 HydrationFitter::HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(input, std::move(h)) {initialize_guess();}
@@ -160,7 +161,7 @@ double HydrationFitter::chi2(const std::vector<double>& params) {
 }
 
 unsigned int HydrationFitter::dof() const {
-    return data.size() - 3;
+    return data.size() - 4;
 }
 
 double HydrationFitter::get_intercept() {

@@ -18,6 +18,7 @@ namespace fitter {
      */
     class ExcludedVolumeFitter : public HydrationFitter {
         public:
+            ExcludedVolumeFitter(const SimpleDataset& data);
             ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             ~ExcludedVolumeFitter() override = default;
@@ -70,6 +71,8 @@ namespace fitter {
              * @brief Get the dataset being fitted. 
              */
             [[nodiscard]] SimpleDataset get_dataset() const;
+
+            [[nodiscard]] unsigned int dof() const override;
 
             /**
              * @brief Set the guess values for the hydration scaling factor @a c.

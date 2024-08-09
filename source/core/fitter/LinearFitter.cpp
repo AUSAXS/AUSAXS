@@ -155,7 +155,7 @@ unsigned int LinearFitter::size() const {
 }
 
 unsigned int LinearFitter::dof() const {
-    return data.size() - 2;
+    return data.size() - 3;
 }
 
 std::shared_ptr<FitResult> LinearFitter::get_fit() const {

@@ -96,19 +96,35 @@ TEST_CASE("fitter: consistent_charge_scaling") {
 }
 
 TEST_CASE("fitter: correct dof") {
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
+    Molecule protein("tests/files/2epe.pdb");
     SimpleDataset data("tests/files/2epe.dat");
-    int dof = data.size() - 1;
+    unsigned int size = data.size();
 
     SECTION("LinearFitter") {
         fitter::LinearFitter fitter(data);
+        REQUIRE(fitter.dof() == size-3);
 
+        fitter.set_scattering_hist(protein.get_histogram());
+        auto res = fitter.fit();
+        REQUIRE(res->dof == size-3);
     }
 
     SECTION("HydrationFitter") {
+        fitter::HydrationFitter fitter(data);
+        REQUIRE(fitter.dof() == size-4);
 
+        fitter.set_scattering_hist(protein.get_histogram());
+        auto res = fitter.fit();
+        REQUIRE(res->dof == size-4);
     }
 
     SECTION("ExcludedVolumeFitter") {
+        fitter::ExcludedVolumeFitter fitter(data);
+        REQUIRE(fitter.dof() == size-5);
 
+        fitter.set_scattering_hist(protein.get_histogram());
+        auto res = fitter.fit();
+        REQUIRE(res->dof == size-5);
     }
 }
