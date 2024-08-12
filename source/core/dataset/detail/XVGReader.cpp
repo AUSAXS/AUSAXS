@@ -126,11 +126,15 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
         std::vector<std::string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
 
         // remove empty tokens
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].empty()) {
-                tokens.erase(tokens.begin() + i);
-                i--;
+        {
+            std::vector<std::string> new_tokens;
+            for (unsigned int i = 0; i < tokens.size(); i++) {
+                if (tokens[i].empty()) {
+                    continue;
+                }
+                new_tokens.push_back(tokens[i]);
             }
+            tokens = std::move(new_tokens);
         }
 
         // check if all tokens are numbers
