@@ -88,6 +88,33 @@ namespace hist {
             const double& get_count(unsigned int i) const;
 
             /**
+             * @brief Add a count to a specific bin.
+             */
+            void add_count(unsigned int i, double count);
+
+            /**
+             * @brief Set the count at a specific bin.
+             */
+            void set_count(unsigned int i, double count);
+
+            /**
+             * @brief Set the counts of this histogram.
+             */
+            void set_count(const std::vector<double>& counts);
+
+            /**
+             * @brief Bin a value.
+             *        The bin containing the value will be incremented by 1.
+             */
+            void bin(double value);
+
+            /**
+             * @brief Bin a list of values.
+             *        The bin containing each value will be incremented by 1.
+             */
+            void bin(const std::vector<double>& values);
+
+            /**
              * @brief Get the count at a specific bin.
              */
             double& get_count(unsigned int i);
@@ -115,6 +142,11 @@ namespace hist {
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
             [[nodiscard]] SimpleDataset as_dataset() const;
+
+            /**
+             * @brief Normalize the histogram to have a sum of 1. 
+             */
+            void normalize();
 
             Histogram& operator+=(const Histogram& rhs);
             Histogram& operator-=(const Histogram& rhs);

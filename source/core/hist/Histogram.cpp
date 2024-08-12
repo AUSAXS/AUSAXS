@@ -8,6 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <algorithm>
 #include <sstream>
+#include <cassert>
 
 using namespace hist;
 
@@ -79,10 +80,12 @@ std::vector<double>& Histogram::get_counts() {
 }
 
 double& Histogram::get_count(unsigned int i) {
+    assert(i < p.size() && "Index out of bounds");
     return p[i];
 }
 
 const double& Histogram::get_count(unsigned int i) const {
+    assert(i < p.size() && "Index out of bounds");
     return p[i];
 }
 
@@ -100,6 +103,34 @@ void Histogram::generate_axis() {
 
 void Histogram::set_axis(const Axis& axis) noexcept {
     this->axis = axis;
+}
+
+void Histogram::normalize() {
+    double sum = std::accumulate(p.begin(), p.end(), 0.0);
+    assert(sum != 0 && "Cannot normalize a histogram with a sum of 0");
+    std::transform(p.begin(), p.end(), p.begin(), [sum] (double x) {return x/sum;});
+}
+
+void Histogram::add_count(unsigned int i, double count) {
+    assert(i < p.size() && "Index out of bounds");
+    p[i] += count;
+}
+
+void Histogram::set_count(unsigned int i, double count) {
+    assert(i < p.size() && "Index out of bounds");
+    p[i] = count;
+}
+
+void Histogram::set_count(const std::vector<double>& counts) {
+    p = counts;
+}
+
+void Histogram::bin(double value) {
+    p[std::min(axis.get_bin(value), p.size()-1)]++;
+}
+
+void Histogram::bin(const std::vector<double>& values) {
+    std::for_each(values.begin(), values.end(), [this] (double v) {bin(v);});
 }
 
 Limit Histogram::span_y() const noexcept {

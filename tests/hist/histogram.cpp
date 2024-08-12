@@ -189,3 +189,52 @@ TEST_CASE("Histogram::operator==") {
     hist::Histogram hist3(data3);
     CHECK(hist2 != hist3);
 }
+
+TEST_CASE("Histogram::bin") {
+    SECTION("simple") {
+        std::vector<double> data{1, 2, 3, 4, 5};
+        hist::Histogram hist(Axis({1, 6}, 5));
+        hist.bin(data);
+        CHECK(hist.get_counts() == std::vector<double>{1, 1, 1, 1, 1});
+    }
+
+    SECTION("complex") {
+        hist::Histogram hist2(Axis({0, 10}, 10));
+
+        std::vector<double> data;
+        for (int i = 0; i < 100; ++i) {
+            data.push_back(i % 10);
+            hist2.bin(i % 10);
+        }
+        hist::Histogram hist(Axis({0, 10}, 10));
+        hist.bin(data);
+        CHECK(hist.get_counts() == std::vector<double>{10, 10, 10, 10, 10, 10, 10, 10, 10, 10});        
+        CHECK(hist == hist2);
+    }
+}
+
+TEST_CASE("Histogram::add_count") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    for (int i = 0; i < 5; ++i) {
+        hist.add_count(i, i+1);
+    }
+    CHECK(hist.get_counts() == std::vector<double>{2, 4, 6, 8, 10});
+}
+
+TEST_CASE("Histogram::set_count") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    for (int i = 0; i < 5; ++i) {
+        hist.set_count(i, 0);
+    }
+    CHECK(hist.get_counts() == std::vector<double>{0, 0, 0, 0, 0});
+
+    for (int i = 0; i < 5; ++i) {
+        hist.set_count(i, i);
+    }
+    CHECK(hist.get_counts() == std::vector<double>{0, 1, 2, 3, 4});
+
+    hist.set_count(data);
+    CHECK(hist.get_counts() == data);
+}
