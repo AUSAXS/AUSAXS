@@ -31,6 +31,7 @@ int main(int argc, char const *argv[]) {
     settings::grid::width = 0.5;
     settings::grid::rvol = 0; // water + atom
     settings::molecule::use_effective_charge = false;
+    settings::molecule::center = false;
     settings::general::output = "output/waxsis_water/";
 
     io::ExistingFile env_unordered(input + "excludedvolume_0.pdb");
@@ -44,7 +45,7 @@ int main(int argc, char const *argv[]) {
         std::string line;
         std::vector<std::string> lines;
         while (std::getline(in, line)) {
-            if (line.find("CIP") == std::string::npos) {
+            if (line.find("CIP") == std::string::npos && line.find("CIM") == std::string::npos) {
                 lines.push_back(line);
             }
         }
@@ -131,7 +132,7 @@ int main(int argc, char const *argv[]) {
 
     if (calc_density) {
         data::Molecule protein(env_ordered);
-        Axis axis(0, 10, 100);
+        Axis axis(0, 10, 50);
 
         auto get_hist = [&] (const std::vector<data::record::Water>& waters) {
             std::vector<double> min_dists;
@@ -141,9 +142,9 @@ int main(int argc, char const *argv[]) {
 
                 for (unsigned int i = 0; i < protein.size_atom(); ++i) {
                     const auto& atom = atoms[i];
-                    shortest = std::min(shortest, water.get_coordinates().distance2(atom.get_coordinates()) - constants::radius::get_vdw_radius(atom.get_element()));
+                    shortest = std::min(shortest, water.get_coordinates().distance2(atom.get_coordinates()));
                 }
-                min_dists.push_back(std::sqrt(shortest));
+                min_dists.push_back((shortest < 0 ? -1 : 1) * std::sqrt(std::abs(shortest)));
             }
 
             std::vector<double> bins = axis.as_vector();
@@ -155,15 +156,20 @@ int main(int argc, char const *argv[]) {
             return std::pair{bins, hist};
         };
 
+        settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::RadialStrategy;
         protein.generate_new_hydration();
         auto hist_ausaxs = get_hist(protein.get_waters());
         auto hist_ordered = get_hist(ordered_waters);
         auto hist_disordered = get_hist(disordered_waters);
 
         plots::PlotDataset()
-            .plot(SimpleDataset{hist_ordered.first, hist_ordered.second}, {{"legend", "ordered"}, {"color", "k"}})
-            .plot(SimpleDataset{hist_disordered.first, hist_disordered.second}, {{"legend", "disordered"}, {"color", "r"}})
-            .plot(SimpleDataset{hist_ausaxs.first, hist_ausaxs.second}, {{"legend", "ausaxs"}, {"color", "b"}})
+            .plot(SimpleDataset{hist_ordered.first, hist_ordered.second}, plots::PlotOptions(style::draw::points, {{"legend", "ordered"}, {"color", "k"}}))
+            .plot(SimpleDataset{hist_disordered.first, hist_disordered.second}, plots::PlotOptions(style::draw::points, {{"legend", "disordered"}, {"color", "r"}}))
+            .plot(SimpleDataset{hist_ausaxs.first, hist_ausaxs.second}, plots::PlotOptions(style::draw::points, {{"legend", "ausaxs"}, {"color", "b"}}))
+
+            .plot(SimpleDataset{hist_ordered.first, hist_ordered.second}, plots::PlotOptions(style::draw::line, {{"color", "k"}, {"ls", style::line::solid}, {"lw", 1}}))
+            .plot(SimpleDataset{hist_disordered.first, hist_disordered.second}, plots::PlotOptions(style::draw::line, {{"color", "r"}, {"ls", style::line::solid}, {"lw", 1}}))
+            .plot(SimpleDataset{hist_ausaxs.first, hist_ausaxs.second}, plots::PlotOptions(style::draw::line, {{"color", "b"}, {"ls", style::line::solid}, {"lw", 1}}))
         .save(settings::general::output + "waxsis_density.png");
     }
 
