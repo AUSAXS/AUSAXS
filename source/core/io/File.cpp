@@ -81,6 +81,7 @@ io::File File::move(const io::Folder& folder) const {
     if (folder == dir) {return *this;}
     if (!folder.exists()) {folder.create();}
     io::File new_file(folder, name, ext);
+    if (new_file.exists()) {new_file.remove();}
     std::filesystem::rename(path(), new_file.path());
     return new_file;
 }
@@ -89,6 +90,7 @@ io::File File::copy(const io::Folder& folder) const {
     if (folder == dir) {return *this;}
     if (!folder.exists()) {folder.create();}
     io::File new_file(folder, name, ext);
+    if (new_file.exists()) {new_file.remove();}
     std::filesystem::copy(path(), new_file.path());
     return new_file;
 }
