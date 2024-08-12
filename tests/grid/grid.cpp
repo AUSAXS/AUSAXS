@@ -45,7 +45,7 @@ class GridDebug : public grid::Grid {
 };
 
 TEST_CASE("Grid::Grid") {
-    settings::grid::width = 1;
+    settings::grid::cell_width = 1;
 
     SECTION("Limit3D&") {
         Limit3D axes(-10, 10, -10, 10, -10, 10);
@@ -54,8 +54,8 @@ TEST_CASE("Grid::Grid") {
         CHECK(grid.w_members.empty());
         CHECK(grid.get_atoms().empty());
         CHECK(grid.get_volume() == 0);
-        CHECK(grid.get_width() == settings::grid::width);
-        CHECK(grid.get_axes() == Axis3D(axes, settings::grid::width));
+        CHECK(grid.get_width() == settings::grid::cell_width);
+        CHECK(grid.get_axes() == Axis3D(axes, settings::grid::cell_width));
     }
 
     SECTION("vector<Atom>&") {
@@ -65,7 +65,7 @@ TEST_CASE("Grid::Grid") {
         CHECK(grid.w_members.empty());
         CHECK(grid.get_atoms() == atoms);
         CHECK(grid.get_volume() != 0);
-        CHECK(grid.get_width() == settings::grid::width);
+        CHECK(grid.get_width() == settings::grid::cell_width);
     }
 
     SECTION("std::vector<Body>&") {
@@ -75,7 +75,7 @@ TEST_CASE("Grid::Grid") {
         CHECK(grid.w_members.empty());
         CHECK(grid.get_atoms() == bodies[0].get_atoms());
         CHECK(grid.get_volume() != 0);
-        CHECK(grid.get_width() == settings::grid::width);
+        CHECK(grid.get_width() == settings::grid::cell_width);
     }
 
     SECTION("space_saving_constructor") {
@@ -94,12 +94,12 @@ TEST_CASE("Grid::Grid") {
 
         auto func = [] (const Grid& grid) {
             Axis3D axes = grid.get_axes();
-            CHECK(axes.x.min == std::floor( 0 - 5*settings::grid::scaling*0.5 - settings::grid::width));
-            CHECK(axes.y.min == std::floor(-5 - 6*settings::grid::scaling*0.5 - settings::grid::width));
-            CHECK(axes.z.min == std::floor(-7 - 8*settings::grid::scaling*0.5 - settings::grid::width));
-            CHECK(axes.x.max ==  std::ceil(5 + 5*settings::grid::scaling*0.5 + settings::grid::width));
-            CHECK(axes.y.max ==  std::ceil(1 + 6*settings::grid::scaling*0.5 + settings::grid::width));
-            CHECK(axes.z.max ==  std::ceil(1 + 8*settings::grid::scaling*0.5 + settings::grid::width));
+            CHECK(axes.x.min == std::floor( 0 - 5*settings::grid::scaling*0.5 - settings::grid::cell_width));
+            CHECK(axes.y.min == std::floor(-5 - 6*settings::grid::scaling*0.5 - settings::grid::cell_width));
+            CHECK(axes.z.min == std::floor(-7 - 8*settings::grid::scaling*0.5 - settings::grid::cell_width));
+            CHECK(axes.x.max ==  std::ceil(5 + 5*settings::grid::scaling*0.5 + settings::grid::cell_width));
+            CHECK(axes.y.max ==  std::ceil(1 + 6*settings::grid::scaling*0.5 + settings::grid::cell_width));
+            CHECK(axes.z.max ==  std::ceil(1 + 8*settings::grid::scaling*0.5 + settings::grid::cell_width));
 
             // check that we're not using a ton of unnecessary bins
             CHECK(axes.x.bins < 20);
@@ -131,7 +131,7 @@ TEST_CASE("Grid::Grid") {
 
 TEST_CASE("generation") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    settings::grid::width = 1;
+    settings::grid::cell_width = 1;
     Grid grid(axes);
 
     vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
@@ -158,7 +158,7 @@ TEST_CASE("GridMember") {
 
 TEST_CASE("Grid::bounding_box") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    settings::grid::width = 1;
+    settings::grid::cell_width = 1;
     GridDebug grid(axes);
 
     SECTION("simple") {
@@ -192,7 +192,7 @@ TEST_CASE("Grid::bounding_box") {
 TEST_CASE("Grid::get_volume") {
     SECTION("simple") {
         Limit3D lims(-10, 10, -10, 10, -10, 10);
-        settings::grid::width = 1e-1;
+        settings::grid::cell_width = 1e-1;
         Grid grid(lims);
 
         std::vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
@@ -213,12 +213,12 @@ TEST_CASE("Grid::get_volume") {
         }
 
         REQUIRE(count != 0);
-        CHECK(grid.get_volume() == count*std::pow(settings::grid::width, 3));
+        CHECK(grid.get_volume() == count*std::pow(settings::grid::cell_width, 3));
     }
 
     SECTION("multiple atoms") {
         Limit3D axes(-10, 10, -10, 10, -10, 10);
-        settings::grid::width = 1;
+        settings::grid::cell_width = 1;
         GridDebug grid(axes);
         grid.set_atomic_radius(1);
 
@@ -230,7 +230,7 @@ TEST_CASE("Grid::get_volume") {
         REQUIRE(grid.get_volume_without_expanding() == 1); // atoms are added as point-particles, and only occupy one unit of space.
 
         SECTION("") {
-            settings::grid::rvol = 1;
+            settings::grid::min_exv_radius = 1;
             REQUIRE(grid.get_volume() == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
 
             grid.add(Atom({0, 0, -1}, 0,  constants::atom_t::C, "", 0));
@@ -238,7 +238,7 @@ TEST_CASE("Grid::get_volume") {
         }
 
         SECTION("") {
-            settings::grid::rvol = 2;
+            settings::grid::min_exv_radius = 2;
             grid.expand_volume();
             REQUIRE(grid.get_volume() == 33);
         }
@@ -247,31 +247,31 @@ TEST_CASE("Grid::get_volume") {
 
 TEST_CASE("Grid::width") {
     // check that the grid width is actually used
-    settings::grid::width = GENERATE(0.25, 0.5, 1, 2);
+    settings::grid::cell_width = GENERATE(0.25, 0.5, 1, 2);
 
     Limit3D lims(-10, 10, -10, 10, -10, 10);
     Grid grid(lims);
 
     auto axes = grid.get_axes();
     for (unsigned int i = 0; i < axes.x.bins-1; ++i) {
-        CHECK(grid.to_xyz(i, 0, 0).distance(grid.to_xyz(i+1, 0, 0)) == settings::grid::width);
-        CHECK(grid.to_xyz(0, i, 0).distance(grid.to_xyz(0, i+1, 0)) == settings::grid::width);
-        CHECK(grid.to_xyz(0, 0, i).distance(grid.to_xyz(0, 0, i+1)) == settings::grid::width);
+        CHECK(grid.to_xyz(i, 0, 0).distance(grid.to_xyz(i+1, 0, 0)) == settings::grid::cell_width);
+        CHECK(grid.to_xyz(0, i, 0).distance(grid.to_xyz(0, i+1, 0)) == settings::grid::cell_width);
+        CHECK(grid.to_xyz(0, 0, i).distance(grid.to_xyz(0, 0, i+1)) == settings::grid::cell_width);
     }
 
     auto center = grid.get_center();
     CHECK(grid.to_xyz(center) == Vector3<double>{0, 0, 0});
-    CHECK(grid.to_xyz(center+Vector3<double>{1, 0, 0}) == Vector3<double>{settings::grid::width, 0, 0});
-    CHECK(grid.to_xyz(center+Vector3<double>{0, 1, 0}) == Vector3<double>{0, settings::grid::width, 0});
-    CHECK(grid.to_xyz(center+Vector3<double>{0, 0, 1}) == Vector3<double>{0, 0, settings::grid::width});
+    CHECK(grid.to_xyz(center+Vector3<double>{1, 0, 0}) == Vector3<double>{settings::grid::cell_width, 0, 0});
+    CHECK(grid.to_xyz(center+Vector3<double>{0, 1, 0}) == Vector3<double>{0, settings::grid::cell_width, 0});
+    CHECK(grid.to_xyz(center+Vector3<double>{0, 0, 1}) == Vector3<double>{0, 0, settings::grid::cell_width});
 }
 
 TEST_CASE("Grid::expand_volume") {
     SECTION("shape test") {
         settings::molecule::use_effective_charge = false;
         Limit3D lims(-10, 10, -10, 10, -10, 10);
-        settings::grid::width = 1;
-        settings::grid::rvol = 2.15;
+        settings::grid::cell_width = 1;
+        settings::grid::min_exv_radius = 2.15;
         Grid grid(lims);
         constants::radius::set_dummy_radius(3+1e-6);
 
@@ -301,7 +301,7 @@ TEST_CASE("Grid::expand_volume") {
         settings::grid::min_bins = 30;
 
         SECTION("five atoms") {
-            settings::grid::rvol = 3;
+            settings::grid::min_exv_radius = 3;
             std::vector<Atom> atoms = {
                 Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
                 Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
@@ -326,7 +326,7 @@ TEST_CASE("Grid::hydrate") {
     // check that all the expected hydration sites are found
     SECTION("correct placement " + std::to_string(static_cast<int>(settings::hydrate::hydration_strategy))) {
         Limit3D axes(-10, 10, -10, 10, -10, 10);
-        settings::grid::width = 1;
+        settings::grid::cell_width = 1;
         auto grid = std::make_unique<GridDebug>(axes);
         grid->set_atomic_radius(3);
         grid->set_hydration_radius(3);
@@ -414,7 +414,7 @@ TEST_CASE("Grid: using different widths") {
     settings::general::verbose = false;
     auto test_width_basics = [] (settings::hydrate::HydrationStrategy strategy) {
         settings::hydrate::hydration_strategy = strategy;
-        settings::grid::width = 0.1;
+        settings::grid::cell_width = 0.1;
         vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
         data::Molecule protein(a);
         {
@@ -453,7 +453,7 @@ TEST_CASE("Grid: using different widths") {
 
     auto test_width_bounds = [] (settings::hydrate::HydrationStrategy strategy) {
         settings::hydrate::hydration_strategy = strategy;
-        settings::grid::width = 0.1;
+        settings::grid::cell_width = 0.1;
         Limit3D axes(-10, 10, -10, 10, -10, 10);
         GridDebug grid(axes);
         grid.set_atomic_radius(3);
@@ -500,7 +500,7 @@ TEST_CASE("Grid: using different widths") {
 
 TEST_CASE("Grid: add and remove") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    settings::grid::width = 1;
+    settings::grid::cell_width = 1;
     GridDebug grid(axes);
     grid.set_atomic_radius(3);
     grid.set_hydration_radius(3);
@@ -617,7 +617,7 @@ TEST_CASE("Grid: add and remove") {
 
 TEST_CASE("Grid: correct_volume") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    settings::grid::width = 1;
+    settings::grid::cell_width = 1;
     GridDebug grid(axes);
     grid.set_atomic_radius(10);     // heavy overlap
     grid.set_hydration_radius(10);
@@ -659,7 +659,7 @@ TEST_CASE("Grid::find_free_locs") {
     settings::general::verbose = false;
     auto test_func = [] (settings::hydrate::HydrationStrategy ch) {
         settings::hydrate::hydration_strategy = ch;
-        settings::grid::width = 1;
+        settings::grid::cell_width = 1;
 
         Limit3D axes(-10, 10, -10, 10, -10, 10);
         auto grid = std::make_unique<GridDebug>(axes);
@@ -706,7 +706,7 @@ TEST_CASE("Grid::deflate_volume") {
     settings::grid::min_bins = 0;
 
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    settings::grid::width = 1;
+    settings::grid::cell_width = 1;
     auto grid = std::make_unique<GridDebug>(axes);
     grid->set_atomic_radius(3);
     grid->set_hydration_radius(3);
@@ -736,7 +736,7 @@ TEST_CASE("Grid::deflate_volume") {
 
 TEST_CASE("Grid: cubic_grid") {
     settings::grid::cubic = true;
-    settings::grid::width = GENERATE(0.1, 0.5, 1);
+    settings::grid::cell_width = GENERATE(0.1, 0.5, 1);
 
     SECTION("largest x") {
         Limit3D axes(-10, 10, -1, 1, -1, 1);
