@@ -14,13 +14,13 @@ namespace form_factor::storage::exv {
      * @param i The index of the first excluded volume form factor.
      * @param j The index of the second excluded volume form factor.
      */
-    const PrecalculatedFormFactorProduct& get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept;
+    const PrecalculatedFormFactorProduct& get_precalculated_form_factor_product(unsigned int i, unsigned int j);
 
     /**
      * @brief Get the precalculated excluded-volume form factor product table.
      *        The table is symmetric. 
      */
-    const table_t& get_precalculated_form_factor_table() noexcept;
+    const table_t& get_precalculated_form_factor_table();
 }
 
 namespace form_factor::storage::cross {
@@ -32,13 +32,13 @@ namespace form_factor::storage::cross {
      * @param i The index of the *atomic* form factor.
      * @param j The index of the *excluded volume* form factor. 
      */
-    const PrecalculatedFormFactorProduct& get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept;
+    const PrecalculatedFormFactorProduct& get_precalculated_form_factor_product(unsigned int i, unsigned int j);
 
     /**
      * @brief Get the precalculated form factor product table for a given pair of excluded volume and atomic form factors.
      *        The first index is the atomic form factor, and the second index is the excluded volume form factor.
      */
-    const table_t& get_precalculated_form_factor_table() noexcept;
+    const table_t& get_precalculated_form_factor_table();
 }
 
 namespace form_factor::storage::detail {

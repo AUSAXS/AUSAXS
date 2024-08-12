@@ -33,13 +33,13 @@ CONST form_factor::storage::exv::table_t generate_exv_exv_table(const detail::Ex
     return table;
 }
 
-const PrecalculatedFormFactorProduct& form_factor::storage::exv::get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept {
+const PrecalculatedFormFactorProduct& form_factor::storage::exv::get_precalculated_form_factor_product(unsigned int i, unsigned int j) {
     return get_precalculated_form_factor_table().index(i, j);
 }
 
 form_factor::storage::exv::table_t custom_table_xx;
 auto ff_xx_default_table = generate_exv_exv_table(storage::exv::standard);
-const form_factor::storage::exv::table_t& form_factor::storage::exv::get_precalculated_form_factor_table() noexcept {
+const form_factor::storage::exv::table_t& form_factor::storage::exv::get_precalculated_form_factor_table() {
     if (settings::molecule::displaced_volume_set == settings::molecule::DisplacedVolumeSet::Default) {
         return ff_xx_default_table;
     }
@@ -88,13 +88,13 @@ CONST form_factor::storage::cross::table_t generate_atom_exv_table(const detail:
     return table;
 }
 
-const PrecalculatedFormFactorProduct& form_factor::storage::cross::get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept {
+const PrecalculatedFormFactorProduct& form_factor::storage::cross::get_precalculated_form_factor_product(unsigned int i, unsigned int j) {
     return get_precalculated_form_factor_table().index(i, j);
 }
 
 form_factor::storage::cross::table_t custom_table_ax;
 auto ff_ax_default_table = generate_atom_exv_table(storage::exv::standard);
-const form_factor::storage::cross::table_t& form_factor::storage::cross::get_precalculated_form_factor_table() noexcept {
+const form_factor::storage::cross::table_t& form_factor::storage::cross::get_precalculated_form_factor_table() {
     if (settings::molecule::displaced_volume_set == settings::molecule::DisplacedVolumeSet::Default) {
         return ff_ax_default_table;
     }
