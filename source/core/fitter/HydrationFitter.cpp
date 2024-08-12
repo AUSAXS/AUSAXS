@@ -44,7 +44,7 @@ observer_ptr<hist::ICompositeDistanceHistogram> HydrationFitter::cast_h() const 
 std::shared_ptr<FitResult> HydrationFitter::fit() {
     mini::Parameter guess = {"c", 1, cast_h()->get_water_scaling_factor_limits()};
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
-    auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
+    auto mini = mini::create_minimizer(fit_type, std::move(f), guess, settings::fit::max_iterations);
     auto res = mini->minimize();
 
     // apply c
