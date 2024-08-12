@@ -67,10 +67,7 @@ namespace plots {
              */
             PlotOptions(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options);
 
-            /**
-             * @brief Copy constructor.
-             */
-            PlotOptions(const PlotOptions& opt);
+            PlotOptions(std::initializer_list<std::pair<std::string, std::any>> options);
 
             PlotOptions& set(std::unordered_map<std::string, std::any> options);
 

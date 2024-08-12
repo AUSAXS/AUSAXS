@@ -16,9 +16,15 @@ double inf = std::numeric_limits<double>::infinity();
 
 PlotOptions::PlotOptions() : draw_line(true) {}
 
-PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
-
 PlotOptions::PlotOptions(std::unordered_map<std::string, std::any> options) : draw_line(true) {set(std::move(options));}
+
+PlotOptions::PlotOptions(std::initializer_list<std::pair<std::string, std::any>> options) : draw_line(true) {
+    std::unordered_map<std::string, std::any> opts;
+    for (const auto& opt : options) {
+        opts[opt.first] = opt.second;
+    }
+    set(std::move(opts));
+}
 
 PlotOptions::PlotOptions(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
