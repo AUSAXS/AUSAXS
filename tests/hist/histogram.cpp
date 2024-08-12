@@ -238,3 +238,13 @@ TEST_CASE("Histogram::set_count") {
     hist.set_count(data);
     CHECK(hist.get_counts() == data);
 }
+
+TEST_CASE("Histogram::normalize") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    hist.normalize();
+
+    double sum = std::accumulate(data.begin(), data.end(), 0.0);
+    std::transform(data.begin(), data.end(), data.begin(), [sum] (double x) {return x/sum;});
+    CHECK(hist.get_counts() == data);
+}
