@@ -84,8 +84,8 @@ auto make_start_button(gui::view& view) {
 			setup::pdb->generate_new_hydration();
 
 			std::shared_ptr<fitter::HydrationFitter> fitter;
-			if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(settings::saxs_file, setup::pdb->get_histogram());}
-			else {fitter = std::make_shared<fitter::HydrationFitter>(settings::saxs_file, setup::pdb->get_histogram());}
+			if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(io::ExistingFile(settings::saxs_file), setup::pdb->get_histogram());}
+			else {fitter = std::make_shared<fitter::HydrationFitter>(io::ExistingFile(settings::saxs_file), setup::pdb->get_histogram());}
 			auto result = fitter->fit();
 
 			fitter::FitReporter::report(result.get());
