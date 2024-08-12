@@ -97,11 +97,11 @@ void PepsiHydration::modified_expand_volume(grid::GridMember<data::record::Atom>
     grid::detail::GridObj& gref = grid->grid;
     const auto& axes = grid->get_axes();
 
-    double r = 3/settings::grid::width; // fixed radius of 3Å
+    double r = 3/settings::grid::cell_width; // fixed radius of 3Å
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z(); 
-    double rvdw = r/settings::grid::width;
+    double rvdw = r/settings::grid::cell_width;
     double rvdw2 = std::pow(rvdw, 2);
 
     int xm = std::max<int>(x - std::ceil(r), 0), xp = std::min<int>(x + std::ceil(r) + 1, axes.x.bins); // xminus and xplus

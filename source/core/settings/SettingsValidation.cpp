@@ -44,10 +44,10 @@ void settings::validate_settings() {
 
     switch (settings::hydrate::hydration_strategy) {
         case settings::hydrate::HydrationStrategy::PepsiStrategy:
-            if (settings::grid::width < 3) {
+            if (settings::grid::cell_width < 3) {
                 console::print_warning("Warning: The Pepsi hydration method requires a specific set of grid options. Setting grid width to 3Å and all atomic radii to 3Å.");
-                settings::grid::width = 3;
-                settings::grid::rvol = 3;
+                settings::grid::cell_width = 3;
+                settings::grid::min_exv_radius = 3;
             }
             break;
         default:

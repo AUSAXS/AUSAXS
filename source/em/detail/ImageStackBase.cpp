@@ -159,7 +159,7 @@ void ImageStackBase::read(std::ifstream& istream) {
     double ywidth = axes.y.width();
     double zwidth = axes.z.width();
     double minwidth = std::min({xwidth, ywidth, zwidth})*settings::em::sample_frequency;
-    constants::radius::set_dummy_radius(std::sqrt(2*std::pow(minwidth, 2))/2 + settings::grid::width);
+    constants::radius::set_dummy_radius(std::sqrt(2*std::pow(minwidth, 2))/2 + settings::grid::cell_width);
 }
 
 float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {

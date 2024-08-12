@@ -21,7 +21,7 @@ using namespace grid;
 using namespace data;
 using namespace data::record;
 
-Grid::Grid(const Limit3D& axes) : axes(Axis3D(axes, settings::grid::width)) {
+Grid::Grid(const Limit3D& axes) : axes(Axis3D(axes, settings::grid::cell_width)) {
     setup();
 }
 
@@ -49,12 +49,12 @@ Grid::Grid(const std::vector<Body>& bodies) {
     Vector3<double> nmin, nmax; // new min & max
     for (unsigned int i = 0; i < 3; i++) {
         double expand = 0.5*diff[i]*settings::grid::scaling; // amount to expand in each direction
-        nmin[i] = std::floor(min[i] - expand - settings::grid::width); // flooring to make our grid 'nice' (i.e. bin edges are at integer values)
-        nmax[i] = std::ceil( max[i] + expand + settings::grid::width); //  ceiling to make our grid 'nice' (i.e. bin edges are at integer values)
+        nmin[i] = std::floor(min[i] - expand - settings::grid::cell_width); // flooring to make our grid 'nice' (i.e. bin edges are at integer values)
+        nmax[i] = std::ceil( max[i] + expand + settings::grid::cell_width); //  ceiling to make our grid 'nice' (i.e. bin edges are at integer values)
     }
 
     // setup the rest of the class members
-    axes = Axis3D(nmin, nmax, settings::grid::width);
+    axes = Axis3D(nmin, nmax, settings::grid::cell_width);
     setup();
 
     // finally add all atoms to the grid
@@ -94,7 +94,7 @@ void Grid::setup() {
 
     // enforce minimum number of bins if set
     if (settings::grid::min_bins != 0) {
-        double min_length = settings::grid::min_bins*settings::grid::width/2;
+        double min_length = settings::grid::min_bins*settings::grid::cell_width/2;
         if (axes.x.bins < settings::grid::min_bins) {
             axes.x.bins = settings::grid::min_bins;
             axes.x.min = -min_length;
@@ -218,13 +218,14 @@ void Grid::expand_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z(); 
-    double rvdw = get_atomic_radius(atom.get_atom_type())/settings::grid::width;
-    double rvol = settings::grid::rvol/settings::grid::width;
+    double rvdw = get_atomic_radius(atom.get_atom_type())/settings::grid::cell_width;
+    double rvol = settings::grid::min_exv_radius/settings::grid::cell_width;
     double rvdw2 = std::pow(rvdw, 2), rvol2 = std::pow(rvol, 2);
 
-    int xm = std::max<int>(x - std::ceil(rvol), 0), xp = std::min<int>(x + std::ceil(rvol) + 1, axes.x.bins); // xminus and xplus
-    int ym = std::max<int>(y - std::ceil(rvol), 0), yp = std::min<int>(y + std::ceil(rvol) + 1, axes.y.bins); // yminus and yplus
-    int zm = std::max<int>(z - std::ceil(rvol), 0), zp = std::min<int>(z + std::ceil(rvol) + 1, axes.z.bins); // zminus and zplus
+    double r = std::max(rvdw, rvol);
+    int xm = std::max<int>(x - std::ceil(r), 0), xp = std::min<int>(x + std::ceil(r) + 1, axes.x.bins); // xminus and xplus
+    int ym = std::max<int>(y - std::ceil(r), 0), yp = std::min<int>(y + std::ceil(r) + 1, axes.y.bins); // yminus and yplus
+    int zm = std::max<int>(z - std::ceil(r), 0), zp = std::min<int>(z + std::ceil(r) + 1, axes.z.bins); // zminus and zplus
 
     // loop over each bin in the box
     int added_volume = 0;
@@ -262,7 +263,7 @@ void Grid::expand_volume(GridMember<Water>& water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = water.get_bin_loc().x(), y = water.get_bin_loc().y(), z = water.get_bin_loc().z();
-    double rvdw = get_hydration_radius()/settings::grid::width;
+    double rvdw = get_hydration_radius()/settings::grid::cell_width;
     double rvdw2 = std::pow(rvdw, 2);
     int xm = std::max<int>(x - std::ceil(rvdw), 0), xp = std::min<int>(x + std::ceil(rvdw) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvdw), 0), yp = std::min<int>(y + std::ceil(rvdw) + 1, axes.y.bins); // yminus and yplus
@@ -302,8 +303,9 @@ void Grid::deflate_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
-    double rvol = std::max<double>(get_atomic_radius(atom.get_atom_type()), settings::grid::rvol)/settings::grid::width;
+    double rvol = std::max<double>(get_atomic_radius(atom.get_atom_type()), settings::grid::min_exv_radius)/settings::grid::cell_width;
     double rvol2 = std::pow(rvol, 2);
+
     int xm = std::max<int>(x - std::ceil(rvol), 0), xp = std::min<int>(x + std::ceil(rvol) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvol), 0), yp = std::min<int>(y + std::ceil(rvol) + 1, axes.y.bins); // yminus and yplus
     int zm = std::max<int>(z - std::ceil(rvol), 0), zp = std::min<int>(z + std::ceil(rvol) + 1, axes.z.bins); // zminus and zplus
@@ -336,7 +338,7 @@ void Grid::deflate_volume(GridMember<Water>& water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = water.get_bin_loc().x(), y = water.get_bin_loc().y(), z = water.get_bin_loc().z();
-    double rvdw = get_hydration_radius()/settings::grid::width;
+    double rvdw = get_hydration_radius()/settings::grid::cell_width;
     double rvdw2 = std::pow(rvdw, 2);
     int xm = std::max<int>(x - std::ceil(rvdw), 0), xp = std::min<int>(x + std::ceil(rvdw) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvdw), 0), yp = std::min<int>(y + std::ceil(rvdw) + 1, axes.y.bins); // yminus and yplus
@@ -604,9 +606,9 @@ Vector3<int> Grid::get_bins() const {
 }
 
 Vector3<int> Grid::to_bins(const Vector3<double>& v) const {
-    int binx = std::round((v.x() - axes.x.min)/settings::grid::width);
-    int biny = std::round((v.y() - axes.y.min)/settings::grid::width);
-    int binz = std::round((v.z() - axes.z.min)/settings::grid::width);
+    int binx = std::round((v.x() - axes.x.min)/settings::grid::cell_width);
+    int biny = std::round((v.y() - axes.y.min)/settings::grid::cell_width);
+    int binz = std::round((v.z() - axes.z.min)/settings::grid::cell_width);
     return Vector3<int>(binx, biny, binz);
 }
 
@@ -620,7 +622,7 @@ Vector3<int> Grid::to_bins_bounded(const Vector3<double>& v) const {
 
 double Grid::get_volume() {
     expand_volume();
-    return volume*std::pow(settings::grid::width, 3);
+    return volume*std::pow(settings::grid::cell_width, 3);
 }
 
 Grid& Grid::operator=(const Grid& rhs) {
@@ -701,7 +703,7 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
     expand_volume();
     auto vol = determine_surface ? detail::GridSurfaceDetection(this).detect() : detail::GridSurfaceDetection(this).no_detect();
 
-    if (settings::grid::save_exv) {
+    if (settings::grid::exv::save) {
         std::vector<Atom> atoms;
         atoms.reserve(vol.interior.size()+vol.surface.size());
     
@@ -736,9 +738,9 @@ std::vector<Atom> Grid::get_surface_atoms() const {
 }
 
 Vector3<double> Grid::to_xyz(int i, int j, int k) const {
-    double x = axes.x.min + i*settings::grid::width;
-    double y = axes.y.min + j*settings::grid::width;
-    double z = axes.z.min + k*settings::grid::width;
+    double x = axes.x.min + i*settings::grid::cell_width;
+    double y = axes.y.min + j*settings::grid::cell_width;
+    double z = axes.z.min + k*settings::grid::cell_width;
     return {x, y, z};
 }
 
@@ -746,4 +748,4 @@ Vector3<int> Grid::get_center() const {
     return {int(axes.x.bins/2), int(axes.y.bins/2), int(axes.z.bins/2)};
 }
 
-double Grid::get_width() const {return settings::grid::width;}
+double Grid::get_width() const {return settings::grid::cell_width;}
