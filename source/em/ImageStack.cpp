@@ -410,9 +410,9 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<LinearFitter
     func({min_abs.x});
 
     std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(fitter.get(), res, res.fval);
-    emfit->em_info = plots;
-    emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
+    emfit->em_info = std::move(plots);
+    emfit->evaluated_points = std::move(evals);
     emfit->level = to_level(min_abs.x);
     if (settings::em::mass_axis) {emfit->mass = data_avg_int.interpolate_x(min_abs.x, 2);}
     if (settings::em::save_pdb) {
