@@ -91,13 +91,6 @@ mini::Landscape Minimizer::landscape(unsigned int bins) {
     if (parameters.empty()) {throw except::bad_order("Minimizer::landscape: No parameters were supplied.");}
 
     mini::Landscape l;
-    if (parameters.size() == 2) {
-        l = mini::Landscape(bins*bins);
-    } else {
-        l = mini::Landscape(bins);
-    }
-
-    unsigned int index = 0;
     auto bx = parameters[0].bounds.value();
     for (unsigned int i = 0; i < bins; i++) {
         double vx = bx.min + i*bx.span()/(bins-1);
@@ -107,25 +100,20 @@ mini::Landscape Minimizer::landscape(unsigned int bins) {
             for (unsigned int j = 0; j < bins; j++) {
                 double vy = by.min + j*by.span()/(bins-1);
                 fval = function({vx, vy});
-                l.evals[index++] = Evaluation({vx, vy}, fval);
+                l.evals.emplace_back(Evaluation{{vx, vy}, fval});
             }
         } else {
             fval = function({vx});
-            l.evals[index++] = Evaluation({vx}, fval);
+            l.evals.emplace_back(Evaluation{{vx}, fval});
         }
 
         // sanity check
         if (std::isnan(fval) || std::isinf(fval)) {
             if (settings::general::verbose) {std::cout << "Warning in Minimizer::landscape: Function value is nan or inf and will be skipped." << std::endl;}
-            index--;
+            l.evals.pop_back();
             continue;
         }
     }
-
-    if (index != bins) {
-        l.evals.resize(index);
-    } 
-
     return l;
 }
 
