@@ -155,12 +155,15 @@ int main(int argc, char const *argv[]) {
             return std::pair{bins, hist};
         };
 
+        protein.generate_new_hydration();
+        auto hist_ausaxs = get_hist(protein.get_waters());
         auto hist_ordered = get_hist(ordered_waters);
         auto hist_disordered = get_hist(disordered_waters);
 
         plots::PlotDataset()
             .plot(SimpleDataset{hist_ordered.first, hist_ordered.second}, {{"legend", "ordered"}, {"color", "k"}})
             .plot(SimpleDataset{hist_disordered.first, hist_disordered.second}, {{"legend", "disordered"}, {"color", "r"}})
+            .plot(SimpleDataset{hist_ausaxs.first, hist_ausaxs.second}, {{"legend", "ausaxs"}, {"color", "b"}})
         .save(settings::general::output + "waxsis_density.png");
     }
 
