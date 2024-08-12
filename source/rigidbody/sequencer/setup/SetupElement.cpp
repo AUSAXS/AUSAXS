@@ -18,7 +18,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace rigidbody::sequencer;
 
 SetupElement::SetupElement(observer_ptr<Sequencer> owner) : LoopElementCallback(owner) {}
-SetupElement::SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs) : LoopElementCallback(owner), saxs_path(saxs) {}
+SetupElement::SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs) : LoopElementCallback(owner), saxs_path(std::move(saxs)) {}
 
 SetupElement& SetupElement::set_overlap_function(std::function<double(double)> func) {
     rigidbody::constraints::OverlapConstraint::set_overlap_function(std::move(func));
