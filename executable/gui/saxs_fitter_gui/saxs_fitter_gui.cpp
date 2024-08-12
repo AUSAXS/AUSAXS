@@ -84,8 +84,8 @@ auto make_start_button(gui::view& view) {
 			setup::pdb->generate_new_hydration();
 
 			std::shared_ptr<fitter::HydrationFitter> fitter;
-			if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(settings::saxs_file, setup::pdb->get_histogram());}
-			else {fitter = std::make_shared<fitter::HydrationFitter>(settings::saxs_file, setup::pdb->get_histogram());}
+			if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(io::ExistingFile(settings::saxs_file), setup::pdb->get_histogram());}
+			else {fitter = std::make_shared<fitter::HydrationFitter>(io::ExistingFile(settings::saxs_file), setup::pdb->get_histogram());}
 			auto result = fitter->fit();
 
 			fitter::FitReporter::report(result.get());
@@ -94,7 +94,7 @@ auto make_start_button(gui::view& view) {
 			plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "p(r)." + settings::plots::format);
 			plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
 
-			fitter->get_model_dataset().save(settings::general::output + "fit.fit");
+			fitter->get_model_dataset().save(settings::general::output + "ausaxs.fit");
 			fitter->get_dataset().save(settings::general::output + io::File(settings::saxs_file).stem() + ".scat");
 
 			setup::pdb->save(settings::general::output + "model.pdb");

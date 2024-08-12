@@ -53,12 +53,12 @@ int main(int argc, char const *argv[]) {
     // advanced options group
     app.add_option("--reduce,-r", settings::grid::water_scaling, 
         "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");
-    app.add_option("--grid_width,--gw", settings::grid::width, 
-        "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::width)->group("Advanced options");
+    app.add_option("--grid_width,--gw", settings::grid::cell_width, 
+        "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::cell_width)->group("Advanced options");
     app.add_option_function<std::string>("--hydration-strategy,--hs", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, 
         "The hydration model to use. Options: Radial, Axes, Jan.")->group("Advanced options");
-    app.add_option("--exv_radius,--er", settings::grid::exv_radius, 
-        "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström.")->default_val(settings::grid::exv_radius)->group("Advanced options");
+    app.add_option("--exv_radius,--er", settings::grid::exv::radius, 
+        "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström.")->default_val(settings::grid::exv::radius)->group("Advanced options");
     app.add_option_function<std::string>("--histogram-manager,--hm", [] (const std::string& s) {settings::detail::parse_option("histogram_manager", {s});}, 
         "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
     app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, 
@@ -71,10 +71,10 @@ int main(int argc, char const *argv[]) {
         "The set of displaced volumes to use. Options: Traube, Voronoi_implicit_H, Voronoi_explicit_H, MinimumFluctutation_implicit_H, MinimumFluctutation_explicit_H, vdw.")->group("Advanced options");
 
     // hidden options group
-    app.add_option("--rvol", settings::grid::rvol, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::rvol)->group("");
-    app.add_option("--surface-thickness", settings::grid::surface_thickness, "The thickness of the surface layer in Ångström.")->default_val(settings::grid::surface_thickness)->group("");
+    app.add_option("--rvol", settings::grid::min_exv_radius, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::min_exv_radius)->group("");
+    app.add_option("--surface-thickness", settings::grid::exv::surface_thickness, "The thickness of the surface layer in Ångström.")->default_val(settings::grid::exv::surface_thickness)->group("");
     app.add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("");
-    app.add_flag("--save-exv", settings::grid::save_exv, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::save_exv)->group("");
+    app.add_flag("--save-exv", settings::grid::exv::save, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::exv::save)->group("");
     CLI11_PARSE(app, argc, argv);
 
     console::print_info("Running AUSAXS " + std::string(constants::version));

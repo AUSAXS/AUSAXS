@@ -41,7 +41,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     settings::molecule::center = true;
 
     SECTION("Single with radius") {
-        settings::grid::rvol = std::sqrt(3)+1e-3;
+        settings::grid::min_exv_radius = std::sqrt(3)+1e-3;
 
         Molecule protein({Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)});
         GridDebug::generate_debug_grid(protein);
@@ -52,7 +52,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("Two atoms with radius") {
-        settings::grid::rvol = std::sqrt(2)+1e-3;
+        settings::grid::min_exv_radius = std::sqrt(2)+1e-3;
         std::vector<Atom> atoms = {
             Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
             Atom({1, 0, 0}, 1, constants::atom_t::C, "C", 1)
@@ -67,7 +67,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("2x2x2 interior simple") {
-        settings::grid::rvol = 2;
+        settings::grid::min_exv_radius = 2;
         std::vector<Atom> atoms;
         for (double x = 0; x <= 1; x+=1) {
             for (double y = 0; y <= 1; y+=1) {
@@ -87,7 +87,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("2x2x2 interior advanced") {
-        settings::grid::rvol = std::sqrt(2)+1e-3;
+        settings::grid::min_exv_radius = std::sqrt(2)+1e-3;
         std::vector<Atom> atoms;
         for (double x = 0; x <= 1; x+=1) {
             for (double y = 0; y <= 1; y+=1) {
@@ -107,7 +107,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("3x3x3") {
-        settings::grid::rvol = 2;
+        settings::grid::min_exv_radius = 2;
         std::vector<Atom> atoms;
         for (double x = -1; x <= 1; x+=1) {
             for (double y = -1; y <= 1; y+=1) {
@@ -127,7 +127,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("larger radius, single") {
-        settings::grid::rvol = 2;
+        settings::grid::min_exv_radius = 2;
         std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
 
         Molecule protein(atoms);
@@ -139,7 +139,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("much larger radius, single") {
-        settings::grid::rvol = 3;
+        settings::grid::min_exv_radius = 3;
         std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
 
         Molecule protein(atoms);
@@ -151,7 +151,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("larger radius, cube") {
-        settings::grid::rvol = 2;
+        settings::grid::min_exv_radius = 2;
         std::vector<Atom> atoms;
         for (double x = -1; x <= 1; x+=1) {
             for (double y = -1; y <= 1; y+=1) {
@@ -171,7 +171,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("larger radius, larger cube") {
-        settings::grid::rvol = 2;
+        settings::grid::min_exv_radius = 2;
         std::vector<Atom> atoms = {
             Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
             Atom({2, 0, 0}, 1, constants::atom_t::C, "C", 1),
@@ -233,10 +233,10 @@ TEST_CASE("GridSurfaceDetection: thickness") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
-    settings::grid::surface_thickness = 2;
+    settings::grid::exv::surface_thickness = 2;
 
     SECTION("2x2x2 interior simple") {
-        settings::grid::rvol = 2.5;
+        settings::grid::min_exv_radius = 2.5;
         std::vector<Atom> atoms;
         for (double x = 0; x <= 1; x+=1) {
             for (double y = 0; y <= 1; y+=1) {
@@ -256,7 +256,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
     }
 
     SECTION("3x3x3") {
-        settings::grid::rvol = 3;
+        settings::grid::min_exv_radius = 3;
         std::vector<Atom> atoms;
         for (double x = -1; x <= 1; x+=1) {
             for (double y = -1; y <= 1; y+=1) {
@@ -276,7 +276,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
     }
 
     SECTION("much larger radius, single") {
-        settings::grid::rvol = 4;
+        settings::grid::min_exv_radius = 4;
         std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
 
         Molecule protein(atoms);
@@ -288,7 +288,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
     }
 
     SECTION("larger radius, larger cube") {
-        settings::grid::rvol = 3;
+        settings::grid::min_exv_radius = 3;
         std::vector<Atom> atoms = {
             Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
             Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),

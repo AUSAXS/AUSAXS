@@ -83,8 +83,8 @@ bool GridSurfaceDetection::collision_check(const Vector3<int>& loc) const {
 std::vector<Vector3<double>> GridSurfaceDetection::determine_vacuum_holes() const {
     assert(!grid->w_members.empty() && "grid must first be hydrated to determine vacuum holes");
 
-    int empty_limit = std::round(3*constants::radius::get_vdw_radius(constants::atom_t::O)/settings::grid::width);
-    int stride = std::round(2*settings::grid::exv_radius/settings::grid::width);
+    int empty_limit = std::round(3*constants::radius::get_vdw_radius(constants::atom_t::O)/settings::grid::cell_width);
+    int stride = std::round(2*settings::grid::exv::radius/settings::grid::cell_width);
     auto& gobj = grid->grid;
     auto[vmin, vmax] = grid->bounding_box_index();
     std::vector<Vector3<double>> vacuum_voxels;
@@ -127,8 +127,8 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
     GridExcludedVolume vol;
     vol.interior.reserve(grid->get_volume());
 
-    int stride = std::round(2*settings::grid::exv_radius/settings::grid::width);
-    int buffer = std::round(std::max<double>(settings::grid::rvol, 2)/settings::grid::width);
+    int stride = std::round(2*settings::grid::exv::radius/settings::grid::cell_width);
+    int buffer = std::round(std::max<double>(settings::grid::min_exv_radius, 2)/settings::grid::cell_width);
     const auto& axes = grid->get_axes();
     auto& gobj = grid->grid;
     auto[vmin, vmax] = grid->bounding_box_index();
@@ -165,7 +165,7 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
     }
 
     if constexpr (!unity_width) {
-        int expand = std::round(settings::grid::surface_thickness/settings::grid::width)/2;
+        int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width)/2;
         int expand2 = expand*expand;
         auto mark_adjacent = [&gobj, expand, expand2] (int i, int j, int k) {
             Vector3<int> origin{i, j, k};
@@ -229,7 +229,7 @@ GridExcludedVolume GridSurfaceDetection::no_detect() const {
 }
 
 GridExcludedVolume GridSurfaceDetection::detect() const {
-    int expand = std::round(settings::grid::surface_thickness/settings::grid::width);
+    int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width);
     if (expand != 1) {
         return helper<true, false>();
     }

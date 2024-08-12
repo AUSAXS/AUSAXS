@@ -110,10 +110,10 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
 TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
     settings::molecule::use_effective_charge = false;
     SECTION("simple") {
-        settings::grid::width = GENERATE(0.2, 0.5, 1, 2);
-        settings::grid::exv_radius = settings::grid::width;
+        settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
+        settings::grid::exv::radius = settings::grid::cell_width;
 
-        SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
+        SECTION(std::string("width = ") + std::to_string(settings::grid::cell_width)) {
             Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
             Molecule protein({a1});
             test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
@@ -122,8 +122,8 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
 
     SECTION("actual data") {
         settings::general::verbose = false;
-        settings::grid::width = 1;
-        settings::grid::exv_radius = 1;
+        settings::grid::cell_width = 1;
+        settings::grid::exv::radius = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
         test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
@@ -137,11 +137,11 @@ TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
     settings::general::verbose = false;
 
     SECTION("simple") {
-        settings::grid::width = GENERATE(0.2, 0.5, 1, 2);
-        settings::grid::exv_radius = settings::grid::width;
-        settings::grid::surface_thickness = settings::grid::width;
+        settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
+        settings::grid::exv::radius = settings::grid::cell_width;
+        settings::grid::exv::surface_thickness = settings::grid::cell_width;
 
-        SECTION(std::string("width = ") + std::to_string(settings::grid::width)) {
+        SECTION(std::string("width = ") + std::to_string(settings::grid::cell_width)) {
             Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
             Molecule protein({a1});
             test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
@@ -150,9 +150,9 @@ TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
 
     SECTION("actual data") {
         settings::general::verbose = false;
-        settings::grid::width = 1;
-        settings::grid::exv_radius = 1;
-        settings::grid::surface_thickness = 1;
+        settings::grid::cell_width = 1;
+        settings::grid::exv::radius = 1;
+        settings::grid::exv::surface_thickness = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
         test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();});
@@ -254,7 +254,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     }
 
     SECTION("simple, all") {
-        settings::grid::rvol = 0;
+        settings::grid::min_exv_radius = 0;
         std::vector<Atom> atoms = SimpleCube::get_atoms();
         atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
         std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});

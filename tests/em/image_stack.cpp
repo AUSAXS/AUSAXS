@@ -53,7 +53,7 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
     header_data->ny = axes.y.bins;
     header_data->nz = axes.z.bins;
 
-    std::vector<em::Image> images(lims.z.span()/settings::grid::width, Matrix<float>(0, 0));
+    std::vector<em::Image> images(lims.z.span()/settings::grid::cell_width, Matrix<float>(0, 0));
     for (unsigned int k = 0; k < images.size(); ++k) {
         Matrix<float> data(axes.x.bins, axes.y.bins);
         for (unsigned int i = 0; i < axes.x.bins; ++i) {
