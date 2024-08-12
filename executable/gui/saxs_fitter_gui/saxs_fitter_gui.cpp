@@ -94,7 +94,7 @@ auto make_start_button(gui::view& view) {
 			plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "p(r)." + settings::plots::format);
 			plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
 
-			fitter->get_model_dataset().save(settings::general::output + "fit.fit");
+			fitter->get_model_dataset().save(settings::general::output + "ausaxs.fit");
 			fitter->get_dataset().save(settings::general::output + io::File(settings::saxs_file).stem() + ".scat");
 
 			setup::pdb->save(settings::general::output + "model.pdb");
