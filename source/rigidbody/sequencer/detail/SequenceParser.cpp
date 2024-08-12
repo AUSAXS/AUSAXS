@@ -160,7 +160,7 @@ ArgResult<std::vector<int>> check_arg(std::vector<std::string>& names, const std
             } catch (std::exception&) {
                 throw except::invalid_argument("SequenceParser::check_arg: \"" + args.at(name)[values.size()] + "\" cannot be interpreted as an integer.");
             }
-            return {values, true};
+            return {std::move(values), true};
         }
     }
     return {{}, false};
