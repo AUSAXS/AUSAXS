@@ -266,3 +266,29 @@ TEST_CASE("Histogram::normalize_max") {
     std::transform(data.begin(), data.end(), data.begin(), [max] (double x) {return x*10;});
     CHECK(hist.get_counts() == data);
 }
+
+TEST_CASE("Histogram::merge") {
+    SECTION("simple") {
+        std::vector<double> data(10, 1);
+        hist::Histogram hist(data);
+        hist.merge(2);
+        CHECK(hist.size() == 5);
+        CHECK(hist.get_counts() == std::vector<double>{2, 2, 2, 2, 2});
+    }
+
+    SECTION("complex") {
+        std::vector<double> data{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        hist::Histogram hist(data);
+        hist.merge(2);
+        CHECK(hist.size() == 5);
+        CHECK(hist.get_counts() == std::vector<double>{3, 7, 11, 15, 19});
+    }
+
+    SECTION("more complex") {
+        std::vector<double> data{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        hist::Histogram hist(data);
+        hist.merge(3);
+        CHECK(hist.size() == 4);
+        CHECK(hist.get_counts() == std::vector<double>{6, 15, 24, 10});
+    }
+}
