@@ -57,11 +57,11 @@ const form_factor::storage::exv::table_t& form_factor::storage::exv::get_precalc
             return table;
         }
         case settings::molecule::DisplacedVolumeSet::MinimumFluctutation_explicit_H: {
-            static auto table = generate_exv_exv_table(::detail::ExvFormFactorSet(constants::displaced_volume::Voronoi_explicit_H));
+            static auto table = generate_exv_exv_table(::detail::ExvFormFactorSet(constants::displaced_volume::MinimumFluctuation_explicit_H));
             return table;
         }
         case settings::molecule::DisplacedVolumeSet::MinimumFluctutation_implicit_H: {
-            static auto table = generate_exv_exv_table(::detail::ExvFormFactorSet(constants::displaced_volume::Voronoi_implicit_H));
+            static auto table = generate_exv_exv_table(::detail::ExvFormFactorSet(constants::displaced_volume::MinimumFluctuation_implicit_H));
             return table;
         }
         case settings::molecule::DisplacedVolumeSet::vdw: {
@@ -112,11 +112,11 @@ const form_factor::storage::cross::table_t& form_factor::storage::cross::get_pre
             return table;
         }
         case settings::molecule::DisplacedVolumeSet::MinimumFluctutation_explicit_H: {
-            static auto table = generate_atom_exv_table(::detail::ExvFormFactorSet(constants::displaced_volume::Voronoi_explicit_H));
+            static auto table = generate_atom_exv_table(::detail::ExvFormFactorSet(constants::displaced_volume::MinimumFluctuation_explicit_H));
             return table;
         }
         case settings::molecule::DisplacedVolumeSet::MinimumFluctutation_implicit_H: {
-            static auto table = generate_atom_exv_table(::detail::ExvFormFactorSet(constants::displaced_volume::Voronoi_implicit_H));
+            static auto table = generate_atom_exv_table(::detail::ExvFormFactorSet(constants::displaced_volume::MinimumFluctuation_implicit_H));
             return table;
         }
         case settings::molecule::DisplacedVolumeSet::vdw: {
