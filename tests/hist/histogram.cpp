@@ -238,3 +238,57 @@ TEST_CASE("Histogram::set_count") {
     hist.set_count(data);
     CHECK(hist.get_counts() == data);
 }
+
+TEST_CASE("Histogram::normalize") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    hist.normalize();
+
+    double sum = std::accumulate(data.begin(), data.end(), 0.0);
+    std::transform(data.begin(), data.end(), data.begin(), [sum] (double x) {return x/sum;});
+    CHECK(hist.get_counts() == data);
+
+    hist.normalize(10);
+    std::transform(data.begin(), data.end(), data.begin(), [sum] (double x) {return x*10;});
+    CHECK(hist.get_counts() == data);
+}
+
+TEST_CASE("Histogram::normalize_max") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    hist.normalize_max();
+
+    double max = *std::max_element(data.begin(), data.end());
+    std::transform(data.begin(), data.end(), data.begin(), [max] (double x) {return x/max;});
+    CHECK(hist.get_counts() == data);
+
+    hist.normalize_max(10);
+    std::transform(data.begin(), data.end(), data.begin(), [max] (double x) {return x*10;});
+    CHECK(hist.get_counts() == data);
+}
+
+TEST_CASE("Histogram::merge") {
+    SECTION("simple") {
+        std::vector<double> data(10, 1);
+        hist::Histogram hist(data);
+        hist.merge(2);
+        CHECK(hist.size() == 5);
+        CHECK(hist.get_counts() == std::vector<double>{2, 2, 2, 2, 2});
+    }
+
+    SECTION("complex") {
+        std::vector<double> data{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        hist::Histogram hist(data);
+        hist.merge(2);
+        CHECK(hist.size() == 5);
+        CHECK(hist.get_counts() == std::vector<double>{3, 7, 11, 15, 19});
+    }
+
+    SECTION("more complex") {
+        std::vector<double> data{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        hist::Histogram hist(data);
+        hist.merge(3);
+        CHECK(hist.size() == 4);
+        CHECK(hist.get_counts() == std::vector<double>{6, 15, 24, 10});
+    }
+}

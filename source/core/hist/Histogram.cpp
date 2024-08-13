@@ -122,8 +122,13 @@ void Histogram::merge(unsigned int n) {
 
     std::vector<double> new_p;
     new_p.reserve(p.size()/(n-1));
-    for (unsigned int i = 0; i < p.size()-n; i += n) {
+
+    unsigned int i = 0;
+    for (; i < p.size()-n; i += n) {
         new_p.push_back(std::accumulate(p.begin()+i, p.begin()+i+n, 0.0));
+    }
+    if (i < p.size()) {
+        new_p.push_back(std::accumulate(p.begin()+i, p.end(), 0.0));
     }
     p = new_p;
     axis = Axis(axis.min, axis.max, p.size());
