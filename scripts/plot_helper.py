@@ -305,6 +305,17 @@ def plot_dataset(d: Dataset):
             zorder=5
         )
 
+    if d.options.drawmarker and d.options.drawline:
+        plt.plot(d.data[:,0], d.data[:,1],
+            color=d.options.color,
+            linestyle=d.options.linestyle,
+            linewidth=d.options.linewidth*marker_scaling,
+            marker=d.options.markerstyle,
+            markersize=d.options.markersize*marker_scaling,
+            label=d.options.legend,
+            zorder=d.options.zorder
+        )
+
     elif d.options.drawmarker:
         plt.plot(d.data[:,0], d.data[:,1],
             color=d.options.color,
@@ -315,7 +326,7 @@ def plot_dataset(d: Dataset):
             zorder=d.options.zorder
         )
 
-    if d.options.drawline:
+    elif d.options.drawline:
         plt.plot(d.data[:,0], d.data[:,1],
             color=d.options.color,
             linestyle=d.options.linestyle,
@@ -339,7 +350,7 @@ def plot_dataset(d: Dataset):
             plt.xscale("log")
         if (d.options.ylog):
             plt.yscale("log")
-    if (d.options.legend != ""):
+    if (d.options.legend):
         plt.legend()
     return
 
@@ -354,7 +365,10 @@ def plot_hline(h: Hline):
         color=h.options.color,
         linestyle=h.options.linestyle,
         linewidth=h.options.linewidth*marker_scaling,
+        label=h.options.legend
     )
+    if (h.options.legend):
+        plt.legend()
     return
 
 def plot_vline(v: Vline):
@@ -368,7 +382,10 @@ def plot_vline(v: Vline):
         color=v.options.color,
         linestyle=v.options.linestyle,
         linewidth=v.options.linewidth*marker_scaling,
+        label=v.options.legend
     )
+    if (v.options.legend):
+        plt.legend()
     return
 
 def plot_landscape(d: Dataset):
