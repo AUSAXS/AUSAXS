@@ -247,4 +247,22 @@ TEST_CASE("Histogram::normalize") {
     double sum = std::accumulate(data.begin(), data.end(), 0.0);
     std::transform(data.begin(), data.end(), data.begin(), [sum] (double x) {return x/sum;});
     CHECK(hist.get_counts() == data);
+
+    hist.normalize(10);
+    std::transform(data.begin(), data.end(), data.begin(), [sum] (double x) {return x*10;});
+    CHECK(hist.get_counts() == data);
+}
+
+TEST_CASE("Histogram::normalize_max") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    hist.normalize_max();
+
+    double max = *std::max_element(data.begin(), data.end());
+    std::transform(data.begin(), data.end(), data.begin(), [max] (double x) {return x/max;});
+    CHECK(hist.get_counts() == data);
+
+    hist.normalize_max(10);
+    std::transform(data.begin(), data.end(), data.begin(), [max] (double x) {return x*10;});
+    CHECK(hist.get_counts() == data);
 }
