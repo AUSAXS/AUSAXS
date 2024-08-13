@@ -25,12 +25,12 @@ int main(int argc, char const *argv[]) {
     app.add_option("folder", input, "Path to the MD SAXS folder.")->required()->check(CLI::ExistingDirectory);
     CLI11_PARSE(app, argc, argv);
 
-    bool calc_scattering = false;
+    bool calc_scattering = true;
     bool calc_density = true;
 
     settings::grid::scaling = 1;
     settings::grid::cell_width = 0.5;
-    settings::grid::min_exv_radius = 0; // water + atom
+    settings::grid::min_exv_radius = 2.5; // water + atom
     settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::general::output = "output/waxsis_water/";
@@ -64,27 +64,25 @@ int main(int argc, char const *argv[]) {
     disordered.get_body(0).get_atoms() = ordered.get_body(0).get_atoms();
     ordered.save(settings::general::output + "ordered.pdb");
     disordered.save(settings::general::output + "disordered.pdb");
-    // auto ordered_layer = ordered.get_waters();
 
-    // ordered.clear_hydration();
-    // auto grid = ordered.get_grid();
-    // std::vector<data::record::Water> disordered_waters;
-    // for (auto& water : disordered.get_waters()) {
-    //     auto bin = grid->to_bins(water.get_coordinates());
-    //     if (grid->grid.is_empty(bin.x(), bin.y(), bin.z())) {
-    //         disordered_waters.emplace_back(water);
-    //     }
-    // }
-    // std::vector<data::record::Water> ordered_waters;
-    // for (auto& water : ordered_layer) {
-    //     auto bin = grid->to_bins(water.get_coordinates());
-    //     if (grid->grid.is_empty(bin.x(), bin.y(), bin.z())) {
-    //         ordered_waters.emplace_back(water);
-    //     }
-    // }
+    auto impose_exv = [] (data::Molecule& protein) {
+        auto old_waters = protein.get_waters();
+        protein.clear_hydration();
+        auto grid = protein.get_grid();
+        grid->expand_volume();
 
-    // ordered = data::Molecule(std::vector<data::record::Atom>{}, ordered_waters);
-    // disordered = data::Molecule(std::vector<data::record::Atom>{}, disordered_waters);
+        std::vector<data::record::Water> new_waters;
+        for (auto& water : old_waters) {
+            auto bin = grid->to_bins(water.get_coordinates());
+            if (grid->grid.is_empty(bin.x(), bin.y(), bin.z())) {
+                new_waters.emplace_back(water);
+            }
+        }
+        return data::Molecule(protein.get_atoms(), new_waters);
+    };
+
+    // ordered = impose_exv(ordered);
+    disordered = impose_exv(disordered);
 
     //#######################//
     //### CALC SCATTERING ###//
@@ -149,7 +147,7 @@ int main(int argc, char const *argv[]) {
 
             hist::Histogram hist(axis);
             hist.bin(min_dists);
-            hist.normalize_max();
+            // hist.normalize_max();
             return hist;
         };
 
