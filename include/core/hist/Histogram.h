@@ -146,7 +146,12 @@ namespace hist {
             /**
              * @brief Normalize the histogram to have a sum of 1. 
              */
-            void normalize();
+            void normalize(double sum = 1.0);
+
+            /**
+             * @brief Normalize the histogram to have a maximum value of 1. 
+             */
+            void normalize_max(double max = 1.0);
 
             Histogram& operator+=(const Histogram& rhs);
             Histogram& operator-=(const Histogram& rhs);
