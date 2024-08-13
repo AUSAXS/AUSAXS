@@ -29,7 +29,7 @@ int main(int argc, char const *argv[]) {
     bool calc_density = true;
 
     settings::grid::scaling = 1;
-    settings::grid::cell_width = 1;
+    settings::grid::cell_width = 0.5;
     settings::grid::min_exv_radius = 0; // water + atom
     settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
@@ -149,7 +149,7 @@ int main(int argc, char const *argv[]) {
 
             hist::Histogram hist(axis);
             hist.bin(min_dists);
-            hist.normalize();
+            hist.normalize_max();
             return hist;
         };
 
