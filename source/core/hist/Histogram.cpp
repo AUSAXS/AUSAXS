@@ -107,13 +107,13 @@ void Histogram::set_axis(const Axis& axis) noexcept {
 
 void Histogram::normalize(double sum) {
     double total = std::accumulate(p.begin(), p.end(), 0.0);
-    assert(total == 0 && "Cannot normalize a histogram with a sum of 0");
+    assert(total != 0 && "Cannot normalize a histogram with a sum of 0");
     std::transform(p.begin(), p.end(), p.begin(), [sum, total] (double x) {return x/total*sum;});
 }
 
 void Histogram::normalize_max(double max) {
     double max_val = *std::max_element(p.begin(), p.end());
-    if (max_val == 0) {return;}
+    assert(max_val != 0 && "Cannot normalize a histogram with a max of 0");
     std::transform(p.begin(), p.end(), p.begin(), [max_val, max] (double x) {return x/max_val*max;});
 }
 
