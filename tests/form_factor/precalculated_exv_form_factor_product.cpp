@@ -116,12 +116,12 @@ TEST_CASE("ExvFormFactor: switch volumes") {
 
     SECTION("MinimumFluctutation_explicit_H") {
         settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::MinimumFluctutation_explicit_H;
-        test(constants::displaced_volume::Voronoi_explicit_H);
+        test(constants::displaced_volume::MinimumFluctuation_explicit_H);
     }
 
     SECTION("MinimumFluctutation_implicit_H") {
         settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::MinimumFluctutation_implicit_H;
-        test(constants::displaced_volume::Voronoi_implicit_H);
+        test(constants::displaced_volume::MinimumFluctuation_implicit_H);
     }
 
     SECTION("vdw") {
