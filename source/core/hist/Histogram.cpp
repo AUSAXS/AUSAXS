@@ -105,10 +105,16 @@ void Histogram::set_axis(const Axis& axis) noexcept {
     this->axis = axis;
 }
 
-void Histogram::normalize() {
-    double sum = std::accumulate(p.begin(), p.end(), 0.0);
-    assert(sum != 0 && "Cannot normalize a histogram with a sum of 0");
-    std::transform(p.begin(), p.end(), p.begin(), [sum] (double x) {return x/sum;});
+void Histogram::normalize(double sum) {
+    double total = std::accumulate(p.begin(), p.end(), 0.0);
+    assert(total == 0 && "Cannot normalize a histogram with a sum of 0");
+    std::transform(p.begin(), p.end(), p.begin(), [sum, total] (double x) {return x/total*sum;});
+}
+
+void Histogram::normalize_max(double max) {
+    double max_val = *std::max_element(p.begin(), p.end());
+    if (max_val == 0) {return;}
+    std::transform(p.begin(), p.end(), p.begin(), [max_val, max] (double x) {return x/max_val*max;});
 }
 
 void Histogram::add_count(unsigned int i, double count) {
