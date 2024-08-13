@@ -153,6 +153,11 @@ namespace hist {
              */
             void normalize_max(double max = 1.0);
 
+            /**
+             * @brief Merge every n bins into one.
+             */
+            void merge(unsigned int n);
+
             Histogram& operator+=(const Histogram& rhs);
             Histogram& operator-=(const Histogram& rhs);
             Histogram& operator*=(double rhs);
