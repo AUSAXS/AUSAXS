@@ -35,6 +35,6 @@ namespace settings::grid {
     }
 
     namespace detail {
-        extern double min_score; // (0.5 + min_score) is the minimum percentage of radial lines which must not intersect anything to place a water molecule.
+        extern double min_score; // min_score is the minimum percentage of radial lines which must not intersect anything to place a water molecule.
     }
 }
