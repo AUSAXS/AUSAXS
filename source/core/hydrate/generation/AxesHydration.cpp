@@ -82,7 +82,7 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::gener
             add_loc(std::move(exact_loc));
         }
 
-        if ((gref.is_empty(x, bin_max.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_max.x(), z), ra)) {
+        if ((gref.is_empty(x, bin_max.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_max.y(), z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.y() += r_eff_real;
             add_loc(std::move(exact_loc));
@@ -113,7 +113,8 @@ bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, d
     int x = loc.x(), y = loc.y(), z = loc.z();
 
     // loop over the box [x-r, x+r][y-r, y+r][z-r, z+r]
-    int r = gref.is_atom_center(x, y, z) ? ra : rh;
+    int r = gref.is_atom_center(x, y, z)*ra + gref.is_water_center(x, y, z)*rh;
+    // int r = gref.is_atom_center(x, y, z) ? ra : rh;
 
     // we use the range (x-r) to (x+r+1) since the first is inclusive and the second is exclusive. 
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) bins[0])-1; // xminus and xplus
@@ -122,7 +123,7 @@ bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, d
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
-                if (!gref.is_empty(i, j, k) && pow(x-i, 2) + pow(y-j, 2) + pow(z-k, 2) < r*r) {return false;}
+                if (!gref.is_empty(i, j, k) && std::pow(x-i, 2) + std::pow(y-j, 2) + std::pow(z-k, 2) < r*r) {return false;}
             }
         }
     }
