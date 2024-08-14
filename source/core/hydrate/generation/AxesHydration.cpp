@@ -48,7 +48,7 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::gener
     };
 
     // loop over the location of all member atoms
-    double rh = grid->get_hydration_radius();
+    double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
     for (const auto& atom : grid->a_members) {
         double ra = grid->get_atomic_radius(atom.get_atom_type()); // radius of the atom
         double r_eff_real = ra+rh; // the effective bin radius

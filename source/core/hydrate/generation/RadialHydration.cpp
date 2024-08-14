@@ -10,6 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <constants/Constants.h>
 #include <settings/GridSettings.h>
+#include <settings/MoleculeSettings.h>
 
 #include <cassert>
 #include <random>
@@ -57,7 +58,7 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::gen
         placed_water.emplace_back(std::move(gm));
     };
 
-    double rh = grid->get_hydration_radius();
+    double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
     for (const auto& atom : grid->a_members) {
         const auto& coords_abs = atom.get_atom().get_coordinates();
         double ra = grid->get_atomic_radius(atom.get_atom_type());
@@ -123,7 +124,7 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
         }
     }
 
-    double rh = grid->get_hydration_radius();
+    double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
         bins_1rh.push_back(Vector3<int>(std::round(  rh*xr)/width, std::round(  rh*yr)/width, std::round(  rh*zr)/width));
