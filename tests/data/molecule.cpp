@@ -11,6 +11,7 @@
 #include <fitter/LinearFitter.h>
 #include <settings/All.h>
 #include <fitter/HydrationFitter.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
@@ -345,6 +346,7 @@ TEST_CASE("Molecule::save", "[files]") {
 TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
     settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     SECTION("generates new waters") {
         // the molecule is really small, so we have to make sure there's enough space for the waters
