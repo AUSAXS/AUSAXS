@@ -25,7 +25,7 @@ int main(int argc, char const *argv[]) {
     for (double exv_radius = lims.min; exv_radius <= lims.max; exv_radius += 0.25) {
         settings::grid::exv::radius = exv_radius;
         hist::CompositeDistanceHistogramFFGrid::regenerate_table();
-        auto hist = molecule.get_histogram()->debye_transform();
+        auto hist = static_cast<hist::CompositeDistanceHistogramFFGrid*>(molecule.get_histogram().get())->get_profile_xx();
         hist.normalize_max();
         profiles.push_back(std::move(hist));
         exv_radii.push_back(exv_radius);
