@@ -35,10 +35,11 @@ namespace hydrate {
 
             /**
              * @brief Check if a water molecule can be placed at the given location. 
+             *
              * @param loc the location to be checked. 
-             * @param skip_bin location to be excluded from the check. 
+             *
              * @return True if this is an acceptable location, false otherwise.
              */
-            bool collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const;
+            bool collision_check(const Vector3<int>& loc) const;
     };
 }
