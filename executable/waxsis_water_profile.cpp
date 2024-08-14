@@ -25,7 +25,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("folder", input, "Path to the MD SAXS folder.")->required()->check(CLI::ExistingDirectory);
     CLI11_PARSE(app, argc, argv);
 
-    bool calc_scattering = true;
+    bool calc_scattering = false;
     bool calc_density = true;
 
     settings::grid::scaling = 1;
@@ -147,25 +147,39 @@ int main(int argc, char const *argv[]) {
 
             hist::Histogram hist(axis);
             hist.bin(min_dists);
-            // hist.normalize_max();
+            hist.normalize_max();
             return hist;
         };
 
-        settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::RadialStrategy;
-        protein.generate_new_hydration();
-        protein.save(settings::general::output + "ausaxs.pdb");
-        auto hist_ausaxs = calc_density(protein);
+        hist::Histogram hist_radial, hist_axes, hist_jan;
+        {
+            settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::RadialStrategy;
+            data::Molecule tmp(env_ordered);
+            tmp.generate_new_hydration();
+            hist_radial = calc_density(tmp);
+        }
+        // {
+        //     settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::AxesStrategy;
+        //     data::Molecule tmp(env_ordered);
+        //     tmp.generate_new_hydration();
+        //     hist_axes = calc_density(tmp);
+        // }
+        // {
+        //     settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::JanStrategy;
+        //     data::Molecule tmp(env_ordered); 
+        //     tmp.generate_new_hydration();
+        //     hist_jan = calc_density(tmp);
+        // }
+
         auto hist_ordered = calc_density(ordered);
         auto hist_disordered = calc_density(disordered);
 
         plots::PlotDataset()
-            .plot(hist_ordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "ordered"}, {"color", "k"}}))
-            .plot(hist_disordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "disordered"}, {"color", "r"}}))
-            .plot(hist_ausaxs.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "ausaxs"}, {"color", "b"}}))
-
-            .plot(hist_ordered.as_dataset(), plots::PlotOptions(style::draw::line, {{"color", "k"}, {"ls", style::line::solid}, {"lw", 1}}))
-            .plot(hist_disordered.as_dataset(), plots::PlotOptions(style::draw::line, {{"color", "r"}, {"ls", style::line::solid}, {"lw", 1}}))
-            .plot(hist_ausaxs.as_dataset(), plots::PlotOptions(style::draw::line, {{"color", "b"}, {"ls", style::line::solid}, {"lw", 1}}))
+            .plot(hist_ordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "ordered"}, {"color", "k"}, {"lines", true}, {"lw", 0.5}}))
+            .plot(hist_disordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "disordered"}, {"color", "r"}, {"lines", true}, {"lw", 0.5}}))
+            .plot(hist_radial.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "radial"}, {"color", "b"}, {"lines", true}, {"lw", 0.5}}))
+            // .plot(hist_axes.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "axes"}, {"color", "g"}, {"lines", true}, {"lw", 0.5}}))
+            // .plot(hist_jan.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "jan"}, {"color", "y"}, {"lines", true}, {"lw", 0.5}}))
         .save(settings::general::output + "waxsis_density.png");
     }
 

@@ -128,6 +128,9 @@ hydrate/%: build/bin/new_hydration
 	$< $${structure} output/$*.pdb ${options}
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
+show_hydration/%: output/saxs_fitter/%/model.pdb
+	$(pymol) $< -d "hide all; show surface, model_; color green; select waters, resn HOH; show spheres, waters; color red, waters"
+
 # show a structure in pymol
 view/%: 
 	@ file=$$(find data -name "$*.pdb"); \
