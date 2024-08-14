@@ -60,7 +60,7 @@ int main(int, char const *[]) {
 
         double chi2;
         if (settings::hist::fit_excluded_volume) {
-            fitter::ExcludedVolumeFitter fitter(folder + input.first + ".dat", protein.get_histogram());
+            fitter::ExcludedVolumeFitter fitter({folder + input.first + ".dat"}, protein.get_histogram());
             chi2 = fitter.fit()->fval/fitter.fit()->dof;
         } else {
             fitter::HydrationFitter fitter(folder + input.first + ".dat", protein.get_histogram());
@@ -92,7 +92,7 @@ int main(int, char const *[]) {
         protein.generate_new_hydration();
 
         if (settings::hist::fit_excluded_volume) {
-            fitter::ExcludedVolumeFitter fitter(folder + input.first + ".dat", protein.get_histogram());
+            fitter::ExcludedVolumeFitter fitter({folder + input.first + ".dat"}, protein.get_histogram());
             chi2_default.push_back(fitter.fit()->fval/fitter.fit()->dof);
         } else {
             fitter::HydrationFitter fitter(folder + input.first + ".dat", protein.get_histogram());
