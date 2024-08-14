@@ -28,22 +28,22 @@ int main(int argc, char const *argv[]) {
     settings::axes::qmin = 1e-2;
     settings::axes::qmax = 1;
     settings::molecule::use_effective_charge = false;
-    settings::grid::width = 0.1;
+    settings::grid::cell_width = 0.1;
 
     data::Molecule molecule(pdb);
     molecule.generate_new_hydration();
-    Dataset standard = hist::HistogramManagerMTFFGrid<true>(molecule).calculate_all()->debye_transform().as_dataset();
+    Dataset standard = hist::HistogramManagerMTFFGrid(molecule).calculate_all()->debye_transform().as_dataset();
 
     std::vector<Dataset> datasets;
     std::vector<Dataset> datasets_fitted;
     std::vector<double> chi2;
     for (double r = 1; r <= 3; r += 0.1) {
-        settings::grid::rvol = r;
-        auto hist = hist::HistogramManagerMTFFGrid<true>(molecule).calculate_all();
+        settings::grid::min_exv_radius = r;
+        auto hist = hist::HistogramManagerMTFFGrid(molecule).calculate_all();
         datasets.push_back(hist->debye_transform().as_dataset());
         fitter::HydrationFitter fitter(saxs, std::move(hist));
         auto fit = fitter.fit();
-        datasets_fitted.push_back(fit->figures.intensity);
+        datasets_fitted.push_back(fit->info.fitted_intensity_interpolated);
         chi2.push_back(fit->fval/fit->dof);
         // molecule.get_grid()->save(settings::general::output + "grid_" + std::to_string(r) + ".pdb");
         molecule.clear_grid();
