@@ -16,6 +16,13 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace data::record;
 
+std::function<Vector3<double>()> hydrate::RadialHydration::noise_generator = [] () {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::normal_distribution<> gauss(0, 0.75);
+    return Vector3<double>(gauss(gen), gauss(gen), gauss(gen));
+};
+
 hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
     initialize();
     prepare_rotations();
@@ -32,6 +39,10 @@ void hydrate::RadialHydration::initialize() {
     hydrate::GridBasedHydration::initialize();
 }
 
+void hydrate::RadialHydration::set_noise_generator(std::function<Vector3<double>()>&& f) {
+    noise_generator = f;
+}
+
 std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
     assert(protein != nullptr && "RadialHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
@@ -46,10 +57,6 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::gen
         placed_water.emplace_back(std::move(gm));
     };
 
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::normal_distribution<> gauss(0, 0.75);
-
     double rh = grid->get_hydration_radius();
     for (const auto& atom : grid->a_members) {
         const auto& coords_abs = atom.get_atom().get_coordinates();
@@ -57,12 +64,11 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::gen
         double reff = ra + rh;
     
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
-            Vector3<double> noise(gauss(gen), gauss(gen), gauss(gen));
+            auto noise = noise_generator();
             auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff + noise);
             if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()))) {
                 Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff + noise;
                 add_loc(std::move(exact_loc));
-                noise = Vector3<double>(gauss(gen), gauss(gen), gauss(gen));
             }
         }
     }

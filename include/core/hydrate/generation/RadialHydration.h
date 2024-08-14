@@ -5,6 +5,7 @@
 #include <math/MathFwd.h>
 
 #include <vector>
+#include <functional>
 
 namespace hydrate {
     /**
@@ -23,15 +24,18 @@ namespace hydrate {
 
             std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
 
-        private:
-            void initialize() override;
-            void prepare_rotations(int divisions = 8);
+            static void set_noise_generator(std::function<Vector3<double>()>&& noise_function);
 
+        private:
             std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
             std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius
             std::vector<Vector3<int>> rot_bins_5rh; // rotation bins at 5rh radius
             std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius
             std::vector<Vector3<double>> rot_locs;  // absolute locations of the rotation bins
+            static std::function<Vector3<double>()> noise_generator;
+
+            void initialize() override;
+            void prepare_rotations(int divisions = 8);
 
             /**
              * @brief Check if a water molecule can be placed at the given location. 

@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <em/manager/SimpleProteinManager.h>
 #include <em/manager/SmartProteinManager.h>
 #include <em/ImageStack.h>
@@ -98,6 +99,7 @@ TEST_CASE("SmartProteinManager: consistency", "[files]") {
     settings::em::save_pdb = false;
     settings::fit::max_iterations = 20;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     // we need a hydration-sensitive map for this test
     em::ImageStack images("tests/files/emd_24889.map");
