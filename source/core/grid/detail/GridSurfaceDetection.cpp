@@ -129,6 +129,11 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
 
     int stride = std::round(2*settings::grid::exv::radius/settings::grid::cell_width);
     int buffer = std::round(std::max<double>(settings::grid::min_exv_radius, 2)/settings::grid::cell_width);
+
+    if (stride == 0) {
+        throw std::runtime_error("GridSurfaceDetection::helper: settings::grid::exv::radius is too small compared to settings::grid::cell_width");
+    }
+
     const auto& axes = grid->get_axes();
     auto& gobj = grid->grid;
     auto[vmin, vmax] = grid->bounding_box_index();
