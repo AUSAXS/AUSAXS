@@ -11,11 +11,13 @@
 #include <data/record/Water.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <hydrate/generation/HydrationStrategy.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <hydrate/culling/CullingStrategy.h>
 #include <settings/All.h>
 #include <math/Vector3.h>
+#include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
  
 using std::vector;
@@ -321,7 +323,13 @@ TEST_CASE("Grid::expand_volume") {
 TEST_CASE("Grid::hydrate") {
     settings::general::verbose = false;
     settings::molecule::center = false;
-    settings::hydrate::hydration_strategy = GENERATE(settings::hydrate::HydrationStrategy::AxesStrategy, settings::hydrate::HydrationStrategy::RadialStrategy, settings::hydrate::HydrationStrategy::JanStrategy);
+    settings::hydrate::shell_correction = 0;
+    settings::hydrate::hydration_strategy = GENERATE(
+        settings::hydrate::HydrationStrategy::AxesStrategy, 
+        settings::hydrate::HydrationStrategy::RadialStrategy, 
+        settings::hydrate::HydrationStrategy::JanStrategy
+    );
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     // check that all the expected hydration sites are found
     SECTION("correct placement " + std::to_string(static_cast<int>(settings::hydrate::hydration_strategy))) {
@@ -392,7 +400,6 @@ TEST_CASE("Grid::hydrate") {
     // check that a hydration operation produces consistent results
     SECTION("consistency") {
         settings::hydrate::culling_strategy = settings::hydrate::CullingStrategy::CounterStrategy;
-        settings::hydrate::hydration_strategy = GENERATE(settings::hydrate::HydrationStrategy::AxesStrategy, settings::hydrate::HydrationStrategy::RadialStrategy, settings::hydrate::HydrationStrategy::JanStrategy);
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.get_grid()->force_expand_volume();
 
