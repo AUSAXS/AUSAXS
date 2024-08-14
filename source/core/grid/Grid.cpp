@@ -13,6 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <settings/GridSettings.h>
 #include <settings/GeneralSettings.h>
+#include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 #include <constants/Constants.h>
 #include <io/ExistingFile.h>
@@ -130,7 +131,7 @@ double Grid::get_atomic_radius(constants::atom_t atom) const {
 }
 
 double Grid::get_hydration_radius() const {
-    return constants::radius::get_vdw_radius(constants::atom_t::O);
+    return constants::radius::get_vdw_radius(constants::atom_t::O) + settings::hydrate::shell_correction;
 }
 
 std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
