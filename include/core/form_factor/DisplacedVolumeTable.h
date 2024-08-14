@@ -126,7 +126,7 @@ namespace constants::displaced_volume {
     };
 
     //! Remember to update settings::molecule::DisplacedVolumeSet::Default if this is changed
-    inline constexpr const detail::DisplacedVolumeSet& standard = Voronoi_implicit_H;
+    inline constexpr const detail::DisplacedVolumeSet& standard = MinimumFluctuation_implicit_H;
     constexpr double OH2 = 2.98*constexpr_math::pow(10., -23)*constexpr_math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = detail::volume(constants::radius::vdw::Ar);
 }
