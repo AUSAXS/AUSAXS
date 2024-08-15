@@ -39,20 +39,19 @@ namespace form_factor::crysol {
 
     namespace storage {
         struct exv {
+            inline static ExvFormFactorCrysol H  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.H);
+            inline static ExvFormFactorCrysol C  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.C);
             inline static ExvFormFactorCrysol CH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.CH);
             inline static ExvFormFactorCrysol CH2 = ExvFormFactorCrysol(constants::displaced_volume::Traube.CH2);
             inline static ExvFormFactorCrysol CH3 = ExvFormFactorCrysol(constants::displaced_volume::Traube.CH3);
+            inline static ExvFormFactorCrysol N  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.N);
             inline static ExvFormFactorCrysol NH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.NH);
             inline static ExvFormFactorCrysol NH2 = ExvFormFactorCrysol(constants::displaced_volume::Traube.NH2);
             inline static ExvFormFactorCrysol NH3 = ExvFormFactorCrysol(constants::displaced_volume::Traube.NH3);
-            inline static ExvFormFactorCrysol OH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.OH);
-            inline static ExvFormFactorCrysol SH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.SH);
-
-            inline static ExvFormFactorCrysol H  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.H);
-            inline static ExvFormFactorCrysol C  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.C);
-            inline static ExvFormFactorCrysol N  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.N);
             inline static ExvFormFactorCrysol O  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.O);
+            inline static ExvFormFactorCrysol OH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.OH);
             inline static ExvFormFactorCrysol S  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.S);
+            inline static ExvFormFactorCrysol SH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.SH);
             inline static ExvFormFactorCrysol Ar =  ExvFormFactorCrysol(constants::displaced_volume::Ar);
 
             inline static ExvFormFactorCrysol get_form_factor(form_factor_t type) {

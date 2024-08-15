@@ -4,9 +4,6 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
-#include <dataset/SimpleDataset.h>
-
-#include <settings/All.h>
 
 using namespace hist;
 
