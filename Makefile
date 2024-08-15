@@ -318,7 +318,7 @@ foxs_exv_bounds/%:
 	${foxs} $$(basename "$${structure}") --max_q 1 --write-partial-profile true ${options}
 	@ mv temp/foxs/foxs*.dat output/saxs_fitter/$*/
 
-profile_comparison/%: build/bin/plot_profiles
+profile_comparison/%: build/bin/profile_comparison
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "$*.pdb"); \
