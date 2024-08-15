@@ -324,6 +324,7 @@ profile_comparison/%: build/bin/profile_comparison
 	structure=$$(find $${folder}/ -name "$*.pdb"); \
 	$< $${structure} ${options};\
 	make plot/output/saxs_fitter/$*;\
+	python scripts/article/plot_profile_comparison.py output/saxs_fitter/$*/profile_comparison/
 
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 
