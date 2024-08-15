@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
+import sys
 
 params = {
     'legend.fontsize': 22,
@@ -15,7 +15,9 @@ params = {
 plt.rcParams.update(params)
 
 path = sys.argv[1]
-title = path.split('/')[-2]
+if path[-1] != '/':
+    path += '/'
+title = path.split('/')[-3]
 
 crysol_aa =         np.loadtxt(path + 'crysol_aa.dat', skiprows=1)
 foxs_aa =           np.loadtxt(path + 'foxs_aa.dat', skiprows=1)
@@ -64,7 +66,7 @@ plt.plot(pepsi_aa_diff[:, 0], pepsi_aa_diff[:, 1], color='tab:blue')
 plt.ylim(0.95, 1.05)
 plt.xlabel('q $(A^{-1})$')
 plt.ylabel('ratio')
-plt.savefig('aa_comparison.png', dpi=600)
+plt.savefig(path + 'aa_comparison.png', dpi=600)
 
 fig, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [3, 2], 'hspace': 0.1})
 plt.sca(ax[0])
@@ -87,4 +89,4 @@ plt.plot(pepsi_xx_diff[:, 0], pepsi_xx_diff[:, 1], color='tab:blue')
 plt.ylim(0.95, 1.05)
 plt.xlabel('q $(A^{-1})$')
 plt.ylabel('mimic ratio')
-plt.savefig('xx_comparison.png', dpi=600)
+plt.savefig(path + 'xx_comparison.png', dpi=600)
