@@ -25,6 +25,10 @@ int main(int argc, char const *argv[]) {
     app.add_option("folder", input, "Path to the MD SAXS folder.")->required()->check(CLI::ExistingDirectory);
     CLI11_PARSE(app, argc, argv);
 
+    std::string name = input.path();
+    name = name.substr(name.find_last_of("/\\") + 1);
+    input = input + "/envelope";
+
     bool calc_scattering = false;
     bool calc_density = true;
 
@@ -130,7 +134,7 @@ int main(int argc, char const *argv[]) {
 
     if (calc_density) {
         data::Molecule protein(env_ordered);
-        Axis axis(0, 10, 75);
+        Axis axis(0, 10, 50);
 
         auto calc_density = [&] (const data::Molecule& protein) {
             std::vector<double> min_dists;
@@ -175,12 +179,12 @@ int main(int argc, char const *argv[]) {
         auto hist_disordered = calc_density(disordered);
 
         plots::PlotDataset()
-            .plot(hist_ordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "ordered"}, {"color", "k"}, {"lines", true}, {"lw", 0.5}}))
-            .plot(hist_disordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "disordered"}, {"color", "r"}, {"lines", true}, {"lw", 0.5}}))
-            .plot(hist_radial.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "radial"}, {"color", "b"}, {"lines", true}, {"lw", 0.5}}))
+            .plot(hist_ordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"xlabel", "q $[\\AA]$"}, {"ylabel", "Density [arb]"}, {"title", name}, {"legend", "WAXSiS"}, {"color", "k"}, {"lines", true}, {"lw", 0.5}}))
+            // .plot(hist_disordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "disordered"}, {"color", "r"}, {"lines", true}, {"lw", 0.5}}))
+            .plot(hist_radial.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "AUSAXS"}, {"color", "b"}, {"lines", true}, {"lw", 0.5}}))
             // .plot(hist_axes.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "axes"}, {"color", "g"}, {"lines", true}, {"lw", 0.5}}))
             // .plot(hist_jan.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "jan"}, {"color", "y"}, {"lines", true}, {"lw", 0.5}}))
-        .save(settings::general::output + "waxsis_density.png");
+        .save(settings::general::output + name + ".png");
     }
 
     return 0;
