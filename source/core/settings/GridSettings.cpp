@@ -19,7 +19,7 @@ double settings::grid::exv::radius = 0.5;
 bool settings::grid::exv::save = false;
 
 namespace settings::grid::detail {
-    double min_score = 0.1;
+    double min_score = 0.25;
 }
 
 namespace settings::grid::io {

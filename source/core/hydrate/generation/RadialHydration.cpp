@@ -10,10 +10,19 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <constants/Constants.h>
 #include <settings/GridSettings.h>
+#include <settings/MoleculeSettings.h>
 
 #include <cassert>
+#include <random>
 
 using namespace data::record;
+
+std::function<Vector3<double>()> hydrate::RadialHydration::noise_generator = [] () {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::normal_distribution<> gauss(0, 0.75);
+    return Vector3<double>(gauss(gen), gauss(gen), gauss(gen));
+};
 
 hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
     initialize();
@@ -31,6 +40,10 @@ void hydrate::RadialHydration::initialize() {
     hydrate::GridBasedHydration::initialize();
 }
 
+void hydrate::RadialHydration::set_noise_generator(std::function<Vector3<double>()>&& f) {
+    noise_generator = f;
+}
+
 std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
     assert(protein != nullptr && "RadialHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
@@ -45,18 +58,17 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::gen
         placed_water.emplace_back(std::move(gm));
     };
 
-    double rh = grid->get_hydration_radius();
+    double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
     for (const auto& atom : grid->a_members) {
         const auto& coords_abs = atom.get_atom().get_coordinates();
         double ra = grid->get_atomic_radius(atom.get_atom_type());
         double reff = ra + rh;
+    
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
-            auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff);
-
-            // we have to make sure we don't check the direction of the atom we are trying to place this water on
-            Vector3<int> skip_bin(bins.x()-rot_bins_1rh[i].x(), bins.y()-rot_bins_1rh[i].y(), bins.z()-rot_bins_1rh[i].z());
-            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()), skip_bin)) {
-                Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff;
+            auto noise = noise_generator();
+            auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff + noise);
+            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()))) {
+                Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff + noise;
                 add_loc(std::move(exact_loc));
             }
         }
@@ -80,9 +92,9 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     std::vector<Vector3<double>> sphere;
     for (double theta = 0; theta <= constants::pi*0.5; theta+=ang) {
         for (double phi = 0; phi <= constants::pi*0.5; phi+=ang) {
-            double x = cos(phi)*sin(theta);
-            double y = sin(phi)*sin(theta);
-            double z = cos(theta);
+            double x = std::cos(phi)*std::sin(theta);
+            double y = std::sin(phi)*std::sin(theta);
+            double z = std::cos(theta);
             sphere.push_back({x, y, z});
             sphere.push_back({-x, y, z});
             sphere.push_back({x, -y, z});
@@ -112,7 +124,7 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
         }
     }
 
-    double rh = constants::radius::get_vdw_radius(constants::atom_t::O);
+    double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
         bins_1rh.push_back(Vector3<int>(std::round(  rh*xr)/width, std::round(  rh*yr)/width, std::round(  rh*zr)/width));
@@ -130,7 +142,7 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     rot_locs = std::move(locs);
 }
 
-bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
+bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
     auto grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
@@ -138,82 +150,63 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc, const Ve
 
     // check if a location is out-of-bounds
     auto is_out_of_bounds = [&bins] (Vector3<int> v) {
-        if (v.x() < 0 || (int) bins.x() <= v.x() ) {return true;}
-        if (v.y() < 0 || (int) bins.y() <= v.y() ) {return true;}
-        if (v.z() < 0 || (int) bins.z() <= v.z() ) {return true;}
+        if (v.x() < 0 || bins.x() <= v.x() ) {return true;}
+        if (v.y() < 0 || bins.y() <= v.y() ) {return true;}
+        if (v.z() < 0 || bins.z() <= v.z() ) {return true;}
         return false;
     };
 
+    unsigned int inside_1rh = 0;
     for (unsigned int i = 0; i < rot_locs.size(); i++) {
-        // check for collisions at 1rh
-        int xr = loc.x() + rot_bins_1rh[i].x();
-        int yr = loc.y() + rot_bins_1rh[i].y();
-        int zr = loc.z() + rot_bins_1rh[i].z();
+        {   // check for collisions at 1rh
+            int xr = loc.x() + rot_bins_1rh[i].x();
+            int yr = loc.y() + rot_bins_1rh[i].y();
+            int zr = loc.z() + rot_bins_1rh[i].z();
 
-        // check for bounds
-        if (xr < 0) xr = 0;
-        if (xr >= (int) bins.x()) xr = bins.x()-1;
-        if (yr < 0) yr = 0;
-        if (yr >= (int) bins.y()) yr = bins.y()-1;
-        if (zr < 0) zr = 0;
-        if (zr >= (int) bins.z()) zr = bins.z()-1;
+            std::clamp(xr, 0, bins.x()-1);
+            std::clamp(yr, 0, bins.y()-1);
+            std::clamp(zr, 0, bins.z()-1);
 
-        if (!gref.is_empty_or_volume(xr, yr, zr)) {
-            if (Vector3(xr, yr, zr) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
-
-            return false;
-        }
-
-        // check if we're in a cavity
-        for (unsigned int j = 0; j < rot_bins_3rh.size(); j++) {
-            // check at 3r
-            int xr = loc.x() + rot_bins_3rh[j].x();
-            int yr = loc.y() + rot_bins_3rh[j].y();
-            int zr = loc.z() + rot_bins_3rh[j].z();
-            if (is_out_of_bounds({xr, yr, zr})) {   // if the line goes out of bounds, we know for sure it won't intersect anything
-                score += 3;                         // so we add three points and move on to the next
+            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+                if (2 < ++inside_1rh) {
+                    return false;
+                }
                 continue;
             }
-            if (!gref.is_empty_or_volume(xr, yr, zr)) { // if the line intersects something at 3r, we don't check the other two points of the same line
-                score -= 3;                             // but immediately subtract 3 points and move on to the next
-                continue;
-            } else {
-                score++;
-            } 
-
-            // check at 5r
-            xr = loc.x() + rot_bins_5rh[j].x();
-            yr = loc.y() + rot_bins_5rh[j].y();
-            zr = loc.z() + rot_bins_5rh[j].z();
+        }
+        {   // check for collisions at 3rh
+            int xr = loc.x() + rot_bins_3rh[i].x();
+            int yr = loc.y() + rot_bins_3rh[i].y();
+            int zr = loc.z() + rot_bins_3rh[i].z();
             if (is_out_of_bounds({xr, yr, zr})) {
                 score += 2;
                 continue;
             }
+
             if (!gref.is_empty_or_volume(xr, yr, zr)) {
                 score -= 2;
                 continue;
-            } else {
-                score++;
-            } 
-
-            // check at 7r
-            xr = loc.x() + rot_bins_7rh[j].x();
-            yr = loc.y() + rot_bins_7rh[j].y();
-            zr = loc.z() + rot_bins_7rh[j].z();
+            }
+            score += 2;
+        }
+        {   // check for collisions at 5rh
+            int xr = loc.x() + rot_bins_5rh[i].x();
+            int yr = loc.y() + rot_bins_5rh[i].y();
+            int zr = loc.z() + rot_bins_5rh[i].z();
             if (is_out_of_bounds({xr, yr, zr})) {
                 score += 1;
                 continue;
             }
+
             if (!gref.is_empty_or_volume(xr, yr, zr)) {
                 score -= 1;
                 continue;
-            } else {
-                score++;
             }
         }
     }
 
-    if (score <= settings::grid::detail::min_score*rot_bins_1rh.size()) {
+    double max_points = 3*rot_bins_1rh.size();
+    if (score <= settings::grid::detail::min_score*max_points) {
         return false;
     }
     return true;

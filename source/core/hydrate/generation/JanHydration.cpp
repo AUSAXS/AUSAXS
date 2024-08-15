@@ -9,6 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <constants/Constants.h>
+#include <settings/MoleculeSettings.h>
 
 #include <cassert>
 
@@ -37,17 +38,17 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::JanHydration::genera
     };
 
     // loop over the location of all member atoms
-    int r_eff = (grid->get_atomic_radius(constants::atom_t::C) + grid->get_hydration_radius())/grid->get_width();
+    int r_eff = (grid->get_atomic_radius(constants::atom_t::C) + grid->get_hydration_radius() + settings::hydrate::shell_correction)/grid->get_width();
     auto[min, max] = grid->bounding_box_index();
     for (int i = min.x(); i < max.x(); i++) {
+        int im = std::max(i-r_eff, 0), ip = std::min(i+r_eff, bins.x()-1); // xminus and xplus
+
         for (int j = min.y(); j < max.y(); j++) {
+            int jm = std::max(j-r_eff, 0), jp = std::min(j+r_eff, bins.y()-1); // yminus and yplus
+
             for (int k = min.z(); k < max.z(); k++) {
                 if (gref.is_empty(i, j, k)) {continue;}
-
-                // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-                int im = std::max(i-r_eff, 0), ip = std::min(i+r_eff, (int) bins.x()-1); // xminus and xplus
-                int jm = std::max(j-r_eff, 0), jp = std::min(j+r_eff, (int) bins.y()-1); // yminus and yplus
-                int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, (int) bins.z()-1); // zminus and zplus
+                int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, bins.z()-1); // zminus and zplus
 
                 // check collisions for x ± r_eff                
                 if (gref.is_empty(im, j, k)) {add_loc(Vector3<int>(im, j, k));}

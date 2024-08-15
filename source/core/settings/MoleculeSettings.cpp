@@ -39,6 +39,7 @@ namespace settings::molecule::io {
 
 settings::hydrate::HydrationStrategy settings::hydrate::hydration_strategy = HydrationStrategy::RadialStrategy;
 settings::hydrate::CullingStrategy settings::hydrate::culling_strategy = CullingStrategy::NoStrategy;
+double settings::hydrate::shell_correction = -0.35;
 
 template<> std::string settings::io::detail::SettingRef<settings::hydrate::HydrationStrategy>::get() const {
     switch (settingref) {

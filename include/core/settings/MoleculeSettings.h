@@ -10,40 +10,66 @@ namespace settings {
 
         enum class DisplacedVolumeSet {
             Traube,                         // Traube 1895 as used by CRYSOL, Pepsi-SAXS & FoXS
-            Voronoi_implicit_H,             // Voronoi volume with implicit hydrogens
-            Voronoi_explicit_H,             // Voronoi volume with explicit hydrogens
-            MinimumFluctutation_implicit_H, // Minimum fluctuation volume with implicit hydrogens
-            MinimumFluctutation_explicit_H, // Minimum fluctuation volume with explicit hydrogens
+            Voronoi_implicit_H,             // Voronoi volume with implicit hydrogens from Schaefer et al.
+            Voronoi_explicit_H,             // Voronoi volume with explicit hydrogens from Schaefer et al.
+            MinimumFluctutation_implicit_H, // Minimum fluctuation volume with implicit hydrogens from Schaefer et al.
+            MinimumFluctutation_explicit_H, // Minimum fluctuation volume with explicit hydrogens from Schaefer et al.
             vdw,                            // Volumes calculated from the van der Waals radii
 
             //? Custom displaced volume set. Make sure to define it first with form_factor::storage::detail::set_custom_displaced_volume_set
             Custom,
 
             //! Remember to update constants::displaced_volume::standard if this is changed
-            Default = Voronoi_implicit_H    // Default displaced volume set
+            Default = MinimumFluctutation_implicit_H // Default displaced volume set
         };
         extern DisplacedVolumeSet displaced_volume_set;
     }
 
     namespace hydrate {
         enum class HydrationStrategy {
+            // This strategy attempts to place water molecules along each axis of every atom
             AxesStrategy, 
+
+            // This strategy is a generalization of the AxesStrategy, where water molecules are placed along radial lines from each atom
             RadialStrategy, 
+
+            // This is a simple strategy where the entire grid is scanned for empty positions
             JanStrategy,
+
+            // This is a mimic of the Pepsi hydration method
             PepsiStrategy,
+
+            // No hydration molecules will be placed with this strategy
             NoStrategy
         };
         extern HydrationStrategy hydration_strategy;
 
         enum class CullingStrategy {
+            // Every N molecule is removed from the list of possible waters to achieve the target number of molecules
             CounterStrategy, 
+
+            // Every N molecule is removed from the list of possible waters to achieve the target number of molecules per body
             BodyCounterStrategy,
+
+            // Molecules are removed from the list of possible waters in an attempt to make a more uniform distribution
             OutlierStrategy, 
+
+            // Identical to the CounterStrategy, except the list of possible waters is randomized
             RandomCounterStrategy,
+
+            // Identical to the BodyCounterStrategy, except the list of possible waters is randomized
             RandomOutlierStrategy,
+
+            // Identical to the BodyCounterStrategy, except the list of possible waters is randomized
             RandomBodyCounterStrategy,
+
+            // No molecules will be removed with this strategy
             NoStrategy
         };
         extern CullingStrategy culling_strategy;
+
+        // Correction added to the sum of van der Waals radii when calculating the distance to the placed water molecules.
+        // By default this is tuned to roughly match MD density profiles. 
+        extern double shell_correction;
     }
 }
