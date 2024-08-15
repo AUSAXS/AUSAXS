@@ -25,19 +25,19 @@ namespace constants::displaced_volume {
 
     // from original CRYSOL paper, 1995: https://doi.org/10.1107/S0021889895007047
     constexpr detail::DisplacedVolumeSet Traube {
-        .H   = 0.01986*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3),
-        .C   = 0.02159*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .CH  = 0.02674*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .CH2 = 0.03189*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .CH3 = 0.00764*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .N   = 0.01279*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .NH  = 0.01794*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .NH2 = 0.01428*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .NH3 = 0.02510*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .O   = 0.00515*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .OH  = 0.01644*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .S   = 0.00249*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .SH  = 0.00913*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3)
+        .H   = 0.00515*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3),
+        .C   = 0.01644*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .CH  = 0.02159*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .CH2 = 0.02674*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .CH3 = 0.03189*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .N   = 0.00249*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .NH  = 0.00764*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .NH2 = 0.01279*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .NH3 = 0.01794*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .O   = 0.00913*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .OH  = 0.01428*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .S   = 0.01986*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
+        .SH  = 0.02510*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3)
     };
 
     // table I, V^vor from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
