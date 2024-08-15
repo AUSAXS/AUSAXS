@@ -73,6 +73,7 @@ int main(int argc, char const *argv[]) {
     {   // crysol mimic
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::CrysolManager;
         data::Molecule molecule(pdb);
+        molecule.add_implicit_hydrogens();
 
         auto hist = molecule.get_histogram();
         ausaxs_crysol_aa = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_aa().as_dataset();
@@ -81,6 +82,7 @@ int main(int argc, char const *argv[]) {
     {   // foxs mimic
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::FoXSManager;
         data::Molecule molecule(pdb);
+        molecule.add_implicit_hydrogens();
 
         auto hist = molecule.get_histogram();
         ausaxs_foxs_aa = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_aa().as_dataset();
@@ -89,6 +91,7 @@ int main(int argc, char const *argv[]) {
     {   // pepsi mimic
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PepsiManager;
         data::Molecule molecule(pdb);
+        molecule.add_implicit_hydrogens();
 
         auto hist = molecule.get_histogram();
         ausaxs_pepsi_aa = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_aa().as_dataset();
@@ -97,6 +100,7 @@ int main(int argc, char const *argv[]) {
     {   // ausaxs
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
         data::Molecule molecule(pdb);
+        molecule.add_implicit_hydrogens();
         molecule.generate_new_hydration();
 
         auto hist = molecule.get_histogram();
