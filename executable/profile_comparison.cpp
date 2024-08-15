@@ -17,7 +17,7 @@
 #include <plots/All.h>
 
 // calculate the exact aa profile without form factors
-auto exact_aa_debye = [] (const data::Molecule& molecule) {
+[[maybe_unused]] auto exact_aa_debye = [] (const data::Molecule& molecule) {
     container::Container2D<double> distances(molecule.get_atoms().size(), molecule.get_atoms().size());
     auto atoms = molecule.get_atoms();
     for (unsigned int i = 0; i < atoms.size(); ++i) {
@@ -236,17 +236,35 @@ int main(int argc, char const *argv[]) {
     // }
 
     plots::PlotDataset()
-        .plot(crysol_diff_aa, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "THEIRS / AUSAXS"}, {"title", pdb.stem() + " $I_{aa}$ profiles"}, {"yrange", Limit(0.5, 1.5)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}}))
-        .plot(foxs_diff_aa, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
-        .plot(pepsi_diff_aa, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
-        // .plot(exact_aa_diff, plots::PlotOptions({{"legend", "Exact"}, {"color", style::color::red}, {"linestyle", style::line::dashed}}))
+        .plot(crysol_diff_aa, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "THEIRS / AUSAXS"}, {"title", pdb.stem() + " $I_{aa}$ profiles"}, {"yrange", Limit(0.9, 1.1)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}, {"normalize", true}}))
+        .plot(foxs_diff_aa, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}, {"normalize", true}}))
+        .plot(pepsi_diff_aa, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}, {"normalize", true}}))
+        // .plot(exact_aa_diff, plots::PlotOptions({{"legend", "Exact"}, {"color", style::color::red}, {"linestyle", style::line::dashed}, {"normalize", true}}))
         .hline(1, plots::PlotOptions({{"linestyle", style::line::dashed}, {"color", style::color::black}}))
     .save(settings::general::output + "profiles_aa_diff.png");
 
     plots::PlotDataset()
-        .plot(crysol_diff_xx, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "THEIRS / AUSAXS"}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"yrange", Limit(0.5, 1.5)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}}))
-        .plot(foxs_diff_xx, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
-        .plot(pepsi_diff_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
+        .plot(crysol_diff_xx, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "THEIRS / AUSAXS"}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"yrange", Limit(0.9, 1.1)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}, {"normalize", true}}))
+        .plot(foxs_diff_xx, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}, {"normalize", true}}))
+        .plot(pepsi_diff_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}, {"normalize", true}}))
         .hline(1, plots::PlotOptions({{"linestyle", style::line::dashed}, {"color", style::color::black}}))
     .save(settings::general::output + "profiles_xx_diff.png");
+
+    crysol_data_xx.save(settings::general::output + "profile_comparison/crysol_xx.dat");
+    crysol_data_aa.save(settings::general::output + "profile_comparison/crysol_aa.dat");
+    foxs_data_xx.save(settings::general::output + "profile_comparison/foxs_xx.dat");
+    foxs_data_aa.save(settings::general::output + "profile_comparison/foxs_aa.dat");
+    pepsi_data_xx.save(settings::general::output + "profile_comparison/pepsi_xx.dat");
+    pepsi_data_aa.save(settings::general::output + "profile_comparison/pepsi_aa.dat");
+    crysol_diff_aa.save(settings::general::output + "profile_comparison/crysol_aa_diff.dat");
+    crysol_diff_xx.save(settings::general::output + "profile_comparison/crysol_xx_diff.dat");
+    foxs_diff_aa.save(settings::general::output + "profile_comparison/foxs_aa_diff.dat");
+    foxs_diff_xx.save(settings::general::output + "profile_comparison/foxs_xx_diff.dat");
+    pepsi_diff_aa.save(settings::general::output + "profile_comparison/pepsi_aa_diff.dat");
+    pepsi_diff_xx.save(settings::general::output + "profile_comparison/pepsi_xx_diff.dat");
+    ausaxs_aa.save(settings::general::output + "profile_comparison/ausaxs_aa.dat");
+    ausaxs_xx.save(settings::general::output + "profile_comparison/ausaxs_xx.dat");
+    ausaxs_crysol_xx.save(settings::general::output + "profile_comparison/ausaxs_crysol_xx.dat");
+    ausaxs_pepsi_xx.save(settings::general::output + "profile_comparison/ausaxs_pepsi_xx.dat");
+    ausaxs_foxs_xx.save(settings::general::output + "profile_comparison/ausaxs_foxs_xx.dat");
 }
