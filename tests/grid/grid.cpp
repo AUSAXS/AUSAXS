@@ -419,6 +419,9 @@ TEST_CASE("Grid::hydrate") {
 
 TEST_CASE("Grid: using different widths") {
     settings::general::verbose = false;
+    settings::hydrate::shell_correction = 0;
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
+
     auto test_width_basics = [] (settings::hydrate::HydrationStrategy strategy) {
         settings::hydrate::hydration_strategy = strategy;
         settings::grid::cell_width = 0.1;
@@ -664,6 +667,9 @@ TEST_CASE("Grid: correct_volume") {
 
 TEST_CASE("Grid::find_free_locs") {
     settings::general::verbose = false;
+    settings::hydrate::shell_correction = 0;
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
+
     auto test_func = [] (settings::hydrate::HydrationStrategy ch) {
         settings::hydrate::hydration_strategy = ch;
         settings::grid::cell_width = 1;
