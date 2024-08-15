@@ -13,10 +13,9 @@ namespace hist {
     /**
      * @brief An alternative to CompositeDistanceHistogramFFExplicit that mimics the Pepsi-SAXS excluded volume fitting. 
      */
-    class CompositeDistanceHistogramPepsi : public CompositeDistanceHistogramFFExplicit {
+    class CompositeDistanceHistogramPepsi : public CompositeDistanceHistogramCrysol {
         public:
-            // using CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol;
-            using CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit;
+            using CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol;
             ~CompositeDistanceHistogramPepsi() override = default;
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
