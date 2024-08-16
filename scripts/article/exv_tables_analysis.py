@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from enum import Enum
 import pandas as pd
+import sys
 
 class Data(Enum):
     chi2 = 0
@@ -19,7 +20,8 @@ class Data(Enum):
     S = 12
     SH = 13
 
-file = "A2M_native.txt"
+file = sys.argv[1]
+target = sys.argv[2]
 with open(file, 'r') as f:
     lines = f.readlines()
 
@@ -50,84 +52,135 @@ for line in lines:
 
 data_voronoi = np.array(data_voronoi)
 data_mf = np.array(data_mf)
+data = data_voronoi if target == 'voronoi' else data_mf
 
 ##########################
 ### CORRELATION MATRIX ###
 ##########################
-if (False):
-    df_voronoi = pd.DataFrame(data_voronoi, columns=[e.name for e in Data])
-    correlation_matrix = df_voronoi[['CH', 'CH2', 'CH3', 'NH', 'NH2', 'NH3', 'O', 'OH', 'S', 'SH', 'chi2']].corr()
-    correlation_matrix[correlation_matrix[:] == 1] = np.NaN
-    for i in range(len(correlation_matrix.columns)):
-        for j in range(i, len(correlation_matrix.columns)):
-            correlation_matrix.iloc[i, j] = np.NaN
-    plt.figure(figsize=(8, 6))
-    cmap = plt.get_cmap('coolwarm', 20)
-    cmap.set_bad(color='white')
-    plt.imshow(correlation_matrix, cmap=cmap, vmin=-0.1, vmax=0.5, origin='upper')
-    plt.colorbar(label='Correlation Coefficient')
-    plt.xticks(ticks=np.arange(len(correlation_matrix.columns)), labels=correlation_matrix.columns, rotation=45)
-    plt.yticks(ticks=np.arange(len(correlation_matrix.columns)), labels=correlation_matrix.columns)
-    plt.title('Correlation Matrix')
+if (True):
+    def get_correlation_matrix(data):
+        df = pd.DataFrame(data, columns=[e.name for e in Data])
+        correlation_matrix = df[['CH', 'CH2', 'CH3', 'NH', 'NH2', 'NH3', 'O', 'OH', 'S', 'SH', 'chi2']].corr()
+        correlation_matrix[correlation_matrix[:] == 1] = np.NaN
+        for i in range(len(correlation_matrix.columns)):
+            for j in range(i, len(correlation_matrix.columns)):
+                correlation_matrix.iloc[i, j] = np.NaN
+        return correlation_matrix
+
+    # df = pd.DataFrame(data, columns=[e.name for e in Data])
+    # correlation_matrix = df[['CH', 'CH2', 'CH3', 'NH', 'NH2', 'NH3', 'O', 'OH', 'S', 'SH', 'chi2']].corr()
+    # correlation_matrix[correlation_matrix[:] == 1] = np.NaN
+    # for i in range(len(correlation_matrix.columns)):
+    #     for j in range(i, len(correlation_matrix.columns)):
+    #         correlation_matrix.iloc[i, j] = np.NaN
+    # plt.figure(figsize=(8, 6))
+    # cmap = plt.get_cmap('coolwarm', 20)
+    # cmap.set_bad(color='white')
+    # plt.imshow(correlation_matrix, cmap=cmap, vmin=-0.1, vmax=0.5, origin='upper')
+    # plt.colorbar(label='Correlation Coefficient')
+    # plt.xticks(ticks=np.arange(len(correlation_matrix.columns)), labels=correlation_matrix.columns, rotation=45)
+    # plt.yticks(ticks=np.arange(len(correlation_matrix.columns)), labels=correlation_matrix.columns)
+    # plt.title('Correlation Matrix')
+    # plt.show()
+
+    plt.figure(figsize=(12, 12))
+    plt.subplots_adjust(hspace=0.35, wspace=0)
+    plt.subplot(2, 1, 1)
+    bins = np.linspace(0, 200, 200)
+    plt.hist(data_voronoi[:, Data.chi2.value], bins=bins, color='tab:blue', label='Voronoi')
+    plt.hist(data_mf[:, Data.chi2.value], bins=bins, color='tab:orange', label='Minimum Fluctuation')
+    plt.xlabel('$\chi^2_r$')
+    plt.ylabel('Density')
+    plt.legend()
+
+    corr = get_correlation_matrix(data_voronoi)
+    labels = corr.columns.tolist()
+    labels[-1] = '$\chi^2_r$'
+    plt.subplot(2, 2, 3)
+    plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
+    plt.xticks(ticks=np.arange(len(labels)), labels=labels, rotation=90)
+    plt.yticks(ticks=np.arange(len(labels)), labels=labels)
+    plt.title('Voronoi')
+
+    corr = get_correlation_matrix(data_mf)
+    plt.subplot(2, 2, 4)
+    plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
+    plt.xticks(ticks=np.arange(len(labels)), labels=labels, rotation=90)
+    plt.yticks(ticks=np.arange(len(labels)), labels=labels)
+    plt.colorbar(label='Correlation coefficient')
+    plt.title('Minimum Fluctuation')
+    plt.savefig("exv_table_analysis.png", dpi=600)
+
+    print(
+        "Largest outliers: " \
+        f"\n\tVoronoi: {data_voronoi[:, Data.chi2.value].max()}" \
+        f"\n\tMinimum Fluctuation: {data_mf[:, Data.chi2.value].max()}"
+    )
+
+    print(
+        "Percentage higher than 100: " \
+        f"\n\tVoronoi: {100*np.sum(100 < data_voronoi[:, Data.chi2.value])/len(data_voronoi[:, Data.chi2.value]):.1f}%" \
+        f"\n\tMinimum Fluctuation: {100*np.sum(100 < data_mf[:, Data.chi2.value])/len(data_mf[:, Data.chi2.value]):.1f}%" \
+    )
     plt.show()
 
 #######################
 ### 1D CORRELATIONS ###
 #######################
-means = np.mean(data_voronoi, axis=0)
-stds = np.std(data_voronoi, axis=0)
+means = np.mean(data, axis=0)
+stds = np.std(data, axis=0)
 if (False):
     alpha = 0.1
     fig, ax = plt.subplots(4, 3, figsize=(14, 10), sharey='row')
     plt.sca(ax[0, 0])
-    plt.plot(data_voronoi[:, Data.CH.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.CH.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.CH.value] - stds[Data.CH.value], color='r', linestyle='--')
     plt.axvline(means[Data.CH.value] + stds[Data.CH.value], color='r', linestyle='--')
 
     plt.ylabel('$\chi^2_r$')
     plt.sca(ax[0, 1])
-    plt.plot(data_voronoi[:, Data.CH2.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.CH2.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.CH2.value] - stds[Data.CH2.value], color='r', linestyle='--')
     plt.axvline(means[Data.CH2.value] + stds[Data.CH2.value], color='r', linestyle='--')
     plt.sca(ax[0, 2])
-    plt.plot(data_voronoi[:, Data.CH3.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)    
+    plt.plot(data[:, Data.CH3.value], data[:, Data.chi2.value], '.k', alpha=alpha)    
     plt.axvline(means[Data.CH3.value] - stds[Data.CH3.value], color='r', linestyle='--')
     plt.axvline(means[Data.CH3.value] + stds[Data.CH3.value], color='r', linestyle='--')
 
     plt.sca(ax[1, 0])
-    plt.plot(data_voronoi[:, Data.NH.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.NH.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.NH.value] - stds[Data.NH.value], color='r', linestyle='--')
     plt.axvline(means[Data.NH.value] + stds[Data.NH.value], color='r', linestyle='--')
     plt.ylabel('$\chi^2_r$')
     plt.sca(ax[1, 1])
-    plt.plot(data_voronoi[:, Data.NH2.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.NH2.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.NH2.value] - stds[Data.NH2.value], color='r', linestyle='--')
     plt.axvline(means[Data.NH2.value] + stds[Data.NH2.value], color='r', linestyle='--')
     plt.sca(ax[1, 2])
-    plt.plot(data_voronoi[:, Data.NH3.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.NH3.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.NH3.value] - stds[Data.NH3.value], color='r', linestyle='--')
     plt.axvline(means[Data.NH3.value] + stds[Data.NH3.value], color='r', linestyle='--')
     plt.xlabel('Volume [A$^3$]')
 
     plt.sca(ax[2, 0])
-    plt.plot(data_voronoi[:, Data.O.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.O.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.O.value] - stds[Data.O.value], color='r', linestyle='--')
     plt.axvline(means[Data.O.value] + stds[Data.O.value], color='r', linestyle='--')
     plt.ylabel('$\chi^2_r$')
     plt.sca(ax[2, 1])
-    plt.plot(data_voronoi[:, Data.OH.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.OH.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.OH.value] - stds[Data.OH.value], color='r', linestyle='--')
     plt.axvline(means[Data.OH.value] + stds[Data.OH.value], color='r', linestyle='--')
     fig.delaxes(ax[2, 2])
 
     plt.sca(ax[3, 0])
-    plt.plot(data_voronoi[:, Data.S.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.S.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.S.value] - stds[Data.S.value], color='r', linestyle='--')
     plt.axvline(means[Data.S.value] + stds[Data.S.value], color='r', linestyle='--')
     plt.xlabel('Volume [A$^3$]')
     plt.ylabel('$\chi^2_r$')
     plt.sca(ax[3, 1])
-    plt.plot(data_voronoi[:, Data.SH.value], data_voronoi[:, Data.chi2.value], '.k', alpha=alpha)
+    plt.plot(data[:, Data.SH.value], data[:, Data.chi2.value], '.k', alpha=alpha)
     plt.axvline(means[Data.SH.value] - stds[Data.SH.value], color='r', linestyle='--')
     plt.axvline(means[Data.SH.value] + stds[Data.SH.value], color='r', linestyle='--')
     plt.xlabel('Volume [A$^3$]')
@@ -151,7 +204,7 @@ if (False):
 if (False):
     def perform_plot(datax, datay):
         num_bins = 30
-        H_sum, xedges, yedges = np.histogram2d(datax, datay, bins=num_bins, weights=data_voronoi[:, Data.chi2.value])
+        H_sum, xedges, yedges = np.histogram2d(datax, datay, bins=num_bins, weights=data[:, Data.chi2.value])
         H_count, _, _ = np.histogram2d(datax, datay, bins=num_bins)
 
         H_mean = np.divide(H_sum, H_count, out=np.zeros_like(H_sum), where=H_count != 0)
@@ -166,7 +219,7 @@ if (False):
     for i in range(10):
         for j in range(i):
             plt.sca(ax[i, j])
-            perform_plot(data_voronoi[:, use_data[j]], data_voronoi[:, use_data[i]])
+            perform_plot(data[:, use_data[j]], data[:, use_data[i]])
         
         plt.text(0.5, -0.4, str(Data(use_data[i]).name), ha='center', va='center', transform=ax[-1, i].transAxes)
         plt.text(-0.3, 0.5, str(Data(use_data[i]).name), ha='center', va='center', transform=ax[i, 0].transAxes, rotation=90)
