@@ -7,7 +7,7 @@ import os
 from enum import Enum
 from scipy.optimize import curve_fit
 
-skip_similar_results = True
+skip_similar_results = False
 
 params = {
     'legend.fontsize': 14,
@@ -37,26 +37,38 @@ x_label_map = {
     "HistogramManagerMT:":                          0, 
     "HistogramManagerMTFFAvg:":                     1, 
     "HistogramManagerMTFFAvg_fitted:":              2, 
-    "HistogramManagerMTFFExplicit:":                3, 
-    "HistogramManagerMTFFExplicit_fitted:":         4,
-    "HistogramManagerMTFFGrid:":                    5,
-    "HistogramManagerMTFFGridSurface:":             6,
-    "HistogramManagerMTFFGridSurface_fitted_215:":  7,
-    "HistogramManagerMTFFGridSurface_fitted_300:":  8,
-    "FoXS:":                                        9,
-    "FoXS_fitted:":                                10,
-    "CRYSOL:":                                     11,
-    "CRYSOL_fitted:":                              12,
-    "Pepsi-SAXS:":                                 13,
-    "Pepsi-SAXS_fitted:":                          14,
+    "HistogramManagerMTFFExplicit_voronoi:":        3, 
+    "HistogramManagerMTFFExplicit_fitted_voronoi:": 4,
+    "HistogramManagerMTFFExplicit_mf:":             5, 
+    "HistogramManagerMTFFExplicit_fitted_mf:":      6,
+    "HistogramManagerMTFFExplicit_vdw:":            7, 
+    "HistogramManagerMTFFExplicit_fitted_vdw:":     8,
+    "HistogramManagerMTFFExplicit_traube:":         9, 
+    "HistogramManagerMTFFExplicit_fitted_traube:":  10,
+    "HistogramManagerMTFFGrid:":                    11,
+    "HistogramManagerMTFFGridSurface:":             12,
+    "HistogramManagerMTFFGridSurface_fitted_215:":  13,
+    "HistogramManagerMTFFGridSurface_fitted_300:":  14,
+    "FoXS:":                                        15,
+    "FoXS_fitted:":                                 16,
+    "CRYSOL:":                                      17,
+    "CRYSOL_fitted:":                               18,
+    "Pepsi-SAXS:":                                  19,
+    "Pepsi-SAXS_fitted:":                           20,
 }
 
 x_labels = [
     "Simple", 
     "Averaged", 
     "Averaged fitted", 
-    "Explicit", 
-    "Explicit fitted", 
+    "Explicit Voronoi", 
+    "Voronoi", # Explicit Voronoi fitted
+    "Explicit MF",
+    "Minimum Fluctuation", # Explicit MF fitted
+    "Explicit VDW",
+    "van der Waals", # Explicit VDW fitted
+    "Explicit Traube",
+    "Traube", # Explicit Traube fitted
     "Grid", 
     "Grid surface",
     "Grid fitted 2.15", 
@@ -77,22 +89,28 @@ class options(Enum):
     Simple = 0
     Average = 1
     Average_f = 2
-    Explicit = 3
-    Explicit_f = 4
-    Grid = 5
-    Grid_SURFACE = 6
-    Grid_f_215 = 7
-    Grid_f_300 = 8
-    FoXS_o = 9
-    FoXS_of = 10
-    CRYSOL_o = 11
-    CRYSOL_of = 12
-    Pepsi_o = 13
-    Pepsi_of = 14
-    CRYSOL = 15
-    FoXS = 16
-    Pepsi = 17
-    WAXSiS = 18
+    Explicit_VORONOI = 3
+    Explicit_VORONOI_f = 4
+    Explicit_MF = 5
+    Explicit_MF_f = 6
+    Explicit_VDW = 7
+    Explicit_VDW_f = 8
+    Explicit_TRAUBE = 9
+    Explicit_TRAUBE_f = 10
+    Grid = 11
+    Grid_SURFACE = 12
+    Grid_f_215 = 13
+    Grid_f_300 = 14
+    FoXS_o = 15
+    FoXS_of = 16
+    CRYSOL_o = 17
+    CRYSOL_of = 18
+    Pepsi_o = 19
+    Pepsi_of = 20
+    CRYSOL = 21
+    FoXS = 22
+    Pepsi = 23
+    WAXSiS = 24
 
 def waxsis_fit(folder):
     def chi2(ymodel):
@@ -126,25 +144,33 @@ def waxsis_fit(folder):
     fitdata = np.vstack((data[:, 0], y)).T
     return perform_fit(fitdata)
 
-data = {"TRAUBE": [], "PONTIUS": []}       # indexing: [file_name, method]
 size = []
 foxs = []
 pepsi = []
 crysol = []
 waxsis = []
 y_labels = []   # file_name
+data = []
+ausaxs_length = 0
+for i in range(len(options)):
+    data.append([])
 for file in os.listdir(folder):
     # open nested folders
     if os.path.isdir(os.path.join(folder, file)):
-        found_traube = False
-        found_pontius = False
         found_waxsis = False
+        found_ausaxs = False
+        found_crysol = False
+        found_pepsi = False
+        found_foxs = False
         for nested_file in os.listdir(os.path.join(folder, file)):
             obj = os.path.join(folder, file, nested_file)
             if os.path.isdir(obj):
                 if "waxsresults" in nested_file:
                     chi2r = waxsis_fit(os.path.join(folder, file, nested_file))
-                    waxsis.append(chi2r)
+                    if chi2r is not None:
+                        waxsis.append(chi2r)
+                    else:
+                        waxsis.append(0)
                     found_waxsis = True
                 continue
 
@@ -162,78 +188,92 @@ for file in os.listdir(folder):
                                     print(f"Error in {file}: {token.split(':')[1]}")
                                 crysol.append(float(token.split(":")[1]))
                             break
+                found_crysol = True
 
             elif nested_file == "pepsi.fit":
                 with open(obj, "r") as f:
                     tokens = f.readlines()[4].strip().split()
                     for i, token in enumerate(tokens):
                         if token.startswith("Chi"):
-                            pepsi.append(float(tokens[i+1]))
+                            val = float(tokens[i+1])
+                            if np.isnan(val) or val == None:
+                                print(f"NaN in {file}")
+                                exit(0)
+                            pepsi.append(val)
                             break
+                found_pepsi = True
 
             elif nested_file == "foxs.fit":
                 with open(obj, "r") as f:
                     tokens = f.readlines()[1].strip().split()
                     for i, token in enumerate(tokens):
                         if token.startswith("Chi"):
-                            foxs.append(float(tokens[i+2]))
+                            val = float(tokens[i+2])
+                            if np.isnan(val) or val == None:
+                                print(f"NaN in {file}")
+                                exit(0)
+                            foxs.append(val)
                             break
-        
-            if not (nested_file.startswith("TRAUBE") or nested_file.startswith("PONTIUS")):
-                continue
+                found_foxs = True
 
-            # filenames are TRAUBE_name.txt or PONTIUS_name.txt; we want to keep only the name
-            tokens = nested_file.split("_")
-            name = tokens[1].split(".")[0]
-            if (name not in y_labels):
-                y_labels.append(name)
-            chi2s = np.array([0.0]*len(x_label_map))
-            with open(obj, "r") as f:
-                for line in f:
-                    line = line.strip().split()
-                    if (line[0].startswith("size")):
-                        if (int(line[1]) not in size):
-                            size.append(int(line[1]))
-                    else:
-                        if (line[0] in x_label_map and x_label_map[line[0]] is not None):
-                            chi2s[x_label_map[line[0]]] = float(line[1])
+            elif nested_file == "ausaxs_chi2.txt":
+                with open(obj, "r") as f:
+                    tokens = f.readlines()
+                    if ausaxs_length == 0:
+                        ausaxs_length = len(tokens)
+                    elif ausaxs_length != len(tokens):
+                        print(f"Length mismatch in {file}")
+                        exit(0)
+                    for i, token in enumerate(tokens):
+                        token = token.strip().split()
+                        if token[0].startswith("size"):
+                            size.append(int(token[1]))
+                            continue
+
+                        if token[0] in x_label_map:
+                            val = float(token[1])
+                            if np.isnan(val) or val == None:
+                                print(f"NaN in {file}")
+                                exit(0)
+                            data[x_label_map[token[0]]].append(val)
                         else:
-                            print(f"Unknown method: {line[0]}")
-                data[tokens[0]].append(chi2s)
-                if tokens[0] == "TRAUBE":
-                    found_traube = True
-                if tokens[0] == "PONTIUS":
-                    found_pontius = True
+                            print(f"Unknown label {token[0]} in {file}")
+                            exit(0)
+                found_ausaxs = True
 
-        if not found_traube:
-            print(f"TRAUBE not found in {file}")
-            exit(1)
-        if not found_pontius and data["PONTIUS"] is not None:
-            print(f"PONTIUS not found in {file}")
-            exit(1)
+        name = file.split("_")[0]
+        if name not in y_labels:
+            y_labels.append(name)
+
         if not found_waxsis:
             waxsis.append(0)
+        if not found_ausaxs:
+            print(f"Missing AUSAXS data in {file}")
+            exit(0)
+        if not found_crysol:
+            print(f"Missing CRYSOL data in {file}")
+            exit(0)
+        if not found_pepsi:
+            print(f"Missing Pepsi data in {file}")
+            exit(0)
+        if not found_foxs:
+            print(f"Missing Foxs data in {file}")
+            exit(0)
         continue
 
-def choose_data(method: str, choices: list[options]):
-    if method != "TRAUBE" and method != "PONTIUS":
-        print(f"Unknown method: {method}")
-        exit(1)
-
+def choose_data(choices: list[options]):
     data_out = []
     labels_out = []
-    method_data = np.array(data[method])
-    if len(method_data) == 0: return np.array(data_out), labels_out
     for choice in choices:
         if choice.value < options.CRYSOL.value:
-            data_out.append(method_data[:, choice.value])
+            data_out.append(data[choice.value])
             labels_out.append(x_labels[choice.value])
         else:
             match choice:
                 case options.CRYSOL:
                     data_out.append(crysol)
                     labels_out.append(x_labels[choice.value])
-                case options.FoXS:
+                case options.FoXS:                    
                     data_out.append(foxs)
                     labels_out.append(x_labels[choice.value])
                 case options.Pepsi:
@@ -248,14 +288,10 @@ def choose_data(method: str, choices: list[options]):
 ###                    SETUP                   ####
 ###################################################
 size = np.array(size)
-data_pontius = np.array(data["PONTIUS"])
-data_traube = np.array(data["TRAUBE"])
-data_diff = None
-
-data_traube, x_labels_traube = choose_data("TRAUBE", [
+data_plot, x_labels_plot = choose_data([
     options.Simple, 
     # options.Average_f, 
-    options.Explicit_f, 
+    options.Explicit_MF_f,
     # options.Grid, 
     options.Grid_f_215, 
     # options.Grid_f_300, 
@@ -265,16 +301,18 @@ data_traube, x_labels_traube = choose_data("TRAUBE", [
     options.WAXSiS
 ])
 
-data_pontius, x_labels_pontius = choose_data("PONTIUS", [
-    # options.Average_f, 
-    options.Explicit_f
+data_volumes, x_labels_volumes = choose_data([
+    options.Explicit_VORONOI_f,
+    options.Explicit_VDW_f,
+    options.Explicit_TRAUBE_f
 ])
-
+data_diff = data_volumes.copy()
+x_labels_diff = x_labels_volumes
 # sort by size
 # indices = np.argsort(size)
 # size = size[indices]
 # data_pontius = data_pontius[indices]
-# data_traube = data_traube[indices]
+# data_plot = data_plot[indices]
 # y_labels = [y_labels[i] for i in indices]
 
 # remove similar results
@@ -282,18 +320,18 @@ if skip_similar_results:
     indices = []
     reason_less_than_two = 0
     reason_similar = 0
-    for i in range(len(data_traube)):
-        chi2 = data_traube[i][0]
+    for i in range(len(data_plot)):
+        chi2 = data_plot[i][0]
         add = False
-        for j in range(1, len(data_traube[i])):
-            if (0.2 < abs(chi2 - data_traube[i][j])/chi2):
+        for j in range(1, len(data_plot[i])):
+            if (0.2 < abs(chi2 - data_plot[i][j])/chi2):
                 add = True
                 break
-        for j in range(len(data_pontius[i])):
-            if (0.2 < abs(chi2 - data_pontius[i][j])/chi2):
+        for j in range(len(data_volumes[i])):
+            if (0.2 < abs(chi2 - data_plot[i][j])/chi2):
                 add = True
                 break
-        if (data_traube[i] < 2).all() and (data_pontius[i] < 2).all():
+        if (data_plot[i] < 2).all() and (data_volumes[i] < 2).all():
             reason_less_than_two += 1
             add = False
         elif not add:
@@ -302,18 +340,16 @@ if skip_similar_results:
         if add:
             indices.append(i)
 
-    print(f"Skipped {len(data_traube) - len(indices)} similar results")
+    print(f"Skipped {len(data_plot) - len(indices)} similar results")
     print(f"\t{reason_less_than_two} less than 2, {reason_similar} too similar")
-    data_traube = data_traube[indices]
-    data_pontius = data_pontius[indices]
+    data_plot = data_plot[indices]
+    data_volumes = data_volumes[indices]
     y_labels = [y_labels[i] for i in indices]
 
-data_diff, x_labels_diff = choose_data("TRAUBE", [
-    # options.Average_f, 
-    options.Explicit_f
-])
+tmp, _ = choose_data([options.Explicit_MF_f])
+for i in range(len(data_diff)):
+    data_diff[i] = tmp[i] - data_diff[i]
 if skip_similar_results: data_diff = data_diff[indices]
-data_diff -= data_pontius
 
 bounds = [1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 25, 100]
 cmap = plt.get_cmap('RdYlGn_r')
@@ -321,9 +357,9 @@ cmap.set_bad(color='white')
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 
 def round(x):
-    if x < 5:
+    if abs(x) < 5:
         return np.round(x, 2)
-    if x < 10:
+    if abs(x) < 10:
         return np.round(x, 1)
     return int(np.round(x))
 
@@ -366,11 +402,11 @@ def plot_one(data, x_labels, method):
     plt.tight_layout()
     plt.savefig(f"output/fit_all_exv/{method}_comparison_flipped.png", dpi=300)
 
-if data_traube.shape[0] > 0:
-    plot_one(data_traube, x_labels_traube, "Traube")
+if data_plot.shape[0] > 0:
+    plot_one(data_plot, x_labels_plot, "Main")
 
-if data_pontius.shape[0] > 0:
-    plot_one(data_pontius, x_labels_pontius, "Pontius")
+if data_volumes.shape[0] > 0:
+    plot_one(data_volumes, x_labels_volumes, "Other volumes")
 
 
 ###################################################
@@ -395,7 +431,7 @@ for i in range(len(y_labels)):
 for i in range(len(x_labels_diff)):
     plt.axvline(i+0.5, color="black", linewidth=1)
 
-plt.title("Difference between Traube and Pontius")
+plt.title("Volume differences")
 plt.xticks(np.arange(len(x_labels_diff)), x_labels_diff, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(y_labels)), y_labels)
 plt.tight_layout()
@@ -411,7 +447,7 @@ for i in range(len(x_labels_diff)):
 for i in range(len(y_labels)):
     plt.axvline(i+0.5, color="black", linewidth=1)
 
-plt.title("Difference between Traube and Pontius")
+plt.title("Volume differences")
 plt.xticks(np.arange(len(y_labels)), y_labels, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(x_labels_diff)), x_labels_diff)
 plt.tight_layout()
