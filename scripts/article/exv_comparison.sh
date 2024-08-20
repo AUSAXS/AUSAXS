@@ -1,8 +1,6 @@
 #!/bin/bash
 
 files=(
-	data/1ubq
-	data/6lyz
 	data/SASDA45
 	data/SASDA92
 	data/SASDAW3
@@ -43,18 +41,13 @@ files=(
 	data/SASDT85
 	data/SASDT95
 	data/SASDTT4
-	data/consensus/SASDPP4
-	data/consensus/SASDPQ4
-	data/consensus/SASDPR4
-	data/consensus/SASDPS4
-	data/consensus/SASDPT4
-	data/rigidbody/SASDLQ6
-	data/rigidbody/SASDMB5
-	data/rigidbody/SASDMZ9
-	data/rigidbody/SASDP39
-	data/rigidbody/SASDPB9
-	data/rigidbody/SASDQ59
-	data/rigidbody/SASDQN4
+	data/SASDLQ6
+	data/SASDMB5
+	data/SASDMZ9
+	data/SASDP39
+	data/SASDPB9
+	data/SASDQ59
+	data/SASDQN4
 )
 
 size=${#files[@]}
