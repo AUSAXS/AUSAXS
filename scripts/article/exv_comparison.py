@@ -7,7 +7,7 @@ import os
 from enum import Enum
 from scipy.optimize import curve_fit
 
-skip_similar_results = False
+skip_similar_results = True
 
 params = {
     'legend.fontsize': 14,
@@ -47,7 +47,7 @@ x_label_map = {
     "HistogramManagerMTFFExplicit_fitted_traube:":  10,
     "HistogramManagerMTFFGrid:":                    11,
     "HistogramManagerMTFFGridSurface:":             12,
-    "HistogramManagerMTFFGridSurface_fitted_215:":  13,
+    "HistogramManagerMTFFGridSurface_fitted:":      13,
     "HistogramManagerMTFFGridSurface_fitted_300:":  14,
     "FoXS:":                                        15,
     "FoXS_fitted:":                                 16,
@@ -64,14 +64,14 @@ x_labels = [
     "Explicit Voronoi", 
     "Voronoi", # Explicit Voronoi fitted
     "Explicit MF",
-    "Minimum Fluctuation", # Explicit MF fitted
+    "Gaussian spheres", # Explicit MF fitted
     "Explicit VDW",
     "van der Waals", # Explicit VDW fitted
     "Explicit Traube",
     "Traube", # Explicit Traube fitted
     "Grid", 
     "Grid surface",
-    "Grid fitted 2.15", 
+    "Grid-based", 
     "Grid fitted 3.00", 
     "FoXS (ours)",
     "FoXS fitted (ours)",
@@ -396,18 +396,57 @@ def plot_one(data, x_labels, method):
     for i in range(len(y_labels)):
         plt.axvline(i+0.5, color="black", linewidth=1)
 
-    plt.title(f"Comparison with {method} volume")
     plt.xticks(np.arange(len(y_labels)), y_labels, rotation=60, ha="right", rotation_mode="anchor")
     plt.yticks(np.arange(len(x_labels)), x_labels)
     plt.tight_layout()
     plt.savefig(f"output/fit_all_exv/{method}_comparison_flipped.png", dpi=300)
 
+def plot_both():
+    figsize_x = max(len(x_labels_plot)+len(x_labels_volumes)+2, 8)
+    figsize_y = max(len(data_plot), 6)
+    fig, ax = plt.subplots(1, 2, figsize=(figsize_x, figsize_y), sharey=True, gridspec_kw={'width_ratios': [len(x_labels_plot), len(x_labels_volumes) + 1]})
+
+    plt.sca(ax[0])
+    data_plot[data_plot[:, :] == 0] = np.NaN
+    plt.imshow(data_plot, interpolation='nearest', cmap=cmap, norm=norm)
+    for i in range(len(y_labels)):
+        for j in range(len(x_labels_plot)):
+            if np.isnan(data_plot[i, j]):
+                continue
+            ax[0].text(j, i, round(data_plot[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+        plt.axhline(i+0.5, color="black", linewidth=1)
+    for i in range(len(x_labels_plot)):
+        plt.axvline(i+0.5, color="black", linewidth=1)
+    plt.xticks(np.arange(len(x_labels_plot)), x_labels_plot, rotation=60, ha="right", rotation_mode="anchor")
+    ax[0].xaxis.set_ticks_position('none')
+    ax[0].yaxis.set_ticks_position('none')
+
+    plt.sca(ax[1])
+    data_volumes[data_volumes[:, :] == 0] = np.NaN
+    plt.imshow(data_volumes, interpolation='nearest', cmap=cmap, norm=norm)
+    for i in range(len(y_labels)):
+        for j in range(len(x_labels_volumes)):
+            if np.isnan(data_volumes[i, j]):
+                continue
+            ax[1].text(j, i, round(data_volumes[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+        plt.axhline(i+0.5, color="black", linewidth=1)
+    for i in range(len(x_labels_volumes)):
+        plt.axvline(i+0.5, color="black", linewidth=1)
+    plt.xticks(np.arange(len(x_labels_volumes)), x_labels_volumes, rotation=60, ha="right", rotation_mode="anchor")
+    ax[1].xaxis.set_ticks_position('none')
+    ax[1].yaxis.set_ticks_position('none')
+
+    plt.sca(ax[0])
+    plt.yticks(np.arange(len(y_labels)), y_labels)
+    plt.tight_layout()
+    plt.savefig(f"output/fit_all_exv/both.png", dpi=300)
+
+plot_both()
 if data_plot.shape[0] > 0:
     plot_one(data_plot, x_labels_plot, "Main")
 
 if data_volumes.shape[0] > 0:
     plot_one(data_volumes, x_labels_volumes, "Other volumes")
-
 
 ###################################################
 ###                 DIFFERENCE                 ####
