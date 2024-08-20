@@ -2,6 +2,7 @@
 /winbuild
 /output
 /data
+/data_old
 temp
 tests/benchmarks
 
