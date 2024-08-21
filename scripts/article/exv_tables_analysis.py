@@ -87,8 +87,14 @@ if (True):
     plt.subplots_adjust(hspace=0.35, wspace=0)
     plt.subplot(2, 1, 1)
     bins = np.linspace(0, 200, 200)
-    plt.hist(data_voronoi[:, Data.chi2.value], bins=bins, color='tab:blue', label='Voronoi')
-    plt.hist(data_mf[:, Data.chi2.value], bins=bins, color='tab:orange', label='Minimum Fluctuation')
+    plt.hist(data_voronoi[:, Data.chi2.value], bins=bins, color='tab:blue', alpha=0.5)
+    plt.hist(data_mf[:, Data.chi2.value], bins=bins, color='tab:orange', alpha=0.5)
+
+    plt.axvline(55.86, color='tab:blue', linestyle='--', label="Voronoi")
+    plt.axvline(5.75, color='tab:orange', linestyle='--', label="Minimum Fluctuation")
+    plt.axvline(10.18, color='tab:red', linestyle='--', label="Traube")
+
+    plt.yscale('log')
     plt.xlabel('$\chi^2_r$')
     plt.ylabel('Density')
     plt.legend()
@@ -96,19 +102,29 @@ if (True):
     corr = get_correlation_matrix(data_voronoi)
     labels = corr.columns.tolist()
     labels[-1] = '$\chi^2_r$'
-    plt.subplot(2, 2, 3)
-    plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
+    ax1 = plt.subplot(2, 2, 3)
+    im1 = plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
     plt.xticks(ticks=np.arange(len(labels)), labels=labels, rotation=90)
     plt.yticks(ticks=np.arange(len(labels)), labels=labels)
     plt.title('Voronoi')
+    ax1.xaxis.set_ticks_position('none')
+    ax1.yaxis.set_ticks_position('none')
 
     corr = get_correlation_matrix(data_mf)
-    plt.subplot(2, 2, 4)
-    plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
+    ax2 = plt.subplot(2, 2, 4, sharey=ax1)
+    im2 = plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
     plt.xticks(ticks=np.arange(len(labels)), labels=labels, rotation=90)
     plt.yticks(ticks=np.arange(len(labels)), labels=labels)
-    plt.colorbar(label='Correlation coefficient')
     plt.title('Minimum Fluctuation')
+    ax2.xaxis.set_ticks_position('none')
+    ax2.yaxis.set_visible(False)
+#    plt.colorbar(label='Correlation coefficient')
+
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    divider = make_axes_locatable(ax2)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    plt.colorbar(im2, cax=cax, label='Correlation coefficient')
+
     plt.savefig("exv_table_analysis.png", dpi=600)
 
     print(
