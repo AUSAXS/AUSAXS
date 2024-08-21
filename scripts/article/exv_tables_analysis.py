@@ -83,8 +83,8 @@ if (True):
     # plt.title('Correlation Matrix')
     # plt.show()
 
-    plt.figure(figsize=(12, 12))
-    plt.subplots_adjust(hspace=0.35, wspace=0)
+    plt.figure(figsize=(12, 8))
+    plt.subplots_adjust(hspace=0, wspace=0.05)
     plt.subplot(2, 1, 1)
     bins = np.linspace(0, 200, 200)
     plt.hist(data_voronoi[:, Data.chi2.value], bins=bins, color='tab:blue', alpha=0.5)
@@ -99,31 +99,58 @@ if (True):
     plt.ylabel('Density')
     plt.legend()
 
+    # Second subplot (Voronoi correlation matrix)
     corr = get_correlation_matrix(data_voronoi)
     labels = corr.columns.tolist()
+    corr = corr.to_numpy()
     labels[-1] = '$\chi^2_r$'
     ax1 = plt.subplot(2, 2, 3)
-    im1 = plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
-    plt.xticks(ticks=np.arange(len(labels)), labels=labels, rotation=90)
-    plt.yticks(ticks=np.arange(len(labels)), labels=labels)
+    im1 = plt.imshow([corr[-1, :-1]], cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
+    plt.xticks(ticks=np.arange(len(labels)-1), labels=labels[:-1], rotation=90)
+    plt.yticks(ticks=[0], labels=["$\chi^2_r$"])
     plt.title('Voronoi')
     ax1.xaxis.set_ticks_position('none')
     ax1.yaxis.set_ticks_position('none')
 
+    # Third subplot (Minimum Fluctuation correlation matrix)
     corr = get_correlation_matrix(data_mf)
     ax2 = plt.subplot(2, 2, 4, sharey=ax1)
-    im2 = plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
-    plt.xticks(ticks=np.arange(len(labels)), labels=labels, rotation=90)
-    plt.yticks(ticks=np.arange(len(labels)), labels=labels)
+    corr = corr.to_numpy()
+    im2 = plt.imshow([corr[-1, :-1]], cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
+    plt.xticks(ticks=np.arange(len(labels)-1), labels=labels[:-1], rotation=90)
+    plt.yticks(ticks=[0], labels=["$\chi^2_r$"])
     plt.title('Minimum Fluctuation')
     ax2.xaxis.set_ticks_position('none')
     ax2.yaxis.set_visible(False)
-#    plt.colorbar(label='Correlation coefficient')
 
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-    divider = make_axes_locatable(ax2)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    plt.colorbar(im2, cax=cax, label='Correlation coefficient')
+    cbar_ax = plt.gcf().add_axes([0.15, 0.15, 0.7, 0.02])  # Position: [left, bottom, width, height]
+    plt.colorbar(im2, cax=cbar_ax, label='Correlation coefficient', orientation='horizontal')
+    plt.tight_layout()
+
+    # corr = get_correlation_matrix(data_voronoi)
+    # labels = corr.columns.tolist()
+    # labels[-1] = '$\chi^2_r$'
+    # ax1 = plt.subplot(2, 2, 3)
+    # im1 = plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
+    # plt.xticks(ticks=np.arange(len(labels)), labels=labels, rotation=90)
+    # plt.yticks(ticks=np.arange(len(labels)), labels=labels)
+    # plt.title('Voronoi')
+    # ax1.xaxis.set_ticks_position('none')
+    # ax1.yaxis.set_ticks_position('none')
+
+    # corr = get_correlation_matrix(data_mf)
+    # ax2 = plt.subplot(2, 2, 4, sharey=ax1)
+    # im2 = plt.imshow(corr, cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
+    # plt.xticks(ticks=np.arange(len(labels)), labels=labels, rotation=90)
+    # plt.yticks(ticks=np.arange(len(labels)), labels=labels)
+    # plt.title('Minimum Fluctuation')
+    # ax2.xaxis.set_ticks_position('none')
+    # ax2.yaxis.set_visible(False)
+
+    # from mpl_toolkits.axes_grid1 import make_axes_locatable
+    # divider = make_axes_locatable(ax2)
+    # cax = divider.append_axes("right", size="5%", pad=0.05)
+    # plt.colorbar(im2, cax=cax, label='Correlation coefficient')
 
     plt.savefig("exv_table_analysis.png", dpi=600)
 
