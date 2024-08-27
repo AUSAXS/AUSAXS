@@ -320,19 +320,28 @@ if skip_similar_results:
     indices = []
     reason_less_than_two = 0
     reason_similar = 0
+    reason_too_large = 0
+    max_chi2 = 20
     for i in range(len(data_plot)):
         chi2 = data_plot[i][0]
         add = False
         for j in range(1, len(data_plot[i])):
+            if (max_chi2 < data_plot[i][j]) or data_plot[i][j] == 0:
+                continue
             if (0.2 < abs(chi2 - data_plot[i][j])/chi2):
                 add = True
                 break
         for j in range(len(data_volumes[i])):
+            if (max_chi2 < data_plot[i][j]) or data_plot[i][j] == 0:
+                continue
             if (0.2 < abs(chi2 - data_plot[i][j])/chi2):
                 add = True
                 break
         if (data_plot[i] < 2).all() and (data_volumes[i] < 2).all():
             reason_less_than_two += 1
+            add = False
+        elif (max_chi2 < data_plot[i]).all() and (max_chi2 < data_volumes[i]).all():
+            reason_too_large += 1
             add = False
         elif not add:
             reason_similar += 1
@@ -340,8 +349,10 @@ if skip_similar_results:
         if add:
             indices.append(i)
 
-    print(f"Skipped {len(data_plot) - len(indices)} similar results")
-    print(f"\t{reason_less_than_two} less than 2, {reason_similar} too similar")
+    print(f"Skipped {len(data_plot) - len(indices)} results")
+    print(f"\t{reason_too_large} too large")
+    print(f"\t{reason_less_than_two} less than 2")
+    print(f"\t{reason_similar} too similar")
     data_plot = data_plot[indices]
     data_volumes = data_volumes[indices]
     y_labels = [y_labels[i] for i in indices]
