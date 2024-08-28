@@ -340,6 +340,11 @@ saxs_fit/%: build/bin/saxs_fitter
 	done
 #		make plot_fits/$*;\
 
+data/%_stripped.pdb:
+	structure=$$(find data/ -name "$*.pdb");\
+	folder=$$(dirname $${structure});\
+	grep '^ATOM' "$$structure" | grep -v '  H' > "$${folder}/$*_stripped.pdb"
+
 fit_all_ausaxs/%: build/bin/fit_all_exv
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg");\
 	folder=$$(dirname $${measurement});\
