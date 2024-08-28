@@ -20,11 +20,21 @@ params = {
 }
 
 folder = "output/fit_all_exv/"
+waxsis_folder = "output/waxsis/fitted"
 match len(sys.argv):
     case 1: pass
     case 2:
         folder = sys.argv[1]
         if not os.path.exists(folder):
+            print(f"Folder {sys.argv[2]} does not exist.")
+            exit(1)
+    case 3: 
+        folder = sys.argv[1]
+        waxsis_folder = "output/waxsis/"+sys.argv[2]
+        if not os.path.exists(folder):
+            print(f"Folder {sys.argv[1]} does not exist.")
+            exit(1)
+        if not os.path.exists(waxsis_folder):
             print(f"Folder {sys.argv[2]} does not exist.")
             exit(1)
 
@@ -124,14 +134,12 @@ def waxsis_fit(folder):
 
     data_file = None
     fit_file = None
-    for nested_file in os.listdir(folder):
-        if nested_file == "intensity.dat":
-            fit_file = os.path.join(folder, nested_file)
-            continue
-
-        elif nested_file[-4:] == ".dat":
-            data_file = os.path.join(folder, nested_file)
-            continue
+    for nested_folder in os.listdir(folder):
+        fit_file = os.path.join(folder, nested_folder, "intensity.dat")
+        for nested_file in os.listdir(os.path.join(folder, nested_folder, "envelope")):
+            if nested_file[-4:] == ".dat":
+                data_file = os.path.join(folder, nested_folder, "envelope", nested_file)
+                continue
 
     if data_file is None or fit_file is None:
         print(f"waxsis_fit: Missing files in {folder}")
@@ -152,6 +160,7 @@ waxsis = []
 y_labels = []   # file_name
 data = []
 ausaxs_length = 0
+waxsis_folders = [os.path.join(waxsis_folder, folder) for folder in os.listdir(waxsis_folder) if os.path.isdir(os.path.join(waxsis_folder, folder))]
 for i in range(len(options)):
     data.append([])
 for file in os.listdir(folder):
@@ -162,18 +171,20 @@ for file in os.listdir(folder):
         found_crysol = False
         found_pepsi = False
         found_foxs = False
+
+        # search for matching waxsis data
+        for waxsis_folder in waxsis_folders:
+            if file in waxsis_folder:
+                chi2r = waxsis_fit(waxsis_folder)
+                if chi2r is not None:
+                    waxsis.append(chi2r)
+                else:
+                    waxsis.append(0)
+                found_waxsis = True
+                break
+
         for nested_file in os.listdir(os.path.join(folder, file)):
             obj = os.path.join(folder, file, nested_file)
-            if os.path.isdir(obj):
-                if "waxsresults" in nested_file:
-                    chi2r = waxsis_fit(os.path.join(folder, file, nested_file))
-                    if chi2r is not None:
-                        waxsis.append(chi2r)
-                    else:
-                        waxsis.append(0)
-                    found_waxsis = True
-                continue
-
             if nested_file == "crysol.fit":
                 with open(obj, "r") as f:
                     tokens = f.readline().strip().split()
