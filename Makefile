@@ -254,7 +254,7 @@ crysol/%:
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "$*.pdb"); \
-	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant ${options}
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" ${options}
 	@ mv temp/crysol/out.fit output/saxs_fitter/$*/crysol.fit
 
 pepsi/%:
