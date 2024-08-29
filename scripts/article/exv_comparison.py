@@ -8,6 +8,8 @@ from enum import Enum
 from scipy.optimize import curve_fit
 
 skip_similar_results = True
+sort_results = True
+sort_type = "name" # "name" or "size"
 
 params = {
     'legend.fontsize': 14,
@@ -319,20 +321,31 @@ data_volumes, x_labels_volumes = choose_data([
 ])
 data_diff = data_volumes.copy()
 x_labels_diff = x_labels_volumes
+
 # sort by size
-# indices = np.argsort(size)
-# size = size[indices]
-# data_pontius = data_pontius[indices]
-# data_plot = data_plot[indices]
-# y_labels = [y_labels[i] for i in indices]
+if sort_results:
+    if sort_type == "name":
+        indices = np.argsort(y_labels)
+    elif sort_type == "size":
+        indices = np.argsort(size)
+    else:
+        print("Unknown sort type")
+        exit(1)
+
+    size = size[indices]
+    data_plot = data_plot[indices]
+    data_volumes = data_volumes[indices]
+    data_diff = data_diff[indices]
+    y_labels = [y_labels[i] for i in indices]
 
 # remove similar results
 if skip_similar_results:
     indices = []
-    reason_less_than_two = 0
-    reason_similar = 0
+    reason_too_small = 0
+    reason_too_similar = 0
     reason_too_large = 0
     max_chi2 = 20
+    min_chi2 = 3
     for i in range(len(data_plot)):
         chi2 = data_plot[i][0]
         add = False
@@ -348,22 +361,22 @@ if skip_similar_results:
             if (0.2 < abs(chi2 - data_plot[i][j])/chi2):
                 add = True
                 break
-        if (data_plot[i] < 2).all() and (data_volumes[i] < 2).all():
-            reason_less_than_two += 1
+        if (data_plot[i] < min_chi2).all():
+            reason_too_small += 1
             add = False
         elif (max_chi2 < data_plot[i]).all() and (max_chi2 < data_volumes[i]).all():
             reason_too_large += 1
             add = False
         elif not add:
-            reason_similar += 1
+            reason_too_similar += 1
 
         if add:
             indices.append(i)
 
     print(f"Skipped {len(data_plot) - len(indices)} results")
-    print(f"\t{reason_too_large} too large")
-    print(f"\t{reason_less_than_two} less than 2")
-    print(f"\t{reason_similar} too similar")
+    print(f"\t{reason_too_large} larger than {max_chi2}")
+    print(f"\t{reason_too_small} less than {min_chi2}")
+    print(f"\t{reason_too_similar} too similar")
     data_plot = data_plot[indices]
     data_volumes = data_volumes[indices]
     y_labels = [y_labels[i] for i in indices]

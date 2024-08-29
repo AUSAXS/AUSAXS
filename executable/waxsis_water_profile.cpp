@@ -21,13 +21,34 @@ int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
 
     io::Folder input;
+    io::File file_unordered, file_ordered;
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.add_option("folder", input, "Path to the MD SAXS folder.")->required()->check(CLI::ExistingDirectory);
+    app.add_option("--u", file_unordered, "Path to the unordered envelope file.")->default_val("excludedvolume_0.pdb");
+    app.add_option("--o", file_ordered, "Path to the ordered envelope file.")->default_val("prot+solvlayer_0.pdb");
     CLI11_PARSE(app, argc, argv);
 
     std::string name = input.path();
-    name = name.substr(name.find_last_of("/\\") + 1);
-    input = input + "/envelope";
+    name = name.substr(name.find_last_of("_")+1);
+    {
+        auto nested = input.directories();
+        if (nested.size() != 1) {
+            std::cerr << "Error: The input folder must contain exactly one subfolder." << std::endl;
+            return 1;
+        }
+        input = nested[0];
+        nested = input.directories();
+        if (nested.size() != 1) {
+            std::cerr << "Error: The nested input folder must contain exactly one subfolder." << std::endl;
+            return 1;
+        }
+        if (!nested.front().path().ends_with("envelope")) {
+            std::cout << nested.front().path() << std::endl;
+            std::cerr << "Error: The input folder must contain a subfolder called 'envelope'." << std::endl;
+            return 1;
+        }
+        input = nested.front();
+    }
 
     bool calc_scattering = false;
     bool calc_density = true;
@@ -40,10 +61,10 @@ int main(int argc, char const *argv[]) {
     settings::general::output = "output/waxsis_water/";
     settings::general::keep_hydrogens = false;
 
-    io::ExistingFile env_unordered(input + "excludedvolume_0.pdb");
-    io::ExistingFile env_ordered(input + "prot+solvlayer_0.pdb");
+    // io::ExistingFile env_unordered(input + file_unordered.filename());
+    io::ExistingFile env_ordered(input + file_ordered.filename());
 
-    env_unordered = env_unordered.copy("temp/ausaxs");
+    // env_unordered = env_unordered.copy("temp/ausaxs");
     env_ordered = env_ordered.copy("temp/ausaxs");
 
     auto remove_cip = [] (std::string path) {
@@ -64,10 +85,10 @@ int main(int argc, char const *argv[]) {
     remove_cip(env_ordered);
 
     data::Molecule ordered(env_ordered);
-    data::Molecule disordered(env_unordered);
-    disordered.get_body(0).get_atoms() = ordered.get_body(0).get_atoms();
+    // data::Molecule disordered(env_unordered);
+    // disordered.get_body(0).get_atoms() = ordered.get_body(0).get_atoms();
     ordered.save(settings::general::output + "ordered.pdb");
-    disordered.save(settings::general::output + "disordered.pdb");
+    // disordered.save(settings::general::output + "disordered.pdb");
 
     auto impose_exv = [] (data::Molecule& protein) {
         auto old_waters = protein.get_waters();
@@ -86,7 +107,7 @@ int main(int argc, char const *argv[]) {
     };
 
     // ordered = impose_exv(ordered);
-    disordered = impose_exv(disordered);
+    // disordered = impose_exv(disordered);
 
     //#######################//
     //### CALC SCATTERING ###//
@@ -94,10 +115,10 @@ int main(int argc, char const *argv[]) {
     if (calc_scattering) {
         auto sinqd_table = table::ArrayDebyeTable::get_default_table();
         std::vector<data::record::Water> waters = ordered.get_waters();
-        waters.insert(waters.end(), disordered.get_waters().begin(), disordered.get_waters().end());
-        for (unsigned int i = disordered.size_water(); i < waters.size(); ++i) {
-            waters[i].set_occupancy(-1);
-        }
+        // waters.insert(waters.end(), disordered.get_waters().begin(), disordered.get_waters().end());
+        // for (unsigned int i = disordered.size_water(); i < waters.size(); ++i) {
+        //     waters[i].set_occupancy(-1);
+        // }
 
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -176,7 +197,7 @@ int main(int argc, char const *argv[]) {
         // }
 
         auto hist_ordered = calc_density(ordered);
-        auto hist_disordered = calc_density(disordered);
+        // auto hist_disordered = calc_density(disordered);
 
         plots::PlotDataset()
             .plot(hist_ordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"xlabel", "q $[\\AA]$"}, {"ylabel", "Density [arb]"}, {"title", name}, {"legend", "WAXSiS"}, {"color", "k"}, {"lines", true}, {"lw", 0.5}}))
