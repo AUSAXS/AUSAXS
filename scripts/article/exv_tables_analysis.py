@@ -4,6 +4,18 @@ from enum import Enum
 import pandas as pd
 import sys
 
+params = {
+    'legend.fontsize': 18,
+    'figure.figsize': (10, 8),
+    'axes.labelsize': 20,
+    'axes.titlesize': 16,
+    'xtick.labelsize': 14,
+    'ytick.labelsize': 14,
+    'lines.markersize': 10,
+    'lines.linewidth': 3
+}
+plt.rcParams.update(params)
+
 class Data(Enum):
     chi2 = 0
     H = 1
@@ -86,17 +98,17 @@ if (True):
     plt.figure(figsize=(12, 8))
     plt.subplots_adjust(hspace=0, wspace=0.05)
     plt.subplot(2, 1, 1)
-    bins = np.linspace(0, 200, 200)
+    bins = np.linspace(5, 10, 50)
     plt.hist(data_voronoi[:, Data.chi2.value], bins=bins, color='tab:blue', alpha=0.5)
     plt.hist(data_mf[:, Data.chi2.value], bins=bins, color='tab:orange', alpha=0.5)
 
-    plt.axvline(55.86, color='tab:blue', linestyle='--', label="Voronoi")
-    plt.axvline(5.75, color='tab:orange', linestyle='--', label="Minimum Fluctuation")
-    plt.axvline(10.18, color='tab:red', linestyle='--', label="Traube")
+    plt.axvline(6.97, color='tab:blue', linestyle='--', label="Voronoi")
+    plt.axvline(6.78, color='tab:orange', linestyle='--', label="Minimum fluctuation")
+    plt.axvline(6.65, color='tab:red', linestyle='--', label="Traube")
 
     plt.yscale('log')
     plt.xlabel('$\chi^2_r$')
-    plt.ylabel('Density')
+    plt.ylabel('Count')
     plt.legend()
 
     # Second subplot (Voronoi correlation matrix)
@@ -119,12 +131,13 @@ if (True):
     im2 = plt.imshow([corr[-1, :-1]], cmap='coolwarm', vmin=-0.1, vmax=0.5, origin='upper')
     plt.xticks(ticks=np.arange(len(labels)-1), labels=labels[:-1], rotation=90)
     plt.yticks(ticks=[0], labels=["$\chi^2_r$"])
-    plt.title('Minimum Fluctuation')
+    plt.title('Minimum fluctuation')
     ax2.xaxis.set_ticks_position('none')
     ax2.yaxis.set_visible(False)
 
-    cbar_ax = plt.gcf().add_axes([0.15, 0.15, 0.7, 0.02])  # Position: [left, bottom, width, height]
-    plt.colorbar(im2, cax=cbar_ax, label='Correlation coefficient', orientation='horizontal')
+    cbar_ax = plt.gcf().add_axes([0.15, 0.10, 0.7, 0.02])  # Position: [left, bottom, width, height]
+    cb = plt.colorbar(im2, cax=cbar_ax, label='Correlation coefficient', orientation='horizontal')
+    cb.set_label('Correlation coefficient', fontsize=16)
     plt.tight_layout()
 
     # corr = get_correlation_matrix(data_voronoi)
