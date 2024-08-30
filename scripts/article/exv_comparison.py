@@ -8,16 +8,19 @@ from enum import Enum
 from scipy.optimize import curve_fit
 
 skip_similar_results = True
+skip_inverted = True # plot the removed results
 sort_results = True
 sort_type = "name" # "name" or "size"
 
+font_size_label = 20
+font_size_entry = 16
 params = {
     'legend.fontsize': 14,
     'figure.figsize': (10, 8),
-    'axes.labelsize': 14,
+    'axes.labelsize': 18,
     'axes.titlesize':14,
-    'xtick.labelsize':11,
-    'ytick.labelsize':11,
+    'xtick.labelsize':font_size_label,
+    'ytick.labelsize':font_size_label,
     'lines.markersize': 5
 }
 
@@ -346,25 +349,27 @@ if skip_similar_results:
     reason_too_large = 0
     max_chi2 = 20
     min_chi2 = 3
-    for i in range(len(data_plot)):
-        chi2 = data_plot[i][0]
+
+    data_tmp = data_plot[:, :-1]
+    for i in range(len(data_tmp)):
+        chi2 = data_tmp[i][0]
         add = False
-        for j in range(1, len(data_plot[i])):
-            if (max_chi2 < data_plot[i][j]) or data_plot[i][j] == 0:
+        for j in range(1, len(data_tmp[i])):
+            if (max_chi2 < data_tmp[i][j]) or data_tmp[i][j] == 0:
                 continue
-            if (0.2 < abs(chi2 - data_plot[i][j])/chi2):
+            if (0.2 < abs(chi2 - data_tmp[i][j])/chi2):
                 add = True
                 break
         for j in range(len(data_volumes[i])):
-            if (max_chi2 < data_plot[i][j]) or data_plot[i][j] == 0:
+            if (max_chi2 < data_tmp[i][j]) or data_tmp[i][j] == 0:
                 continue
-            if (0.2 < abs(chi2 - data_plot[i][j])/chi2):
+            if (0.2 < abs(chi2 - data_tmp[i][j])/chi2):
                 add = True
                 break
-        if (data_plot[i] < min_chi2).all():
+        if (data_tmp[i] < min_chi2).all():
             reason_too_small += 1
             add = False
-        elif (max_chi2 < data_plot[i]).all() and (max_chi2 < data_volumes[i]).all():
+        elif (max_chi2 < data_tmp[i]).all() and (max_chi2 < data_volumes[i]).all():
             reason_too_large += 1
             add = False
         elif not add:
@@ -373,7 +378,10 @@ if skip_similar_results:
         if add:
             indices.append(i)
 
-    print(f"Skipped {len(data_plot) - len(indices)} results")
+    if skip_inverted:
+        indices = np.setdiff1d(np.arange(len(y_labels)), indices)
+
+    print(f"Skipped {len(data_tmp) - len(indices)} results")
     print(f"\t{reason_too_large} larger than {max_chi2}")
     print(f"\t{reason_too_small} less than {min_chi2}")
     print(f"\t{reason_too_similar} too similar")
@@ -408,14 +416,14 @@ def plot_one(data, x_labels, method):
         for j in range(len(x_labels)):
             if np.isnan(data[i, j]):
                 continue
-            ax.text(j, i, round(data[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+            ax.text(j, i, round(data[i, j]), ha="center", va="center", color="w", fontsize=font_size_entry, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
         plt.axhline(i+0.5, color="black", linewidth=1)
     for i in range(len(x_labels)):
         plt.axvline(i+0.5, color="black", linewidth=1)
 
     plt.title(f"Comparison with {method} volume")
-    plt.xticks(np.arange(len(x_labels)), x_labels, rotation=60, ha="right", rotation_mode="anchor")
-    plt.yticks(np.arange(len(y_labels)), y_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels, rotation=45, fontsize=font_size_label, ha="right", rotation_mode="anchor")
+    plt.yticks(np.arange(len(y_labels)), y_labels, fontsize=font_size_label)
     plt.tight_layout()
     plt.savefig(f"output/fit_all_exv/{method}_comparison.png", dpi=300)
 
@@ -426,13 +434,13 @@ def plot_one(data, x_labels, method):
         for j in range(len(y_labels)):
             if np.isnan(data[j, i]):
                 continue
-            ax.text(j, i, round(data[j, i]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+            ax.text(j, i, round(data[j, i]), ha="center", va="center", color="w", fontsize=font_size_entry, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
         plt.axhline(i+0.5, color="black", linewidth=1)
     for i in range(len(y_labels)):
         plt.axvline(i+0.5, color="black", linewidth=1)
 
-    plt.xticks(np.arange(len(y_labels)), y_labels, rotation=60, ha="right", rotation_mode="anchor")
-    plt.yticks(np.arange(len(x_labels)), x_labels)
+    plt.xticks(np.arange(len(y_labels)), y_labels, rotation=45, fontsize=font_size_label, ha="right", rotation_mode="anchor")
+    plt.yticks(np.arange(len(x_labels)), x_labels, fontsize=font_size_label)
     plt.tight_layout()
     plt.savefig(f"output/fit_all_exv/{method}_comparison_flipped.png", dpi=300)
 
@@ -448,11 +456,11 @@ def plot_both():
         for j in range(len(x_labels_plot)):
             if np.isnan(data_plot[i, j]):
                 continue
-            ax[0].text(j, i, round(data_plot[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+            ax[0].text(j, i, round(data_plot[i, j]), ha="center", va="center", color="w", fontsize=font_size_entry, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
         plt.axhline(i+0.5, color="black", linewidth=1)
     for i in range(len(x_labels_plot)):
         plt.axvline(i+0.5, color="black", linewidth=1)
-    plt.xticks(np.arange(len(x_labels_plot)), x_labels_plot, rotation=60, ha="right", rotation_mode="anchor")
+    plt.xticks(np.arange(len(x_labels_plot)), x_labels_plot, rotation=45, fontsize=font_size_label, ha="right", rotation_mode="anchor")
     ax[0].xaxis.set_ticks_position('none')
     ax[0].yaxis.set_ticks_position('none')
 
@@ -463,16 +471,16 @@ def plot_both():
         for j in range(len(x_labels_volumes)):
             if np.isnan(data_volumes[i, j]):
                 continue
-            ax[1].text(j, i, round(data_volumes[i, j]), ha="center", va="center", color="w", fontsize=14, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
+            ax[1].text(j, i, round(data_volumes[i, j]), ha="center", va="center", color="w", fontsize=font_size_entry, path_effects=[pe.withStroke(linewidth=1, foreground="black")])
         plt.axhline(i+0.5, color="black", linewidth=1)
     for i in range(len(x_labels_volumes)):
         plt.axvline(i+0.5, color="black", linewidth=1)
-    plt.xticks(np.arange(len(x_labels_volumes)), x_labels_volumes, rotation=60, ha="right", rotation_mode="anchor")
+    plt.xticks(np.arange(len(x_labels_volumes)), x_labels_volumes, rotation=45, fontsize=font_size_label, ha="right", rotation_mode="anchor")
     ax[1].xaxis.set_ticks_position('none')
     ax[1].yaxis.set_ticks_position('none')
 
     plt.sca(ax[0])
-    plt.yticks(np.arange(len(y_labels)), y_labels)
+    plt.yticks(np.arange(len(y_labels)), y_labels, fontsize=font_size_label)
     plt.tight_layout()
     plt.savefig(f"output/fit_all_exv/both.png", dpi=300)
 
