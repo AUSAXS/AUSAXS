@@ -42,10 +42,11 @@ for d in data[:4]:
     if isinstance(d, Dataset):
         plot_dataset(d)
 
+plt.legend(["$d_{cell}$ = 1.0 Å", "$d_{cell}$ = 1.5 Å", "$d_{cell}$ = 2.0 Å", "$d_{cell}$ = 2.5 Å"])
 plt.axhline(1, color="black", linestyle="-")
 plt.xscale("linear")
 plt.yscale("log")
-plt.ylabel("Relative difference")
+plt.ylabel("Baseline ratio")
 plt.xlabel("$q\ [\AA^{-1}]$")
 plt.tight_layout()
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter('%.1f'))
