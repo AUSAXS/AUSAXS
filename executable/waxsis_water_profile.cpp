@@ -8,6 +8,7 @@
 #include <constants/Constants.h>
 #include <table/ArrayDebyeTable.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <dataset/SimpleDataset.h>
 #include <form_factor/FormFactor.h>
 #include <settings/All.h>
@@ -52,6 +53,9 @@ int main(int argc, char const *argv[]) {
 
     bool calc_scattering = false;
     bool calc_density = true;
+
+    // settings::hydrate::shell_correction = 0;
+    // hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0,0,0};});
 
     settings::grid::scaling = 1;
     settings::grid::cell_width = 0.5;
