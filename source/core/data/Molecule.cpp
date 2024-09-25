@@ -204,6 +204,71 @@ double Molecule::get_volume_grid() const {
     return grid->get_volume();
 }
 
+double Molecule::get_volume_vdw() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_volume_vdw();});
+}
+
+#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
+#include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
+#include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
+double Molecule::get_volume_exv(double d) const {
+    auto fraser_helper = [this] () {
+        double volume = 0;
+
+        // we extract the volumes from the form factors since they have a better interface than the raw volume sets
+        auto ff_table = form_factor::detail::ExvFormFactorSet(constants::displaced_volume::get_displaced_volume_set());
+        for (const auto& body : get_bodies()) {
+            volume += std::accumulate(body.get_atoms().begin(), body.get_atoms().end(), 0.0, [&ff_table] (double sum, const Atom& atom) {
+                return sum + ff_table.get_form_factor(form_factor::get_type(atom.get_element(), atom.get_atomic_group())).evaluate(0);
+            });
+        }
+        return volume /= constants::charge::density::water;
+    };
+
+    switch (settings::hist::histogram_manager) {
+        // simple volumes
+        case settings::hist::HistogramManagerChoice::HistogramManager:
+        case settings::hist::HistogramManagerChoice::HistogramManagerMT:
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
+        case settings::hist::HistogramManagerChoice::PartialHistogramManager:
+        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
+        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg:
+            return get_volume_grid();
+
+        // Fraser volumes
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
+        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit: {            
+            return fraser_helper()*CompositeDistanceHistogramFFExplicit::exv_factor(0, d);
+        }
+        case settings::hist::HistogramManagerChoice::CrysolManager: {
+            return fraser_helper()*CompositeDistanceHistogramCrysol::exv_factor(0, d);
+        }
+        case settings::hist::HistogramManagerChoice::PepsiManager: {
+            return fraser_helper()*CompositeDistanceHistogramPepsi::exv_factor(0, d);
+        }
+        case settings::hist::HistogramManagerChoice::FoXSManager: {
+            return fraser_helper()*CompositeDistanceHistogramFoXS::exv_factor(0, d);
+        }
+
+        // grid-based volumes
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
+        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid: {
+            // note: not equivalent to grid volume! 
+            // the grid can be finer than the resolution of the excluded volume, in which case every Nth bin is used
+            unsigned int exv_atoms = get_grid()->generate_excluded_volume(false).interior.size();
+            double single_vol = std::pow(settings::grid::cell_width, 3);
+            return exv_atoms*single_vol;
+        }
+
+        default:
+            throw std::runtime_error("Molecule::get_volume_exv: No histogram manager selected. The excluded volume cannot be calculated.");
+    }
+    return 0;
+}
+
 observer_ptr<grid::Grid> Molecule::create_grid() const {
     grid = std::make_unique<grid::Grid>(bodies); 
     return grid.get();

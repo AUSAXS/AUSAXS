@@ -47,10 +47,14 @@ void CompositeDistanceHistogramCrysol::initialize() {
     ffxx_table = form_factor::crysol::storage::exv::generate_table();
 }
 
-double CompositeDistanceHistogramCrysol::exv_factor(double q) const {
+double CompositeDistanceHistogramCrysol::exv_factor(double q, double cx) const {
     // G(q) factor from CRYSOL: https://doi.org/10.1107/S0021889895007047
     double c = constexpr_math::pow(average_displaced_V, 2./3)/(4*constants::pi);
-    return std::pow(free_params.cx, 3)*std::exp(-c*(std::pow(free_params.cx, 2) - 1)*q*q);
+    return std::pow(cx, 3)*std::exp(-c*(std::pow(cx, 2) - 1)*q*q);
+}
+
+double CompositeDistanceHistogramCrysol::exv_factor(double q) const {
+    return exv_factor(q, free_params.cx);
 }
 
 Limit CompositeDistanceHistogramCrysol::get_excluded_volume_scaling_factor_limits() const {

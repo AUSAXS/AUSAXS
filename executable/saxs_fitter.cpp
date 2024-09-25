@@ -24,7 +24,7 @@ using namespace ausaxs;
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
     io::ExistingFile pdb, mfile, settings;
-    std::string histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
     bool use_existing_hydration = false, save_settings = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
@@ -200,9 +200,16 @@ int main(int argc, char const *argv[]) {
             "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
         );
 
-        // calculate rhoM
+        // calculate extra stuff
+        console::print_info("\nExtra informaton");
+        console::indent();
         double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
-        std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
+        double d = settings::fit::fit_excluded_volume ? result->get_parameter("d") : 1;
+        console::print_text("Volume (vdW):  " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " Å^3");
+        console::print_text("Volume (grid): " + std::to_string((int) std::round(protein.get_volume_grid())) + " Å^3");
+        console::print_text("Volume (exv):  " + std::to_string((int) std::round(protein.get_volume_exv(d)))  + " Å^3");
+        console::print_text("RhoM:          " + std::to_string(rhoM) + " g/cm^3");
+        console::unindent();
 
         protein.save(settings::general::output + "model.pdb");
     } catch (const std::exception& e) {

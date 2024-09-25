@@ -66,6 +66,14 @@ namespace ausaxs::hist {
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
+            /**
+             * @brief Get the excluded volume scaling factor.
+             *
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             */
+            double exv_factor(double q, double cx) const;
+
             double average_displaced_V = 0;
 
         protected:

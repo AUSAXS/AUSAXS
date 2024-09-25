@@ -79,21 +79,13 @@ namespace ausaxs::data {
 			 * @return The center-mass (x, y, z) coordinates. 
 			 */
 			Vector3<double> get_cm() const;
-
+			
 			/**
-			 * @brief Calculate the volume of this body based on its constituent amino acids
+			 * @brief Calculate the van der Waals volume of this body.
+			 * 
+			 * @return The volume in Å^3.
 			 */
-			[[deprecated]] double get_volume_acids() const;
-
-			/**
-			 * @brief Calculate the volume of this body based on the number of C-alpha atoms
-			 */
-			[[deprecated]] double get_volume_calpha() const;
-
-			// /**
-			//  * @brief Generate a PDB file at @p path showing the filled grid volume.
-			//  */
-			// void generate_volume_file(std::string path);
+			[[nodiscard]] double get_volume_vdw() const;
 
 			/**
 			 * @brief Calculate the molar mass of this body in Daltons.

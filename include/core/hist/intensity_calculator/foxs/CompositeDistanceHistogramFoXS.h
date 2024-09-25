@@ -47,6 +47,14 @@ namespace ausaxs::hist {
                 return ff_xx_table;
             }
 
+            /**
+             * @brief Get the excluded volume scaling factor.
+             *
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             */
+            static double exv_factor(double q, double cx);
+
         protected:
             double exv_factor(double q) const override;
             form_factor::storage::atomic::table_t ff_aa_table = form_factor::foxs::storage::atomic::generate_table();

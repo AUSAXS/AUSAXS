@@ -13,10 +13,14 @@ Limit CompositeDistanceHistogramFoXS::get_excluded_volume_scaling_factor_limits(
     return {0.8, 1.2};
 }
 
-double CompositeDistanceHistogramFoXS::exv_factor(double q) const {
+double CompositeDistanceHistogramFoXS::exv_factor(double q, double cx) {
     constexpr double rm = 1.58;
     constexpr double c = rm*rm/(4*constants::pi);
-    return std::pow(free_params.cx, 3)*std::exp(-c*(std::pow(free_params.cx, 2) - 1)*q*q);
+    return std::pow(cx, 3)*std::exp(-c*(std::pow(cx, 2) - 1)*q*q);
+}
+
+double CompositeDistanceHistogramFoXS::exv_factor(double q) const {
+    return exv_factor(q, free_params.cx);
 }
 
 CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS(

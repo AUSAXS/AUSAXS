@@ -64,9 +64,14 @@ const AA CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>
 }
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
-double CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::exv_factor(double q) const {
+double CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::exv_factor(double q, double cx) {
     constexpr double rm2 = constants::radius::average_atomic_radius*constants::radius::average_atomic_radius/4;
-    return std::pow(this->free_params.cx, 3)*std::exp(-rm2*(std::pow(this->free_params.cx, 2) - 1)*q*q);
+    return std::pow(cx, 3)*std::exp(-rm2*(std::pow(cx, 2) - 1)*q*q);
+}
+
+template<typename AA, typename AXFormFactorTableType, typename XX>
+double CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::exv_factor(double q) const {
+    return exv_factor(q, this->free_params.cx);
 }
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
