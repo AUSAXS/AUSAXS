@@ -5,9 +5,6 @@
 #include <math/ConstexprMath.h>
 #include <constants/ConstantsMath.h>
 
-#define TRAUBE false
-#define VORONOI true
-#define MINIMUM_FLUCTUATION true
 namespace constants::displaced_volume {
     namespace detail {
         struct DisplacedVolumeSet {
@@ -124,6 +121,11 @@ namespace constants::displaced_volume {
         .S   = detail::volume(constants::radius::vdw::S),
         .SH  = detail::volume(constants::radius::vdw::S) + detail::volume(constants::radius::vdw::H)
     };
+
+    /**
+     * @brief Get the currently used displaced volume set as specified by the settings.
+     */
+    detail::DisplacedVolumeSet get_displaced_volume_set();
 
     //! Remember to update settings::molecule::DisplacedVolumeSet::Default if this is changed
     inline constexpr const detail::DisplacedVolumeSet& standard = MinimumFluctuation_implicit_H;

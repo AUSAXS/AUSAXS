@@ -7,12 +7,16 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace hist;
 
-double CompositeDistanceHistogramCrysol::exv_factor(double q) const {
+double CompositeDistanceHistogramCrysol::exv_factor(double q, double cx) {
     // G(q) factor from CRYSOL: https://doi.org/10.1107/S0021889895007047
     double magic_constant = 1/(4*constants::pi*constants::pi);
     double rm = 1.62;
     double c = constexpr_math::pow(4*constants::pi/3, 3./2)*constants::pi*rm*rm*magic_constant;
-    return std::pow(free_params.cx, 3)*std::exp(-c*(std::pow(free_params.cx, 2) - 1)*q*q);
+    return std::pow(cx, 3)*std::exp(-c*(std::pow(cx, 2) - 1)*q*q);
+}
+
+double CompositeDistanceHistogramCrysol::exv_factor(double q) const {
+    return exv_factor(q, free_params.cx);
 }
 
 Limit CompositeDistanceHistogramCrysol::get_excluded_volume_scaling_factor_limits() const {

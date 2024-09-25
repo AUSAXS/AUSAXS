@@ -19,6 +19,14 @@ namespace hist {
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
+            /**
+             * @brief Get the excluded volume scaling factor.
+             *
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             */
+            static double exv_factor(double q, double cx);
+
         protected:
             double exv_factor(double q) const override;
             inline static form_factor::storage::atomic::table_t ffaa_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
