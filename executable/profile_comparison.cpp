@@ -68,7 +68,8 @@ int main(int argc, char const *argv[]) {
         ausaxs_crysol_aa, ausaxs_crysol_xx, 
         ausaxs_foxs_aa, ausaxs_foxs_xx, 
         ausaxs_pepsi_aa, ausaxs_pepsi_xx,
-        ausaxs_aa, ausaxs_xx, ausaxs_ww;
+        ausaxs_aa, ausaxs_xx, ausaxs_ww,
+        ausaxs_xx_grid;
 
     {   // crysol mimic
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::CrysolManager;
@@ -107,6 +108,16 @@ int main(int argc, char const *argv[]) {
         ausaxs_aa = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_aa().as_dataset();
         ausaxs_xx = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_xx().as_dataset();
         ausaxs_ww = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_ww().as_dataset();
+    }
+    {
+        // ausaxs grid
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;
+        data::Molecule molecule(pdb);
+        molecule.add_implicit_hydrogens();
+        molecule.generate_new_hydration();
+
+        auto hist = molecule.get_histogram();
+        ausaxs_xx_grid = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())->get_profile_xx().as_dataset();        
     }
 
     //### CHECK FOR PRESENCE OF EXTERNAL DATA IN OUTPUT FOLDER ###//
@@ -180,6 +191,7 @@ int main(int argc, char const *argv[]) {
     ausaxs_xx.normalize();
     ausaxs_aa.normalize();
     ausaxs_ww.normalize();
+    ausaxs_xx_grid.normalize();
 
     // auto exact_aa = exact_aa_debye(data::Molecule(pdb)).as_dataset();
     // exact_aa.normalize();
@@ -206,10 +218,11 @@ int main(int argc, char const *argv[]) {
         .plot(foxs_data_xx, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_data_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
         // .plot(waxsis_data_xx, plots::PlotOptions({{"legend", "WAXSiS_xx"}, {"color", style::color::brown}}))
-        .plot(ausaxs_crysol_xx, plots::PlotOptions({{"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
-        .plot(ausaxs_foxs_xx, plots::PlotOptions({{"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
-        .plot(ausaxs_pepsi_xx, plots::PlotOptions({{"legend", "AUSAXS$_{mimics}$"}, {"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
-        .plot(ausaxs_xx, plots::PlotOptions({{"legend", "AUSAXS"}, {"color", style::color::black}}))
+        // .plot(ausaxs_crysol_xx, plots::PlotOptions({{"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
+        // .plot(ausaxs_foxs_xx, plots::PlotOptions({{"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
+        // .plot(ausaxs_pepsi_xx, plots::PlotOptions({{"legend", "AUSAXS$_{mimics}$"}, {"color", style::color::black}, {"linestyle", style::line::dashed}, {"linewidth", 0.5}}))
+        .plot(ausaxs_xx, plots::PlotOptions({{"legend", "AUSAXS$_{Fraser}$"}, {"color", style::color::black}}))
+        .plot(ausaxs_xx_grid, plots::PlotOptions({{"legend", "AUSAXS$_{grid}$"}, {"color", style::color::black}, {"linestyle", style::line::dotted}}))
     .save(settings::general::output + "profiles_xx.png");
 
     SimpleDataset crysol_diff_xx = crysol_data_xx, crysol_diff_aa = crysol_data_aa;
@@ -249,6 +262,30 @@ int main(int argc, char const *argv[]) {
         .plot(pepsi_diff_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}, {"normalize", true}}))
         .hline(1, plots::PlotOptions({{"linestyle", style::line::dashed}, {"color", style::color::black}}))
     .save(settings::general::output + "profiles_xx_diff.png");
+
+    for (size_t i = 0; i < crysol_diff_xx.size(); ++i) {
+        crysol_diff_xx.y(i) = crysol_data_xx.y(i) / ausaxs_xx_grid.interpolate_x(crysol_diff_xx.x(i), 1);
+    }
+
+    for (size_t i = 0; i < foxs_diff_xx.size(); ++i) {
+        foxs_diff_xx.y(i) = foxs_data_xx.y(i) / ausaxs_xx_grid.interpolate_x(foxs_diff_xx.x(i), 1);
+    }
+
+    for (size_t i = 0; i < pepsi_diff_xx.size(); ++i) {
+        pepsi_diff_xx.y(i) = pepsi_data_xx.y(i) / ausaxs_xx_grid.interpolate_x(pepsi_diff_xx.x(i), 1);
+    }
+
+    for (size_t i = 0; i < ausaxs_xx_grid.size(); ++i) {
+        ausaxs_xx.y(i) /= ausaxs_xx_grid.y(i);
+    }
+    
+    plots::PlotDataset()
+        .plot(crysol_diff_xx, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "Deviation relative to grid"}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"yrange", Limit(0.1, 100)}, {"xrange", Limit(1e-2, 1)}, {"color", style::color::cyan}, {"normalize", true}, {"logy", true}}))
+        .plot(foxs_diff_xx, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}, {"normalize", true}}))
+        .plot(pepsi_diff_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}, {"normalize", true}}))
+        .plot(ausaxs_xx, plots::PlotOptions({{"legend", "AUSAXS"}, {"color", style::color::black}, {"normalize", true}}))
+        .hline(1, plots::PlotOptions({{"linestyle", style::line::dashed}, {"color", style::color::black}}))
+    .save(settings::general::output + "profiles_xx_diff_grid.png");
 
     crysol_data_xx.save(settings::general::output + "profile_comparison/crysol_xx.dat");
     crysol_data_aa.save(settings::general::output + "profile_comparison/crysol_aa.dat");
