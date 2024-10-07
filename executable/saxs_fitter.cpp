@@ -27,54 +27,106 @@ int main(int argc, char const *argv[]) {
     bool use_existing_hydration = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
-    app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
-    app.add_option("input_m", mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
-    app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/saxs_fitter/")->group("General options");
-    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("General options");
-    app.add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
-        "The unit of the q values in the measurement file. Options: A, nm.")->group("General options");
-    app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax)->group("General options");
-    app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("General options");
+    auto input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
+    auto input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
+    app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
+    app.add_flag_callback("-v,--version", [] () {std::cout << constants::version << std::endl; exit(0);}, "Print the AUSAXS version.");
 
-    // protein options group
-    app.add_flag("--center,!--no-center", settings::molecule::center, 
-        "Decides whether the protein will be centered.")->default_val(settings::molecule::center)->group("Protein options");
-    app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, 
-        "Decides whether the effective atomic charge will be used.")->default_val(settings::molecule::use_effective_charge)->group("Protein options");
-    app.add_flag("--keep-hydration,!--discard-hydration", use_existing_hydration, 
-        "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
-    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", settings::hist::fit_excluded_volume, 
-        "Decides whether the excluded volume will be fitted.")->default_val(settings::hist::fit_excluded_volume)->group("Protein options");
-    app.add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, 
-        "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy)->group("Protein options");
+    // dataset options group
+    app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax)->group("Dataset options");
+    app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("Dataset options");
+    app.add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
+        "The unit of the q values in the measurement file. Options: A, nm.")->group("Dataset options");
 
-    // advanced options group
-    app.add_option("--reduce,-r", settings::grid::water_scaling, 
-        "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");
-    app.add_option("--grid_width,--gw", settings::grid::cell_width, 
-        "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::cell_width)->group("Advanced options");
-    app.add_option_function<std::string>("--hydration-strategy,--hs", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, 
-        "The hydration model to use. Options: Radial, Axes, Jan.")->group("Advanced options");
-    app.add_option("--exv_radius,--er", settings::grid::exv::radius, 
-        "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström.")->default_val(settings::grid::exv::radius)->group("Advanced options");
-    app.add_option_function<std::string>("--histogram-manager,--hm", [] (const std::string& s) {settings::detail::parse_option("histogram_manager", {s});}, 
-        "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
+    // advanced options
     app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, 
         "Decides whether the program will exit if an unknown atom is encountered.")->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
-    app.add_flag("--implicit-hydrogens,!--no-implicit-hydrogens", settings::molecule::implicit_hydrogens, 
-        "Decides whether implicit hydrogens will be added to the structure.")->default_val(settings::molecule::implicit_hydrogens)->group("Advanced options");
-    app.add_flag("--keep-hydrogens,!--discard-hydrogens", settings::general::keep_hydrogens, 
-        "Decides whether hydrogens will be kept in the structure.")->default_val(settings::general::keep_hydrogens)->group("Advanced options");
-    app.add_option_function<std::string>("--exv-volumes,--exv-volume", [] (const std::string& s) {settings::detail::parse_option("exv_volume", {s});}, 
-        "The set of displaced volumes to use. Options: Traube, Voronoi_implicit_H, Voronoi_explicit_H, MinimumFluctutation_implicit_H, MinimumFluctutation_explicit_H, vdw.")->group("Advanced options");
+    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
+
+    // molecule subcommands
+    auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
+    sub_mol->add_flag("--center,!--no-center", settings::molecule::center, 
+        "Decides whether the protein will be centered.")->default_val(settings::molecule::center);
+    sub_mol->add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, 
+        "Decides whether the effective atomic charge will be used.")->default_val(settings::molecule::use_effective_charge);
+    sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, 
+        "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy);
+
+    // exv subcommands
+    auto sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
+    sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) {settings::detail::parse_option("histogram_manager", {s});}, 
+        "The excluded volume model to use. Options: Simple, Fraser, Grid.");
+    sub_exv->add_flag("--fit", settings::hist::fit_excluded_volume, 
+        "Fit the excluded volume.")->default_val(settings::hist::fit_excluded_volume);
+    sub_exv->add_option_function<std::string>("--table", [] (const std::string& s) {settings::detail::parse_option("exv_volume", {s});}, 
+        "The set of displaced volume tables to use. "
+        "Options: Traube, Voronoi_implicit_H, Voronoi_explicit_H, MinimumFluctutation_implicit_H, MinimumFluctutation_explicit_H, vdw."
+    );
+    sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness, 
+        "The thickness of the surface layer in Ångström."
+    )->default_val(settings::grid::exv::surface_thickness)->group("");
+
+    //? rename radius to width?
+    auto sub_exv_r = sub_exv->add_option("--radius", settings::grid::exv::radius, 
+        "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström."
+    )->default_val(settings::grid::exv::radius);
+    sub_exv->add_flag("--save", settings::grid::exv::save, 
+        "Write a PDB representation of the excluded volume to disk."
+    )->default_val(settings::grid::exv::save);
+
+    // grid subcommands
+    auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
+    sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
+        "The radius of the excluded volume sphere around each atom."
+    )->default_val(settings::grid::min_exv_radius)->group("");
+    auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
+        "The distance between each grid point in Ångström. "
+        "Lower widths increase the precision."
+    )->default_val(settings::grid::cell_width);
+
+    // solvation subcommands
+    auto sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
+    sub_water->add_option_function<std::string>("--model,-m", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, 
+        "The hydration model to use. Options: Radial, Axes, None.");
+    sub_water->add_flag("--keep,!--discard", use_existing_hydration, 
+        "Keep or discard water molecules from the structure file. "
+        "If they are discarded, a new solvation shell is generated."
+    )->default_val(use_existing_hydration);
+    sub_water->add_option("--reduce,-r", settings::grid::water_scaling, 
+        "Reduce the number of generated water molecules to a percentage of the number of atoms. "
+        "Use 0 for no reduction."
+    )->default_val(settings::grid::water_scaling);
+
+    // hydrogen subcommands
+    auto sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
+    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, 
+        "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
+    sub_hydrogen->add_flag("--implicit,!--explicit", settings::molecule::implicit_hydrogens, 
+        "Add implicit hydrogens to the structure. "
+        "This should only be disabled if they are explicitly provided in the structure file. "
+        "This option also switches between the implicit and explicit hydrogen variants of the excluded volume tables."
+    )->default_val(settings::molecule::implicit_hydrogens)->group("Model options");
 
     // hidden options group
-    app.add_option("--rvol", settings::grid::min_exv_radius, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::min_exv_radius)->group("");
-    app.add_option("--surface-thickness", settings::grid::exv::surface_thickness, "The thickness of the surface layer in Ångström.")->default_val(settings::grid::exv::surface_thickness)->group("");
-    app.add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("");
-    app.add_flag("--save-exv", settings::grid::exv::save, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::exv::save)->group("");
+    app.add_flag("--weighted-bins", settings::hist::weighted_bins, 
+        "Decides whether the weighted bins will be used."
+    )->default_val(settings::hist::weighted_bins)->group("");
+
+    app.final_callback([&] () {
+        // required args (not marked ->required() since that interferes with the help flag for subcommands)
+        if (!input_s->count() || !input_m->count()) {
+            std::cout << "Error: Both input_structure and input_measurement are required." << std::endl;
+            exit(1);
+        }
+
+        // adjust grid width to support user-specified excluded volume width
+        if (sub_exv_r->count() && !sub_grid_w->count()) {
+            settings::grid::cell_width = settings::grid::exv::radius/2;
+        }
+    });
+
     CLI11_PARSE(app, argc, argv);
 
     console::print_info("Running AUSAXS " + std::string(constants::version));
