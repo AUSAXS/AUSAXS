@@ -24,9 +24,10 @@ int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
     io::ExistingFile pdb, mfile, settings;
     std::string histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
-    bool use_existing_hydration = false;
+    bool use_existing_hydration = false, save_settings = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
+    app.fallthrough();
     auto input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
     auto input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
@@ -39,11 +40,14 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("Dataset options");
     app.add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
         "The unit of the q values in the measurement file. Options: A, nm.")->group("Dataset options");
+    app.add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip)->group("Dataset options");
 
     // advanced options
-    app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, 
-        "Decides whether the program will exit if an unknown atom is encountered.")->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
+    app.add_flag("!--ignore-unknown-atom", settings::molecule::throw_on_unknown_atom, 
+        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure you are aware of the issue."
+    )->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
+    app.add_flag("--save-settings", save_settings, "Save the settings to a file.")->default_val(save_settings)->group("Advanced options");
 
     // molecule subcommands
     auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
@@ -56,35 +60,27 @@ int main(int argc, char const *argv[]) {
 
     // exv subcommands
     auto sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
-    sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) {settings::detail::parse_option("histogram_manager", {s});}, 
+    sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) 
+        {
+            settings::detail::parse_option("histogram_manager", {s});
+            if (s == "fraser" || s == "grid") {settings::molecule::use_effective_charge = false;} // ensure correct setup for standard args
+        }, 
         "The excluded volume model to use. Options: Simple, Fraser, Grid.");
     sub_exv->add_flag("--fit", settings::hist::fit_excluded_volume, 
         "Fit the excluded volume.")->default_val(settings::hist::fit_excluded_volume);
     sub_exv->add_option_function<std::string>("--table", [] (const std::string& s) {settings::detail::parse_option("exv_volume", {s});}, 
-        "The set of displaced volume tables to use. "
-        "Options: Traube, Voronoi_implicit_H, Voronoi_explicit_H, MinimumFluctutation_implicit_H, MinimumFluctutation_explicit_H, vdw."
+        "The set of displaced volume tables to use. Options: Traube, vdw, Voronoi, Minimum fluctuation (mf)."
     );
     sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness, 
         "The thickness of the surface layer in Ångström."
     )->default_val(settings::grid::exv::surface_thickness)->group("");
 
-    //? rename radius to width?
-    auto sub_exv_r = sub_exv->add_option("--radius", settings::grid::exv::width, 
-        "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström."
+    auto sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width, 
+        "The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Ångström."
     )->default_val(settings::grid::exv::width);
     sub_exv->add_flag("--save", settings::grid::exv::save, 
         "Write a PDB representation of the excluded volume to disk."
     )->default_val(settings::grid::exv::save);
-
-    // grid subcommands
-    auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
-    sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
-        "The radius of the excluded volume sphere around each atom."
-    )->default_val(settings::grid::min_exv_radius)->group("");
-    auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
-        "The distance between each grid point in Ångström. "
-        "Lower widths increase the precision."
-    )->default_val(settings::grid::cell_width);
 
     // solvation subcommands
     auto sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
@@ -109,6 +105,15 @@ int main(int argc, char const *argv[]) {
         "This option also switches between the implicit and explicit hydrogen variants of the excluded volume tables."
     )->default_val(settings::molecule::implicit_hydrogens)->group("Model options");
 
+    // grid subcommands
+    auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
+    sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
+        "The radius of the excluded volume sphere around each atom."
+    )->default_val(settings::grid::min_exv_radius)->group("");
+    auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
+        "The distance between each grid point in Ångström. Lower widths increase the precision."
+    )->default_val(settings::grid::cell_width);
+
     // hidden options group
     app.add_flag("--weighted-bins", settings::hist::weighted_bins, 
         "Decides whether the weighted bins will be used."
@@ -122,8 +127,14 @@ int main(int argc, char const *argv[]) {
         }
 
         // adjust grid width to support user-specified excluded volume width
-        if (sub_exv_r->count() && !sub_grid_w->count()) {
+        if (sub_exv_w->count() && !sub_grid_w->count()) {
             settings::grid::cell_width = settings::grid::exv::width/2;
+        }
+
+        // save settings if requested
+        if (save_settings) {
+            settings::write("settings.txt");
+            console::print_info("Settings saved to settings.txt in current directory.");
         }
     });
 
