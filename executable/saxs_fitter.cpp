@@ -69,9 +69,9 @@ int main(int argc, char const *argv[]) {
     )->default_val(settings::grid::exv::surface_thickness)->group("");
 
     //? rename radius to width?
-    auto sub_exv_r = sub_exv->add_option("--radius", settings::grid::exv::radius, 
+    auto sub_exv_r = sub_exv->add_option("--radius", settings::grid::exv::width, 
         "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström."
-    )->default_val(settings::grid::exv::radius);
+    )->default_val(settings::grid::exv::width);
     sub_exv->add_flag("--save", settings::grid::exv::save, 
         "Write a PDB representation of the excluded volume to disk."
     )->default_val(settings::grid::exv::save);
@@ -123,7 +123,7 @@ int main(int argc, char const *argv[]) {
 
         // adjust grid width to support user-specified excluded volume width
         if (sub_exv_r->count() && !sub_grid_w->count()) {
-            settings::grid::cell_width = settings::grid::exv::radius/2;
+            settings::grid::cell_width = settings::grid::exv::width/2;
         }
     });
 

@@ -55,7 +55,7 @@ void settings::validate_settings() {
     }
 
     {   // check for grid cell width compatibility
-        double grid_ratio = 2*settings::grid::exv::radius/settings::grid::cell_width;
+        double grid_ratio = 2*settings::grid::exv::width/settings::grid::cell_width;
         if (std::abs(grid_ratio - int(grid_ratio))) {
             console::print_warning("Warning: The grid cell width is not a multiple of the excluded volume radius. This may lead to artifacts in the excluded volume calculation.");
         }
