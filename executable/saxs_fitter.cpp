@@ -146,8 +146,6 @@ int main(int argc, char const *argv[]) {
     //### PARSE INPUT ###//
     //###################//
     try {
-        settings::general::output += mfile.stem() + "/";
-
         // if a settings file was provided
         if (p_settings->count() != 0) {
             settings::read(settings);       // read it
@@ -172,6 +170,8 @@ int main(int argc, char const *argv[]) {
         if (!constants::filetypes::saxs_data.check(mfile)) {
             throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
         }
+
+        settings::general::output += mfile.stem() + "/";
 
         //######################//
         //### ACTUAL PROGRAM ###//
