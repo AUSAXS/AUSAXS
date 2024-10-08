@@ -28,6 +28,12 @@ namespace settings::io::detail {
         virtual std::string get() const = 0;
 
         std::vector<std::string> names; // The name of the setting.
+
+        /**
+         * @brief Get the map from setting names to value references.
+         * 
+         * This map contains all aliases for all settings after initialization.
+         */
         static std::unordered_map<std::string, std::shared_ptr<ISettingRef>>& get_stored_settings();
     };
 

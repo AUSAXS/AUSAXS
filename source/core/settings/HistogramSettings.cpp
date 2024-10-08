@@ -53,11 +53,11 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Histogra
 template<> void settings::io::detail::SettingRef<settings::hist::HistogramManagerChoice>::set(const std::vector<std::string>& val) {
     auto str = utility::to_lowercase(val[0]);
     if (     str == "hm") {settingref = settings::hist::HistogramManagerChoice::HistogramManager;}
-    else if (str == "hmmt") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMT;}
+    else if (str == "hmmt" || str == "simple") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMT;}
     else if (str == "hmmtff") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg;}
-    else if (str == "hmmtffx") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;}
+    else if (str == "hmmtffx" || str == "fraser") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;}
     else if (str == "hmmtffg") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
-    else if (str == "hmmtffgs") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;}
+    else if (str == "hmmtffgs" || str == "grid") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;}
     else if (str == "phm") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManager;}
     else if (str == "phmmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
     else if (str == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg;}

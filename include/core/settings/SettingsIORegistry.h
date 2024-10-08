@@ -1,6 +1,7 @@
 #pragma once
 
 #include <settings/SettingRef.h>
+#include <utility/observer_ptr.h>
 
 #include <string>
 #include <vector>
@@ -18,7 +19,7 @@ namespace settings::io {
 
         std::string name;
         std::vector<std::shared_ptr<detail::ISettingRef>> settings;
-        static std::vector<SettingSection> get_sections();
+        static std::vector<observer_ptr<SettingSection>>& get_sections();
     };
 
     template<typename T> std::unique_ptr<detail::SettingRef<T>> create(T& setting, const std::string& name) {

@@ -44,7 +44,7 @@ double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_table() {
     form_factor::storage::atomic::table_t table;
 
-    auto V = std::pow(2*settings::grid::exv::radius, 3);
+    auto V = std::pow(2*settings::grid::exv::width, 3);
     FormFactor ffx = ExvFormFactor(V);
     // FormFactor ffx({1, 0, 0, 0, 0}, {std::pow(settings::grid::exv_radius, 2)/4, 0, 0, 0, 0}, 0);
     // ffx.set_normalization(V*constants::charge::density::water);

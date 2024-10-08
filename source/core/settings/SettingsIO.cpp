@@ -56,8 +56,8 @@ void settings::write(const ::io::File& path) {
 
     output << "### Auto-generated settings file ###\n";
     for (const auto& section : settings::io::SettingSection::get_sections()) {
-        output << "\n[   " << section.name << "   ]\n";
-        for (const auto& setting : section.settings) {
+        output << "\n[   " << section->name << "   ]\n";
+        for (const auto& setting : section->settings) {
             output << setting->names.front() << " " << setting->get() << std::endl;
         }
     }
