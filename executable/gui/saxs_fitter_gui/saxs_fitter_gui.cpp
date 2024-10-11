@@ -344,7 +344,7 @@ auto selection_menu_settings(gui::view&) {
 	std::vector<std::pair<std::string, settings::hist::HistogramManagerChoice>> options2 {
 		{"1. Simple", settings::hist::HistogramManagerChoice::HistogramManagerMT},
 		{"2. Fraser", settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
-		{"3. Grid", settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid}
+		{"3. Grid", settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface}
 	};
 
 	static auto excluded_volume_model = gui::selection_menu(

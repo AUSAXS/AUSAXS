@@ -5,11 +5,12 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <settings/SettingsIORegistry.h>
 #include <utility/Exceptions.h>
+#include <utility/observer_ptr.h>
 
 using namespace settings::io;
 
-std::vector<SettingSection> SettingSection::get_sections() {
-    static std::vector<SettingSection> sections;
+std::vector<observer_ptr<SettingSection>>& SettingSection::get_sections() {
+    static std::vector<observer_ptr<SettingSection>> sections;
     return sections;
 }
 
@@ -23,4 +24,5 @@ SettingSection::SettingSection(std::string_view name, std::initializer_list<std:
             stored_settings[name] = std::move(setting);
         }
     }
+    get_sections().push_back(this);
 }

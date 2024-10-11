@@ -111,7 +111,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
     settings::molecule::use_effective_charge = false;
     SECTION("simple") {
         settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
-        settings::grid::exv::radius = settings::grid::cell_width;
+        settings::grid::exv::width = settings::grid::cell_width;
 
         SECTION(std::string("width = ") + std::to_string(settings::grid::cell_width)) {
             Atom a1(0, "C", "", "LYS", 'A', 1, "", {0, 0, 0}, 1, 0, constants::atom_t::dummy, "");
@@ -123,7 +123,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
     SECTION("actual data") {
         settings::general::verbose = false;
         settings::grid::cell_width = 1;
-        settings::grid::exv::radius = 1;
+        settings::grid::exv::width = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
         test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
@@ -138,7 +138,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
 
     SECTION("simple") {
         settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
-        settings::grid::exv::radius = settings::grid::cell_width;
+        settings::grid::exv::width = settings::grid::cell_width;
         settings::grid::exv::surface_thickness = settings::grid::cell_width;
 
         SECTION(std::string("width = ") + std::to_string(settings::grid::cell_width)) {
@@ -151,7 +151,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
     SECTION("actual data") {
         settings::general::verbose = false;
         settings::grid::cell_width = 1;
-        settings::grid::exv::radius = 1;
+        settings::grid::exv::width = 1;
         settings::grid::exv::surface_thickness = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();

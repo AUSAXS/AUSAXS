@@ -29,7 +29,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     std::vector<double> rxs;
     for (double rx = 0.1; rx < 1; rx += 0.1) {
         settings::grid::cell_width = rx;
-        settings::grid::exv::radius = rx;
+        settings::grid::exv::width = rx;
         protein.clear_grid();
         volumes.push_back(protein.get_volume_grid());
         rxs.push_back(rx);
@@ -57,7 +57,7 @@ auto calc_scat = [] (double k) {
     const auto& q_axis = constants::axes::q_vals;
     auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
 
-    auto V = std::pow(2*settings::grid::exv::radius, 3);
+    auto V = std::pow(2*settings::grid::exv::width, 3);
     form_factor::FormFactor ffx = form_factor::ExvFormFactor(V);
     auto d = SimpleCube::d_exact;
 
@@ -131,7 +131,7 @@ auto calc_scat_water = [] () {
     auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
     auto ff_O = form_factor::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(form_factor::water_bin));
 
-    auto V = std::pow(2*settings::grid::exv::radius, 3);
+    auto V = std::pow(2*settings::grid::exv::width, 3);
     form_factor::FormFactor ffx = form_factor::ExvFormFactor(V);
     auto d = SimpleCube::d_exact;
 
@@ -161,7 +161,7 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
     settings::grid::min_exv_radius = 1;
-    settings::grid::exv::radius = 0.5;
+    settings::grid::exv::width = 0.5;
     settings::grid::min_exv_radius = 0;
 
     std::vector<Atom> atoms = SimpleCube::get_atoms();
@@ -206,7 +206,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
     settings::grid::cell_width = 1;
-    settings::grid::exv::radius = 0.5;
+    settings::grid::exv::width = 0.5;
     settings::grid::min_exv_radius = 0;
 
     std::vector<Atom> atoms = SimpleCube::get_atoms();

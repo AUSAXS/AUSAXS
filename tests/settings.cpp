@@ -4,7 +4,7 @@
 
 #include <settings/All.h>
 
-TEST_CASE("io") {
+TEST_CASE("settings") {
     SECTION("write_settings") {
         settings::write("temp/settings/settings.txt");
     }

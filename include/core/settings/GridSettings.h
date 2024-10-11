@@ -27,8 +27,8 @@ namespace settings::grid {
         // Whether to save the excluded volume grid when using the grid-based excluded volume calculations. This is primarily useful for debugging.
         extern bool   save;
 
-        // The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Å.
-        extern double radius;
+        // The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Å.
+        extern double width;
 
         // The surface thickness of the grid in Ångström. This is used for fitting the excluded volume. 
         extern double surface_thickness;

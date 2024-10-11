@@ -11,7 +11,6 @@ std::vector<double> settings::plots::contour = {};
 
 namespace settings::plots::io {
     settings::io::SettingSection plot_settings("Plot", {
-        settings::io::create(format, "format"),
-        settings::io::create(contour, "contour")
+        settings::io::create(format, "format")
     });
 }
