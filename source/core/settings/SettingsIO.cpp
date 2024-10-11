@@ -42,7 +42,10 @@ void settings::read(const ::io::ExistingFile& path) {
         if (detail::is_comment_char(line[0])) {continue;}   // skip comments
 
         auto tokens = utility::split(line, " \t");
-        if (tokens.size() == 1) {throw except::io_error("settings::read: Invalid line in setup file \"" + line + "\": \"" + tokens[0] + "\"");}
+        if (tokens.size() == 1) {
+            console::print_text_minor("\tsettings::read: Skipping line: \"" + line + "\" as no value could be found.");
+            continue;
+        }
         std::string name = tokens[0];
         tokens.erase(tokens.begin());
         detail::parse_option(name, tokens);
