@@ -294,14 +294,14 @@ TEST_CASE("6lyz_exv", "[manual]") {
     settings::molecule::center = false;
     settings::axes::qmin = 5e-2;
     settings::axes::qmax = 1;
-    settings::grid::exv::radius = 1.5;
+    settings::grid::exv::width = 1.5;
     settings::grid::min_exv_radius = 2;
     constants::radius::set_dummy_radius(2);
 
     data::Molecule protein("tests/files/6lyz_exv.pdb");
     for (auto& b : protein.get_bodies()) {for (auto& a : b.get_atoms()){a.element = constants::atom_t::dummy;}}
     auto Iq =  static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid(&protein).calculate_all().get())->get_profile_xx().as_dataset();
-    auto Iqexact = exact(protein, settings::grid::exv::radius).as_dataset();
+    auto Iqexact = exact(protein, settings::grid::exv::width).as_dataset();
 
     Iq.normalize();
     Iqexact.normalize();
