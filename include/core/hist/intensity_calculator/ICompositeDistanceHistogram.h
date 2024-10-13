@@ -27,9 +27,7 @@ namespace hist {
             void reset_water_scaling_factor() {apply_water_scaling_factor(1);}
 
             virtual ScatteringProfile get_profile_aa() const = 0;
-
             virtual ScatteringProfile get_profile_aw() const = 0;
-
             virtual ScatteringProfile get_profile_ww() const = 0;
 
             /**

@@ -43,10 +43,18 @@ namespace hist {
             const form_factor::storage::atomic::table_t& get_ff_table() const override {return ff_table;}
 
             /**
-             * @brief Regenerate the form factor table.
-             *        This is only necessary if the excluded volume radius has changed.
+             * @brief Generate a new interal form factor table for the grid-based calculations.
+             * 
+             * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
              */
-            static void regenerate_table();
+            static form_factor::storage::atomic::table_t generate_ff_table(form_factor::ExvFormFactor&& ffx = {0});
+
+            /**
+             * @brief Regenerate the form factor table. This must be called to reflect changes in settings::grid::exv::width.
+             * 
+             * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
+             */
+            static void regenerate_ff_table(form_factor::ExvFormFactor&& ffx = {0});
 
             /**
              * @brief Get the distance axis for the excluded volume calculations. 
@@ -59,8 +67,6 @@ namespace hist {
              *        If weighted bins are used, this will be distinct from the regular distance axis.
              */
             const std::vector<double>& get_d_axis_ax() const {return distance_axes.ax;}
-
-            static form_factor::storage::atomic::table_t generate_table();
 
         protected:
             /**
