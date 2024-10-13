@@ -23,6 +23,7 @@ add_executable(generate_datcombine_dummy_datasets "generate_datcombine_dummy_dat
 add_executable(waxsis_water_profile "waxsis_water_profile.cpp")
 add_executable(vary_exv_tables "vary_exv_tables.cpp")
 add_executable(vary_grid_cell_size "vary_grid_cell_size.cpp")
+add_executable(vary_grid_ff "vary_grid_ff.cpp")
 
 target_link_libraries(saxs_fitter PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(em_fitter PRIVATE ausaxs_core ausaxs_math ausaxs_em CLI11::CLI11)
@@ -40,6 +41,7 @@ target_link_libraries(generate_datcombine_dummy_datasets PRIVATE ausaxs_core aus
 target_link_libraries(waxsis_water_profile PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(vary_exv_tables PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(vary_grid_cell_size PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
+target_link_libraries(vary_grid_ff PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 
 add_subdirectory(md)
 if (GUI)

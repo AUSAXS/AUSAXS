@@ -29,12 +29,11 @@ int main(int argc, char const *argv[]) {
     io::ExistingFile pdb(argv[1]);
     io::ExistingFile saxs(argv[2]);
 
-    //### GENERATE INTERNAL PLOT ###//
     settings::general::output += "vary_grid_radii/" + pdb.stem() + "/";
     settings::axes::qmin = 1e-2;
     settings::axes::qmax = 1;
     settings::molecule::use_effective_charge = false;
-    settings::grid::cell_width = 1;
+    settings::grid::cell_width = 0.1;
     settings::grid::exv::surface_thickness = 1;
 
     data::Molecule molecule(pdb);
@@ -67,7 +66,7 @@ int main(int argc, char const *argv[]) {
         datasets_exv_fitted.push_back(fit_exv->info.fitted_intensity_interpolated);
         chi2_exv.push_back(fit_exv->fval/fit_exv->dof);
 
-        molecule.get_grid()->save(settings::general::output + "grid_" + std::to_string(r) + ".pdb");
+        // molecule.get_grid()->save(settings::general::output + "grid_" + std::to_string(r) + ".pdb");
         molecule.clear_grid();
     }
 

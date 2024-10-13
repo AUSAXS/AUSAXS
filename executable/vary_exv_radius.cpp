@@ -17,8 +17,6 @@
 #include <settings/All.h>
 #include <plots/All.h>
 
-#include <sstream>
-
 class VariableGrid : public grid::Grid {
     public: 
         using grid::Grid::Grid;
