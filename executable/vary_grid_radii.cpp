@@ -30,8 +30,6 @@ int main(int argc, char const *argv[]) {
     io::ExistingFile saxs(argv[2]);
 
     settings::general::output += "vary_grid_radii/" + pdb.stem() + "/";
-    settings::axes::qmin = 1e-2;
-    settings::axes::qmax = 1;
     settings::molecule::use_effective_charge = false;
     settings::grid::cell_width = 0.1;
     settings::grid::exv::surface_thickness = 1;
