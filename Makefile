@@ -481,13 +481,13 @@ vary_grid_radii/%: build/bin/vary_grid_radii
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement}
-	make plot/output/vary_grid_radii
+	make plot/output/vary_grid_radii/$*
 
 vary_grid_ff/%: build/bin/vary_grid_ff
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement}
-	make plot/output/vary_grid_ff
+	make plot/output/vary_grid_ff/$*
 
 ####################################################################################
 ###			     SIMULATIONS					 ###
