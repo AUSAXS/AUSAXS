@@ -584,7 +584,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            auto ax = evaluate_ax_profile(exv_factor(constants::axes::q_vals[q]));
+            auto ax = evaluate_ax_distance_profile(exv_factor(constants::axes::q_vals[q]));
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
@@ -603,7 +603,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            auto wx = evaluate_wx_profile(exv_factor(constants::axes::q_vals[q]));
+            auto wx = evaluate_wx_distance_profile(exv_factor(constants::axes::q_vals[q]));
             double ew_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table->begin(q), 0.0);
             Iq[q-q0] += 2*free_params.cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
         }
@@ -620,7 +620,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            auto xx = evaluate_xx_profile(exv_factor(constants::axes::q_vals[q]));
+            auto xx = evaluate_xx_distance_profile(exv_factor(constants::axes::q_vals[q]));
             double xx_sum = std::inner_product(xx.begin(), xx.end(), sinqd_table->begin(q), 0.0);
             Iq[q-q0] += xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
         }
@@ -641,9 +641,9 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(constants::axes::q_vals[q]);
-            auto xx = evaluate_xx_profile(cx);
-            auto wx = evaluate_wx_profile(cx);
-            auto ax = evaluate_ax_profile(cx);
+            auto xx = evaluate_xx_distance_profile(cx);
+            auto wx = evaluate_wx_distance_profile(cx);
+            auto ax = evaluate_ax_distance_profile(cx);
 
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 // atom-atom
