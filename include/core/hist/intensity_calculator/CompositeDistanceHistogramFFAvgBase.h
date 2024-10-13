@@ -60,20 +60,10 @@ namespace hist {
 
             virtual ~CompositeDistanceHistogramFFAvgBase() override;
 
-            // @copydoc DistanceHistogram::debye_transform() const
             virtual ScatteringProfile debye_transform() const override;
-
-            // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
             virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
-            /**
-             * @brief Apply a scaling factor to the water partial distance histogram.
-             */
             void apply_water_scaling_factor(double k) override;
-
-            /**
-             * @brief Apply a scaling factor to the excluded volume partial distance histogram.
-             */
             void apply_excluded_volume_scaling_factor(double k) override;
 
             /**
@@ -112,39 +102,13 @@ namespace hist {
             const Distribution1D& get_ww_counts_ff() const;
             Distribution1D& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
 
-            /**
-             * @brief Get the total distance histogram.
-             */
             const std::vector<double>& get_counts() const override;
 
-            /**
-             * @brief Get the intensity profile for atom-atom interactions.
-             */
             virtual ScatteringProfile get_profile_aa() const override;
-
-            /**
-             * @brief Get the intensity profile for atom-water interactions.
-             */
             virtual ScatteringProfile get_profile_aw() const override;
-
-            /**
-             * @brief Get the intensity profile for water-water interactions.
-             */
             virtual ScatteringProfile get_profile_ww() const override;
-
-            /**
-             * @brief Get the intensity profile for atom-atom interactions.
-             */
             virtual ScatteringProfile get_profile_ax() const override;
-
-            /**
-             * @brief Get the intensity profile for atom-water interactions.
-             */
             virtual ScatteringProfile get_profile_xx() const override;
-
-            /**
-             * @brief Get the intensity profile for water-water interactions.
-             */
             virtual ScatteringProfile get_profile_wx() const override;
 
             virtual const FormFactorTableType& get_ff_table() const = 0;

@@ -84,7 +84,7 @@ std::vector<Vector3<double>> GridSurfaceDetection::determine_vacuum_holes() cons
     assert(!grid->w_members.empty() && "grid must first be hydrated to determine vacuum holes");
 
     int empty_limit = std::round(3*constants::radius::get_vdw_radius(constants::atom_t::O)/settings::grid::cell_width);
-    int stride = std::round(2*settings::grid::exv::width/settings::grid::cell_width);
+    int stride = std::round(settings::grid::exv::width/settings::grid::cell_width);
     auto& gobj = grid->grid;
     auto[vmin, vmax] = grid->bounding_box_index();
     std::vector<Vector3<double>> vacuum_voxels;
@@ -127,7 +127,7 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
     GridExcludedVolume vol;
     vol.interior.reserve(grid->get_volume());
 
-    int stride = std::round(2*settings::grid::exv::width/settings::grid::cell_width);
+    int stride = std::round(settings::grid::exv::width/settings::grid::cell_width);
     int buffer = std::round(std::max<double>(settings::grid::min_exv_radius, 2)/settings::grid::cell_width);
 
     if (stride == 0) {

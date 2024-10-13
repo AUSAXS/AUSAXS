@@ -22,17 +22,17 @@ namespace hist {
             virtual void apply_excluded_volume_scaling_factor(double k) = 0;
 
             /**
-             * @brief Get the intensity profile for atom-atom interactions.
+             * @brief Get the intensity profile for atom-(excluded volume) interactions.
              */
             virtual ScatteringProfile get_profile_ax() const = 0;
 
             /**
-             * @brief Get the intensity profile for atom-water interactions.
+             * @brief Get the intensity profile for (excluded volume)-(excluded volume) interactions.
              */
             virtual ScatteringProfile get_profile_xx() const = 0;
 
             /**
-             * @brief Get the intensity profile for water-water interactions.
+             * @brief Get the intensity profile for water-(excluded volume) interactions.
              */
             virtual ScatteringProfile get_profile_wx() const = 0;
 

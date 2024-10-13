@@ -97,9 +97,9 @@ namespace hist {
              */
             observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
 
-            hist::Distribution1D evaluate_xx_profile(double cx) const;
-            hist::Distribution1D evaluate_wx_profile(double cx) const;
-            hist::Distribution2D evaluate_ax_profile(double cx) const;
+            hist::Distribution1D evaluate_xx_distance_profile(double cx) const;
+            hist::Distribution1D evaluate_wx_distance_profile(double cx) const;
+            hist::Distribution2D evaluate_ax_distance_profile(double cx) const;
 
             double exv_factor(double q) const override;
 

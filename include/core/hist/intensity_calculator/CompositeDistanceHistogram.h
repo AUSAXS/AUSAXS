@@ -40,42 +40,16 @@ namespace hist {
                 hist::WeightedDistribution1D&& p_tot
             );
 
-            /**
-             * @brief Get the partial distance histogram for atom-atom interactions.
-             */
             virtual const hist::Distribution1D& get_aa_counts() const override;
-            virtual hist::Distribution1D& get_aa_counts() override; ///< @copydoc get_aa_counts() const
-
-            /**
-             * @brief Get the partial distance histogram for atom-water interactions.
-             */
+            virtual hist::Distribution1D& get_aa_counts() override;
             virtual const Distribution1D& get_aw_counts() const override;
-            virtual Distribution1D& get_aw_counts() override; ///< @copydoc get_aw_counts() const
-
-            /**
-             * @brief Get the partial distance histogram for water-water interactions.
-             */
+            virtual Distribution1D& get_aw_counts() override;
             virtual const Distribution1D& get_ww_counts() const override;
-            virtual Distribution1D& get_ww_counts() override; ///< @copydoc get_ww_counts() const
+            virtual Distribution1D& get_ww_counts() override;
 
-            /**
-             * @brief Apply a scaling factor to the water partial distance histogram.
-             */
             virtual void apply_water_scaling_factor(double k) override;
-
-            /**
-             * @brief Get the intensity profile for atom-atom interactions.
-             */
             virtual ScatteringProfile get_profile_aa() const override;
-
-            /**
-             * @brief Get the intensity profile for atom-water interactions.
-             */
             virtual ScatteringProfile get_profile_aw() const override;
-
-            /**
-             * @brief Get the intensity profile for water-water interactions.
-             */
             virtual ScatteringProfile get_profile_ww() const override;
 
         private:

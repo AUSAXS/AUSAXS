@@ -30,6 +30,10 @@ namespace form_factor {
                 return q0*evaluate_normalized(q);
             }
 
+            constexpr bool is_initialized() const {
+                return exponent != 0;
+            }
+
             double exponent = 0;
             double q0 = 1;
     };

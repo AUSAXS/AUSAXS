@@ -31,23 +31,20 @@ CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
     initialize(p_tot_ax.get_weighted_axis(), p_tot_xx.get_weighted_axis());
 }
 
-void CompositeDistanceHistogramFFGrid::regenerate_table() {ff_table = generate_table();}
-
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::ff_table = CompositeDistanceHistogramFFGrid::generate_table();
+form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::ff_table = CompositeDistanceHistogramFFGrid::generate_ff_table();
+void CompositeDistanceHistogramFFGrid::regenerate_ff_table(form_factor::ExvFormFactor&& ffx) {ff_table = generate_ff_table(std::move(ffx));}
 
 double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
-    // auto dV = std::pow(2*settings::grid::exv_radius, 3)*(cx-1);
-    // return ExvFormFactor(dV).evaluate(q);
     return free_params.cx;
 }
 
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_table() {
+form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(form_factor::ExvFormFactor&& ffx) {
     form_factor::storage::atomic::table_t table;
 
-    auto V = std::pow(2*settings::grid::exv::width, 3);
-    FormFactor ffx = ExvFormFactor(V);
-    // FormFactor ffx({1, 0, 0, 0, 0}, {std::pow(settings::grid::exv_radius, 2)/4, 0, 0, 0, 0}, 0);
-    // ffx.set_normalization(V*constants::charge::density::water);
+    if (!ffx.is_initialized()) {
+        auto V = std::pow(settings::grid::exv::width, 3);
+        ffx = ExvFormFactor(V);
+    }
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = PrecalculatedFormFactorProduct(
