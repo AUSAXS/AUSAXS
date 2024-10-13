@@ -15,7 +15,7 @@ double settings::grid::min_exv_radius = 2.15;
 unsigned int settings::grid::min_bins = 0;
 
 double settings::grid::exv::surface_thickness = 1;
-double settings::grid::exv::width = 0.5;
+double settings::grid::exv::width = 1;
 bool settings::grid::exv::save = false;
 
 namespace settings::grid::detail {

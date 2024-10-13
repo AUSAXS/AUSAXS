@@ -128,7 +128,7 @@ int main(int argc, char const *argv[]) {
 
         // adjust grid width to support user-specified excluded volume width
         if (sub_exv_w->count() && !sub_grid_w->count()) {
-            settings::grid::cell_width = settings::grid::exv::width/2;
+            settings::grid::cell_width = settings::grid::exv::width;
         }
 
         // save settings if requested
