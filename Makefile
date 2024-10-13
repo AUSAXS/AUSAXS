@@ -477,6 +477,12 @@ vary_exv_tables/%: build/bin/vary_exv_tables
 	$< $${structure} $${measurement}
 	make plot/output/vary_exv_tables
 
+vary_grid_radii/%: build/bin/vary_grid_radii
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${structure} $${measurement}
+	make plot/output/vary_grid_radii
+
 ####################################################################################
 ###			     SIMULATIONS					 ###
 ####################################################################################
