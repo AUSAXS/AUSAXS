@@ -60,23 +60,21 @@ namespace hist {
                 hist::WeightedDistribution1D&& p_tot_xx
             );
 
-            const form_factor::storage::atomic::table_t& get_ff_table() const override {return ff_table;} // @copydoc CompositeDistanceHistogramFFAvgBase::get_ff_table() const
-
-            static void regenerate_table(); // @copydoc CompositeDistanceHistogramFFGrid::regenerate_table()
-
             /**
              * @brief Get the distance axis for the excluded volume calculations. 
              *        If weighted bins are used, this will be distinct from the regular distance axis.
              */
-            const std::vector<double>& get_d_axis_xx() const {return distance_axes.xx;}
+            const std::vector<double>& get_d_axis_xx() const;
 
             /**
              * @brief Get the distance axis for the cross term calculations. 
              *        If weighted bins are used, this will be distinct from the regular distance axis.
              */
-            const std::vector<double>& get_d_axis_ax() const {return distance_axes.ax;}
+            const std::vector<double>& get_d_axis_ax() const;
 
-            Limit get_excluded_volume_scaling_factor_limits() const override; // @copydoc ICompositeDistanceHistogramExv::get_excluded_volume_scaling_factor_limits() const
+            const form_factor::storage::atomic::table_t& get_ff_table() const override;
+
+            Limit get_excluded_volume_scaling_factor_limits() const override;
 
             /**
              * @brief Get the excluded volume scaling factor.
@@ -104,7 +102,6 @@ namespace hist {
             double exv_factor(double q) const override;
 
         private: 
-            static form_factor::storage::atomic::table_t ff_table;
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
             struct {hist::Distribution1D xx_i, xx_s, xx_c, wx_i, wx_s; hist::Distribution2D ax_i, ax_s;} exv_distance_profiles;

@@ -57,12 +57,20 @@ CompositeDistanceHistogramFFGridSurface::CompositeDistanceHistogramFFGridSurface
     initialize(p_tot_ax.get_weighted_axis(), p_tot_xx.get_weighted_axis());
 }
 
-void CompositeDistanceHistogramFFGridSurface::regenerate_table() {ff_table = CompositeDistanceHistogramFFGrid::generate_ff_table();}
-
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGridSurface::ff_table = CompositeDistanceHistogramFFGrid::generate_ff_table();
-
 Limit CompositeDistanceHistogramFFGridSurface::get_excluded_volume_scaling_factor_limits() const {
     return {0, 2};
+}
+
+const std::vector<double>& CompositeDistanceHistogramFFGridSurface::get_d_axis_xx() const {
+    return distance_axes.xx;
+}
+
+const std::vector<double>& CompositeDistanceHistogramFFGridSurface::get_d_axis_ax() const {
+    return distance_axes.ax;
+}
+
+const form_factor::storage::atomic::table_t& CompositeDistanceHistogramFFGridSurface::get_ff_table() const {
+    return CompositeDistanceHistogramFFGrid::ff_table;
 }
 
 double CompositeDistanceHistogramFFGridSurface::exv_factor(double q, double cx) {

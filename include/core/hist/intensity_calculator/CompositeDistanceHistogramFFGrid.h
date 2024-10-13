@@ -13,6 +13,7 @@ namespace hist {
      *        This approach adds a substantial overhead to the calculations, but should give a more accurate representation of the excluded volume.
      */
     class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFAvg {
+        friend class CompositeDistanceHistogramFFGridSurface;
         public:
             CompositeDistanceHistogramFFGrid(CompositeDistanceHistogramFFGrid&&) noexcept;
             CompositeDistanceHistogramFFGrid& operator=(CompositeDistanceHistogramFFGrid&&) noexcept;
@@ -37,9 +38,6 @@ namespace hist {
                 hist::WeightedDistribution1D&& p_tot_xx
             );
 
-            /**
-             * @brief Get the form factor table for the grid-based calculations.
-             */
             const form_factor::storage::atomic::table_t& get_ff_table() const override {return ff_table;}
 
             /**
