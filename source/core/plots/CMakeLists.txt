@@ -9,4 +9,5 @@ target_sources(ausaxs_core PRIVATE
 	"PlotLandscape.cpp"
 	"PlotOptions.cpp"
 	"PlotProfiles.cpp"
+	"Styles.cpp"
 )

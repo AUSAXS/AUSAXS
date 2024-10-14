@@ -2,7 +2,7 @@
 
 #include <string>
 
-struct style {
+namespace style {
     typedef std::string LineStyle;
     typedef std::string DrawStyle;
 	typedef std::string Color;
@@ -39,6 +39,24 @@ struct style {
         }        
     };
 
+    namespace color_map {
+        struct ColorMap {
+            ColorMap(unsigned int n) : n(n) {}
+            virtual std::string next() = 0;
+            unsigned int i = 0, n;
+        };
+
+        struct Rainbow : public ColorMap {
+            using ColorMap::ColorMap;
+            std::string next() override;
+        };
+
+        struct RedBlue : public ColorMap {
+            using ColorMap::ColorMap;
+            std::string next() override;
+        };
+    }
+
     struct line {
         inline static const LineStyle solid = "-";
         inline static const LineStyle dashed = "--";
@@ -52,4 +70,4 @@ struct style {
         inline static const DrawStyle points = "points";
         inline static const DrawStyle errors = "errors";
     };
-};
+}
