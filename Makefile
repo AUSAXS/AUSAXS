@@ -495,6 +495,12 @@ vary_grid_exv_density/%: build/bin/vary_grid_exv_density
 	$< $${structure} $${measurement}
 	make plot/output/vary_grid_exv_density/$*
 
+debye_waller_avg/%: build/bin/debye_waller_avg
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${structure} $${measurement}
+	make plot/output/debye_waller_avg/$*
+
 ####################################################################################
 ###			     SIMULATIONS					 ###
 ####################################################################################
