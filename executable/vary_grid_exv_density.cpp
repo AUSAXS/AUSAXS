@@ -27,7 +27,7 @@ int main(int argc, char const *argv[]) {
     io::ExistingFile pdb(argv[1]);
     io::ExistingFile saxs(argv[2]);
 
-    settings::general::output += "vary_grid_ff/" + pdb.stem() + "/";
+    settings::general::output += "vary_grid_exv_density/" + pdb.stem() + "/";
     settings::molecule::use_effective_charge = false;
     settings::axes::qmax = 1;
 
@@ -40,29 +40,17 @@ int main(int argc, char const *argv[]) {
 
     Axis scale_axis = {0.9, 1.1, 20};
     for (double scale = scale_axis.min; scale < scale_axis.max; scale += scale_axis.step()) {
+        // form_factor::ExvFormFactor ffx(std::pow(settings::grid::exv::width, 3)*scale);
+        
         auto V = std::pow(settings::grid::exv::width, 3);
         form_factor::ExvFormFactor ffx(V);
-        ffx.exponent *= scale;
-        
-        // double s = constants::form_factor::excluded_volume::b[0]*scale;
-        // form_factor::FormFactor ffx(
-        //     constants::form_factor::excluded_volume::a, 
-        //     {s, 0, 0, 0, 0}, 
-        //     constants::form_factor::excluded_volume::c
-        // );
-        // ffx.set_normalization(V*constants::charge::density::water);
+        ffx.q0 *= scale;
         hist::CompositeDistanceHistogramFFGrid::regenerate_ff_table(std::move(ffx));
 
-        static int index = 0;
         auto hist_cast = static_cast<hist::ICompositeDistanceHistogramExv*>(hist.get());
-        hist_cast->apply_excluded_volume_scaling_factor(1 + ++index*1e-6); // trigger internal recalculation
+        hist_cast->apply_excluded_volume_scaling_factor(1+scale*1e-6); // trigger internal recalculation
         datasets.push_back(hist.get()->debye_transform().as_dataset());
         profile_exv.push_back(hist_cast->get_profile_xx().as_dataset());
-
-        // auto h = hist::HistogramManagerMTFFGridSurface(molecule).calculate_all();
-        // auto h_cast = static_cast<hist::ICompositeDistanceHistogramExv*>(h.get());
-        // datasets.push_back(h->debye_transform().as_dataset());
-        // profile_exv.push_back(h_cast->get_profile_xx().as_dataset());
     }
 
     plots::PlotDataset plot, plot_aa_xx, plot_xx;
@@ -72,7 +60,7 @@ int main(int argc, char const *argv[]) {
         plot.plot(
             datasets[i], 
             plots::PlotOptions(
-                {{"xlabel", "q"}, {"ylabel", "Intensity"}, {"yrange", std::vector{1e-3, 1.1}}, {"xrange", std::vector{1e-2, 1.}}, 
+                {{"xlabel", "q"}, {"ylabel", "Intensity"}, {"xrange", std::vector{1e-2, 1.}}, 
                 {"logx", true}, {"logy", true}, {"color", c}, {"normalize", true}, {"title", "Unfitted profiles"},
                 {"legend", "$\\sigma = $" + std::to_string(scale_axis.get_bin_value(i))}}
             )

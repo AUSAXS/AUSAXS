@@ -489,6 +489,12 @@ vary_grid_ff/%: build/bin/vary_grid_ff
 	$< $${structure} $${measurement}
 	make plot/output/vary_grid_ff/$*
 
+vary_grid_exv_density/%: build/bin/vary_grid_exv_density
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${structure} $${measurement}
+	make plot/output/vary_grid_exv_density/$*
+
 ####################################################################################
 ###			     SIMULATIONS					 ###
 ####################################################################################
