@@ -25,6 +25,7 @@ add_executable(vary_exv_tables "vary_exv_tables.cpp")
 add_executable(vary_grid_cell_size "vary_grid_cell_size.cpp")
 add_executable(vary_grid_ff "vary_grid_ff.cpp")
 add_executable(vary_grid_exv_density "vary_grid_exv_density.cpp")
+add_executable(debye_waller_avg "debye_waller_avg.cpp")
 
 target_link_libraries(saxs_fitter PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(em_fitter PRIVATE ausaxs_core ausaxs_math ausaxs_em CLI11::CLI11)
@@ -44,6 +45,7 @@ target_link_libraries(vary_exv_tables PRIVATE ausaxs_core ausaxs_math CLI11::CLI
 target_link_libraries(vary_grid_cell_size PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(vary_grid_ff PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(vary_grid_exv_density PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
+target_link_libraries(debye_waller_avg PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 
 add_subdirectory(md)
 if (GUI)
