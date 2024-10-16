@@ -45,14 +45,17 @@ namespace hist {
              * 
              * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
              */
-            static form_factor::storage::atomic::table_t generate_ff_table(form_factor::ExvFormFactor&& ffx = {0});
+            template<FormFactorType T>
+            static form_factor::storage::atomic::table_t generate_ff_table(T&& ffx);
+            static form_factor::storage::atomic::table_t generate_ff_table(); //< @copydoc generate_ff_table(T&&)
 
             /**
              * @brief Regenerate the form factor table. This must be called to reflect changes in settings::grid::exv::width.
              * 
              * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
              */
-            static void regenerate_ff_table(form_factor::ExvFormFactor&& ffx = {0});
+            template<FormFactorType T>
+            static void regenerate_ff_table(T&& ffx = {0});
 
             /**
              * @brief Get the distance axis for the excluded volume calculations. 

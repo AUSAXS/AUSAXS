@@ -2,15 +2,11 @@
 
 #include <container/ContainerFwd.h>
 #include <constants/Constants.h>
-#include <form_factor/FormFactor.h>
 #include <container/ArrayContainer2D.h>
+#include <form_factor/FormFactor.h>
+#include <form_factor/FormFactorConcepts.h>
 
 namespace form_factor {
-    template<typename T>
-    concept FormFactorType = requires(T t, double q) {
-        {t.evaluate(q)};
-    };
-
     class PrecalculatedFormFactorProduct {
         public:
             constexpr PrecalculatedFormFactorProduct() noexcept = default;
