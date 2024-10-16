@@ -32,19 +32,24 @@ CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
 }
 
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::ff_table = CompositeDistanceHistogramFFGrid::generate_ff_table();
-void CompositeDistanceHistogramFFGrid::regenerate_ff_table(form_factor::ExvFormFactor&& ffx) {ff_table = generate_ff_table(std::move(ffx));}
+
+template<FormFactorType T>
+void CompositeDistanceHistogramFFGrid::regenerate_ff_table(T&& ffx) {ff_table = generate_ff_table(std::move(ffx));}
+template void CompositeDistanceHistogramFFGrid::regenerate_ff_table(ExvFormFactor&&);
+template void CompositeDistanceHistogramFFGrid::regenerate_ff_table(FormFactor&&);
 
 double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
     return free_params.cx;
 }
 
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(form_factor::ExvFormFactor&& ffx) {
-    form_factor::storage::atomic::table_t table;
+form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table() {
+    auto V = std::pow(settings::grid::exv::width, 3);
+    return generate_ff_table(ExvFormFactor(V));
+}
 
-    if (!ffx.is_initialized()) {
-        auto V = std::pow(settings::grid::exv::width, 3);
-        ffx = ExvFormFactor(V);
-    }
+template<FormFactorType T>
+form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(T&& ffx) {
+    form_factor::storage::atomic::table_t table;
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = PrecalculatedFormFactorProduct(
@@ -70,6 +75,8 @@ form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate
     }
     return table;
 }
+template form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(ExvFormFactor&&);
+template form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(FormFactor&&);
 
 void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
     auto pool = utility::multi_threading::get_global_pool();

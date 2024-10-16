@@ -6,6 +6,9 @@ import os
 
 from plot_helper import *
 
+max_depth = 3
+max_files = 30
+
 def main():
     help_msg = "Usage: plot <folder>\nPlots all .plot files in the given folder and subfolders."
     params = {
@@ -80,9 +83,19 @@ def main():
     if folder == "":
         folder = sys.argv[1]
 
+    def get_depth(path):
+        return path.count(os.sep)
+
     with concurrent.futures.ProcessPoolExecutor(8) as executor:
         futures = []
+        invoke_depth = get_depth(folder)
         for currentpath, _, files in os.walk(folder):
+            if max_depth < get_depth(currentpath) - invoke_depth:
+                continue
+            if max_files < len(files):
+                print(f"Skipping {currentpath} because it has too many files.")
+                continue
+
             fit_files = []
             dat_file = ""
             report_file = ""

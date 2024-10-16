@@ -15,6 +15,7 @@ using namespace plots;
 double inf = std::numeric_limits<double>::infinity();
 
 PlotOptions::PlotOptions() : draw_line(true) {}
+PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
 
 PlotOptions::PlotOptions(std::unordered_map<std::string, std::any> options) : draw_line(true) {set(std::move(options));}
 
