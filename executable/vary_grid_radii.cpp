@@ -31,7 +31,7 @@ int main(int argc, char const *argv[]) {
 
     settings::general::output += "vary_grid_radii/" + pdb.stem() + "/";
     settings::molecule::use_effective_charge = false;
-    settings::grid::cell_width = 0.1;
+    settings::grid::cell_width = 0.25;
     settings::grid::exv::surface_thickness = 1;
 
     data::Molecule molecule(pdb);
@@ -68,26 +68,23 @@ int main(int argc, char const *argv[]) {
         molecule.clear_grid();
     }
 
-    std::array<double, 3> rgb_start = {153, 0, 0}, rgb_end = {0, 0, 153};
+    style::color_map::Rainbow cmap(datasets.size());
     plots::PlotDataset plot, plot_hydro, plot_exv, plot_relative, plot_aa_xx;
     for (unsigned int i = 0; i < datasets.size(); i++) {
         double r = 1 + 0.1 * i;
-        double r_norm = (r - 1) / 2;
-        std::array<double, 3> rgb = {rgb_start[0] * (1 - r_norm) + rgb_end[0] * r_norm, rgb_start[1] * (1 - r_norm) + rgb_end[1] * r_norm, rgb_start[2] * (1 - r_norm) + rgb_end[2] * r_norm};
-        std::stringstream ss;
-        ss << "#" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(rgb[0]) << std::setw(2) << static_cast<int>(rgb[1]) << std::setw(2) << static_cast<int>(rgb[2]);
+        auto c = cmap.next();
         plot.plot(
             datasets[i], 
             plots::PlotOptions(
                 {{"xlabel", "q"}, {"ylabel", "Intensity"}, {"yrange", std::vector{1e-4, 1e2}}, {"normalize", true}, 
-                {"logx", true}, {"logy", true}, {"color", ss.str()}, {"normalize", true}, {"title", "Unfitted profiles"}}
+                {"logx", true}, {"logy", true}, {"color", c}, {"normalize", true}, {"title", "Unfitted profiles"}}
             )
         );
         plot_hydro.plot(
             datasets_hydro_fitted[i], 
             plots::PlotOptions(
                 {{"xlabel", "q"}, {"ylabel", "Intensity"}, {"yrange", std::vector{1e-4, 1e2}}, {"normalize", true}, 
-                {"logx", true}, {"logy", true}, {"color", ss.str()}, {"normalize", true}, {"legend", std::to_string(chi2_hydro[i])},
+                {"logx", true}, {"logy", true}, {"color", c}, {"normalize", true}, {"legend", std::to_string(chi2_hydro[i])},
                 {"title", "Fitted hydration"}}
             )
         );
@@ -95,7 +92,7 @@ int main(int argc, char const *argv[]) {
             datasets_exv_fitted[i], 
             plots::PlotOptions(
                 {{"xlabel", "q"}, {"ylabel", "Intensity"}, {"yrange", std::vector{1e-4, 1e2}}, {"normalize", true}, 
-                {"logx", true}, {"logy", true}, {"color", ss.str()}, {"normalize", true}, {"legend", std::to_string(chi2_exv[i])},
+                {"logx", true}, {"logy", true}, {"color", c}, {"normalize", true}, {"legend", std::to_string(chi2_exv[i])},
                 {"title", "Fitted exv and hydration"}}
             )
         );
@@ -111,14 +108,14 @@ int main(int argc, char const *argv[]) {
         plot_relative.plot(
             relative, 
             plots::PlotOptions(
-                {{"xlabel", "q"}, {"ylabel", "relative deviation"}, {"yrange", std::vector{0.5, 1.5}}, {"logx", true}, {"color", ss.str()}, 
+                {{"xlabel", "q"}, {"ylabel", "relative deviation"}, {"yrange", std::vector{0.5, 1.5}}, {"logx", true}, {"color", c}, 
                 {"normalize", true}, {"title", "Relative deviation from standard"}, {"legend", std::to_string(r)}}
             )
         );
         plot_aa_xx.plot(
             aa_xx, 
             plots::PlotOptions(
-                {{"xlabel", "q"}, {"ylabel", "aa / xx"}, {"yrange", std::vector{0.5, 1.5}}, {"logx", true}, {"color", ss.str()}, 
+                {{"xlabel", "q"}, {"ylabel", "aa / xx"}, {"yrange", std::vector{0.5, 1.5}}, {"logx", true}, {"color", c}, 
                 {"normalize", true}, {"title", "Vacuum over exv"}, {"legend", std::to_string(r)}}
             )
         );
