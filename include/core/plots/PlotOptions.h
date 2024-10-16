@@ -51,6 +51,7 @@ namespace plots {
     class PlotOptions {
         public:
             PlotOptions();
+            PlotOptions(const PlotOptions& opt);
 
             /**
              * @brief Create a new set of plot settings. 
