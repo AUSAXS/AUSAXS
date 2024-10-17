@@ -18,8 +18,11 @@ namespace fitter {
             
             /**
              * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
+             *
+             * @param fit The fit to add.
+             * @param front If true, the parameters will be added to the front of the parameter list. Otherwise, they will be added to the back.
              */
-            void add_fit(observer_ptr<FitResult> fit) noexcept;
+            void add_fit(observer_ptr<FitResult> fit, bool front = false) noexcept;
 
             /**
              * @brief Get a string representation of this object. 

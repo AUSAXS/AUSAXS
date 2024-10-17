@@ -115,7 +115,7 @@ namespace hist {
             virtual const FormFactorTableType& get_ff_table() const = 0;
 
         protected:
-            struct {double cw=1, cx=1;} free_params;
+            struct {double cw=1, cx=1, crho=1;} free_params;
             struct {Distribution3D aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
 
             /**
@@ -153,7 +153,7 @@ namespace hist {
 
                 mutable struct {
                     std::vector<double> aa, ax, aw, xx, wx, ww;
-                    double cached_cx = -1, cached_cw = -1;
+                    double cached_cx = -1, cached_cw = -1, cached_crho = -1;
                 } intensity_profiles;
             } cache;
 

@@ -51,6 +51,6 @@ namespace hist {
              * @brief Get the limits for the solvent density scaling factor parameter. 
              *        This is intended to be used by the fitter to set correct limits. 
              */
-            virtual Limit get_solvent_scaling_factor_limits() const {return {0.95, 1.05};}
+            virtual Limit get_solvent_density_scaling_factor_limits() const {return {0, 1.2};}
     };
 }

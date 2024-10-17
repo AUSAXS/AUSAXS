@@ -46,7 +46,7 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     std::vector<mini::Parameter> guess;
     if (settings::fit::fit_hydration) {guess.push_back(mini::Parameter{"c", 1, cast_h(model.get())->get_water_scaling_factor_limits()});}
     if (settings::fit::fit_excluded_volume) {guess.push_back(mini::Parameter{"d", 1, cast_exv(model.get())->get_excluded_volume_scaling_factor_limits()});}
-    if (settings::fit::fit_solvent_density) {guess.push_back(mini::Parameter{"e", 1, {0.95, 1.05}});}
+    if (settings::fit::fit_solvent_density) {guess.push_back(mini::Parameter{"e", 1, cast_exv(model.get())->get_solvent_density_scaling_factor_limits()});}
     return guess;
 }
 
@@ -75,7 +75,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     std::shared_ptr<FitResult> ab_fit = fitter.fit();
 
     auto fit_result = std::make_unique<FitResult>(res, res.fval, data.size()-1); // start with the fit performed here
-    fit_result->add_fit(ab_fit.get());                                           // add the a,b inner fit
+    fit_result->add_fit(ab_fit.get(), true);                                     // add the a,b inner fit
     fit_result->curves = {{data.x(), data.y(), model_spliced, get_residuals(extract_opt_pars(fit_result.get()))}};
     fit_result->evaluated_points = mini->get_evaluated_points();                 // add the evaluated points
     return fit_result;
@@ -91,7 +91,10 @@ double SmartFitter::fit_chi2_only() {
 }
 
 std::vector<double> SmartFitter::get_residuals(const std::vector<double>& params) {
-    assert(params.size() == settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density && "SmartFitter::chi2: Invalid number of parameters.");
+    assert(
+        static_cast<int>(params.size()) == settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density 
+        && "SmartFitter::chi2: Invalid number of parameters."
+    );
 
     int index = 0;
     if (settings::fit::fit_hydration) {cast_h(model.get())->apply_water_scaling_factor(params[index++]);}
