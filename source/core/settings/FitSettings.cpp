@@ -11,7 +11,7 @@ unsigned int settings::fit::N = 100;
 unsigned int settings::fit::max_iterations = 100;
 bool settings::fit::fit_excluded_volume = false;
 bool settings::fit::fit_solvent_density = false;
-bool settings::fit::fit_hydration = false;
+bool settings::fit::fit_hydration = true;
 
 namespace settings::fit::io {
     settings::io::SettingSection general_settings("General", {

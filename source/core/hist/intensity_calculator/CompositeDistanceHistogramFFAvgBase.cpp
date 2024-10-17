@@ -167,6 +167,11 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_excluded_vo
 }
 
 template<typename FormFactorTableType>
+void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_solvent_density_scaling_factor(double k) {
+    
+}
+
+template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_aa() const {
     std::vector<double> aa;
     std::tie(aa, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();

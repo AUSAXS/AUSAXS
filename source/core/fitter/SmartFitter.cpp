@@ -3,8 +3,8 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <fitter/refactored/SmartFitter.h>
-#include <fitter/refactored/LinearFitter.h>
+#include <fitter/SmartFitter.h>
+#include <fitter/LinearFitter.h>
 #include <fitter/FitResult.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <dataset/SimpleDataset.h>
@@ -114,6 +114,10 @@ std::vector<double> SmartFitter::get_residuals(const std::vector<double>& params
 
 SimpleDataset SmartFitter::get_data() const {
     return data;
+}
+
+unsigned int SmartFitter::size() const {
+    return data.size();
 }
 
 unsigned int SmartFitter::dof() const {

@@ -1,4 +1,4 @@
-#include <fitter/refactored/Fitter.h>
+#include <fitter/Fitter.h>
 
 #include <numeric>
 

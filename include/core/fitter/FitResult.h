@@ -13,15 +13,9 @@ namespace fitter {
     class FitResult : public mini::Result {
         public:
             FitResult() noexcept = default;
-            FitResult(observer_ptr<Fitter> fitter, const mini::Result& res, double chi2) noexcept;
             FitResult(const mini::Result& res, double chi2, unsigned int dof) noexcept;
             ~FitResult() override = default;
             
-            /**
-             * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
-             */ 
-            void add_fit(observer_ptr<Fitter> fit) noexcept;
-
             /**
              * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
              */

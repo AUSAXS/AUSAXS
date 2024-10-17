@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fitter/refactored/Fitter.h>
+#include <fitter/Fitter.h>
 #include <dataset/SimpleDataset.h>
 #include <mini/detail/Parameter.h>
 #include <hist/HistFwd.h>

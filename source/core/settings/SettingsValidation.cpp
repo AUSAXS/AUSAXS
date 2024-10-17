@@ -36,9 +36,9 @@ void settings::validate_settings() {
             [[fallthrough]];
         default:
             // check for excluded volume fitting compatibility
-            if (settings::hist::fit_excluded_volume) {
+            if (settings::fit::fit_excluded_volume) {
                 console::print_warning("Warning: The chosen histogram manager does not support excluded volume fitting. Disabling excluded volume fitting.");
-                settings::hist::fit_excluded_volume = false;
+                settings::fit::fit_excluded_volume = false;
             }
     }
 

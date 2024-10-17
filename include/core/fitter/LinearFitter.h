@@ -1,171 +1,48 @@
 #pragma once
 
-#include <hist/HistFwd.h>
-#include <io/IOFwd.h>
-#include <utility/UtilityFwd.h>
 #include <fitter/Fitter.h>
-#include <utility/observer_ptr.h>
+
+#include <vector>
 
 namespace fitter {
+    /**
+     * @brief A simple linear least-squares fitter for fitting the linear relationship y = ax+b.
+     */
+    class LinearFitter : public Fitter {
+        public:
+            virtual ~LinearFitter() override = default;
 
-	/**
-	 * @brief Fit an intensity curve to a dataset. 
-	 * 
-	 * Two parameters will be fitted: 
-	 *    a: The slope of the curve.
-	 *    b: The intercept of the curve.
-	 * 
-	 * This is just a convenient wrapper around SimpleLeastSquares. 
-	 */
-	class LinearFitter : public Fitter {
-		protected: 
-			LinearFitter();
+            /**
+             * @brief Prepare a linear least-squares fit with unity errors. 
+             *
+             * @param data The measured data.
+             * @param model The model data to be fitted.
+             */
+            LinearFitter(const std::vector<double> data, const std::vector<double> model);
 
-		public: 
-            LinearFitter(LinearFitter&& other);
+            /**
+             * @brief Prepare a linear least-squares fit.
+             *
+             * @param data The measured data.
+             * @param model The model data to be fitted.
+             * @param errors The errors on the measured data.
+             */
+            LinearFitter(const std::vector<double> data, const std::vector<double> model, const std::vector<double> errors);
 
-			/**
-			 * Prepare a fit of the measured values in @a input to a model to be defined later. 
-			 * 
-			 * @param input The path to the file containing the measured values. 
-			 */
-			LinearFitter(const io::ExistingFile& input);
-
-			/**
-			 * Prepare a fit of the measured values in @a input to the model described by @a h.
-			 * 
-			 * @param input The path to the file containing the measured values. 
-			 * @param h The distance histogram to fit. 
-			 */
-			LinearFitter(const io::ExistingFile& input, std::unique_ptr<hist::DistanceHistogram> h);
-
-			/**
-			 * Prepare a fit to the dataset.
-			 */
-			LinearFitter(const SimpleDataset& data);
-
-			/**
-			 * Prepare a fit of the histogram to the dataset. 
-			 */
-			LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> hist);
-
-			/**
-			 * Prepare a fit of the first histogram to the second. A series of data points is extracted from @a h2 and used to fit @a h1.
-			 * 
-			 * @param data The data histogram. 
-			 * @param model The model histogram. 
-			 */
-			LinearFitter(std::unique_ptr<hist::DistanceHistogram> data, std::unique_ptr<hist::DistanceHistogram> model);
-
-			/**
-			 * Prepare a fit of the first histogram to the second. A series of data points is extracted from @a h2 and used to fit @a h1.
-			 * 
-			 * @param data The data histogram. 
-			 * @param model The model histogram. 
-			 * @param limits The limits on the generated data points. 
-			 */
-			LinearFitter(std::unique_ptr<hist::DistanceHistogram> data, std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits);
-
-			/**
-			 * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
-			 * 
-			 * @param model The model histogram. 
-			 */
-			LinearFitter(std::unique_ptr<hist::DistanceHistogram> model);
-
-			/**
-			 * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
-			 * 
-			 * @param model The model histogram. 
-			 * @param limits The limits on the generated data points. 
-			 */
-			LinearFitter(std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits);
-
-			/**
-			 * @brief Destructor.
-			 */
-			virtual ~LinearFitter() override = default;
-
-			/**
-			 * @brief Perform the fit.
-			 * 
-			 * ! This function does NOT use the chi2 method, and is therefore not compatible with constraints.
-			 * 
-			 * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
-			 */
-			[[nodiscard]] virtual std::shared_ptr<FitResult> fit() override;
-
-			/**
-			 * @brief Perform the fit.
-			 * 
-			 * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
-			 */
-            [[nodiscard]] virtual double fit_chi2_only() override;
-
-			[[nodiscard]] virtual FitResult::FitInfo plot() override;
-
-			[[nodiscard]] virtual SimpleDataset plot_residuals() override;
-
-			/**
-			 * @brief Change the scattering histogram used for the fit. 
-			 */
-			void set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> h);
-
-			/**
-			 * @brief Get a view of the scattering histogram used for the fit. 
-			 */
-			[[nodiscard]] observer_ptr<hist::DistanceHistogram> get_scattering_hist();
-
-			/**
-			 * @brief Normalize all internally calculated intensities such that they start at this value.  
-			 */
-			void normalize_intensity(double I0);
-
-			/**
-			 * @brief Get the number of degrees of freedom. 
-			 */
-			[[nodiscard]] virtual unsigned int dof() const override;
-
-			/**
-			 * @brief Get the total number of data points.
-			 */
+            [[nodiscard]] std::unique_ptr<FitResult> fit() override;
+            [[nodiscard]] double fit_chi2_only() override;
+            [[nodiscard]] unsigned int dof() const override;
             [[nodiscard]] unsigned int size() const override;
+            [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
 
-			/**
-			 * @brief Get the result of the last fit() call. 
-			 */
-			[[nodiscard]] virtual std::shared_ptr<FitResult> get_fit() const override;
+        private:
+            std::vector<double> data, model, inv_sigma;
 
-			void operator=(LinearFitter&& other);
-
-		protected: 
-			std::shared_ptr<FitResult> fitted; 			// The previous fit result
-			SimpleDataset data;          				// Observed data set
-			double I0 = -1;              				// Normalization intensity
-			std::unique_ptr<hist::DistanceHistogram> h; // The scattering histogram to fit
-
-			/**
-			 * @brief Calculate chi2 for a given choice of parameters @a params.
-			 */
-			[[nodiscard]] virtual double chi2(const std::vector<double>& params) override;
-
-			/**
-			 * @brief Prepare this class for fitting.
-			 * 
-			 * @param file measured values to compare the model against.
-			 */
-			void setup(const io::ExistingFile& file);
-
-			/**
-			 * @brief Splice values from the model to fit the evaluation points defined by the q values of the input file. 
-			 * 
-			 * @param ym the model y-values corresponding to xm
-			 */
-			[[nodiscard]] std::vector<double> splice(const std::vector<double>& ym) const;
-
-			/**
-			 * @brief Initialize this class based on a model histogram. 
-			 */
-			void model_setup(std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits);
-	};
+            /**
+             * @brief Perform a linear least-squares fit and calculate @a only the fitted parameters.
+             *
+             * @return The fitted parameters (a, b, a_err^2, b_err^2) for the equation y = ax+b.
+             */
+            [[nodiscard]] std::vector<double> fit_params_only();
+    };
 }

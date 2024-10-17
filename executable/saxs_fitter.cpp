@@ -3,8 +3,7 @@
 #include <data/Body.h>
 #include <data/record/Water.h>
 #include <data/Molecule.h>
-#include <fitter/HydrationFitter.h>
-#include <fitter/ExcludedVolumeFitter.h>
+#include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
 #include <plots/All.h>
 #include <settings/All.h>
@@ -66,8 +65,10 @@ int main(int argc, char const *argv[]) {
             if (s == "fraser" || s == "grid") {settings::molecule::use_effective_charge = false;} // ensure correct setup for standard args
         }, 
         "The excluded volume model to use. Options: Simple, Fraser, Grid.");
-    sub_exv->add_flag("--fit", settings::hist::fit_excluded_volume, 
-        "Fit the excluded volume.")->default_val(settings::hist::fit_excluded_volume);
+    sub_exv->add_flag("--fit", settings::fit::fit_excluded_volume, 
+        "Fit the excluded volume.")->default_val(settings::fit::fit_excluded_volume);
+    sub_exv->add_flag("--fit-density", settings::fit::fit_solvent_density, 
+        "Fit the solvent density for the excluded volume.")->default_val(settings::fit::fit_solvent_density);
     sub_exv->add_option_function<std::string>("--table", [] (const std::string& s) {settings::detail::parse_option("exv_volume", {s});}, 
         "The set of displaced volume tables to use. Options: Traube, vdw, Voronoi, Minimum fluctuation (mf)."
     );
@@ -90,6 +91,8 @@ int main(int argc, char const *argv[]) {
         "Keep or discard water molecules from the structure file. "
         "If they are discarded, a new solvation shell is generated."
     )->default_val(use_existing_hydration);
+    sub_water->add_flag("--fit", settings::fit::fit_hydration, 
+        "Fit the hydration shell.")->default_val(settings::fit::fit_hydration);
     sub_water->add_option("--reduce,-r", settings::grid::water_scaling, 
         "Reduce the number of generated water molecules to a percentage of the number of atoms. "
         "Use 0 for no reduction."
@@ -183,19 +186,17 @@ int main(int argc, char const *argv[]) {
             protein.generate_new_hydration();
         }
 
-        std::shared_ptr<fitter::HydrationFitter> fitter;
-        if (settings::hist::fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
-        else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
-        auto result = fitter->fit();
+        fitter::SmartFitter fitter(mfile, protein.get_histogram());
+        auto result = fitter.fit();
         fitter::FitReporter::report(result.get());
         fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);
 
-        plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "p(r)." + settings::plots::format);
-        plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
+        // plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
+        // plots::PlotProfiles::quick_plot(fitter->get_model(), settings::general::output + "profiles." + settings::plots::format);
 
         // save fit
-        fitter->get_model_dataset().save(settings::general::output + "ausaxs.fit");
-        fitter->get_dataset().save(settings::general::output + mfile.stem() + ".scat");
+        Dataset({result->curves.col(0), result->curves.col(2)}).save(settings::general::output + "ausaxs.fit");
+        fitter.get_data().save(settings::general::output + mfile.stem() + ".scat");
 
         // calculate rhoM
         double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));

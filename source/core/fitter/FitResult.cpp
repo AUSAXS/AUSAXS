@@ -14,22 +14,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace fitter;
 
-FitResult::FitResult(observer_ptr<Fitter> fitter, const mini::Result& res, double chi2) noexcept : FitResult(res, chi2, fitter->size()) {
-    add_fit(fitter);
-    add_curves(fitter);
-}
-
 FitResult::FitResult(const mini::Result& res, double chi2, unsigned int dof) noexcept : Result(res), dof(dof) {
     fval = chi2;
     this->dof -= parameters.size();
-}
-
-void FitResult::add_curves(FitCurves&& curves) noexcept {
-    this->curves = std::move(curves);
-}
-
-void FitResult::add_fit(observer_ptr<Fitter> fitter) noexcept {
-    add_fit(fitter->get_fit().get());
 }
 
 void FitResult::add_fit(observer_ptr<FitResult> fit) noexcept {

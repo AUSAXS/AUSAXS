@@ -65,6 +65,7 @@ namespace hist {
 
             void apply_water_scaling_factor(double k) override;
             void apply_excluded_volume_scaling_factor(double k) override;
+            void apply_solvent_density_scaling_factor(double k) override;
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.

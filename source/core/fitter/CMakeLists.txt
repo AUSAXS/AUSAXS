@@ -1,8 +1,7 @@
 target_sources(ausaxs_core PRIVATE 
-	"ExcludedVolumeFitter.cpp"
-	"FitResult.cpp"
 	"FitReporter.cpp"
-	"HydrationFitter.cpp"
+	"FitResult.cpp"
+	"Fitter.cpp"
 	"LinearFitter.cpp"
-	"SimpleLeastSquares.cpp"
+	"SmartFitter.cpp"
 )
