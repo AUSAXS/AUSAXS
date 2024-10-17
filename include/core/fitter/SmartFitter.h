@@ -51,7 +51,7 @@ namespace fitter {
             SimpleDataset get_data() const;
 
         private:
-            SimpleDataset data, data_spliced;
+            SimpleDataset data;
             std::unique_ptr<hist::DistanceHistogram> model;
             std::vector<mini::Parameter> guess;
 

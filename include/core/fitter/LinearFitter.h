@@ -34,6 +34,7 @@ namespace fitter {
             [[nodiscard]] unsigned int dof() const override;
             [[nodiscard]] unsigned int size() const override;
             [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
+            [[nodiscard]] std::vector<double> get_residuals() {return get_residuals(fit_params_only());}
 
         private:
             std::vector<double> data, model, inv_sigma;

@@ -51,7 +51,7 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
 }
 
 std::vector<double> SmartFitter::extract_opt_pars(observer_ptr<FitResult> smart) {
-    std::vector<double> popt = {smart->get_parameter(0), smart->get_parameter(1)};
+    std::vector<double> popt;
     if (settings::fit::fit_hydration) {popt.push_back(smart->get_parameter("c"));}
     if (settings::fit::fit_excluded_volume) {popt.push_back(smart->get_parameter("d"));}
     if (settings::fit::fit_solvent_density) {popt.push_back(smart->get_parameter("e"));}
@@ -60,44 +60,34 @@ std::vector<double> SmartFitter::extract_opt_pars(observer_ptr<FitResult> smart)
 
 std::unique_ptr<FitResult> SmartFitter::fit() {
     validate_model(model.get());
-
-    // we interpolate the data to avoid having to interpolate the model for every chi2 evaluation
-    // for the final chi2 evaluation we use the original data
-    data_spliced = data.interpolate(model->get_q_axis());
-    data_spliced.yerr() = data.yerr(); // keep the errors since we have no guarantee of smoothness
+    if (guess.empty()) {guess = get_default_guess();}
 
     auto f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(mini::type::DEFAULT, std::move(f), guess);
     auto res = mini->minimize();
 
-    if (settings::fit::fit_hydration) {cast_h(model.get())->apply_water_scaling_factor(res.get_parameter("c"));}
+    if (settings::fit::fit_hydration)       {cast_h(model.get())->apply_water_scaling_factor(res.get_parameter("c"));}
     if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(res.get_parameter("d"));}
     if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(res.get_parameter("e"));}
 
-    auto y_model_i = splice(model->debye_transform().get_counts());
-    LinearFitter fitter(y_model_i, data.y(), data.yerr());
+    auto model_spliced = splice(model->debye_transform().get_counts());
+    LinearFitter fitter(model_spliced, data.y(), data.yerr());
     std::shared_ptr<FitResult> ab_fit = fitter.fit();
 
     auto fit_result = std::make_unique<FitResult>(res, res.fval, data.size()-1); // start with the fit performed here
     fit_result->add_fit(ab_fit.get());                                           // add the a,b inner fit
-    fit_result->curves = {{data.x(), data.y(), y_model_i, get_residuals(extract_opt_pars(fit_result.get()))}};
+    fit_result->curves = {{data.x(), data.y(), model_spliced, get_residuals(extract_opt_pars(fit_result.get()))}};
     fit_result->evaluated_points = mini->get_evaluated_points();                 // add the evaluated points
     return fit_result;
 }
 
 double SmartFitter::fit_chi2_only() {
     validate_model(model.get());
+    if (guess.empty()) {guess = get_default_guess();}
 
     std::function<double(std::vector<double>)> f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(mini::type::DEFAULT, std::move(f), guess);
-    auto res = mini->minimize();
-
-    if (settings::fit::fit_hydration) {cast_h(model.get())->apply_water_scaling_factor(res.get_parameter("c"));}
-    if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(res.get_parameter("d"));}
-    if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(res.get_parameter("e"));}
-
-    LinearFitter fitter(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
-    return fitter.fit_chi2_only();
+    return mini->minimize().fval;
 }
 
 std::vector<double> SmartFitter::get_residuals(const std::vector<double>& params) {
@@ -108,8 +98,8 @@ std::vector<double> SmartFitter::get_residuals(const std::vector<double>& params
     if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
     if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index]);}
 
-    LinearFitter fitter(model->debye_transform().get_counts(), data_spliced.y(), data_spliced.yerr());
-    return fitter.get_residuals(params);
+    LinearFitter fitter(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
+    return fitter.get_residuals();
 }
 
 SimpleDataset SmartFitter::get_data() const {
