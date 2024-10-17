@@ -37,7 +37,7 @@ void ExcludedVolumeFitter::initialize_guess() {
 std::shared_ptr<FitResult> ExcludedVolumeFitter::fit() {
     fit_type = mini::type::DEFAULT;
     settings::general::verbose = false;
-    std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
+    auto f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, std::move(f), {guess, guess_exv});
     auto res = mini->minimize();
 
