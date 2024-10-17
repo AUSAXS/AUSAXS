@@ -28,18 +28,12 @@ namespace fitter {
             void add_fit(observer_ptr<FitResult> fit) noexcept;
 
             /**
-             * @brief Add plots to this fit.
-             */
-            void add_plots(observer_ptr<Fitter> fitter);
-
-            /**
              * @brief Get a string representation of this object. 
              */
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
+            Dataset curves; // | q | data | interpolated model | residuals |
             mini::Landscape evaluated_points;
-            struct FitInfo {SimpleDataset dataset, fitted_intensity, fitted_intensity_interpolated;} info;
-            SimpleDataset residuals;
             unsigned int dof;
     };
 }

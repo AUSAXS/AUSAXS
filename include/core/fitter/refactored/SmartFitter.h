@@ -13,6 +13,8 @@ namespace fitter {
      */
     class SmartFitter : public Fitter {
         public:
+            virtual ~SmartFitter() override;
+
             /**
              * @brief Prepare a fit of the measured values in @a input to a model to be defined later. 
              */
@@ -22,7 +24,6 @@ namespace fitter {
              * @brief Prepare a fit of the measured values in @a input to the model described by @a h.
              */
             SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
-            virtual ~SmartFitter() override;
 
             [[nodiscard]] virtual std::unique_ptr<FitResult> fit() override;
             [[nodiscard]] virtual double fit_chi2_only() override;
@@ -45,21 +46,16 @@ namespace fitter {
 			[[nodiscard]] observer_ptr<hist::DistanceHistogram> get_model();
 
             /**
-             * @brief Get the optimized model. 
-             *
-             * @throw bad_order if the fit has not been performed yet.
-             */
-            SimpleDataset get_optimized_model() const;
-
-            /**
              * @brief Get the dataset being fitted. 
              */
             SimpleDataset get_data() const;
 
         private:
-            SimpleDataset data;
-            std::unique_ptr<hist::ICompositeDistanceHistogram> model;
+            SimpleDataset data, data_spliced;
+            std::unique_ptr<hist::DistanceHistogram> model;
             std::vector<mini::Parameter> guess;
+
+            [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
 
 			/**
 			 * @brief Splice values from the model to match the data.
@@ -73,6 +69,9 @@ namespace fitter {
              */
             [[nodiscard]] std::vector<mini::Parameter> get_default_guess() const;
 
-            [[nodiscard]] double chi2(const std::vector<double>& params) override;
+            /**
+             * @brief Get the optimal parameters in order for the fit result. 
+             */
+            std::vector<double> extract_opt_pars(observer_ptr<FitResult> smart);
     };
 }

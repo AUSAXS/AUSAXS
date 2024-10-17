@@ -34,6 +34,11 @@ namespace fitter {
             /**
              * @brief Evaluate the chi2 for the given parameters.
              */
-            [[nodiscard]] virtual double chi2(const std::vector<double>& params) = 0;
+            [[nodiscard]] double chi2(const std::vector<double>& params);
+
+            /**
+             * @brief Get the residuals for the given parameters.
+             */
+            [[nodiscard]] virtual std::vector<double> get_residuals(const std::vector<double>& params) = 0;
     };
 }

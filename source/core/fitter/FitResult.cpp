@@ -16,7 +16,7 @@ using namespace fitter;
 
 FitResult::FitResult(observer_ptr<Fitter> fitter, const mini::Result& res, double chi2) noexcept : FitResult(res, chi2, fitter->size()) {
     add_fit(fitter);
-    add_plots(fitter);
+    add_curves(fitter);
 }
 
 FitResult::FitResult(const mini::Result& res, double chi2, unsigned int dof) noexcept : Result(res), dof(dof) {
@@ -24,9 +24,8 @@ FitResult::FitResult(const mini::Result& res, double chi2, unsigned int dof) noe
     this->dof -= parameters.size();
 }
 
-void FitResult::add_plots(observer_ptr<Fitter> fitter) {
-    info = fitter->plot();
-    residuals = fitter->plot_residuals();
+void FitResult::add_curves(FitCurves&& curves) noexcept {
+    this->curves = std::move(curves);
 }
 
 void FitResult::add_fit(observer_ptr<Fitter> fitter) noexcept {
