@@ -112,6 +112,11 @@ class Dataset : public Matrix<double> {
         void set_col_names(unsigned int i, const std::string& name);
 
         /**
+         * @brief Check if this dataset has named columns.
+         */
+        bool is_named() const noexcept;
+
+        /**
          * @brief Get the column names. 
          */
         [[nodiscard]] std::vector<std::string> get_col_names();

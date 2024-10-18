@@ -195,7 +195,7 @@ int main(int argc, char const *argv[]) {
         // plots::PlotProfiles::quick_plot(fitter->get_model(), settings::general::output + "profiles." + settings::plots::format);
 
         // save fit
-        Dataset({result->curves.col(0), result->curves.col(2)}).save(settings::general::output + "ausaxs.fit");
+        Dataset({result->curves.col("q"), result->curves.col("I_fit"), std::vector<double>(result->curves.size(), 0)}).save(settings::general::output + "ausaxs.fit");
         fitter.get_data().save(settings::general::output + mfile.stem() + ".scat");
 
         // calculate rhoM

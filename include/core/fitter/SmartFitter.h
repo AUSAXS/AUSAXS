@@ -46,16 +46,21 @@ namespace fitter {
 			[[nodiscard]] observer_ptr<hist::DistanceHistogram> get_model();
 
             /**
+             * @brief Get the model curve for the given parameters.
+             */
+            [[nodiscard]] std::vector<double> get_model_curve(const std::vector<double>& params);
+
+            /**
              * @brief Get the dataset being fitted. 
              */
             SimpleDataset get_data() const;
+
+            [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
 
         private:
             SimpleDataset data;
             std::unique_ptr<hist::DistanceHistogram> model;
             std::vector<mini::Parameter> guess;
-
-            [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
 
 			/**
 			 * @brief Splice values from the model to match the data.

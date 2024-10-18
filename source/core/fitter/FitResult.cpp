@@ -28,6 +28,19 @@ void FitResult::add_fit(observer_ptr<FitResult> fit, bool front) noexcept {
     dof -= fit->parameters.size();
 }
 
+void FitResult::set_data_curves(Dataset&& curves_) {
+    curves = std::move(curves_);
+    if (curves.size() != 5) {throw except::invalid_argument("FitResult::set_data_curves: Invalid number of columns. Expected | q | I | I_err | I_fit | residuals |.");}
+    if (curves.is_named() && curves.get_col_names() != std::vector<std::string>{"q", "I", "I_err", "I_fit", "residuals"}) {
+        throw except::invalid_argument("FitResult::set_data_curves: Invalid column names. Expected | q | I | I_err | I_fit | residuals |.");
+    }
+    else {curves.set_col_names({"q", "I", "I_err", "I_fit", "residuals"});}
+}
+
+void FitResult::set_data_curves(std::vector<double>&& q, std::vector<double>&& data, std::vector<double>&& data_err, std::vector<double>&& model, std::vector<double>&& residuals) {
+    curves = Dataset({q, data, data_err, model, residuals}, {"q", "I", "I_err", "I_fit", "residuals"});
+}
+
 std::string FitResult::to_string() const noexcept {
     std::stringstream ss;
     ss <<   "+----------------------------------------------------------+"

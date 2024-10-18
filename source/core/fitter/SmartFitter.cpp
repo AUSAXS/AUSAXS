@@ -63,20 +63,22 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     if (guess.empty()) {guess = get_default_guess();}
 
     auto f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
-    auto mini = mini::create_minimizer(mini::type::DEFAULT, std::move(f), guess);
+    auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
     auto res = mini->minimize();
 
-    if (settings::fit::fit_hydration)       {cast_h(model.get())->apply_water_scaling_factor(res.get_parameter("c"));}
-    if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(res.get_parameter("d"));}
-    if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(res.get_parameter("e"));}
-
-    auto model_spliced = splice(model->debye_transform().get_counts());
-    LinearFitter fitter(model_spliced, data.y(), data.yerr());
+    auto ym = get_model_curve(res.get_parameter_values());
+    LinearFitter fitter(ym, data.y(), data.yerr());
     std::shared_ptr<FitResult> ab_fit = fitter.fit();
 
     auto fit_result = std::make_unique<FitResult>(res, res.fval, data.size()-1); // start with the fit performed here
     fit_result->add_fit(ab_fit.get(), true);                                     // add the a,b inner fit
-    fit_result->curves = {{data.x(), data.y(), model_spliced, get_residuals(extract_opt_pars(fit_result.get()))}};
+    fit_result->set_data_curves(
+        data.x(),                                                                // q
+        data.y(),                                                                // I
+        data.yerr(),                                                             // I_err
+        std::move(ym),                                                           // I_fit
+        get_residuals(extract_opt_pars(fit_result.get()))                        // residuals
+    );
     fit_result->evaluated_points = mini->get_evaluated_points();                 // add the evaluated points
     return fit_result;
 }
@@ -86,14 +88,20 @@ double SmartFitter::fit_chi2_only() {
     if (guess.empty()) {guess = get_default_guess();}
 
     std::function<double(std::vector<double>)> f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
-    auto mini = mini::create_minimizer(mini::type::DEFAULT, std::move(f), guess);
+    auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
     return mini->minimize().fval;
 }
 
 std::vector<double> SmartFitter::get_residuals(const std::vector<double>& params) {
+    auto Im = get_model_curve(params);
+    LinearFitter fitter(Im, data.y(), data.yerr());
+    return fitter.get_residuals();
+}
+
+std::vector<double> SmartFitter::get_model_curve(const std::vector<double>& params) {
     assert(
         static_cast<int>(params.size()) == settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density 
-        && "SmartFitter::chi2: Invalid number of parameters."
+        && "SmartFitter::get_model_curve: Invalid number of parameters."
     );
 
     int index = 0;
@@ -101,8 +109,7 @@ std::vector<double> SmartFitter::get_residuals(const std::vector<double>& params
     if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
     if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index]);}
 
-    LinearFitter fitter(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
-    return fitter.get_residuals();
+    return splice(model->debye_transform().get_counts());
 }
 
 SimpleDataset SmartFitter::get_data() const {
@@ -118,6 +125,20 @@ unsigned int SmartFitter::dof() const {
 }
 
 void SmartFitter::set_guess(std::vector<mini::Parameter>&& guess) {
+    if (unsigned int N = settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density; guess.size() != N) {
+        throw except::invalid_argument("SmartFitter::set_guess: Invalid number of parameters. Got " + std::to_string(guess.size()) + ", expected " + std::to_string(N) + ".");
+    }
+    for (auto g : guess) {
+        if (g.name == "c" && !settings::fit::fit_hydration) {
+            throw except::invalid_argument("SmartFitter::set_guess: Cannot set hydration scaling factor when hydration is disabled.");
+        }
+        if (g.name == "d" && !settings::fit::fit_excluded_volume) {
+            throw except::invalid_argument("SmartFitter::set_guess: Cannot set excluded volume scaling factor when excluded volume is disabled.");
+        }
+        if (g.name == "e" && !settings::fit::fit_solvent_density) {
+            throw except::invalid_argument("SmartFitter::set_guess: Cannot set solvent density scaling factor when solvent density is disabled.");
+        }
+    }
     this->guess = std::move(guess);
 }
 

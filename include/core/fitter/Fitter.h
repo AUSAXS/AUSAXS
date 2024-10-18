@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fitter/FitterFwd.h>
+#include <mini/MiniFwd.h>
 
 #include <vector>
 #include <memory>
@@ -40,5 +41,13 @@ namespace fitter {
              * @brief Get the residuals for the given parameters.
              */
             [[nodiscard]] virtual std::vector<double> get_residuals(const std::vector<double>& params) = 0;
+
+            /**
+             * @brief Set the minimization algorithm to use.
+             */
+            void set_algorithm(mini::algorithm t) {algorithm = t;}
+
+        protected:
+            mini::algorithm algorithm;
     };
 }

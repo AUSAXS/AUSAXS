@@ -20,10 +20,10 @@ For more information, please refer to the LICENSE file in the project root.
         };
     }
 
-    template<mini::type algo>
+    template<mini::algorithm algo>
     dlibMinimizer<algo>::dlibMinimizer() = default;
 
-    template<mini::type algo>
+    template<mini::algorithm algo>
     dlibMinimizer<algo>::dlibMinimizer(std::function<double(double)> function, const Parameter& param) {
         auto f = [_function = std::move(function)] (std::vector<double> x) {
             return _function(x[0]);
@@ -32,7 +32,7 @@ For more information, please refer to the LICENSE file in the project root.
         set_function(std::move(f));
     }
 
-    template<mini::type algo>
+    template<mini::algorithm algo>
     dlibMinimizer<algo>::dlibMinimizer(std::function<double(std::vector<double>)> function, std::vector<Parameter> param) {
         for (auto& p : param) {
             add_parameter(p);
@@ -40,10 +40,10 @@ For more information, please refer to the LICENSE file in the project root.
         set_function(std::move(function));
     }
 
-    template<mini::type algo>
+    template<mini::algorithm algo>
     dlibMinimizer<algo>::~dlibMinimizer() = default;
 
-    template<mini::type algo>
+    template<mini::algorithm algo>
     Result dlibMinimizer<algo>::minimize_override() {
         if (!is_parameter_set()) {throw std::invalid_argument("dlibMinimizer::minimize: No parameters were supplied.");}
         if (!is_function_set()) {throw std::invalid_argument("dlibMinimizer::minimize: No function was set.");}
@@ -76,7 +76,7 @@ For more information, please refer to the LICENSE file in the project root.
         double fmin;
         auto fwrapper = [this](dlib::matrix<double, 0, 1> x) {return this->function(std::vector<double>(x.begin(), x.end()));};
         if (bounds) {
-            if (algo == mini::type::DLIB_GLOBAL) {
+            if constexpr (algo == mini::algorithm::DLIB_GLOBAL) {
                 auto eval = dlib::find_min_global(
                     fwrapper, 
                     min, 
@@ -85,7 +85,7 @@ For more information, please refer to the LICENSE file in the project root.
                 );
                 x = eval.x;
                 fmin = eval.y;
-            } else if (algo == mini::type::BFGS) {
+            } else if constexpr (algo == mini::algorithm::BFGS) {
                 fmin = dlib::find_min_box_constrained(
                     dlib::bfgs_search_strategy(), 
                     dlib::objective_delta_stop_strategy(1e-7), 
@@ -121,6 +121,6 @@ For more information, please refer to the LICENSE file in the project root.
         return res;
     }
 
-    template class mini::dlibMinimizer<mini::type::DLIB_GLOBAL>;
-    template class mini::dlibMinimizer<mini::type::BFGS>;
+    template class mini::dlibMinimizer<mini::algorithm::DLIB_GLOBAL>;
+    template class mini::dlibMinimizer<mini::algorithm::BFGS>;
 #endif

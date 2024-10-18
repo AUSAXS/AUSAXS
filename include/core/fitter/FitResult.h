@@ -25,11 +25,23 @@ namespace fitter {
             void add_fit(observer_ptr<FitResult> fit, bool front = false) noexcept;
 
             /**
+             * @brief Set the data curves for this fit. 
+             *
+             * @throw std::invalid_argument If the number of columns is not 5 or the column names are not as expected. 
+             */
+            void set_data_curves(Dataset&& curves);
+
+            /**
+             * @brief Set the data curves for this fit. 
+             */
+            void set_data_curves(std::vector<double>&& q, std::vector<double>&& data, std::vector<double>&& data_err, std::vector<double>&& model, std::vector<double>&& residuals);
+
+            /**
              * @brief Get a string representation of this object. 
              */
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
-            Dataset curves; // | q | data | interpolated model | residuals |
+            Dataset curves; // | q | data | data_err | interpolated model | residuals |
             mini::Landscape evaluated_points;
             unsigned int dof;
     };
