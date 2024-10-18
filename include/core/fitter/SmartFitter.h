@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fitter/Fitter.h>
+#include <fitter/LinearFitter.h>
 #include <dataset/SimpleDataset.h>
 #include <mini/detail/Parameter.h>
 #include <hist/HistFwd.h>
@@ -26,7 +27,6 @@ namespace fitter {
             SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             [[nodiscard]] virtual std::unique_ptr<FitResult> fit() override;
-            [[nodiscard]] virtual double fit_chi2_only() override;
             [[nodiscard]] unsigned int dof() const override;
             [[nodiscard]] unsigned int size() const override;
 
@@ -57,6 +57,11 @@ namespace fitter {
 
             [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
 
+            /**
+             * @brief Perform a fit and return the optimal parameters.
+             */
+            [[nodiscard]] std::vector<double> fit_params_only() override;
+
         private:
             SimpleDataset data;
             std::unique_ptr<hist::DistanceHistogram> model;
@@ -77,6 +82,6 @@ namespace fitter {
             /**
              * @brief Prepare a linear fitter for the given parameters.
              */
-            std::unique_ptr<LinearFitter> prepare_linear_fitter(const std::vector<double>& params);
+            LinearFitter prepare_linear_fitter(const std::vector<double>& params);
     };
 }

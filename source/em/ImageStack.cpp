@@ -21,8 +21,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <settings/EMSettings.h>
 #include <settings/HistogramSettings.h>
+#include <hydrate/generation/RadialHydration.h>
+#include <math/Vector3.h>
 
 #include <fstream>
+#include <cassert>
 
 using namespace em;
 using namespace fitter;
@@ -79,6 +82,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
     // 'this' is ok since prepare_function is private and thus only used within the class itself
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};}); // ensure hydration shell is deterministic
     return [this, fitter = std::move(_fitter)] (const std::vector<double>& params) -> double {
         static unsigned int counter = 0;
         static double last_c = 5;
@@ -452,9 +456,10 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
-    func({min_abs.x});
+    double fval = func({min_abs.x});
+    assert(std::abs(fval - min_abs.y) < 1e-6 && "ImageStack::fit: The minimum found by the minimizer does not match the minimum found in the dataset.");
 
-    std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(res, res.fval, dof);
+    std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(res, fval, dof+3); // +3 because they'll be subtracted again by the add_fit call
     {
         auto data = fitter->get_data();
         emfit->set_data_curves(data.x(), data.y(), data.yerr(), fitter->get_model_curve({last_fit->get_parameter("c")}), fitter->get_residuals({last_fit->get_parameter("c")}));

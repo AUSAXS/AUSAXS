@@ -30,7 +30,6 @@ namespace fitter {
             LinearFitter(const std::vector<double> data, const std::vector<double> model, const std::vector<double> errors);
 
             [[nodiscard]] std::unique_ptr<FitResult> fit() override;
-            [[nodiscard]] double fit_chi2_only() override;
             [[nodiscard]] unsigned int dof() const override;
             [[nodiscard]] unsigned int size() const override;
             [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
@@ -54,6 +53,6 @@ namespace fitter {
              *
              * @return The fitted parameters (a, b, a_err^2, b_err^2) for the equation y = ax+b.
              */
-            [[nodiscard]] std::vector<double> fit_params_only();
+            [[nodiscard]] std::vector<double> fit_params_only() override;
     };
 }

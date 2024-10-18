@@ -570,7 +570,6 @@ def plot_fits(data_file, fit_files, report_file, title=""):
                             if "+----" in line:
                                 break
                             dof += 1
-            print(f"size: {len(fitdata)}, params: {dof}")
             load_fit(fitdata, "AUSAXS", dof)
             colors.append("tab:red")
         else:

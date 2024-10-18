@@ -4,7 +4,6 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <fitter/SmartFitter.h>
-#include <fitter/LinearFitter.h>
 #include <fitter/FitResult.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <dataset/SimpleDataset.h>
@@ -50,7 +49,7 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     return guess;
 }
 
-std::unique_ptr<LinearFitter> SmartFitter::prepare_linear_fitter(const std::vector<double>& params) {
+LinearFitter SmartFitter::prepare_linear_fitter(const std::vector<double>& params) {
     assert(
         static_cast<int>(params.size()) == settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density 
         && "SmartFitter::get_model_curve: Invalid number of parameters."
@@ -61,7 +60,7 @@ std::unique_ptr<LinearFitter> SmartFitter::prepare_linear_fitter(const std::vect
     if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
     if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index]);}
 
-    return std::make_unique<LinearFitter>(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
+    return LinearFitter(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
 }
 
 std::unique_ptr<FitResult> SmartFitter::fit() {
@@ -73,38 +72,39 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     auto res = mini->minimize();
 
     auto linear_fitter = prepare_linear_fitter(res.get_parameter_values());
-    auto linear_fit = linear_fitter->fit();
+    auto linear_fit = linear_fitter.fit();
 
-    auto fit_result = std::make_unique<FitResult>(res, res.fval, data.size());   // start with the fit performed here
-    fit_result->add_fit(linear_fit.get(), true);                                 // add the a,b inner fit
+    assert(std::abs(linear_fit->fval - res.fval) < 1e-6 && "SmartFitter::fit: Linear fit and minimizer results do not match.");
+    auto fit_result = std::make_unique<FitResult>(res, res.fval, data.size()); // start with the fit performed here
+    fit_result->add_fit(linear_fit.get(), true);                               // add the a,b inner fit
     fit_result->set_data_curves(
-        data.x(),                                                                // q
-        data.y(),                                                                // I
-        data.yerr(),                                                             // I_err
-        linear_fitter->get_model_curve(linear_fit->get_parameter_values()),      // I_fit
-        linear_fitter->get_residuals(linear_fit->get_parameter_values())         // residuals
+        data.x(),                                                              // q
+        data.y(),                                                              // I
+        data.yerr(),                                                           // I_err
+        linear_fitter.get_model_curve(linear_fit->get_parameter_values()),     // I_fit
+        linear_fitter.get_residuals(linear_fit->get_parameter_values())        // residuals
     );
-    fit_result->evaluated_points = mini->get_evaluated_points();                 // add the evaluated points
+    fit_result->evaluated_points = mini->get_evaluated_points();               // add the evaluated points
     return fit_result;
 }
 
-double SmartFitter::fit_chi2_only() {
+std::vector<double> SmartFitter::fit_params_only() {
     validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
     std::function<double(std::vector<double>)> f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
-    return mini->minimize().fval;
+    return mini->minimize().get_parameter_values();
 }
 
 std::vector<double> SmartFitter::get_residuals(const std::vector<double>& params) {
     auto fitter = prepare_linear_fitter(params);
-    return fitter->get_residuals();
+    return fitter.get_residuals();
 }
 
 std::vector<double> SmartFitter::get_model_curve(const std::vector<double>& params) {
     auto fitter = prepare_linear_fitter(params);
-    return fitter->get_model_curve();
+    return fitter.get_model_curve();
 }
 
 SimpleDataset SmartFitter::get_data() const {

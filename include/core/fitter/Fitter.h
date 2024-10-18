@@ -19,7 +19,12 @@ namespace fitter {
             /**
              * @brief Perform a fit and return the minimum function value.
              */
-            [[nodiscard]] virtual double fit_chi2_only() = 0;
+            [[nodiscard]] double fit_chi2_only();
+
+            /**
+             * @brief Perform a fit and return the optimal parameters.
+             */
+            [[nodiscard]] virtual std::vector<double> fit_params_only() = 0;
 
             /**
              * @brief Get the number of degrees of freedom.
@@ -48,6 +53,6 @@ namespace fitter {
             void set_algorithm(mini::algorithm t) {algorithm = t;}
 
         protected:
-            mini::algorithm algorithm;
+            mini::algorithm algorithm = mini::algorithm::DEFAULT;
     };
 }

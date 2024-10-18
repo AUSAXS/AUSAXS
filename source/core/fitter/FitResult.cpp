@@ -16,7 +16,6 @@ using namespace fitter;
 
 FitResult::FitResult(const mini::Result& res, double chi2, unsigned int dof) noexcept : Result(res), dof(dof) {
     fval = chi2;
-    this->dof -= parameters.size();
 }
 
 void FitResult::add_fit(observer_ptr<FitResult> fit, bool front) noexcept {

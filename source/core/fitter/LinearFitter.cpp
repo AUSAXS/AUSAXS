@@ -41,10 +41,6 @@ std::vector<double> LinearFitter::fit_params_only() {
     return {a, b, a_err, b_err};
 }
 
-double LinearFitter::fit_chi2_only() {
-    return chi2(fit_params_only());
-}
-
 std::unique_ptr<FitResult> LinearFitter::fit() {
     auto p = fit_params_only();
 
