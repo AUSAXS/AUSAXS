@@ -21,7 +21,7 @@ SmartFitter& SmartFitter::operator=(SmartFitter&&) noexcept = default;
 
 SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {}
 
-SmartFitter::SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : SmartFitter(saxs) {
+SmartFitter::SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::DistanceHistogram> h) : SmartFitter(saxs) {
     set_model(std::move(h));
 }
 

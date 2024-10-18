@@ -12,7 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace fitter;
 
-LinearFitter::LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> model) : LinearFitter(data.y(), model->debye_transform().get_counts(), data.yerr()) {}
+LinearFitter::LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> model) : LinearFitter(data.y(), model->debye_transform().get_counts(), data.yerr()) {}
 
 LinearFitter::LinearFitter(const std::vector<double> data, const std::vector<double> model) : data(data), model(model), inv_sigma(data.size(), 1) {
     assert(data.size() == model.size() && "LinearFitter::LinearFitter: Data and model must have the same size.");
@@ -53,6 +53,10 @@ std::unique_ptr<FitResult> LinearFitter::fit() {
     f->fval = chi2(p);
     f->fevals = 1;
     return f;
+}
+
+void LinearFitter::set_model(std::unique_ptr<hist::DistanceHistogram> h) {
+    model = h->debye_transform().get_counts();
 }
 
 std::vector<double> LinearFitter::get_model_curve(const std::vector<double>& p) {

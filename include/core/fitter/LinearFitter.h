@@ -16,7 +16,7 @@ namespace fitter {
             /**
              * @brief Prepare a fit of the measured values in @a input to the model described by @a h.
              */
-            LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> model);
+            LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> model);
 
             /**
              * @brief Prepare a linear least-squares fit with unity errors. 
@@ -50,6 +50,11 @@ namespace fitter {
              * @brief Fit and get the model curve.
              */
             [[nodiscard]] std::vector<double> get_model_curve();
+
+			/**
+			 * @brief Set the scattering histogram used for the fit. 
+			 */
+			void set_model(std::unique_ptr<hist::DistanceHistogram> model);
 
         private:
             std::vector<double> data, model, inv_sigma;

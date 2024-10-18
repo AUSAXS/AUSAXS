@@ -1,4 +1,3 @@
-#include "settings/GeneralSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -14,7 +13,7 @@
 #include <data/Body.h>
 #include <data/record/Water.h>
 #include <em/detail/ExtendedLandscape.h>
-#include <fitter/ExcludedVolumeFitter.h>
+#include <fitter/SmartFitter.h>
 #include <mini/detail/FittedParameter.h>
 
 using namespace data;
@@ -77,19 +76,19 @@ TEST_CASE("fitter: consistent_charge_scaling") {
     };
 
     SECTION("simple, " + string_mapper(settings::hist::histogram_manager)) {
-        std::string mfile = "tests/files/2epe.dat";
+        io::ExistingFile mfile = "tests/files/2epe.dat";
         Molecule protein("tests/files/2epe.pdb");
         protein.clear_hydration();
-        fitter::HydrationFitter fitter(mfile, protein.get_histogram());
+        fitter::SmartFitter fitter(mfile, protein.get_histogram());
         auto fit1 = fitter.fit_chi2_only();
 
         protein.update_effective_charge(1.2);
-        fitter.set_scattering_hist(protein.get_histogram());
+        fitter.set_model(protein.get_histogram());
         auto fit2 = fitter.fit_chi2_only();
         REQUIRE(fit1 != fit2);
 
         protein.update_effective_charge(1.0);
-        fitter.set_scattering_hist(protein.get_histogram());
+        fitter.set_model(protein.get_histogram());
         fit2 = fitter.fit_chi2_only();
         REQUIRE_THAT(fit1, Catch::Matchers::WithinAbs(fit2, 1e-6));
     }
@@ -102,29 +101,56 @@ TEST_CASE("fitter: correct dof") {
     unsigned int size = data.size();
 
     SECTION("LinearFitter") {
-        fitter::LinearFitter fitter(data);
-        REQUIRE(fitter.dof() == size-3);
-
-        fitter.set_scattering_hist(protein.get_histogram());
+        fitter::LinearFitter fitter(data, protein.get_histogram());
+        REQUIRE(fitter.dof() == size-2);
         auto res = fitter.fit();
-        REQUIRE(res->dof == size-3);
+        REQUIRE(res->dof == size-2);
     }
 
-    SECTION("HydrationFitter") {
-        fitter::HydrationFitter fitter(data);
-        REQUIRE(fitter.dof() == size-4);
+    SECTION("SmartFitter") {
+        auto fit_and_check = [size, &protein, &data] (unsigned int dof) {
+            fitter::SmartFitter fitter(data);
+            REQUIRE(fitter.dof() == size-dof);
+            fitter.set_model(protein.get_histogram());
+            auto res = fitter.fit();
+            REQUIRE(res->dof == size-dof);
+        };
 
-        fitter.set_scattering_hist(protein.get_histogram());
-        auto res = fitter.fit();
-        REQUIRE(res->dof == size-4);
-    }
+        SECTION("single") {
+            settings::fit::fit_hydration = true;
+            fit_and_check(3);
 
-    SECTION("ExcludedVolumeFitter") {
-        fitter::ExcludedVolumeFitter fitter(data);
-        REQUIRE(fitter.dof() == size-5);
+            settings::fit::fit_hydration = false;
+            settings::fit::fit_excluded_volume = true;
+            fit_and_check(3);
 
-        fitter.set_scattering_hist(protein.get_histogram());
-        auto res = fitter.fit();
-        REQUIRE(res->dof == size-5);
+            settings::fit::fit_excluded_volume = false;
+            settings::fit::fit_solvent_density = true;
+            fit_and_check(3);
+        }
+
+        SECTION("double") {
+            settings::fit::fit_hydration = true;
+            settings::fit::fit_excluded_volume = true;
+            settings::fit::fit_solvent_density = false;
+            fit_and_check(4);
+
+            settings::fit::fit_hydration = true;
+            settings::fit::fit_excluded_volume = false;
+            settings::fit::fit_solvent_density = true;
+            fit_and_check(4);
+
+            settings::fit::fit_hydration = false;
+            settings::fit::fit_excluded_volume = true;
+            settings::fit::fit_solvent_density = true;
+            fit_and_check(4);
+        }
+
+        SECTION("triple") {
+            settings::fit::fit_hydration = true;
+            settings::fit::fit_excluded_volume = true;
+            settings::fit::fit_solvent_density = true;
+            fit_and_check(5);
+        }
     }
 }

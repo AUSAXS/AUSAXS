@@ -5,7 +5,7 @@
 
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <hist//intensity_calculator/ICompositeDistanceHistogram.h>
-#include <fitter/HydrationFitter.h>
+#include <fitter/SmartFitter.h>
 #include <rigidbody/RigidBody.h>
 #include <math/Vector3.h>
 #include <data/Body.h>
@@ -39,7 +39,7 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
     settings::molecule::implicit_hydrogens = false;
     RigidBody protein(ap);
 
-    fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("tests/files/2epe.dat", protein.get_histogram());
+    fitter::ConstrainedFitter<fitter::SmartFitter> fitter(SimpleDataset("tests/files/2epe.dat"), protein.get_histogram());
     CHECK(fitter.get_constraint_manager() == nullptr);
     fitter.set_constraint_manager(protein.get_constraint_manager());
     CHECK(fitter.get_constraint_manager() == protein.get_constraint_manager().get());
@@ -52,7 +52,7 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None; // make sure there's no other distance constraints
     RigidBody protein(ap);
 
-    fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("tests/files/2epe.dat", protein.get_histogram());
+    fitter::ConstrainedFitter<fitter::SmartFitter> fitter(SimpleDataset("tests/files/2epe.dat"), protein.get_histogram());
     fitter.set_constraint_manager(protein.get_constraint_manager());
     double chi2 = fitter.fit()->fval;
 
