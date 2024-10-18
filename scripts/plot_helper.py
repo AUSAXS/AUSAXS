@@ -557,7 +557,7 @@ def plot_fits(data_file, fit_files, report_file, title=""):
             fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 1])
 
             # calculate exact dof
-            dof = 1
+            dof = 0
             if report_file != "":
                 # find dof in report
                 with open(report_file, "r") as f:
@@ -565,10 +565,12 @@ def plot_fits(data_file, fit_files, report_file, title=""):
                     for line in f:
                         if "PAR" in line:
                             par_section = True
+                            continue
                         if par_section:
                             if "+----" in line:
                                 break
                             dof += 1
+            print(f"size: {len(fitdata)}, params: {dof}")
             load_fit(fitdata, "AUSAXS", dof)
             colors.append("tab:red")
         else:

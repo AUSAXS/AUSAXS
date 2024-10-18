@@ -457,7 +457,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(res, res.fval, dof);
     {
         auto data = fitter->get_data();
-        emfit->set_data_curves(data.x(), data.y(), data.yerr(), fitter->get_model_curve(res.get_parameter_values()), fitter->get_residuals(res.get_parameter_values()));
+        emfit->set_data_curves(data.x(), data.y(), data.yerr(), fitter->get_model_curve({last_fit->get_parameter("c")}), fitter->get_residuals({last_fit->get_parameter("c")}));
     }
     emfit->add_fit(last_fit.get(), true);
     emfit->fevals = evals.evals.size();

@@ -75,8 +75,8 @@ namespace fitter {
             [[nodiscard]] std::vector<mini::Parameter> get_default_guess() const;
 
             /**
-             * @brief Get the optimal parameters in order for the fit result. 
+             * @brief Prepare a linear fitter for the given parameters.
              */
-            std::vector<double> extract_opt_pars(observer_ptr<FitResult> smart);
+            std::unique_ptr<LinearFitter> prepare_linear_fitter(const std::vector<double>& params);
     };
 }

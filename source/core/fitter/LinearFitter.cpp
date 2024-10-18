@@ -56,6 +56,20 @@ std::unique_ptr<FitResult> LinearFitter::fit() {
     return f;
 }
 
+std::vector<double> LinearFitter::get_model_curve(const std::vector<double>& p) {
+    assert(p.size() == 2 && "LinearFitter::get_model_curve: Invalid number of parameters.");
+    std::vector<double> model(data.size());
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        model[i] = p[0]*data[i] + p[1];
+    }
+    return model;
+}
+
+std::vector<double> LinearFitter::get_model_curve() {
+    auto p = fit_params_only();
+    return get_model_curve({p[0], p[1]});
+}
+
 std::vector<double> LinearFitter::get_residuals(const std::vector<double>& p) {
     std::vector<double> residuals(data.size());
     for (unsigned int i = 0; i < data.size(); ++i) {

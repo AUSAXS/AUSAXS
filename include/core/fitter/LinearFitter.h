@@ -36,6 +36,16 @@ namespace fitter {
             [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
             [[nodiscard]] std::vector<double> get_residuals() {return get_residuals(fit_params_only());}
 
+            /**
+             * @brief Get the model curve for the given parameters.
+             */
+            [[nodiscard]] std::vector<double> get_model_curve(const std::vector<double>& params);
+
+            /**
+             * @brief Fit and get the model curve.
+             */
+            [[nodiscard]] std::vector<double> get_model_curve();
+
         private:
             std::vector<double> data, model, inv_sigma;
 

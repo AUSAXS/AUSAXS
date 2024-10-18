@@ -50,13 +50,19 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     return guess;
 }
 
-std::vector<double> SmartFitter::extract_opt_pars(observer_ptr<FitResult> smart) {
-    std::vector<double> popt;
-    if (settings::fit::fit_hydration) {popt.push_back(smart->get_parameter("c"));}
-    if (settings::fit::fit_excluded_volume) {popt.push_back(smart->get_parameter("d"));}
-    if (settings::fit::fit_solvent_density) {popt.push_back(smart->get_parameter("e"));}
-    return popt;
-};
+std::unique_ptr<LinearFitter> SmartFitter::prepare_linear_fitter(const std::vector<double>& params) {
+    assert(
+        static_cast<int>(params.size()) == settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density 
+        && "SmartFitter::get_model_curve: Invalid number of parameters."
+    );
+
+    int index = 0;
+    if (settings::fit::fit_hydration) {cast_h(model.get())->apply_water_scaling_factor(params[index++]);}
+    if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
+    if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index]);}
+
+    return std::make_unique<LinearFitter>(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
+}
 
 std::unique_ptr<FitResult> SmartFitter::fit() {
     validate_model(model.get());
@@ -66,18 +72,17 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
     auto res = mini->minimize();
 
-    auto ym = get_model_curve(res.get_parameter_values());
-    LinearFitter fitter(ym, data.y(), data.yerr());
-    std::shared_ptr<FitResult> ab_fit = fitter.fit();
+    auto linear_fitter = prepare_linear_fitter(res.get_parameter_values());
+    auto linear_fit = linear_fitter->fit();
 
-    auto fit_result = std::make_unique<FitResult>(res, res.fval, data.size()-1); // start with the fit performed here
-    fit_result->add_fit(ab_fit.get(), true);                                     // add the a,b inner fit
+    auto fit_result = std::make_unique<FitResult>(res, res.fval, data.size());   // start with the fit performed here
+    fit_result->add_fit(linear_fit.get(), true);                                 // add the a,b inner fit
     fit_result->set_data_curves(
         data.x(),                                                                // q
         data.y(),                                                                // I
         data.yerr(),                                                             // I_err
-        std::move(ym),                                                           // I_fit
-        get_residuals(extract_opt_pars(fit_result.get()))                        // residuals
+        linear_fitter->get_model_curve(linear_fit->get_parameter_values()),      // I_fit
+        linear_fitter->get_residuals(linear_fit->get_parameter_values())         // residuals
     );
     fit_result->evaluated_points = mini->get_evaluated_points();                 // add the evaluated points
     return fit_result;
@@ -93,23 +98,13 @@ double SmartFitter::fit_chi2_only() {
 }
 
 std::vector<double> SmartFitter::get_residuals(const std::vector<double>& params) {
-    auto Im = get_model_curve(params);
-    LinearFitter fitter(Im, data.y(), data.yerr());
-    return fitter.get_residuals();
+    auto fitter = prepare_linear_fitter(params);
+    return fitter->get_residuals();
 }
 
 std::vector<double> SmartFitter::get_model_curve(const std::vector<double>& params) {
-    assert(
-        static_cast<int>(params.size()) == settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density 
-        && "SmartFitter::get_model_curve: Invalid number of parameters."
-    );
-
-    int index = 0;
-    if (settings::fit::fit_hydration) {cast_h(model.get())->apply_water_scaling_factor(params[index++]);}
-    if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
-    if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index]);}
-
-    return splice(model->debye_transform().get_counts());
+    auto fitter = prepare_linear_fitter(params);
+    return fitter->get_model_curve();
 }
 
 SimpleDataset SmartFitter::get_data() const {
