@@ -42,12 +42,12 @@ namespace rigidbody {
 			/**
 			 * @brief Get the fitter for this rigid body. Note that this is a ConstrainedFitter, and will thus include chi2 contributions from the constraints. 
 			 */
-			std::shared_ptr<fitter::LinearFitter> get_fitter() const;
+			std::shared_ptr<fitter::SmartFitter> get_fitter() const;
 
 			/**
 			 * @brief Create a new fitter for this rigid body. This fitter will not include any constraints.
 			 */
-			std::unique_ptr<fitter::LinearFitter> get_unconstrained_fitter(const io::ExistingFile& saxs) const;
+			std::unique_ptr<fitter::SmartFitter> get_unconstrained_fitter(const io::ExistingFile& saxs) const;
 
 			void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
 
@@ -63,7 +63,7 @@ namespace rigidbody {
 			std::shared_ptr<selection::BodySelectStrategy> body_selector;
 			std::shared_ptr<transform::TransformStrategy> transform;
 			std::shared_ptr<parameter::ParameterGenerationStrategy> parameter_generator;
-			std::shared_ptr<fitter::LinearFitter> fitter;
+			std::shared_ptr<fitter::SmartFitter> fitter;
 
 			/**
 			 * @brief Perform an optimization step.
@@ -75,7 +75,7 @@ namespace rigidbody {
 			/**
 			 * @brief Prepare the fitter for this rigidbody.
 			 */
-			void prepare_fitter(const std::string& measurement_path); 
+			void prepare_fitter(const io::ExistingFile& measurement_path); 
 
 			/**
 			 * @brief Small initialization function.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fitter/Fitter.h>
+#include <dataset/DatasetFwd.h>
 
 #include <vector>
 
@@ -11,6 +12,11 @@ namespace fitter {
     class LinearFitter : public Fitter {
         public:
             virtual ~LinearFitter() override = default;
+
+            /**
+             * @brief Prepare a fit of the measured values in @a input to the model described by @a h.
+             */
+            LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> model);
 
             /**
              * @brief Prepare a linear least-squares fit with unity errors. 

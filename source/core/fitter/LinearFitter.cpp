@@ -5,11 +5,14 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fitter/LinearFitter.h>
 #include <fitter/FitResult.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 
 #include <cmath>
 #include <cassert>
 
 using namespace fitter;
+
+LinearFitter::LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> model) : LinearFitter(data.y(), model->debye_transform().get_counts(), data.yerr()) {}
 
 LinearFitter::LinearFitter(const std::vector<double> data, const std::vector<double> model) : data(data), model(model), inv_sigma(data.size(), 1) {
     assert(data.size() == model.size() && "LinearFitter::LinearFitter: Data and model must have the same size.");

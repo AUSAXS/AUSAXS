@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fitter/FitterFwd.h>
+#include <fitter/FitResult.h>
 #include <mini/MiniFwd.h>
 
 #include <vector>
@@ -40,7 +41,7 @@ namespace fitter {
             /**
              * @brief Evaluate the chi2 for the given parameters.
              */
-            [[nodiscard]] double chi2(const std::vector<double>& params);
+            [[nodiscard]] virtual double chi2(const std::vector<double>& params);
 
             /**
              * @brief Get the residuals for the given parameters.

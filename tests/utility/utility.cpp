@@ -7,53 +7,6 @@
 #include <settings/GeneralSettings.h>
 #include <plots/All.h>
 
-TEST_CASE("plots", "[manual]") {
-    std::vector<double> x = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
-    std::vector<double> y = {-5, -3, 4, 8, 12, 7, 3, 1, -3, -5, -9};
-    std::vector<double> yerr = std::vector<double>(y.size(), 0.5);
-    SimpleDataset data(x, y, yerr);
-
-    // SECTION("markers") {
-    //     plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/default.png");
-
-    //     data.add_plot_options("markers");
-    //     plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/markers.png");
-
-    //     data.add_plot_options("errors");
-    //     plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/errors.png");
-    // }
-
-    // SECTION("ylimits") {
-    //     data.add_plot_options("markers", {{"ylimits", Limit(3, 5)}});
-    //     plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/limits_y.png");
-    // }
-
-    // SECTION("xlimits") {
-    //     data.add_plot_options("markers", {{"xlimits", Limit(0, 5)}});
-    //     plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/limits_x.png");
-    // }
-
-    // SECTION("log") {
-    //     data.limit_y(1, inf);
-    //     data.add_plot_options({{"logy", true}});
-    //     plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/log.png");
-    // }
-
-    SECTION("intensityfit") {
-        x =                      {0.001, 0.002, 0.003, 0.009, 0.02, 0.06, 0.1, 0.2, 0.4, 0.7};
-        std::vector<double> y1 = {10,    10,    9,     9.2,   8.4,  7,    5,   3,   2,   3};
-        std::vector<double> y2 = {11,    10.5,  10,    9.5,   8.5,  7.4,  5.6, 3.3, 2.2, 2};
-        std::vector<double> y2err = {0.5, 0.5,  0.5,   0.5,   0.5,  0.5,  0.5, 0.5, 0.5, 0.5};
-
-        auto fit = std::make_shared<fitter::FitResult>();
-        fit->info.dataset = SimpleDataset(x, y1, y2err);
-        fit->info.fitted_intensity = SimpleDataset(x, y2);
-        fit->info.fitted_intensity_interpolated = SimpleDataset(x, y2);
-
-        plots::PlotIntensityFit::quick_plot(fit.get(), settings::general::output + "test/utility/plots/intensityfit.png");
-    }
-}
-
 TEST_CASE("fitreporter", "[manual]") {
     fitter::FitResult fit;
     fit.status = true;

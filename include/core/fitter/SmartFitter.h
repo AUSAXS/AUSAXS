@@ -15,6 +15,8 @@ namespace fitter {
     class SmartFitter : public Fitter {
         public:
             virtual ~SmartFitter() override;
+            SmartFitter(SmartFitter&&) noexcept;
+            SmartFitter& operator=(SmartFitter&&) noexcept;
 
             /**
              * @brief Prepare a fit of the measured values in @a input to a model to be defined later. 
@@ -24,7 +26,7 @@ namespace fitter {
             /**
              * @brief Prepare a fit of the measured values in @a input to the model described by @a h.
              */
-            SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            SmartFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             [[nodiscard]] virtual std::unique_ptr<FitResult> fit() override;
             [[nodiscard]] unsigned int dof() const override;

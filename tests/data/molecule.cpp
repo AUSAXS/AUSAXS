@@ -10,10 +10,11 @@
 #include <utility/Utility.h>
 #include <fitter/LinearFitter.h>
 #include <settings/All.h>
-#include <fitter/HydrationFitter.h>
+#include <fitter/SmartFitter.h>
 #include <hydrate/generation/RadialHydration.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ExactDebyeCalculator.h>
 
 #include <vector>
 #include <string>
@@ -222,7 +223,7 @@ TEST_CASE("Molecule::simulate_dataset", "[files]") {
     Molecule protein("tests/files/2epe.pdb");
 
     SimpleDataset data = protein.simulate_dataset();
-    fitter::LinearFitter fitter(data, protein.get_histogram());
+    fitter::LinearFitter fitter(data.y(), protein.get_histogram()->get_total_counts());
     auto res = fitter.fit();
     REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     // plots::PlotIntensityFit plot1(res);
@@ -274,7 +275,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
                               Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
         Molecule protein(atoms, {});
 
-        vector<double> I_dumb = protein.debye_transform();
+        vector<double> I_dumb = hist::exact_debye_transform(protein, constants::axes::q_axis.as_vector());
         vector<double> I_smart = protein.get_histogram()->debye_transform().get_counts();
 
         for (int i = 0; i < 8; i++) {
@@ -290,9 +291,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
         Molecule protein("tests/files/2epe.pdb");
         protein.clear_hydration();
 
-        std::cout << "hydration atoms: " << protein.get_waters().size() << std::endl; 
-
-        vector<double> I_dumb = protein.debye_transform();
+        vector<double> I_dumb = hist::exact_debye_transform(protein, constants::axes::q_axis.as_vector());
         vector<double> I_smart = protein.get_histogram()->debye_transform().get_counts();
 
         for (int i = 0; i < 8; i++) {
@@ -360,7 +359,7 @@ TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
     // we want to check that the hydration shells are consistent for fitting purposes
     SECTION("consistent hydration generation") {
         Molecule protein("tests/files/2epe.pdb");
-        fitter::LinearFitter fitter("tests/files/2epe.dat", protein.get_histogram());
+        fitter::LinearFitter fitter(SimpleDataset{"tests/files/2epe.dat"}, protein.get_histogram());
 
         protein.generate_new_hydration();
         double chi2 = fitter.fit()->fval;
@@ -527,18 +526,6 @@ TEST_CASE_METHOD(fixture, "Molecule::size_water") {
     CHECK(protein.size_water() == 0);
     Molecule protein2(bodies, {w1, w2});
     CHECK(protein2.size_water() == 2);
-}
-
-TEST_CASE("Molecule::fit", "[files]") {
-    Molecule protein("tests/files/2epe.pdb");
-    std::string measurement = "tests/files/2epe.dat";
-    fitter::HydrationFitter fitter(measurement, protein.get_histogram());
-
-    auto pfit = protein.fit(measurement);
-    auto hfit = fitter.fit();
-    CHECK(pfit->fval == hfit->fval);
-    CHECK(pfit->fevals == hfit->fevals);
-    CHECK(pfit->parameters == hfit->parameters);
 }
 
 TEST_CASE_METHOD(fixture, "Molecule::get_histogram_manager") {

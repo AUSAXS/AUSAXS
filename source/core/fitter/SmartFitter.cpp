@@ -16,6 +16,8 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace fitter;
 
 SmartFitter::~SmartFitter() = default;
+SmartFitter::SmartFitter(SmartFitter&&) noexcept = default;
+SmartFitter& SmartFitter::operator=(SmartFitter&&) noexcept = default;
 
 SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {}
 
