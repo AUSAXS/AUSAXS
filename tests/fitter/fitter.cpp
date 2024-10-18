@@ -8,7 +8,7 @@
 #include <utility/Utility.h>
 #include <settings/All.h>
 #include <hist/Histogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/record/Water.h>
@@ -91,6 +91,62 @@ TEST_CASE("fitter: consistent_charge_scaling") {
         fitter.set_model(protein.get_histogram());
         fit2 = fitter.fit_chi2_only();
         REQUIRE_THAT(fit1, Catch::Matchers::WithinAbs(fit2, 1e-6));
+    }
+}
+
+class SmartFitterDebug : public fitter::SmartFitter {
+    public:
+        using fitter::SmartFitter::SmartFitter;
+        void set_data(SimpleDataset& data) {this->data = data;}
+};
+
+TEST_CASE("SmartFitter::fit") {
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
+    Molecule protein("tests/files/2epe.pdb");
+
+    SmartFitterDebug fitter({{}}, protein.get_histogram());
+    auto h = static_cast<hist::ICompositeDistanceHistogramExv*>(fitter.get_model());
+
+    SECTION("hydration shell") {
+        settings::fit::fit_hydration = true;
+        settings::fit::fit_excluded_volume = false;
+        settings::fit::fit_solvent_density = false;
+
+        for (auto v : std::vector{0.5, 2., 5.}) {
+            h->apply_water_scaling_factor(v);
+            auto d = h->debye_transform().as_dataset();
+            d.simulate_errors();
+            fitter.set_data(d);
+            REQUIRE_THAT(fitter.fit()->get_parameter("c").value, Catch::Matchers::WithinAbs(v, 1e-3));
+        }
+    }
+
+    SECTION("excluded volume") {
+        settings::fit::fit_hydration = false;
+        settings::fit::fit_excluded_volume = true;
+        settings::fit::fit_solvent_density = false;
+
+        for (auto v : std::vector{0.92, 0.96, 1.04, 1.08}) {
+            h->apply_excluded_volume_scaling_factor(v);
+            auto d = h->debye_transform().as_dataset();
+            d.simulate_errors();
+            fitter.set_data(d);
+            REQUIRE_THAT(fitter.fit()->get_parameter("d").value, Catch::Matchers::WithinAbs(v, 1e-3));
+        }
+    }
+
+    SECTION("solvent density") {
+        settings::fit::fit_hydration = false;
+        settings::fit::fit_excluded_volume = false;
+        settings::fit::fit_solvent_density = true;
+
+        for (auto v : std::vector{0.95, 0.975, 1.025, 1.05}) {
+            h->apply_solvent_density_scaling_factor(v);
+            auto d = h->debye_transform().as_dataset();
+            d.simulate_errors();
+            fitter.set_data(d);
+            REQUIRE_THAT(fitter.fit()->get_parameter("e").value, Catch::Matchers::WithinAbs(v, 1e-3));
+        }
     }
 }
 

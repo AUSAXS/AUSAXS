@@ -63,7 +63,7 @@ namespace fitter {
              */
             [[nodiscard]] std::vector<double> fit_params_only() override;
 
-        private:
+        protected:
             SimpleDataset data;
             std::unique_ptr<hist::DistanceHistogram> model;
             std::vector<mini::Parameter> guess;

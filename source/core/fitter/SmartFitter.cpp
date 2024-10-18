@@ -109,6 +109,10 @@ std::vector<double> SmartFitter::get_model_curve(const std::vector<double>& para
     return fitter.get_model_curve();
 }
 
+observer_ptr<hist::DistanceHistogram> SmartFitter::get_model() {
+    return model.get();
+}
+
 SimpleDataset SmartFitter::get_data() const {
     return data;
 }
