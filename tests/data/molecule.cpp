@@ -223,7 +223,7 @@ TEST_CASE("Molecule::simulate_dataset", "[files]") {
     Molecule protein("tests/files/2epe.pdb");
 
     SimpleDataset data = protein.simulate_dataset();
-    fitter::LinearFitter fitter(data.y(), protein.get_histogram()->get_total_counts());
+    fitter::LinearFitter fitter(data, protein.get_histogram());
     auto res = fitter.fit();
     REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     // plots::PlotIntensityFit plot1(res);

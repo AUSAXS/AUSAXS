@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fitter/Fitter.h>
 #include <fitter/LinearFitter.h>
 #include <dataset/SimpleDataset.h>
 #include <mini/detail/Parameter.h>
@@ -84,6 +83,6 @@ namespace fitter {
             /**
              * @brief Prepare a linear fitter for the given parameters.
              */
-            LinearFitter prepare_linear_fitter(const std::vector<double>& params);
+            detail::LinearLeastSquares prepare_linear_fitter(const std::vector<double>& params);
     };
 }

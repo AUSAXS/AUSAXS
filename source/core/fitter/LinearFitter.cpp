@@ -6,81 +6,48 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fitter/LinearFitter.h>
 #include <fitter/FitResult.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-
-#include <cmath>
-#include <cassert>
+#include <math/CubicSpline.h>
 
 using namespace fitter;
 
-LinearFitter::LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> model) : LinearFitter(data.y(), model->debye_transform().get_counts(), data.yerr()) {}
-
-LinearFitter::LinearFitter(const std::vector<double> data, const std::vector<double> model) : data(data), model(model), inv_sigma(data.size(), 1) {
-    assert(data.size() == model.size() && "LinearFitter::LinearFitter: Data and model must have the same size.");
-}
-
-LinearFitter::LinearFitter(const std::vector<double> data, const std::vector<double> model, const std::vector<double> errors) : LinearFitter(data, model) {
-    assert(data.size() == errors.size() && "LinearFitter::LinearFitter: Data and errors must have the same size.");
-    for (unsigned i = 0; i < errors.size(); ++i) {
-        inv_sigma[i] = 1./errors[i];
+LinearFitter::LinearFitter(const SimpleDataset& data) : data(data) {
+    detail::LinearLeastSquares::data = data.y();
+    detail::LinearLeastSquares::inv_sigma = data.yerr();
+    for (unsigned i = 0; i < detail::LinearLeastSquares::inv_sigma.size(); ++i) {
+        detail::LinearLeastSquares::inv_sigma[i] = 1./detail::LinearLeastSquares::inv_sigma[i];
     }
 }
 
-std::vector<double> LinearFitter::fit_params_only() {
-    double S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0;
-    for (unsigned i = 0; i < data.size(); ++i) {
-        double inv_sig2 = inv_sigma[i]*inv_sigma[i];
-        S += inv_sig2;
-        Sx += data[i]*inv_sig2;
-        Sy += model[i]*inv_sig2;
-        Sxx += std::pow(data[i], 2)*inv_sig2;
-        Sxy += data[i]*model[i]*inv_sig2;
+LinearFitter::LinearFitter(LinearFitter&&) noexcept = default;
+LinearFitter& LinearFitter::operator=(LinearFitter&&) noexcept = default;
+
+LinearFitter::LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> model) : data(data), model(std::move(model)) {
+    detail::LinearLeastSquares::data = data.y();
+    detail::LinearLeastSquares::model = splice(this->model->debye_transform().get_counts());
+    detail::LinearLeastSquares::inv_sigma = data.yerr();
+    for (unsigned i = 0; i < detail::LinearLeastSquares::inv_sigma.size(); ++i) {
+        detail::LinearLeastSquares::inv_sigma[i] = 1./detail::LinearLeastSquares::inv_sigma[i];
     }
-
-    double delta = S*Sxx - Sx*Sx;
-    double a = (S*Sxy - Sx*Sy)/delta;
-    double b = (Sxx*Sy - Sx*Sxy)/delta;
-    double a_err = S/delta;
-    double b_err = Sxx/delta;
-    return {a, b, a_err, b_err};
 }
 
-std::unique_ptr<FitResult> LinearFitter::fit() {
-    auto p = fit_params_only();
-
-    std::unique_ptr<FitResult> f = std::make_unique<FitResult>();
-    f->parameters = {{"a", p[0], std::sqrt(p[2])}, {"b", p[1], std::sqrt(p[3])}};
-    f->dof = dof();
-    f->fval = chi2(p);
-    f->fevals = 1;
-    return f;
+void LinearFitter::refresh_model() {
+    detail::LinearLeastSquares::model = splice(model->debye_transform().get_counts());
 }
 
-void LinearFitter::set_model(std::unique_ptr<hist::DistanceHistogram> h) {
-    model = h->debye_transform().get_counts();
+void LinearFitter::set_model(std::unique_ptr<hist::DistanceHistogram> model) {
+    this->model = std::move(model);
+    detail::LinearLeastSquares::model = splice(this->model->debye_transform().get_counts());
 }
 
-std::vector<double> LinearFitter::get_model_curve(const std::vector<double>& p) {
-    assert(p.size() == 2 && "LinearFitter::get_model_curve: Invalid number of parameters.");
-    std::vector<double> model(data.size());
+SimpleDataset LinearFitter::get_data() const {
+    return data;
+}
+
+std::vector<double> LinearFitter::splice(const std::vector<double>& ym) const {
+    std::vector<double> Im(data.size()); // spliced model values
+    math::CubicSpline s(model->get_q_axis(), ym);
     for (unsigned int i = 0; i < data.size(); ++i) {
-        model[i] = p[0]*data[i] + p[1];
+        Im[i] = s.spline(data.x(i));
     }
-    return model;
+    return Im;
 }
-
-std::vector<double> LinearFitter::get_model_curve() {
-    auto p = fit_params_only();
-    return get_model_curve({p[0], p[1]});
-}
-
-std::vector<double> LinearFitter::get_residuals(const std::vector<double>& p) {
-    std::vector<double> residuals(data.size());
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        residuals[i] = (model[i] - (p[0]*data[i] + p[1]))*inv_sigma[i];
-    }
-    return residuals;
-}
-
-unsigned int LinearFitter::dof() const {return data.size() - 2;}
-
-unsigned int LinearFitter::size() const {return data.size();}

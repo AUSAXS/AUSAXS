@@ -4,4 +4,6 @@ target_sources(ausaxs_core PRIVATE
 	"Fitter.cpp"
 	"LinearFitter.cpp"
 	"SmartFitter.cpp"
+
+	"detail/LinearLeastSquares.cpp"
 )

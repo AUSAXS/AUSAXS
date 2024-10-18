@@ -51,7 +51,7 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     return guess;
 }
 
-LinearFitter SmartFitter::prepare_linear_fitter(const std::vector<double>& params) {
+fitter::detail::LinearLeastSquares SmartFitter::prepare_linear_fitter(const std::vector<double>& params) {
     assert(
         static_cast<int>(params.size()) == settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density 
         && "SmartFitter::get_model_curve: Invalid number of parameters."
@@ -62,7 +62,7 @@ LinearFitter SmartFitter::prepare_linear_fitter(const std::vector<double>& param
     if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
     if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index]);}
 
-    return LinearFitter(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
+    return detail::LinearLeastSquares(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
 }
 
 std::unique_ptr<FitResult> SmartFitter::fit() {
@@ -77,7 +77,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     auto linear_fit = linear_fitter.fit();
 
     assert(std::abs(linear_fit->fval - res.fval) < 1e-6 && "SmartFitter::fit: Linear fit and minimizer results do not match.");
-    auto fit_result = std::make_unique<FitResult>(res, res.fval, data.size()); // start with the fit performed here
+    auto fit_result = std::make_unique<FitResult>(res, res.fval, dof()+2);     // start with the fit performed here
     fit_result->add_fit(linear_fit.get(), true);                               // add the a,b inner fit
     fit_result->set_data_curves(
         data.x(),                                                              // q
