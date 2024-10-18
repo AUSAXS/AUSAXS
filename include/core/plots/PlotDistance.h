@@ -11,32 +11,29 @@ namespace plots {
 	 */
 	class PlotDistance : public Plot {
 		public:
+			~PlotDistance() override;
+
 			/**
-			 * @brief Constructor.
+			 * @brief Prepare a new distance plot. 
 			 * 
 			 * @param data The ScatteringHistogram which will be plotted. 
 			 * @param path The path to the folder where the plot will be saved. 
 			 */
-			PlotDistance(observer_ptr<hist::ICompositeDistanceHistogram> data, const io::File& path);
+			PlotDistance(observer_ptr<hist::DistanceHistogram> data, const io::File& path);
 
 			/**
-			 * @brief Constructor.
+			 * @brief Prepare a new distance plot.
 			 * 
 			 * @param data The protein whose distances will be plotted. 
 			 * @param path The path to the folder where the plot will be saved. 
 			 */
 			PlotDistance(observer_ptr<data::Molecule> protein, const io::File& path);
-
-			/**
-			 * @brief Destructor. 
-			 */
-			~PlotDistance() override;
 		
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			static void quick_plot(observer_ptr<hist::ICompositeDistanceHistogram> data, const io::File& path);
+			static void quick_plot(observer_ptr<hist::DistanceHistogram> data, const io::File& path);
 		
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 

@@ -191,12 +191,12 @@ int main(int argc, char const *argv[]) {
         fitter::FitReporter::report(result.get());
         fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);
 
-        // plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
-        // plots::PlotProfiles::quick_plot(fitter->get_model(), settings::general::output + "profiles." + settings::plots::format);
-
-        // save fit
-        Dataset({result->curves.col("q"), result->curves.col("I_fit"), std::vector<double>(result->curves.size(), 0)}).save(settings::general::output + "ausaxs.fit");
-        fitter.get_data().save(settings::general::output + mfile.stem() + ".scat");
+        plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
+        plots::PlotProfiles::quick_plot(fitter.get_model(), settings::general::output + "profiles." + settings::plots::format);
+        result->curves.save(
+            settings::general::output + "ausaxs.fit", 
+            "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
+        );
 
         // calculate rhoM
         double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));

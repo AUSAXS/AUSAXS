@@ -140,7 +140,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     }
 }
 
-void RigidBody::apply_calibration(std::shared_ptr<fitter::FitResult> calibration) {
+void RigidBody::apply_calibration(std::unique_ptr<fitter::FitResult> calibration) {
     if (settings::general::verbose) {std::cout << "\tApplying calibration to rigid body." << std::endl;}
     this->calibration = std::move(calibration);
 }

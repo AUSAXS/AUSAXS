@@ -27,7 +27,7 @@ namespace rigidbody {
 			 * 
 			 * This will fix the solvent scattering density to the fitted value.
 			 */
-			void apply_calibration(std::shared_ptr<fitter::FitResult> calibration);
+			void apply_calibration(std::unique_ptr<fitter::FitResult> calibration);
 
 			/**
 			 * @brief Update the given fitter with the current rigid body parameters.
