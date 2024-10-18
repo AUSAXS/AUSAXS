@@ -5,6 +5,7 @@
 #include <data/Molecule.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <settings/All.h>
 #include <plots/All.h>
 
@@ -61,7 +62,7 @@ TEST_CASE("DistanceHistogram: check relative errors") {
         protein.clear_hydration();
         auto hist = protein.get_histogram();
         auto I_estimated = hist->debye_transform();
-        auto I_exact = protein.debye_transform();
+        auto I_exact = hist::exact_debye_transform(protein, constants::axes::q_axis.as_vector());
 
         plots::PlotDataset plot;
         plot.plot(I_estimated.as_dataset(), plots::PlotOptions({{"color", style::color::black}, {"logx", true}, {"logy", true}}));

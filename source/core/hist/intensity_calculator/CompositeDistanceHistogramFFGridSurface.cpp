@@ -213,7 +213,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
                 for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                     double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table_ax->begin(q), 0.0);
                     this->cache.intensity_profiles.ax[q-q0] += 
-                        2*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
+                        2*this->free_params.crho*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
                 }
             }
         });
@@ -222,7 +222,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
                 auto xx = evaluate_xx_distance_profile(cx[q]);
                 double xx_sum = std::inner_product(xx.begin(), xx.end(), sinqd_table_xx->begin(q), 0.0);
                 this->cache.intensity_profiles.xx[q-q0] += 
-                    xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
+                    this->free_params.crho*this->free_params.crho*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
             }
         });
     }
@@ -252,11 +252,12 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
                 auto wx = evaluate_wx_distance_profile(cx[q]);
                 double wx_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
                 this->cache.intensity_profiles.wx[q-q0] += 
-                    2*wx_sum*this->free_params.cw*ff_table.index(form_factor::water_bin, form_factor::exv_bin).evaluate(q);
+                    2*this->free_params.crho*wx_sum*this->free_params.crho*this->free_params.cw*ff_table.index(form_factor::water_bin, form_factor::exv_bin).evaluate(q);
             }
         });
     }
     this->cache.intensity_profiles.cached_cx = this->free_params.cx;
     this->cache.intensity_profiles.cached_cw = this->free_params.cw;
+    this->cache.intensity_profiles.cached_crho = this->free_params.crho;
     pool->wait();
 }

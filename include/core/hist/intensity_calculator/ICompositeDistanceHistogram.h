@@ -23,11 +23,24 @@ namespace hist {
             virtual const Distribution1D& get_ww_counts() const = 0;
             virtual Distribution1D& get_ww_counts() = 0;
 
+            /**
+             * @brief Apply a scaling factor to the water partial distance histogram.
+             */
             virtual void apply_water_scaling_factor(double k) = 0;
-            void reset_water_scaling_factor() {apply_water_scaling_factor(1);}
 
+            /**
+             * @brief Get the partial intensity profile for atom-atom interactions.
+             */
             virtual ScatteringProfile get_profile_aa() const = 0;
+
+            /**
+             * @brief Get the partial intensity profile for atom-water interactions.
+             */
             virtual ScatteringProfile get_profile_aw() const = 0;
+
+            /**
+             * @brief Get the partial intensity profile for water-water interactions.
+             */
             virtual ScatteringProfile get_profile_ww() const = 0;
 
             /**

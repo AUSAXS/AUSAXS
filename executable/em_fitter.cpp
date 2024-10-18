@@ -77,8 +77,9 @@ int main(int argc, char const *argv[]) {
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), {settings::general::output + "report.txt"}, argc, argv);
 
-        res->info.dataset.save({settings::general::output + mfile.stem() + ".scat"});
-        res->info.fitted_intensity_interpolated.save({settings::general::output + "ausaxs.fit"});
+        Dataset({res->curves.col("q"), res->curves.col("I_fit"), std::vector<double>(res->curves.size(), 0)}).save(settings::general::output + "ausaxs.fit");
+        Dataset({res->curves.col("q"), res->curves.col("I"), res->curves.col("I_err")}).save(settings::general::output + mfile.stem() + ".scat");
+
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

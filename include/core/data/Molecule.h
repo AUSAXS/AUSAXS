@@ -247,12 +247,6 @@ namespace data {
 			observer_ptr<grid::Grid> create_grid() const;
 
 			/**
-			 * @brief Calculate the exact Debye scattering intensity for this molecule without accounting for the hydration layer. A simple exp(-q*q) is used as the form factor. 
-			 *        This explicitly evaluates each term in the double-sum. For a far more efficient approach, create a ScatteringHistogram and call its equivalent method instead. 
-			 */
-			[[nodiscard]] std::vector<double> debye_transform() const;
-
-			/**
 			 * @brief Get the radius of gyration of this molecule. 
 			 */
 			[[nodiscard]] double get_Rg() const;
@@ -278,22 +272,10 @@ namespace data {
 			void bind_body_signallers();
 
 			/**
-			 * @brief Generate a new CRYST1 record for this molecule. 
-			 */
-			[[deprecated]] void generate_unit_cell();
-
-			/**
 			 * @brief Count the number of atoms in each cluster, and remove those with less than \a min atoms.
 			 *        This is useful for removing "floating" atoms from e.g. EM map data.
 			 */
 			[[deprecated]] void remove_disconnected_atoms(double min_percent = 0.05);
-
-			/**
-			 * @brief Fit a measurement to this molecule.
-			 * 
-			 * @param measurement Path to the measurement file to be fitted.
-			 */
-			[[nodiscard]] std::shared_ptr<fitter::FitResult> fit(const io::ExistingFile& measurement) const;
 
 			/**
 			 * @brief Get the histogram manager of this molecule.

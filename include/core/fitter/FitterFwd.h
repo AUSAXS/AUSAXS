@@ -3,6 +3,6 @@
 namespace fitter {
     class Fitter;
     class LinearFitter;
-    class HydrationFitter;
+    class SmartFitter;
     class FitResult;
 }

@@ -5,6 +5,7 @@
 #include <io/IOFwd.h>
 #include <hist/HistFwd.h>
 #include <mini/MiniFwd.h>
+#include <fitter/FitterFwd.h>
 #include <dataset/DatasetFwd.h>
 #include <em/detail/EMInternalFwd.h>
 
@@ -60,100 +61,100 @@ namespace em {
              */
             std::unique_ptr<fitter::EMFitResult> fit(const io::ExistingFile& file);
 
-            /**
-             * @brief Fit the cutoff value with the input histogram. 
-             * 
-             * @param h The histogram to fit to.  
-             * @param param The cutoff parameter.
-             */
-            std::unique_ptr<fitter::EMFitResult> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param);
+            // /**
+            //  * @brief Fit the cutoff value with the input histogram. 
+            //  * 
+            //  * @param h The histogram to fit to.  
+            //  * @param param The cutoff parameter.
+            //  */
+            // std::unique_ptr<fitter::EMFitResult> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param);
 
-            /**
-             * @brief Fit the cutoff value with the input histogram. 
-             * 
-             * @param h The histogram to fit to.  
-             */
-            std::unique_ptr<fitter::EMFitResult> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            // /**
+            //  * @brief Fit the cutoff value with the input histogram. 
+            //  * 
+            //  * @param h The histogram to fit to.  
+            //  */
+            // std::unique_ptr<fitter::EMFitResult> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
-            /**
-             * @brief Perform a scan of the cutoff values. 
-             * 
-             * @param points The cutoff values to be evaluated. 
-             * @param h The histogram to be fitted. 
-             * 
-             * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
-             */
-            mini::Landscape cutoff_scan(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            // /**
+            //  * @brief Perform a scan of the cutoff values. 
+            //  * 
+            //  * @param points The cutoff values to be evaluated. 
+            //  * @param h The histogram to be fitted. 
+            //  * 
+            //  * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
+            //  */
+            // mini::Landscape cutoff_scan(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
-            /**
-             * @brief Perform a scan of the cutoff values. 
-             * 
-             * @param points The number of points.
-             * @param h The histogram to be fitted. 
-             * 
-             * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
-             */
-            mini::Landscape cutoff_scan(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            // /**
+            //  * @brief Perform a scan of the cutoff values. 
+            //  * 
+            //  * @param points The number of points.
+            //  * @param h The histogram to be fitted. 
+            //  * 
+            //  * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
+            //  */
+            // mini::Landscape cutoff_scan(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
-            /**
-             * @brief Perform a scan of the cutoff values. 
-             * 
-             * @param points The cutoff values to be evaluated. 
-             * @param h The measurement file to compare with. 
-             * 
-             * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
-             */
-            mini::Landscape cutoff_scan(const Axis& points, const io::ExistingFile& file);
+            // /**
+            //  * @brief Perform a scan of the cutoff values. 
+            //  * 
+            //  * @param points The cutoff values to be evaluated. 
+            //  * @param h The measurement file to compare with. 
+            //  * 
+            //  * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
+            //  */
+            // mini::Landscape cutoff_scan(const Axis& points, const io::ExistingFile& file);
 
-            /**
-             * @brief Perform a scan of the cutoff values. 
-             * 
-             * @param points The number of points.
-             * @param h The measurement file to compare with. 
-             * 
-             * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
-             */
-            mini::Landscape cutoff_scan(unsigned int points, const io::ExistingFile& file);
+            // /**
+            //  * @brief Perform a scan of the cutoff values. 
+            //  * 
+            //  * @param points The number of points.
+            //  * @param h The measurement file to compare with. 
+            //  * 
+            //  * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
+            //  */
+            // mini::Landscape cutoff_scan(unsigned int points, const io::ExistingFile& file);
 
-            /**
-             * @brief Perform a scan & fit of the cutoff values. 
-             * 
-             * @param points The cutoff values to be evaluated. 
-             * @param h The histogram to be fitted. 
-             * 
-             * @return A Landscape containing both the fit and scan.
-             */
-            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            // /**
+            //  * @brief Perform a scan & fit of the cutoff values. 
+            //  * 
+            //  * @param points The cutoff values to be evaluated. 
+            //  * @param h The histogram to be fitted. 
+            //  * 
+            //  * @return A Landscape containing both the fit and scan.
+            //  */
+            // std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
-            /**
-             * @brief Perform a scan & fit of the cutoff values. 
-             * 
-             * @param points The number of points.
-             * @param h The histogram to be fitted. 
-             * 
-             * @return A Landscape containing both the fit and scan.
-             */
-            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
+            // /**
+            //  * @brief Perform a scan & fit of the cutoff values. 
+            //  * 
+            //  * @param points The number of points.
+            //  * @param h The histogram to be fitted. 
+            //  * 
+            //  * @return A Landscape containing both the fit and scan.
+            //  */
+            // std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
-            /**
-             * @brief Perform a scan & fit of the cutoff values. 
-             * 
-             * @param points The number of points.
-             * @param file The file to be fitted.
-             * 
-             * @return A Landscape containing both the fit and scan.
-             */
-            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(unsigned int points, const io::ExistingFile& file);
+            // /**
+            //  * @brief Perform a scan & fit of the cutoff values. 
+            //  * 
+            //  * @param points The number of points.
+            //  * @param file The file to be fitted.
+            //  * 
+            //  * @return A Landscape containing both the fit and scan.
+            //  */
+            // std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(unsigned int points, const io::ExistingFile& file);
 
-            /**
-             * @brief Perform a scan & fit of the cutoff values. 
-             * 
-             * @param points The cutoff values to be evaluated. 
-             * @param file The file to be fitted.
-             * 
-             * @return A Landscape containing both the fit and scan.
-             */
-            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(const Axis& points, const io::ExistingFile& file);
+            // /**
+            //  * @brief Perform a scan & fit of the cutoff values. 
+            //  * 
+            //  * @param points The cutoff values to be evaluated. 
+            //  * @param file The file to be fitted.
+            //  * 
+            //  * @return A Landscape containing both the fit and scan.
+            //  */
+            // std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit(const Axis& points, const io::ExistingFile& file);
 
             /**
              * @brief Get the fitted water scaling factors.
@@ -187,36 +188,36 @@ namespace em {
              * @brief Prepare the fitting function. 
              *        Note that the lifetime of the returned function is the same as that of the fitter.
              */
-            std::function<double(std::vector<double>)> prepare_function(std::shared_ptr<fitter::LinearFitter> fitter);
+            std::function<double(std::vector<double>)> prepare_function(std::shared_ptr<fitter::SmartFitter> fitter);
+
+            // /**
+            //  * @brief A helper function for the fitting methods. This performs the actual fit. 
+            //  * 
+            //  * @param fitter The fitter object to fit. 
+            //  */
+            // std::unique_ptr<fitter::EMFitResult> fit_helper(std::shared_ptr<fitter::SmartFitter> fitter);
 
             /**
              * @brief A helper function for the fitting methods. This performs the actual fit. 
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::unique_ptr<fitter::EMFitResult> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter);
+            std::unique_ptr<fitter::EMFitResult> fit_helper(std::shared_ptr<fitter::SmartFitter> fitter, mini::Parameter& param);
 
-            /**
-             * @brief A helper function for the fitting methods. This performs the actual fit. 
-             * 
-             * @param fitter The fitter object to fit. 
-             */
-            std::unique_ptr<fitter::EMFitResult> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter, mini::Parameter& param);
+            // /**
+            //  * @brief A helper function for the cutoff scanning method.
+            //  * 
+            //  * @param points The range to scan.
+            //  * @param fitter The fitting object.
+            //  */
+            // mini::Landscape cutoff_scan_helper(const Axis& points, std::shared_ptr<fitter::SmartFitter> fitter);
 
-            /**
-             * @brief A helper function for the cutoff scanning method.
-             * 
-             * @param points The range to scan.
-             * @param fitter The fitting object.
-             */
-            mini::Landscape cutoff_scan_helper(const Axis& points, std::shared_ptr<fitter::LinearFitter> fitter);
-
-            /**
-             * @brief A helper function for the cutoff scan & fit method.
-             * 
-             * @param points The range to scan.
-             * @param fitter The fitting object.
-             */
-            std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<fitter::LinearFitter> fitter);
+            // /**
+            //  * @brief A helper function for the cutoff scan & fit method.
+            //  * 
+            //  * @param points The range to scan.
+            //  * @param fitter The fitting object.
+            //  */
+            // std::pair<fitter::EMFitResult, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<fitter::SmartFitter> fitter);
     };
 }

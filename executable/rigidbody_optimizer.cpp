@@ -5,7 +5,7 @@
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/BodySplitter.h>
 #include <fitter/FitReporter.h>
-#include <fitter/HydrationFitter.h>
+#include <fitter/SmartFitter.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <constants/Constants.h>
@@ -61,7 +61,7 @@ int main(int argc, char const *argv[]) {
             auto res = rigidbody::sequencer::SequenceParser().parse(pdb)->execute();
             fitter::FitReporter::report(res.get());
             fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
-            plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
+            res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
             return 0;
         }
 
@@ -98,14 +98,14 @@ int main(int argc, char const *argv[]) {
 
             settings::general::output += "calibrated/";
             rigidbody.generate_new_hydration();
-            fitter::HydrationFitter fitter(settings::rigidbody::detail::calibration_file, rigidbody.get_histogram());
+            fitter::SmartFitter fitter({settings::rigidbody::detail::calibration_file}, rigidbody.get_histogram());
             auto res = fitter.fit();
             if (settings::general::verbose) {
                 std::cout << "Calibration results:" << std::endl;
                 fitter::FitReporter::report(res.get());
             }
-            rigidbody.apply_calibration(res);
-            plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "calibration.png");
+            rigidbody.apply_calibration(std::move(res));
+            // plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "calibration.png");
         } else {
             settings::general::output += "uncalibrated/";
         }
@@ -117,7 +117,7 @@ int main(int argc, char const *argv[]) {
         auto res = rigidbody.get_unconstrained_fitter(mfile)->fit();
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt", argc, argv);
-        plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "fit.png");
+        res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

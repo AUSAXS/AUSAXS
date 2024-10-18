@@ -16,21 +16,24 @@ namespace mini {
          * @brief Get a parameter based on its name from this result.
          */
         const FittedParameter& get_parameter(const std::string& name) const;
-
-        /**
-         * @brief Get a parameter based on its name from this result.
-         */
-        FittedParameter& get_parameter(const std::string& name);
+        FittedParameter& get_parameter(const std::string& name); //< @copydoc get_parameter
 
         /**
          * @brief Get a parameter based on its index from this result.
          */
         const FittedParameter& get_parameter(unsigned int index) const;
+        FittedParameter& get_parameter(unsigned int index); //< @copydoc get_parameter
 
         /**
-         * @brief Get a parameter based on its index from this result.
+         * @brief Get all parameters from this result.
          */
-        FittedParameter& get_parameter(unsigned int index);
+        const std::vector<FittedParameter>& get_parameters() const;
+        std::vector<FittedParameter> get_parameters(); //< @copydoc get_parameters
+
+        /**
+         * @brief Get all parameter values from this result.
+         */
+        std::vector<double> get_parameter_values() const;
 
         /**
          * @brief Get a parameter based on its index from this result.

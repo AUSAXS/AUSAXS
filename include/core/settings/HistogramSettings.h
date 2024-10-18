@@ -25,6 +25,5 @@ namespace settings::hist {
         CrysolManager,                       // A manager that mimics the Crysol method to evaluate the scattering intensity.
     };
     extern bool weighted_bins;          // Whether to use weighted p(r) bins or not.
-    extern bool fit_excluded_volume;    // Whether to fit the excluded volume or not.
     extern HistogramManagerChoice histogram_manager;
 }

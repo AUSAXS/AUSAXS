@@ -24,11 +24,11 @@
 #include <settings/HistogramSettings.h>
 #include <grid/Grid.h>
 #include <io/ExistingFile.h>
-#include <plots/PlotIntensity.h>
 #include <table/ArrayDebyeTable.h>
 
 #include "hist/hist_test_helper.h"
 #include "hist/intensity_calculator/DistanceHistogram.h"
+#include "plots/PlotDataset.h"
 
 using namespace hist;
 using namespace data;
@@ -306,7 +306,7 @@ TEST_CASE("6lyz_exv", "[manual]") {
     Iq.normalize();
     Iqexact.normalize();
 
-    plots::PlotIntensity()
+    plots::PlotDataset()
         .plot(Iq, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}, {"yrange", Limit(1e-4, 1.1)}}))
         .plot(Iqexact, plots::PlotOptions(style::draw::line, {{"color", style::color::green}, {"legend", "Exact"}, {"ls", style::line::dashed}, {"lw", 2}}))
     .save("temp/tests/hist/6lyz_exv.png");
@@ -338,9 +338,9 @@ TEST_CASE("sphere_comparison", "[manual]") {
     auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
     auto Iq2 = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
 
-    plots::PlotIntensity()
-        .plot(Iq1, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
-        .plot(Iq2, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}}))
+    plots::PlotDataset()
+        .plot(Iq1.as_dataset(), plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
+        .plot(Iq2.as_dataset(), plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}}))
     .save("temp/tests/hist/sphere_comparison.png");
 
     auto ratio = Iq1;
@@ -348,8 +348,8 @@ TEST_CASE("sphere_comparison", "[manual]") {
         ratio.get_count(i) = Iq1.get_count(i)/Iq2.get_count(i);
     }
 
-    plots::PlotIntensity(
-        ratio,
+    plots::PlotDataset(
+        ratio.as_dataset(),
         plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"legend", "Ratio"}, {"lw", 2}}))
     .save("temp/tests/hist/sphere_comparison_ratio.png");
 }
@@ -398,8 +398,8 @@ TEST_CASE("real_comparison", "[manual]") {
     }
     REQUIRE(counter != 0);
 
-    plots::PlotIntensity()
-        .plot(Iq1, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
-        .plot(Iq2, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}}))
+    plots::PlotDataset()
+        .plot(Iq1.as_dataset(), plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
+        .plot(Iq2.as_dataset(), plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}}))
     .save("temp/tests/hist/real_comparison.png");
 }

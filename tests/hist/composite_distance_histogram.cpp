@@ -75,7 +75,7 @@ TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
     auto p = hist.get_total_counts();
     hist.apply_water_scaling_factor(2);
     CHECK(hist.get_total_counts() != p);
-    hist.reset_water_scaling_factor();
+    hist.apply_water_scaling_factor(1);
     CHECK(hist.get_total_counts() == p);
 }
 
@@ -107,7 +107,7 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
         REQUIRE_THAT(p_pp[i] + 3*2*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
     }
 
-    hist->reset_water_scaling_factor();
+    hist->apply_water_scaling_factor(1);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
         REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
     }

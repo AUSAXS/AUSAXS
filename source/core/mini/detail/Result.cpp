@@ -47,6 +47,22 @@ FittedParameter& Result::get_parameter(unsigned int index) {
     return const_cast<FittedParameter&>(std::as_const(*this).get_parameter(index));
 }
 
+const std::vector<FittedParameter>& Result::get_parameters() const {
+    return parameters;
+}
+
+std::vector<FittedParameter> Result::get_parameters() {
+    return parameters;
+}
+
+std::vector<double> Result::get_parameter_values() const {
+    std::vector<double> values;
+    for (const auto& p : parameters) {
+        values.push_back(p.value);
+    }
+    return values;
+}
+
 const FittedParameter& Result::operator[](unsigned int index) const {
     return get_parameter(index);
 }

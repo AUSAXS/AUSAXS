@@ -6,7 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/BestConf.h>
 #include <rigidbody/RigidBody.h>
-#include <fitter/LinearFitter.h>
+#include <fitter/SmartFitter.h>
 #include <data/record/Water.h>
 #include <grid/Grid.h>
 #include <io/ExistingFile.h>

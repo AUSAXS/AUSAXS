@@ -41,7 +41,7 @@ void hydrate::RadialHydration::initialize() {
 }
 
 void hydrate::RadialHydration::set_noise_generator(std::function<Vector3<double>()>&& f) {
-    noise_generator = f;
+    noise_generator = std::move(f);
 }
 
 std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::generate_explicit_hydration() {

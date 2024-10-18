@@ -13,33 +13,36 @@ namespace fitter {
     class FitResult : public mini::Result {
         public:
             FitResult() noexcept = default;
-            FitResult(observer_ptr<Fitter> fitter, const mini::Result& res, double chi2) noexcept;
             FitResult(const mini::Result& res, double chi2, unsigned int dof) noexcept;
             ~FitResult() override = default;
             
             /**
              * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
-             */ 
-            void add_fit(observer_ptr<Fitter> fit) noexcept;
+             *
+             * @param fit The fit to add.
+             * @param front If true, the parameters will be added to the front of the parameter list. Otherwise, they will be added to the back.
+             */
+            void add_fit(observer_ptr<FitResult> fit, bool front = false) noexcept;
 
             /**
-             * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
+             * @brief Set the data curves for this fit. 
+             *
+             * @throw std::invalid_argument If the number of columns is not 5 or the column names are not as expected. 
              */
-            void add_fit(observer_ptr<FitResult> fit) noexcept;
+            void set_data_curves(Dataset&& curves);
 
             /**
-             * @brief Add plots to this fit.
+             * @brief Set the data curves for this fit. 
              */
-            void add_plots(observer_ptr<Fitter> fitter);
+            void set_data_curves(std::vector<double>&& q, std::vector<double>&& data, std::vector<double>&& data_err, std::vector<double>&& model, std::vector<double>&& residuals);
 
             /**
              * @brief Get a string representation of this object. 
              */
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
+            Dataset curves; // | q | data | data_err | interpolated model | residuals |
             mini::Landscape evaluated_points;
-            struct FitInfo {SimpleDataset dataset, fitted_intensity, fitted_intensity_interpolated;} info;
-            SimpleDataset residuals;
             unsigned int dof;
     };
 }
