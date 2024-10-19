@@ -6,8 +6,7 @@
 #include <data/Molecule.h>
 #include <dataset/SimpleDataset.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <fitter/HydrationFitter.h>
-#include <fitter/ExcludedVolumeFitter.h>
+#include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <plots/All.h>
@@ -22,10 +21,6 @@
 #include <string_view>
 
 namespace gui = cycfi::elements;
-
-namespace settings {
-	bool fit_excluded_volume = false;
-}
 
 auto plot_names = std::vector<std::pair<std::string, std::string>>{
 	{"log", "single-logarithmic plot"},
@@ -79,23 +74,18 @@ auto make_start_button(gui::view& view) {
 
 		// use a worker thread to avoid locking the gui
 		worker = std::thread([&view] () {
-			bool fit_excluded_volume = settings::fit_excluded_volume;
 			setup::pdb = std::make_unique<data::Molecule>(settings::pdb_file);
 			setup::pdb->generate_new_hydration();
 
-			std::shared_ptr<fitter::HydrationFitter> fitter;
-			if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(io::ExistingFile(settings::saxs_file), setup::pdb->get_histogram());}
-			else {fitter = std::make_shared<fitter::HydrationFitter>(io::ExistingFile(settings::saxs_file), setup::pdb->get_histogram());}
-			auto result = fitter->fit();
+			fitter::SmartFitter fitter({settings::saxs_file}, setup::pdb->get_histogram());
+			auto result = fitter.fit();
 
 			fitter::FitReporter::report(result.get());
 			fitter::FitReporter::save(result.get(), settings::general::output + "report.txt");
 
-			plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "p(r)." + settings::plots::format);
-			plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
-
-			fitter->get_model_dataset().save(settings::general::output + "ausaxs.fit");
-			fitter->get_dataset().save(settings::general::output + io::File(settings::saxs_file).stem() + ".scat");
+			plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
+			plots::PlotProfiles::quick_plot(fitter.get_model(), settings::general::output + "profiles." + settings::plots::format);
+			result->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof));
 
 			setup::pdb->save(settings::general::output + "model.pdb");
 			perform_plot(settings::general::output);
@@ -360,7 +350,7 @@ auto selection_menu_settings(gui::view&) {
 				case settings::hist::HistogramManagerChoice::PartialHistogramManager:
 				case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
 					settings::molecule::use_effective_charge = true;
-					settings::fit_excluded_volume = false;
+					settings::fit::fit_excluded_volume = false;
 					deck.select(0);
 					break;
 				default:
@@ -379,7 +369,12 @@ auto selection_menu_settings(gui::view&) {
 
 	static auto fit_excluded_volume_button = gui::check_box("fit excluded volume");
 	fit_excluded_volume_button.on_click = [] (bool value) {
-		settings::fit_excluded_volume = value;
+		settings::fit::fit_excluded_volume = value;
+	};
+
+	static auto fit_solvent_density_button = gui::check_box("fit solvent density");
+	fit_solvent_density_button.on_click = [] (bool value) {
+		settings::fit::fit_solvent_density = value;
 	};
 
 	static auto hydration_text = gui::label("Hydration model")
@@ -410,10 +405,20 @@ auto selection_menu_settings(gui::view&) {
 				link(excluded_volume_model.first)
 			),
 			gui::hspace(50),
-			gui::align_center_middle(
-				gui::fixed_size(
-					{200, 100},
-					link(fit_excluded_volume_button)
+			gui::vtile(
+				gui::margin(
+					{10, 10, 0, 10},
+					gui::fixed_size(
+						{200, 100},
+						link(fit_excluded_volume_button)
+					)
+				),
+				gui::margin(
+					{10, 10, 0, 10},
+					gui::fixed_size(
+						{200, 100},
+						link(fit_solvent_density_button)
+					)
 				)
 			)
 		)
