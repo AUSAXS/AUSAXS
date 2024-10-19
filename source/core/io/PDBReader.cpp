@@ -10,6 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <utility/Exceptions.h>
+#include <utility/StringUtils.h>
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/ConstantsFwd.h>
@@ -32,7 +33,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
     unsigned int discarded_hydrogens = 0;
     std::string line; // placeholder for the current line
     while(getline(input, line)) {
-        if (line.empty()) {continue;}
+        if (line.find_first_not_of(' ') == std::string::npos) {continue;} // allow empty or space-filled lines
         std::string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {
             case RecordType::ATOM: {
