@@ -80,6 +80,9 @@ namespace hist {
              */
             virtual const std::vector<double>& get_counts() const;
 
+            /**
+             * @brief Get the total histogram.
+             */
             std::vector<double>& get_counts();
 
             /**

@@ -7,7 +7,7 @@
     namespace mini {
         struct column_vector;
     
-        template<mini::type algo>
+        template<mini::algorithm algo>
         class dlibMinimizer : public Minimizer {
             public:
                 dlibMinimizer();

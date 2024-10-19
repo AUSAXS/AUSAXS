@@ -3,29 +3,25 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
+#include "hist/distance_calculator/IHistogramManager.h"
+#include "hist/intensity_calculator/ICompositeDistanceHistogram.h"
 #include <data/Molecule.h>
+#include <data/Body.h>
 #include <data/record/Water.h>
 #include <data/record/Atom.h>
-#include <data/Body.h>
 #include <data/state/BoundSignaller.h>
 #include <data/state/UnboundSignaller.h>
 #include <data/detail/AtomCollection.h>
+#include <dataset/SimpleDataset.h>
 #include <io/ExistingFile.h>
-#include <hist/Histogram.h>
-#include <fitter/HydrationFitter.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/FitSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <hist/distance_calculator/HistogramManagerFactory.h>
-#include <hist/distance_calculator/HistogramManager.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/detail/CompactCoordinates.h>
 #include <constants/Constants.h>
 #include <grid/Grid.h>
-#include <grid/detail/GridMember.h>
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <hydrate/generation/GridBasedHydration.h>
@@ -334,52 +330,6 @@ Water& Molecule::get_waters(unsigned int i) {return get_waters()[i];}
 
 const Water& Molecule::get_water(unsigned int i) const {return get_waters()[i];}
 
-std::vector<double> Molecule::debye_transform() const {
-    auto data = hist::detail::CompactCoordinates(get_bodies());
-    auto& q_axis = constants::axes::q_vals;
-
-    auto contribution = [] (double qr, float w) -> double {
-        if (qr < 1e-9) {
-            return w;
-        } else {
-            return w*std::sin(qr)/qr;
-        }
-    };
-
-    std::vector<double> I;
-    I.reserve(q_axis.size());
-    for (const auto& q : q_axis) {
-        double sum = 0;
-        for (unsigned int i = 0; i < data.size(); ++i) {
-            unsigned int j = i+1;
-            for (; j+7 < data.size(); j+=8) {
-                auto res = data[i].evaluate(data[j], data[j+1], data[j+2], data[j+3], data[j+4], data[j+5], data[j+6], data[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {
-                    sum += contribution(q*res.distances[k], 2*res.weights[k]);
-                }
-            }
-
-            for (; j+3 < data.size(); j+=4) {
-                auto res = data[i].evaluate(data[j], data[j+1], data[j+2], data[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {
-                    sum += contribution(q*res.distances[k], 2*res.weights[k]);
-                }
-            }
-
-            for (; j < data.size(); ++j) {
-                auto res = data[i].evaluate(data[j]);
-                    sum += contribution(q*res.distance, 2*res.weight);
-            }
-
-            sum += std::pow(data[i].value.w, 2);
-        }
-
-        sum *= std::exp(-q*q);
-        I.push_back(sum);
-    }
-    return I;
-}
-
 void Molecule::update_effective_charge(double scaling) {
     static double previous_charge = 0;
 
@@ -421,11 +371,6 @@ void Molecule::bind_body_signallers() {
     }
 }
 
-std::shared_ptr<fitter::FitResult> Molecule::fit(const io::ExistingFile& measurement) const {
-    fitter::HydrationFitter fitter(measurement, get_histogram());
-    return fitter.fit();
-}
-
 observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {
     assert(phm != nullptr && "Molecule::get_histogram_manager: phm is nullptr.");
     return phm.get();
@@ -434,43 +379,6 @@ observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {
 void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager) {
     phm = std::move(manager);
     bind_body_signallers();
-}
-
-void Molecule::generate_unit_cell() {
-    if (grid == nullptr) {create_grid();}
-    // auto[min, max] = grid->bounding_box();
-    Vector3<double> cell_w;
-    {
-        Vector3<double> min, max;
-
-        // expand box by 10%
-        for (auto& v : min) {
-            if (v < 0) {v *= (1 + settings::grid::scaling);} // if v is smaller than 0, multiply by 1+s
-            else {      v *= (1 - settings::grid::scaling);} //                    else multiply by 1-s
-        }
-        for (auto& v : max) {
-            if (v > 0) {v *= (1 + settings::grid::scaling);} // if v is larger than 0, multiply by 1+s
-            else {      v *= (1 - settings::grid::scaling);} //                   else multiply by 1-s
-        }
-        cell_w = max - min;
-        translate(-min);
-    }
-
-    // create unit cell
-    auto& file = bodies[0].get_file();
-    file.header.remove("CRYST1");
-    std::stringstream ss;
-    ss  << "CRYST1"                                // 1 - 6
-        << std::right << std::setw(8) << cell_w[0] // 7 - 15
-        << std::right << std::setw(8) << cell_w[1] // 16 - 24
-        << std::right << std::setw(8) << cell_w[2] // 25 - 33
-        << std::right << std::setw(6) << "90"      // 34 - 40
-        << std::right << std::setw(6) << "90"      // 41 - 47
-        << std::right << std::setw(6) << "90"      // 48 - 54
-        << " "
-        << std::right << std::setw(10) << "1"      // 56 - 66
-        << std::right << std::setw(4) << "P 1";    // 67 - 70
-    file.add(RecordType::HEADER, ss.str());
 }
 
 void Molecule::remove_disconnected_atoms(double min_percent) {

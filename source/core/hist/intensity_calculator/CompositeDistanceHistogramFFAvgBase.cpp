@@ -167,6 +167,11 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_excluded_vo
 }
 
 template<typename FormFactorTableType>
+void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_solvent_density_scaling_factor(double k) {
+    free_params.crho = k;   
+}
+
+template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_aa() const {
     std::vector<double> aa;
     std::tie(aa, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();
@@ -223,7 +228,7 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_intensity_pr
         cache_refresh_intensity_profiles(true, true, true);
         cache.sinqd.valid = true;
     } else {
-        if (cache.intensity_profiles.cached_cx != free_params.cx) {
+        if (cache.intensity_profiles.cached_cx != free_params.cx || cache.intensity_profiles.cached_crho != free_params.crho) {
             cache.intensity_profiles.cached_cw != free_params.cw ? cache_refresh_intensity_profiles(false, true, true) : cache_refresh_intensity_profiles(false, false, true);
         } else if (cache.intensity_profiles.cached_cw != free_params.cw) {
             cache_refresh_intensity_profiles(false, true, false);
@@ -348,13 +353,13 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                    cache.intensity_profiles.ax[q-q0] += 2*cx[q-q0]*cache.sinqd.ax.index(ff1, q-q0)*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
+                    cache.intensity_profiles.ax[q-q0] += 2*free_params.crho*cx[q-q0]*cache.sinqd.ax.index(ff1, q-q0)*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
                 }
             }
         });
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                cache.intensity_profiles.xx[q-q0] += cx[q-q0]*cx[q-q0]*cache.sinqd.xx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
+                cache.intensity_profiles.xx[q-q0] += std::pow(cx[q-q0]*free_params.crho, 2)*cache.sinqd.xx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
             }
         });
     }
@@ -377,11 +382,12 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     if (cw_changed || cx_changed) {
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                cache.intensity_profiles.wx[q-q0] += 2*cx[q-q0]*free_params.cw*cache.sinqd.wx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
+                cache.intensity_profiles.wx[q-q0] += 2*free_params.crho*cx[q-q0]*free_params.cw*cache.sinqd.wx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
             }
         });
     }
     cache.intensity_profiles.cached_cx = free_params.cx;
+    cache.intensity_profiles.cached_crho = free_params.crho;
     cache.intensity_profiles.cached_cw = free_params.cw;
     pool->wait();
 }

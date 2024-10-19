@@ -3,11 +3,8 @@
 
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
-#include <fitter/ExcludedVolumeFitter.h>
+#include <fitter/SmartFitter.h>
 #include <plots/PlotDistance.h>
-#include <plots/PlotIntensity.h>
-#include <plots/PlotIntensityFit.h>
-#include <plots/PlotIntensityFitResiduals.h>
 #include <constants/Constants.h>
 #include <constants/Version.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
@@ -15,6 +12,7 @@
 #include <utility/MultiThreading.h>
 #include <fitter/FitReporter.h>
 #include <shell/Command.h>
+#include <constants/ValidFileExtensions.h>
 #include <settings/All.h>
 
 #include <gui/helper.h>
@@ -22,7 +20,6 @@
 #include <gui/resources.h>
 
 #include <filesystem>
-#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -589,8 +586,7 @@ auto make_start_button(gui::view& view) {
 			}
 
 			// perform the plots
-			res->info.dataset.save(settings::general::output + io::File(settings::saxs_file).stem() + ".scat");
-			res->info.fitted_intensity_interpolated.save(settings::general::output + "ausaxs.fit");
+			res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
 			fitter::FitReporter::save(res.get(), settings::general::output + "report.txt");
 			perform_plot(settings::general::output);
 

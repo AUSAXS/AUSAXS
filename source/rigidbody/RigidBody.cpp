@@ -16,7 +16,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <io/XYZWriter.h>
-#include <fitter/HydrationFitter.h>
+#include <fitter/SmartFitter.h>
 #include <fitter/LinearFitter.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
@@ -27,7 +27,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/GeneralSettings.h>
-#include <plots/PlotIntensityFit.h>
 #include <plots/PlotDistance.h>
 
 using namespace rigidbody;
@@ -69,7 +68,7 @@ std::shared_ptr<fitter::FitResult> RigidBody::optimize(const io::ExistingFile& m
 
     if (settings::general::supplementary_plots) {
         // plots::PlotDistance::quick_plot(get_histogram(), settings::general::output + "/hist/distance_0.png");
-        plots::PlotIntensityFit::quick_plot(fitter->fit().get(), settings::general::output + "initial_curve.png");
+        // plots::PlotIntensityFit::quick_plot(fitter->fit().get(), settings::general::output + "initial_curve.png");
     }
 
     // save the best configuration in a simple struct
@@ -141,47 +140,47 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     }
 }
 
-void RigidBody::apply_calibration(std::shared_ptr<fitter::FitResult> calibration) {
+void RigidBody::apply_calibration(std::unique_ptr<fitter::FitResult> calibration) {
     if (settings::general::verbose) {std::cout << "\tApplying calibration to rigid body." << std::endl;}
     this->calibration = std::move(calibration);
 }
 
-void RigidBody::prepare_fitter(const std::string& measurement_path) {
+void RigidBody::prepare_fitter(const io::ExistingFile& measurement_path) {
     // constraints = std::make_shared<ConstraintManager>(this);
     if (calibration == nullptr) {
-        fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
+        fitter::ConstrainedFitter<fitter::SmartFitter> fitter({measurement_path}, get_histogram());
         fitter.set_constraint_manager(constraints);
-        this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::HydrationFitter>>(std::move(fitter));
+        this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::SmartFitter>>(std::move(fitter));
     } else {
         auto histogram = get_histogram();
         histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        fitter::ConstrainedFitter<fitter::LinearFitter> fitter(measurement_path, std::move(histogram));
+        fitter::ConstrainedFitter<fitter::SmartFitter> fitter(measurement_path, std::move(histogram));
         fitter.set_constraint_manager(constraints);
-        this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::LinearFitter>>(std::move(fitter));
+        this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::SmartFitter>>(std::move(fitter));
     }
 }
 
-std::unique_ptr<fitter::LinearFitter> RigidBody::get_unconstrained_fitter(const io::ExistingFile& saxs) const {
+std::unique_ptr<fitter::SmartFitter> RigidBody::get_unconstrained_fitter(const io::ExistingFile& saxs) const {
     if (calibration == nullptr) {
-        return std::make_unique<fitter::HydrationFitter>(saxs, get_histogram());
+        return std::make_unique<fitter::SmartFitter>(saxs, get_histogram());
     } else {
         auto histogram = get_histogram();
         histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        return std::make_unique<fitter::LinearFitter>(saxs, std::move(histogram));
+        return std::make_unique<fitter::SmartFitter>(saxs, std::move(histogram));
     }
 }
 
-std::shared_ptr<fitter::LinearFitter> RigidBody::get_fitter() const {
+std::shared_ptr<fitter::SmartFitter> RigidBody::get_fitter() const {
     return fitter;
 }
 
 void RigidBody::update_fitter() {
     if (calibration == nullptr) {
-        fitter->set_scattering_hist(get_histogram());
+        fitter->set_model(get_histogram());
     } else {
         auto histogram = get_histogram();
         histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        fitter->set_scattering_hist(std::move(histogram));
+        fitter->set_model(std::move(histogram));
     }
 }
 

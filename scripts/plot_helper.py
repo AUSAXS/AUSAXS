@@ -492,7 +492,7 @@ def plot_file(file: str):
     return
 
 from scipy.optimize import curve_fit
-def plot_fits(data_file, fit_files, report_file, title=""):
+def plot_fits(ausaxs_file, fit_files, title=""):
     """
     Plots the given fit files. 
     """
@@ -500,7 +500,11 @@ def plot_fits(data_file, fit_files, report_file, title=""):
     fits = []
     labels = []
     colors = []
-    data = np.loadtxt(data_file, skiprows=1)
+    data = np.loadtxt(ausaxs_file, skiprows=2)
+    header = open(ausaxs_file).readline().split()
+    for entry in header:
+        if entry.startswith("dof="):
+            ausaxs_dof = len(data[:, 1]) - int(entry.split("=")[1])
 
     def chi2(ymodel):
         return np.sum(((data[:, 1] - ymodel) / data[:, 2]) ** 2)
@@ -510,9 +514,9 @@ def plot_fits(data_file, fit_files, report_file, title=""):
         popt, _ = curve_fit(lambda x, a, b: a*x + b, fitdata[:, 1], data[:, 1], sigma=data[:, 2], absolute_sigma=True, p0=[1, 0])
         fitdata[:, 1] = popt[0] * fitdata[:, 1] + popt[1]
         fits.append(fitdata)
-        # print(f"Fit {title} to {mfile} with parameters {popt}.")
 
         chi2r = chi2(fits[-1][:, 1]) / (len(data[:, 1]) - dof)
+        print("dof = " + str(len(data[:, 1]) - dof))
         labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$ " + title)
 
     # parse each file
@@ -553,26 +557,12 @@ def plot_fits(data_file, fit_files, report_file, title=""):
             load_fit(fitdata, "GROMACS")
             colors.append("tab:green")
 
-        elif "ausaxs".lower() in stem.lower():
-            fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 1])
-
-            # calculate exact dof
-            dof = 1
-            if report_file != "":
-                # find dof in report
-                with open(report_file, "r") as f:
-                    par_section = False
-                    for line in f:
-                        if "PAR" in line:
-                            par_section = True
-                        if par_section:
-                            if "+----" in line:
-                                break
-                            dof += 1
-            load_fit(fitdata, "AUSAXS", dof)
-            colors.append("tab:red")
         else:
             print(f"Unknown fit file: \"{f}\"")
+
+    # ausaxs plot
+    load_fit(data[:,[0, 3]], "AUSAXS", ausaxs_dof)
+    colors.append("tab:red")
 
     # plot the data
     fig, ax = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
@@ -583,10 +573,7 @@ def plot_fits(data_file, fit_files, report_file, title=""):
     plt.ylabel("I(q)")
     plt.legend()
     plt.semilogy()
-    if title != "":
-        plt.title(title)
-    else:
-        plt.title(os.path.basename(os.path.abspath(data_file.split('.')[0])))
+    plt.title(title)
 
     plt.sca(ax[1])
     plt.axhline(0, color='k', lw=0.5)
@@ -596,10 +583,10 @@ def plot_fits(data_file, fit_files, report_file, title=""):
     plt.ylabel("Residuals")
 
     plt.tight_layout()
-    fig.savefig(os.path.dirname(data_file) + '/log.png', dpi=600)
+    fig.savefig(os.path.dirname(ausaxs_file) + '/log.png', dpi=600)
     print("Plotted log.png")
 
     ax[0].semilogx()
-    fig.savefig(os.path.dirname(data_file) + '/loglog.png', dpi=600)
+    fig.savefig(os.path.dirname(ausaxs_file) + '/loglog.png', dpi=600)
     print("Plotted loglog.png")
     return

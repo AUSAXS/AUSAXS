@@ -97,23 +97,20 @@ def main():
                 continue
 
             fit_files = []
-            dat_file = ""
-            report_file = ""
+            ausaxs_file = ""
             for file in files:
                 extension = file.split(".")[-1]
+                if file == "ausaxs.fit":
+                    ausaxs_file = os.path.join(currentpath, file)
+                    continue
                 match extension:
                     case "fit" | "xvg":
                         fit_files.append(os.path.join(currentpath, file))
-                    case "scat":
-                        dat_file = os.path.join(currentpath, file)
                     case "plot":
                         futures.append(executor.submit(plot_file, os.path.join(currentpath, file)))
-                
-                if file == "report.txt":
-                    report_file = os.path.join(currentpath, file)
-            
-            if fit_files and dat_file != "" and report_file != "":
-                futures.append(executor.submit(plot_fits, dat_file, fit_files, report_file, title))
+
+            if ausaxs_file:
+                futures.append(executor.submit(plot_fits, ausaxs_file, fit_files, title))
 
         concurrent.futures.wait(futures)
 

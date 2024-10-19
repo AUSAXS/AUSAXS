@@ -303,6 +303,15 @@ std::vector<unsigned int> Dataset::find_maxima(unsigned int min_spacing, double 
     return math::find_minima(x(), -y(), min_spacing, min_prominence);
 }
 
+bool Dataset::is_named() const noexcept {
+    for (unsigned int i = 0; i < M; i++) {
+        if (names[i] != "col_" + std::to_string(i)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 unsigned int Dataset::size() const noexcept {
     return size_rows();
 }

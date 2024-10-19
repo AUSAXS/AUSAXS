@@ -108,7 +108,7 @@ TEST_CASE("scan_minimizer") {
 
 // TEST_CASE("minimum_explorer", "[manual]") {
 //     auto ExplorerTest1D = [] (const TestFunction& test) {
-//         mini::dlibMinimizer<mini::type::BFGS> mini1(test.function, {{"a", test.bounds[0]}});
+//         mini::dlibMinimizer<mini::algorithm::BFGS> mini1(test.function, {{"a", test.bounds[0]}});
 //         auto res = mini1.minimize();
 
 //         mini::Parameter p = res.get_parameter("a");
@@ -145,26 +145,26 @@ TEST_CASE("scan_minimizer") {
 
 typedef dlib::matrix<double,0,1> column_vector;
 TEST_CASE("dlib") {
-    auto dlibTest1D = [] (const TestFunction& test, mini::type type) {
-        if (type == mini::type::BFGS) {
-            auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
+    auto dlibTest1D = [] (const TestFunction& test, mini::algorithm type) {
+        if (type == mini::algorithm::BFGS) {
+            auto mini = mini::dlibMinimizer<mini::algorithm::BFGS>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
             auto res = mini.minimize();
             CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
-        } else if (type == mini::type::DLIB_GLOBAL) {
-            auto mini = mini::dlibMinimizer<mini::type::DLIB_GLOBAL>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
+        } else if (type == mini::algorithm::DLIB_GLOBAL) {
+            auto mini = mini::dlibMinimizer<mini::algorithm::DLIB_GLOBAL>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
             auto res = mini.minimize();
             CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
         }
     };
 
-    auto dlibTest2D = [] (const TestFunction& test, mini::type type) {
-        if (type == mini::type::BFGS) {
-            auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
+    auto dlibTest2D = [] (const TestFunction& test, mini::algorithm type) {
+        if (type == mini::algorithm::BFGS) {
+            auto mini = mini::dlibMinimizer<mini::algorithm::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
             auto res = mini.minimize();
             CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
             CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
-        } else if (type == mini::type::DLIB_GLOBAL) {
-            auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
+        } else if (type == mini::algorithm::DLIB_GLOBAL) {
+            auto mini = mini::dlibMinimizer<mini::algorithm::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
             auto res = mini.minimize();
             CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
             CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
@@ -172,23 +172,23 @@ TEST_CASE("dlib") {
     };
 
     SECTION("bfgs") {
-        SECTION("problem04") {dlibTest1D(problem04, mini::type::BFGS);}
-        SECTION("problem13") {dlibTest1D(problem13, mini::type::BFGS);}
-        SECTION("problem18") {dlibTest1D(problem18, mini::type::BFGS);}
+        SECTION("problem04") {dlibTest1D(problem04, mini::algorithm::BFGS);}
+        SECTION("problem13") {dlibTest1D(problem13, mini::algorithm::BFGS);}
+        SECTION("problem18") {dlibTest1D(problem18, mini::algorithm::BFGS);}
 
-        SECTION("Decanomial") {dlibTest2D(Decanomial, mini::type::BFGS);}
-        SECTION("Hosaki")     {dlibTest2D(Hosaki, mini::type::BFGS);}
-        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::type::BFGS);}
+        SECTION("Decanomial") {dlibTest2D(Decanomial, mini::algorithm::BFGS);}
+        SECTION("Hosaki")     {dlibTest2D(Hosaki, mini::algorithm::BFGS);}
+        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::algorithm::BFGS);}
     }
 
     SECTION("dlib_global") {
-        SECTION("problem04") {dlibTest1D(problem04, mini::type::DLIB_GLOBAL);}
-        SECTION("problem13") {dlibTest1D(problem13, mini::type::DLIB_GLOBAL);}
-        SECTION("problem18") {dlibTest1D(problem18, mini::type::DLIB_GLOBAL);}
+        SECTION("problem04") {dlibTest1D(problem04, mini::algorithm::DLIB_GLOBAL);}
+        SECTION("problem13") {dlibTest1D(problem13, mini::algorithm::DLIB_GLOBAL);}
+        SECTION("problem18") {dlibTest1D(problem18, mini::algorithm::DLIB_GLOBAL);}
 
-        SECTION("Decanomial") {dlibTest2D(Decanomial, mini::type::DLIB_GLOBAL);}
-        SECTION("Hosaki")     {dlibTest2D(Hosaki, mini::type::DLIB_GLOBAL);}
-        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::type::DLIB_GLOBAL);}
+        SECTION("Decanomial") {dlibTest2D(Decanomial, mini::algorithm::DLIB_GLOBAL);}
+        SECTION("Hosaki")     {dlibTest2D(Hosaki, mini::algorithm::DLIB_GLOBAL);}
+        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::algorithm::DLIB_GLOBAL);}
     }
 }
 #endif
@@ -196,14 +196,14 @@ TEST_CASE("dlib") {
 TEST_CASE("create_minimizer") {
     #ifdef DLIB_AVAILABLE
         SECTION("dlib") {
-            auto dlib = mini::create_minimizer(mini::type::BFGS, problem04.function, {"a", problem04.bounds[0]});
+            auto dlib = mini::create_minimizer(mini::algorithm::BFGS, problem04.function, {"a", problem04.bounds[0]});
             auto res = dlib->minimize();
             CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], dlib->tol));
         }
     #endif
 
     SECTION("golden") {
-        auto golden = mini::create_minimizer(mini::type::GOLDEN, problem04.function, {"a", problem04.bounds[0]});
+        auto golden = mini::create_minimizer(mini::algorithm::GOLDEN, problem04.function, {"a", problem04.bounds[0]});
         auto res = golden->minimize();
         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], golden->tol));
     }

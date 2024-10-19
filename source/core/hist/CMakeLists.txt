@@ -1,7 +1,6 @@
 target_sources(ausaxs_core PRIVATE 
 	"Histogram.cpp"
 	"Histogram2D.cpp"
-	"ScatteringHistogram.cpp"
 	
 	"detail/BodyTracker.cpp"
 	"detail/CompactCoordinates.cpp"
@@ -33,6 +32,7 @@ target_sources(ausaxs_core PRIVATE
 	"intensity_calculator/CompositeDistanceHistogramFFGrid.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGridSurface.cpp"
 	"intensity_calculator/DistanceHistogram.cpp"
+	"intensity_calculator/ExactDebyeCalculator.cpp"
 	"intensity_calculator/crysol/CompositeDistanceHistogramCrysol.cpp"
 	"intensity_calculator/foxs/CompositeDistanceHistogramFoXS.cpp"
 	"intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.cpp"
