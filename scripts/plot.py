@@ -110,8 +110,7 @@ def main():
                         futures.append(executor.submit(plot_file, os.path.join(currentpath, file)))
 
             if ausaxs_file:
-                plot_fits(ausaxs_file, fit_files, title)
-                # futures.append(executor.submit(plot_fits, ausaxs_file, fit_files, title))
+                futures.append(executor.submit(plot_fits, ausaxs_file, fit_files, title))
 
         concurrent.futures.wait(futures)
 
