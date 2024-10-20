@@ -7,7 +7,7 @@ import os
 from plot_helper import *
 
 max_depth = 4
-max_files = 30
+max_files = 40
 
 def main():
     help_msg = "Usage: plot <folder>\nPlots all .plot files in the given folder and subfolders."
