@@ -17,6 +17,8 @@ def parse_args():
     parser.add_argument("--title", type=str, help="Title for the plot.")
     parser.format_help
     return parser.parse_args()
+max_depth = 4
+max_files = 40
 
 def main():
     args = parse_args()
