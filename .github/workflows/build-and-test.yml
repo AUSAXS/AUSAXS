@@ -107,8 +107,8 @@ jobs:
           mkdir build
           cmake -B build -S . \
             -DGUI=ON \
-            -CMAKE_C_COMPILER=$(brew --prefix llvm@15)/bin/clang \
-            -CMAKE_CXX_COMPILER=$(brew --prefix llvm@15)/bin/clang++ \
+            -DCMAKE_C_COMPILER=$(brew --prefix llvm@15)/bin/clang \
+            -DCMAKE_CXX_COMPILER=$(brew --prefix llvm@15)/bin/clang++ \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
