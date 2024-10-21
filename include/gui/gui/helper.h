@@ -9,6 +9,7 @@
 #include <constants/Constants.h>
 #include <utility/Console.h>
 #include <settings/All.h>
+#include <gui/plotting.h>
 
 #include <list>
 
@@ -99,9 +100,10 @@ inline shell::Command get_plotter_cmd() {
 	#elif defined(__linux__) || defined(__APPLE__)
 		// check if python & the python script is available
 		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
-		bool python_script_available = io::File("scripts/plot.py").exists();
+		auto path = resources::generate_plotting_script();
+		bool python_script_available = path.exists();
 		if (python_available && python_script_available) {
-			return shell::Command("python scripts/plot.py");
+			return shell::Command("python " + path.path());
 		}
 	#endif
 
