@@ -49,17 +49,9 @@ std::vector<io::Folder> Folder::directories() const {
     return dirs;
 }
 
-#include <fstream>
 void Folder::create() const {
     if (exists()) {return;}
-    try {
-        std::filesystem::create_directories(dir);
-    } catch (const std::exception& e) {
-        std::ofstream out("Users/au561871/Downloads/out.txt");
-        out << "Folder::create: Could not create directory: " << dir << ". " << std::endl;
-        out << e.what() << std::endl;
-        throw except::io_error("Folder::create: Could not create directory: " + dir + ". " + e.what());
-    }
+    std::filesystem::create_directories(dir);
 }
 
 std::string operator+(const io::Folder& folder, std::string_view str) {

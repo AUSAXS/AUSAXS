@@ -112,7 +112,13 @@ inline shell::Command get_plotter_cmd() {
 }
 
 inline auto perform_plot(const std::string& path) {
-	get_plotter_cmd().append(path).execute();
+	auto res = get_plotter_cmd().append(path);
+
+	std::ofstream out("Users/au561871/Documents/ausaxs/out.txt");
+	out << "invoking python command from: " << std::filesystem::current_path() << std::endl;
+	out << "command is: " << res.get() << std::endl;
+
+	res.execute();
 };
 
 enum class NFD_TARGET {FILE, FOLDER};
