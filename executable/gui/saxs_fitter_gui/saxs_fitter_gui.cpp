@@ -5,7 +5,7 @@
 #ifdef __APPLE__
 static struct _dummy{
 	_dummy() {
-		std::string out = std::string(std::getenv("HOME")) + "/Documents/ausaxs";
+		std::string out = std::string(std::getenv("HOME")) + "/Library/Application Support/ausaxs";
 		std::filesystem::create_directories(out);
 		std::filesystem::current_path(out);
 	}
@@ -84,33 +84,44 @@ auto make_start_button(gui::view& view) {
 
 		// use a worker thread to avoid locking the gui
 		worker = std::thread([&view] () {
-			std::ofstream out("Users/au561871/Downloads/ausaxs/run.txt");
+			std::ofstream out("Users/au561871/Library/Application Support/ausaxs/run.txt");
 			out << "starting fitter" << std::endl;
+			out.flush();
 			setup::pdb = std::make_unique<data::Molecule>(settings::pdb_file);
 			out << "pdb file loaded" << std::endl;
+			out.flush();
 			setup::pdb->generate_new_hydration();
 			out << "hydration generated" << std::endl;
+			out.flush();
 
 			fitter::SmartFitter fitter({settings::saxs_file}, setup::pdb->get_histogram());
 			auto result = fitter.fit();
 			out << "fitting done" << std::endl;
+			out.flush();
 
 			fitter::FitReporter::report(result.get());
 			out << "report generated" << std::endl;
+			out.flush();
 			fitter::FitReporter::save(result.get(), settings::general::output + "report.txt");
 			out << "report saved" << std::endl;
+			out.flush();
 
 			plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
 			out << "distance histogram plotted" << std::endl;
+			out.flush();
 			plots::PlotProfiles::quick_plot(fitter.get_model(), settings::general::output + "profiles." + settings::plots::format);
 			out << "profiles plotted" << std::endl;
+			out.flush();
 			result->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof));
 			out << "fit saved" << std::endl;
+			out.flush();
 
 			setup::pdb->save(settings::general::output + "model.pdb");
 			out << "model saved" << std::endl;
+			out.flush();
 			perform_plot(settings::general::output);
 			out << "plots generated" << std::endl;
+			out.flush();
 
 			auto make_image_pane = [] (const io::File& path) {
 				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.13);
