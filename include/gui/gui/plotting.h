@@ -3,6 +3,7 @@
 #include <io/ExistingFile.h>
 
 #include <fstream>
+#include <cstring>
 
 namespace resources {
     extern const char *const plotting_script;
@@ -15,11 +16,11 @@ namespace resources {
 
         // plot.py
         std::ofstream out(file.path());
-        out.write(plotting_script, sizeof(plotting_script));
+        out.write(plotting_script, std::strlen(plotting_script));
 
         // plot_helper.py
         std::ofstream helper("resources/plot_helper.py");
-        out.write(plotting_script_helper, sizeof(plotting_script_helper));
+        helper.write(plotting_script_helper, std::strlen(plotting_script_helper));
         return file;
     }
 }
