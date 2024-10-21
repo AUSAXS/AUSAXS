@@ -98,9 +98,13 @@ jobs:
             
     steps:
       - uses: actions/checkout@v4
+      # - name: Install dependencies
+      #   run: |
+      #     brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp llvm@15
+
       - name: Install dependencies
         run: |
-          brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp llvm@15
+          vcpkg install curl pkgconf cairo libwebp --triplet x64-osx-static
 
       - name: Build the library
         run: |
@@ -110,6 +114,8 @@ jobs:
             -DCMAKE_C_COMPILER=$(brew --prefix llvm@15)/bin/clang \
             -DCMAKE_CXX_COMPILER=$(brew --prefix llvm@15)/bin/clang++ \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="x64-osx-static"            
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
