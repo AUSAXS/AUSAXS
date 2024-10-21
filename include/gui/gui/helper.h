@@ -82,7 +82,8 @@ struct ColorManager {
 };
 static auto background = ColorManager::new_background_color();
 
-inline shell::Command get_plotter_cmd(std::ofstream& out) {
+inline shell::Command get_plotter_cmd() {
+	std::ofstream out("Users/au561871/Downloads/ausaxs/get_plotter_cmd.txt");
 	#if defined(_WIN32)
 		// first check if plot.exe is available in the path
 		auto res = shell::Command("where.exe plot").mute().execute();
@@ -118,10 +119,10 @@ inline shell::Command get_plotter_cmd(std::ofstream& out) {
 }
 
 inline auto perform_plot(const std::string& path) {
-	std::ofstream out("Users/au561871/Documents/ausaxs/out.txt");
+	std::ofstream out("Users/au561871/Downloads/ausaxs/perform_plot.txt");
 	out << "perform_plot" << std::endl;
 
-	auto res = get_plotter_cmd(out).append(path);
+	auto res = get_plotter_cmd().append(path);
 
 	out << "invoking python command from: " << std::filesystem::current_path() << std::endl;
 	out << "command is: " << res.get() << std::endl;
