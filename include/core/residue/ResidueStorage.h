@@ -44,6 +44,7 @@ namespace residue {
              * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 
              */
             void initialize();
+            bool initialized = false;
 
             /**
              * @brief Download and load a residue from the web. 

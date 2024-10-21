@@ -20,9 +20,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace residue;
 using namespace residue::detail;
 
-ResidueStorage::ResidueStorage() {
-    initialize();
-}
+ResidueStorage::ResidueStorage() {}
 
 ResidueStorage::~ResidueStorage() = default;
 
@@ -31,10 +29,12 @@ void ResidueStorage::insert(const std::string& name, const ResidueMap& residue) 
 }
 
 bool ResidueStorage::contains(const std::string& name) {
+    if (!initialized) {initialize();}
     return data.contains(name);
 }
 
 ResidueMap& ResidueStorage::get(const std::string& name) {
+    if (!initialized) {initialize();}
     if (data.find(name) == data.end()) {
         console::print_info("Unknown residue: \"" + name + "\". Attempting to download specification.");
         download_residue(name);
@@ -43,6 +43,7 @@ ResidueMap& ResidueStorage::get(const std::string& name) {
 }
 
 void ResidueStorage::initialize() {
+    initialized = true;
     std::string path = settings::general::residue_folder;
     io::Folder(path).create();
     std::ifstream file(path + "master.dat");
@@ -122,6 +123,7 @@ void ResidueStorage::write_residue(const std::string& name) {
 }
 
 constants::atomic_group_t ResidueStorage::get_atomic_group(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom) {
+    if (!initialized) {initialize();}
     auto& residue = get(residue_name);
     return residue.get_atomic_group(atom_name, atom);
 }
