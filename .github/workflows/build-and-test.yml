@@ -104,7 +104,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          vcpkg install curl pkgconf cairo libwebp --triplet x64-osx-static
+          vcpkg install curl pkgconf cairo libwebp --triplet x64-osx
 
       - name: Build the library
         run: |
@@ -115,7 +115,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=$(brew --prefix llvm@15)/bin/clang++ \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="x64-osx-static"            
+            -DVCPKG_TARGET_TRIPLET="x64-osx"            
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
