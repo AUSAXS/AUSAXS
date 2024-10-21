@@ -51,7 +51,11 @@ std::vector<io::Folder> Folder::directories() const {
 
 void Folder::create() const {
     if (exists()) {return;}
-    std::filesystem::create_directories(dir);
+    try {
+        std::filesystem::create_directories(dir);
+    } catch (const std::exception& e) {
+        throw except::io_error("Folder::create: Could not create directory: " + dir + ". " + e.what());
+    }
 }
 
 std::string operator+(const io::Folder& folder, std::string_view str) {
