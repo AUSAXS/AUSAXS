@@ -1,6 +1,17 @@
 #include <elements.hpp>
 #include <nfd.hpp>
 
+#include <filesystem>
+#ifdef __APPLE__
+static struct _dummy{
+	_dummy() {
+		std::string out = std::string(std::getenv("HOME")) + "/Documents/ausaxs";
+		std::filesystem::create_directories(out);
+		std::filesystem::current_path(out);
+	}
+} _dummy_instance;
+#endif
+
 #include <io/File.h>
 #include <constants/Constants.h>
 #include <data/Molecule.h>
@@ -17,7 +28,6 @@
 
 #include <bitset>
 #include <thread>
-#include <filesystem>
 #include <string_view>
 
 namespace gui = cycfi::elements;

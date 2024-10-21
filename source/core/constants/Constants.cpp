@@ -46,7 +46,6 @@ namespace constants {
         {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"W", atom_t::W}, {"M", atom_t::M}
     };
 
-    //* note: this must be initialized *after* symbols::detail::string_to_atomt_map
     residue::ResidueStorage hydrogen_atoms::residues;
 }
 
