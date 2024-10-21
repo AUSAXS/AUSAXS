@@ -102,6 +102,12 @@ jobs:
       #   run: |
       #     brew install curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp llvm@15
 
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: Install dependencies
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-osx
