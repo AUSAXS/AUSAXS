@@ -83,7 +83,6 @@ struct ColorManager {
 static auto background = ColorManager::new_background_color();
 
 inline shell::Command get_plotter_cmd() {
-	std::ofstream out("Users/au561871/Downloads/ausaxs/get_plotter_cmd.txt");
 	#if defined(_WIN32)
 		// first check if plot.exe is available in the path
 		auto res = shell::Command("where.exe plot").mute().execute();
@@ -100,16 +99,10 @@ inline shell::Command get_plotter_cmd() {
 		}
 	#elif defined(__linux__) || defined(__APPLE__)
 		// check if python & the python script is available
-		out << "checking for python" << std::endl;
 		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
-
-		out << "creating plotting script" << std::endl;
 		auto path = resources::generate_plotting_script();
-		out << "checking for plotting script" << std::endl;
 		bool python_script_available = path.exists();
-		out << "python available: " << python_available << ", script available: " << python_script_available << std::endl;
 		if (python_available && python_script_available) {
-			out << "returning python command: " << "python " + path.path() << std::endl;
 			return shell::Command("python " + path.path());
 		}
 	#endif
@@ -119,15 +112,7 @@ inline shell::Command get_plotter_cmd() {
 }
 
 inline auto perform_plot(const std::string& path) {
-	std::ofstream out("Users/au561871/Downloads/ausaxs/perform_plot.txt");
-	out << "perform_plot" << std::endl;
-
-	auto res = get_plotter_cmd().append(path);
-
-	out << "invoking python command from: " << std::filesystem::current_path() << std::endl;
-	out << "command is: " << res.get() << std::endl;
-
-	res.execute();
+	get_plotter_cmd().append(path).execute();
 };
 
 enum class NFD_TARGET {FILE, FOLDER};
