@@ -105,10 +105,11 @@ inline shell::Command get_plotter_cmd() {
 		if (python_available && python_script_available) {
 			return shell::Command("python " + path.path());
 		}
+		console::print_warning("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
+		throw std::runtime_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
 	#endif
-
-	console::print_warning("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
-	throw std::runtime_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
+		console::print_warning("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
+		throw std::runtime_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
 }
 
 inline auto perform_plot(const std::string& path) {
