@@ -82,23 +82,20 @@ def main():
 
     for currentpath, _, files in os.walk(folder):
         fit_files = []
-        dat_file = ""
-        report_file = ""
+        ausaxs_file = ""
         for file in files:
             extension = file.split(".")[-1]
+            if file == "ausaxs.fit":
+                ausaxs_file = os.path.join(currentpath, file)
+                continue
             match extension:
                 case "fit" | "xvg":
                     fit_files.append(os.path.join(currentpath, file))
-                case "scat":
-                    dat_file = os.path.join(currentpath, file)
                 case "plot":
                     plot_file(os.path.join(currentpath, file))
-            
-            if file == "report.txt":
-                report_file = os.path.join(currentpath, file)
-        
-        if fit_files and dat_file != "" and report_file != "":
-            plot_fits(dat_file, fit_files, report_file, title)
+
+        if ausaxs_file:
+            plot_fits(ausaxs_file, fit_files, title)
 
 if __name__ == "__main__":
     freeze_support()
