@@ -94,7 +94,7 @@ jobs:
           #   vcpkg_triplet: x64-osx
           #   CC: $(brew --prefix llvm@15)/bin/clang
           #   CXX: $(brew --prefix llvm@15)/bin/clang++
-          #   XCODE: Xcode_14.2
+          #   XCODE_VER: 14.2
 
           - runner: macos-14
             name: "MacOS arm64"
@@ -102,7 +102,7 @@ jobs:
             vcpkg_triplet: arm64-osx
             CC: $(brew --prefix llvm@15)/bin/clang
             CXX: $(brew --prefix llvm@15)/bin/clang++
-            XCODE: Xcode_14.3.1
+            XCODE_VER: 14.3.1
   
     steps:
       - uses: actions/checkout@v4
@@ -117,7 +117,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Set Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_${{ matrix.XCODE }}.app/Contents/Developer
+        run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
       - uses: lukka/get-cmake@latest            
       - uses: lukka/run-vcpkg@v11
