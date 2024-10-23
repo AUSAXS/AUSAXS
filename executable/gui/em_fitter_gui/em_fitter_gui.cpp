@@ -1,6 +1,17 @@
 #include <elements.hpp>
 #include <nfd.hpp>
 
+#include <filesystem>
+#ifdef __APPLE__
+static struct _dummy{
+	_dummy() {
+		std::string out = std::string(std::getenv("HOME")) + "/Documents/ausaxs";
+		std::filesystem::create_directories(out);
+		std::filesystem::current_path(out);
+	}
+} _dummy_instance;
+#endif
+
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
 #include <fitter/SmartFitter.h>
@@ -19,7 +30,6 @@
 #include <gui/logo.h>
 #include <gui/resources.h>
 
-#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <thread>
