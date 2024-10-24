@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 
-namespace data {
+namespace ausaxs::data {
 	class Body {
 		public:
 			Body();

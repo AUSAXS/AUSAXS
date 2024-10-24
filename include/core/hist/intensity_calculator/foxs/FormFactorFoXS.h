@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-namespace form_factor::foxs {
+namespace ausaxs::form_factor::foxs {
     class FormFactorFoXS {
         public:
             FormFactorFoXS(double q0) : q0(q0) {}

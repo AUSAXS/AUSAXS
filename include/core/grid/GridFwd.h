@@ -1,5 +1,5 @@
 #pragma once
 
-namespace grid {
+namespace ausaxs::grid {
 	class Grid;
 }

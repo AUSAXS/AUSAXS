@@ -2,6 +2,6 @@
 
 #include <em/detail/header/data/HeaderData.h>
 
-namespace em::detail::header {
+namespace ausaxs::em::detail::header {
     struct DummyData {};
 }

@@ -4,7 +4,7 @@
 
 #include <string>
 
-namespace shell {
+namespace ausaxs::shell {
     struct CommandResult {
         std::string out;
         int exit_code;

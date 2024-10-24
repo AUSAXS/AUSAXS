@@ -6,6 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/MDSettings.h>
 #include <settings//SettingsIORegistry.h>
 
+using namespace ausaxs;
+
 std::string settings::md::gmx_path = "gmx";
 std::string settings::md::buffer_path = "";
 std::string settings::md::water_model = "tip4p2005";

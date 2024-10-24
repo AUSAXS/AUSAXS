@@ -28,7 +28,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <memory>
 #include <cassert>
 
-using namespace em;
+using namespace ausaxs;
+using namespace ausaxs::em;
 
 ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;

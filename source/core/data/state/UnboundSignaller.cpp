@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <data/state/UnboundSignaller.h>
 
-using namespace signaller;
+using namespace ausaxs::signaller;
 
 void UnboundSignaller::external_change() const {}
 

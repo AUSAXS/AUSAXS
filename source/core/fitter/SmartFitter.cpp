@@ -13,7 +13,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cassert>
 
-using namespace fitter;
+using namespace ausaxs;
+using namespace ausaxs::fitter;
 
 SmartFitter::~SmartFitter() = default;
 SmartFitter::SmartFitter(SmartFitter&&) noexcept = default;

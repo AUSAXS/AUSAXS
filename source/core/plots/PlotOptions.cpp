@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <sstream>
 
-using namespace plots;
+using namespace ausaxs::plots;
 
 double inf = std::numeric_limits<double>::infinity();
 

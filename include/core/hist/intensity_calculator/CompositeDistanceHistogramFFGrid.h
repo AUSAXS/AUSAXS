@@ -5,7 +5,7 @@
 #include <table/VectorDebyeTable.h>
 #include <utility/TypeTraits.h>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief A class containing partial distance histograms for the different types of interactions and atomic types. 
      *        Beyond the functionality of CompositeDistanceHistogram, this class also uses individual form factors for each atomic type.

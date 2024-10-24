@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <numeric>
 #include <utility/Exceptions.h>
 
-using namespace em;
+using namespace ausaxs::em;
 
 ObjectBounds2D::ObjectBounds2D(unsigned int size_x, unsigned int size_y) : bounds(size_x, Limit(0, size_y)), N(size_x), M(size_y) {}
 

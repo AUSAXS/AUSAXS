@@ -9,7 +9,7 @@
 #include <container/ArrayContainer2D.h>
 #include <math/ConstexprMath.h>
 
-namespace form_factor::crysol {
+namespace ausaxs::form_factor::crysol {
     /**
      * @brief Calculate the excluded volume form factor based on the description from Crysol: https://doi.org/10.1107/S0021889895007047
      *        Undocumented changes from their article:

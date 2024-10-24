@@ -8,7 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 RecordType Record::get_type(const std::string& s) {
     auto str = utility::remove_all(s, " \r"); // remove any space or carriage returns, since programs are inconsistent with the spacing after e.g. END or TER

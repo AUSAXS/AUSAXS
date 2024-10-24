@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hist {
+namespace ausaxs::hist {
     class Distribution1D;
     class Distribution2D;
     class Distribution3D;

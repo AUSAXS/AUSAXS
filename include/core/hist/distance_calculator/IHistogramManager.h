@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace hist {
+namespace ausaxs::hist {
 	/**
 	 * @brief A generic histogram manager interface. 
      *        This class is responsible for calculating all distances for a given molecule.

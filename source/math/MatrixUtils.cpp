@@ -9,6 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <math.h>
 
+using namespace ausaxs;
+
 Matrix<double> matrix::rotation_matrix(double alpha, double beta, double gamma) {
     double cosa = cos(alpha), cosb = cos(beta), cosg = cos(gamma);
     double sina = sin(alpha), sinb = sin(beta), sing = sin(gamma);

@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cstdint>
 
+using namespace ausaxs;
+
 namespace em::detail::header {
     std::unordered_map<em::detail::header::DataType, unsigned int> byte_sizes = {
         {em::detail::header::DataType::int8,    sizeof(int8_t)},

@@ -11,7 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <iostream>
 #include <sstream>
 
-using namespace em::detail::header;
+using namespace ausaxs::em::detail::header;
 
 MRCHeader::MRCHeader() : MapHeader(std::make_unique<MRCData>()) {}
 MRCHeader::MRCHeader(MRCData&& data) : MapHeader(std::make_unique<MRCData>(std::move(data))) {}

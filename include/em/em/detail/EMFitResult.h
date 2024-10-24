@@ -2,7 +2,7 @@
 
 #include <fitter/FitResult.h>
 
-namespace fitter {
+namespace ausaxs::fitter {
     class EMFitResult : public FitResult {
         public:
             using FitResult::FitResult;

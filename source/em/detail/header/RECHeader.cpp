@@ -11,7 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <iostream>
 #include <sstream>
 
-using namespace em::detail::header;
+using namespace ausaxs::em::detail::header;
 
 RECHeader::RECHeader() : MapHeader(std::make_unique<RECData>()) {}
 RECHeader::~RECHeader() = default;

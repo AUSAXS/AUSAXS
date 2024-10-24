@@ -6,7 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
 #include <settings/HistogramSettings.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 Limit CompositeDistanceHistogramFoXS::get_excluded_volume_scaling_factor_limits() const {
     return {0.8, 1.2};

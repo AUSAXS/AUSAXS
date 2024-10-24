@@ -1,5 +1,5 @@
 #pragma once
 
-namespace residue {
+namespace ausaxs::residue {
     class ResidueStorage;
 }

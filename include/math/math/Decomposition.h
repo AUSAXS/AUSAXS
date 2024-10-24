@@ -1,11 +1,13 @@
 #pragma once
 
-class Decomposition {
-  public: 
-    Decomposition() {}
-    virtual ~Decomposition() {}
-    virtual void decompose() = 0;
+namespace ausaxs {
+    class Decomposition {
+        public: 
+            Decomposition() {}
+            virtual ~Decomposition() {}
+            virtual void decompose() = 0;
 
-  protected:
-    static constexpr double precision = 1e-9;
-};
+        protected:
+            static constexpr double precision = 1e-9;
+    };
+}

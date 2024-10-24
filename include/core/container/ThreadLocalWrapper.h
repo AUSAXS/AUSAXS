@@ -7,7 +7,7 @@
 #include <functional>
 #include <unordered_map>
 
-namespace container {
+namespace ausaxs::container {
     /**
      * @brief A simple wrapper around T to keep track of the thread-local instances of T.
      *        This allows access to all the thread-local data from any single thread.

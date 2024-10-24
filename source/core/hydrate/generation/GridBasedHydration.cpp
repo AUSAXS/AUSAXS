@@ -15,7 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cassert>
 
-using namespace hydrate;
+using namespace ausaxs;
+using namespace ausaxs::hydrate;
 
 GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein) : protein(protein), culling_strategy(factory::construct_culling_strategy(protein)) {}
 GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy) : protein(protein), culling_strategy(std::move(culling_strategy)) {}

@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 
-namespace fitter {
+namespace ausaxs::fitter {
     class Fitter {
         public:
             virtual ~Fitter() = default;

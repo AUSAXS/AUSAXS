@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/ExistingFile.h>
 #include <utility/Exceptions.h>
 
+using namespace ausaxs;
+
 std::unique_ptr<em::detail::header::IMapHeader> em::detail::factory::create_header(const io::ExistingFile& path) {
     if (em::detail::header::MRCHeader::is_mrc(path)) {
         return std::make_unique<em::detail::header::MRCHeader>();

@@ -7,7 +7,7 @@
 
 #include <memory>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     namespace factory {
         std::unique_ptr<HydrationStrategy> construct_hydration_generator(observer_ptr<data::Molecule> protein);
         std::unique_ptr<HydrationStrategy> construct_hydration_generator(observer_ptr<data::Molecule> protein, const settings::hydrate::HydrationStrategy& choice);

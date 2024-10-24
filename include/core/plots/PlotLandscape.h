@@ -1,9 +1,9 @@
 #pragma once
 
 #include <plots/Plot.h>
+#include <mini/MiniFwd.h>
 
-namespace mini {class Landscape;}
-namespace plots {
+namespace ausaxs::plots {
     /**
      * @brief Plot a specific \class Landscape object.
      */

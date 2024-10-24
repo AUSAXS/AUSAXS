@@ -1,13 +1,11 @@
 #pragma once
 
 #include <math/MathConcepts.h>
+#include <math/MathFwd.h>
 
 #include <tuple>
 
-template<numeric T> class Matrix;
-template<numeric T> class Vector3;
-
-namespace matrix {
+namespace ausaxs::matrix {
     /**
      * @brief Generate a 3x3 extrinsic rotation matrix.
      */
@@ -27,7 +25,7 @@ namespace matrix {
     Matrix<double> identity(unsigned int dim);
 }
 
-namespace vector3 {
+namespace ausaxs::vector3 {
     /**
      * @brief Generate a complete 3D basis from a single basis vector. 
      *        Implementation based on the "frisvad" algorithm from https://backend.orbit.dtu.dk/ws/portalfiles/portal/126824972/onb_frisvad_jgt2012_v2.pdf.

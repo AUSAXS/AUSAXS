@@ -14,7 +14,7 @@
 #include <vector>
 #include <memory>
 
-namespace data {
+namespace ausaxs::data {
 	/**
 	 * @brief A representation of a molecule.
 	 * 

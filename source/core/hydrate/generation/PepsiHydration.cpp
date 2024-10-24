@@ -14,8 +14,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cassert>
 
-using namespace hydrate;
-using namespace data::record;
+using namespace ausaxs::hydrate;
+using namespace ausaxs::data::record;
 
 PepsiHydration::PepsiHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
     initialize();

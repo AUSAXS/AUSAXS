@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace em;
+using namespace ausaxs::em;
 
 void Box::save(const io::File& filename) const {
     std::ofstream output(filename);

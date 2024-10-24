@@ -12,7 +12,7 @@
 #include <vector>
 #include <memory>
 
-namespace data::detail {
+namespace ausaxs::data::detail {
     /**
      * @brief An abstract representation of an input AtomCollection. Handles both reading and writing of AtomCollections, and also stores the relevant AtomCollection data. 
      */

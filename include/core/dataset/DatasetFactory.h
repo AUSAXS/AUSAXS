@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace factory {
+namespace ausaxs::factory {
     /**
      * @brief Factory class for creating datasets from files.
      *        The factory will automatically determine the correct constructor to use based on the file extension.

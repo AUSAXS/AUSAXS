@@ -2,7 +2,7 @@
 
 #include <mini/Minimizer.h>
 
-namespace mini {
+namespace ausaxs::mini {
 	/**
 	 * @brief A class to explore the area near a minimum. 
      *        This is useful since most of our problems are not continuous and have varying step sizes. This class ensures that the function actually varies in the area explored.

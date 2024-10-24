@@ -7,7 +7,7 @@
 #include <vector>
 #include <functional>
 
-namespace mini {
+namespace ausaxs::mini {
     /**
      * @brief A common interface for global minimizers. 
      */

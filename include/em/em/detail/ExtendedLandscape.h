@@ -2,7 +2,7 @@
 
 #include <mini/detail/Landscape.h>
 
-namespace em {
+namespace ausaxs::em {
     namespace detail {
         /**
          * @brief Specialized landscape class for the ImageStack class. 

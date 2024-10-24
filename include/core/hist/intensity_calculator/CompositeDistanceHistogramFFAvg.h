@@ -4,7 +4,7 @@
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <utility/TypeTraits.h>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief An instantiation of the CompositeDistanceHistogramFFAvgBase class that uses the default precalculated form factor table.
      *        For more information, see CompositeDistanceHistogramFFAvgBase.

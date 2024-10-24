@@ -2,7 +2,7 @@
 
 #include <hydrate/culling/CullingStrategy.h>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     /**
      * @brief Iterate through all water molecules, and count how many other molecules are nearby. Atoms counts as +1, while other water molecules counts as -2. 
      *        Then start removing the most negative water molecules until the desired count is reached. 

@@ -14,7 +14,8 @@ For more information, please refer to the LICENSE file in the project root.
     #undef __SSE4_2__
 #endif
 
-using namespace hist::detail;
+using namespace ausaxs;
+using namespace ausaxs::hist::detail;
 
 constexpr float inv_width = constants::axes::d_inv_width;
 

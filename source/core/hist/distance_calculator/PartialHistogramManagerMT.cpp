@@ -18,7 +18,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <mutex>
 #include <numeric>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution> 
 PartialHistogramManagerMT<use_weighted_distribution>::PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein) 

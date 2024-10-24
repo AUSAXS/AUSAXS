@@ -2,7 +2,7 @@
 
 #include <hydrate/generation/HydrationStrategy.h>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     /**
      * @brief This strategy will not place any water molecules. 
      */

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace math {
+namespace ausaxs::math {
     /**
      * @brief Find the indices of minima in the dataset.
      * 

@@ -9,6 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <thread>
 
+using namespace ausaxs;
+
 constexpr const char* const settings::general::residue_folder = "temp/residues/";
 bool settings::general::verbose = true;
 bool settings::general::warnings = true;

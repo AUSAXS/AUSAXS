@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <filesystem>
 
-using namespace io;
+using namespace ausaxs;
+using namespace ausaxs::io;
 
 Folder::Folder(std::string_view path) {*this = path;}
 

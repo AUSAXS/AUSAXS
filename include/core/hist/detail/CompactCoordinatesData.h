@@ -15,7 +15,7 @@
     #endif
 #endif
 
-namespace hist::detail {
+namespace ausaxs::hist::detail {
     /**
      * @brief Simple structure for storing the results of a distance and weight calculation.
      */

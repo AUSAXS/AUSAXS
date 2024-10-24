@@ -2,7 +2,7 @@
 
 #include <crystal/io/CrystalReader.h>
 
-namespace crystal::io {
+namespace ausaxs::crystal::io {
     /**
      * @brief Read a unit cell from a file. 
      * 

@@ -2,7 +2,7 @@
 
 #include <data/record/Atom.h>
 
-namespace data::record {
+namespace ausaxs::data::record {
     class Water : public Atom {
         public:
             using Atom::Atom;

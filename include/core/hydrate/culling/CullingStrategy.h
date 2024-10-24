@@ -7,7 +7,7 @@
 
 #include <vector>
 
-namespace hydrate {    
+namespace ausaxs::hydrate {    
     /**
      * @brief This class defines the strategy used to remove some of the water molecules from the grid. 
      *        See its subclasses for more information on how this is done. 

@@ -6,7 +6,7 @@
 #include <string_view>
 #include <iosfwd>
 
-namespace io {
+namespace ausaxs::io {
     class File {
         public:
             File() = default;

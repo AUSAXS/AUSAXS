@@ -3,7 +3,7 @@
 #include <math/Matrix.h>
 #include <utility/Axis.h>
 
-namespace hist {
+namespace ausaxs::hist {
     class Histogram2D : public Matrix<double> {
         public: 
             Histogram2D() = default;

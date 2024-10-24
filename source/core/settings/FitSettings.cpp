@@ -6,6 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/FitSettings.h>
 #include <settings/SettingsIORegistry.h>
 
+using namespace ausaxs;
+
 bool settings::fit::verbose = false;
 unsigned int settings::fit::N = 100;
 unsigned int settings::fit::max_iterations = 100;

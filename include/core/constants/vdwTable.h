@@ -1,6 +1,6 @@
 #pragma once
 
-namespace constants::radius::vdw {
+namespace ausaxs::constants::radius::vdw {
     // Rowland 1996, crystallographic
     constexpr double H = 1.1;
 

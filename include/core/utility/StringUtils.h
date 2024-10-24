@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace utility {
+namespace ausaxs::utility {
     /**
      * @brief Remove spaces from both ends of a string. 
      */

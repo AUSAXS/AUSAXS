@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
 
+using namespace ausaxs;
+
 unsigned int settings::rigidbody::iterations = 1000;
 double settings::rigidbody::bond_distance = 3;
 settings::rigidbody::TransformationStrategyChoice settings::rigidbody::transform_strategy = TransformationStrategyChoice::RigidTransform;

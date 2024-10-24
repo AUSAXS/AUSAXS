@@ -9,7 +9,7 @@
     #include <cmath>
     #include <vector>
 
-    namespace table {
+    namespace ausaxs::table {
         /**
          * @brief sinc(x) lookup table for the Debye transform.
          * 

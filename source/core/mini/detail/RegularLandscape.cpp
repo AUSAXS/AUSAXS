@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace mini;
+using namespace ausaxs::mini;
 
 void RegularLandscape::rotate90() noexcept {
     x.swap(y);

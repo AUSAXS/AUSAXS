@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace fitter {
+namespace ausaxs::fitter {
     class FitResult : public mini::Result {
         public:
             FitResult() noexcept = default;

@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Atom.h>
 #include <constants/Constants.h>
 
-using namespace crystal;
+using namespace ausaxs;
+using namespace ausaxs::crystal;
 
 Fval::Fval() = default;
 Fval::Fval(int h, int k, int l) : hkl(h, k, l) {

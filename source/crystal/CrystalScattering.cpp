@@ -29,7 +29,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <csignal>
 #include <mutex>
 
-using namespace crystal;
+using namespace ausaxs;
+using namespace ausaxs::crystal;
 
 CrystalScattering::CrystalScattering(const std::string& input) {
     initialize();

@@ -6,7 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <em/detail/EMFitResult.h>
 #include <utility/Utility.h>
 
-using namespace fitter;
+using namespace ausaxs::fitter;
 
 std::string EMFitResult::to_string() const noexcept {
     std::stringstream ss;

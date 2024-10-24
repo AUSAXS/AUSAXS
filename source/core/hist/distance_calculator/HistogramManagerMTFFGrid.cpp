@@ -18,7 +18,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 // custom evaluates for the grid since we don't want to account for the excluded volume
 namespace grid {

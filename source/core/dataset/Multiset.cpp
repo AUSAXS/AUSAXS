@@ -8,6 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <filesystem>
 
+using namespace ausaxs;
+
 Multiset::Multiset(const std::vector<Dataset2D>& data) : data(data) {}
 
 Multiset::Multiset(const Dataset2D& data) : data({data}) {}

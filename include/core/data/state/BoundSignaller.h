@@ -3,7 +3,7 @@
 #include <data/state/DataStateFwd.h>
 #include <data/state/Signaller.h>
 
-namespace signaller {
+namespace ausaxs::signaller {
     /**
      * @brief A small probe for signalling changes which can be dispatched to other classes. 
      */

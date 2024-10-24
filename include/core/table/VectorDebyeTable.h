@@ -4,7 +4,7 @@
 #include <table/DebyeTable.h>
 #include <utility/Concepts.h>
 
-namespace table {
+namespace ausaxs::table {
     class VectorDebyeTable : public DebyeTable, private Table {
         public:
             VectorDebyeTable();

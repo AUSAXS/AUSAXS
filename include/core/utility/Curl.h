@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace curl {
+namespace ausaxs::curl {
     /**
      * @brief Download the given URL as a file. 
      */ 

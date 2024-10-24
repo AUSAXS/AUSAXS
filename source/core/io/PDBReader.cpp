@@ -18,8 +18,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace io::detail;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::io::detail;
+using namespace ausaxs::data::record;
 
 PDBReader::PDBReader(data::detail::AtomCollection* const file) : file(file) {}
 

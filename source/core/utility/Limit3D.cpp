@@ -5,6 +5,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <utility/Limit3D.h>
 
+using namespace ausaxs;
+
 Limit3D::Limit3D() noexcept = default;
 
 Limit3D::Limit3D(const Limit& x, const Limit& y, const Limit& z) noexcept : x(x), y(y), z(z) {}

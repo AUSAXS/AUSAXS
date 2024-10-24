@@ -15,7 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <dataset/SimpleDataset.h>
 #include <utility/MultiThreading.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase() = default;

@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace residue::detail {
+namespace ausaxs::residue::detail {
     /**
      * @brief A simple representation of an atom.
      */

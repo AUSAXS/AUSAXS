@@ -5,7 +5,7 @@
 #include <math/ConstexprMath.h>
 #include <constants/ConstantsMath.h>
 
-namespace constants::displaced_volume {
+namespace ausaxs::constants::displaced_volume {
     namespace detail {
         struct DisplacedVolumeSet {
             double H;

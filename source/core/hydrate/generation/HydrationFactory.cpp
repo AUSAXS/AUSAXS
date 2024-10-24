@@ -14,7 +14,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <math/Vector3.h>
 
-using namespace hydrate;
+using namespace ausaxs;
+using namespace ausaxs::hydrate;
 
 std::unique_ptr<HydrationStrategy> factory::construct_hydration_generator(observer_ptr<data::Molecule> protein) {
     return factory::construct_hydration_generator(protein, settings::hydrate::hydration_strategy, settings::hydrate::culling_strategy);

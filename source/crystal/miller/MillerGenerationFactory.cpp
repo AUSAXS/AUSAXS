@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/CrystalSettings.h>
 #include <residue/ResidueMap.h>
 
+using namespace ausaxs;
+
 std::unique_ptr<crystal::MillerGenerationStrategy> crystal::factory::construct_miller_strategy() {
     return construct_miller_strategy(settings::crystal::miller_generation_strategy);
 }

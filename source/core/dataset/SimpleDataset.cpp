@@ -15,6 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <random>
 
+using namespace ausaxs;
+
 SimpleDataset::SimpleDataset() : SimpleDataset(0) {}
 SimpleDataset::SimpleDataset(const SimpleDataset& d) = default;
 SimpleDataset::SimpleDataset(SimpleDataset&& d) = default;

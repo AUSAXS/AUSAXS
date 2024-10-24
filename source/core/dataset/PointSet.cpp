@@ -5,6 +5,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <dataset/PointSet.h>
 
+using namespace ausaxs;
+
 unsigned int detail::IPoint::dim() {return 0;}
 
 Point1D::Point1D() = default;

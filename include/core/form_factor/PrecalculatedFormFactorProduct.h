@@ -6,7 +6,7 @@
 #include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorConcepts.h>
 
-namespace form_factor {
+namespace ausaxs::form_factor {
     class PrecalculatedFormFactorProduct {
         public:
             constexpr PrecalculatedFormFactorProduct() noexcept = default;

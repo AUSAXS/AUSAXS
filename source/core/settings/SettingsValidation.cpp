@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/All.h>
 #include <utility/Console.h>
 
+using namespace ausaxs;
+
 void settings::validate_settings() {
     switch (settings::hist::histogram_manager) {
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:

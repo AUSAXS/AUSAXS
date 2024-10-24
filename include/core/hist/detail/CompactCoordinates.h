@@ -6,7 +6,7 @@
 
 #include <vector>
 
-namespace hist::detail {
+namespace ausaxs::hist::detail {
     /**
      * @brief A compact vector representation of the coordinates and weight of all atoms in a body. 
      *        The idea is that by only extracting the absolute necessities for the distance calculation such as the coordinates and weight,

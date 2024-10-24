@@ -4,8 +4,8 @@
 
 #include <memory>
 
-namespace settings::crystal {enum class MillerGenerationChoice;}
-namespace crystal {
+namespace ausaxs::settings::crystal {enum class MillerGenerationChoice;}
+namespace ausaxs::crystal {
     namespace factory {
         /**
          * @brief Prepare a miller generation strategy.

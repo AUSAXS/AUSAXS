@@ -5,7 +5,7 @@
 
 #include <iosfwd>
 
-namespace hist::detail {
+namespace ausaxs::hist::detail {
     /**
         * @brief This struct is a small wrapper around a binned value, automatically keeping tracking the weighted center of the bin. 
         *        This is used to keep the value and weight tracking variables close together in memory, thus improving cache locality for the distance calculations.

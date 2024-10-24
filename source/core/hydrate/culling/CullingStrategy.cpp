@@ -5,7 +5,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hydrate/culling/CullingStrategy.h>
 
-using namespace hydrate;
+using namespace ausaxs;
+using namespace ausaxs::hydrate;
 
 CullingStrategy::CullingStrategy(observer_ptr<data::Molecule> molecule) : molecule(molecule) {}
 

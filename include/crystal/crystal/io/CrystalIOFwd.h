@@ -1,3 +1,3 @@
 #pragma once
 
-namespace crystal::io { struct CrystalReader; }
+namespace ausaxs::crystal::io { struct CrystalReader; }

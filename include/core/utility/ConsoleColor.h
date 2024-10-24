@@ -6,7 +6,7 @@
     #include <map>
 #endif
 
-namespace console {
+namespace ausaxs::console {
     namespace color {
         enum color : int {
             black = 0,

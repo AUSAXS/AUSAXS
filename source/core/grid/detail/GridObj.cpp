@@ -6,7 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/detail/GridObj.h>
 #include <math/Vector3.h>
 
-using namespace grid::detail;
+using namespace ausaxs;
+using namespace ausaxs::grid::detail;
 
 GridObj::GridObj(unsigned int x, unsigned int y, unsigned int z) : container::Container3D<State>(x, y, z, EMPTY) {}
 

@@ -6,6 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/EMSettings.h>
 #include <settings/SettingsIORegistry.h>
 
+using namespace ausaxs;
+
 unsigned int settings::em::sample_frequency = 1;
 double settings::em::concentration = 1;
 unsigned int settings::em::charge_levels = 50;

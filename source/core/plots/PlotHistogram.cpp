@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/Histogram.h>
 #include <dataset/SimpleDataset.h>
 
-using namespace plots;
+using namespace ausaxs::plots;
 
 PlotHistogram::PlotHistogram() = default;
 

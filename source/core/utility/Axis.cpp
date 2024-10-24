@@ -9,6 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <ostream>
 #include <cmath>
 
+using namespace ausaxs;
+
 Axis::Axis() noexcept : bins(0), min(0), max(0) {}
 
 Axis::Axis(const Limit& limits, int bins) noexcept : bins(bins), min(limits.min), max(limits.max) {}

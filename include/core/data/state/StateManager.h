@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 
-namespace state {
+namespace ausaxs::state {
 	/**
 	 * @brief A state manager which keeps track of changes in each body. 
 	 *        This is meant to be used in conjunction with DistanceCalculator, such that it only recalculates what is absolutely necessary. 

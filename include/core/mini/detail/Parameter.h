@@ -7,7 +7,7 @@
 #include <string>
 #include <optional>
 
-namespace mini {
+namespace ausaxs::mini {
     /**
      * @brief A representation of a parameter.
      */

@@ -17,9 +17,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/Constants.h>
 #include <io/ExistingFile.h>
 
-using namespace grid;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::grid;
+using namespace ausaxs::data;
+using namespace ausaxs::data::record;
 
 Grid::Grid(const Limit3D& axes) : axes(Axis3D(axes, settings::grid::cell_width)) {
     setup();

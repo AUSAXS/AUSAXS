@@ -15,6 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <constants/Constants.h>
 
+using namespace ausaxs;
+
 std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const ::io::ExistingFile& input) const {
     data::Molecule protein(input);
     double expansion = settings::crystal::grid_expansion;

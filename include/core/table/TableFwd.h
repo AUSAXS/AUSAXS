@@ -1,6 +1,6 @@
 #pragma once
 
-namespace table {
+namespace ausaxs::table {
     class DebyeTable;
     class ArrayDebyeTable;
 }

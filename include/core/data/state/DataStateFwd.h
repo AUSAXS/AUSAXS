@@ -1,9 +1,9 @@
 #pragma once
 
-namespace signaller {
+namespace ausaxs::signaller {
 	class Signaller;
 }
 
-namespace state {
+namespace ausaxs::state {
     class StateManager;
 }
