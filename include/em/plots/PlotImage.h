@@ -2,8 +2,8 @@
 
 #include <plots/Plot.h>
 
-namespace em {class Image;}
-namespace plots {
+namespace ausaxs::em {class Image;}
+namespace ausaxs::plots {
     /**
      * @brief Plot a specific \class Image object. 
      */

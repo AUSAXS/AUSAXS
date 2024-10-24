@@ -8,6 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <sstream>
 
+using namespace ausaxs;
+
 std::string utility::remove_quotation_marks(std::string s) {
     if (s.size() > 1 && s[0] == '"' && s[s.size()-1] == '"') {
         return s.substr(1, s.size()-2);

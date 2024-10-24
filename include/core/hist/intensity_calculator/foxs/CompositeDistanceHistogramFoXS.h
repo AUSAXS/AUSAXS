@@ -4,7 +4,7 @@
 #include <hist/intensity_calculator/foxs/FormFactorFoXS.h>
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief An alternative to CompositeDistanceHistogramFFExplicit that uses the same form factors as FoXS. 
      */

@@ -6,7 +6,7 @@
 #include <container/Container1D.h>
 #include <container/Container2D.h>
 
-namespace hist {
+namespace ausaxs::hist {
 	/**
 	 * The basic idea is that we have a bunch of partial histograms (contained in @a partials), which combined represents the total scattering histogram. 
 	 * As an example, if we had 4 bodies, it would look something like this:

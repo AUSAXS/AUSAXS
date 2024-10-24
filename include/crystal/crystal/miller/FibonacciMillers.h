@@ -3,7 +3,7 @@
 #include <crystal/miller/ReducedMillers.h>
 #include <math/Vector3.h>
 
-namespace crystal {
+namespace ausaxs::crystal {
     /**
      * @brief The FibonacciMillers class generates a set of Miller indices using the Fibonacci sphere algorithm.
      * 

@@ -9,7 +9,7 @@
 
 #include <list>
 
-namespace em {
+namespace ausaxs::em {
     /**
      * @brief Supporting class for ImageStack. This is not meant to be instantiated elsewhere. 
      */

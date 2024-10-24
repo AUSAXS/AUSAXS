@@ -1,6 +1,6 @@
 #pragma once
 
-namespace crystal {
+namespace ausaxs::crystal {
 	struct MillerGenerationStrategy;
 	class Fval;
 }

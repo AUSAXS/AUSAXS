@@ -2,7 +2,7 @@
 
 #include <math/MathFwd.h>
 
-namespace crystal {
+namespace ausaxs::crystal {
     /**
      * @brief A struct to represent a Miller index. 
      */

@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <constants/Constants.h>
 
-using namespace hist::detail;
+using namespace ausaxs::hist::detail;
 
 CompactCoordinates::CompactCoordinates(unsigned int size) : data(size) {}
 

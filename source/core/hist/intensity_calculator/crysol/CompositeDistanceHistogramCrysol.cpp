@@ -5,7 +5,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 double CompositeDistanceHistogramCrysol::exv_factor(double q) const {
     // G(q) factor from CRYSOL: https://doi.org/10.1107/S0021889895007047

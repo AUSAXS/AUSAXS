@@ -12,7 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 grid::ClusterCulling::ClusterCulling(grid::Grid* grid) : grid(grid) {
     prepare_rotations();

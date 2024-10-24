@@ -3,7 +3,7 @@
 #include <hydrate/generation/GridBasedHydration.h>
 #include <math/MathFwd.h>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     /**
      * @brief This strategy iterates through all bins, and for every bin which is part of the volume of an atom, it attempts to place a
      * water molecule at x±r, y±r, and z±r. If the location is valid, the molecule will be placed. This will typically generate

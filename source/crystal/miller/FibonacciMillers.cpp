@@ -12,7 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <math.h>
 #include <iostream>
 
-using namespace crystal;
+using namespace ausaxs::crystal;
 
 FibonacciMillers::FibonacciMillers(unsigned int h, unsigned int k, unsigned int l) : ReducedMillers(h, k, l) {}
 

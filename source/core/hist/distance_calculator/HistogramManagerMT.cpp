@@ -14,7 +14,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution>
 HistogramManagerMT<use_weighted_distribution>::~HistogramManagerMT() = default;

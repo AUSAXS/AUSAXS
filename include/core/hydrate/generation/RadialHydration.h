@@ -7,7 +7,7 @@
 #include <vector>
 #include <functional>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     /**
      * @brief This strategy iterates through all atoms, and attempts to place a water molecule at a distance r along a number of radial lines originating from each atom. 
      * For each possible location, a suitability score is calculated, which favors the surface of the molecule, and penalizes cavities (including internal spaces). 

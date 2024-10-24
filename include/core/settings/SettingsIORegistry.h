@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 
-namespace settings::io {
+namespace ausaxs::settings::io {
     /**
         * @brief By creating an instance of this class, you add another section of settings to the settings file, ready for both reading and writing.   
         * 

@@ -5,5 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <em/detail/header/data/RECData.h>
 
+using namespace ausaxs;
+
 em::detail::header::RECData::RECData() = default;
 em::detail::header::RECData::~RECData() = default;

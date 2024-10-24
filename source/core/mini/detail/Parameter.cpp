@@ -6,7 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <mini/detail/Parameter.h>
 #include <mini/detail/FittedParameter.h>
 
-using namespace mini;
+using namespace ausaxs::mini;
 
 Parameter::Parameter() = default;
 

@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-namespace console {
+namespace ausaxs::console {
     /**
      * @brief Print a critical message. The text will be red in the terminal. 
      *        This will always be printed. 

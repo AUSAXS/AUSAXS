@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cmath>
 #include <algorithm>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 Distribution1D::Distribution1D(const WeightedDistribution1D& other) : container::Container1D<constants::axes::d_type>(other.get_content()) {}
 

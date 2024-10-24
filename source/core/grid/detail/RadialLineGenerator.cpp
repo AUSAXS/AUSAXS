@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/vdwTable.h>
 #include <math/Vector3.h>
 
-using namespace grid::detail;
+using namespace ausaxs;
+using namespace ausaxs::grid::detail;
 
 std::vector<Vector3<int>> RadialLineGenerator::rot_bins_1;
 std::vector<Vector3<int>> RadialLineGenerator::rot_bins_2;

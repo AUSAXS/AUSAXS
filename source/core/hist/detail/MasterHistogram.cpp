@@ -5,7 +5,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hist/detail/MasterHistogram.h>
 
-using namespace hist::detail;
+using namespace ausaxs;
+using namespace ausaxs::hist::detail;
 
 template<bool use_weighted_distribution> 
 MasterHistogram<use_weighted_distribution>::MasterHistogram() = default;

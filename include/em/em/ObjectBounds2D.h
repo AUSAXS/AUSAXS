@@ -1,9 +1,10 @@
 #pragma once
 
+#include <utility/UtilityFwd.h>
+
 #include <vector>
 
-class Limit;
-namespace em {
+namespace ausaxs::em {
     /**
      * @brief Describes the bounds of some object contained within a 2D matrix. 
      */

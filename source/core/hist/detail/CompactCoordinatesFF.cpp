@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Water.h>
 #include <data/Body.h>
 
-using namespace hist::detail;
+using namespace ausaxs;
+using namespace ausaxs::hist::detail;
 
 CompactCoordinatesFF::CompactCoordinatesFF(const data::Body& body) : CompactCoordinates(body.size_atom()), ff_types(body.size_atom()) {
     for (unsigned int i = 0; i < size(); ++i) {

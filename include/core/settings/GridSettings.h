@@ -2,7 +2,7 @@
 
 #include <utility/Limit3D.h>
 
-namespace settings::grid {
+namespace ausaxs::settings::grid {
     // The number of generated water molecules as a percent of the number of atoms.
     extern double water_scaling;
 

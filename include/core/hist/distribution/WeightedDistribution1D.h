@@ -5,7 +5,7 @@
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <utility/TypeTraits.h>
 
-namespace hist {
+namespace ausaxs::hist {
     class Distribution1D;
 
     /**

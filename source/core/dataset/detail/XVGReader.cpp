@@ -18,6 +18,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <fstream>
 
+using namespace ausaxs;
+
 std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vector<unsigned int>&& col_number, std::vector<std::vector<double>>&& row_data, const io::ExistingFile& path, unsigned int expected_cols) {
     unsigned int mode = stats::mode(col_number);
 

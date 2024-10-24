@@ -6,6 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Utility.h>
 #include <utility/Console.h>
 
+using namespace ausaxs;
+
 bool utility::approx(double v1, double v2, double abs, double eps) {
     return std::abs(v1 - v2) <= std::max(abs, eps * std::max(std::abs(v1), std::abs(v2)));
 }

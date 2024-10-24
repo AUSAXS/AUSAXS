@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <dataset/detail/XVGReader.h>
 #include <constants/Constants.h>
 
+using namespace ausaxs;
+
 std::unique_ptr<Dataset> factory::DatasetFactory::construct(const io::ExistingFile& file, unsigned int expected_cols) {
     std::unique_ptr<detail::DatasetReader> constructor;
     auto ext = utility::to_lowercase(file.extension());

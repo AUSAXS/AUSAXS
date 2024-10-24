@@ -3,7 +3,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/crysol/FormFactorCrysol.h>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief An alternative to CompositeDistanceHistogramFFExplicit that mimics the CRYSOL excluded volume fitting. 
      */

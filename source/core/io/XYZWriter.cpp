@@ -12,6 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <iomanip>
 
+using namespace ausaxs;
+
 io::XYZWriter::XYZWriter(const io::File& path) : path(path) {
     path.directory().create();
     file.open(path);

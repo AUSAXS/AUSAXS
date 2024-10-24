@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
+using namespace ausaxs;
+
 void plots::Plot::save(const io::File& path) const {
     path.directory().create();
     std::ofstream output(path + ".plot");

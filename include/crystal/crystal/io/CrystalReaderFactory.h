@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace crystal::factory {
+namespace ausaxs::crystal::factory {
     struct CrystalReaderFactory {
         static std::unique_ptr<io::CrystalReader> create(const ::io::ExistingFile& filename);
     };

@@ -16,7 +16,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/PDBWriter.h>
 #include <utility/Exceptions.h>
 
-using namespace data::detail;
+using namespace ausaxs;
+using namespace ausaxs::data::detail;
 
 AtomCollection::AtomCollection() = default;
 

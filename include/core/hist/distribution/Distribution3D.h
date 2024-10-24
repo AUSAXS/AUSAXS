@@ -5,7 +5,7 @@
 #include <constants/ConstantsAxes.h>
 #include <utility/TypeTraits.h>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief This is a small wrapper around the Container3D class, indicating that the data
      *        is distributed along the constants::axes::d_vals axis.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hist/distribution/GenericDistribution1D.h"
+#include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
@@ -11,7 +11,7 @@
 #include <memory>
 #include <mutex>
 
-namespace hist {
+namespace ausaxs::hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator which efficiently calculates the simple distance histogram. 
 	 */

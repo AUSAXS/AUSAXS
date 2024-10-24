@@ -18,6 +18,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <fstream>
 
+using namespace ausaxs;
+
 std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
     console::print_info("\nReading dataset from \"" + path + "\"");
     console::indent();

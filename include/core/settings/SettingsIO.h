@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace settings {
+namespace ausaxs::settings {
     namespace detail {
         void parse_option(const std::string& name, const std::vector<std::string>& value);
         bool is_comment_char(char c);

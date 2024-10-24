@@ -2,7 +2,7 @@
 
 #include <data/record/Record.h>
 
-namespace data::record {
+namespace ausaxs::data::record {
 	/**
 	 * @brief A representation of a Terminate record. 
 	 */

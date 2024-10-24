@@ -3,16 +3,18 @@
 #include <string>
 #include <typeinfo>
 
-/**
- * @brief Attempt to convert the internal type representation to a more human-readable format. 
- */
-std::string demangle(const char* name);
+namespace ausaxs {
+    /**
+     * @brief Attempt to convert the internal type representation to a more human-readable format. 
+     */
+    std::string demangle(const char* name);
 
-/**
- * @brief Get the type of an object.
- *        This implementation is taken straight off stackoverflow: https://stackoverflow.com/questions/281818/unmangling-the-result-of-stdtype-infoname 
- */
-template <class T>
-std::string type(const T& t) {
-    return demangle(typeid(t).name());
+    /**
+     * @brief Get the type of an object.
+     *        This implementation is taken straight off stackoverflow: https://stackoverflow.com/questions/281818/unmangling-the-result-of-stdtype-infoname 
+     */
+    template <class T>
+    std::string type(const T& t) {
+        return demangle(typeid(t).name());
+    }
 }

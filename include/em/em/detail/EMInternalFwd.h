@@ -1,6 +1,6 @@
 #pragma once
 
-namespace em {
+namespace ausaxs::em {
 	class ImageStackBase;
 
 	namespace detail {
@@ -8,6 +8,6 @@ namespace em {
 	}
 }
 
-namespace em::managers {
+namespace ausaxs::em::managers {
 	class ProteinManager;
 }

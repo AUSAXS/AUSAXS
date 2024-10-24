@@ -1,12 +1,11 @@
 #pragma once
 
 #include <io/ExistingFile.h>
+#include <dataset/DatasetFwd.h>
 
 #include <memory>
 
-class Dataset;
-
-namespace detail {
+namespace ausaxs::detail {
     /**
      * @brief Abstract base class for constructing datasets from files.
      */

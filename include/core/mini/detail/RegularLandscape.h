@@ -7,7 +7,7 @@
 
 #include <string>
 
-namespace mini {
+namespace ausaxs::mini {
     struct RegularLandscape : Landscape {
         RegularLandscape(const Landscape& l);
 

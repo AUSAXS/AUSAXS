@@ -7,7 +7,7 @@
 #include <string>
 #include <functional>
 
-namespace fitter {
+namespace ausaxs::fitter {
     class FitReporter {
         public:
             /**

@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <utility>
 
-using namespace mini;
+using namespace ausaxs::mini;
 
 Result::Result(const FittedParameter& param, double fval, unsigned int fevals) noexcept : parameters({param}), fval(fval), fevals(fevals) {}
 

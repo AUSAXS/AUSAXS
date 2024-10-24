@@ -15,7 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <iomanip>
 #include <sstream>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 using std::left, std::right, std::setw;
 
 Terminate::Terminate(int serial, const std::string& resName, char chainID, int resSeq, const std::string& iCode) {

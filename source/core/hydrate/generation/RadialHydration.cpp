@@ -15,7 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cassert>
 #include <random>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 std::function<Vector3<double>()> hydrate::RadialHydration::noise_generator = [] () {
     static std::random_device rd;

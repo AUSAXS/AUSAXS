@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Evaluation.h>
 
-using namespace plots;
+using namespace ausaxs::plots;
 
 PlotLandscape::PlotLandscape(const mini::Landscape& data, const PlotOptions& options, const io::File& path) {
     ss << "PlotLandscape\n" 

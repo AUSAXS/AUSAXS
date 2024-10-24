@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/SettingsIORegistry.h>
 #include <utility/Exceptions.h>
 
+using namespace ausaxs;
+
 double settings::grid::water_scaling = 0.01;
 double settings::grid::cell_width = 1;
 double settings::grid::scaling = 0.25;

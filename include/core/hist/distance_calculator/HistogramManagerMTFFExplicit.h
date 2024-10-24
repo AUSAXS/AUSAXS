@@ -2,7 +2,7 @@
 
 #include <hist/distance_calculator/HistogramManager.h>
 
-namespace hist {
+namespace ausaxs::hist {
 	class CompositeDistanceHistogram;
 	namespace detail {class CompactCoordinatesFF;}
 

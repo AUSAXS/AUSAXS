@@ -18,7 +18,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <numeric>
 
-using namespace data;
+using namespace ausaxs;
+using namespace ausaxs::data;
 
 Body::Body() : uid(uid_counter++), file() {initialize();}
 Body::Body(const Body& body) : uid(body.uid), file(body.file) {initialize();}

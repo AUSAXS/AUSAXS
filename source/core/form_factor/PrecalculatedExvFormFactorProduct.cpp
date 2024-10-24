@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
     #define CONST const
 #endif
 
-using namespace form_factor;
+using namespace ausaxs::form_factor;
 
 CONST form_factor::storage::exv::table_t generate_exv_exv_table(const detail::ExvFormFactorSet& set) {
     form_factor::storage::exv::table_t table;

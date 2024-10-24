@@ -12,7 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <sstream>
 #include <fstream>
 
-using namespace residue::detail;
+using namespace ausaxs;
+using namespace ausaxs::residue::detail;
 
 //### ATOM ###//
 Atom::Atom(const std::string& name, const std::string& altname, constants::atom_t atom) : name(name), altname(altname), atom(atom) {

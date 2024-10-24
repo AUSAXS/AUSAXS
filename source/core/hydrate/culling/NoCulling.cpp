@@ -8,7 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Water.h>
 #include <grid/Grid.h>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 std::vector<data::record::Water> hydrate::NoCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     std::vector<Water> final_water(placed_water.size());

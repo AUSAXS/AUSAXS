@@ -13,7 +13,7 @@
 
 #include <functional>
 
-namespace em {
+namespace ausaxs::em {
     /**
      * @brief Extends the ImageStackBase class with fitting functionalities. 
      */

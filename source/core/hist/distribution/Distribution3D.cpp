@@ -7,7 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 Distribution3D::Distribution3D(const WeightedDistribution3D& other) : container::Container3D<constants::axes::d_type>(other.size_x(), other.size_y(), other.size_z()) {
     for (std::size_t x = 0; x < size_x(); x++) {

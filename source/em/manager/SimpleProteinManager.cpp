@@ -11,6 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Water.h>
 #include <data/Body.h>
 
+using namespace ausaxs;
+
 void em::managers::SimpleProteinManager::update_protein(double cutoff) {
     protein = std::make_unique<data::Molecule>(generate_atoms(cutoff));
     protein->set_histogram_manager(std::make_unique<hist::HistogramManagerMT<true>>(protein.get()));

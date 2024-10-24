@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <math/Vector3.h>
 
-using namespace crystal;
+using namespace ausaxs::crystal;
 
 Miller::Miller() : h(0), k(0), l(0) {}
 Miller::Miller(int h, int k, int l) : h(h), k(k), l(l) {}

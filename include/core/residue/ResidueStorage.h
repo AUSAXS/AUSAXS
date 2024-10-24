@@ -2,7 +2,7 @@
 
 #include <residue/ResidueParser.h>
 
-namespace residue {
+namespace ausaxs::residue {
     /**
      * @brief A storage container for residues.
      */

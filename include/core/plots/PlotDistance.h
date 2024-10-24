@@ -5,7 +5,7 @@
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
-namespace plots {
+namespace ausaxs::plots {
 	/**
 	 * @brief Plot the distance histogram for a protein. 
 	 */

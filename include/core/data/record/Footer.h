@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace data::record {
+namespace ausaxs::data::record {
 	class Footer : Record {
 		public: 
 			Footer() = default;

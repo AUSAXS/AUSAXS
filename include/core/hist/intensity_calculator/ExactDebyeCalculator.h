@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief Evaluate the exact Debye transform for the given molecule, ignoring waters, along the given q values.
      *

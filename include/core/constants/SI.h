@@ -5,7 +5,7 @@
  * 
  * This namespace contains all the absolute unit conversion constants. 
  */
-namespace constants::SI {
+namespace ausaxs::constants::SI {
     namespace mass {
         constexpr double kg = 1;
         constexpr double gm = 1e-3;

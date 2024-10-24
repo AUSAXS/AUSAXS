@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iomanip>
 
-namespace utility {
+namespace ausaxs::utility {
     /**
      * @brief Print an element with the given width.
      */

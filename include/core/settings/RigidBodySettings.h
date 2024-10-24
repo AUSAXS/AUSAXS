@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-namespace settings {
+namespace ausaxs::settings {
     namespace rigidbody {
         extern unsigned int iterations;   // The number of iterations to run the rigid body optimization for.
         extern double bond_distance;      // The maximum distance in Ångström between two atoms that allows for a constraint.
@@ -18,7 +18,7 @@ namespace settings {
     }
 }
 
-namespace settings::rigidbody {
+namespace ausaxs::settings::rigidbody {
     enum class TransformationStrategyChoice {
         RigidTransform,     // Transform all bodies connected to one side of the constraint. 
         SingleTransform,    // Transform only the body directly connected to one side of the constraint.
@@ -27,7 +27,7 @@ namespace settings::rigidbody {
     extern TransformationStrategyChoice transform_strategy;
 }
 
-namespace settings::rigidbody {
+namespace ausaxs::settings::rigidbody {
     enum class BodySelectStrategyChoice {
         RandomBodySelect,           // Select a random body, then a random constraint within that body. 
         RandomConstraintSelect,     // Select a random constraint. 
@@ -38,7 +38,7 @@ namespace settings::rigidbody {
     extern BodySelectStrategyChoice body_select_strategy;
 }
 
-namespace settings::rigidbody {
+namespace ausaxs::settings::rigidbody {
     enum class ParameterGenerationStrategyChoice {
         Simple,             // Generate translation and rotation parameters.
         RotationsOnly,      // Only generate rotation parameters.
@@ -47,7 +47,7 @@ namespace settings::rigidbody {
     extern ParameterGenerationStrategyChoice parameter_generation_strategy;
 }
 
-namespace settings::rigidbody {
+namespace ausaxs::settings::rigidbody {
     enum class DecayStrategyChoice {
         Linear,
         Exponential
@@ -55,7 +55,7 @@ namespace settings::rigidbody {
     extern DecayStrategyChoice decay_strategy;
 }
 
-namespace settings::rigidbody {
+namespace ausaxs::settings::rigidbody {
     enum class ConstraintGenerationStrategyChoice {
         None,       // Do not generate constraints. Only those supplied by the user will be used.
         Linear,     // Generate a linear chain of constraints between bodies.

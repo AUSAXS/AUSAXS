@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <list>
 #include <numeric>
 
-using namespace mini;
+using namespace ausaxs;
+using namespace ausaxs::mini;
 
 LimitedScan::~LimitedScan() = default;
 

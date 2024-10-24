@@ -8,7 +8,7 @@
 #define TRAUBE false
 #define VORONOI true
 #define MINIMUM_FLUCTUATION true
-namespace constants::displaced_volume {
+namespace ausaxs::constants::displaced_volume {
     namespace detail {
         struct DisplacedVolumeSet {
             double H;

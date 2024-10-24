@@ -9,9 +9,9 @@
 #include <unordered_map>
 #include <memory>
 
-extern double inf;
+namespace ausaxs::plots {
+    extern double inf;
 
-namespace plots {
     struct option {
         // style
         static inline std::string color = "color";

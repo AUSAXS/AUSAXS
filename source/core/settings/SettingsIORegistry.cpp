@@ -7,7 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <utility/observer_ptr.h>
 
-using namespace settings::io;
+using namespace ausaxs;
+using namespace ausaxs::settings::io;
 
 std::vector<observer_ptr<SettingSection>>& SettingSection::get_sections() {
     static std::vector<observer_ptr<SettingSection>> sections;

@@ -4,7 +4,7 @@
 
 #include <gcem.hpp>
 
-namespace gcem {
+namespace ausaxs::gcem {
     namespace fast {
         /**
          * @brief Fast cosine function with a maximum error of 0.001.
@@ -34,4 +34,6 @@ namespace gcem {
     }
 }
 
-namespace constexpr_math = gcem;
+namespace ausaxs {
+    namespace constexpr_math = gcem;
+}

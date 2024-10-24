@@ -5,6 +5,6 @@
 
 #include <memory>
 
-namespace em::detail::factory {
+namespace ausaxs::em::detail::factory {
     std::unique_ptr<em::detail::header::IMapHeader> create_header(const io::ExistingFile& path);
 }

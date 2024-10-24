@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 
-using namespace mini;
+using namespace ausaxs;
+using namespace ausaxs::mini;
 
 Scan::Scan(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func) {
     set_max_evals(evals);

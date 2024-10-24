@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace io {
+namespace ausaxs::io {
     class Folder {
         public:
             Folder() = default;

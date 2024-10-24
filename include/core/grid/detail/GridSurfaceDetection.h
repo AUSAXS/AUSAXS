@@ -4,7 +4,7 @@
 #include <grid/detail/GridExcludedVolume.h>
 #include <grid/GridFwd.h>
 
-namespace grid::detail {
+namespace ausaxs::grid::detail {
     class GridSurfaceDetection : private RadialLineGenerator {
         public:
             GridSurfaceDetection(observer_ptr<grid::Grid> grid);

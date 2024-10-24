@@ -14,7 +14,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 
-using namespace table;
+using namespace ausaxs;
+using namespace ausaxs::table;
 
 VectorDebyeTable::VectorDebyeTable() = default;
 

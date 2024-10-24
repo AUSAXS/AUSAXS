@@ -1,6 +1,6 @@
 #pragma once
 
-namespace settings::crystal {
+namespace ausaxs::settings::crystal {
     extern unsigned int h;        // The maximum Miller index along the x direction.
     extern unsigned int k;        // The maximum Miller index along the y direction.
     extern unsigned int l;        // The maximum Miller index along the z direction.
@@ -17,7 +17,7 @@ namespace settings::crystal {
     }
 }
 
-namespace settings::crystal {
+namespace ausaxs::settings::crystal {
     // The choice of Miller index generation algorithm. See the documentation for the individual classes for more information.
     enum class MillerGenerationChoice {
         All, // Generates all miller indices within the specified range. 

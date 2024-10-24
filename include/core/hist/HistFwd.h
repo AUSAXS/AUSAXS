@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hist {
+namespace ausaxs::hist {
     class ICompositeDistanceHistogram;
     class ICompositeDistanceHistogramExv;
     class IHistogramManager;

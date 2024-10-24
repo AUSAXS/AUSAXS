@@ -14,7 +14,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <algorithm>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution> 
 PartialHistogramManager<use_weighted_distribution>::PartialHistogramManager(observer_ptr<const data::Molecule> protein) 

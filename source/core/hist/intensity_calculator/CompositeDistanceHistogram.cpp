@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/Constants.h>
 #include <settings/HistogramSettings.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(CompositeDistanceHistogram&&) noexcept = default;
 CompositeDistanceHistogram& CompositeDistanceHistogram::operator=(CompositeDistanceHistogram&&) noexcept = default;

@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace mini {
+namespace ausaxs::mini {
     struct Result {
         Result() noexcept = default;
         Result(const FittedParameter& param, double fval, unsigned int fevals) noexcept;

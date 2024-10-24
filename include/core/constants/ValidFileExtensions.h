@@ -4,7 +4,7 @@
 
 #include <array>
 
-namespace constants::filetypes {
+namespace ausaxs::constants::filetypes {
     namespace detail {
         template<std::size_t N>
         class FileType {

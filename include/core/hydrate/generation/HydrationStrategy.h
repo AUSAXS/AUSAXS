@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     class HydrationStrategy {
         public:
             HydrationStrategy() = default;

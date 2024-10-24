@@ -13,7 +13,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/HistogramSettings.h>
 #include <constants/Constants.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 DistanceHistogram::DistanceHistogram() = default;
 DistanceHistogram::DistanceHistogram(const DistanceHistogram&) = default;

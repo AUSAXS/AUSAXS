@@ -3,7 +3,7 @@
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 
-namespace hist {
+namespace ausaxs::hist {
 	/**
 	 * @brief A histogram manager which uses an average excluded volume approximation. 
 	 *

@@ -1,7 +1,7 @@
 #pragma once
 
 // This also forwards some elements of data/record for simplicity
-namespace data {
+namespace ausaxs::data {
     class Body;
     class Molecule;
 

@@ -13,7 +13,7 @@
 #include <vector>
 #include <memory>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief A class containing a single total distance histogram for use in the Debye transform.
      *        This is the simplest implementation of the transform; for more advanced features, see its subclasses.

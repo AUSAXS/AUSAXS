@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     class Hydration;
     class HydrationStrategy;
     class ImplicitHydration;

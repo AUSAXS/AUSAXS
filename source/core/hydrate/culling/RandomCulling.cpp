@@ -13,7 +13,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <random>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 template<typename Wrapped>
 hydrate::RandomCulling<Wrapped>::RandomCulling::~RandomCulling() = default;
@@ -24,6 +25,6 @@ std::vector<data::record::Water> hydrate::RandomCulling<Wrapped>::cull(std::vect
     return Wrapped::cull(placed_water);
 }
 
-template class hydrate::RandomCulling<hydrate::CounterCulling>;
-template class hydrate::RandomCulling<hydrate::OutlierCulling>;
-template class hydrate::RandomCulling<hydrate::BodyCounterCulling>;
+template class ausaxs::hydrate::RandomCulling<hydrate::CounterCulling>;
+template class ausaxs::hydrate::RandomCulling<hydrate::OutlierCulling>;
+template class ausaxs::hydrate::RandomCulling<hydrate::BodyCounterCulling>;

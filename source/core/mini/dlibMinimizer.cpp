@@ -13,7 +13,8 @@ For more information, please refer to the LICENSE file in the project root.
     #include <dlib/optimization.h>
     #include <dlib/global_optimization.h>
 
-    using namespace mini;
+    using namespace ausaxs;
+    using namespace ausaxs::mini;
     namespace mini {
         struct column_vector : dlib::matrix<double, 0, 1> {
             using dlib::matrix<double, 0, 1>::matrix;

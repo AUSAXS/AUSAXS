@@ -17,7 +17,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/HistogramSettings.h>
 #include <constants/ConstantsAxes.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {}

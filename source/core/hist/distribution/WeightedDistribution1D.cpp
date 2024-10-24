@@ -12,7 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cassert>
 #include <algorithm>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 WeightedDistribution1D::WeightedDistribution1D(const Distribution1D& other) : Container1D(other.size()) {
     for (std::size_t i = 0; i < other.size(); i++) {

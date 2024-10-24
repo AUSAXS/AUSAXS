@@ -6,7 +6,7 @@
 #include <list>
 #include <memory>
 
-namespace utility {
+namespace ausaxs::utility {
     namespace detail {
         template<typename T> concept observer_type = requires(T t, const T& value) {
             { t.notify(value) } -> std::same_as<void>;

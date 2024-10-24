@@ -7,7 +7,7 @@
 #include <vector>
 #include <cmath>
 
-namespace stats {
+namespace ausaxs::stats {
     /**
      * @brief Calculate the weighted mean of a container class.
      */

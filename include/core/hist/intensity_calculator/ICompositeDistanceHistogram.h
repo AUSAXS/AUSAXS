@@ -3,7 +3,7 @@
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <utility/Limit.h>
 
-namespace hist {
+namespace ausaxs::hist {
     class ICompositeDistanceHistogram : public hist::DistanceHistogram {
         public:
             using hist::DistanceHistogram::DistanceHistogram;

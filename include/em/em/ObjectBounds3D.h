@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace em {
+namespace ausaxs::em {
     class ObjectBounds3D {
         public: 
             ObjectBounds3D(unsigned int size_x, unsigned int size_y, unsigned int size_z);

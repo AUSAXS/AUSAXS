@@ -3,7 +3,7 @@
 #include <math/Vector3.h>
 #include <constants/Constants.h>
 
-namespace grid {
+namespace ausaxs::grid {
     /**
      * @brief This class is used internally in Grid for storing all information about a particular member atom. 
      */

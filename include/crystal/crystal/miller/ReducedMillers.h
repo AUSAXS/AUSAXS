@@ -2,7 +2,7 @@
 
 #include <crystal/miller/MillerGenerationStrategy.h>
 
-namespace crystal {
+namespace ausaxs::crystal {
 
     /**
      * @brief Generates a subset of the indices within the range specified by

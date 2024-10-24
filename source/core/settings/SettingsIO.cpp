@@ -11,6 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
+using namespace ausaxs;
+
 void settings::detail::parse_option(const std::string& name, const std::vector<std::string>& value) {
     if (!settings::io::detail::ISettingRef::get_stored_settings().contains(name)) {
         throw std::runtime_error("Unknown option: \"" + name + "\".");

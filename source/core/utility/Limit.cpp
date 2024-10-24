@@ -5,6 +5,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <utility/Limit.h>
 
+using namespace ausaxs;
+
 Limit::Limit() noexcept : min(0), max(0) {}
 
 Limit::Limit(double min, double max) noexcept : min(min), max(max) {}

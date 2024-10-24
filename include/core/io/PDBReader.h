@@ -3,7 +3,7 @@
 #include <io/Reader.h>
 #include <data/detail/DataDetailFwd.h>
 
-namespace io::detail {
+namespace ausaxs::io::detail {
     /**
      * @brief This class handles reading of input PDB format data files. 
      */

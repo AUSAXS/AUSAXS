@@ -4,6 +4,8 @@
 #include <sstream>
 #include <iomanip>
 
+using namespace ausaxs;
+
 std::string style::color_map::Rainbow::next() {
     std::array<double, 3> start = {1, 1, 1};
 

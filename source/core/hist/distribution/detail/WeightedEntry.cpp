@@ -7,7 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <iostream>
 
-using namespace hist::detail;
+using namespace ausaxs;
+using namespace ausaxs::hist::detail;
 
 WeightedEntry::WeightedEntry() = default;
 WeightedEntry::WeightedEntry(constants::axes::d_type value, unsigned int count, double bin_center) : value(value), count(count), bin_center(bin_center) {}

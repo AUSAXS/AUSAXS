@@ -6,7 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Header.h>
 #include <utility/StringUtils.h>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 RecordType Header::get_type() const {return RecordType::HEADER;}
 

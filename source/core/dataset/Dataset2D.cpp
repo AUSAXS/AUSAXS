@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <vector>
 #include <string>
 
+using namespace ausaxs;
+
 Dataset2D::Dataset2D() noexcept : SimpleDataset(0, 4) {}
 
 Dataset2D::Dataset2D(unsigned int rows) noexcept : SimpleDataset(rows, 4) {}

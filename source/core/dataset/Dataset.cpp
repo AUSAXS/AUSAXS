@@ -18,6 +18,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <sstream>
 
+using namespace ausaxs;
+
 Dataset::Dataset() = default;
 Dataset::Dataset(const Dataset& d) = default;
 Dataset::Dataset(Dataset&& d) = default;

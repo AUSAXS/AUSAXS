@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/CrystalSettings.h>
 #include <crystal/Fval.h>
 
-using namespace crystal;
+using namespace ausaxs::crystal;
 
 AllMillers::AllMillers(unsigned int h, unsigned int k, unsigned int l) : h(h), k(k), l(l) {}
 

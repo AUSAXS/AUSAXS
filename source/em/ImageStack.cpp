@@ -27,8 +27,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <cassert>
 
-using namespace em;
-using namespace fitter;
+using namespace ausaxs::em;
+using namespace ausaxs::fitter;
 
 ImageStack::ImageStack(const io::ExistingFile& file) : ImageStackBase(file) {}
 

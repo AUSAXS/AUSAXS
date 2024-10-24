@@ -8,7 +8,7 @@
 #include <memory>
 #include <vector>
 
-namespace crystal {
+namespace ausaxs::crystal {
     class CrystalScattering {
         public: 
             CrystalScattering(const grid::Grid& grid);

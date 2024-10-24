@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <iostream>
 
-using namespace fitter;
+using namespace ausaxs;
+using namespace ausaxs::fitter;
 
 void FitReporter::report(const observer_ptr<FitResult> fit) {
     std::cout << fit->to_string() << std::endl;

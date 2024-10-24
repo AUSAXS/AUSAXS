@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace residue::detail {
+namespace ausaxs::residue::detail {
     /**
      * @brief The key type used in the SimpleResidueMap. 
      *        The atom type is required to avoid ambiguities since the name is always capitalized in PDB files,

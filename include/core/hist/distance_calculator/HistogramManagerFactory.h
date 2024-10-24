@@ -6,8 +6,8 @@
 
 #include <memory>
 
-namespace settings::hist {enum class HistogramManagerChoice;}
-namespace hist {
+namespace ausaxs::settings::hist {enum class HistogramManagerChoice;}
+namespace ausaxs::hist {
     namespace factory {
         /**
          * @brief Create a HistogramManager object.

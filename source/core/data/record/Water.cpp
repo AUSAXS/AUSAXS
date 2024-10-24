@@ -7,7 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/Constants.h>
 #include <utility/Concepts.h>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 Water::Water(Atom&& a) noexcept : Atom(std::move(a)) {set_residue_name("HOH");}
 Water::Water(const Atom& a) : Atom(a) {set_residue_name("HOH");}

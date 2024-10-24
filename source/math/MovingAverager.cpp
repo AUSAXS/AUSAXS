@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <stdexcept>
 
+using namespace ausaxs;
+
 void MovingAverage::validate_input(unsigned int N, unsigned int window_size) {
     if (N < window_size) {
         throw std::invalid_argument("MovingAverager::average: Window size is larger than data size.");

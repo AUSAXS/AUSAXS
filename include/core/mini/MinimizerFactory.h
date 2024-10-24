@@ -9,7 +9,7 @@
 #include <memory>
 #include <functional>
 
-namespace mini {
+namespace ausaxs::mini {
     namespace detail {
         inline std::shared_ptr<Minimizer> create_minimizer(algorithm t) {
             switch (t) {

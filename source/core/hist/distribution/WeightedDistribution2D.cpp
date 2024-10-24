@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 WeightedDistribution2D::WeightedDistribution2D(const Distribution2D& other) : Container2D(other.size_x(), other.size_y()) {
     for (std::size_t x = 0; x < other.size_x(); x++) {

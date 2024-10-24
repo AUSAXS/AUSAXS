@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     class ExplicitHydration : public Hydration {
         public:
             ExplicitHydration();

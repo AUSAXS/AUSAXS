@@ -16,7 +16,7 @@
 /**
  * @brief This namespace contains all constants used in this project. 
  */
-namespace constants {
+namespace ausaxs::constants {
     /**
      * @brief Radius
      * 

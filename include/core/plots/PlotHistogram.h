@@ -2,9 +2,9 @@
 
 #include <plots/Plot.h>
 #include <utility/observer_ptr.h>
+#include <hist/HistFwd.h>
 
-namespace hist {class Histogram;}
-namespace plots {
+namespace ausaxs::plots {
 	/**
 	 * @brief Plot a specific \class Histogram object.
 	 */

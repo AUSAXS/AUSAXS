@@ -2,7 +2,7 @@
 
 #include <constants/ConstantsAxes.h>
 
-namespace table {
+namespace ausaxs::table {
     struct DebyeTable {
         //! note: constexpr destructor cannot be defaulted due to GCC bug 93413
         constexpr virtual ~DebyeTable() noexcept {}

@@ -4,7 +4,7 @@
 
 #include <BS_thread_pool.hpp>
 
-namespace utility::multi_threading {
+namespace ausaxs::utility::multi_threading {
     /**
      * @brief Get the global thread pool.
      *        This pool is initialized upon first call, so make sure to set the number of threads (settings::general::threads) before calling this function.

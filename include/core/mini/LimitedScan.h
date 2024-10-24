@@ -4,7 +4,7 @@
 
 #include <limits>
 
-namespace mini {
+namespace ausaxs::mini {
     /**
      * @brief A scan that may terminate early if a condition is met. The scan will start at the maximum x value and work its way to the minimum.
      * 

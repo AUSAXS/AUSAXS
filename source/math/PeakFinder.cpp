@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <stdexcept>
 
+using namespace ausaxs;
+
 /*
     Alternative idea:
         Connect all local maxima with a line. This is essentially what we're doing now anyway, except we're doing it in a more complicated roundabout way.

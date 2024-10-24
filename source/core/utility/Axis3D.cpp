@@ -8,6 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Limit3D.h>
 #include <math/Vector3.h>
 
+using namespace ausaxs;
+
 Axis3D::Axis3D() noexcept {}
 
 Axis3D::Axis3D(const Axis3D& axis) noexcept : x(axis.x), y(axis.y), z(axis.z) {}

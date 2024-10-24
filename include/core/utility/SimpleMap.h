@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace saxs {
+namespace ausaxs::saxs {
     namespace detail {
         /**
          * @brief A simple case-insensitive hashmap. 

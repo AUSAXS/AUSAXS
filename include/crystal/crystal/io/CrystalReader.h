@@ -8,7 +8,7 @@
 #include <vector>
 #include <utility>
 
-namespace crystal::io {
+namespace ausaxs::crystal::io {
     struct CrystalReader {
         virtual ~CrystalReader() = default;
         virtual std::pair<Basis3D, std::vector<Vector3<double>>> read(const ::io::ExistingFile& input) const = 0;

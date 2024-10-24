@@ -18,7 +18,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <iostream>
 #include <cassert>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 Atom::Atom() : uid(uid_counter++) {}
 

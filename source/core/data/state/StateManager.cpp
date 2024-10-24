@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
     #include <string>
 #endif
 
-using namespace state;
+using namespace ausaxs;
+using namespace ausaxs::state;
 
 StateManager::StateManager(unsigned int size) : _size(size), _externally_modified(size, true), _internally_modified(size, true), _modified_hydration(true) {
     for (unsigned int i = 0; i < size; i++) {

@@ -6,7 +6,7 @@
 #include <grid/detail/GridInternalFwd.h>
 #include <grid/GridFwd.h>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     class GridBasedHydration : public HydrationStrategy {
         public:
             GridBasedHydration(observer_ptr<data::Molecule> protein);

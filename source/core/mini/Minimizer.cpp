@@ -12,7 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <functional>
 
-using namespace mini;
+using namespace ausaxs;
+using namespace ausaxs::mini;
 
 Minimizer::Minimizer() = default;
 

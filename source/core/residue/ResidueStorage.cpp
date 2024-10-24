@@ -17,8 +17,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <regex>
 #include <iostream>
 
-using namespace residue;
-using namespace residue::detail;
+using namespace ausaxs;
+using namespace ausaxs::residue;
+using namespace ausaxs::residue::detail;
 
 ResidueStorage::ResidueStorage() {}
 

@@ -5,7 +5,7 @@
 #include <container/Container2D.h>
 #include <container/Container3D.h>
 
-namespace hist {
+namespace ausaxs::hist {
     class ICompositeDistanceHistogramExv : public ICompositeDistanceHistogram {
         public:
             using ICompositeDistanceHistogram::ICompositeDistanceHistogram;

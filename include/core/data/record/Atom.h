@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace data::record {
+namespace ausaxs::data::record {
     class Atom : public Record {
         public:
 			Atom();

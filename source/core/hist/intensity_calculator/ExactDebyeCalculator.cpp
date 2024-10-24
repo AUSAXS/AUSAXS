@@ -4,6 +4,8 @@
 
 #include <cmath>
 
+using namespace ausaxs;
+
 std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, const std::vector<double>& q_vals) {
     auto data = hist::detail::CompactCoordinates(molecule.get_bodies());
 

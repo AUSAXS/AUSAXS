@@ -1,6 +1,6 @@
 #pragma once
 
-namespace io {
+namespace ausaxs::io {
     class File;
     class ExistingFile;
     class Folder;

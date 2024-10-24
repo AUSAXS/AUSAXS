@@ -2,7 +2,7 @@
 
 #include <io/IOFwd.h>
 
-namespace io::detail {
+namespace ausaxs::io::detail {
     /**
      * @brief Virtual super-class for all data file readers. 
      */

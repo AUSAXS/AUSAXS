@@ -8,7 +8,7 @@
 #include <vector>
 #include <complex>
 
-namespace crystal {
+namespace ausaxs::crystal {
     class Fval {
         public: 
             Fval();

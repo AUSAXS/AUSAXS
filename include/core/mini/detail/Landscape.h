@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace mini {
+namespace ausaxs::mini {
     class Landscape {
         public: 
             Landscape() noexcept = default;

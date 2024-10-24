@@ -1,6 +1,6 @@
 #pragma once
 
-namespace grid {
+namespace ausaxs::grid {
 	template<typename T> class GridMember;
 	class PlacementStrategy;
 	class CullingStrategy;

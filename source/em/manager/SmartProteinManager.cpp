@@ -18,9 +18,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cassert>
 #include <functional>
 
-using namespace em::managers;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs::em::managers;
+using namespace ausaxs::data;
+using namespace ausaxs::data::record;
 
 SmartProteinManager::~SmartProteinManager() = default;
 

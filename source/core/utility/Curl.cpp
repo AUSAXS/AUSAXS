@@ -16,6 +16,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <stdexcept>
 
+using namespace ausaxs;
+
 // based on the example from https://curl.se/libcurl/c/url2file.html
 void curl::download(const std::string& url, const io::File& path) {
     CURL *curl;

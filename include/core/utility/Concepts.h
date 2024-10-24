@@ -2,7 +2,9 @@
 
 #include <math/MathConcepts.h>
 
-template<typename C>
-concept indexable = requires(C c, int i) {
-    c[i];
-};
+namespace ausaxs {
+    template<typename C>
+    concept indexable = requires(C c, int i) {
+        c[i];
+    };
+}

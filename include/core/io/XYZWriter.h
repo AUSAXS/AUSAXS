@@ -5,7 +5,7 @@
 
 #include <fstream>
 
-namespace io {
+namespace ausaxs::io {
     /**
      * @brief This class can write .xyz trajectory files.
      */

@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace container {
+namespace ausaxs::container {
     /**
      * @brief Representation of a dense 2D container. 
      * 

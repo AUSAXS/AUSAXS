@@ -8,7 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <math/CubicSpline.h>
 
-using namespace fitter;
+using namespace ausaxs;
+using namespace ausaxs::fitter;
 
 LinearFitter::LinearFitter(const SimpleDataset& data) : data(data) {
     detail::LinearLeastSquares::data = data.y();

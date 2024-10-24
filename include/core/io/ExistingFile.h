@@ -3,7 +3,7 @@
 #include <io/detail/IValidatedFile.h>
 #include <stdexcept>
 
-namespace io {
+namespace ausaxs::io {
     namespace detail {
         struct validate_existing_file {
             static void validate(observer_ptr<File> f) {

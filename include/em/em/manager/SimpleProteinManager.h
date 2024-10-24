@@ -2,7 +2,7 @@
 
 #include <em/manager/SmartProteinManager.h>
 
-namespace em::managers {
+namespace ausaxs::em::managers {
     class SimpleProteinManager : public SmartProteinManager {
         public: 
             using SmartProteinManager::SmartProteinManager;

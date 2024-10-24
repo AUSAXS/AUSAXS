@@ -17,7 +17,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>
 
-using namespace hist::factory;
+using namespace ausaxs::hist::factory;
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(observer_ptr<const data::Molecule> protein, bool use_weighted_distribution) {
     return hist::factory::construct_histogram_manager(protein, settings::hist::histogram_manager, use_weighted_distribution);

@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cassert>
 
-using namespace grid::detail;
+using namespace ausaxs;
+using namespace ausaxs::grid::detail;
 
 GridSurfaceDetection::GridSurfaceDetection(observer_ptr<grid::Grid> grid) : RadialLineGenerator(grid, {std::sqrt(grid->get_width())+1e-3, 2*grid->get_width(), 3*grid->get_width(), 4*grid->get_width()}), grid(grid) {}
 

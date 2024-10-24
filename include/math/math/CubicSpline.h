@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace math {
+namespace ausaxs::math {
     /**
      * @brief Interpolate points using a cubic spline. 
      *        Implementation based on some lecture notes from Aarhus University. 

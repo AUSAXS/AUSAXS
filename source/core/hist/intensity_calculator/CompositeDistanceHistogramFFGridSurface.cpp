@@ -13,8 +13,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <dataset/SimpleDataset.h>
 
-using namespace hist;
-using namespace form_factor;
+using namespace ausaxs;
+using namespace ausaxs::hist;
+using namespace ausaxs::form_factor;
 
 CompositeDistanceHistogramFFGridSurface::CompositeDistanceHistogramFFGridSurface(CompositeDistanceHistogramFFGridSurface&&) noexcept = default;
 CompositeDistanceHistogramFFGridSurface& CompositeDistanceHistogramFFGridSurface::operator=(CompositeDistanceHistogramFFGridSurface&&) noexcept = default;

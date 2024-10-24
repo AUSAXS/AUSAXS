@@ -4,7 +4,7 @@
 
 #include <unordered_set>
 
-namespace detail {
+namespace ausaxs::detail {
     /**
      * @brief Contructs a dataset from a GROMACS XVG file.
      */

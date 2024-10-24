@@ -1,5 +1,5 @@
 #pragma once
 
-namespace data::record {
+namespace ausaxs::data::record {
     enum class RecordType {HEADER, ATOM, WATER, TERMINATE, FOOTER, NOTYPE};
 }

@@ -5,7 +5,7 @@
 #include <utility/Axis.h>
 #include <utility/TypeTraits.h>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief A representation of a histogram. 
      */

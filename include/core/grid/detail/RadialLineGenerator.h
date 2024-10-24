@@ -7,7 +7,7 @@
 #include <vector>
 #include <array>
 
-namespace grid::detail {
+namespace ausaxs::grid::detail {
     class RadialLineGenerator {
         public:
             RadialLineGenerator(observer_ptr<grid::Grid> grid, double radius, int divisions = 8);

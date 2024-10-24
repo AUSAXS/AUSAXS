@@ -7,7 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Water.h>
 #include <data/record/Atom.h>
 
-using namespace grid;
+using namespace ausaxs;
+using namespace ausaxs::grid;
 
 template<typename T>
 GridMember<T>::GridMember(const GridMember<T>& gm) : atom(gm.atom), loc(gm.loc), expanded_volume(gm.expanded_volume) {}

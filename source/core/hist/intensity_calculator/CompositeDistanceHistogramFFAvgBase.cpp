@@ -14,7 +14,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cassert>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase() = default;

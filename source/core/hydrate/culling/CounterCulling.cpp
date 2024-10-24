@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 std::vector<data::record::Water> hydrate::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     auto return_input = [&placed_water] () {

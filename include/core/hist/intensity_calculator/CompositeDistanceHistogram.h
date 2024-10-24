@@ -6,7 +6,7 @@
 #include <container/Container1D.h>
 #include <utility/TypeTraits.h>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief A class containing partial distance histograms for the different types of interactions.
      *        This allows scaling the water contribution to the total intensity profile for use in e.g. fitting. 

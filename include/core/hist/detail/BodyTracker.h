@@ -6,8 +6,8 @@
 
 #include <memory>
 
-namespace signaller {class Signaller;}
-namespace hist {
+namespace ausaxs::signaller {class Signaller;}
+namespace ausaxs::hist {
     struct BodyTracker {
         BodyTracker(observer_ptr<const data::Molecule> protein);
 

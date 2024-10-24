@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace hist {
+namespace ausaxs::hist {
 	/**
 	 * @brief A single-threaded simple distance calculator. 
 	 *

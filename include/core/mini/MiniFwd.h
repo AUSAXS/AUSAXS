@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mini {
+namespace ausaxs::mini {
     struct Parameter;
     struct FittedParameter;
     class Landscape;

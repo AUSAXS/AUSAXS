@@ -13,7 +13,7 @@
 #include <list>
 #include <vector>
 
-namespace grid {
+namespace ausaxs::grid {
 	class Grid {
 		public:
 			/**

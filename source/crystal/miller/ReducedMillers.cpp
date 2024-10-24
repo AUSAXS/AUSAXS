@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <iostream>
 
-using namespace crystal;
+using namespace ausaxs::crystal;
 
 ReducedMillers::ReducedMillers() : h(0), k(0), l(0) {}
 

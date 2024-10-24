@@ -4,7 +4,7 @@
 
 #include <unordered_set>
 
-namespace detail {
+namespace ausaxs::detail {
     /**
      * @brief Contructs a dataset from a DAT file.
      *        Supports the formats x | y | yerr and x | y | yerr | xerr.

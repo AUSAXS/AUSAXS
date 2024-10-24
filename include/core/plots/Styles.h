@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace style {
+namespace ausaxs::style {
     typedef std::string LineStyle;
     typedef std::string DrawStyle;
 	typedef std::string Color;

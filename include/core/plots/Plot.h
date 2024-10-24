@@ -5,7 +5,7 @@
 
 #include <sstream>
 
-namespace plots {
+namespace ausaxs::plots {
 	/**
 	 * @brief Virtual super-class for all plotter objects. 
 	 */
