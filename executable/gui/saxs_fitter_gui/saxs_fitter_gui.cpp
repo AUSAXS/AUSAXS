@@ -478,7 +478,7 @@ int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
 	gui::app app("AUSAXS saxs fitter");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), {50, 50, 1024+50, 768+50});
-	win.on_close = [&app]() {app.stop();};
+	win.on_close = [&app]() {app.stop(); exit(0);};
 
 	resources::generate_resource_file();
 	auto logo_path = resources::generate_logo_file();

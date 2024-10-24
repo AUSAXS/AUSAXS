@@ -81,13 +81,16 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // double I0 = DrhoV2*re2*c/m;
     // fitter.normalize_intensity(I0);
 
+    // stored vars for optimization
+    static double last_c;
+    static unsigned int counter;
+    last_c = 5;
+    counter = 0;
+
     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
     // 'this' is ok since prepare_function is private and thus only used within the class itself
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};}); // ensure hydration shell is deterministic
     return [this, fitter = std::move(_fitter)] (const std::vector<double>& params) -> double {
-        static unsigned int counter = 0;
-        static double last_c = 5;
-
         auto p = get_protein_manager()->get_protein(params[0]);
         if (settings::em::hydrate) {
             p->clear_grid();                // clear grid from previous iteration
