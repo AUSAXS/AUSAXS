@@ -8,7 +8,7 @@ from enum import Enum
 from scipy.optimize import curve_fit
 
 skip_similar_results = True
-skip_inverted = True # plot the removed results
+skip_inverted = False # plot the removed results
 sort_results = True
 sort_type = "name" # "name" or "size"
 
@@ -24,7 +24,7 @@ params = {
     'lines.markersize': 5
 }
 
-folder = "output/fit_all_exv/"
+folder = "output/fit_all_exv_waxsis"
 waxsis_folder = "output/waxsis/fitted"
 match len(sys.argv):
     case 1: pass
@@ -425,7 +425,7 @@ def plot_one(data, x_labels, method):
     plt.xticks(np.arange(len(x_labels)), x_labels, rotation=45, fontsize=font_size_label, ha="right", rotation_mode="anchor")
     plt.yticks(np.arange(len(y_labels)), y_labels, fontsize=font_size_label)
     plt.tight_layout()
-    plt.savefig(f"output/fit_all_exv/{method}_comparison.png", dpi=300)
+    plt.savefig(f"{folder}/{method}_comparison.png", dpi=300)
 
     # flipped axes
     fig, ax = plt.subplots(figsize=(figsize_y, figsize_x))
@@ -442,7 +442,7 @@ def plot_one(data, x_labels, method):
     plt.xticks(np.arange(len(y_labels)), y_labels, rotation=45, fontsize=font_size_label, ha="right", rotation_mode="anchor")
     plt.yticks(np.arange(len(x_labels)), x_labels, fontsize=font_size_label)
     plt.tight_layout()
-    plt.savefig(f"output/fit_all_exv/{method}_comparison_flipped.png", dpi=300)
+    plt.savefig(f"{folder}/{method}_comparison_flipped.png", dpi=300)
 
 def plot_both():
     figsize_x = max(len(x_labels_plot)+len(x_labels_volumes)+2, 8)
@@ -482,7 +482,7 @@ def plot_both():
     plt.sca(ax[0])
     plt.yticks(np.arange(len(y_labels)), y_labels, fontsize=font_size_label)
     plt.tight_layout()
-    plt.savefig(f"output/fit_all_exv/both.png", dpi=300)
+    plt.savefig(f"{folder}/both.png", dpi=300)
 
 plot_both()
 if data_plot.shape[0] > 0:
@@ -517,7 +517,7 @@ plt.title("Volume differences")
 plt.xticks(np.arange(len(x_labels_diff)), x_labels_diff, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(y_labels)), y_labels)
 plt.tight_layout()
-plt.savefig(f"output/fit_all_exv/difference.png", dpi=300)
+plt.savefig(f"{folder}/difference.png", dpi=300)
 
 # flipped axes
 fig, ax = plt.subplots(figsize=(figsize_y, figsize_x))
@@ -533,4 +533,4 @@ plt.title("Volume differences")
 plt.xticks(np.arange(len(y_labels)), y_labels, rotation=60, ha="right", rotation_mode="anchor")
 plt.yticks(np.arange(len(x_labels_diff)), x_labels_diff)
 plt.tight_layout()
-plt.savefig(f"output/fit_all_exv/difference_flipped.png", dpi=300)
+plt.savefig(f"{folder}/difference_flipped.png", dpi=300)
