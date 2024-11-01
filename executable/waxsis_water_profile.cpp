@@ -204,7 +204,7 @@ int main(int argc, char const *argv[]) {
         // auto hist_disordered = calc_density(disordered);
 
         plots::PlotDataset()
-            .plot(hist_ordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"xlabel", "q $[\\AA]$"}, {"ylabel", "Density [arb]"}, {"title", name}, {"legend", "WAXSiS"}, {"color", "k"}, {"lines", true}, {"lw", 0.5}}))
+            .plot(hist_ordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"xlabel", "d $[\\AA]$"}, {"ylabel", "Density [arb]"}, {"title", name}, {"legend", "WAXSiS"}, {"color", "k"}, {"lines", true}, {"lw", 0.5}}))
             // .plot(hist_disordered.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "disordered"}, {"color", "r"}, {"lines", true}, {"lw", 0.5}}))
             .plot(hist_radial.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "AUSAXS"}, {"color", "b"}, {"lines", true}, {"lw", 0.5}}))
             // .plot(hist_axes.as_dataset(), plots::PlotOptions(style::draw::points, {{"legend", "axes"}, {"color", "g"}, {"lines", true}, {"lw", 0.5}}))
