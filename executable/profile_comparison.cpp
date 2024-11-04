@@ -152,7 +152,7 @@ int main(int argc, char const *argv[]) {
         tmp = Dataset(settings::general::output + "foxs.dat");
         foxs_data_aa = SimpleDataset(tmp.x(), tmp.col(1));
         foxs_data_xx = SimpleDataset(tmp.x(), tmp.col(2));
-        foxs_data_ww = SimpleDataset(tmp.x(), tmp.col(3));
+        foxs_data_ww = SimpleDataset(tmp.x(), tmp.col(4));
     } if (waxsis.exists()) {
         auto tmp = detail::XVGReader::construct_multifile(waxsis);
         waxsis_data_aa = *tmp[0];
@@ -197,7 +197,7 @@ int main(int argc, char const *argv[]) {
     // exact_aa.normalize();
 
     plots::PlotDataset()
-        .plot(crysol_data_aa, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{aa}$ profiles"}, {"xrange", Limit(1e-2, 1)}}))
+        .plot(crysol_data_aa, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{aa}$ profiles"}, {"xrange", Limit(1e-2, 1)}, {"logx", true}, {"logy", true}}))
         .plot(foxs_data_aa, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_data_aa, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
         // .plot(waxsis_data_aa, plots::PlotOptions({{"legend", "WAXSiS"}, {"color", style::color::green}}))
@@ -206,7 +206,7 @@ int main(int argc, char const *argv[]) {
     .save(settings::general::output + "profiles_aa.png");
 
     plots::PlotDataset()
-        .plot(crysol_data_ww, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{ww}$ profiles"}, {"xrange", Limit(1e-2, 1)}, {"yrange", Limit(1e-5, 1.1)}}))
+        .plot(crysol_data_ww, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{ww}$ profiles"}, {"xrange", Limit(1e-2, 1)}, {"yrange", Limit(1e-5, 1.1)}, {"logx", true}, {"logy", true}}))
         .plot(foxs_data_ww, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_data_ww, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
         // .plot(waxsis_data_ww, plots::PlotOptions({{"legend", "WAXSiS"}, {"color", style::color::green}}))
@@ -214,7 +214,7 @@ int main(int argc, char const *argv[]) {
     .save(settings::general::output + "profiles_ww.png");
 
     plots::PlotDataset()
-        .plot(crysol_data_xx, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"xrange", Limit(1e-2, 1)}}))
+        .plot(crysol_data_xx, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"xrange", Limit(1e-2, 1)}, {"logx", true}, {"logy", true}}))
         .plot(foxs_data_xx, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(pepsi_data_xx, plots::PlotOptions({{"legend", "Pepsi-SAXS"}, {"color", style::color::blue}}))
         // .plot(waxsis_data_xx, plots::PlotOptions({{"legend", "WAXSiS_xx"}, {"color", style::color::brown}}))
