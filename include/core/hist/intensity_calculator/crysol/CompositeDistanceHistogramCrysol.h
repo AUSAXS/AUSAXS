@@ -7,7 +7,6 @@ namespace hist {
     /**
      * @brief An alternative to CompositeDistanceHistogramFFExplicit that mimics the CRYSOL excluded volume fitting. 
      */
-    
     class CompositeDistanceHistogramCrysol : public CompositeDistanceHistogramFFExplicitBase<form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t>{
         public:
             using CompositeDistanceHistogramFFExplicitBase::CompositeDistanceHistogramFFExplicitBase;
@@ -18,6 +17,8 @@ namespace hist {
             const form_factor::storage::exv::table_t& get_ffxx_table() const override;
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
+
+            double average_displaced_V = 0;
 
         protected:
             double exv_factor(double q) const override;

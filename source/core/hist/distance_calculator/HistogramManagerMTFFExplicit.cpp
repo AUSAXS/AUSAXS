@@ -11,6 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/DisplacedVolumeTable.h>
 #include <data/Molecule.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
@@ -184,6 +185,33 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
     pool->detach_task([&p_tot, max_bin] () { p_tot.resize(max_bin); });
     pool->wait();
 
+    auto displaced_avg = [&] () {
+        auto V = std::accumulate(
+            data_a.ff_types.begin(), 
+            data_a.ff_types.end(), 
+            0.0, 
+            [] (double sum, unsigned int ff) {
+                switch (static_cast<form_factor::form_factor_t>(ff)) {
+                    case form_factor::form_factor_t::H: return constants::displaced_volume::standard.H + sum;
+                    case form_factor::form_factor_t::C: return constants::displaced_volume::standard.C + sum;
+                    case form_factor::form_factor_t::CH: return constants::displaced_volume::standard.C + sum;
+                    case form_factor::form_factor_t::CH2: return constants::displaced_volume::standard.C + sum;
+                    case form_factor::form_factor_t::CH3: return constants::displaced_volume::standard.C + sum;
+                    case form_factor::form_factor_t::N: return constants::displaced_volume::standard.N + sum;
+                    case form_factor::form_factor_t::NH: return constants::displaced_volume::standard.N + sum;
+                    case form_factor::form_factor_t::NH2: return constants::displaced_volume::standard.N + sum;
+                    case form_factor::form_factor_t::NH3: return constants::displaced_volume::standard.N + sum;
+                    case form_factor::form_factor_t::O: return constants::displaced_volume::standard.O + sum;
+                    case form_factor::form_factor_t::OH: return constants::displaced_volume::standard.O + sum;
+                    case form_factor::form_factor_t::S: return constants::displaced_volume::standard.S + sum;
+                    case form_factor::form_factor_t::SH: return constants::displaced_volume::standard.S + sum;
+                    default: return sum + constants::displaced_volume::standard.OH;
+                }
+            }
+        );
+        return V / data_a_size;
+    };
+
     switch (settings::hist::histogram_manager) {
         case settings::hist::HistogramManagerChoice::FoXSManager:
             return std::make_unique<CompositeDistanceHistogramFoXS>(
@@ -195,8 +223,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
-        case settings::hist::HistogramManagerChoice::PepsiManager:
-            return std::make_unique<CompositeDistanceHistogramPepsi>(
+        case settings::hist::HistogramManagerChoice::PepsiManager: {
+            auto h = std::make_unique<CompositeDistanceHistogramPepsi>(
                 std::move(Distribution3D(std::move(p_aa))), 
                 std::move(Distribution3D(std::move(p_ax))), 
                 std::move(Distribution3D(std::move(p_xx))),
@@ -205,8 +233,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
-        case settings::hist::HistogramManagerChoice::CrysolManager:
-            return std::make_unique<CompositeDistanceHistogramCrysol>(
+            static_cast<CompositeDistanceHistogramPepsi*>(h.get())->average_displaced_V = displaced_avg();
+            return h;
+        }
+        case settings::hist::HistogramManagerChoice::CrysolManager: {
+            auto h = std::make_unique<CompositeDistanceHistogramCrysol>(
                 std::move(Distribution3D(std::move(p_aa))), 
                 std::move(Distribution3D(std::move(p_ax))), 
                 std::move(Distribution3D(std::move(p_xx))),
@@ -215,6 +246,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
+            static_cast<CompositeDistanceHistogramCrysol*>(h.get())->average_displaced_V = displaced_avg();
+            return h;
+        }
         default:
             return std::make_unique<CompositeDistanceHistogramFFExplicit>(
                 std::move(Distribution3D(std::move(p_aa))), 

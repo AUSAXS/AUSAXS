@@ -1,4 +1,5 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
+#include <settings/GridSettings.h>
 
 using namespace hist;
 
@@ -15,4 +16,6 @@ void CompositeDistanceHistogramFFGridScalableExv::apply_excluded_volume_scaling_
     p = std::move(h->p);
     axis = std::move(h->axis);
     cache.sinqd.valid = false;
+    auto V = std::pow(settings::grid::exv::width*k, 3);
+    generate_ff_table(form_factor::ExvFormFactor(V));
 }

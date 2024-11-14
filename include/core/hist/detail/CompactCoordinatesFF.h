@@ -39,7 +39,6 @@ namespace hist::detail {
              */
             unsigned int get_ff_type(unsigned int i) const;
 
-        private: 
             std::vector<unsigned int> ff_types;
     };
 }

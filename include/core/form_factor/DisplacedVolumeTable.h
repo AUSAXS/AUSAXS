@@ -5,9 +5,6 @@
 #include <math/ConstexprMath.h>
 #include <constants/ConstantsMath.h>
 
-#define TRAUBE false
-#define VORONOI true
-#define MINIMUM_FLUCTUATION true
 namespace constants::displaced_volume {
     namespace detail {
         struct DisplacedVolumeSet {
