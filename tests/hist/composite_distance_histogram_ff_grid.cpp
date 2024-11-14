@@ -52,9 +52,6 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "temp/tests/hist/composite_distance_histogram_ff_grid/volumes.png");
 }
 
-TEST_CASE("CompositeDistanceHistogramFFGridSurface: compare_profiles") {}
-
-
 auto calc_scat = [] (double k) {
     const auto& q_axis = constants::axes::q_vals;
     auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
@@ -132,9 +129,7 @@ auto calc_scat_water = [] () {
     const auto& q_axis = constants::axes::q_vals;
     auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
     auto ff_O = form_factor::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(form_factor::water_bin));
-
-    auto V = std::pow(2*settings::grid::exv::width, 3);
-    form_factor::FormFactor ffx = form_factor::ExvFormFactor(V);
+    form_factor::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width, 3));
     auto d = SimpleCube::d_exact;
 
     std::vector<double> Iq_exp(q_axis.size(), 0);
@@ -163,7 +158,7 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
     settings::grid::min_exv_radius = 1;
-    settings::grid::exv::width = 0.5;
+    settings::grid::exv::width = 1;
     settings::grid::min_exv_radius = 0;
 
     std::vector<Atom> atoms = SimpleCube::get_atoms();
@@ -259,4 +254,157 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     Iq_exp = calc_scat(0);
     h_cast->apply_excluded_volume_scaling_factor(0);
     REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+}
+
+// Check that the excluded volume scaling works as expected
+TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = true;
+    settings::hist::weighted_bins = true;
+    settings::grid::cell_width = 1;
+    settings::grid::exv::width = 1;
+    settings::grid::min_exv_radius = 0;
+    settings::general::threads = 1;
+
+    // SECTION("simple") {
+    //     std::vector<Atom> atoms = {Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1)};
+    //     atoms[0].set_effective_charge(1);
+
+    //     Molecule protein(atoms);
+    //     GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
+    //     auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+    //     auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());
+
+    //     auto calc = [] (double k) {
+    //         const auto& q_axis = constants::axes::q_vals;
+    //         auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
+    //         form_factor::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width, 3));
+    //         auto d = SimpleCube::d_exact;
+    //         std::for_each(d.begin(), d.end(), [k] (double& v) {v *= k;});
+
+    //         std::vector<double> Iq_exp(q_axis.size(), 0);
+    //         for (unsigned int q = 0; q < q_axis.size(); ++q) {
+    //             // calculation ax: 1 x 9 points
+    //             //          1 line  of length 0
+    //             //          8 lines of length sqrt(3) = 1.73
+    //             //
+    //             // calculation xx: 9 x 9 points
+    //             //          1 line  of length 0
+    //             //          3 lines of length 2
+    //             //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
+    //             //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
+
+    //             double aasum = 
+    //                 1;
+    //             double axsum = 
+    //                 1 +
+    //                 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
+    //             double xxsum = 
+    //                 1 +
+    //                 8 + 
+    //                 16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+    //                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+    //                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+    //                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+
+    //             Iq_exp[q] += aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);               // + aa
+    //             Iq_exp[q] -= 2*axsum*ff_C.evaluate(q_axis[q])*ffx.evaluate(q_axis[q]);  // -2ax
+    //             Iq_exp[q] += xxsum*std::pow(ffx.evaluate(q_axis[q]), 2);                // + xx
+    //         }
+    //         return Iq_exp;
+    //     };
+
+    //     // x1
+    //     auto Iq_exp = calc(1);
+    //     REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+    //     // x2
+    //     Iq_exp = calc(2);
+    //     h_cast->apply_excluded_volume_scaling_factor(2);
+    //     REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+    //     // x3
+    //     Iq_exp = calc(3);
+    //     h_cast->apply_excluded_volume_scaling_factor(3);
+    //     REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+    //     // x0.5
+    //     Iq_exp = calc(0.5);
+    //     h_cast->apply_excluded_volume_scaling_factor(0.5);
+    //     REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+    // }
+
+    SECTION("cube") {
+        std::vector<Atom> atoms = SimpleCube::get_atoms();
+        atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
+        std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
+
+        Molecule protein(atoms);
+        GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
+        auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+        auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());
+
+        auto calc = [] (double k) {
+            const auto& q_axis = constants::axes::q_vals;
+            auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
+            form_factor::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width, 3));
+            auto d = SimpleCube::d_exact;
+
+            std::vector<double> Iq_exp(q_axis.size(), 0);
+            for (unsigned int q = 0; q < q_axis.size(); ++q) {
+                double aasum = 
+                    9 + 
+                    16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+                    24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+                    24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+                    8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+
+                double dc = std::sqrt(3);
+                double dck = k * std::sqrt(3);
+                double d1 = std::sqrt(3) * std::abs(1 - k);
+                double d2 = std::sqrt(3 - 2*k + 3*k*k);
+                double d3 = std::sqrt(3 + 2*k + 3*k*k);
+                double d4 = std::sqrt(3) * (1 + k);
+                double axsum = 1 +
+                        8 * std::sin(q_axis[q] * dc) / (q_axis[q] * dc) +
+                        8 * std::sin(q_axis[q] * dck) / (q_axis[q] * dck) +
+                        (k == 1 ? 8 : 8 * std::sin(q_axis[q] * d1) / (q_axis[q] * d1)) +
+                        24 * std::sin(q_axis[q] * d2) / (q_axis[q] * d2) +
+                        24 * std::sin(q_axis[q] * d3) / (q_axis[q] * d3) +
+                        8 * std::sin(q_axis[q] * d4) / (q_axis[q] * d4);
+
+                double xxsum = 
+                    9 +
+                    16*std::sin(q_axis[q]*d[1]*k)/(q_axis[q]*d[1]*k) + 
+                    24*std::sin(q_axis[q]*d[2]*k)/(q_axis[q]*d[2]*k) + 
+                    24*std::sin(q_axis[q]*d[3]*k)/(q_axis[q]*d[3]*k) + 
+                    8 *std::sin(q_axis[q]*d[4]*k)/(q_axis[q]*d[4]*k);
+                
+                Iq_exp[q] += aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);               // + aa
+                Iq_exp[q] -= 2*axsum*ff_C.evaluate(q_axis[q])*ffx.evaluate(q_axis[q]);  // -2ax
+                Iq_exp[q] += xxsum*std::pow(ffx.evaluate(q_axis[q]), 2);                // + xx
+            }
+            return Iq_exp;
+        };
+
+        // x1
+        auto Iq_exp = calc(1);
+        REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+        // x2
+        Iq_exp = calc(2);
+        h_cast->apply_excluded_volume_scaling_factor(2);
+        REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+        // x3
+        Iq_exp = calc(3);
+        h_cast->apply_excluded_volume_scaling_factor(3);
+        REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+
+        // x0.5
+        Iq_exp = calc(0.5);
+        h_cast->apply_excluded_volume_scaling_factor(0.5);
+        REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+    }
 }

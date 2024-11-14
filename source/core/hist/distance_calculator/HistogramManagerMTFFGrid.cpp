@@ -154,7 +154,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
     for (int i = p_xx_generic.size()-1; i >= 10; i--) {
-        if (p_xx_generic.index(i) != 0) {
+        if (p_xx_generic.index(i) != 0 || p_wx_generic.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
         }

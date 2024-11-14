@@ -23,6 +23,12 @@ class GridDebug : public grid::Grid {
             grid->set_atomic_radius(0);
             protein.set_grid(std::move(grid));
         }
+
+        std::vector<Vector3<double>> exv = {
+            {0, 0, 0}, 
+            { 1, 1, 1}, { 1, 1, -1}, { 1, -1, 1}, { 1, -1, -1}, 
+            {-1, 1, 1}, {-1, 1, -1}, {-1, -1, 1}, {-1, -1, -1}
+        };
     
     private:
         double ra = 0, rh = 0;
@@ -30,11 +36,8 @@ class GridDebug : public grid::Grid {
 
 inline grid::detail::GridExcludedVolume GridDebug::generate_excluded_volume(bool determine_surface) {
     grid::detail::GridExcludedVolume vol;
-    vol.interior = {{0, 0, 0}};
-    vol.surface = {
-        { 1, 1, 1}, { 1, 1, -1}, { 1, -1, 1}, { 1, -1, -1}, 
-        {-1, 1, 1}, {-1, 1, -1}, {-1, -1, 1}, {-1, -1, -1}
-    };
+    vol.interior = {exv[0]};
+    vol.surface = {exv[1], exv[2], exv[3], exv[4], exv[5], exv[6], exv[7], exv[8]};
 
     if (!determine_surface) {
         vol.interior.insert(vol.interior.end(), vol.surface.begin(), vol.surface.end());

@@ -49,7 +49,6 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridScalableExv::calculat
 
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv::calculate_all() {
     auto pool = utility::multi_threading::get_global_pool();
-
     auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
 
     // ensure that our new vectors are compatible with those from the base class
@@ -174,15 +173,12 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
 
         // downsize our axes to only the relevant area
         unsigned int max_bin = 10; // minimum size is 10
-        for (int i = p_xx_generic.size()-1; i >= 10; i--) {
-            if (p_xx_generic.index(i) != 0) {
+        for (int i = p_xx_generic.size()-1; i >= 10; --i) {
+            if (p_xx_generic.index(i) != 0 || p_wx_generic.index(i) != 0) {
                 max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
                 break;
             }
         }
-
-        // either xx or ww are largest of all components
-        max_bin = std::max<unsigned int>(max_bin, p_tot.size());
 
         // downsize the axes to only the relevant area
         auto new_p_aa = p_aa;

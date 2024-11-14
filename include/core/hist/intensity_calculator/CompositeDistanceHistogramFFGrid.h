@@ -14,6 +14,7 @@ namespace hist {
      */
     class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFAvg {
         friend class CompositeDistanceHistogramFFGridSurface;
+        friend class CompositeDistanceHistogramFFGridScalableExv;
         public:
             CompositeDistanceHistogramFFGrid(CompositeDistanceHistogramFFGrid&&) noexcept;
             CompositeDistanceHistogramFFGrid& operator=(CompositeDistanceHistogramFFGrid&&) noexcept;
