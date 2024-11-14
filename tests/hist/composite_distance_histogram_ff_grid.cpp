@@ -4,8 +4,10 @@
 
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/HistogramManagerMTFFGridSurface.h>
+#include <hist/distance_calculator/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -190,6 +192,17 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     SECTION("GridSurface") {
         auto h = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(h.get());
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
+        REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_xx()));
+
+        auto Iq_exp = calc_scat_water();
+        REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+    }
+
+    SECTION("GridScalableExv") {
+        auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+        auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_xx()));

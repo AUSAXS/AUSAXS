@@ -41,6 +41,8 @@ CompactCoordinates::CompactCoordinates(const std::vector<data::record::Water>& a
     }
 }
 
+std::vector<CompactCoordinatesData>& CompactCoordinates::get_data() {return data;}
+
 const std::vector<CompactCoordinatesData>& CompactCoordinates::get_data() const {return data;}
 
 std::size_t CompactCoordinates::size() const {return data.size();}
