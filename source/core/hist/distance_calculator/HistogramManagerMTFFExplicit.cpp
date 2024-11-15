@@ -223,32 +223,28 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
-        case settings::hist::HistogramManagerChoice::PepsiManager: {
-            auto h = std::make_unique<CompositeDistanceHistogramPepsi>(
+        case settings::hist::HistogramManagerChoice::PepsiManager:
+            return std::make_unique<CompositeDistanceHistogramPepsi>(
                 std::move(Distribution3D(std::move(p_aa))), 
                 std::move(Distribution3D(std::move(p_ax))), 
                 std::move(Distribution3D(std::move(p_xx))),
                 std::move(Distribution2D(std::move(p_wa))), 
                 std::move(Distribution2D(std::move(p_wx))), 
                 std::move(Distribution1D(std::move(p_ww))),
-                std::move(p_tot)
+                std::move(p_tot),
+                displaced_avg()
             );
-            static_cast<CompositeDistanceHistogramPepsi*>(h.get())->average_displaced_V = displaced_avg();
-            return h;
-        }
-        case settings::hist::HistogramManagerChoice::CrysolManager: {
-            auto h = std::make_unique<CompositeDistanceHistogramCrysol>(
+        case settings::hist::HistogramManagerChoice::CrysolManager:
+            return std::make_unique<CompositeDistanceHistogramCrysol>(
                 std::move(Distribution3D(std::move(p_aa))), 
                 std::move(Distribution3D(std::move(p_ax))), 
                 std::move(Distribution3D(std::move(p_xx))),
                 std::move(Distribution2D(std::move(p_wa))), 
                 std::move(Distribution2D(std::move(p_wx))), 
                 std::move(Distribution1D(std::move(p_ww))),
-                std::move(p_tot)
+                std::move(p_tot),
+                displaced_avg()
             );
-            static_cast<CompositeDistanceHistogramCrysol*>(h.get())->average_displaced_V = displaced_avg();
-            return h;
-        }
         default:
             return std::make_unique<CompositeDistanceHistogramFFExplicit>(
                 std::move(Distribution3D(std::move(p_aa))), 
