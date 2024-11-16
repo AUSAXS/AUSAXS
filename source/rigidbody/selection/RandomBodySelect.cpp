@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/RigidBody.h>
 #include <utility/Exceptions.h>
 
-using namespace rigidbody::selection;
+using namespace ausaxs::rigidbody::selection;
 
 RandomBodySelect::RandomBodySelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {
     std::random_device random;

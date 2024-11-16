@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <vector>
 
-using namespace rigidbody::transform;
+using namespace ausaxs::rigidbody::transform;
 
 TransformStrategy::TransformStrategy(RigidBody* rigidbody) : rigidbody(rigidbody) {}
 

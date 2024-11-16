@@ -2,7 +2,7 @@
 
 #include <rigidbody/selection/BodySelectStrategy.h>
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
     namespace selection {
         /**
          * @brief The next body is manually selected, with the next constraint being a random one from the constraints connecting to that body.

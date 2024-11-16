@@ -7,7 +7,7 @@
 #include <rigidbody/sequencer/LoopElement.h>
 #include <utility/observer_ptr.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class Sequencer : public LoopElement, public SetupElement {
         public:
             Sequencer();

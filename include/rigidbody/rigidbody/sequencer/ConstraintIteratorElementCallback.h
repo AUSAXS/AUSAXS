@@ -3,7 +3,7 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/LoopElementCallback.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class ConstraintIteratorElementCallback : public LoopElementCallback {
         public:
             ConstraintIteratorElementCallback(ConstraintIteratorElement* caller);

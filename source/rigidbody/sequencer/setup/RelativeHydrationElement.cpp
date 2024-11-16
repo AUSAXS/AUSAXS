@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cassert>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios) : owner(owner), ratios(ratios) {}
 RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios, const std::vector<std::string>& names) : owner(owner), ratios(ratios) {

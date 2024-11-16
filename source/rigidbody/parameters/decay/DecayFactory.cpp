@@ -9,6 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
+using namespace ausaxs;
+
 std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(unsigned int iterations) {
     return create_decay_strategy(iterations, settings::rigidbody::decay_strategy);
 }

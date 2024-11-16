@@ -4,7 +4,7 @@
 
 #include <random>
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
     namespace selection {
         /**
          * @brief The next body is randomly selected, and the next constraint is randomly selected from the constraints connecting to that body.

@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <functional>
 
-namespace rigidbody::constraints {
+namespace ausaxs::rigidbody::constraints {
     class ConstraintManager {
         public:
             /**

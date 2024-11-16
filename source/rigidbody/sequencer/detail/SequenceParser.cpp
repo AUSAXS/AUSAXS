@@ -32,7 +32,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <unordered_map>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::sequencer;
 
 enum class rigidbody::sequencer::ElementType {
     OverlapStrength,

@@ -13,9 +13,10 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <algorithm>
 
-using namespace rigidbody;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody;
+using namespace ausaxs::data;
+using namespace ausaxs::data::record;
 
 Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
     Body body(input);

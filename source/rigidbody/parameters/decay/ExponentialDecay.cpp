@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 
-using namespace rigidbody::parameter::decay;
+using namespace ausaxs::rigidbody::parameter::decay;
 
 ExponentialDecay::ExponentialDecay(unsigned int max_iterations) {
     set_characteristic_time(max_iterations/2);

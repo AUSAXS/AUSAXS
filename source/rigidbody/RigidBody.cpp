@@ -29,9 +29,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GeneralSettings.h>
 #include <plots/PlotDistance.h>
 
-using namespace rigidbody;
-using namespace rigidbody::constraints;
-using namespace rigidbody::parameter;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody;
+using namespace ausaxs::rigidbody::constraints;
+using namespace ausaxs::rigidbody::parameter;
 
 RigidBody::~RigidBody() = default;
 

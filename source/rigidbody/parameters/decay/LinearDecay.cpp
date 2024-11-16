@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/parameters/decay/LinearDecay.h>
 
-using namespace rigidbody::parameter::decay;
+using namespace ausaxs::rigidbody::parameter::decay;
 
 LinearDecay::LinearDecay(unsigned int max_iterations) {
     set_characteristic_time(max_iterations/2);

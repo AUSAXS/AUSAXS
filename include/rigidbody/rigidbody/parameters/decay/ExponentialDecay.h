@@ -2,7 +2,7 @@
 
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 
-namespace rigidbody::parameter::decay {
+namespace ausaxs::rigidbody::parameter::decay {
     class ExponentialDecay : public DecayStrategy {
         public:
             ExponentialDecay(unsigned int max_iterations);

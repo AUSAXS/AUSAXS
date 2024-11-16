@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class LoadElement : public GenericElement {
         public:
             /**

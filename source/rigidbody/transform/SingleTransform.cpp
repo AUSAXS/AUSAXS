@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <data/record/Atom.h>
 
-using namespace rigidbody::transform;
+using namespace ausaxs::rigidbody::transform;
 
 SingleTransform::SingleTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
 

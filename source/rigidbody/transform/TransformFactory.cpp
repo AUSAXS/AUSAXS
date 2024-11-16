@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
-using namespace rigidbody;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody;
 
 std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body) {
     return create_transform_strategy(body, settings::rigidbody::transform_strategy);

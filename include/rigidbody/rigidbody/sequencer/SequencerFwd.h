@@ -1,6 +1,6 @@
 #pragma once
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class Sequencer;
     class ConstraintIteratorElement;
     class ParameterElement;

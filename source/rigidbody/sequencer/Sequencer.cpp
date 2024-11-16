@@ -12,7 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/ExistingFile.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::sequencer;
 
 Sequencer::Sequencer() : LoopElement(nullptr, 1), SetupElement(this), rigidbody(nullptr), best(nullptr) {}
 
@@ -41,7 +42,7 @@ bool Sequencer::_optimize_step() const {
 }
 
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
-    if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path + "\"does not exist.");}
+    if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path.str() + "\"does not exist.");}
     rigidbody->generate_new_hydration(); // some setup elements requires access to the hydration generators
 
     // run the setup elements, defining all of the necessary parameters

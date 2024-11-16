@@ -10,6 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
+using namespace ausaxs;
 using namespace rigidbody::constraints;
 
 std::unique_ptr<ConstraintGenerationStrategy> rigidbody::factory::generate_constraints(const ConstraintManager* manager) {

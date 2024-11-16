@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class RelativeHydrationElement : public GenericElement {
         public:
             RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios);

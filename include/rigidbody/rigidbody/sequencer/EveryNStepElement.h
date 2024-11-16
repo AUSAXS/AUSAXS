@@ -3,7 +3,7 @@
 #include <rigidbody/sequencer/LoopElement.h>
 #include <utility/observer_ptr.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class EveryNStepElement : public LoopElement {
         public:
             EveryNStepElement(observer_ptr<LoopElement> owner, unsigned int n);

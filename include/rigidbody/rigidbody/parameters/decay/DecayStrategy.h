@@ -1,6 +1,6 @@
 #pragma once
 
-namespace rigidbody::parameter::decay {
+namespace ausaxs::rigidbody::parameter::decay {
     /**
      * @brief The strategy for decaying the amplitude of a parameter.
      */

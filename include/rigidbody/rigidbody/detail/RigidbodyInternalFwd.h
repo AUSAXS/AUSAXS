@@ -1,6 +1,6 @@
 #pragma once
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
     namespace detail {
         struct BestConf;
     }

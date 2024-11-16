@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/TransformElement.h>
 #include <rigidbody/sequencer/ParameterElement.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 LoopElementCallback::LoopElementCallback(LoopElement* caller) : owner(caller) {}
 

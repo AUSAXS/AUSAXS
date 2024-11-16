@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class ConstraintElement : public GenericElement {
         public:
             ConstraintElement(observer_ptr<Sequencer> owner, std::unique_ptr<rigidbody::constraints::Constraint> constraint);

@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace rigidbody::constraints {
+namespace ausaxs::rigidbody::constraints {
     class ConstraintGenerationStrategy {
         public:
             ConstraintGenerationStrategy(const ConstraintManager* manager);

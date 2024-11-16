@@ -7,7 +7,7 @@
 
 #include <vector>
 
-namespace rigidbody::transform {
+namespace ausaxs::rigidbody::transform {
     /**
      * @brief TransformStrategy. 
      * 

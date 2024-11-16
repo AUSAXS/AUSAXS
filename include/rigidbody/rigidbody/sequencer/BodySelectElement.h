@@ -6,7 +6,7 @@
 #include <rigidbody/selection/BodySelectStrategy.h>
 #include <utility/observer_ptr.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class BodySelectElement : public LoopElementCallback, public GenericElement {
         public:
             BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);

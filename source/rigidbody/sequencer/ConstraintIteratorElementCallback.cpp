@@ -6,6 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/ConstraintIteratorElementCallback.h>
 #include <rigidbody/sequencer/ConstraintIteratorElement.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 ConstraintIteratorElementCallback::ConstraintIteratorElementCallback(ConstraintIteratorElement* caller) : LoopElementCallback(caller->owner), caller(caller) {}

@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-namespace rigidbody::detail {
+namespace ausaxs::rigidbody::detail {
     struct BestConf {
         BestConf();
         BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::record::Water> waters, double chi2) noexcept;

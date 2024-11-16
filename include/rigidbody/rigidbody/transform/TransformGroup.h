@@ -6,7 +6,7 @@
 
 #include <vector>
 
-namespace rigidbody::transform {
+namespace ausaxs::rigidbody::transform {
     struct TransformGroup {
         TransformGroup(std::vector<data::Body*> bodies, std::vector<unsigned int> indices, const constraints::DistanceConstraint& target, Vector3<double> pivot);
         ~TransformGroup();

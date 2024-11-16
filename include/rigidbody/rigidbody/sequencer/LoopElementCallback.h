@@ -5,7 +5,7 @@
 #include <rigidbody/RigidbodyFwd.h>
 #include <io/IOFwd.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     /**
         * @brief A callback class for the LoopElement class.
         * 

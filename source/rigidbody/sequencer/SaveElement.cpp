@@ -11,7 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <unordered_map>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, const io::File& path) : LoopElementCallback(owner), path(path) {}
 SaveElement::~SaveElement() = default;

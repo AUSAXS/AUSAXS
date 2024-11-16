@@ -5,7 +5,7 @@
 #include <rigidbody/RigidbodyFwd.h>
 #include <utility/observer_ptr.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief Use an existing RigidBody for the optimization. 
      */

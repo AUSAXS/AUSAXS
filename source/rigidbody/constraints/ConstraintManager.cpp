@@ -13,7 +13,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cassert>
 
-using namespace rigidbody::constraints;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::constraints;
 
 ConstraintManager::ConstraintManager(data::Molecule* protein) : protein(protein), overlap_constraint(protein) {
     generate_constraints(factory::generate_constraints(this));
