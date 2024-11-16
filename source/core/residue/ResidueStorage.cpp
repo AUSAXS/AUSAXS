@@ -99,7 +99,17 @@ void ResidueStorage::download_residue(const std::string& name) {
         }
 
         // parse the cif file & add it to storage
-        insert(name, Residue::parse(path + name + ".cif").to_map());
+        residue::detail::ResidueMap map;
+        try {
+            map = Residue::parse(path + name + ".cif").to_map();
+        } catch (const std::exception& e) {
+            // if the residue could not be parsed, try to redownload it and parse it again
+            console::print_warning("ResidueStorage::download_residue: Could not parse residue: " + name + ". \nError: " + e.what());
+            console::print_text("\tAttempting to redownload the residue definition.");
+            curl::download("files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif");
+            map = Residue::parse(path + name + ".cif").to_map();
+        }
+        insert(name, map);
 
         // write the residue to the master file
         write_residue(name);
