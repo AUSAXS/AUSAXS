@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hist/Histogram2D.h>
 
-using namespace hist;
+using namespace ausaxs::hist;
 
 std::string Histogram2D::to_string() const {
     std::string str;

@@ -6,7 +6,7 @@
 #include <form_factor/ExvFormFactor.h>
 #include <container/ArrayContainer2D.h>
 
-namespace form_factor::storage::exv {
+namespace ausaxs::form_factor::storage::exv {
     using table_t = container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>;
     /**
      * @brief Get a precalculated excluded-volume form factor product for a given pair of excluded volume form factors.
@@ -23,7 +23,7 @@ namespace form_factor::storage::exv {
     const table_t& get_precalculated_form_factor_table();
 }
 
-namespace form_factor::storage::cross {
+namespace ausaxs::form_factor::storage::cross {
     using table_t = container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>;
 
     /**
@@ -41,6 +41,6 @@ namespace form_factor::storage::cross {
     const table_t& get_precalculated_form_factor_table();
 }
 
-namespace form_factor::storage::detail {
+namespace ausaxs::form_factor::storage::detail {
     void set_custom_displaced_volume_table(const constants::displaced_volume::detail::DisplacedVolumeSet& set);
 }

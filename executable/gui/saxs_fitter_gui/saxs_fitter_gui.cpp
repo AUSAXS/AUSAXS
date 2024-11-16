@@ -30,6 +30,7 @@ static struct _dummy{
 #include <thread>
 #include <string_view>
 
+using namespace ausaxs;
 namespace gui = cycfi::elements;
 
 auto plot_names = std::vector<std::pair<std::string, std::string>>{
@@ -65,7 +66,7 @@ auto make_start_button(gui::view& view) {
 			worker.join();
 		}
 
-		if (!setup::saxs_dataset || !io::File(settings::pdb_file).exists()) {
+		if (!setup::saxs_dataset || !io::File(::settings::pdb_file).exists()) {
 			std::cout << "no saxs data or pdb file was provided" << std::endl;
 			start_button->set_body_color(ColorManager::get_color_fail());
 			start_button->set_text("missing input");
@@ -84,21 +85,21 @@ auto make_start_button(gui::view& view) {
 
 		// use a worker thread to avoid locking the gui
 		worker = std::thread([&view] () {
-			setup::pdb = std::make_unique<data::Molecule>(settings::pdb_file);
+			setup::pdb = std::make_unique<data::Molecule>(::settings::pdb_file);
 			setup::pdb->generate_new_hydration();
 
-			fitter::SmartFitter fitter({settings::saxs_file}, setup::pdb->get_histogram());
+			fitter::SmartFitter fitter({::settings::saxs_file}, setup::pdb->get_histogram());
 			auto result = fitter.fit();
 
 			fitter::FitReporter::report(result.get());
-			fitter::FitReporter::save(result.get(), settings::general::output + "report.txt");
+			fitter::FitReporter::save(result.get(), ausaxs::settings::general::output + "report.txt");
 
-			plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
-			plots::PlotProfiles::quick_plot(fitter.get_model(), settings::general::output + "profiles." + settings::plots::format);
-			result->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof));
+			plots::PlotDistance::quick_plot(fitter.get_model(), ausaxs::settings::general::output + "p(r)." + ausaxs::settings::plots::format);
+			plots::PlotProfiles::quick_plot(fitter.get_model(), ausaxs::settings::general::output + "profiles." + ausaxs::settings::plots::format);
+			result->curves.save(ausaxs::settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof));
 
-			setup::pdb->save(settings::general::output + "model.pdb");
-			perform_plot(settings::general::output);
+			setup::pdb->save(ausaxs::settings::general::output + "model.pdb");
+			perform_plot(ausaxs::settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
 				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.13);
@@ -107,10 +108,10 @@ auto make_start_button(gui::view& view) {
 			auto main_pane = gui::vnotebook(
 				view,
 				gui::deck(
-					make_image_pane(settings::general::output + plot_names[0].first + ".png"),
-					make_image_pane(settings::general::output + plot_names[1].first + ".png"),
-					make_image_pane(settings::general::output + plot_names[2].first + ".png"),
-					make_image_pane(settings::general::output + plot_names[3].first + ".png")
+					make_image_pane(ausaxs::settings::general::output + plot_names[0].first + ".png"),
+					make_image_pane(ausaxs::settings::general::output + plot_names[1].first + ".png"),
+					make_image_pane(ausaxs::settings::general::output + plot_names[2].first + ".png"),
+					make_image_pane(ausaxs::settings::general::output + plot_names[3].first + ".png")
 				),
 				gui::tab(plot_names[0].second),
 				gui::tab(plot_names[1].second),
@@ -195,8 +196,8 @@ auto io_menu(gui::view& view) {
 		}
 		pdb_box.second->set_text(file.path());
 
-		settings::pdb_file = file.path();
-		std::cout << "pdb file was set to " << settings::pdb_file << std::endl;
+		::settings::pdb_file = file.path();
+		std::cout << "pdb file was set to " << ::settings::pdb_file << std::endl;
 		pdb_box_bg.get() = ColorManager::get_color_success();
 		pdb_ok = true;
 
@@ -205,7 +206,7 @@ auto io_menu(gui::view& view) {
 			for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
 				io::File tmp(p.path().string());
 				if (constants::filetypes::saxs_data.check(tmp)) {
-					settings::saxs_file = tmp.path();
+					::settings::saxs_file = tmp.path();
 					saxs_box.second->set_text(tmp.path());
 					saxs_box.second->on_enter(tmp.path());
 				}
@@ -213,7 +214,7 @@ auto io_menu(gui::view& view) {
 		}
 
 		if (saxs_ok && default_output) {
-			std::string path = "output/saxs_fitter/" + io::File(settings::pdb_file).stem() + "/" + io::File(settings::saxs_file).stem();
+			std::string path = "output/saxs_fitter/" + io::File(::settings::pdb_file).stem() + "/" + io::File(::settings::saxs_file).stem();
 			output_box.second->set_text(path);
 			output_box.second->on_enter(path);
 		}
@@ -254,15 +255,15 @@ auto io_menu(gui::view& view) {
 		}
 		saxs_box.second->set_text(file.path());
 
-		std::cout << "saxs file was set to " << settings::saxs_file << std::endl;
-		settings::saxs_file = file.path();
+		std::cout << "saxs file was set to " << ::settings::saxs_file << std::endl;
+		::settings::saxs_file = file.path();
 		saxs_box_bg.get() = ColorManager::get_color_success();
-		setup::saxs_dataset = std::make_unique<SimpleDataset>(settings::saxs_file);
+		setup::saxs_dataset = std::make_unique<SimpleDataset>(::settings::saxs_file);
 		saxs_ok = true;
 
 		if (pdb_ok) {
 		 	if (default_output || output_box.second->get_text().empty()) {
-				std::string path = "output/saxs_fitter/" + io::File(settings::pdb_file).stem() + "/" + io::File(settings::saxs_file).stem();
+				std::string path = "output/saxs_fitter/" + io::File(::settings::pdb_file).stem() + "/" + io::File(::settings::saxs_file).stem();
 				output_box.second->set_text(path);
 				output_box.second->on_enter(path);
 			}
@@ -280,12 +281,12 @@ auto io_menu(gui::view& view) {
 	};
 
 	output_box.second->on_enter = [&view] (std::string_view text) -> bool {
-		settings::general::output = text;
-		if (settings::general::output.back() != '/') {
-			settings::general::output += "/";
+		ausaxs::settings::general::output = text;
+		if (ausaxs::settings::general::output.back() != '/') {
+			ausaxs::settings::general::output += "/";
 			view.refresh(output_box.first);
 		}
-		std::cout << "output path was set to " << settings::general::output << std::endl;
+		std::cout << "output path was set to " << ausaxs::settings::general::output << std::endl;
 		return true;
 	};
 
@@ -322,15 +323,15 @@ auto selection_menu_settings(gui::view&) {
 	// we use a deck composite to avoid circular dependencies
 	static auto deck = gui::deck_composite();
 
-	std::vector<std::pair<std::string, settings::hydrate::HydrationStrategy>> options1 {
-		{"1. Radial", settings::hydrate::HydrationStrategy::RadialStrategy},
-		{"2. None", settings::hydrate::HydrationStrategy::NoStrategy}
+	std::vector<std::pair<std::string, ausaxs::settings::hydrate::HydrationStrategy>> options1 {
+		{"1. Radial", ausaxs::settings::hydrate::HydrationStrategy::RadialStrategy},
+		{"2. None", ausaxs::settings::hydrate::HydrationStrategy::NoStrategy}
 	};
 	static auto hydration_model = gui::selection_menu(
 		[options1] (std::string_view selection) {
 			for (auto& option : options1) {
 				if (option.first == selection) {
-					settings::hydrate::hydration_strategy = option.second;
+					ausaxs::settings::hydrate::hydration_strategy = option.second;
 				}
 			}
 		}, 
@@ -341,30 +342,30 @@ auto selection_menu_settings(gui::view&) {
 	);
 	ColorManager::manage_text([] (gui::color color) {hydration_model.second->font_color(color);});
 
-	std::vector<std::pair<std::string, settings::hist::HistogramManagerChoice>> options2 {
-		{"1. Simple", settings::hist::HistogramManagerChoice::HistogramManagerMT},
-		{"2. Fraser", settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
-		{"3. Grid", settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface}
+	std::vector<std::pair<std::string, ausaxs::settings::hist::HistogramManagerChoice>> options2 {
+		{"1. Simple", ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMT},
+		{"2. Fraser", ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
+		{"3. Grid", ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface}
 	};
 
 	static auto excluded_volume_model = gui::selection_menu(
 		[options2] (std::string_view selection) {
 			for (auto& option : options2) {
 				if (option.first == selection) {
-					settings::hist::histogram_manager = option.second;
+					ausaxs::settings::hist::histogram_manager = option.second;
 				}
 			}
-			switch (settings::hist::histogram_manager) {
-				case settings::hist::HistogramManagerChoice::HistogramManager:
-				case settings::hist::HistogramManagerChoice::HistogramManagerMT:
-				case settings::hist::HistogramManagerChoice::PartialHistogramManager:
-				case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-					settings::molecule::use_effective_charge = true;
-					settings::fit::fit_excluded_volume = false;
+			switch (ausaxs::settings::hist::histogram_manager) {
+				case ausaxs::settings::hist::HistogramManagerChoice::HistogramManager:
+				case ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMT:
+				case ausaxs::settings::hist::HistogramManagerChoice::PartialHistogramManager:
+				case ausaxs::settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
+					ausaxs::settings::molecule::use_effective_charge = true;
+					ausaxs::settings::fit::fit_excluded_volume = false;
 					deck.select(0);
 					break;
 				default:
-					settings::molecule::use_effective_charge = false;
+					ausaxs::settings::molecule::use_effective_charge = false;
 					deck.select(1);
 					break;
 			}
@@ -379,12 +380,12 @@ auto selection_menu_settings(gui::view&) {
 
 	static auto fit_excluded_volume_button = gui::check_box("fit excluded volume");
 	fit_excluded_volume_button.on_click = [] (bool value) {
-		settings::fit::fit_excluded_volume = value;
+		ausaxs::settings::fit::fit_excluded_volume = value;
 	};
 
 	static auto fit_solvent_density_button = gui::check_box("fit solvent density");
 	fit_solvent_density_button.on_click = [] (bool value) {
-		settings::fit::fit_solvent_density = value;
+		ausaxs::settings::fit::fit_solvent_density = value;
 	};
 
 	static auto hydration_text = gui::label("Hydration model")

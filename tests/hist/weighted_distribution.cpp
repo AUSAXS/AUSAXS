@@ -30,6 +30,7 @@
 #include "hist/intensity_calculator/DistanceHistogram.h"
 #include "plots/PlotDataset.h"
 
+using namespace ausaxs;
 using namespace hist;
 using namespace data;
 using namespace data::record;

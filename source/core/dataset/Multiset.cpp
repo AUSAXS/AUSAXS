@@ -8,6 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <filesystem>
 
+using namespace ausaxs;
+
 Multiset::Multiset(const std::vector<Dataset2D>& data) : data(data) {}
 
 Multiset::Multiset(const Dataset2D& data) : data({data}) {}
@@ -64,7 +66,7 @@ void Multiset::ylimits(const Limit& limit) {
 
 void Multiset::save(const io::File& path) const {
     for (unsigned int i = 0; i < size(); i++) {
-        data[i].save(path + "/" + std::to_string(i) + ".txt");
+        data[i].save(path.str() + "/" + std::to_string(i) + ".txt");
     }
 }
 

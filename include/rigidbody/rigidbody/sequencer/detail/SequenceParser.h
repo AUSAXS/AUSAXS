@@ -4,7 +4,7 @@
 
 #include <unordered_map>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     enum class ElementType;
 
     class SequenceParser {

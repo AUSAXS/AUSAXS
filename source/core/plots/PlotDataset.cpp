@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <dataset/Dataset.h>
 #include <dataset/Multiset.h>
 
-using namespace plots;
+using namespace ausaxs::plots;
 
 PlotDataset::PlotDataset(const Dataset& data, const PlotOptions& options) {
     plot(data, options);

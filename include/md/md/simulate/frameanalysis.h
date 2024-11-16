@@ -2,6 +2,6 @@
 
 #include <md/simulate/GMXOptions.h>
 
-namespace md {
+namespace ausaxs::md {
     std::vector<SAXSOutput> frameanalysis(SAXSOptions& options);
 }

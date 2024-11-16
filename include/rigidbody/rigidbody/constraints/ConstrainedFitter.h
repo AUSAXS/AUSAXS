@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 
-namespace fitter {
+namespace ausaxs::fitter {
     template<typename C>
     concept fitter_t = std::is_base_of_v<Fitter, C>;
 

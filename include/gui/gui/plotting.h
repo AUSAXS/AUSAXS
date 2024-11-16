@@ -5,6 +5,8 @@
 #include <array>
 #include <fstream>
 
+using namespace ausaxs;
+
 namespace resources {
     extern const std::array<unsigned char, 3759> plot_py;
     extern const std::array<unsigned char, 16726> plot_helper_py;

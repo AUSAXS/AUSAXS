@@ -6,7 +6,7 @@
 /**
  * @brief This namespace contains all custom exceptions for this project. 
  */
-namespace except {
+namespace ausaxs::except {
     struct base : public std::exception {
         base(const char* msg) : msg(msg) {}
         base(const std::string msg) : msg(msg) {}

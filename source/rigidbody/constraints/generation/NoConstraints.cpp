@@ -6,6 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/constraints/generation/NoConstraints.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 
-using namespace rigidbody::constraints;
+using namespace ausaxs::rigidbody::constraints;
 
 std::vector<DistanceConstraint> NoConstraints::generate() const {return {};}

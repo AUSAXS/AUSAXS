@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/RigidBody.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 ConstraintElement::ConstraintElement(observer_ptr<Sequencer> owner, std::unique_ptr<rigidbody::constraints::Constraint> constraint) {
     owner->_get_rigidbody()->get_constraint_manager()->add_constraint(std::move(constraint));

@@ -12,6 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
 
+using namespace ausaxs;
+
 std::unique_ptr<hydrate::CullingStrategy> hydrate::factory::construct_culling_strategy(observer_ptr<data::Molecule> molecule) {
     return hydrate::factory::construct_culling_strategy(molecule, settings::hydrate::culling_strategy);
 }

@@ -2,7 +2,7 @@
 
 #include <em/detail/header/MapHeader.h>
 
-namespace em::detail::header {
+namespace ausaxs::em::detail::header {
     /**
      * @brief Dummy header class. 
      */

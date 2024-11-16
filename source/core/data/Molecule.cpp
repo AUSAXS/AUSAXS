@@ -3,8 +3,8 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include "hist/distance_calculator/IHistogramManager.h"
-#include "hist/intensity_calculator/ICompositeDistanceHistogram.h"
+#include <hist/distance_calculator/IHistogramManager.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/record/Water.h>
@@ -30,9 +30,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <numeric>
 #include <cassert>
 
-using namespace hist;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::hist;
+using namespace ausaxs::data;
+using namespace ausaxs::data::record;
 
 Molecule::Molecule() : hydration(std::make_unique<hydrate::ExplicitHydration>()), bodies(), grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr) {}
 

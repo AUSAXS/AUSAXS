@@ -3,6 +3,8 @@
 #include <io/File.h>
 #include <utility/StringUtils.h>
 
+using namespace ausaxs;
+
 template<std::size_t N>
 bool constants::filetypes::detail::FileType<N>::check(const io::File& path) const {
     if (!path.exists()) {return false;}

@@ -9,7 +9,7 @@
 
 #include <memory>
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
 	class RigidBody : public data::Molecule {
 		friend rigidbody::sequencer::Sequencer;
 		public:

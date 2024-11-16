@@ -14,9 +14,9 @@
 #include <settings/All.h>
 #include <unordered_set>
 
+using namespace ausaxs;
 using namespace data;
 using namespace data::record;
-
 using namespace rigidbody;
 
 struct fixture {

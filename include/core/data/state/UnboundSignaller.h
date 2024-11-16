@@ -3,7 +3,7 @@
 #include <data/state/DataStateFwd.h>
 #include <data/state/Signaller.h>
 
-namespace signaller {
+namespace ausaxs::signaller {
     /**
      * @brief Dummy version of a Signaller object. This can be used to initialize an instance of Signaller. 
      */

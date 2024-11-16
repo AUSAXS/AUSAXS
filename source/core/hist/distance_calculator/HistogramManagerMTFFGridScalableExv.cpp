@@ -18,25 +18,26 @@ For more information, please refer to the LICENSE file in the project root.
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 // custom evaluates for the grid since we don't want to account for the excluded volume
-namespace grid {
+namespace ausaxs::grid {
     template<bool use_weighted_distribution, int factor>
     inline void evaluate8(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-        auto res = ::detail::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+        auto res = ausaxs::detail::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 8; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
     }
 
     template<bool use_weighted_distribution, int factor>
     inline void evaluate4(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-        auto res = ::detail::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+        auto res = ausaxs::detail::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 4; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
     }
 
     template<bool use_weighted_distribution, int factor>
     inline void evaluate1(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-        auto res = ::detail::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+        auto res = ausaxs::detail::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
         p.add(data_i.get_ff_type(i), res.distance, factor*res.weight);
     }
 }

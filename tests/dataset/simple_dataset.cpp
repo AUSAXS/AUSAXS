@@ -6,6 +6,8 @@
 #include <dataset/SimpleDataset.h>
 #include <math/Statistics.h>
 
+using namespace ausaxs;
+
 struct fixture {
     SimpleDataset dataset = {{1, 2, 3}, {4, 5, 6}};
 };

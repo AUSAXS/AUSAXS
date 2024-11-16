@@ -5,7 +5,7 @@
 #include <utility/observer_ptr.h>
 #include <data/DataFwd.h>
 
-namespace rigidbody::constraints {
+namespace ausaxs::rigidbody::constraints {
 
     /**
      * @brief Overlap constraint. 

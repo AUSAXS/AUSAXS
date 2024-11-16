@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/RigidBody.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 BodySelectElement::BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
 BodySelectElement::~BodySelectElement() = default;

@@ -8,6 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 
+using namespace ausaxs;
+
 bool settings::molecule::center = true;
 bool settings::molecule::implicit_hydrogens = true;
 bool settings::molecule::use_effective_charge = true;
@@ -21,7 +23,7 @@ settings::molecule::DisplacedVolumeSet settings::molecule::displaced_volume_set 
     bool settings::molecule::throw_on_unknown_atom = false;
 #endif
 
-namespace settings::molecule::io {
+namespace ausaxs::settings::molecule::io {
     settings::io::SettingSection molecule_settings("Molecule", {
         settings::io::create(center, "center"),
         settings::io::create(use_effective_charge, "use_effective_charge"),

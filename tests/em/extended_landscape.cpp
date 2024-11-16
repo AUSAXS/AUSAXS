@@ -3,6 +3,8 @@
 
 #include <em/detail/ExtendedLandscape.h>
 
+using namespace ausaxs;
+
 TEST_CASE("ExtendedLandscape::ExtendedLandscape") {
     mini::Evaluation eval1({1, 2, 3}, 4);
     mini::Evaluation eval2({5, 6, 7}, 8);

@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <mini/detail/Evaluation.h>
 #include <utility/Exceptions.h>
 
+using namespace ausaxs;
+
 mini::Landscape::Landscape(const std::vector<Evaluation>& evals) : evals(std::move(evals)) {}
 
 void mini::Landscape::append(const std::vector<Evaluation>& evals) {this->evals.insert(this->evals.end(), evals.begin(), evals.end());}

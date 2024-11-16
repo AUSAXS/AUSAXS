@@ -6,7 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/symmetry/PlaneSymmetry.h>
 #include <hist/detail/CompactCoordinates.h>
 
-using namespace hist::symmetry;
+using namespace ausaxs;
+using namespace ausaxs::hist::symmetry;
 
 Vector3<double> PlaneSymmetry::mirror(const Vector3<double>& v) const {
     auto& n = plane.normal;

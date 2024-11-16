@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/ConsoleColor.h>
 #include <settings/GeneralSettings.h>
 
+using namespace ausaxs;
+
 std::string indentation = "";
 void console::indent() {
     indentation += "\t";

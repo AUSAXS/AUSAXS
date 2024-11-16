@@ -1,12 +1,12 @@
 #pragma once
 
-namespace settings::axes {
+namespace ausaxs::settings::axes {
     extern unsigned int skip;   // The number of points to skip from the top of the scattering curve.
     extern double qmin;         // Lower limit on the used q-values
     extern double qmax;         // Upper limit on the used q-values
 }
 
-namespace settings::hist {
+namespace ausaxs::settings::hist {
     enum class HistogramManagerChoice {
         None,                                // No histogram manager. This is only used to avoid performing an expensive constructor when the manager is not needed.
         HistogramManager,                    // A simple manager that recalculates the entire histogram every time.

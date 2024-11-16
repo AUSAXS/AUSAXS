@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/Constants.h>
 #include <hist/Histogram2D.h>
 
-using namespace em;
+using namespace ausaxs;
+using namespace ausaxs::em;
 
 Image::Image(observer_ptr<em::detail::header::IMapHeader> header, unsigned int layer) : N(header->get_axes().x.bins), M(header->get_axes().y.bins), header(header), data(N, M), z(layer), bounds(N, M) {}
 

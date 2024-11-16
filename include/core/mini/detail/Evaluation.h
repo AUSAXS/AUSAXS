@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-namespace mini {
+namespace ausaxs::mini {
     struct Evaluation {
         Evaluation() noexcept = default;
 

@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace grid {
+namespace ausaxs::grid {
     /**
      * @brief Iterates through all placed water molecules, rejecting all but the nth, where n is determined from the desired number of water molecules. 
      */

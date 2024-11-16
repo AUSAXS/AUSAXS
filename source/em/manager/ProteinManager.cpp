@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/EMSettings.h>
 #include <settings/MoleculeSettings.h>
 
-using namespace em::managers;
+using namespace ausaxs;
+using namespace ausaxs::em::managers;
 
 ProteinManager::~ProteinManager() = default;
 

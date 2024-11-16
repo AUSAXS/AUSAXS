@@ -1,6 +1,6 @@
 #pragma once
 
-namespace em::detail::header {
+namespace ausaxs::em::detail::header {
     class IMapHeader;
     class MRCHeader;
     class RECHeader;

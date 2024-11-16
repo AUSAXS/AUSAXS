@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <fstream>
 
+using namespace ausaxs;
+
 TEST_CASE("File::File") {
     SECTION("simple") {
         io::File file("test");

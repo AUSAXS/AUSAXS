@@ -2,7 +2,7 @@
 
 #include <utility/Limit.h>
 
-namespace settings::em {
+namespace ausaxs::settings::em {
     extern unsigned int sample_frequency; // How often a bin is sampled in any direction.
     extern double concentration;          // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
     extern unsigned int charge_levels;    // The number of partial histograms to utilize.

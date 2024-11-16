@@ -2,7 +2,7 @@
 
 #include <rigidbody/transform/TransformStrategy.h>
 
-namespace rigidbody::transform {
+namespace ausaxs::rigidbody::transform {
     /**
      * @brief Transforms only a single body. 
      *        The body to the left of the constraint (body1) is transformed.

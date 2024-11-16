@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cmath>
 #include <cassert>
 
-using namespace fitter::detail;
+using namespace ausaxs::fitter::detail;
 
 LinearLeastSquares::LinearLeastSquares(const std::vector<double> data, const std::vector<double> model) : data(data), model(model), inv_sigma(data.size(), 1) {
     assert(data.size() == model.size() && "LinearFitter::LinearFitter: Data and model must have the same size.");
@@ -42,7 +42,7 @@ std::vector<double> LinearLeastSquares::fit_params_only() {
     return {a, b, a_err, b_err};
 }
 
-std::unique_ptr<fitter::FitResult> LinearLeastSquares::fit() {
+std::unique_ptr<ausaxs::fitter::FitResult> LinearLeastSquares::fit() {
     auto p = fit_params_only();
 
     std::unique_ptr<FitResult> f = std::make_unique<FitResult>();

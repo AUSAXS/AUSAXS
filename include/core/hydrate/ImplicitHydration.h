@@ -2,7 +2,7 @@
 
 #include <hydrate/Hydration.h>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     /**
      * @brief Not implemented.
      */

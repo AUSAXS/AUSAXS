@@ -12,7 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/EveryNStepElement.h>
 #include <rigidbody/sequencer/SaveElement.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::sequencer;
 
 LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {
     if (iterations == 1) {return;}

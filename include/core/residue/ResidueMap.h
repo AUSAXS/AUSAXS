@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace residue::detail {
+namespace ausaxs::residue::detail {
     /**
      * @brief The key type used in the SimpleResidueMap. 
      *        The atom type is required to avoid ambiguities since the name is always capitalized in PDB files,
@@ -22,12 +22,12 @@ namespace residue::detail {
 
 namespace std {
     template <>
-    struct hash<residue::detail::AtomKey> {
-        unsigned int operator()(const residue::detail::AtomKey& k) const;
+    struct hash<ausaxs::residue::detail::AtomKey> {
+        unsigned int operator()(const ausaxs::residue::detail::AtomKey& k) const;
     };
 }
 
-namespace residue::detail {
+namespace ausaxs::residue::detail {
     /**
      * @brief A simple map that stores the number of hydrogen bonds for each atom in a residue. 
      *        Since we do not model actual hydrogens, we instead modify the charge of the atom to which the hydrogen is bonded.

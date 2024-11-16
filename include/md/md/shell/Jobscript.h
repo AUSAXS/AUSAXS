@@ -7,7 +7,7 @@
 #include <thread>
 #include <chrono>
 
-namespace shell {
+namespace ausaxs::shell {
     template<typename T>
     class Jobscript {
         public: 

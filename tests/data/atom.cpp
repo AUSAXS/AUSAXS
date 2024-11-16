@@ -7,6 +7,7 @@
 #include <settings/All.h>
 #include <constants/Constants.h>
 
+using namespace ausaxs;
 using namespace data;
 using namespace data::record;
 

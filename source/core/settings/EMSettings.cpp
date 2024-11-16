@@ -6,6 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/EMSettings.h>
 #include <settings/SettingsIORegistry.h>
 
+using namespace ausaxs;
+
 unsigned int settings::em::sample_frequency = 1;
 double settings::em::concentration = 1;
 unsigned int settings::em::charge_levels = 50;
@@ -17,7 +19,7 @@ bool settings::em::plot_landscapes = false;
 bool settings::em::simulation::noise = true;
 bool settings::em::mass_axis = true;
 
-namespace settings::em::io {
+namespace ausaxs::settings::em::io {
     settings::io::SettingSection general_settings("EM", {
         settings::io::create(sample_frequency, "sample_frequency"),
         settings::io::create(concentration, "concentration"),

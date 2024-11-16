@@ -97,10 +97,10 @@ auto io_menu(gui::view& view) {
 			return true;
 		}
 
-		settings::map_file = file.path();
-		std::cout << "map file was set to " << settings::map_file << std::endl;
+		::settings::map_file = file.path();
+		std::cout << "map file was set to " << ::settings::map_file << std::endl;
 		try {
-			setup::map = std::make_unique<em::ImageStack>(settings::map_file);
+			setup::map = std::make_unique<em::ImageStack>(::settings::map_file);
 			map_box_bg = bgreen;
 			map_ok = true;
 		} catch (std::exception& e) {
@@ -115,7 +115,7 @@ auto io_menu(gui::view& view) {
 			for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
 				io::File tmp(p.path().string());
 				if (constants::filetypes::saxs_data.check(tmp)) {
-					settings::saxs_file = tmp.path();
+					::settings::saxs_file = tmp.path();
 					saxs_box.second->set_text(tmp.path());
 					saxs_box.second->on_enter(tmp.path());
 					break;
@@ -124,7 +124,7 @@ auto io_menu(gui::view& view) {
 		}
 
 		if (saxs_ok && default_output) {
-			std::string path = "output/em_fitter/" + io::File(settings::map_file).stem() + "/" + io::File(settings::saxs_file).stem();
+			std::string path = "output/em_fitter/" + io::File(::settings::map_file).stem() + "/" + io::File(::settings::saxs_file).stem();
 			output_box.second->set_text(path);
 			output_box.second->on_enter(path);
 		}
@@ -159,10 +159,10 @@ auto io_menu(gui::view& view) {
 			return true;
 		}
 
-		settings::saxs_file = file.path();
-		std::cout << "saxs file was set to " << settings::saxs_file << std::endl;
+		::settings::saxs_file = file.path();
+		std::cout << "saxs file was set to " << ::settings::saxs_file << std::endl;
 		try {
-			setup::saxs_dataset = std::make_unique<SimpleDataset>(settings::saxs_file);
+			setup::saxs_dataset = std::make_unique<SimpleDataset>(::settings::saxs_file);
 			saxs_box_bg = bgreen;
 			saxs_ok = true;
 		} catch (std::exception& e) {
@@ -174,7 +174,7 @@ auto io_menu(gui::view& view) {
 
 		if (map_ok) {
 		 	if (default_output) {
-				std::string path = "output/em_fitter/" + io::File(settings::map_file).stem() + "/" + io::File(settings::saxs_file).stem();
+				std::string path = "output/em_fitter/" + io::File(::settings::map_file).stem() + "/" + io::File(::settings::saxs_file).stem();
 				output_box.second->set_text(path);
 				output_box.second->on_enter(path);
 			}
@@ -192,12 +192,12 @@ auto io_menu(gui::view& view) {
 	};
 
 	output_box.second->on_enter = [&view] (std::string_view text) -> bool {
-		settings::general::output = text;
-		if (settings::general::output.back() != '/') {
-			settings::general::output += "/";
+		ausaxs::settings::general::output = text;
+		if (ausaxs::settings::general::output.back() != '/') {
+			ausaxs::settings::general::output += "/";
 			view.refresh(output_box.first);
 		}
-		std::cout << "output path was set to " << settings::general::output << std::endl;
+		std::cout << "output path was set to " << ausaxs::settings::general::output << std::endl;
 		return true;
 	};
 
@@ -391,7 +391,7 @@ auto alpha_level_slider(gui::view& view) {
 
 	astep_textbox.second->on_enter = [&view] (std::string_view text) -> bool {
 		try {
-			settings::fit::max_iterations = std::stof(std::string(text));
+			ausaxs::settings::fit::max_iterations = std::stof(std::string(text));
 			astep_bg = bg_color;
 		} catch (std::exception&) {
 			astep_bg = bred;
@@ -464,7 +464,7 @@ auto make_misc_settings() {
 	auto hydrate = gui::check_box("Hydrate");
 	hydrate.value(true);
 	hydrate.on_click = [] (bool value) {
-		settings::em::hydrate = value;
+		ausaxs::settings::em::hydrate = value;
 	};
 
 	auto hydrate_tt = gui::tooltip(
@@ -475,7 +475,7 @@ auto make_misc_settings() {
 	auto fixed_weights = gui::check_box("Fixed weights");
 	fixed_weights.value(false);
 	fixed_weights.on_click = [] (bool value) {
-		settings::em::fixed_weights = value;
+		ausaxs::settings::em::fixed_weights = value;
 	};
 
 	auto fixed_weights_tt = gui::tooltip(
@@ -485,7 +485,7 @@ auto make_misc_settings() {
 
 	static auto frequency_bg = gui::box(bg_color);
 	auto frequency = gui::input_box("Sample frequency");
-	frequency.second->set_text(std::to_string(settings::em::sample_frequency));
+	frequency.second->set_text(std::to_string(ausaxs::settings::em::sample_frequency));
 
 	frequency.second->on_text = [] (std::string_view text) {
 		if (text.empty()) {
@@ -497,7 +497,7 @@ auto make_misc_settings() {
 
 	frequency.second->on_enter = [] (std::string_view text) -> bool {
 		try {
-			settings::em::sample_frequency = std::stof(std::string(text));
+			ausaxs::settings::em::sample_frequency = std::stof(std::string(text));
 			frequency_bg = bg_color;
 		} catch (std::exception&) {
 			std::cout << "invalid sample frequency input" << std::endl;
@@ -579,14 +579,14 @@ auto make_start_button(gui::view& view) {
 
 		static auto observer = setup::map->get_progress_observer();
 		observer->on_notify = [&view] (int progress) {
-			progress_bar.value(float(progress)/(2*settings::fit::max_iterations));
+			progress_bar.value(float(progress)/(2*ausaxs::settings::fit::max_iterations));
 			view.refresh(deck);
 		};
 
 		deck.select(1);
 		view.refresh();
 		worker = std::thread([&view] () {
-			auto res = setup::map->fit(settings::saxs_file);
+			auto res = setup::map->fit(::settings::saxs_file);
 
 			// small animation to make the bar reach 100%
 			while (progress_bar.value() < 1) {
@@ -596,9 +596,9 @@ auto make_start_button(gui::view& view) {
 			}
 
 			// perform the plots
-			res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
-			fitter::FitReporter::save(res.get(), settings::general::output + "report.txt");
-			perform_plot(settings::general::output);
+			res->curves.save(ausaxs::settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
+			fitter::FitReporter::save(res.get(), ausaxs::settings::general::output + "report.txt");
+			perform_plot(ausaxs::settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
 				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.15);
@@ -607,11 +607,11 @@ auto make_start_button(gui::view& view) {
 			auto chi2_landscape_pane = gui::vnotebook(
 				view,
 				gui::deck(
-					make_image_pane(settings::general::output + plot_names[0].first + ".png"),
-					make_image_pane(settings::general::output + plot_names[1].first + ".png"),
-					make_image_pane(settings::general::output + plot_names[2].first + ".png"),
-					make_image_pane(settings::general::output + plot_names[3].first + ".png"),
-					make_image_pane(settings::general::output + plot_names[4].first + ".png")
+					make_image_pane(ausaxs::settings::general::output + plot_names[0].first + ".png"),
+					make_image_pane(ausaxs::settings::general::output + plot_names[1].first + ".png"),
+					make_image_pane(ausaxs::settings::general::output + plot_names[2].first + ".png"),
+					make_image_pane(ausaxs::settings::general::output + plot_names[3].first + ".png"),
+					make_image_pane(ausaxs::settings::general::output + plot_names[4].first + ".png")
 				),
 				gui::tab(plot_names[0].second),
 				gui::tab(plot_names[1].second),
@@ -623,8 +623,8 @@ auto make_start_button(gui::view& view) {
 			auto chi2_pane = gui::vnotebook(
 				view,
 				gui::deck(
-					make_image_pane(settings::general::output + plot_names[5].first + ".png"),
-					make_image_pane(settings::general::output + plot_names[6].first + ".png")
+					make_image_pane(ausaxs::settings::general::output + plot_names[5].first + ".png"),
+					make_image_pane(ausaxs::settings::general::output + plot_names[6].first + ".png")
 				),
 				gui::tab("log"),
 				gui::tab("log-log")
@@ -656,14 +656,14 @@ auto make_start_button(gui::view& view) {
 
 int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
-	settings::axes::qmin = 0;
-	settings::axes::qmax = 1;
-    settings::molecule::use_effective_charge = false;
-    settings::em::mass_axis = true;
-    settings::em::hydrate = true;
-    settings::fit::verbose = true;
-    settings::em::alpha_levels = {1, 10};
-    settings::hist::weighted_bins = true;
+	ausaxs::settings::axes::qmin = 0;
+	ausaxs::settings::axes::qmax = 1;
+    ausaxs::settings::molecule::use_effective_charge = false;
+    ausaxs::settings::em::mass_axis = true;
+    ausaxs::settings::em::hydrate = true;
+    ausaxs::settings::fit::verbose = true;
+    ausaxs::settings::em::alpha_levels = {1, 10};
+    ausaxs::settings::hist::weighted_bins = true;
 
 	resources::generate_resource_file();
 	auto logo_path = resources::generate_logo_file();

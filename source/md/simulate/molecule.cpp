@@ -6,7 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <md/simulate/molecule.h>
 #include <utility/Console.h>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 md::simulate::Molecule::Molecule(MoleculeOptions& options) : options(options) {}
 

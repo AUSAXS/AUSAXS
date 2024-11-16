@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace shell {
+namespace ausaxs::shell {
     class Option {
         public:
             Option() = default;

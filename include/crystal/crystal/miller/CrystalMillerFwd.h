@@ -1,5 +1,5 @@
 #pragma once
 
-namespace crystal {
+namespace ausaxs::crystal {
 	struct Miller;
 }

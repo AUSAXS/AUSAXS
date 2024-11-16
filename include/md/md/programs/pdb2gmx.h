@@ -5,7 +5,7 @@
 
 #include <tuple>
 
-namespace md {
+namespace ausaxs::md {
     class pdb2gmx : private gmx {
         public: 
             pdb2gmx() {

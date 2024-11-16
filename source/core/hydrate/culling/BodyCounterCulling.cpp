@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <data/Body.h>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 void hydrate::BodyCounterCulling::set_body_ratios(const std::vector<double>& body_ratios) {
     this->body_ratios = body_ratios;

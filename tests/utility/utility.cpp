@@ -7,6 +7,8 @@
 #include <settings/GeneralSettings.h>
 #include <plots/All.h>
 
+using namespace ausaxs;
+
 TEST_CASE("fitreporter", "[manual]") {
     fitter::FitResult fit;
     fit.status = true;

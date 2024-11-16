@@ -7,7 +7,7 @@
 
 #include <memory>
 
-namespace md {
+namespace ausaxs::md {
     struct GMXOptions {
         option::Forcefield forcefield;
         option::WaterModel watermodel;

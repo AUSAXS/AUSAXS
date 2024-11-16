@@ -6,7 +6,7 @@
 #include <rigidbody/transform/TransformStrategy.h>
 #include <utility/observer_ptr.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class TransformElement : public LoopElementCallback, public GenericElement {
         public:
             TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);

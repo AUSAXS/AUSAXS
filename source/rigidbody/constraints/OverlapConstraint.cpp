@@ -10,7 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/ConstantsAxes.h>
 #include <utility/Console.h>
 
-using namespace rigidbody::constraints;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::constraints;
 
 OverlapConstraint::OverlapConstraint(data::Molecule* protein) {
     this->protein = protein;

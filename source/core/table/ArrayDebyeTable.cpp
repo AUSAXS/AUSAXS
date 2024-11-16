@@ -6,7 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #ifdef CONSTEXPR_LOOKUP_TABLE
     #include <table/ArrayDebyeTable.h>
 
-    using namespace table;
+    using namespace ausaxs;
+    using namespace ausaxs::table;
 
     #if DEBUG 
         #include <iostream>

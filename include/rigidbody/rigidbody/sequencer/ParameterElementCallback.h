@@ -4,7 +4,7 @@
 #include <rigidbody/sequencer/LoopElementCallback.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class ParameterElementCallback : public LoopElementCallback {
         public:
             ParameterElementCallback(ParameterElement* caller);

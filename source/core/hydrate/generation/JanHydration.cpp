@@ -13,7 +13,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cassert>
 
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data::record;
 
 hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
     initialize();

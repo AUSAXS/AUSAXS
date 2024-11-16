@@ -2,6 +2,7 @@
 
 #include <table/Table.h>
 
+using namespace ausaxs;
 using namespace table;
 
 TEST_CASE("Table::Table") {

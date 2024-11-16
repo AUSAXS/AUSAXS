@@ -4,7 +4,7 @@
 
 #include <array>
 
-namespace em::detail::header {
+namespace ausaxs::em::detail::header {
     /**
      * @brief The 1024-byte header of IMOD REC files, as specified in https://bio3d.colorado.edu/imod/doc/mrc_format.txt. 
      *        It assumes the endian of the data is the same as the system. 

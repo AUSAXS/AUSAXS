@@ -7,7 +7,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <math/Matrix.h>
 #include <math/Vector.h>
 
-LUPDecomposition::LUPDecomposition(const Matrix<double>& A) : Ap(std::make_unique<Matrix<double>>(A.copy())) {decompose();}
+using namespace ausaxs;
+
+LUPDecomposition::LUPDecomposition(const Matrix<double>& A) : Ap(::std::make_unique<Matrix<double>>(A.copy())) {decompose();}
 
 void LUPDecomposition::decompose() {
     Matrix<double>& A = *Ap;

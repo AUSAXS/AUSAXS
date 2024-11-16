@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
     struct BodySplitter {
         /**
          * @brief Load the structural data from a file and split it into multiple bodies at the designated indices.

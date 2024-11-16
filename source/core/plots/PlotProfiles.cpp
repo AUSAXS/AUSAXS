@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 
-using namespace plots;
+using namespace ausaxs::plots;
 
 PlotProfiles::PlotProfiles(observer_ptr<hist::DistanceHistogram> data, const io::File& path) {
 	quick_plot(data, path);

@@ -3,6 +3,7 @@
 
 #include <rigidbody/parameters/RotationsOnly.h>
 
+using namespace ausaxs;
 using namespace rigidbody;
 
 TEST_CASE("RotationsOnly::next") {

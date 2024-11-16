@@ -7,6 +7,8 @@
 #include <data/record/Atom.h>
 #include <settings/GridSettings.h>
 
+using namespace ausaxs;
+
 class GridDebug : public grid::Grid {
     public: 
         using Grid::Grid;

@@ -6,6 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/CrystalSettings.h>
 #include <settings/SettingsIORegistry.h>
 
+using namespace ausaxs;
+
 unsigned int settings::crystal::h = 100;
 unsigned int settings::crystal::k = 100;
 unsigned int settings::crystal::l = 100;
@@ -17,7 +19,7 @@ double settings::crystal::reduced::basis_q = 3;
 
 bool settings::crystal::detail::use_checkpointing = true;
 
-namespace settings::crystal::io {
+namespace ausaxs::settings::crystal::io {
     settings::io::SettingSection grid_settings("Crystal", { 
         settings::io::create(h, "h"),
         settings::io::create(k, "k"),
@@ -28,6 +30,6 @@ namespace settings::crystal::io {
     });
 }
 
-namespace settings::crystal {
+namespace ausaxs::settings::crystal {
     MillerGenerationChoice miller_generation_strategy = MillerGenerationChoice::All;
 }

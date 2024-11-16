@@ -1,6 +1,6 @@
 #pragma once
 
-namespace settings {
+namespace ausaxs::settings {
     /**
      * @brief Validate and correct the current settings. 
      */

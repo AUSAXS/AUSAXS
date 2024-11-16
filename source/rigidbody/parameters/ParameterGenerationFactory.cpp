@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
-using namespace rigidbody::parameter;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::parameter;
 
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(unsigned int iterations, double translate_amp, double rotate_amp) {
     return create_parameter_strategy(rigidbody::factory::create_decay_strategy(iterations), translate_amp, rotate_amp, settings::rigidbody::parameter_generation_strategy);

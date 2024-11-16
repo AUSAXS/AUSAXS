@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hist::symmetry {
+namespace ausaxs::hist::symmetry {
     /**
      * @brief A class for storing symmetry information. 
      */

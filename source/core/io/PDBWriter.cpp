@@ -15,8 +15,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace io::detail;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::io::detail;
+using namespace ausaxs::data::record;
 
 PDBWriter::PDBWriter(data::detail::AtomCollection* file) : file(file) {}
 
@@ -28,17 +29,17 @@ void PDBWriter::write(const io::File& path) {
     auto content = as_pdb();
     if (content.size() == 1) {
         std::ofstream output(path);
-        if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path + "\"");}
+        if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
         output << content[0] << std::flush;
         output.close();
-        if (settings::general::verbose) {std::cout << "Output written to file " + path + "." << std::endl;}
+        if (settings::general::verbose) {std::cout << "Output written to file " + path.str() + "." << std::endl;}
     }
     else {
         for (unsigned int i = 0; i < content.size(); i++) {
             auto nfile = path.append("_part" + std::to_string(i+1));
-            if (settings::general::verbose) {std::cout << "Output written to file " + nfile << std::endl;}
+            if (settings::general::verbose) {std::cout << "Output written to file " + nfile.str() << std::endl;}
             std::ofstream output(nfile);
-            if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path + "\"");}
+            if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
             output << content[i] << std::flush;
             output.close();
         }

@@ -21,6 +21,7 @@
 #include <constants/Constants.h>
  
 using std::vector;
+using namespace ausaxs;
 using namespace grid;
 using namespace grid::detail;
 using namespace data;

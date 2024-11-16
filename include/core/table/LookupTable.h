@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <stdexcept>
 
-namespace table {
+namespace ausaxs::table {
     /**
      * @brief A generic representation of a lookup table. The class can be templated to use any data type as indices. 
      */

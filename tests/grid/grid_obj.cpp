@@ -3,6 +3,7 @@
 #include <utility/Limit3D.h>
 #include <grid/Grid.h>
 
+using namespace ausaxs;
 using namespace grid;
 using namespace grid::detail;
 

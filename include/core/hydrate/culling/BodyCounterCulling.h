@@ -2,7 +2,7 @@
 
 #include <hydrate/culling/CullingStrategy.h>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     /**
      * @brief Iterates through all placed water molecules, rejecting all but the nth, where n is determined from the desired number of water molecules. 
      *        This is done on a per-body basis, allowing for more control over the hydration placement. 

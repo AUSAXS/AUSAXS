@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <data/Body.h>
 
-using namespace rigidbody::transform;
+using namespace ausaxs::rigidbody::transform;
 
 TransformGroup::TransformGroup(std::vector<data::Body*> bodies, std::vector<unsigned int> indices, const constraints::DistanceConstraint& target, Vector3<double> pivot) 
     : bodies(std::move(bodies)), indices(std::move(indices)), target(target), pivot(std::move(pivot)) {}

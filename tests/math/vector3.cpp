@@ -6,6 +6,7 @@
 
 #include <string>
 
+using namespace ausaxs;
 
 static Vector<double> GenRandVector(int m) {
     Vector<double> v(m);

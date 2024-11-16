@@ -7,6 +7,8 @@
 #include <numeric>
 #include <utility/Limit.h>
 
+using namespace ausaxs;
+
 // TODO: fix the remaining tests
 TEST_CASE("Image::Image") {
     SECTION("std::shared_ptr<ccp4::Header>, unsigned int") {}

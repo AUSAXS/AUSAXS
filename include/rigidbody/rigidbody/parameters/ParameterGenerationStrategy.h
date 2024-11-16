@@ -7,7 +7,7 @@
 
 #include <random>
 
-namespace rigidbody::parameter {    
+namespace ausaxs::rigidbody::parameter {    
     /**
      * @brief Thread-safe superclass for parameter generation strategies.
      */

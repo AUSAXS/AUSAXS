@@ -2,7 +2,7 @@
 
 #include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
 
-namespace rigidbody::constraints {
+namespace ausaxs::rigidbody::constraints {
     class NoConstraints : public ConstraintGenerationStrategy {
         public:
             using ConstraintGenerationStrategy::ConstraintGenerationStrategy;

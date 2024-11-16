@@ -16,6 +16,7 @@
 #include <fitter/SmartFitter.h>
 #include <mini/detail/FittedParameter.h>
 
+using namespace ausaxs;
 using namespace data;
 
 // TODO: get proper test data for this - the typical EM maps are too large to be included in the repo

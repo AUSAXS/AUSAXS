@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <string>
 
-using namespace residue::detail;
+using namespace ausaxs;
+using namespace ausaxs::residue::detail;
 
 AtomKey::AtomKey(const std::string& name, constants::atom_t atom) : name(utility::to_lowercase(name)), atom(atom) {}
 bool AtomKey::operator==(const AtomKey& other) const {

@@ -2,7 +2,7 @@
 
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 
-namespace rigidbody::parameter::decay {
+namespace ausaxs::rigidbody::parameter::decay {
     /**
      * @brief A DecayStrategy that decays the factor linearly.
      */

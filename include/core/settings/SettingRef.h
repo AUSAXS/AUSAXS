@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <stdexcept>
 
-namespace settings::io::detail {
+namespace ausaxs::settings::io::detail {
     /**
      * @brief Virtual interface for a reference to some setting. 
      */
@@ -62,22 +62,22 @@ namespace settings::io::detail {
     };
 }
 
-template<> std::string settings::io::detail::SettingRef<std::string>::get() const;
-template<> std::string settings::io::detail::SettingRef<double>::get() const;
-template<> std::string settings::io::detail::SettingRef<int>::get() const;
-template<> std::string settings::io::detail::SettingRef<unsigned int>::get() const;
-template<> std::string settings::io::detail::SettingRef<bool>::get() const;
-template<> std::string settings::io::detail::SettingRef<std::vector<std::string>>::get() const;
-template<> std::string settings::io::detail::SettingRef<std::vector<double>>::get() const;
-template<> std::string settings::io::detail::SettingRef<std::vector<int>>::get() const;
-template<> std::string settings::io::detail::SettingRef<Limit>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<double>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<int>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<unsigned int>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<double>>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<int>>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::get() const;
 
-template<> void settings::io::detail::SettingRef<std::string>::set(const std::vector<std::string>& str);
-template<> void settings::io::detail::SettingRef<bool>::set(const std::vector<std::string>& str);
-template<> void settings::io::detail::SettingRef<double>::set(const std::vector<std::string>& str);
-template<> void settings::io::detail::SettingRef<int>::set(const std::vector<std::string>& str);
-template<> void settings::io::detail::SettingRef<unsigned int>::set(const std::vector<std::string>& str);
-template<> void settings::io::detail::SettingRef<std::vector<std::string>>::set(const std::vector<std::string>& str);
-template<> void settings::io::detail::SettingRef<std::vector<double>>::set(const std::vector<std::string>& str);
-template<> void settings::io::detail::SettingRef<std::vector<int>>::set(const std::vector<std::string>& str);
-template<> void settings::io::detail::SettingRef<Limit>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<std::string>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<bool>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<double>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<int>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<unsigned int>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<std::vector<double>>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<std::vector<int>>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::set(const std::vector<std::string>& str);

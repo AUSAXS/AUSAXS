@@ -7,6 +7,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
 
+using namespace ausaxs;
 using namespace data;
 using namespace data::record;
 using namespace rigidbody;

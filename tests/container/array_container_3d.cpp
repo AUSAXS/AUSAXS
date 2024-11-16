@@ -2,6 +2,8 @@
 
 #include <container/ArrayContainer3D.h>
 
+using namespace ausaxs;
+
 container::ArrayContainer3D<double, 1, 2, 3> dummy;
 TEST_CASE("ArrayContainer3D::ArrayContainer3D") {
     SECTION("default") {

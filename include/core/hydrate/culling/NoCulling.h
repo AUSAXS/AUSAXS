@@ -2,7 +2,7 @@
 
 #include <hydrate/culling/CullingStrategy.h>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     /**
      * @brief No culling will be performed.  
      */

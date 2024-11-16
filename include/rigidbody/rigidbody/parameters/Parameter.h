@@ -2,7 +2,7 @@
 
 #include <math/Vector3.h>
 
-namespace rigidbody::parameter {
+namespace ausaxs::rigidbody::parameter {
     /**
      * @brief A small structure for storing a single set of parameters. 
      */

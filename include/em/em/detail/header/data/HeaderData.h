@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-namespace em::detail::header {
+namespace ausaxs::em::detail::header {
     enum class DataType {
         int8,       // int8 --> short int
         int16,      // int16 --> int

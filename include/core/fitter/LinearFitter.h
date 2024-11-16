@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace fitter {
+namespace ausaxs::fitter {
     /**
      * @brief A simple linear least-squares fitter for fitting the linear relationship y = ax+b.
      */

@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/RigidBody.h>
 
-using namespace rigidbody::selection;
+using namespace ausaxs::rigidbody::selection;
 
 SequentialConstraintSelect::SequentialConstraintSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {}
 

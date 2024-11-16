@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
     namespace factory {
         /**
          * @brief Prepare a body selection strategy.

@@ -7,7 +7,7 @@
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     class ParameterElement : public LoopElementCallback, public GenericElement {
         public:
             ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);

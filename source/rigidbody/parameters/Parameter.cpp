@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/parameters/Parameter.h>
 
-using namespace rigidbody::parameter;
+using namespace ausaxs::rigidbody::parameter;
 
 Parameter::Parameter() : dr(0, 0, 0), alpha(0), beta(0), gamma(0) {}
 

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fitter {
+namespace ausaxs::fitter {
     class Fitter;
     class LinearFitter;
     class SmartFitter;

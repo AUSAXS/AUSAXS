@@ -25,6 +25,7 @@
 
 #include <hist/hist_test_helper.h>
 
+using namespace ausaxs;
 using namespace data;
 
 TEST_CASE("partial_histogram_manager_works") {

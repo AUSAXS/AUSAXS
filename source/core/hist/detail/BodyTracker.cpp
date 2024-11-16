@@ -10,7 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <data/record/Atom.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 BodyTracker::BodyTracker(observer_ptr<const data::Molecule> protein) : body_size(protein->size_body()), statemanager(std::make_unique<state::StateManager>(body_size)) {}
 

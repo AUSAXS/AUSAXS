@@ -3,7 +3,7 @@
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/detail/CompactCoordinates.h>
 
-namespace hist {
+namespace ausaxs::hist {
 	/**
 	 * @brief A multi-threaded simple distance calculator. 
 	 *

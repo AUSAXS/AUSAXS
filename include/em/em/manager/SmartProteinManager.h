@@ -8,7 +8,7 @@
 
 #include <vector>
 
-namespace em::managers {
+namespace ausaxs::em::managers {
     /**
      * @brief A helper class for the ImageStack. 
      * 

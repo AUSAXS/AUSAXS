@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <random>
 
-using namespace rigidbody::parameter;
+using namespace ausaxs::rigidbody::parameter;
 
 TranslationsOnly::~TranslationsOnly() = default;
 

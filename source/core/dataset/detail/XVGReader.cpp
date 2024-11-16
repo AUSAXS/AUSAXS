@@ -18,6 +18,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <fstream>
 
+using namespace ausaxs;
+
 std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vector<unsigned int>&& col_number, std::vector<std::vector<double>>&& row_data, const io::ExistingFile& path, unsigned int expected_cols) {
     unsigned int mode = stats::mode(col_number);
 
@@ -106,12 +108,12 @@ std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vect
 };
 
 std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
-    console::print_info("\nReading dataset from \"" + path + "\"");
+    console::print_info("\nReading dataset from \"" + path.str() + "\"");
     console::indent();
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("XVGReader::parse_data: Could not open file \"" + path + "\"");}
+    if (!input.is_open()) {throw std::ios_base::failure("XVGReader::parse_data: Could not open file \"" + path.str() + "\"");}
 
     std::string line;
     std::vector<std::string> header;
@@ -176,7 +178,7 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
 }
 
 std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(const io::ExistingFile& path) {
-    console::print_info("Reading dataset from \"" + path + "\"");
+    console::print_info("Reading dataset from \"" + path.str() + "\"");
 
     // disable text from parsing of each dataset section
     auto verbose = settings::general::verbose;
@@ -184,7 +186,7 @@ std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(con
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("XVGReader::construct_multifile: Could not open file \"" + path + "\"");}
+    if (!input.is_open()) {throw std::ios_base::failure("XVGReader::construct_multifile: Could not open file \"" + path.str() + "\"");}
 
     std::string line;
     std::vector<std::string> header;

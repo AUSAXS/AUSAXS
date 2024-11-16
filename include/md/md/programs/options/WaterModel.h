@@ -3,7 +3,7 @@
 #include <md/programs/all.h>
 #include <md/utility/files/MDPCreator.h>
 
-namespace md::option {
+namespace ausaxs::md::option {
     struct IWaterModel {
         virtual ~IWaterModel() = default;
 

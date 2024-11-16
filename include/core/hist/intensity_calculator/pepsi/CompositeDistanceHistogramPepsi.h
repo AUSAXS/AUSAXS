@@ -9,7 +9,7 @@
 #include <hist/distribution/WeightedDistribution2D.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 
-namespace hist {
+namespace ausaxs::hist {
     /**
      * @brief An alternative to CompositeDistanceHistogramFFExplicit that mimics the Pepsi-SAXS excluded volume fitting. 
      */

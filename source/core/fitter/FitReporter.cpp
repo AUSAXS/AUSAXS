@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <iostream>
 
-using namespace fitter;
+using namespace ausaxs;
+using namespace ausaxs::fitter;
 
 void FitReporter::report(const observer_ptr<FitResult> fit) {
     std::cout << fit->to_string() << std::endl;
@@ -37,7 +38,7 @@ void FitReporter::save(const observer_ptr<FitResult> fit, const io::File& path, 
     path.directory().create();
 
     std::ofstream out(path);
-    if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path + "\".");}
+    if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path.str() + "\".");}
     if (!header.empty()) {out << header << std::endl;}
     out << fit->to_string() << std::endl;
     out.close();
@@ -48,7 +49,7 @@ void FitReporter::save(const std::vector<FitResult>& fits, const io::File& path,
     path.directory().create();
 
     std::ofstream out(path);
-    if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path + "\".");}
+    if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path.str() + "\".");}
 
     auto title_reporter = get_title_reporter(titles);
     for (unsigned int i = 0; i < fits.size(); i++) {

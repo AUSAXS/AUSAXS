@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace mini {
+namespace ausaxs::mini {
     struct FittedParameter {
         FittedParameter() noexcept = default;
 

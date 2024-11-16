@@ -6,7 +6,7 @@
     #include <utility/Exceptions.h>
 #endif
 
-namespace container {
+namespace ausaxs::container {
     template <typename T, int size_x, int size_y>
     class ArrayContainer2D {
         public:

@@ -10,7 +10,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <stdexcept>
 
-namespace constants {
+using namespace ausaxs;
+
+namespace ausaxs::constants {
     const saxs::detail::SimpleMap<char> name_1symbol_map = std::unordered_map<std::string, char>{
         {"glycine", 'G'}, {"alanine", 'A'}, {"valine", 'V'}, {"leucine", 'L'}, {"isoleucine", 'I'}, {"phenylalanine", 'F'}, {"tyrosine", 'Y'}, 
         {"tryptophan", 'W'}, {"aspartic_acid", 'D'}, {"glutamic_acid", 'E'}, {"serine", 'S'}, {"threonine", 'T'}, {"asparagine", 'N'}, 

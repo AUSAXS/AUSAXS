@@ -4,7 +4,7 @@
 #include <em/detail/header/data/MRCData.h>
 #include <io/IOFwd.h>
 
-namespace em::detail::header {
+namespace ausaxs::em::detail::header {
     /**
      * @brief Wrapper class for MRCData.
      */

@@ -21,6 +21,7 @@
 #include <settings/HistogramSettings.h>
 #include <constants/Constants.h>
 
+using namespace ausaxs;
 using namespace data::record;
 using namespace data;
 

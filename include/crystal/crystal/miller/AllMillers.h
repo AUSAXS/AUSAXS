@@ -2,7 +2,7 @@
 
 #include <crystal/miller/MillerGenerationStrategy.h>
 
-namespace crystal {
+namespace ausaxs::crystal {
     /**
      * @brief Generates all miller indices within the range specified by
      *          settings::crystal::h

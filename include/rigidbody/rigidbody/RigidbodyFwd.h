@@ -1,6 +1,6 @@
 #pragma once
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
     class RigidBody;
     namespace detail{struct BestConf;}
     namespace transform {class TransformStrategy;}

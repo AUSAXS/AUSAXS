@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+using namespace ausaxs;
+
 TEST_CASE("Axis::Axis") {
     SECTION("default") {
         Axis axis;

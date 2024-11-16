@@ -4,7 +4,7 @@
 #include <rigidbody/transform/TransformStrategy.h>
 #include <settings/RigidBodySettings.h>
 
-namespace rigidbody::factory {
+namespace ausaxs::rigidbody::factory {
     /**
      * @brief Prepare a transformation strategy.
      */

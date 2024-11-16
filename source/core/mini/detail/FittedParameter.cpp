@@ -6,7 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Parameter.h>
 
-using namespace mini;
+using namespace ausaxs::mini;
 
 FittedParameter::FittedParameter(const std::string& name, double val, const Limit& error) noexcept : name(name), value(val), error(error) {}
 

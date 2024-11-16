@@ -6,7 +6,7 @@
 #include <form_factor/DisplacedVolumeTable.h>
 #include <math/ConstexprMath.h>
 
-namespace form_factor {
+namespace ausaxs::form_factor {
     /**
      * @brief Calculate the excluded volume form factor based on the description from Fraser, MacRae & Suzuki: https://doi.org/10.1107/S0021889878014296
      */

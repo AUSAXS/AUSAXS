@@ -2,7 +2,7 @@
 
 #include <rigidbody/sequencer/LoopElementCallback.h>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief Iterates over all constraints in the body.
      */

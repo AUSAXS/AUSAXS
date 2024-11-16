@@ -2,6 +2,7 @@
 
 #include <residue/ResidueMap.h>
 
+using namespace ausaxs;
 using namespace residue::detail;
 
 TEST_CASE("AtomKey::AtomKey") {

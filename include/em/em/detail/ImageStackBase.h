@@ -14,7 +14,7 @@
 #include <vector>
 #include <memory>
 
-namespace em {
+namespace ausaxs::em {
     /**
      * @brief A representation of a stack of images. 
      */

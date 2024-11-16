@@ -5,6 +5,7 @@
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
 
+using namespace ausaxs;
 using namespace container;
 
 TEST_CASE("ThreadLocalWrapper::ThreadLocalWrapper") {

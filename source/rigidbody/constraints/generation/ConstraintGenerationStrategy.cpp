@@ -5,6 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
 
+using namespace ausaxs;
 using namespace rigidbody::constraints;
 
 ConstraintGenerationStrategy::ConstraintGenerationStrategy(const ConstraintManager* manager) : manager(manager) {}

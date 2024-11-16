@@ -5,7 +5,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol() = default;
 CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(const CompositeDistanceHistogramCrysol&) = default;

@@ -11,7 +11,7 @@
 #include <array>
 #include <stdexcept>
 
-namespace form_factor {
+namespace ausaxs::form_factor {
     class FormFactor {
         public:
             /**

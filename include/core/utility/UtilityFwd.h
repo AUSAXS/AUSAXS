@@ -1,7 +1,9 @@
 #pragma once
 
-class Axis;
-class Axis3D;
-class Limit;
-class Limit3D;
-class Basis3D;
+namespace ausaxs {
+    class Axis;
+    class Axis3D;
+    class Limit;
+    class Limit3D;
+    class Basis3D;
+}

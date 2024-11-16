@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace io {
+namespace ausaxs::io {
     class Folder {
         public:
             Folder() = default;
@@ -15,7 +15,7 @@ namespace io {
             Folder& operator=(const Folder&) = default;
             Folder& operator=(Folder&&) noexcept = default;
 
-            template<::detail::string_like T>
+            template<ausaxs::detail::string_like T>
             Folder(const T& path) : Folder(std::string_view(path)) {}
             Folder(std::string_view path);
 
@@ -29,7 +29,7 @@ namespace io {
              */
             [[nodiscard]] bool exists() const noexcept;
 
-            template<::detail::string_like T>
+            template<ausaxs::detail::string_like T>
             void operator=(const T& path) {*this = std::string_view(path);}
             void operator=(std::string_view path);
             bool operator==(const Folder& other) const noexcept = default;
@@ -63,5 +63,5 @@ namespace io {
 }
 
 // Must return a string since the result can also be a file path 
-[[nodiscard]] std::string operator+(std::string_view str, const io::Folder& folder);
-[[nodiscard]] std::string operator+(const io::Folder& folder, std::string_view str);
+[[nodiscard]] std::string operator+(std::string_view str, const ausaxs::io::Folder& folder);
+[[nodiscard]] std::string operator+(const ausaxs::io::Folder& folder, std::string_view str);

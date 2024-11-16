@@ -10,6 +10,8 @@
 #include <iostream>
 #include <cmath>
 
+using namespace ausaxs;
+
 /**
  * @brief Debug molecule that allows scaling the volume.
  */

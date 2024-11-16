@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/SettingsIORegistry.h>
 #include <utility/Exceptions.h>
 
+using namespace ausaxs;
+
 double settings::grid::water_scaling = 0.01;
 double settings::grid::cell_width = 1;
 double settings::grid::scaling = 0.25;
@@ -18,11 +20,9 @@ double settings::grid::exv::surface_thickness = 1;
 double settings::grid::exv::width = 1;
 bool settings::grid::exv::save = false;
 
-namespace settings::grid::detail {
-    double min_score = 0.25;
-}
+double settings::grid::detail::min_score = 0.25;
 
-namespace settings::grid::io {
+namespace ausaxs::settings::grid::io {
     settings::io::SettingSection grid_settings("Grid", {
         settings::io::create(water_scaling, "water_scaling"),
         settings::io::create(cell_width, "width"),

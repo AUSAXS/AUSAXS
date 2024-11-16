@@ -21,6 +21,7 @@
 #include "hist/hist_test_helper.h"
 #include "grid/grid_debug.h"
 
+using namespace ausaxs;
 using namespace hist;
 
 /*

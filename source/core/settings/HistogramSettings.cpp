@@ -9,12 +9,14 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 #include <constants/Constants.h>
 
+using namespace ausaxs;
+
 double settings::axes::qmin = constants::axes::q_axis.min;
 double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;
 bool settings::hist::weighted_bins = true;
 
-namespace settings::axes::io {
+namespace ausaxs::settings::axes::io {
     settings::io::SettingSection axes_settings("Axes", {
         settings::io::create(skip, "skip"),
         settings::io::create(qmin, "qmin"),

@@ -12,7 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <iostream>
 #include <algorithm>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names, const std::string& saxs_path) : owner(owner) {
     if (auto loc = paths[0].find("%"); loc != std::string::npos) {

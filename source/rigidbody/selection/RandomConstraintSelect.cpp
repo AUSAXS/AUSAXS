@@ -11,7 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <utility>
 
-using namespace rigidbody::selection;
+using namespace ausaxs::rigidbody::selection;
 
 RandomConstraintSelect::RandomConstraintSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {
     unsigned int M = rigidbody->get_constraint_manager()->distance_constraints.size();

@@ -11,7 +11,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
-using namespace rigidbody::selection;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::selection;
 
 std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(const rigidbody::RigidBody* body) {
     return create_selection_strategy(body, settings::rigidbody::body_select_strategy);

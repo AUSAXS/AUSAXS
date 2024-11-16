@@ -18,8 +18,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace io::detail;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::io::detail;
+using namespace ausaxs::data::record;
 
 PDBReader::PDBReader(data::detail::AtomCollection* const file) : file(file) {}
 
@@ -81,14 +82,14 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
 };
 
 void PDBReader::read(const io::File& path) {
-    console::print_info("Reading PDB file from \"" + path + "\"");
+    console::print_info("Reading PDB file from \"" + path.str() + "\"");
     console::indent();
 
     if (path.append("_part1").exists()) {
         console::print_text("File is split into multiple parts.");
         unsigned int i = 1;
         while (path.append("_part" + std::to_string(i)).exists()) {
-            console::print_text("\tParsed file " + path.append("_part" + std::to_string(i)));
+            console::print_text("\tParsed file " + path.append("_part" + std::to_string(i)).str());
             parse_single_file(path.append("_part" + std::to_string(i)), *file);
             i++;
         }

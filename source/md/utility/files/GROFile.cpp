@@ -8,7 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 std::string GROFile::get_unit_cell() const {
     if (!exists()) {throw except::io_error("GROFile::get_unit_cell: \"" + path() + "\" does not exist.");}

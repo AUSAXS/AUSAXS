@@ -2,6 +2,6 @@
 
 #include <md/simulate/GMXOptions.h>
 
-namespace md {
+namespace ausaxs::md {
     SimulateBufferOutput simulate_buffer(const BufferOptions& options);
 }

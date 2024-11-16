@@ -15,7 +15,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/RigidBody.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 SetupElement::SetupElement(observer_ptr<Sequencer> owner) : LoopElementCallback(owner) {}
 SetupElement::SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs) : LoopElementCallback(owner), saxs_path(std::move(saxs)) {}

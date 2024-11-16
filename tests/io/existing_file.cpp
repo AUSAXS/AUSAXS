@@ -3,6 +3,8 @@
 
 #include <io/ExistingFile.h>
 
+using namespace ausaxs;
+
 TEST_CASE("ExistingFile::ExistingFile") {
     SECTION("non-existing") {
         CHECK_THROWS(io::ExistingFile("fake"));

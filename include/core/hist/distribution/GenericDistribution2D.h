@@ -3,7 +3,7 @@
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/WeightedDistribution2D.h>
 
-namespace hist {
+namespace ausaxs::hist {
     template <bool UseWeightedContainer>
     struct GenericDistribution2D;
 

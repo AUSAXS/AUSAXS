@@ -5,7 +5,7 @@
 #include <md/programs/mdrun/Execution.h>
 #include <md/utility/files/all.h>
 
-namespace md {
+namespace ausaxs::md {
     class saxsmdrun : private gmx {
         public: 
             saxsmdrun();

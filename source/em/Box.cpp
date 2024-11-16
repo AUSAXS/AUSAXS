@@ -10,11 +10,11 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace em;
+using namespace ausaxs::em;
 
 void Box::save(const io::File& filename) const {
     std::ofstream output(filename);
-    if (!output.is_open()) {throw except::io_error("Box::save: Could not open file \"" + filename + "\"");}
+    if (!output.is_open()) {throw except::io_error("Box::save: Could not open file \"" + filename.str() + "\"");}
 
     output << "x y z" << std::endl;
     for (const auto& atom : atoms) {
@@ -22,7 +22,7 @@ void Box::save(const io::File& filename) const {
     }
 }
 
-CoordinateSystem Box::spanning_coordinate_system() const {
+ausaxs::CoordinateSystem Box::spanning_coordinate_system() const {
     // find the eight corner atoms
     Vector3<float> min_x_min_y_min_z, min_x_min_y_max_z, min_x_max_y_min_z, min_x_max_y_max_z, max_x_min_y_min_z, max_x_min_y_max_z, max_x_max_y_min_z, max_x_max_y_max_z;
     for (const auto& atom : atoms) {

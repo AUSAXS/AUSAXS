@@ -7,6 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <string>
 
+using namespace ausaxs;
+
 std::string mini::Evaluation::to_string() const {
     std::string s;
     for (auto val : vals) {

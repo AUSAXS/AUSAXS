@@ -13,8 +13,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <utility>
 
-using namespace hydrate;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::hydrate;
+using namespace ausaxs::data::record;
 
 std::vector<data::record::Water> OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     auto grid = molecule->get_grid();

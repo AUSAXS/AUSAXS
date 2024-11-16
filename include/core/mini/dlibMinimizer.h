@@ -4,7 +4,7 @@
 #include <mini/detail/Parameter.h>
 
 #if defined(DLIB_AVAILABLE)
-    namespace mini {
+    namespace ausaxs::mini {
         struct column_vector;
     
         template<mini::algorithm algo>

@@ -5,7 +5,7 @@
 #include <mini/detail/Parameter.h>
 #include <hist/HistFwd.h>
 
-namespace fitter {
+namespace ausaxs::fitter {
     /**
      * @brief A smart fitter automatically fitting the parameters enabled in the settings. 
      *

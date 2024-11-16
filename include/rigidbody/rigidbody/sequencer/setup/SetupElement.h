@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <functional>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief Set up the optimization problem.
      *        Once any method from the LoopElementCallback is called, the setup is considered complete.

@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <sstream>
 
-using namespace plots;
+using namespace ausaxs::plots;
 
 double inf = std::numeric_limits<double>::infinity();
 
@@ -58,7 +58,7 @@ void PlotOptions::parse(const std::string& key, std::any val) {
 }
 
 template<>
-void PlotOptions::SmartOption<Limit>::parse(const std::any& val) {
+void PlotOptions::SmartOption<ausaxs::Limit>::parse(const std::any& val) {
     // handle actual Limit case: Limit(1.5, 2.5)
     if (std::type_index{typeid(Limit)} == val.type()) {
         value = std::any_cast<Limit>(val);

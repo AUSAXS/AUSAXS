@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <cmath>
 
-using namespace math;
+using namespace ausaxs::math;
 
 CubicSpline::CubicSpline(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {setup();}
 

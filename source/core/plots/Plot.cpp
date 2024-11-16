@@ -10,9 +10,11 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
+using namespace ausaxs;
+
 void plots::Plot::save(const io::File& path) const {
     path.directory().create();
-    std::ofstream output(path + ".plot");
-    if (!output.is_open()) {throw except::io_error("PlotDataset::quick_plot: Could not open file " + path + " for writing!");}
+    std::ofstream output(path.str() + ".plot");
+    if (!output.is_open()) {throw except::io_error("PlotDataset::quick_plot: Could not open file " + path.str() + " for writing!");}
     output << ss.str();
 }

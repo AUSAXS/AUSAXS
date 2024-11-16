@@ -2,7 +2,7 @@
 
 #include <rigidbody/transform/TransformStrategy.h>
 
-namespace rigidbody::transform {
+namespace ausaxs::rigidbody::transform {
     /**
      * @brief RigidTransform. 
      * 

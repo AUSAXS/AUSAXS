@@ -6,6 +6,8 @@
 
 #include <constants/Constants.h>
 
+using namespace ausaxs;
+
 /**
  * @brief The old version of the Constants.h file. This is used for testing the new version.
  */

@@ -12,7 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <sstream>
 
-using namespace fitter;
+using namespace ausaxs;
+using namespace ausaxs::fitter;
 
 FitResult::FitResult(const mini::Result& res, double chi2, unsigned int dof) noexcept : Result(res), dof(dof) {
     fval = chi2;

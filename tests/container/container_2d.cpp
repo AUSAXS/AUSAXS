@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+using namespace ausaxs;
 using namespace container;
 
 TEST_CASE("Container2D::Container2D") {

@@ -10,7 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <iostream>
 
-using namespace io;
+using namespace ausaxs;
+using namespace ausaxs::io;
 
 File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {}
 File::File(std::string_view name, std::string_view extension) : File(Folder(), name, extension) {}
@@ -100,6 +101,7 @@ void File::remove() const {
 }
 
 std::string File::path() const {return std::string(*this);}
+std::string File::str() const {return path();}
 
 std::string File::absolute_path() const {return std::filesystem::absolute(path()).string();}
 

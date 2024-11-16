@@ -7,7 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <md/programs/mdrun/Execution.h>
 #include <md/utility/Exceptions.h>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 mdrun::mdrun() {
     cmd.append("mdrun -v -cpi");

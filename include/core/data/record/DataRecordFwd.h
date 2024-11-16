@@ -1,6 +1,6 @@
 #pragma once
 
-namespace data::record {
+namespace ausaxs::data::record {
     enum class RecordType;
     class Atom;
     class Water;

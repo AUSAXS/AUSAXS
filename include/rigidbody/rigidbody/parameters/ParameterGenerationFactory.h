@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace rigidbody::factory {
+namespace ausaxs::rigidbody::factory {
     /**
      * @brief Prepare a constraint generator. 
      */

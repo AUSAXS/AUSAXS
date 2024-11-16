@@ -20,6 +20,7 @@
 #include <string>
 #include <iostream>
 
+using namespace ausaxs;
 using namespace data;
 using namespace data::record;
 using std::cout, std::endl, std::vector;

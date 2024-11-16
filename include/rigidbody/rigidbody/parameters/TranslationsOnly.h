@@ -2,7 +2,7 @@
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 
-namespace rigidbody::parameter {
+namespace ausaxs::rigidbody::parameter {
     class TranslationsOnly : public ParameterGenerationStrategy {
         public: 
             using ParameterGenerationStrategy::ParameterGenerationStrategy;

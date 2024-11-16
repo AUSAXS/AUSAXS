@@ -3,6 +3,8 @@
 #include <table/LookupTable.h>
 #include <settings/HistogramSettings.h>
 
+using namespace ausaxs;
+
 TEST_CASE("LookupTable::LookupTable") {
     SECTION("default") {
         table::LookupTable<int, int> table;

@@ -16,9 +16,10 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <limits>
 
-using namespace rigidbody::constraints;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::constraints;
+using namespace ausaxs::data;
+using namespace ausaxs::data::record;
 
 std::vector<DistanceConstraint> VolumetricConstraints::generate() const {
     if (settings::general::verbose) {console::print_info("\tGenerating simple constraints for rigid body optimization.");}

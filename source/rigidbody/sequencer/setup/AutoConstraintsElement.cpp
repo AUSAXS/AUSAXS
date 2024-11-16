@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/RigidBody.h>
 #include <settings/RigidBodySettings.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy) : owner(owner), strategy(strategy) {}
 

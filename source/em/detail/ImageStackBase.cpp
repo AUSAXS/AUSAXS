@@ -28,7 +28,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <memory>
 #include <cassert>
 
-using namespace em;
+using namespace ausaxs;
+using namespace ausaxs::em;
 
 ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;
@@ -44,7 +45,7 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
     header = em::detail::factory::create_header(file);
 
     std::ifstream input(file, std::ios::binary);
-    if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file + "\"");}
+    if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file.str() + "\"");}
     input.read(header->get_data_ptr(), header->get_header_size());
 
     auto map_axes = header->get_axes();

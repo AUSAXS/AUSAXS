@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-namespace io::detail {
+namespace ausaxs::io::detail {
     /**
      * @brief This class handles writing a File object into a PDB format data file.
      */

@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <math/Vector3.h>
 
-using namespace rigidbody::parameter;
+using namespace ausaxs::rigidbody::parameter;
 
 Parameters::Parameters(const data::Molecule* protein) : params(protein->size_body()) {
     const std::vector<data::Body>& bodies = protein->get_bodies();

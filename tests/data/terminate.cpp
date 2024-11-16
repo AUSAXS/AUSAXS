@@ -4,6 +4,7 @@
 #include <data/record/Terminate.h>
 #include <settings/All.h>
 
+using namespace ausaxs;
 using namespace data::record;
 
 TEST_CASE("Terminate::Terminate") {

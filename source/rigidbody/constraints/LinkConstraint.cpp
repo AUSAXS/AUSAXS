@@ -10,9 +10,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <data/record/Atom.h>
 
-using namespace rigidbody::constraints;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::rigidbody::constraints;
+using namespace ausaxs::data;
+using namespace ausaxs::data::record;
 
 LinkConstraint::LinkConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2) 
     : protein(protein), ibody1(ibody1), ibody2(ibody2) {

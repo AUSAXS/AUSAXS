@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <random>
 
-using namespace rigidbody::parameter;
+using namespace ausaxs::rigidbody::parameter;
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(unsigned int iterations, double length_start, double rad_start) : decay_strategy(rigidbody::factory::create_decay_strategy(iterations)) {
     std::random_device random;

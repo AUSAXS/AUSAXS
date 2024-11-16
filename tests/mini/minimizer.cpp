@@ -8,6 +8,7 @@
 #include <plots/All.h>
 
 using std::vector;
+using namespace ausaxs;
 
 struct TestFunction {
     TestFunction(std::function<double(std::vector<double>)> function, const std::vector<Limit>& bounds, const std::vector<double>& min) : function(function), bounds(bounds), min(min) {}

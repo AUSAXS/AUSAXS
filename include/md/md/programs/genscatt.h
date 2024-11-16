@@ -5,7 +5,7 @@
 #include <io/Folder.h>
 #include <io/File.h>
 
-namespace md {
+namespace ausaxs::md {
     class genscatt : private gmx {
         public: 
             genscatt() {

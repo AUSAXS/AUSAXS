@@ -7,6 +7,8 @@
 
 #include <cmath>
 
+using namespace ausaxs;
+
 auto& debye_table = table::ArrayDebyeTable::get_default_table();
 auto& q = constants::axes::q_vals;
 auto& d = constants::axes::d_vals;

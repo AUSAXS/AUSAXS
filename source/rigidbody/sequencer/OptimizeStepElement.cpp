@@ -14,7 +14,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <iostream>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     OptimizeStepElement::OptimizeStepElement(LoopElement* owner) : LoopElementCallback(owner) {}
 
     OptimizeStepElement::~OptimizeStepElement() = default;

@@ -10,7 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <sstream>
 #include <cassert>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 Histogram::Histogram(const Vector<double>& p) noexcept : p(p) {generate_axis();}
 Histogram::Histogram(const Vector<double>& p, const Axis& axis) : p(p), axis(axis) {}

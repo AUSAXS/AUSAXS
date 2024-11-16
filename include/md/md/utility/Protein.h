@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace md {
+namespace ausaxs::md {
     struct Vector3 {
         double x, y, z;
     };

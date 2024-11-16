@@ -17,6 +17,7 @@
 
 using std::cout, std::endl, std::vector;
 
+using namespace ausaxs;
 using namespace data;
 using namespace data::record;
 

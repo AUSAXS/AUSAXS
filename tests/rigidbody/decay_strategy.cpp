@@ -7,6 +7,7 @@
 
 #include <cmath>
 
+using namespace ausaxs;
 using namespace rigidbody;
 
 TEST_CASE("LinearDecay::factor") {

@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 
-namespace rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief A loop element is a sequence element that repeats whatever is inside it a number of times.
      */

@@ -4,7 +4,7 @@
 #include <hist/Histogram.h>
 #include <utility/Axis.h>
 
-namespace hist::detail {
+namespace ausaxs::hist::detail {
     // Simple typedef for clarity.
     template<bool use_weighted_distribution>
     using PartialHistogram = typename GenericDistribution1D<use_weighted_distribution>::type;

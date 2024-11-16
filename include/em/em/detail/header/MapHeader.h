@@ -8,7 +8,7 @@
 #include <string>
 #include <iosfwd>
 
-namespace em::detail::header {
+namespace ausaxs::em::detail::header {
     class IMapHeader {
         public:
             virtual ~IMapHeader() = default;

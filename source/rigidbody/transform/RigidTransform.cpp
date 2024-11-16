@@ -18,7 +18,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <functional>
 #include <numeric>
 
-using namespace rigidbody::transform;
+using namespace ausaxs::rigidbody::transform;
 
 RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
 

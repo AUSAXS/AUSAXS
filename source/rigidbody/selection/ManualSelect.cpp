@@ -6,7 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/selection/ManualSelect.h>
 #include <utility/Exceptions.h>
 
-using namespace rigidbody::selection;
+using namespace ausaxs::rigidbody::selection;
 
 ManualSelect::ManualSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {}
 

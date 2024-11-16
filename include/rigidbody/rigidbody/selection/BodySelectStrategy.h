@@ -4,7 +4,7 @@
 
 #include <utility>
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
     namespace selection {
         /**
          * @brief This super-class defines the interface for the body selection strategies for the rigid-body optimization. 

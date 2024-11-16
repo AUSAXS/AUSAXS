@@ -3,8 +3,8 @@
 #include <hist/symmetry/Symmetry.h>
 #include <math/Vector3.h>
 
-namespace hist::detail {class CompactCoordinates;}
-namespace hist::symmetry {
+namespace ausaxs::hist::detail {class CompactCoordinates;}
+namespace ausaxs::hist::symmetry {
     namespace detail {
         struct Plane {
             Plane(Vector3<double>&& x, Vector3<double>&& y) : x(std::move(x)), y(std::move(y)) {normal = x.cross(y).normalize();}

@@ -4,7 +4,7 @@
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
 
-namespace hydrate {
+namespace ausaxs::hydrate {
     /**
      * @brief This strategy mimics the model proposed by PepsiSAXS 10.1107/S2059798317005745 for generating explicit hydration sites.
      */

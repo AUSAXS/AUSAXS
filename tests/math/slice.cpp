@@ -10,6 +10,8 @@
 #include <math/Vector.h>
 #include <math/Vector3.h>
 
+using namespace ausaxs;
+
 // Slices are not meant to be used directly, but rather through the Matrix and Vector classes.
 // Thus we will test them through these two. 
 TEST_CASE("Slice::Slice") {

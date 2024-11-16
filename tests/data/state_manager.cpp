@@ -9,6 +9,7 @@
 
 #include <memory>
 
+using namespace ausaxs;
 using namespace state;
 
 struct fixture {

@@ -1,5 +1,5 @@
 #pragma once
 
-namespace data::detail {
+namespace ausaxs::data::detail {
     class AtomCollection;
 }

@@ -6,7 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/ParameterElementCallback.h>
 #include <rigidbody/sequencer/ParameterElement.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 ParameterElementCallback::ParameterElementCallback(ParameterElement* caller) : LoopElementCallback(caller->owner), caller(caller) {}
 

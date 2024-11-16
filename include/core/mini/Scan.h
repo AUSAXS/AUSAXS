@@ -2,7 +2,7 @@
 
 #include <mini/Minimizer.h>
 
-namespace mini {
+namespace ausaxs::mini {
 	/**
 	 * @brief A scanning minimizer. 
 	 * 		  This algorithm performs a simple scan of the chi2 landscape, and then uses a local minimizer to find the minimum. 

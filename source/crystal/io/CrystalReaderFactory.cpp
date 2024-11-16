@@ -14,7 +14,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <memory>
 
-namespace crystal::factory {
+namespace ausaxs::crystal::factory {
     std::unique_ptr<crystal::io::CrystalReader> CrystalReaderFactory::create(const ::io::ExistingFile& filename) {
         if (constants::filetypes::unit_cell.check(filename)) {
             return std::make_unique<crystal::io::UnitCellReader>();

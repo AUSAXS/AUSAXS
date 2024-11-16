@@ -3,7 +3,7 @@
 #include <plots/Plot.h>
 #include <dataset/DatasetFwd.h>
 
-namespace plots {
+namespace ausaxs::plots {
 	class PlotOptions;
 
 	/**

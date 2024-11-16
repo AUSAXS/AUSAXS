@@ -7,7 +7,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 void NDXFile::append_file(const NDXFile& other) {
     std::ifstream ifs(other);

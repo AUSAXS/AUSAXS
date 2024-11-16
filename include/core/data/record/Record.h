@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace data::record {
+namespace ausaxs::data::record {
     class Record {
         public: 
             virtual ~Record() = default;

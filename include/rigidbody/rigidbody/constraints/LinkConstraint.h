@@ -4,7 +4,7 @@
 #include <utility/observer_ptr.h>
 #include <data/DataFwd.h>
 
-namespace rigidbody::constraints {
+namespace ausaxs::rigidbody::constraints {
     /**
      * This constraint can be used to link different bodies such that any transformation applied to one will also be applied to the other.
      * This is principially equivalent to the DistanceConstraint, except this constraint does not affect the chi2. 

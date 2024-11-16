@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/RigidBody.h>
 
-using namespace rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer;
 
 ParameterElement::ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
 

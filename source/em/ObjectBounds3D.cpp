@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <numeric>
 
-using namespace em;
+using namespace ausaxs::em;
 
 ObjectBounds3D::ObjectBounds3D(unsigned int size_x, unsigned int size_y, unsigned int size_z) : bounds(size_z, ObjectBounds2D(size_x, size_y)), _size_x(size_x), _size_y(size_y), _size_z(size_z) {}
 

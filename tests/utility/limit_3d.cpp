@@ -2,6 +2,8 @@
 
 #include <utility/Limit3D.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Limit3D::Limit3D") {
     SECTION("default") {
         Limit3D limit;

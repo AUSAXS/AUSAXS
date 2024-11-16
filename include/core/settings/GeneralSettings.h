@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace settings::general {
+namespace ausaxs::settings::general {
     extern const char* const residue_folder;    // Download location for all ligand files. Must be constexpr.
     extern bool verbose;                        // Whether to print out extra information.
     extern bool warnings;                       // Whether to print out warnings.
@@ -16,7 +16,7 @@ namespace settings::general {
     }
 }
 
-namespace settings::general {
+namespace ausaxs::settings::general {
     enum class QUnit {
         A,  // Ångström
         NM, // Nanometer

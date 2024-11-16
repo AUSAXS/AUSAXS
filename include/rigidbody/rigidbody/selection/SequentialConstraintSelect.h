@@ -2,7 +2,7 @@
 
 #include <rigidbody/selection/BodySelectStrategy.h>
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
 	namespace selection {
 		/**
 		 * @brief Sequential body selection strategy.

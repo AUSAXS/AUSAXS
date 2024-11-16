@@ -16,6 +16,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <cmath>
 
+using namespace ausaxs;
+
 md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     if (!options.molecule.top.exists()) {throw except::io_error("simulate_saxs: The topology file does not exist.");}
 

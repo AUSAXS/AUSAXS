@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distribution/Distribution1D.h>
 #include <dataset/SimpleDataset.h>
 
-using namespace plots;
+using namespace ausaxs::plots;
 
 PlotDistance::~PlotDistance() = default;
 

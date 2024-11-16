@@ -3,7 +3,7 @@
 #include <settings/RigidBodySettings.h>
 #include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
 
-namespace rigidbody {
+namespace ausaxs::rigidbody {
     namespace factory {
         /**
          * @brief Prepare a constraint generator. 

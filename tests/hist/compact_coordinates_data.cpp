@@ -5,6 +5,7 @@
 #include <constants/Constants.h>
 #include <math/Vector3.h>
 
+using namespace ausaxs;
 using namespace hist::detail;
 
 TEST_CASE("CompactCoordinatesData::CompactCoordinatesData") {

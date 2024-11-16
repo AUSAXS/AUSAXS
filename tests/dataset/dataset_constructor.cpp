@@ -10,6 +10,8 @@
 
 #include <fstream>
 
+using namespace ausaxs;
+
 TEST_CASE("DATReader::construct") {
     settings::general::verbose = false;
     io::File test_file = "temp/tests/dataset/dat_test.dat";
