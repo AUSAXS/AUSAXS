@@ -278,7 +278,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
         auto calc = [] (double k) {
             const auto& q_axis = constants::axes::q_vals;
             auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
-            form_factor::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width*k, 3));
+            auto ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width*k, 3));
             auto d = SimpleCube::d_exact;
             std::for_each(d.begin(), d.end(), [k] (double& v) {v *= k;});
 
@@ -316,6 +316,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         // x1
         auto Iq_exp = calc(1);
+        h_cast->apply_excluded_volume_scaling_factor(1);
         REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
 
         // x2
@@ -389,6 +390,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         // x1
         auto Iq_exp = calc(1);
+        h_cast->apply_excluded_volume_scaling_factor(1);
         REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
 
         // x2

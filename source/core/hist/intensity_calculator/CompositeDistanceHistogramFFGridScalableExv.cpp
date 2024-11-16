@@ -17,5 +17,5 @@ void CompositeDistanceHistogramFFGridScalableExv::apply_excluded_volume_scaling_
     axis = std::move(h->axis);
     cache.sinqd.valid = false;
     auto V = std::pow(settings::grid::exv::width*k, 3);
-    generate_ff_table(form_factor::ExvFormFactor(V));
+    regenerate_ff_table(form_factor::ExvFormFactor(V));
 }
