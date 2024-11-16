@@ -1,7 +1,8 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 #include <settings/GridSettings.h>
 
-using namespace hist;
+using namespace ausaxs;
+using namespace ausaxs::hist;
 
 CompositeDistanceHistogramFFGridScalableExv::CompositeDistanceHistogramFFGridScalableExv(
     CompositeDistanceHistogramFFGrid&& res, 

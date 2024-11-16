@@ -5,7 +5,7 @@
 #include <table/VectorDebyeTable.h>
 #include <utility/TypeTraits.h>
 
-namespace hist {
+namespace ausaxs::hist {
     class CompositeDistanceHistogramFFGridScalableExv : public CompositeDistanceHistogramFFGrid {
         public:
             CompositeDistanceHistogramFFGridScalableExv(CompositeDistanceHistogramFFGrid&& cdh, std::function<std::unique_ptr<CompositeDistanceHistogramFFGrid>(double)> eval_scaled_exv);
