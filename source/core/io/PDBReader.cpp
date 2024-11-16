@@ -13,6 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/ConstantsFwd.h>
+#include <utility/StringUtils.h>
 #include <utility/Console.h>
 
 #include <fstream>
@@ -32,7 +33,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
     unsigned int discarded_hydrogens = 0;
     std::string line; // placeholder for the current line
     while(getline(input, line)) {
-        if (line.empty()) {continue;}
+        if (utility::remove_all(line, "\n\r").empty()) {continue;}
         std::string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {
             case RecordType::ATOM: {

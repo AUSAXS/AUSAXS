@@ -15,6 +15,7 @@ target_sources(ausaxs_core PRIVATE
 	"distance_calculator/HistogramManagerMTFFExplicit.cpp"
 	"distance_calculator/HistogramManagerMTFFGrid.cpp"
 	"distance_calculator/HistogramManagerMTFFGridSurface.cpp"
+	"distance_calculator/HistogramManagerMTFFGridScalableExv.cpp"
 	"distance_calculator/PartialHistogramManager.cpp"
 	"distance_calculator/PartialHistogramManagerMT.cpp"
 	
@@ -31,6 +32,7 @@ target_sources(ausaxs_core PRIVATE
 	"intensity_calculator/CompositeDistanceHistogramFFExplicitBase.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGrid.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGridSurface.cpp"
+	"intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.cpp"
 	"intensity_calculator/DistanceHistogram.cpp"
 	"intensity_calculator/ExactDebyeCalculator.cpp"
 	"intensity_calculator/crysol/CompositeDistanceHistogramCrysol.cpp"

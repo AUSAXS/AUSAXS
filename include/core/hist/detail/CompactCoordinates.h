@@ -45,6 +45,7 @@ namespace hist::detail {
 
             std::size_t size() const;
 
+            std::vector<CompactCoordinatesData>& get_data();
             const std::vector<CompactCoordinatesData>& get_data() const;
 
             CompactCoordinatesData& operator[](unsigned int i);

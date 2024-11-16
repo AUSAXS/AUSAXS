@@ -244,7 +244,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
     for (unsigned int i = p_xx.surface.size()-1; i >= 10; i--) {
-        if (p_xx.surface.index(i) != 0 || p_xx.interior.index(i) != 0) {
+        if (p_xx.surface.index(i) != 0 || p_xx.interior.index(i) != 0 || p_wx.surface.index(i) != 0 || p_wx.interior.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
         }

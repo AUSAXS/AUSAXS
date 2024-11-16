@@ -55,10 +55,19 @@ void Atom::parse_pdb(const std::string& str) {
     auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return
     int pad_size = 81 - static_cast<int>(s.size());
     if (pad_size < 0) {
-        console::print_warning("Warning in Atom::parse_pdb: Line is longer than 80 characters. Truncating.");
+        static bool warned = false;
+        if (!warned) {
+            console::print_warning("Warning in Atom::parse_pdb: Found line longer than 80 characters. Truncating. Further warnings of this type will be suppressed.");
+            warned = true;
+        }
         std::cout << "\"" << s << "\"" << std::endl;
         s = s.substr(0, 80);
-    } else {
+    } else if (pad_size > 0) {
+        static bool warned = false;
+        if (!warned) {
+            console::print_warning("Warning in Atom::parse_pdb: Found line shorter than 80 characters. Padding with spaces. Further warnings of this type will be suppressed.");
+            warned = true;
+        }
         s += std::string(pad_size, ' ');
     }
 
@@ -67,12 +76,12 @@ void Atom::parse_pdb(const std::string& str) {
     //                   RN SE S1 NA AL RN CI S2 RS iC S3 X  Y  Z  OC TF S4  EL CH
     //                   0     1           2              3     4  5  6      7     8
     //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
-    const char form[] = "%6c%5c%1c%4c%1c%3c%1c%1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c";
+    std::string form = "%6c%5c%1c%4c%1c%3c%1c%1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c";
     std::string recName = "      ", serial = "     ", space1 = " ", name = "    ", altLoc = " ", resName = "   ", space2 = " ", 
         resSeq = "    ", iCode = " ", space3 = "   ", x = "        ", y = "        ", z = "        ", 
         occupancy = "      ", tempFactor = "      ", space4 = "          ", element = "  ", charge = "  ";
     char chainID = ' ';
-    sscanf(s.c_str(), form, recName.data(), serial.data(), space1.data(), name.data(), altLoc.data(), resName.data(), 
+    sscanf(s.c_str(), form.data(), recName.data(), serial.data(), space1.data(), name.data(), altLoc.data(), resName.data(), 
         space2.data(), &chainID, resSeq.data(), iCode.data(), space3.data(), x.data(), y.data(), z.data(), 
         occupancy.data(), tempFactor.data(), space4.data(), element.data(), charge.data());
 
@@ -231,7 +240,7 @@ double Atom::get_mass() const {
                 return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
             } catch (const std::exception& e) {
                 console::print_warning(e.what());
-                throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::to_string(element) + " is not defined.");
+                throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::to_string(element) + " (atom number " + std::to_string(serial) + ") is not defined.");
             }
         #endif
         // mass of this nucleus + mass of attached H atoms

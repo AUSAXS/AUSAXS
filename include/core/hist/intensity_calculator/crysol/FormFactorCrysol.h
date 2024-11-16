@@ -12,6 +12,8 @@
 namespace form_factor::crysol {
     /**
      * @brief Calculate the excluded volume form factor based on the description from Crysol: https://doi.org/10.1107/S0021889895007047
+     *        Undocumented changes from their article:
+     *          1. correct D --> q conversion factor of 4*pi*pi
      */
     struct ExvFormFactorCrysol {
         /**
@@ -20,8 +22,7 @@ namespace form_factor::crysol {
             * @param volume The excluded volume of the atom in cubic angstroms.
             */
         constexpr ExvFormFactorCrysol(double volume) {
-            double magic_constant = 1/(4*constants::pi*constants::pi);
-            exponent = magic_constant*constants::pi*constexpr_math::pow(volume, 2./3);
+            exponent = constexpr_math::pow(volume, 2./3)/(4*constants::pi);
             q0 = volume*constants::charge::density::water;
         }
 
@@ -74,6 +75,25 @@ namespace form_factor::crysol {
                 }
             }
 
+            [[maybe_unused]] static form_factor::storage::exv::table_t generate_table(double average_displaced_V) {
+                auto ffx = form_factor::crysol::ExvFormFactorCrysol(average_displaced_V);
+                container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
+                for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
+                    for (unsigned int j = 0; j < i; ++j) {
+                        table.index(i, j) = PrecalculatedFormFactorProduct(
+                            ffx, 
+                            ffx
+                        );
+                        table.index(j, i) = table.index(i, j);
+                    }
+                    table.index(i, i) = PrecalculatedFormFactorProduct(
+                        ffx, 
+                        ffx
+                    );
+                }
+                return table;
+            }
+
             [[maybe_unused]] static form_factor::storage::exv::table_t generate_table() {
                 container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
@@ -94,6 +114,24 @@ namespace form_factor::crysol {
         };
 
         struct cross {
+            [[maybe_unused]] static form_factor::storage::cross::table_t generate_table(double average_displaced_V) {
+                auto ffx = form_factor::crysol::ExvFormFactorCrysol(average_displaced_V);
+                container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
+                for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
+                    for (unsigned int j = 0; j < i; ++j) {
+                        table.index(i, j) = PrecalculatedFormFactorProduct(
+                            form_factor::storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
+                            ffx
+                        );
+                        table.index(j, i) = table.index(i, j);
+                    }
+                    table.index(i, i) = PrecalculatedFormFactorProduct(
+                        form_factor::storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
+                        ffx
+                    );
+                }
+                return table;
+            }
             [[maybe_unused]] static form_factor::storage::cross::table_t generate_table() {
                 container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {

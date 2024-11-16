@@ -10,9 +10,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/HistogramManagerMTFFGridSurface.h>
+#include <hist/distance_calculator/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
-// #include <hist/distance_calculator/DebugManager.h>
 #include <settings/HistogramSettings.h>
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>
@@ -38,6 +38,8 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 return std::make_unique<HistogramManagerMTFFGrid>(protein);
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: 
                 return std::make_unique<HistogramManagerMTFFGridSurface>(protein);
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: 
+                return std::make_unique<HistogramManagerMTFFGridScalableExv>(protein);
             case settings::hist::HistogramManagerChoice::PartialHistogramManager:
                 return std::make_unique<PartialHistogramManager<true>>(protein);
             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:

@@ -38,6 +38,9 @@ namespace container {
                 return data[i];
             }
 
+            T& operator[](unsigned int i) {return operator()(i);}
+            const T& operator[](unsigned int i) const {return operator()(i);}
+
             T& index(unsigned int i) {return operator()(i);}
             const T& index(unsigned int i) const {return operator()(i);}
 
