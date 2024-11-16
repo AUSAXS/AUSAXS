@@ -5,7 +5,7 @@
 #include <md/utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
-namespace md {
+namespace ausaxs::md {
     class check : private gmx {
         public: 
             check() {

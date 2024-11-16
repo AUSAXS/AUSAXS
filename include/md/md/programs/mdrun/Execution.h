@@ -6,7 +6,7 @@
 
 #include <functional>
 
-namespace md {
+namespace ausaxs::md {
     enum class location {
         local,
         lucy,

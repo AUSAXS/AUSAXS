@@ -6,7 +6,8 @@
 
 #include <CLI/CLI.hpp>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 int main(int argc, char const *argv[]) {
     io::ExistingFile s_pdb;

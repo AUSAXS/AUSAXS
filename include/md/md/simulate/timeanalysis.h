@@ -2,7 +2,7 @@
 
 #include <md/simulate/GMXOptions.h>
 
-namespace md {
+namespace ausaxs::md {
     /**
      * @brief Generate a series of SAXS curves with different durations. 
      * 

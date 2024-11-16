@@ -10,7 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <fstream>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 unsigned int ITPFile::size() const {
     std::ifstream in(path());

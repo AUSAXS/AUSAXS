@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace md {
+namespace ausaxs::md {
     struct MDRunResult {
         MDRunResult(const std::string& folder) {
             if (folder.back() == '/') {

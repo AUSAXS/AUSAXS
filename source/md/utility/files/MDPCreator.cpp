@@ -7,8 +7,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <md/utility/Exceptions.h>
 
 #include <iomanip>
+#include <sstream>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 MDPCreator& MDPCreator::add(const MDPOptions::detail::OptionVal& option) {
     options.push_back(option);

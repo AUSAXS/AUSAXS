@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace md {
+namespace ausaxs::md {
     class TopologyFile {
         public:
             TopologyFile(const std::string& path) : path(path) {}

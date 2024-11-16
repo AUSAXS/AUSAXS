@@ -10,6 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 #include <utility/Console.h>
 
+using namespace ausaxs;
+
 md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //##################################//
     //###           GLOBALS          ###//

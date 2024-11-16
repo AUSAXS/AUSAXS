@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace md {
+namespace ausaxs::md {
     class gmx {
         public: 
             shell::Command cmd = shell::Command(settings::md::gmx_path);

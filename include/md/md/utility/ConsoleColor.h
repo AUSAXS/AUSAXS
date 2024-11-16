@@ -6,7 +6,7 @@
     #include <map>
 #endif
 
-namespace console {
+namespace ausaxs::console {
     namespace color {
         typedef int color;
         color black = 0;

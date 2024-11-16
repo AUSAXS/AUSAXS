@@ -3,7 +3,7 @@
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
 
-namespace md {
+namespace ausaxs::md {
     class editconf : private gmx {
         public:
             editconf() {

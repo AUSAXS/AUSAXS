@@ -5,7 +5,7 @@
 
 #include <stdexcept>
 
-namespace md {
+namespace ausaxs::md {
     namespace detail {
         struct validate_xtc_file {
             static void validate(observer_ptr<io::File> f) {

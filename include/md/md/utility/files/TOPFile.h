@@ -6,7 +6,7 @@
 
 #include <stdexcept>
 
-namespace md {
+namespace ausaxs::md {
     namespace detail {
         struct validate_top_file {
             static void validate(observer_ptr<io::File> f) {
@@ -20,7 +20,7 @@ namespace md {
         using IValidatedFile::IValidatedFile;
         ~TOPFile() override = default;
 
-        template<::detail::string_like T>
+        template<ausaxs::detail::string_like T>
         TOPFile(const T& path) : TOPFile(std::string_view(path)) {}
         TOPFile(std::string_view name) : IValidatedFile(name) {
             includes = discover_includes();

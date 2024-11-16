@@ -9,7 +9,7 @@
 #include <string>
 #include <array>
 
-namespace shell {
+namespace ausaxs::shell {
     struct CommandResult {
         std::string out;
         int exit_code;

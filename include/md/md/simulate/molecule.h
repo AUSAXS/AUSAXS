@@ -6,7 +6,7 @@
 #include <md/utility/files/MDPCreator.h>
 #include <utility/StringUtils.h>
 
-namespace md {
+namespace ausaxs::md {
     namespace simulate {
         class Molecule {
             public:

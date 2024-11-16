@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <chrono>
 #include <ctime>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 shell::Command& gmx::command() {
     validate();

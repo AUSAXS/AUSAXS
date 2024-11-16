@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <chrono>
 
-namespace shell {
+namespace ausaxs::shell {
     class SlurmWait {
         public:
             SlurmWait(const std::string& job_id) :

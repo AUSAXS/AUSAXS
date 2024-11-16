@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace md {
+namespace ausaxs::md {
     namespace MDPOptions {
         namespace detail {
             struct OptionVal {

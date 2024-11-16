@@ -12,7 +12,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <vector>
 #include <numeric>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 void TOPFile::include(const ITPFile& itp, const std::string& symbol) {
     if (!exists()) {throw except::io_error("TOPFile: \"" + path() + "\" does not exist.");}

@@ -9,7 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <cmath>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 std::vector<Vector3> Protein::parse(const std::string& filename) {
     std::ifstream input(filename);

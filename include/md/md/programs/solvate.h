@@ -8,7 +8,7 @@
 #include <vector>
 #include <algorithm>
 
-namespace md {
+namespace ausaxs::md {
     class solvate : private gmx {
         public: 
             solvate() {

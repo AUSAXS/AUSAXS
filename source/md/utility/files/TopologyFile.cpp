@@ -10,7 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <filesystem>
 #include <fstream>
 
-using namespace md;
+using namespace ausaxs;
+using namespace ausaxs::md;
 
 void TopologyFile::discover_includes() {
     if (!std::filesystem::exists(path)) {return;}
