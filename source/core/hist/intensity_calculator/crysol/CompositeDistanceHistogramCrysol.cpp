@@ -23,7 +23,9 @@ CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot,
     double V
-) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_ax), std::move(p_xx), std::move(p_aw), std::move(p_wx), std::move(p_ww), std::move(p_tot)), average_displaced_V(V) {}
+) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_ax), std::move(p_xx), std::move(p_aw), std::move(p_wx), std::move(p_ww), std::move(p_tot)), average_displaced_V(V) {
+    initialize();
+}
 
 CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution3D&& p_aa, 
@@ -34,7 +36,9 @@ CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot,
     double V
-) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_ax), std::move(p_xx), std::move(p_aw), std::move(p_wx), std::move(p_ww), std::move(p_tot)), average_displaced_V(V) {}
+) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_ax), std::move(p_xx), std::move(p_aw), std::move(p_wx), std::move(p_ww), std::move(p_tot)), average_displaced_V(V) {
+    initialize();
+}
 
 void CompositeDistanceHistogramCrysol::initialize() {
     ffaa_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
