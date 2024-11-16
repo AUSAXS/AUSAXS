@@ -19,6 +19,8 @@
 #include <vector>
 #include <string>
 
+using namespace ausaxs;
+
 int main(int argc, char const *argv[]) { 
     settings::grid::scaling = 2;
     settings::grid::cubic = true;

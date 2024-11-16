@@ -37,7 +37,7 @@ void ObjectBounds2D::set_max(unsigned int x, unsigned int max) {
     bounds[x].max = max;
 }
 
-const Limit& ObjectBounds2D::operator[](unsigned int x) const {return bounds[x];}
+const ausaxs::Limit& ObjectBounds2D::operator[](unsigned int x) const {return bounds[x];}
 
 unsigned int ObjectBounds2D::size_x() const {return N;}
 

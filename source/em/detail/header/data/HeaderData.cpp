@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-namespace em::detail::header {
+namespace ausaxs::em::detail::header {
     std::unordered_map<em::detail::header::DataType, unsigned int> byte_sizes = {
         {em::detail::header::DataType::int8,    sizeof(int8_t)},
         {em::detail::header::DataType::int16,   sizeof(int16_t)},

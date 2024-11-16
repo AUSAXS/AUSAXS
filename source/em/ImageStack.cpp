@@ -27,6 +27,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <cassert>
 
+using namespace ausaxs;
 using namespace ausaxs::em;
 using namespace ausaxs::fitter;
 

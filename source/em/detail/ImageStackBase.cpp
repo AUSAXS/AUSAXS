@@ -45,7 +45,7 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
     header = em::detail::factory::create_header(file);
 
     std::ifstream input(file, std::ios::binary);
-    if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file + "\"");}
+    if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file.str() + "\"");}
     input.read(header->get_data_ptr(), header->get_header_size());
 
     auto map_axes = header->get_axes();

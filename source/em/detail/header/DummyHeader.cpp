@@ -10,6 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <iostream>
 
+using namespace ausaxs;
 using namespace ausaxs::em::detail::header;
 
 DummyHeader::DummyHeader() : MapHeader(std::make_unique<DummyData>()) {}

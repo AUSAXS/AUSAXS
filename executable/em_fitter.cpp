@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+using namespace ausaxs;
+
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
     settings::em::mass_axis = true;

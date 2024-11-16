@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Atom.h>
 #include <hist/Histogram2D.h>
 
-using namespace plots;
+using namespace ausaxs::plots;
 
 PlotImage::PlotImage(const em::Image& image, const PlotOptions& options) {
     plot(image, options);

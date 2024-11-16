@@ -18,6 +18,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cassert>
 #include <functional>
 
+using namespace ausaxs;
 using namespace ausaxs::em::managers;
 using namespace ausaxs::data;
 using namespace ausaxs::data::record;
