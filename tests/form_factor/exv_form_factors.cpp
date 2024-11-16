@@ -7,6 +7,8 @@
 #include <dataset/SimpleDataset.h>
 #include <plots/PlotDataset.h>
 
+using namespace ausaxs;
+
 const auto& q_vals = constants::axes::q_vals;
 TEST_CASE("ExvFormFactor::evaluate") {}
 

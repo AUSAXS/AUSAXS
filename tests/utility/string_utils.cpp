@@ -2,8 +2,8 @@
 
 #include <utility/StringUtils.h>
 
+using namespace ausaxs;
 using namespace utility;
-
 
 TEST_CASE("remove_all") {
     SECTION("empty") {

@@ -2,6 +2,7 @@
 
 #include <data/record/Record.h>
 
+using namespace ausaxs;
 using namespace data::record;
 
 TEST_CASE("Record::get_type") {

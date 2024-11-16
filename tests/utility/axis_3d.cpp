@@ -4,6 +4,8 @@
 #include <utility/Limit3D.h>
 #include <math/Vector3.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Axis3D::Axis3D") {
     SECTION("default") {
         Axis3D axis;

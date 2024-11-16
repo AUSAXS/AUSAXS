@@ -2,6 +2,8 @@
 
 #include <utility/Basis3D.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Basis3D::Basis3D") {
     SECTION("default") {
         Basis3D basis;

@@ -3,6 +3,8 @@
 #include <math/MovingAverager.h>
 #include <dataset/SimpleDataset.h>
 
+using namespace ausaxs;
+
 TEST_CASE("moving_average") {
     SECTION("simple") {
         SimpleDataset data(

@@ -6,6 +6,8 @@
 
 #include <fstream>
 
+using namespace ausaxs;
+
 TEST_CASE("Curl::download") {
     settings::general::verbose = false;
     io::File file("temp/test/curl/LYS.cif");

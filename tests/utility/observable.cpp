@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+using namespace ausaxs;
+
 TEST_CASE("Observables & Observers") {
     utility::Observable<int> observable;
 

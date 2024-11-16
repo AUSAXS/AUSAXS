@@ -3,6 +3,8 @@
 
 #include <dataset/Dataset2D.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Dataset2D_scaling_methods") {
     std::vector<double> x = {1, 2, 3, 4, 5};
     std::vector<double> y = {10, 20, 30, 40, 50};

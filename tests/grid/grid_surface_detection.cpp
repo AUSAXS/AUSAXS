@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 
+using namespace ausaxs;
 using namespace data;
 using namespace data::record;
 

@@ -18,6 +18,7 @@
 #include <iostream>
 
 using std::cout, std::endl;
+using namespace ausaxs;
 
 static double GenRandScalar() {
     return rand() % 100;

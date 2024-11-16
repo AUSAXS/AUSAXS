@@ -4,6 +4,8 @@
 
 #include <math/Vector.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Vector::Vector") {
     SECTION("empty") {
         Vector<double> x;

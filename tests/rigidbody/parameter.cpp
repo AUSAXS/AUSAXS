@@ -2,6 +2,7 @@
 
 #include <rigidbody/parameters/Parameter.h>
 
+using namespace ausaxs;
 using namespace rigidbody;
 
 TEST_CASE("Parameters::Parameter") {

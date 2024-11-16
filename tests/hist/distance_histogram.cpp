@@ -9,6 +9,8 @@
 #include <settings/All.h>
 #include <plots/All.h>
 
+using namespace ausaxs;
+
 TEST_CASE("DistanceHistogram::is_highly_ordered") {
     settings::general::verbose = false;
     settings::molecule::use_effective_charge = false;

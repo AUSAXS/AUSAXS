@@ -4,6 +4,8 @@
 
 #include <settings/All.h>
 
+using namespace ausaxs;
+
 TEST_CASE("settings") {
     SECTION("write_settings") {
         settings::write("temp/settings/settings.txt");

@@ -3,6 +3,8 @@
 #include <em/ObjectBounds3D.h>
 #include <em/ObjectBounds2D.h>
 
+using namespace ausaxs;
+
 TEST_CASE("ObjectBounds3D::ObjectBounds3D") {
     SECTION("unsigned int, unsigned int, unsigned int") {
         em::ObjectBounds3D bounds(1, 2, 3);

@@ -3,6 +3,7 @@
 
 #include <rigidbody/parameters/SimpleParameterGeneration.h>
 
+using namespace ausaxs;
 using namespace rigidbody;
 
 TEST_CASE("SimpleParameterGeneration::next") {

@@ -4,6 +4,8 @@
 
 #include <math/Statistics.h>
 
+using namespace ausaxs;
+
 TEST_CASE("basics") {
     SECTION("weighted_mean_error") {
         CHECK_THAT(stats::weighted_mean_error(std::vector{1, 2, 3, 4}), Catch::Matchers::WithinAbs(0.838116, 1e-6));

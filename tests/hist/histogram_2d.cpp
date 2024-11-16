@@ -2,6 +2,8 @@
 
 #include <hist/Histogram2D.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Histogram2D::Histogram2D") {
     SECTION("default") {
         hist::Histogram2D hist;

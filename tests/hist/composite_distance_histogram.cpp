@@ -24,6 +24,7 @@
 
 #include "hist/hist_test_helper.h"
 
+using namespace ausaxs;
 using namespace data::record;
 using namespace data;
 

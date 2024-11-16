@@ -6,6 +6,8 @@
 #include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 
+using namespace ausaxs;
+
 TEST_CASE("BodySplitter::split") {
     settings::general::verbose = false;
 

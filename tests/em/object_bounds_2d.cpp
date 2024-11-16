@@ -3,6 +3,8 @@
 #include <em/ObjectBounds2D.h>
 #include <utility/Limit.h>
 
+using namespace ausaxs;
+
 TEST_CASE("ObjectBounds2D::ObjectBounds2D") {
     SECTION("unsigned int, unsigned int") {
         em::ObjectBounds2D bounds = em::ObjectBounds2D(1, 2);

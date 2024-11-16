@@ -11,6 +11,8 @@
 
 #include <hist/hist_test_helper.h>
 
+using namespace ausaxs;
+
 struct fixture {
     fixture() {
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;

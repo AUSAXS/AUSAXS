@@ -2,6 +2,7 @@
 
 #include <utility/SimpleMap.h>
 
+using namespace ausaxs;
 using namespace saxs::detail;
 
 TEST_CASE("SimpleMap::SimpleMap") {

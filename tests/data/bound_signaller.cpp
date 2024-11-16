@@ -4,6 +4,8 @@
 #include <data/state/BoundSignaller.h>
 #include <data/state/StateManager.h>
 
+using namespace ausaxs;
+
 struct fixture {
     fixture() : sm(5) {
         sm.reset_to_false();

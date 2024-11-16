@@ -15,6 +15,8 @@
 
 #include <map>
 
+using namespace ausaxs;
+
 // TODO: fix this test; it's a solid one
 TEST_CASE("ImageStack: test with sphere", "[broken]") {
     settings::general::verbose = false;

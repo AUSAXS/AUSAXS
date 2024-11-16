@@ -3,6 +3,8 @@
 #include <hist/Histogram.h>
 #include <dataset/SimpleDataset.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Histogram::Histogram") {
     SECTION("default") {
         hist::Histogram hist;

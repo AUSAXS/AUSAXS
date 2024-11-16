@@ -17,6 +17,7 @@
 #include <string>
 #include <iostream>
 
+using namespace ausaxs;
 using namespace data::record;
 using namespace data;
 

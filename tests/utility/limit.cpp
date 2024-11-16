@@ -2,6 +2,8 @@
 
 #include <utility/Limit.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Limit::Limit") {
     SECTION("default") {
         Limit limit;

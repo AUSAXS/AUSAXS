@@ -6,6 +6,7 @@
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
 #include <settings/All.h>
 
+using namespace ausaxs;
 using namespace form_factor;
 
 TEST_CASE("PrecalculatedFormFactorProduct::evaluate") {

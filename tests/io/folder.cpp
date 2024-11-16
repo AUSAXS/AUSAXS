@@ -5,6 +5,8 @@
 
 #include <filesystem>
 
+using namespace ausaxs;
+
 TEST_CASE("Folder::Folder") {
     SECTION("empty") {
         io::Folder folder("");

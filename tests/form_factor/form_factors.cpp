@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+using namespace ausaxs;
 using namespace form_factor;
 
 // Check that we have the correct conversion of the s-values. The form factors are not supposed to change a lot over the span of our q-values.

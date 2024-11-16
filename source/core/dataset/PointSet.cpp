@@ -30,17 +30,17 @@ unsigned int Point3D::dim() {return 3;}
 bool Point3D::operator==(const Point3D& other) const {return Point2D::operator==(other) && z == other.z && zerr == other.zerr;}
 bool Point3D::operator!=(const Point3D& other) const {return !(*this == other);}
 
-std::ostream& operator<<(std::ostream& os, const Point1D& p) {
+std::ostream& ausaxs::operator<<(std::ostream& os, const Point1D& p) {
     os << "(" << p.x << ", " << p.xerr << ")";
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Point2D& p) {
+std::ostream& ausaxs::operator<<(std::ostream& os, const Point2D& p) {
     os << "(" << p.x << ", " << p.xerr << ", " << p.y << ", " << p.yerr << ")";
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Point3D& p) {
+std::ostream& ausaxs::operator<<(std::ostream& os, const Point3D& p) {
     os << "(" << p.x << ", " << p.xerr << ", " << p.y << ", " << p.yerr << ", " << p.z << ", " << p.zerr << ")";
     return os;
 }

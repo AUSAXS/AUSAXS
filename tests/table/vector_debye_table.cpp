@@ -7,6 +7,8 @@
 
 #include <cmath>
 
+using namespace ausaxs;
+
 auto& q = constants::axes::q_vals;
 auto& d = constants::axes::d_vals;
 

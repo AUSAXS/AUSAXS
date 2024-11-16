@@ -9,6 +9,8 @@
 #include <math/Vector.h>
 #include <math/Vector3.h>
 
+using namespace ausaxs;
+
 TEST_CASE("Matrix::matrix") {
     SECTION("default") {
         Matrix<double> A;

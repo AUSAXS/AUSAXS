@@ -20,6 +20,7 @@
 #include "hist/hist_test_helper.h"
 #include "settings/GeneralSettings.h"
 
+using namespace ausaxs;
 using namespace data::record;
 using namespace data;
 
