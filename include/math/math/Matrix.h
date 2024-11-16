@@ -26,12 +26,12 @@ namespace ausaxs {
             /**
              * @brief Construct a Matrix based on a nested initializer list. The lists must be of the same size. 
              */
-            Matrix(::std::initializer_list<::std::initializer_list<Q>> l);
+            Matrix(std::initializer_list<std::initializer_list<Q>> l);
 
             /**
              * @brief Construct a Matrix based on a list of column vectors. The vectors must be of the same size.
              */
-            Matrix(const ::std::vector<::std::vector<Q>>& cols);
+            Matrix(const std::vector<std::vector<Q>>& cols);
 
             /**
              * @brief Construct a Matrix based on a vector.
@@ -46,7 +46,7 @@ namespace ausaxs {
             /**
              * @brief Add a new row at the end of the matrix.
              */
-            void push_back(const ::std::vector<double>& r);
+            void push_back(const std::vector<double>& r);
 
             /**
              * @brief Get the identity matrix of a given dimension. 
@@ -110,16 +110,16 @@ namespace ausaxs {
             const Q& index(unsigned int i, unsigned int j) const;
             Q& index(unsigned int i, unsigned int j);
 
-            const typename ::std::vector<Q>::const_iterator begin() const;
-            const typename ::std::vector<Q>::const_iterator end() const;
+            const typename std::vector<Q>::const_iterator begin() const;
+            const typename std::vector<Q>::const_iterator end() const;
 
-            typename ::std::vector<Q>::iterator begin();
-            typename ::std::vector<Q>::iterator end();
+            typename std::vector<Q>::iterator begin();
+            typename std::vector<Q>::iterator end();
 
-            ::std::string to_string() const;
+            std::string to_string() const;
 
             unsigned int N, M;
-            ::std::vector<Q> data;
+            std::vector<Q> data;
             static constexpr double precision = 1e-9;
 
         private: 
@@ -162,7 +162,7 @@ namespace ausaxs {
     Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
         #if (SAFE_MATH)
             if (A.M != v.size()) [[unlikely]] {
-                throw ::std::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + ::std::to_string(v.size()) + ", expected: " + ::std::to_string(A.M) + "]).");
+                throw std::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(A.M) + "]).");
             }
         #endif
 
@@ -179,7 +179,7 @@ namespace ausaxs {
     Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
         #if (SAFE_MATH)
             if (A.M != B.N) [[unlikely]] {
-                throw ::std::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + ::std::to_string(A.M) + ", " + ::std::to_string(A.N) + ", expected: " + ::std::to_string(B.N) + ", " + ::std::to_string(B.M) + "]).");
+                throw std::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
             }
         #endif
 

@@ -15,7 +15,7 @@ namespace ausaxs {
 
             Vector<double> solve(const Vector<double>& b) const override {
                 double theta, xp, xq;
-                Vector<double> x = b.copy();
+                Vector<double> x = b;
 
                 // start by applying the rotations to b
                 for (int p = 0; p < M; p++) {
