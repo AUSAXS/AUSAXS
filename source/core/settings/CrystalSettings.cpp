@@ -19,7 +19,7 @@ double settings::crystal::reduced::basis_q = 3;
 
 bool settings::crystal::detail::use_checkpointing = true;
 
-namespace settings::crystal::io {
+namespace ausaxs::settings::crystal::io {
     settings::io::SettingSection grid_settings("Crystal", { 
         settings::io::create(h, "h"),
         settings::io::create(k, "k"),
@@ -30,6 +30,6 @@ namespace settings::crystal::io {
     });
 }
 
-namespace settings::crystal {
+namespace ausaxs::settings::crystal {
     MillerGenerationChoice miller_generation_strategy = MillerGenerationChoice::All;
 }

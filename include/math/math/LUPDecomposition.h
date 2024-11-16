@@ -22,6 +22,6 @@ namespace ausaxs {
             int permutations;
         private: 
             Vector<double> P;
-            std::unique_ptr<Matrix<double>> Ap;
+            ::std::unique_ptr<Matrix<double>> Ap;
     };
 }

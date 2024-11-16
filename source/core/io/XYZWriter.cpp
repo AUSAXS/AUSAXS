@@ -18,7 +18,7 @@ io::XYZWriter::XYZWriter(const io::File& path) : path(path) {
     path.directory().create();
     file.open(path);
     if (!file.is_open()) {
-        throw except::io_error("io::XYZWriter: Could not open file " + path);
+        throw except::io_error("io::XYZWriter: Could not open file " + path.str());
     }
 }
 

@@ -42,7 +42,7 @@ std::vector<double> LinearLeastSquares::fit_params_only() {
     return {a, b, a_err, b_err};
 }
 
-std::unique_ptr<fitter::FitResult> LinearLeastSquares::fit() {
+std::unique_ptr<ausaxs::fitter::FitResult> LinearLeastSquares::fit() {
     auto p = fit_params_only();
 
     std::unique_ptr<FitResult> f = std::make_unique<FitResult>();

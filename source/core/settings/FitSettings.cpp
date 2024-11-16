@@ -15,7 +15,7 @@ bool settings::fit::fit_excluded_volume = false;
 bool settings::fit::fit_solvent_density = false;
 bool settings::fit::fit_hydration = true;
 
-namespace settings::fit::io {
+namespace ausaxs::settings::fit::io {
     settings::io::SettingSection general_settings("General", {
         settings::io::create(verbose, "fit-verbose"),
         settings::io::create(N, "N"),

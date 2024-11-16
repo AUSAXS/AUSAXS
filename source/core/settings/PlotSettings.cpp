@@ -11,7 +11,7 @@ using namespace ausaxs;
 std::string settings::plots::format = "png";
 std::vector<double> settings::plots::contour = {};
 
-namespace settings::plots::io {
+namespace ausaxs::settings::plots::io {
     settings::io::SettingSection plot_settings("Plot", {
         settings::io::create(format, "format")
     });

@@ -14,8 +14,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Utility.h>
 #include <utility/MultiThreading.h>
 
-using namespace data;
-using namespace data::record;
+using namespace ausaxs;
+using namespace ausaxs::data;
+using namespace ausaxs::data::record;
 
 void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, int* _return_status, double* _return_Iq) {
     std::cout << "AUSAXS: Started evaluating Debye equation." << std::endl;

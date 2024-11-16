@@ -116,32 +116,32 @@ namespace ausaxs::grid::detail {
             State& index(const Vector3<int>& v);
             const State& index(const Vector3<int>& v) const;
     };
-}
 
-constexpr grid::detail::State operator|(grid::detail::State lhs, grid::detail::State rhs) {
-    return static_cast<grid::detail::State>(
-        static_cast<std::underlying_type<grid::detail::State>::type>(lhs) |
-        static_cast<std::underlying_type<grid::detail::State>::type>(rhs)
-    );
-}
+    constexpr grid::detail::State operator|(grid::detail::State lhs, grid::detail::State rhs) {
+        return static_cast<grid::detail::State>(
+            static_cast<std::underlying_type<grid::detail::State>::type>(lhs) |
+            static_cast<std::underlying_type<grid::detail::State>::type>(rhs)
+        );
+    }
 
-constexpr grid::detail::State operator&(grid::detail::State lhs, grid::detail::State rhs) {
-    return static_cast<grid::detail::State>(
-        static_cast<std::underlying_type<grid::detail::State>::type>(lhs) &
-        static_cast<std::underlying_type<grid::detail::State>::type>(rhs)
-    );
-}
+    constexpr grid::detail::State operator&(grid::detail::State lhs, grid::detail::State rhs) {
+        return static_cast<grid::detail::State>(
+            static_cast<std::underlying_type<grid::detail::State>::type>(lhs) &
+            static_cast<std::underlying_type<grid::detail::State>::type>(rhs)
+        );
+    }
 
-constexpr grid::detail::State operator|=(grid::detail::State& lhs, grid::detail::State rhs) {
-    lhs = lhs | rhs;
-    return lhs;
-}
+    constexpr grid::detail::State operator|=(grid::detail::State& lhs, grid::detail::State rhs) {
+        lhs = lhs | rhs;
+        return lhs;
+    }
 
-constexpr grid::detail::State operator&=(grid::detail::State& lhs, grid::detail::State rhs) {
-    lhs = lhs & rhs;
-    return lhs;
-}
+    constexpr grid::detail::State operator&=(grid::detail::State& lhs, grid::detail::State rhs) {
+        lhs = lhs & rhs;
+        return lhs;
+    }
 
-constexpr grid::detail::State operator~(grid::detail::State s) {
-    return static_cast<grid::detail::State>(~static_cast<std::underlying_type<grid::detail::State>::type>(s));
+    constexpr grid::detail::State operator~(grid::detail::State s) {
+        return static_cast<grid::detail::State>(~static_cast<std::underlying_type<grid::detail::State>::type>(s));
+    }
 }

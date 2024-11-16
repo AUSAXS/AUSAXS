@@ -20,11 +20,9 @@ bool settings::general::keep_hydrogens = false;
 bool settings::general::supplementary_plots = true;
 settings::general::QUnit settings::general::input_q_unit = settings::general::QUnit::A;
 
-namespace settings::general::detail {
-    unsigned int job_size = 800; // The number of atoms to process in each job.
-};
+unsigned int ausaxs::settings::general::detail::job_size = 800; // The number of atoms to process in each job.
 
-namespace settings::general::io {
+namespace ausaxs::settings::general::io {
     settings::io::SettingSection general_settings("General", {
         settings::io::create(verbose, {"verbose", "v"}),
         settings::io::create(warnings, {"warnings", "w"}),

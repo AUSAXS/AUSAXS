@@ -57,7 +57,7 @@ namespace ausaxs {
      */
     template<typename T>
     class PointSet {
-        static_assert(std::is_base_of<::detail::IPoint, T>::value);
+        static_assert(std::is_base_of<detail::IPoint, T>::value);
 
         unsigned int dim() const noexcept {return T::dim();}
 

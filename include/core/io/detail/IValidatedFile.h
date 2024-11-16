@@ -26,11 +26,11 @@ namespace ausaxs::io::detail {
             IValidatedFile(const File& file) : File(file) {F::validate(this);}
             IValidatedFile(File&& file) : File(std::move(file)) {F::validate(this);}
 
-            template<::detail::string_like T>
+            template<ausaxs::detail::string_like T>
             IValidatedFile(const T& path) : IValidatedFile(std::string_view(path)) {}
             IValidatedFile(std::string_view path) : File(path) {F::validate(this);}
 
-            template<::detail::string_like T>
+            template<ausaxs::detail::string_like T>
             IValidatedFile& operator=(const T& path) {return *this = std::string_view(path);}
             IValidatedFile& operator=(std::string_view path) {File::operator=(path); F::validate(this); return *this;}
     };

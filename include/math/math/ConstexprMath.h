@@ -13,9 +13,9 @@ namespace ausaxs::gcem {
             // this is taken directly from https://stackoverflow.com/a/28050328
             constexpr double tp = 1./(2.*constants::pi);
             x *= tp;
-            x -= 0.25 + gcem::floor(x + 0.25);
-            x *= 16.*(gcem::abs(x) - 0.5);
-            x += .225*x*(gcem::abs(x) - 1.);
+            x -= 0.25 + ::gcem::floor(x + 0.25);
+            x *= 16.*(::gcem::abs(x) - 0.5);
+            x += .225*x*(::gcem::abs(x) - 1.);
             return x;
         }
 
@@ -26,14 +26,14 @@ namespace ausaxs::gcem {
             // this is a slightly altered version of https://stackoverflow.com/a/28050328
             constexpr double tp = 1./(2.*constants::pi);
             x *= tp;
-            x -= 0.5 + gcem::floor(x);
-            x *= 16.*(gcem::abs(x) - 0.5);
-            x += .225*x*(gcem::abs(x) - 1.);
+            x -= 0.5 + ::gcem::floor(x);
+            x *= 16.*(::gcem::abs(x) - 0.5);
+            x += .225*x*(::gcem::abs(x) - 1.);
             return x;
         }
     }
 }
 
 namespace ausaxs {
-    namespace constexpr_math = gcem;
+    namespace constexpr_math = ::gcem;
 }

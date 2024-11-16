@@ -82,14 +82,14 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
 };
 
 void PDBReader::read(const io::File& path) {
-    console::print_info("Reading PDB file from \"" + path + "\"");
+    console::print_info("Reading PDB file from \"" + path.str() + "\"");
     console::indent();
 
     if (path.append("_part1").exists()) {
         console::print_text("File is split into multiple parts.");
         unsigned int i = 1;
         while (path.append("_part" + std::to_string(i)).exists()) {
-            console::print_text("\tParsed file " + path.append("_part" + std::to_string(i)));
+            console::print_text("\tParsed file " + path.append("_part" + std::to_string(i)).str());
             parse_single_file(path.append("_part" + std::to_string(i)), *file);
             i++;
         }

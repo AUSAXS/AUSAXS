@@ -19,7 +19,7 @@ bool settings::em::plot_landscapes = false;
 bool settings::em::simulation::noise = true;
 bool settings::em::mass_axis = true;
 
-namespace settings::em::io {
+namespace ausaxs::settings::em::io {
     settings::io::SettingSection general_settings("EM", {
         settings::io::create(sample_frequency, "sample_frequency"),
         settings::io::create(concentration, "concentration"),

@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <string>
 #include <array>
 
-using namespace shell;
+using namespace ausaxs::shell;
 
 Command::Command() noexcept = default;
 Command::Command(const std::string& cmd) : cmd(cmd) {}

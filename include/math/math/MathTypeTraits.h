@@ -15,4 +15,4 @@ namespace ausaxs::detail {
         template<class T> constexpr bool is_move_constructible_v = std::is_nothrow_move_constructible_v<T> && !std::is_constructible_v<T, M<T>>;
     #endif
 }
-template<class T> constexpr bool supports_nothrow_move_v = detail::is_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T>;
+template<class T> constexpr bool supports_nothrow_move_v = ausaxs::detail::is_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T>;

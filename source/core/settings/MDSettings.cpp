@@ -19,7 +19,7 @@ std::string settings::md::minimization_sim_location = "lucy";
 std::string settings::md::thermalization_sim_location = "smaug";
 std::string settings::md::production_sim_location = "smaug";
 
-namespace settings::md::io {
+namespace ausaxs::settings::md::io {
     settings::io::SettingSection md_section("MD", {
         settings::io::create(gmx_path, {"gmx_exe", "gmx_executable", "gmx"}),
         settings::io::create(buffer_path, {"buffer_path", "buffer"}),

@@ -23,7 +23,7 @@ namespace ausaxs::form_factor::storage::exv {
     const table_t& get_precalculated_form_factor_table();
 }
 
-namespace form_factor::storage::cross {
+namespace ausaxs::form_factor::storage::cross {
     using table_t = container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>;
 
     /**
@@ -41,6 +41,6 @@ namespace form_factor::storage::cross {
     const table_t& get_precalculated_form_factor_table();
 }
 
-namespace form_factor::storage::detail {
+namespace ausaxs::form_factor::storage::detail {
     void set_custom_displaced_volume_table(const constants::displaced_volume::detail::DisplacedVolumeSet& set);
 }

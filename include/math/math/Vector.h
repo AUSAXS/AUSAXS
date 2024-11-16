@@ -157,7 +157,7 @@ namespace ausaxs {
 
     template<numeric T> 
     std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {os << v.to_string(); return os;}
-
-    #include <math/Vector.tpp>
-    static_assert(supports_nothrow_move_v<Vector<double>>, "Vector should support nothrow move semantics.");
 }
+
+#include <math/Vector.tpp>
+static_assert(supports_nothrow_move_v<ausaxs::Vector<double>>, "Vector should support nothrow move semantics.");

@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <shell/Option.h>
 
-using namespace shell;
+using namespace ausaxs::shell;
 
 Option::Option() noexcept = default;
 Option::Option(const std::string& name, const std::string& value) : name(name), value(value) {}

@@ -95,7 +95,7 @@
     }
 #else
     #include <table/VectorDebyeTable.h>
-    namespace table {
+    namespace ausaxs::table {
         /**
          * @brief Your compiler does not support large constexpr arrays, so ArrayDebyeTable is just an alias for VectorDebyeTable.
          */

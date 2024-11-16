@@ -172,7 +172,7 @@ std::unique_ptr<io::detail::Reader> AtomCollection::construct_reader(const io::F
     } else if (path.extension() == ".ent" || path.extension() == ".ENT") { // .ent AtomCollection
         return std::make_unique<io::detail::PDBReader>(this);
     } else { // anything else - we cannot handle this
-        throw except::invalid_argument("AtomCollection::construct_reader: Unsupported extension \"" + path.extension() + "\" of input file \"" + path + "\".");
+        throw except::invalid_argument("AtomCollection::construct_reader: Unsupported extension \"" + path.extension() + "\" of input file \"" + path.str() + "\".");
     }
 }
 
@@ -182,6 +182,6 @@ std::unique_ptr<io::detail::Writer> AtomCollection::construct_writer(const io::F
     } else if (path.extension() == ".pdb" || path.extension() == ".PDB") { // .pdb AtomCollection
         return std::make_unique<io::detail::PDBWriter>(this);
     } else { // anything else - we cannot handle this
-        throw except::invalid_argument("AtomCollection::construct_writer: Unsupported extension \"" + path.extension() + "\" of input file \"" + path + "\".");
+        throw except::invalid_argument("AtomCollection::construct_writer: Unsupported extension \"" + path.extension() + "\" of input file \"" + path.str() + "\".");
     }
 }

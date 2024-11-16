@@ -66,7 +66,7 @@ void Multiset::ylimits(const Limit& limit) {
 
 void Multiset::save(const io::File& path) const {
     for (unsigned int i = 0; i < size(); i++) {
-        data[i].save(path + "/" + std::to_string(i) + ".txt");
+        data[i].save(path.str() + "/" + std::to_string(i) + ".txt");
     }
 }
 

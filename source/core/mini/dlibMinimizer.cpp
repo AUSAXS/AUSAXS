@@ -15,7 +15,7 @@ For more information, please refer to the LICENSE file in the project root.
 
     using namespace ausaxs;
     using namespace ausaxs::mini;
-    namespace mini {
+    namespace ausaxs::mini {
         struct column_vector : dlib::matrix<double, 0, 1> {
             using dlib::matrix<double, 0, 1>::matrix;
         };

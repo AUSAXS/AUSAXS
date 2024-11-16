@@ -12,6 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
     #define CONST const
 #endif
 
+using namespace ausaxs;
 using namespace ausaxs::form_factor;
 
 CONST form_factor::storage::atomic::table_t generate_table() {

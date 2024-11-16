@@ -39,4 +39,4 @@ namespace ausaxs::hist::detail {
     WeightedEntry operator*(double factor, const WeightedEntry& entry);
     std::ostream& operator<<(std::ostream& os, const WeightedEntry& entry);
 }
-static_assert(supports_nothrow_move_v<hist::detail::WeightedEntry>, "WeightedEntry should support nothrow move semantics.");
+static_assert(supports_nothrow_move_v<ausaxs::hist::detail::WeightedEntry>, "WeightedEntry should support nothrow move semantics.");

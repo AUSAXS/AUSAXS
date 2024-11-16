@@ -13,6 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <utility>
 
+using namespace ausaxs;
 using namespace ausaxs::hydrate;
 using namespace ausaxs::data::record;
 

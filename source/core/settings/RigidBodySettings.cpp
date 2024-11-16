@@ -17,12 +17,10 @@ settings::rigidbody::BodySelectStrategyChoice settings::rigidbody::body_select_s
 settings::rigidbody::ConstraintGenerationStrategyChoice settings::rigidbody::constraint_generation_strategy = ConstraintGenerationStrategyChoice::Linear;
 settings::rigidbody::DecayStrategyChoice settings::rigidbody::decay_strategy = DecayStrategyChoice::Linear;
 
-namespace settings::rigidbody::detail {
-    std::vector<int> constraints;
-    std::string calibration_file;
-}
+std::vector<int> ausaxs::settings::rigidbody::detail::constraints;
+std::string ausaxs::settings::rigidbody::detail::calibration_file;
 
-namespace settings::rigidbody::io {
+namespace ausaxs::settings::rigidbody::io {
     settings::io::SettingSection rigidbody_settings("RigidBody", {
         settings::io::create(iterations, "iterations"),
         settings::io::create(bond_distance, "bond_distance"),

@@ -21,12 +21,12 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 
 std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
-    console::print_info("\nReading dataset from \"" + path + "\"");
+    console::print_info("\nReading dataset from \"" + path.str() + "\"");
     console::indent();
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("DATReader::construct: Could not open file \"" + path + "\"");}
+    if (!input.is_open()) {throw std::ios_base::failure("DATReader::construct: Could not open file \"" + path.str() + "\"");}
 
     std::string line;
     std::vector<std::string> header;

@@ -70,7 +70,7 @@ template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::get() con
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<double>>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<int>>::get() const;
-template<> std::string ausaxs::settings::io::detail::SettingRef<Limit>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::get() const;
 
 template<> void ausaxs::settings::io::detail::SettingRef<std::string>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<bool>::set(const std::vector<std::string>& str);
@@ -80,4 +80,4 @@ template<> void ausaxs::settings::io::detail::SettingRef<unsigned int>::set(cons
 template<> void ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<std::vector<double>>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<std::vector<int>>::set(const std::vector<std::string>& str);
-template<> void ausaxs::settings::io::detail::SettingRef<Limit>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::set(const std::vector<std::string>& str);
