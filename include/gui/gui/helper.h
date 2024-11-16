@@ -13,6 +13,8 @@
 
 #include <list>
 
+using namespace ausaxs;
+
 namespace gui = cycfi::elements;
 namespace settings {
     inline std::string map_file, pdb_file, saxs_file, output;

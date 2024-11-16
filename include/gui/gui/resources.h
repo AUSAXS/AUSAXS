@@ -5,6 +5,8 @@
 #include <array>
 #include <fstream>
 
+using namespace ausaxs;
+
 namespace resources {
     extern const std::array<unsigned char, 24576> resource_file;
 
