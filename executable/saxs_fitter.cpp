@@ -195,7 +195,7 @@ int main(int argc, char const *argv[]) {
 
         plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
         plots::PlotProfiles::quick_plot(fitter.get_model(), settings::general::output + "profiles." + settings::plots::format);
-        result->curves.save(
+        result->curves.select_columns({0, 1, 2, 3}).save(
             settings::general::output + "ausaxs.fit", 
             "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
         );

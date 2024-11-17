@@ -147,6 +147,29 @@ std::string Dataset::get_col_names(unsigned int i) {
     return names[i];
 }
 
+Dataset Dataset::select_columns(const std::vector<unsigned int>& cols) const {
+    if (cols.size() == 0) {throw except::invalid_argument("Dataset::select_columns: No columns selected.");}
+    Dataset data(N, cols.size());
+    std::vector<std::string> col_names(cols.size());
+    for (unsigned int i = 0; i < cols.size(); i++) {
+        data.col(i) = col(cols[i]);
+        col_names[i] = names[cols[i]];
+    }
+    data.set_col_names(col_names);
+    return data;
+}
+
+Dataset Dataset::select_columns(const std::vector<std::string>& cols) const {
+    std::vector<unsigned int> indices(cols.size());
+    std::transform(cols.begin(), cols.end(), indices.begin(), [this](const std::string& name) {
+        for (unsigned int i = 0; i < names.size(); i++) {
+            if (names[i] == name) {return i;}
+        }
+        throw except::invalid_argument("Dataset::select_columns: Column \"" + name + "\" not found.");
+    });
+    return select_columns(indices);
+}
+
 void Dataset::save(const io::File& path, const std::string& header) const {
     path.directory().create();
 

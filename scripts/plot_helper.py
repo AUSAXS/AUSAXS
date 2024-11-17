@@ -516,7 +516,6 @@ def plot_fits(ausaxs_file, fit_files, title=""):
         fits.append(fitdata)
 
         chi2r = chi2(fits[-1][:, 1]) / (len(data[:, 1]) - dof)
-        print("dof = " + str(len(data[:, 1]) - dof))
         labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$ " + title)
 
     # parse each file

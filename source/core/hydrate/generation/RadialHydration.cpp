@@ -164,9 +164,9 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
             int yr = loc.y() + rot_bins_1rh[i].y();
             int zr = loc.z() + rot_bins_1rh[i].z();
 
-            std::clamp(xr, 0, bins.x()-1);
-            std::clamp(yr, 0, bins.y()-1);
-            std::clamp(zr, 0, bins.z()-1);
+            xr = std::clamp(xr, 0, bins.x()-1);
+            yr = std::clamp(yr, 0, bins.y()-1);
+            zr = std::clamp(zr, 0, bins.z()-1);
 
             if (!gref.is_empty_or_volume(xr, yr, zr)) {
                 if (2 < ++inside_1rh) {

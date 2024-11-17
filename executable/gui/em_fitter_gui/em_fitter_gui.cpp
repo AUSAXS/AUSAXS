@@ -243,10 +243,10 @@ auto alpha_level_slider(gui::view& view) {
 			{5, 30},
 			gui::box(gui::colors::light_gray)
 		),
-		gui::slider_labels<11>(
-			gui::slider_marks_lin<20, 10, 5>(track), 0.8, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"
+		gui::slider_labels<16>(
+			gui::slider_marks_lin<20, 15, 5>(track), 0.8, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"
 		),
-		{0.05, 0.8}
+		{1./15, 8./15}
 	);
 
 	static auto amin_textbox = gui::input_box("min level");
@@ -270,11 +270,11 @@ auto alpha_level_slider(gui::view& view) {
 	};
 
 	auto axis_transform = [] (float value) {
-		return value*10;
+		return value*15;
 	};
 
 	auto axis_transform_inv = [] (float value) {
-		return value/10;
+		return value/15;
 	};
 
 	auto update_mass_range = [&view, axis_transform] () {
@@ -331,12 +331,14 @@ auto alpha_level_slider(gui::view& view) {
 
 	aslider.on_change.first = [&view, pretty_printer, axis_transform, update_mass_range] (float value) {
 		amin_textbox.second->set_text(pretty_printer(axis_transform(value)));
+	    ausaxs::settings::em::alpha_levels = {axis_transform(value), ausaxs::settings::em::alpha_levels.max};
 		update_mass_range();
 		view.refresh(amin_textbox.first);
 	};
 
 	aslider.on_change.second = [&view, pretty_printer, axis_transform, update_mass_range] (float value) {
 		amax_textbox.second->set_text(pretty_printer(axis_transform(value)));
+		ausaxs::settings::em::alpha_levels = {ausaxs::settings::em::alpha_levels.min, axis_transform(value)};
 		update_mass_range();
 		view.refresh(amax_textbox.first);
 	};
@@ -467,21 +469,21 @@ auto make_misc_settings() {
 		ausaxs::settings::em::hydrate = value;
 	};
 
-	auto hydrate_tt = gui::tooltip(
-		hydrate,
-		make_tip("Hydrate the dummy structure for each fit iteration. This will usually improve the fit substantially.")
-	);
+	// auto hydrate_tt = gui::tooltip(
+	// 	hydrate,
+	// 	make_tip("Hydrate the dummy structure for each fit iteration. This will usually improve the fit substantially.")
+	// );
 
 	auto fixed_weights = gui::check_box("Fixed weights");
-	fixed_weights.value(false);
+	fixed_weights.value(true);
 	fixed_weights.on_click = [] (bool value) {
 		ausaxs::settings::em::fixed_weights = value;
 	};
 
-	auto fixed_weights_tt = gui::tooltip(
-		fixed_weights,
-		make_tip("Use fixed weights instead of map densities. This should only be used for maps with a large amount of noise close to the minimum.")
-	);
+	// auto fixed_weights_tt = gui::tooltip(
+	// 	fixed_weights,
+	// 	make_tip("Use fixed weights instead of map densities. This should only be used for maps with a large amount of noise close to the minimum.")
+	// );
 
 	static auto frequency_bg = gui::box(bg_color);
 	auto frequency = gui::input_box("Sample frequency");
@@ -490,8 +492,12 @@ auto make_misc_settings() {
 	frequency.second->on_text = [] (std::string_view text) {
 		if (text.empty()) {
 			frequency_bg = bg_color;
-		} else {
+		}
+		try {
+			ausaxs::settings::em::sample_frequency = std::stof(std::string(text));
 			frequency_bg = bg_color_accent;
+		} catch (std::exception&) {
+			frequency_bg = bred;
 		}
 	};
 
@@ -508,7 +514,7 @@ auto make_misc_settings() {
 
 	static auto frequency_element = gui::hsize(
 		200,
-		gui::tooltip(
+		// gui::tooltip(
 			gui::htile(
 				gui::align_right(
 					gui::layer(
@@ -520,19 +526,19 @@ auto make_misc_settings() {
 				gui::align_left(
 					gui::label("Sample frequency")
 				)
-			),
-			make_tip("The frequency of sampling the EM grid. Increasing this value will speed up the fit significantly, but will also reduce the accuracy.")
+			// ),
+			// make_tip("The frequency of sampling the EM grid. Increasing this value will speed up the fit significantly, but will also reduce the accuracy.")
 		)
 	);
 
 	return gui::htile(
 		gui::margin(
 			{50, 10, 50, 10},
-			hydrate_tt
+			hydrate
 		),
 		gui::margin(
 			{50, 10, 50, 10},
-			fixed_weights_tt
+			fixed_weights
 		),
 		gui::margin(
 			{50, 10, 50, 10},
@@ -565,12 +571,19 @@ auto make_start_button(gui::view& view) {
 		)
 	);
 
-	static auto deck = gui::deck_composite();
-	deck.push_back(gui::share(start_button_layout));
-	deck.push_back(gui::share(progress_bar_layout));
+	static auto deck = gui::deck(
+		start_button_layout,
+		progress_bar_layout,
+		start_button_layout
+	);
 
 	static std::thread worker;
 	start_button.on_click = [&view] (bool) {
+		// ensure the worker is ready to be assigned a job
+		if (worker.joinable()) {
+			worker.join();
+		}
+
 		if (!setup::saxs_dataset || !setup::map) {
 			std::cout << "no saxs data or map file was provided" << std::endl;
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -632,20 +645,31 @@ auto make_start_button(gui::view& view) {
 
 			auto image_viewer_layout = gui::margin(
 				{10, 10, 10, 10},
-				gui::align_center_middle(
-					gui::vnotebook(
-						view,
-						gui::deck(
-							chi2_pane,
-							chi2_landscape_pane
-						),
-						gui::tab("Scattering profile"),
-						gui::tab("χ² landscape")
+				gui::vtile(
+					gui::align_center_middle(
+						gui::vnotebook(
+							view,
+							gui::deck(
+								chi2_pane,
+								chi2_landscape_pane
+							),
+							gui::tab("Scattering profile"),
+							gui::tab("χ² landscape")
+						)
+					),
+					gui::margin_top(
+						10,
+						gui::align_center_middle(
+							gui::hsize(
+								200,
+								link(start_button)
+							)
+						)
 					)
 				)
 			);
 
-			deck.push_back(gui::share(image_viewer_layout));
+			deck[2] = gui::share(image_viewer_layout);
 			deck.select(2);
 			view.refresh();
 		});
@@ -662,7 +686,7 @@ int main(int, char*[]) {
     ausaxs::settings::em::mass_axis = true;
     ausaxs::settings::em::hydrate = true;
     ausaxs::settings::fit::verbose = true;
-    ausaxs::settings::em::alpha_levels = {1, 10};
+    ausaxs::settings::em::alpha_levels = {1, 8};
     ausaxs::settings::hist::weighted_bins = true;
 
 	resources::generate_resource_file();
@@ -670,7 +694,7 @@ int main(int, char*[]) {
 
 	gui::app app("EM fitter");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), gui::rect{20, 20, 1620, 1020});
-	win.on_close = [&app]() {app.stop();};
+	win.on_close = [&app]() {app.stop(); exit(0);};
 
 	gui::view view(win);
 	auto background = gui::box(bg_color);

@@ -103,8 +103,18 @@ namespace ausaxs {
             void save(const io::File& path, const std::string& header = "") const;
 
             /**
-             * @brief Set the column names. 
-             */
+            * @brief Create a new dataset with the specified columns.
+            */
+            Dataset select_columns(const std::vector<unsigned int>& cols) const;
+
+            /**
+            * @brief Create a new dataset with the specified columns.
+            */
+            Dataset select_columns(const std::vector<std::string>& cols) const;
+
+            /**
+            * @brief Set the column names. 
+            */
             void set_col_names(const std::vector<std::string>& names);
 
             /**

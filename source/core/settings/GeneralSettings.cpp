@@ -11,7 +11,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-constexpr const char* const settings::general::residue_folder = "temp/residues/";
 bool settings::general::verbose = true;
 bool settings::general::warnings = true;
 unsigned int settings::general::threads = std::thread::hardware_concurrency()-1;
@@ -19,6 +18,34 @@ std::string settings::general::output = "output/";
 bool settings::general::keep_hydrogens = false;
 bool settings::general::supplementary_plots = true;
 settings::general::QUnit settings::general::input_q_unit = settings::general::QUnit::A;
+
+std::string settings::general::cache = [] () {
+    const char* env_p = nullptr;
+
+    #ifdef _WIN32
+        env_p = std::getenv("LOCALAPPDATA");
+        if (env_p) {
+            return std::string(env_p) + "/ausaxs/";
+        }
+    #elif defined(__APPLE__)
+        env_p = std::getenv("HOME");
+        if (env_p) {
+            return std::string(env_p) + "/Library/Caches/ausaxs/";
+        }
+    #else
+        env_p = std::getenv("XDG_CACHE_HOME");
+        if (env_p) {
+            return std::string(env_p) + "/ausaxs/";
+        }
+
+        env_p = std::getenv("HOME");
+        if (env_p) {
+            return std::string(env_p) + "/.cache/ausaxs/";
+        }
+    #endif
+    return output + "/temp/";
+}();
+std::string settings::general::residue_folder = cache + "residues/";
 
 unsigned int ausaxs::settings::general::detail::job_size = 800; // The number of atoms to process in each job.
 
