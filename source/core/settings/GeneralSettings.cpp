@@ -23,19 +23,16 @@ std::string settings::general::cache = [] () {
     const char* env_p = nullptr;
 
     #ifdef _WIN32
-        // Windows platform
         env_p = std::getenv("LOCALAPPDATA");
         if (env_p) {
-            return std::string(env_p) + "/appName/";
+            return std::string(env_p) + "/ausaxs/";
         }
     #elif defined(__APPLE__)
-        // macOS platform
         env_p = std::getenv("HOME");
         if (env_p) {
             return std::string(env_p) + "/Library/Caches/ausaxs/";
         }
     #else
-        // Linux and other Unix-like systems
         env_p = std::getenv("XDG_CACHE_HOME");
         if (env_p) {
             return std::string(env_p) + "/ausaxs/";
