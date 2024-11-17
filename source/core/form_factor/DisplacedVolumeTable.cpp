@@ -2,6 +2,7 @@
 #include <settings/MoleculeSettings.h>
 
 #include <stdexcept>
+#include <string>
 
 using namespace ausaxs;
 
