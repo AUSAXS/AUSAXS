@@ -243,7 +243,8 @@ double Molecule::get_volume_exv(double d) const {
             return fraser_helper()*CompositeDistanceHistogramFFExplicit::exv_factor(0, d);
         }
         case settings::hist::HistogramManagerChoice::CrysolManager: {
-            return fraser_helper()*CompositeDistanceHistogramCrysol::exv_factor(0, d);
+            auto V = fraser_helper();
+            return V*CompositeDistanceHistogramCrysol::exv_factor(0, d, V/size_atom());
         }
         case settings::hist::HistogramManagerChoice::PepsiManager: {
             return fraser_helper()*CompositeDistanceHistogramPepsi::exv_factor(0, d);
@@ -255,6 +256,7 @@ double Molecule::get_volume_exv(double d) const {
         // grid-based volumes
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv:        
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid: {
             // note: not equivalent to grid volume! 
             // the grid can be finer than the resolution of the excluded volume, in which case every Nth bin is used

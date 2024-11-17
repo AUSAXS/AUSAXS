@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 
+using namespace ausaxs;
+
 constants::displaced_volume::detail::DisplacedVolumeSet constants::displaced_volume::get_displaced_volume_set() {
     switch (settings::molecule::displaced_volume_set) {
         case settings::molecule::DisplacedVolumeSet::Traube: return Traube;

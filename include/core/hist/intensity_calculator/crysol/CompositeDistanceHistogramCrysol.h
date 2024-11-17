@@ -71,8 +71,9 @@ namespace ausaxs::hist {
              *
              * @param cx The scaling factor for the excluded volume.
              * @param q The scattering vector.
+             * @param avg_displaced_V The average displaced volume per atom.
              */
-            double exv_factor(double q, double cx) const;
+            static double exv_factor(double q, double cx, double avg_displaced_V);
 
             double average_displaced_V = 0;
 
