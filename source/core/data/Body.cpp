@@ -71,17 +71,11 @@ Vector3<double> Body::get_cm() const {
     return cm/M;
 }
 
-double Body::get_volume_acids() const {
-    double v = 0;
-    int cur_seq = 0; // sequence number of current acid
-    for (auto const& a : file.protein_atoms) {
-        int a_seq = a.resSeq; // sequence number of current atom
-        if (cur_seq != a_seq) { // check if we are still dealing with the same acid
-            cur_seq = a_seq; // if not, update our current sequence number
-            v += constants::volume::amino_acids.get(a.resName); // and add its volume to the running total
-        }
-    }
-    return v;
+double Body::get_volume_vdw() const {
+    double volume = std::accumulate(file.protein_atoms.begin(), file.protein_atoms.end(), 0.0, [] (double sum, const record::Atom& atom) {
+        return sum + std::pow(constants::radius::get_vdw_radius(atom.get_element()), 3);
+    });
+    return 4*constants::pi*volume/3;
 }
 
 void Body::translate(const Vector3<double>& v) {

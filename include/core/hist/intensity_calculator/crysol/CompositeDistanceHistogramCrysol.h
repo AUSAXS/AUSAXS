@@ -66,6 +66,15 @@ namespace ausaxs::hist {
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
+            /**
+             * @brief Get the excluded volume scaling factor.
+             *
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             * @param avg_displaced_V The average displaced volume per atom.
+             */
+            static double exv_factor(double q, double cx, double avg_displaced_V);
+
             double average_displaced_V = 0;
 
         protected:

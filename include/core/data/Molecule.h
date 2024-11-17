@@ -110,6 +110,23 @@ namespace ausaxs::data {
 			 */
 			[[nodiscard]] virtual double get_volume_grid() const;
 
+			/**
+			 * @brief Calculate the van der Waals volume of this molecule.
+			 * 
+			 * @return The volume in Å^3.
+			 */
+			[[nodiscard]] double get_volume_vdw() const;
+
+			/**
+			 * @brief Calculate the excluded volume of this molecule for the currently set excluded volume model. 
+			 *
+			 * @param d Fitted value of the excluded volume parameter. 
+			 *			This must be supplied if the excluded volume has been fitted. 
+			 * 
+			 * @return The volume in Å^3.
+			 */
+			[[nodiscard]] double get_volume_exv(double d = 1) const;
+
 			/** 
 			 * @brief Calculate the center-mass coordinates.
 			 */

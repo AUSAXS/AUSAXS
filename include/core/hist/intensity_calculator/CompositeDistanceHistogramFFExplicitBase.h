@@ -67,6 +67,14 @@ namespace ausaxs::hist {
             virtual const AXFormFactorTableType& get_ffax_table() const = 0;
             virtual const XXFormFactorTableType& get_ffxx_table() const = 0;
 
+            /**
+             * @brief Get the excluded volume scaling factor.
+             *
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             */
+            static double exv_factor(double q, double cx);
+
         protected:
             // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
             double exv_factor(double q) const override;

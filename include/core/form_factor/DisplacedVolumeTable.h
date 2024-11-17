@@ -122,6 +122,11 @@ namespace ausaxs::constants::displaced_volume {
         .SH  = detail::volume(constants::radius::vdw::S) + detail::volume(constants::radius::vdw::H)
     };
 
+    /**
+     * @brief Get the currently used displaced volume set as specified by the settings.
+     */
+    detail::DisplacedVolumeSet get_displaced_volume_set();
+
     //! Remember to update settings::molecule::DisplacedVolumeSet::Default if this is changed
     inline constexpr const detail::DisplacedVolumeSet& standard = MinimumFluctuation_implicit_H;
     constexpr double OH2 = 2.98*constexpr_math::pow(10., -23)*constexpr_math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
