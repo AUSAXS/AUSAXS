@@ -54,7 +54,6 @@ double Axis::get_bin_value(unsigned int bin) const noexcept {
 Axis Axis::sub_axis(double vmin, double vmax) const noexcept {
     unsigned int min_bin = get_bin(vmin);
     unsigned int max_bin = get_bin(vmax);
-    double width = this->width();
 
     double new_min = get_bin_value(min_bin);
     double new_max = get_bin_value(max_bin);
