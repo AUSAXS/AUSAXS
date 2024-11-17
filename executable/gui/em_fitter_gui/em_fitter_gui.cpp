@@ -331,14 +331,14 @@ auto alpha_level_slider(gui::view& view) {
 
 	aslider.on_change.first = [&view, pretty_printer, axis_transform, update_mass_range] (float value) {
 		amin_textbox.second->set_text(pretty_printer(axis_transform(value)));
-	    settings::em::alpha_levels = {axis_transform(value), settings::em::alpha_levels.max};
+	    ausaxs::settings::em::alpha_levels = {axis_transform(value), ausaxs::settings::em::alpha_levels.max};
 		update_mass_range();
 		view.refresh(amin_textbox.first);
 	};
 
 	aslider.on_change.second = [&view, pretty_printer, axis_transform, update_mass_range] (float value) {
 		amax_textbox.second->set_text(pretty_printer(axis_transform(value)));
-		settings::em::alpha_levels = {settings::em::alpha_levels.min, axis_transform(value)};
+		ausaxs::settings::em::alpha_levels = {ausaxs::settings::em::alpha_levels.min, axis_transform(value)};
 		update_mass_range();
 		view.refresh(amax_textbox.first);
 	};
@@ -494,7 +494,7 @@ auto make_misc_settings() {
 			frequency_bg = bg_color;
 		}
 		try {
-			settings::em::sample_frequency = std::stof(std::string(text));
+			ausaxs::settings::em::sample_frequency = std::stof(std::string(text));
 			frequency_bg = bg_color_accent;
 		} catch (std::exception&) {
 			frequency_bg = bred;
