@@ -213,7 +213,7 @@ int main(int argc, char const *argv[]) {
         console::print_info("\nExtra informaton");
         console::indent();
         double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
-        double d = settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::to_string(constants::fit::Parameters::SCALING_EXV)) : 1;
+        double d = settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::Parameters::SCALING_EXV) : 1;
         console::print_text("Volume (vdW):  " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " Å^3");
         console::print_text("Volume (grid): " + std::to_string((int) std::round(protein.get_volume_grid())) + " Å^3");
         console::print_text("Volume (exv):  " + std::to_string((int) std::round(protein.get_volume_exv(d)))  + " Å^3");

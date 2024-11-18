@@ -116,6 +116,16 @@ namespace ausaxs::hist {
 
             virtual const FormFactorTableType& get_ff_table() const = 0;
 
+            /**
+             * @brief Get the atomic Debye Waller factor for a given q and B value.
+             */
+            static double get_atomic_debye_waller_factor(double q, double B);
+
+            /**
+             * @brief Get the excluded volume Debye Waller factor for a given q and B value.
+             */
+            static double get_exv_debye_waller_factor(double q, double B);
+
         protected:
             struct {
                 double cw = 1;        // water density scaling factor

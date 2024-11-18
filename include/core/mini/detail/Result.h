@@ -1,5 +1,6 @@
 #pragma once
 
+#include <constants/ConstantsFitParameters.h>
 #include <mini/detail/FittedParameter.h>
 
 #include <string>
@@ -13,15 +14,13 @@ namespace ausaxs::mini {
         virtual ~Result() = default;
 
         /**
-         * @brief Get a parameter based on its name from this result.
+         * @brief Get a parameter from this result.
          */
         const FittedParameter& get_parameter(const std::string& name) const;
         FittedParameter& get_parameter(const std::string& name); //< @copydoc get_parameter
-
-        /**
-         * @brief Get a parameter based on its index from this result.
-         */
-        const FittedParameter& get_parameter(unsigned int index) const;
+        const FittedParameter& get_parameter(ausaxs::constants::fit::Parameters param) const; //< @copydoc get_parameter
+        FittedParameter& get_parameter(ausaxs::constants::fit::Parameters param); //< @copydoc get_parameter
+        const FittedParameter& get_parameter(unsigned int index) const; //< @copydoc get_parameter
         FittedParameter& get_parameter(unsigned int index); //< @copydoc get_parameter
 
         /**

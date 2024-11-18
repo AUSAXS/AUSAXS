@@ -232,15 +232,25 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_distance_pro
 }
 
 template<typename FormFactorTableType>
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q, double B) {
+    constexpr double c = 1;//1./(24*constants::pi*constants::pi);
+    return std::exp(-B*q*q*c);
+}
+
+template<typename FormFactorTableType>
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_exv_debye_waller_factor(double q, double B) {
+    constexpr double c = 1;//1./(24*constants::pi*constants::pi);
+    return std::exp(-B*q*q*c);
+}
+
+template<typename FormFactorTableType>
 double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q) const {
-    constexpr double c = 1./(24*constants::pi*constants::pi);
-    return std::exp(-free_params.B_atomic*q*q*c);
+    return get_atomic_debye_waller_factor(q, free_params.B_atomic);
 }
 
 template<typename FormFactorTableType>
 double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_exv_debye_waller_factor(double q) const {
-    constexpr double c = 1./(24*constants::pi*constants::pi);
-    return std::exp(-free_params.B_exv*q*q*c);
+    return get_exv_debye_waller_factor(q, free_params.B_exv);
 }
 
 template<typename FormFactorTableType>
