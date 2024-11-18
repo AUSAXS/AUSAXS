@@ -160,7 +160,7 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get the total effective charge. 
 			 */
-			[[nodiscard]] double get_total_effective_charge() const;
+			// [[nodiscard]] double get_total_effective_charge() const;
 
 			/**
 			 * @brief Get the relative charge density. 
@@ -324,7 +324,7 @@ namespace ausaxs::data {
 			 * 
 			 * @param scaling The excluded volume scaling factor. Default: 1. 
 			 */
-			void update_effective_charge(double scaling = 1);
+			// void update_effective_charge(double scaling = 1);
 
 			/** 
 			 * @brief Move the entire molecule by a vector.

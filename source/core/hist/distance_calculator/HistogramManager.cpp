@@ -43,6 +43,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
     hist::detail::CompactCoordinates data_w = hist::detail::CompactCoordinates(protein->get_waters());
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
+    data_a.implicit_excluded_volume(protein->get_volume_grid()/data_a.size());
 
     // calculate aa distances
     for (int i = 0; i < data_a_size; ++i) {

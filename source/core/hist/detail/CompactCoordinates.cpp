@@ -41,6 +41,12 @@ CompactCoordinates::CompactCoordinates(const std::vector<data::record::Water>& a
     }
 }
 
+void CompactCoordinates::implicit_excluded_volume(double volume_per_atom) {
+    double displaced_charge = constants::charge::density::water*volume_per_atom;
+    double charge_per_atom = -displaced_charge;
+    std::for_each(data.begin(), data.end(), [charge_per_atom] (CompactCoordinatesData& d) {d.value.w += charge_per_atom;});
+}
+
 std::vector<CompactCoordinatesData>& CompactCoordinates::get_data() {return data;}
 
 const std::vector<CompactCoordinatesData>& CompactCoordinates::get_data() const {return data;}

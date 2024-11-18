@@ -43,6 +43,11 @@ namespace ausaxs::hist::detail {
              */
             CompactCoordinates(const std::vector<data::record::Water>& atoms);
 
+            /**
+             * @brief Calculate and subtract the average excluded volume charge from each atom to implicitly account for the excluded volume contribution.
+             */
+            void implicit_excluded_volume(double volume_per_atom);
+
             std::size_t size() const;
 
             std::vector<CompactCoordinatesData>& get_data();

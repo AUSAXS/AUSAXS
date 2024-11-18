@@ -34,6 +34,6 @@ namespace ausaxs::hist {
 			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
-			observer_ptr<const data::Molecule> protein; // pointer to the parent Protein
+			observer_ptr<const data::Molecule> protein;
     };
 }

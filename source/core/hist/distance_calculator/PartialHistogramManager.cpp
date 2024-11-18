@@ -44,6 +44,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
                 this->coords_a[i] = detail::CompactCoordinates(this->protein->get_body(i));
+                this->coords_a[i].implicit_excluded_volume(this->protein->get_volume_grid()/this->protein->size_atom());
             }
         }
     }
@@ -147,6 +148,7 @@ template<bool use_weighted_distribution>
 void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(unsigned int index) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     detail::CompactCoordinates current(this->protein->get_body(index));
+    current.implicit_excluded_volume(this->protein->get_volume_grid()/this->protein->size_atom());
 
     // calculate internal distances between atoms
     GenericDistribution1D_t p_aa(this->master.axis.bins);
@@ -181,8 +183,8 @@ void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(u
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_aa(unsigned int n, unsigned int m) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    detail::CompactCoordinates& coords_n = this->coords_a[n];
-    detail::CompactCoordinates& coords_m = this->coords_a[m];
+    auto& coords_n = this->coords_a[n];
+    auto& coords_m = this->coords_a[m];
 
     GenericDistribution1D_t p_aa(this->master.axis.bins);
     for (unsigned int i = 0; i < coords_n.size(); i++) {
@@ -226,7 +228,7 @@ void PartialHistogramManager<use_weighted_distribution>::initialize() {
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_aw(unsigned int index) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    detail::CompactCoordinates& coords = this->coords_a[index];
+    auto& coords = this->coords_a[index];
 
     GenericDistribution1D_t p_aw(this->master.axis.bins);
     for (unsigned int i = 0; i < coords.size(); i++) {

@@ -19,51 +19,51 @@
 using namespace ausaxs;
 using namespace data;
 
-TEST_CASE("fitter: consistent_charge_scaling") {
-    settings::molecule::use_effective_charge = true;
-    settings::general::verbose = false;
-    settings::hist::histogram_manager = GENERATE(
-        settings::hist::HistogramManagerChoice::HistogramManager, 
-        settings::hist::HistogramManagerChoice::PartialHistogramManager,
-        settings::hist::HistogramManagerChoice::PartialHistogramManagerMT,
-        settings::hist::HistogramManagerChoice::HistogramManagerMT,
-        settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg,
-        settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg,
-        settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit,
-        settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid
-    );
+// TEST_CASE("fitter: consistent_charge_scaling") {
+//     settings::molecule::use_effective_charge = true;
+//     settings::general::verbose = false;
+//     settings::hist::histogram_manager = GENERATE(
+//         settings::hist::HistogramManagerChoice::HistogramManager, 
+//         settings::hist::HistogramManagerChoice::PartialHistogramManager,
+//         settings::hist::HistogramManagerChoice::PartialHistogramManagerMT,
+//         settings::hist::HistogramManagerChoice::HistogramManagerMT,
+//         settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg,
+//         settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg,
+//         settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit,
+//         settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid
+//     );
 
-    auto string_mapper = [] (settings::hist::HistogramManagerChoice choice) -> std::string {
-        switch (choice) {
-            case settings::hist::HistogramManagerChoice::HistogramManager: return "HistogramManager";
-            case settings::hist::HistogramManagerChoice::PartialHistogramManager: return "PartialHistogramManager";
-            case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT: return "PartialHistogramManagerMT";
-            case settings::hist::HistogramManagerChoice::HistogramManagerMT: return "HistogramManagerMT";
-            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg: return "HistogramManagerMTFFAvg";
-            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit: return "HistogramManagerMTFFExplicit";
-            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: return "HistogramManagerMTFFGrid";
-            default: return "Unknown";
-        }
-    };
+//     auto string_mapper = [] (settings::hist::HistogramManagerChoice choice) -> std::string {
+//         switch (choice) {
+//             case settings::hist::HistogramManagerChoice::HistogramManager: return "HistogramManager";
+//             case settings::hist::HistogramManagerChoice::PartialHistogramManager: return "PartialHistogramManager";
+//             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT: return "PartialHistogramManagerMT";
+//             case settings::hist::HistogramManagerChoice::HistogramManagerMT: return "HistogramManagerMT";
+//             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg: return "HistogramManagerMTFFAvg";
+//             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit: return "HistogramManagerMTFFExplicit";
+//             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: return "HistogramManagerMTFFGrid";
+//             default: return "Unknown";
+//         }
+//     };
 
-    SECTION("simple, " + string_mapper(settings::hist::histogram_manager)) {
-        io::ExistingFile mfile = "tests/files/2epe.dat";
-        Molecule protein("tests/files/2epe.pdb");
-        protein.clear_hydration();
-        fitter::SmartFitter fitter(mfile, protein.get_histogram());
-        auto fit1 = fitter.fit_chi2_only();
+//     SECTION("simple, " + string_mapper(settings::hist::histogram_manager)) {
+//         io::ExistingFile mfile = "tests/files/2epe.dat";
+//         Molecule protein("tests/files/2epe.pdb");
+//         protein.clear_hydration();
+//         fitter::SmartFitter fitter(mfile, protein.get_histogram());
+//         auto fit1 = fitter.fit_chi2_only();
 
-        protein.update_effective_charge(1.2);
-        fitter.set_model(protein.get_histogram());
-        auto fit2 = fitter.fit_chi2_only();
-        REQUIRE(fit1 != fit2);
+//         protein.update_effective_charge(1.2);
+//         fitter.set_model(protein.get_histogram());
+//         auto fit2 = fitter.fit_chi2_only();
+//         REQUIRE(fit1 != fit2);
 
-        protein.update_effective_charge(1.0);
-        fitter.set_model(protein.get_histogram());
-        fit2 = fitter.fit_chi2_only();
-        REQUIRE_THAT(fit1, Catch::Matchers::WithinAbs(fit2, 1e-6));
-    }
-}
+//         protein.update_effective_charge(1.0);
+//         fitter.set_model(protein.get_histogram());
+//         fit2 = fitter.fit_chi2_only();
+//         REQUIRE_THAT(fit1, Catch::Matchers::WithinAbs(fit2, 1e-6));
+//     }
+// }
 
 class SmartFitterDebug : public fitter::SmartFitter {
     public:

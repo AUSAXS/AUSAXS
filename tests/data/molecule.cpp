@@ -245,22 +245,6 @@ TEST_CASE_METHOD(fixture, "Molecule::get_volume", "[broken]") {
     REQUIRE_THAT(protein.get_volume_grid(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
 }
 
-TEST_CASE_METHOD(fixture, "Molecule::update_effective_charge") {
-    settings::molecule::use_effective_charge = false;
-    Molecule protein(bodies, {});
-
-    double charge = protein.get_total_atomic_charge();
-    double effective_charge = protein.get_total_effective_charge();
-    REQUIRE(charge == effective_charge);
-
-    protein.update_effective_charge(0.5);
-    effective_charge = protein.get_total_effective_charge();
-    REQUIRE(charge != effective_charge);
-
-    protein.update_effective_charge(0);
-    REQUIRE(charge == protein.get_total_effective_charge());
-}
-
 TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
     settings::general::verbose = false;
 
@@ -407,16 +391,6 @@ TEST_CASE("Molecule::get_total_atomic_charge", "[files]") {
         sum += atom.get_absolute_charge();
     }
     REQUIRE(protein.get_total_atomic_charge() == sum);
-}
-
-TEST_CASE("Molecule::get_total_effective_charge", "[files]") {
-    settings::general::verbose = false;
-    Molecule protein("tests/files/2epe.pdb");
-    double sum = 0;
-    for (auto& atom : protein.get_atoms()) {
-        sum += atom.get_effective_charge();
-    }
-    REQUIRE(protein.get_total_effective_charge() == sum);
 }
 
 TEST_CASE("Molecule::get_relative_charge_density", "[files]") {
