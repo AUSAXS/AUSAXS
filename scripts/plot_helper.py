@@ -200,12 +200,16 @@ def read_dataset(file):
         if scaling != 0:
             for i in range(len(data)):
                 data[i][1] /= scaling
-                data[i][2] /= scaling
+            if len(data[0]) > 2:
+                for i in range(len(data)):
+                    data[i][2] /= scaling
 
     if options.stagger != 1:
         for i in range(len(data)):
             data[i][1] *= options.stagger
-            data[i][2] *= options.stagger
+        if len(data[0]) > 2:
+            for i in range(len(data)):
+                data[i][2] *= options.stagger
 
     return Dataset(data, options)
 

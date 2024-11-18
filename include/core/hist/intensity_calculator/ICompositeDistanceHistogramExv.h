@@ -55,18 +55,18 @@ namespace ausaxs::hist {
              * @brief Get the limits for the excluded volume scaling factor parameter. 
              *        This is intended to be used by the fitter to set correct limits. 
              */
-            virtual Limit get_excluded_volume_scaling_factor_limits() const {return {0.92, 1.08};}
+            virtual Limit get_excluded_volume_scaling_factor_limits() const;
 
             /**
              * @brief Get the limits for the solvent density scaling factor parameter. 
              *        This is intended to be used by the fitter to set correct limits. 
              */
-            virtual Limit get_solvent_density_scaling_factor_limits() const {return {0.95, 1.05};}
+            virtual Limit get_solvent_density_scaling_factor_limits() const;
 
             /**
              * @brief Get the limits for the Debye-Waller factor parameter. 
              *        This is intended to be used by the fitter to set correct limits. 
              */
-            virtual Limit get_debye_waller_factor_limits() const {return {0.0, 100};}
+            virtual Limit get_debye_waller_factor_limits() const;
     };
 }

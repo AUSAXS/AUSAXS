@@ -45,7 +45,7 @@ int main(int argc, char const *argv[]) {
 
     // advanced options
     app.add_flag("!--ignore-unknown-atom", settings::molecule::throw_on_unknown_atom, 
-        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure you are aware of the issue."
+        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of issues."
     )->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
     app.add_flag("--save-settings", save_settings, "Save the settings to a file.")->default_val(save_settings)->group("Advanced options");
@@ -153,7 +153,6 @@ int main(int argc, char const *argv[]) {
     });
 
     CLI11_PARSE(app, argc, argv);
-
     console::print_info("Running AUSAXS " + std::string(constants::version));
 
     //###################//
