@@ -27,6 +27,16 @@ namespace ausaxs::hist {
             virtual void apply_solvent_density_scaling_factor(double k) = 0;
 
             /**
+             * @brief Apply a Debye Waller B-factor to the atomic form factors.
+             */
+            virtual void apply_atomic_debye_waller_factor(double B) = 0;
+
+            /**
+             * @brief Apply a Debye Waller B-factor to the excluded volume form factors.
+             */
+            virtual void apply_exv_debye_waller_factor(double B) = 0;
+
+            /**
              * @brief Get the partial intensity profile for atom-(excluded volume) interactions.
              */
             virtual ScatteringProfile get_profile_ax() const = 0;
@@ -52,5 +62,11 @@ namespace ausaxs::hist {
              *        This is intended to be used by the fitter to set correct limits. 
              */
             virtual Limit get_solvent_density_scaling_factor_limits() const {return {0.95, 1.05};}
+
+            /**
+             * @brief Get the limits for the Debye-Waller factor parameter. 
+             *        This is intended to be used by the fitter to set correct limits. 
+             */
+            virtual Limit get_debye_waller_factor_limits() const {return {0.0, 100};}
     };
 }

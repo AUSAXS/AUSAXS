@@ -64,7 +64,6 @@ namespace ausaxs::constants::form_factor {
         constexpr double c = 0.265954;
     }
 
-    //! get source from Jan
     namespace excluded_volume {
         constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
         constexpr std::array<double, 5> b = {radius::average_atomic_radius*radius::average_atomic_radius/2, 0, 0, 0, 0};

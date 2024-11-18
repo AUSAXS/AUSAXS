@@ -66,8 +66,8 @@ namespace ausaxs::hist {
             void apply_water_scaling_factor(double k) override;
             void apply_excluded_volume_scaling_factor(double k) override;
             void apply_solvent_density_scaling_factor(double k) override;
-            void apply_atomic_form_factor_debye_waller_factor(double B);
-            void apply_excluded_volume_form_factor_debye_waller_factor(double B);
+            void apply_atomic_debye_waller_factor(double B) override;
+            void apply_exv_debye_waller_factor(double B) override;
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
@@ -132,13 +132,20 @@ namespace ausaxs::hist {
             virtual double exv_factor(double q) const;
 
         private:
+            /**
+             * @brief Get the atomic Debye Waller factor for a given q value.
+             */
             double get_atomic_debye_waller_factor(double q) const;
+
+            /**
+             * @brief Get the excluded volume Debye Waller factor for a given q value.
+             */
             double get_exv_debye_waller_factor(double q) const;
 
         //#################################//
         //###           CACHE           ###//
         //#################################//
-        public:
+        protected:
             /**
              * @brief Get the cached intensity profiles.
              *        This may trigger a refresh if the cache is invalid.
@@ -146,11 +153,10 @@ namespace ausaxs::hist {
              * @return [aa, ax, aw, xx, wx, ww]
              */
             [[nodiscard]] virtual std::tuple<
-                const std::vector<double>, const std::vector<double>, const std::vector<double>,
-                const std::vector<double>, const std::vector<double>, const std::vector<double> 
+                std::vector<double>, std::vector<double>, std::vector<double>,
+                std::vector<double>, std::vector<double>, std::vector<double> 
             > cache_get_intensity_profiles() const;
 
-        protected:
             /**
              * @brief Get the cached total distance profiles. 
              *        This may trigger a refresh if the cache is invalid.
@@ -188,8 +194,8 @@ namespace ausaxs::hist {
              * @brief Apply the Debye-Waller factors to the intensity profiles.
              */
             virtual std::tuple<
-                const std::vector<double>, const std::vector<double>, const std::vector<double>,
-                const std::vector<double>, const std::vector<double>, const std::vector<double> 
+                std::vector<double>, std::vector<double>, std::vector<double>,
+                std::vector<double>, std::vector<double>, std::vector<double> 
             > apply_debye_waller_factors(std::tuple<
                 const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
                 const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 

@@ -5,6 +5,7 @@
 #include <constants/ConstantsMath.h>
 #include <constants/ConstantsFwd.h>
 #include <constants/ConstantsAxes.h>
+#include <constants/ConstantsFitParameters.h>
 #include <constants/ValidFileExtensions.h>
 #include <constants/Version.h>
 #include <constants/SI.h>

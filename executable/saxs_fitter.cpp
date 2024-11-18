@@ -119,6 +119,15 @@ int main(int argc, char const *argv[]) {
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);
 
+    // fit subcommands
+    auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
+    sub_fit->add_flag("--atomic-debye-waller", settings::fit::fit_atomic_debye_waller, 
+        "Fit the atomic form factor debye-waller factor."
+    )->default_val(settings::fit::fit_atomic_debye_waller);
+    sub_fit->add_flag("--exv-debye-waller", settings::fit::fit_exv_debye_waller, 
+        "Fit the excluded volume form factor debye-waller factor."
+    )->default_val(settings::fit::fit_exv_debye_waller);
+
     // hidden options group
     app.add_flag("--weighted-bins", settings::hist::weighted_bins, 
         "Decides whether the weighted bins will be used."
@@ -204,7 +213,7 @@ int main(int argc, char const *argv[]) {
         console::print_info("\nExtra informaton");
         console::indent();
         double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
-        double d = settings::fit::fit_excluded_volume ? result->get_parameter("d") : 1;
+        double d = settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::to_string(constants::fit::Parameters::SCALING_EXV)) : 1;
         console::print_text("Volume (vdW):  " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " Å^3");
         console::print_text("Volume (grid): " + std::to_string((int) std::round(protein.get_volume_grid())) + " Å^3");
         console::print_text("Volume (exv):  " + std::to_string((int) std::round(protein.get_volume_exv(d)))  + " Å^3");
