@@ -4,6 +4,6 @@ using namespace ausaxs;
 
 Limit hist::ICompositeDistanceHistogramExv::get_excluded_volume_scaling_factor_limits() const {return {0.92, 1.08};}
 
-Limit hist::ICompositeDistanceHistogramExv::get_solvent_density_scaling_factor_limits() const {return {0.95, 1.05};}
+Limit hist::ICompositeDistanceHistogramExv::get_solvent_density_scaling_factor_limits() const {return {0.5, 2};}
 
-Limit hist::ICompositeDistanceHistogramExv::get_debye_waller_factor_limits() const {return {0.0, 3};}
+Limit hist::ICompositeDistanceHistogramExv::get_debye_waller_factor_limits() const {return {0.0, 30};}

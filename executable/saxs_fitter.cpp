@@ -213,10 +213,13 @@ int main(int argc, char const *argv[]) {
         console::indent();
         double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
         double d = settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::Parameters::SCALING_EXV) : 1;
-        console::print_text("Volume (vdW):  " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " Å^3");
-        console::print_text("Volume (grid): " + std::to_string((int) std::round(protein.get_volume_grid())) + " Å^3");
-        console::print_text("Volume (exv):  " + std::to_string((int) std::round(protein.get_volume_exv(d)))  + " Å^3");
-        console::print_text("RhoM:          " + std::to_string(rhoM) + " g/cm^3");
+        console::print_text("Volume (vdW):    " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " A^3");
+        console::print_text("Volume (grid):   " + std::to_string((int) std::round(protein.get_volume_grid())) + " A^3");
+        console::print_text("Volume (exv):    " + std::to_string((int) std::round(protein.get_volume_exv(d)))  + " A^3");
+        console::print_text("RhoM:            " + std::to_string(rhoM) + " g/cm^3");
+        if (settings::fit::fit_solvent_density) {
+            console::print_text("Solvent density: " + std::to_string(constants::charge::density::water*result->get_parameter(constants::fit::Parameters::SCALING_RHO)) + " e/A^3");
+        }
         console::unindent();
 
         protein.save(settings::general::output + "model.pdb");
