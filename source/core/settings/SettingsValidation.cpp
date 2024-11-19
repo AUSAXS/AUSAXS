@@ -11,25 +11,6 @@ using namespace ausaxs;
 
 void settings::validate_settings() {
     switch (settings::hist::histogram_manager) {
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
-        case settings::hist::HistogramManagerChoice::FoXSManager:
-        case settings::hist::HistogramManagerChoice::PepsiManager:
-        case settings::hist::HistogramManagerChoice::CrysolManager:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
-            if (settings::hist::histogram_manager == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface) {
-                // Use the faster basic Grid when the surface is not scaled anyway
-                if (!settings::fit::fit_excluded_volume) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
-            }
-            [[fallthrough]];
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv:
-            // check for effective charge compatibility
-            if (settings::molecule::use_effective_charge == true) {
-                console::print_warning("Warning: The chosen histogram manager does not support using an effective charge approximation. Disabling effective charge.");
-                settings::molecule::use_effective_charge = false;
-            }
-            break;
         case settings::hist::HistogramManagerChoice::PartialHistogramManager:
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
             // check if a more efficient alternative is available

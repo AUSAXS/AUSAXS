@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hist/distance_calculator/IHistogramManager.h>
+#include <hist/distance_calculator/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -447,8 +448,11 @@ void Molecule::signal_modified_hydration_layer() const {
 
 void Molecule::bind_body_signallers() {
     if (phm == nullptr) {return;}
+
+    auto cast = dynamic_cast<hist::IPartialHistogramManager<false>*>(phm.get());
+    if (!cast) {return;}
     for (unsigned int i = 0; i < bodies.size(); i++) {
-        bodies[i].register_probe(phm->get_probe(i));
+        bodies[i].register_probe(cast->get_probe(i));
     }
 }
 

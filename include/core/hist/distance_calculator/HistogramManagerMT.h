@@ -14,7 +14,6 @@ namespace ausaxs::hist {
 	class HistogramManagerMT : public HistogramManager<use_weighted_distribution> {
 		public:
 			using HistogramManager<use_weighted_distribution>::HistogramManager;
-
 			virtual ~HistogramManagerMT() override;
 
 			/**

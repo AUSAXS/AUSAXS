@@ -138,7 +138,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
 template<bool use_weighted_distribution>
 void PartialHistogramManagerMT<use_weighted_distribution>::update_compact_representation_body(unsigned int index) {
     this->coords_a[index] = detail::CompactCoordinates(this->protein->get_body(index));
-    this->coords_a[index].implicit_excluded_volume(this->protein->get_volume_grid()/this->protein->size_atom());
+    this->apply_simple_excluded_volume(this->coords_a[index]);
 }
 
 template<bool use_weighted_distribution>

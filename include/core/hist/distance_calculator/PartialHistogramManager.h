@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/distance_calculator/IPartialHistogramManager.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/MasterHistogram.h>
 #include <container/Container1D.h>
@@ -27,10 +27,9 @@ namespace ausaxs::hist {
 	 * @brief A single-threaded smart distance calculator which efficiently calculates the simple distance histogram.
 	 */
     template<bool use_weighted_distribution> 
-	class PartialHistogramManager : public HistogramManager<use_weighted_distribution> {
+	class PartialHistogramManager : public IPartialHistogramManager<use_weighted_distribution> {
 		public:
 			PartialHistogramManager(observer_ptr<const data::Molecule> protein); 
-
 			virtual ~PartialHistogramManager() override;
 
 			/**

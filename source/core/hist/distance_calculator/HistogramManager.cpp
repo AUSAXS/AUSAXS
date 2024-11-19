@@ -21,10 +21,7 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution>
-HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {}
-
-template<bool use_weighted_distribution>
-HistogramManager<use_weighted_distribution>::HistogramManager(const data::Molecule& protein) : HistogramManager(&protein) {}
+HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : detail::SimpleExvModel(protein), protein(protein) {}
 
 template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::~HistogramManager() = default;
@@ -43,7 +40,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
     hist::detail::CompactCoordinates data_w = hist::detail::CompactCoordinates(protein->get_waters());
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
-    data_a.implicit_excluded_volume(protein->get_volume_grid()/data_a.size());
+    apply_simple_excluded_volume(data_a);
 
     // calculate aa distances
     for (int i = 0; i < data_a_size; ++i) {

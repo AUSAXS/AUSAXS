@@ -18,6 +18,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <constants/Constants.h>
 #include <utility/Axis3D.h>
+#include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
@@ -38,6 +39,7 @@ ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images
         image(z).set_z(z);
     }
     phm = factory::create_manager(this);
+    hist::detail::SimpleExvModel::disable(); 
 }
 
 ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
@@ -55,6 +57,7 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
 
     read(input);
     phm = factory::create_manager(this);
+    hist::detail::SimpleExvModel::disable();
 }
 
 ImageStackBase::~ImageStackBase() = default;

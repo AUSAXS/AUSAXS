@@ -10,6 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <dataset/SimpleDataset.h>
 #include <data/record/Atom.h>
 #include <data/Molecule.h>
+#include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Utility.h>
 #include <utility/MultiThreading.h>
@@ -27,7 +28,7 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
 
     // do not subtract the solvent charge from the atoms
-    settings::molecule::use_effective_charge = false;
+    hist::detail::SimpleExvModel::disable();
 
     // do not subtract the charge of bound hydrogens
     settings::molecule::implicit_hydrogens = false;
