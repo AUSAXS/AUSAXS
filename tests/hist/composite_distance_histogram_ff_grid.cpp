@@ -158,7 +158,6 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
-    settings::grid::min_exv_radius = 1;
     settings::grid::exv::width = 1;
     settings::grid::min_exv_radius = 0;
 
@@ -205,6 +204,40 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
 
         auto Iq_exp = calc_scat_water();
         REQUIRE(compare_hist(Iq_exp, h->debye_transform()));
+    }
+}
+
+// Check that solvent scaling is consistent
+TEST_CASE("HistogramManagerMTFFGrid: consistent solvent density fitting", "[files]") {
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = true;
+    settings::hist::weighted_bins = true;
+    settings::grid::min_exv_radius = 0;
+    settings::grid::exv::width = 1;
+
+    data::Molecule protein("tests/files/2epe.pdb");
+    auto hg = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+    auto hg_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hg.get());
+    
+    auto hs = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+    auto hs_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(hs.get());
+
+    auto hse = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+    auto hse_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(hse.get());
+
+    std::vector<double> rho = {0.2, 0.3, 0.4, 0.5};
+    for (auto r : rho) {
+        hg_cast->apply_solvent_density_scaling_factor(r);
+        hs_cast->apply_solvent_density_scaling_factor(r);
+        hse_cast->apply_solvent_density_scaling_factor(r);
+
+        auto Ig = hg_cast->debye_transform();
+        auto Is = hs_cast->debye_transform();
+        auto Ise = hse_cast->debye_transform();
+
+        REQUIRE(compare_hist(Ig, Is));
+        REQUIRE(compare_hist(Ig, Ise));
     }
 }
 
