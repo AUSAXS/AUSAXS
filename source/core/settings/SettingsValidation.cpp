@@ -18,6 +18,11 @@ void settings::validate_settings() {
         case settings::hist::HistogramManagerChoice::CrysolManager:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
+            if (settings::hist::histogram_manager == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface) {
+                // Use the faster basic Grid when the surface is not scaled anyway
+                if (!settings::fit::fit_excluded_volume) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
+            }
+            [[fallthrough]];
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv:
             // check for effective charge compatibility
             if (settings::molecule::use_effective_charge == true) {
