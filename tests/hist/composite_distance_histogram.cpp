@@ -82,7 +82,6 @@ TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
 
 TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
     settings::general::warnings = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
 
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
@@ -117,7 +116,6 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
 TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
     settings::general::warnings = true;
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     auto d = SimpleCube::d;
 

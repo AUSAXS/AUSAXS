@@ -28,7 +28,6 @@ using std::cout, std::endl, std::vector;
 struct fixture {
     fixture() {
         settings::molecule::center = false;
-        settings::molecule::use_effective_charge = false;
         settings::molecule::implicit_hydrogens = false;
     }
 
@@ -66,7 +65,6 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 }
 
 TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
-    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
 
     SECTION("vector<Body>&&") {
@@ -141,7 +139,6 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
 }
 
 TEST_CASE("Molecule::add_implicit_hydrogens", "[files]") {
-    settings::molecule::use_effective_charge = false;
     vector<Atom> atoms = {
         Atom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
         Atom(2, "CA", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
@@ -193,7 +190,6 @@ TEST_CASE("Molecule::add_implicit_hydrogens", "[files]") {
 TEST_CASE("Molecule::get_Rg", "[files]") {
     // tests without effective charge are compared against the electron Rg from CRYSOL
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     SECTION("2epe") {
         Molecule protein("tests/files/2epe.pdb");
         REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(13.89, 0.01));
@@ -218,7 +214,6 @@ TEST_CASE("Molecule::get_Rg", "[files]") {
 
 TEST_CASE("Molecule::simulate_dataset", "[files]") {
     settings::axes::qmax = 0.4;
-    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
     settings::em::sample_frequency = 2;
     Molecule protein("tests/files/2epe.pdb");
@@ -297,7 +292,6 @@ TEST_CASE_METHOD(fixture, "Molecule::get_total_histogram") {
 
 TEST_CASE("Molecule::save", "[files]") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
 
     Molecule protein("tests/files/2epe.pdb");
     protein.save("temp/tests/protein_save_2epe.pdb");
@@ -328,7 +322,6 @@ TEST_CASE("Molecule::save", "[files]") {
     }
 }
 TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
-    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
@@ -521,8 +514,6 @@ TEST_CASE("Molecule::translate", "[files]") {
 }
 
 TEST_CASE("Molecule::histogram", "[files]") {
-    settings::molecule::use_effective_charge = false;
-
     SECTION("multiple bodies, simple") {
         // make the protein
         vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "LYS", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "LYS", 1)};
@@ -691,14 +682,16 @@ TEST_CASE("Molecule::histogram", "[files]") {
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
 #include <hist/distance_calculator/HistogramManagerFactory.h>
+#include <hist/distance_calculator/IPartialHistogramManager.h>
 TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
-    Molecule protein(bodies, {});
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
     settings::general::verbose = false;
 
+    Molecule protein(bodies, {});
     SECTION("at construction") {
         auto& bodies = protein.get_bodies();
         REQUIRE(bodies.size() == 4);
-        auto manager = protein.get_histogram_manager()->get_state_manager();
+        auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
         for (unsigned int i = 0; i < bodies.size(); ++i) {
             CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies[i].get_signaller()) != nullptr);
             CHECK(manager->get_probe(i) == bodies[i].get_signaller());
@@ -715,7 +708,7 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
         auto& bodies = protein.get_bodies();
         REQUIRE(bodies.size() == 4);
         protein.set_histogram_manager(hist::factory::construct_histogram_manager(&protein));
-        auto manager = protein.get_histogram_manager()->get_state_manager();
+        auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
 
         for (unsigned int i = 0; i < bodies.size(); ++i) {
             CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies[i].get_signaller()) != nullptr);
@@ -725,8 +718,10 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
 }
 
 TEST_CASE_METHOD(fixture, "Molecule::signal_modified_hydration_layer") {
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
+
     Molecule protein(bodies, {});
-    auto manager = protein.get_histogram_manager()->get_state_manager();
+    auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
     manager->reset_to_false();
     REQUIRE(manager->get_modified_hydration() == false);
 

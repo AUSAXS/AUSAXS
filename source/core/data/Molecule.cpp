@@ -361,7 +361,7 @@ void Molecule::generate_new_hydration() {
         hydration_strategy = hydrate::factory::construct_hydration_generator(this);
     }
     hydration = hydration_strategy->hydrate();
-    phm->signal_modified_hydration_layer();
+    signal_modified_hydration_layer();
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
@@ -443,13 +443,17 @@ void Molecule::center() {
 
 void Molecule::signal_modified_hydration_layer() const {
     if (phm == nullptr) {return;}
-    phm->signal_modified_hydration_layer();
+
+    // send signal to the histogram manager if relevant
+    if (auto cast = dynamic_cast<IPartialHistogramManager*>(phm.get()); cast) {
+        cast->signal_modified_hydration_layer();
+    }
 }
 
 void Molecule::bind_body_signallers() {
     if (phm == nullptr) {return;}
 
-    auto cast = dynamic_cast<hist::IPartialHistogramManager<false>*>(phm.get());
+    auto cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
     if (!cast) {return;}
     for (unsigned int i = 0; i < bodies.size(); i++) {
         bodies[i].register_probe(cast->get_probe(i));

@@ -13,7 +13,6 @@ using namespace ausaxs;
 
 TEST_CASE("DistanceHistogram::is_highly_ordered") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("false") {
@@ -46,7 +45,6 @@ TEST_CASE("DistanceHistogram::is_highly_ordered") {
 
 TEST_CASE("DistanceHistogram: check relative errors") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::hist::weighted_bins = true;
 

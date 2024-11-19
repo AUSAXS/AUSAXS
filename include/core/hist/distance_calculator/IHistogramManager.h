@@ -15,16 +15,6 @@ namespace ausaxs::hist {
 			virtual ~IHistogramManager() = default;
 
 			/**
-			 * @brief Whether to account for the excluded volume by subtracting the average excluded volume charge from each atom.
-			 */
-			static void use_simple_excluded_volume(bool enabled);
-
-			/**
-			 * @brief Signal that the hydration layer was modified. 
-			 */
-			virtual void signal_modified_hydration_layer() {return;};
-
-			/**
 			 * @brief Calculate only the total scattering histogram. 
 			 */
 			virtual std::unique_ptr<DistanceHistogram> calculate() = 0;

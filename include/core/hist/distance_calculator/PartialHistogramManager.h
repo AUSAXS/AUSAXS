@@ -3,6 +3,7 @@
 #include <hist/distance_calculator/IPartialHistogramManager.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/MasterHistogram.h>
+#include <hist/detail/SimpleExvModel.h>
 #include <container/Container1D.h>
 #include <container/Container2D.h>
 
@@ -27,7 +28,7 @@ namespace ausaxs::hist {
 	 * @brief A single-threaded smart distance calculator which efficiently calculates the simple distance histogram.
 	 */
     template<bool use_weighted_distribution> 
-	class PartialHistogramManager : public IPartialHistogramManager<use_weighted_distribution> {
+	class PartialHistogramManager : public IPartialHistogramManager, public detail::SimpleExvModel {
 		public:
 			PartialHistogramManager(observer_ptr<const data::Molecule> protein); 
 			virtual ~PartialHistogramManager() override;
@@ -43,6 +44,7 @@ namespace ausaxs::hist {
 			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
+			observer_ptr<const data::Molecule> protein;													// the molecule we are calculating the histogram for
             detail::MasterHistogram<use_weighted_distribution> master;									// the current total histogram
             std::vector<detail::CompactCoordinates> coords_a;   										// a compact representation of the relevant data from the managed bodies
             detail::CompactCoordinates coords_w;                										// a compact representation of the hydration data

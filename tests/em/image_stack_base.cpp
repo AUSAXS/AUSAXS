@@ -98,7 +98,6 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
-    settings::molecule::use_effective_charge = false;
     em::ImageStackBase isb("tests/files/A2M_2020_Q4.ccp4");
     REQUIRE(isb.get_histogram(5)->get_total_counts() == isb.get_protein_manager()->get_histogram(5)->get_total_counts());
 }

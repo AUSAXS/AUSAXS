@@ -19,7 +19,12 @@ using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution> 
 PartialHistogramManager<use_weighted_distribution>::PartialHistogramManager(observer_ptr<const data::Molecule> protein) 
-    : IPartialHistogramManager<use_weighted_distribution>(protein), coords_a(this->body_size), partials_aa(this->body_size, this->body_size), partials_aw(this->body_size) {}
+    : IPartialHistogramManager(protein), 
+      detail::SimpleExvModel(protein), 
+      coords_a(this->body_size), 
+      partials_aa(this->body_size, this->body_size), 
+      partials_aw(this->body_size) 
+{}
 
 template<bool use_weighted_distribution> 
 PartialHistogramManager<use_weighted_distribution>::~PartialHistogramManager() = default;

@@ -1,13 +1,12 @@
 #pragma once
 
-#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/distance_calculator/IHistogramManager.h>
 #include <hist/detail/BodyTracker.h>
 
 namespace ausaxs::hist {
-    template<bool use_weighted_distribution> 
-	class IPartialHistogramManager : public HistogramManager<use_weighted_distribution>, public BodyTracker {
+	class IPartialHistogramManager : public IHistogramManager, public BodyTracker {
         public:
-            IPartialHistogramManager(observer_ptr<const data::Molecule> protein) : HistogramManager<use_weighted_distribution>(protein), BodyTracker(protein) {}
+            IPartialHistogramManager(observer_ptr<const data::Molecule> protein) : BodyTracker(protein) {}
             virtual ~IPartialHistogramManager() override = default;
     };
 }

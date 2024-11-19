@@ -37,7 +37,6 @@ class GridDebug : public grid::Grid {
 // Check that the GridSurfaceDetection::detect_atoms function works as expected.
 // The targets of this section have been manually verified by visual inspection.
 TEST_CASE("GridSurfaceDetection::detect_atoms") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
 
@@ -231,7 +230,6 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 // Check that we can vary the surface thickness of the excluded volume. 
 // The targets of this section have been manually verified by visual inspection.
 TEST_CASE("GridSurfaceDetection: thickness") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
     settings::grid::exv::surface_thickness = 2;

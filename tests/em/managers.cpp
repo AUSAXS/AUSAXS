@@ -16,6 +16,7 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/distance_calculator/HistogramManager.h>
+#include <hist/distance_calculator/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/HistFwd.h>
 #include <settings/All.h>
@@ -29,32 +30,30 @@ using namespace ausaxs;
 using namespace data;
 
 TEST_CASE("partial_histogram_manager_works") {
-    settings::molecule::use_effective_charge = false;
-
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
     auto phm = protein.get_histogram_manager();
-    auto manager = phm->get_state_manager();
+    auto phm_cast = static_cast<hist::IPartialHistogramManager*>(phm);
+    auto manager = phm_cast->get_state_manager();
 
     manager->reset_to_false();
-    phm->get_probe(0)->external_change();
-    phm->get_probe(2)->external_change();
+    phm_cast->get_probe(0)->external_change();
+    phm_cast->get_probe(2)->external_change();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, true, false, false});
 }
 
 TEST_CASE("protein_manager") {
-    settings::molecule::use_effective_charge = false;
-
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
 
     auto phm = protein.get_histogram_manager();
-    auto manager = phm->get_state_manager();
+    auto phm_cast = static_cast<hist::IPartialHistogramManager*>(phm);
+    auto manager = phm_cast->get_state_manager();
 
     manager->reset_to_false();
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
-    std::shared_ptr<signaller::Signaller> probe0 = phm->get_probe(0);
-    std::shared_ptr<signaller::Signaller> probe2 = phm->get_probe(2);
+    std::shared_ptr<signaller::Signaller> probe0 = phm_cast->get_probe(0);
+    std::shared_ptr<signaller::Signaller> probe2 = phm_cast->get_probe(2);
     probe0->external_change();
     probe2->external_change();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, true, false, false});
@@ -84,7 +83,6 @@ TEST_CASE("protein_manager") {
 
 TEST_CASE("em_partial_histogram_manager") {
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT; // don't use the phm since it eats too much memory
-    settings::molecule::use_effective_charge = false;
 
     auto compare = [] (std::shared_ptr<em::managers::ProteinManager> manager1, std::shared_ptr<em::managers::ProteinManager> manager2, double cutoff) {
         auto h1 = manager1->get_histogram(cutoff);

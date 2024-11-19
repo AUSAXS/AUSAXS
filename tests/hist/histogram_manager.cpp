@@ -79,7 +79,6 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;
 

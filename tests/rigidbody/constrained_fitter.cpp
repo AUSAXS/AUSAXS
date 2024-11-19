@@ -36,7 +36,6 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     RigidBody protein(ap);
 
@@ -48,7 +47,6 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
 
 TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None; // make sure there's no other distance constraints
     RigidBody protein(ap);

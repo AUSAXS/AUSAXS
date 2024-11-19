@@ -20,7 +20,6 @@ using namespace data::record;
 TEST_CASE("VolumetricConstraints::generate") {
     settings::general::verbose = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("simple") {

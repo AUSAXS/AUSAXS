@@ -27,7 +27,6 @@ using namespace data;
 #define DEBYE_DEBUG 0
 unsigned int qcheck = 26;
 TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
     auto ff_w = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::O);

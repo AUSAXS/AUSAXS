@@ -19,7 +19,6 @@ using namespace data::record;
 
 TEST_CASE("LinearConstraints::generate") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 

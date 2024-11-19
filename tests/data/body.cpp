@@ -11,7 +11,7 @@
 #include <settings/All.h>
 #include <data/record/Water.h>
 #include <data/Body.h>
-#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/distance_calculator/IPartialHistogramManager.h>
 
 #include <vector>
 #include <string>
@@ -32,7 +32,6 @@ struct fixture {
 
 struct multiple_fixture {
     multiple_fixture() {
-        settings::molecule::use_effective_charge = false;
         settings::molecule::center = false;
     }
 
@@ -166,7 +165,6 @@ TEST_CASE_METHOD(fixture, "Body::total_effective_charge") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::center") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     
     SECTION("trivial center") {
@@ -209,6 +207,8 @@ TEST_CASE_METHOD(fixture, "Body::center") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::translate") {
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
+
     SECTION("basic translation") {
         body.translate(Vector3<double>{1, 1, 1});
         CHECK(body.get_atom(0).coords == Vector3<double>{0, 0, 0});
@@ -219,7 +219,7 @@ TEST_CASE_METHOD(fixture, "Body::translate") {
 
     SECTION("informs manager") {
         auto protein = Molecule({body});
-        auto manager = protein.get_histogram_manager()->get_state_manager();
+        auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
         manager->reset_to_false();
         protein.get_body(0).translate(Vector3<double>(10, 0, 0));
         CHECK(protein.get_body(0).get_atom(0).coords == Vector3<double>(9, -1, -1));
@@ -332,8 +332,10 @@ TEST_CASE("Body::get_file") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::state") {
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
+
     auto protein = Molecule({body});
-    auto manager = protein.get_histogram_manager()->get_state_manager();
+    auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
     manager->reset_to_false();
 
     SECTION("Body::changed_external_state") {
