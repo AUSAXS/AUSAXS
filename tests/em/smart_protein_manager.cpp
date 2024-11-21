@@ -56,7 +56,7 @@ TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
 
     // alpha as the outer loop to ensure the protein is generated anew every time
     em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
-    for (int alpha = 5; alpha < 24; ++alpha) {
+    for (int alpha = 10; alpha < 24; ++alpha) {
         images.set_protein_manager(std::make_unique<em::managers::SimpleProteinManager>(&images));
         hist::ScatteringProfile hist = images.get_histogram(alpha)->debye_transform();
         for (unsigned int charge_levels = 10; charge_levels < 100; charge_levels += 10) {

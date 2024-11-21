@@ -26,7 +26,6 @@ using namespace data::record;
 TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     settings::general::verbose = false;
     data::Molecule protein("tests/files/2epe.pdb");
-    auto V = protein.get_volume_grid();
 
     std::vector<double> volumes;
     std::vector<double> rxs;
@@ -57,7 +56,7 @@ auto calc_scat = [] (double k) {
     const auto& q_axis = constants::axes::q_vals;
     auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
 
-    auto V = std::pow(2*settings::grid::exv::width, 3);
+    auto V = std::pow(settings::grid::exv::width, 3);
     form_factor::FormFactor ffx = form_factor::ExvFormFactor(V);
     auto d = SimpleCube::d_exact;
 
@@ -248,7 +247,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
     settings::grid::cell_width = 1;
-    settings::grid::exv::width = 0.5;
+    settings::grid::exv::width = 1;
     settings::grid::min_exv_radius = 0;
 
     std::vector<Atom> atoms = SimpleCube::get_atoms();
