@@ -84,8 +84,9 @@ for ((i=0; i<${size}; i++)); do
     stripped_dat=${folder_dat}/${files[i]}_stripped.dat
     cp ${stripped_dat} ${folder_pdb}
 
-	ausaxs_output=$(build/bin/saxs_fitter ${stripped_pdb} ${stripped_dat} exv --model grid fit --atomic-debye-waller --exv-debye-waller --no-exit-on-unknown-atom --output output/debye_waller_fitting/)
-	Ba=$(echo "$ausaxs_output" | grep "Ba" | awk -F': ' '{print $3}')
-	Bx=$(echo "$ausaxs_output" | grep "Bx" | awk -F': ' '{print $3}')
-	echo "$Ba $Bx" >> output/debye_waller_fitting/fit_vals.dat
+	ausaxs_output=$(build/bin/saxs_fitter ${stripped_pdb} ${stripped_dat} exv --model grid fit --atomic-debye-waller --exv-debye-waller --ignore-unknown-atom --output output/debye_waller_fitting/)
+	echo "${ausaxs_output}"
+	Ba=$(echo "$ausaxs_output" | grep "Ba" | awk -F '|' '{gsub (" ", "", $3); print $3}')
+	Bx=$(echo "$ausaxs_output" | grep "Bx" | awk -F '|' '{gsub (" ", "", $3); print $3}')
+	echo "${Ba} ${Bx}" >> output/debye_waller_fitting/fit_vals.dat
 done
