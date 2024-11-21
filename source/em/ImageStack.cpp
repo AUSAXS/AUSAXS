@@ -97,7 +97,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             p->generate_new_hydration();    // generate a new hydration layer
 
             // pointer cast is ok since the type should always be HydrationFitter when hydration is enabled
-            fitter->set_guess({mini::Parameter{"c", last_c, {0, 200}}});
+            fitter->set_guess({mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), last_c, {0, 200}}});
             fitter->set_algorithm(mini::algorithm::SCAN);
             fitter->set_model(p->get_histogram());
 

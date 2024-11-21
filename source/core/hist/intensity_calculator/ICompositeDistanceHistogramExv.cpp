@@ -6,4 +6,4 @@ Limit hist::ICompositeDistanceHistogramExv::get_excluded_volume_scaling_factor_l
 
 Limit hist::ICompositeDistanceHistogramExv::get_solvent_density_scaling_factor_limits() const {return {0.5, 2};}
 
-Limit hist::ICompositeDistanceHistogramExv::get_debye_waller_factor_limits() const {return {0.0, 30};}
+Limit hist::ICompositeDistanceHistogramExv::get_debye_waller_factor_limits() const {return {0.0, 5};}

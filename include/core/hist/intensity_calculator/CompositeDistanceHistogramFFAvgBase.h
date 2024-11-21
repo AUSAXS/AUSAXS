@@ -60,8 +60,8 @@ namespace ausaxs::hist {
 
             virtual ~CompositeDistanceHistogramFFAvgBase() override;
 
-            virtual ScatteringProfile debye_transform() const final override;
-            virtual SimpleDataset debye_transform(const std::vector<double>& q) const final override;
+            virtual ScatteringProfile debye_transform() const override;
+            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
             void apply_water_scaling_factor(double k) override;
             void apply_excluded_volume_scaling_factor(double k) override;
@@ -117,22 +117,22 @@ namespace ausaxs::hist {
             virtual const FormFactorTableType& get_ff_table() const = 0;
 
             /**
-             * @brief Get the atomic Debye Waller factor for a given q and B value.
+             * @brief Get the atomic Debye Waller factor for a given q and sigma value.
              */
-            static double get_atomic_debye_waller_factor(double q, double B);
+            static double get_atomic_debye_waller_factor(double q, double sigma);
 
             /**
-             * @brief Get the excluded volume Debye Waller factor for a given q and B value.
+             * @brief Get the excluded volume Debye Waller factor for a given q and sigma value.
              */
-            static double get_exv_debye_waller_factor(double q, double B);
+            static double get_exv_debye_waller_factor(double q, double sigma);
 
         protected:
             struct {
-                double cw = 1;        // water density scaling factor
-                double cx = 1;        // excluded volume scaling factor, method-dependent
-                double crho = 1;      // solvent density scaling factor
-                double B_atomic = 0;  // atomic form factor debye-waller factor, zero for disabled
-                double B_exv = 0;     // excluded volume form factor debye-waller factor, zero for disabled
+                double cw = 1;               // water density scaling factor
+                double cx = 1;               // excluded volume scaling factor, method-dependent
+                double crho = 1;             // solvent density scaling factor
+                double DW_sigma_atomic = 0;  // atomic form factor debye-waller factor, zero for disabled
+                double DW_sigma_exv = 0;     // excluded volume form factor debye-waller factor, zero for disabled
             } free_params;
             struct {Distribution3D aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
 
@@ -155,7 +155,7 @@ namespace ausaxs::hist {
         //#################################//
         //###           CACHE           ###//
         //#################################//
-        protected:
+        public:
             /**
              * @brief Get the cached intensity profiles.
              *        This may trigger a refresh if the cache is invalid.
@@ -167,6 +167,7 @@ namespace ausaxs::hist {
                 std::vector<double>, std::vector<double>, std::vector<double> 
             > cache_get_intensity_profiles() const;
 
+        protected:
             /**
              * @brief Get the cached total distance profiles. 
              *        This may trigger a refresh if the cache is invalid.

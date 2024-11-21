@@ -173,13 +173,13 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_solvent_den
 }
 
 template<typename FormFactorTableType>
-void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_atomic_debye_waller_factor(double B) {
-    free_params.B_atomic = B;
+void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_atomic_debye_waller_factor(double sigma) {
+    free_params.DW_sigma_atomic = sigma;
 }
 
 template<typename FormFactorTableType>
-void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_exv_debye_waller_factor(double B) {
-    free_params.B_exv = B;
+void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_exv_debye_waller_factor(double sigma) {
+    free_params.DW_sigma_exv = sigma;
 }
 
 template<typename FormFactorTableType>
@@ -232,25 +232,23 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_distance_pro
 }
 
 template<typename FormFactorTableType>
-double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q, double B) {
-    constexpr double c = 1;//1./(24*constants::pi*constants::pi);
-    return std::exp(-B*q*q*c);
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q, double sigma) {
+    return std::exp(-q*q*sigma*sigma*0.5);
 }
 
 template<typename FormFactorTableType>
-double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_exv_debye_waller_factor(double q, double B) {
-    constexpr double c = 1;//1./(24*constants::pi*constants::pi);
-    return std::exp(-B*q*q*c);
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_exv_debye_waller_factor(double q, double sigma) {
+    return std::exp(-q*q*sigma*sigma*0.5);
 }
 
 template<typename FormFactorTableType>
 double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q) const {
-    return get_atomic_debye_waller_factor(q, free_params.B_atomic);
+    return get_atomic_debye_waller_factor(q, free_params.DW_sigma_atomic);
 }
 
 template<typename FormFactorTableType>
 double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_exv_debye_waller_factor(double q) const {
-    return get_exv_debye_waller_factor(q, free_params.B_exv);
+    return get_exv_debye_waller_factor(q, free_params.DW_sigma_exv);
 }
 
 template<typename FormFactorTableType>
@@ -261,15 +259,14 @@ std::tuple<
     const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
     const std::vector<double>&, const std::vector<double>&, const std::vector<double>&> profiles
 ) const {
-    if (free_params.B_atomic == 0 && free_params.B_exv == 0) {return profiles;}
-    auto[aa, ax, aw, xx, wx, ww] = std::tuple<
-        std::vector<double>, std::vector<double>, std::vector<double>, 
-        std::vector<double>, std::vector<double>, std::vector<double>
-    >(profiles); // copy the input profiles
-
+    if (free_params.DW_sigma_atomic == 0 && free_params.DW_sigma_exv == 0) {return profiles;}
     auto pool = utility::multi_threading::get_global_pool();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+
+    // copy the profiles
+    std::vector<double> aa, ax, aw, xx, wx, ww;
+    std::tie(aa, ax, aw, xx, wx, ww) = profiles;
 
     std::vector<double> B_atomic(debye_axis.bins, 0), B_exv(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {B_atomic[q-q0] = get_atomic_debye_waller_factor(constants::axes::q_vals[q]);}

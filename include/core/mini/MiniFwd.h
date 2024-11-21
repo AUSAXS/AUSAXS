@@ -13,7 +13,7 @@ namespace ausaxs::mini {
         #if defined(DLIB_AVAILABLE)
             DLIB_GLOBAL,
             BFGS,
-            DEFAULT=BFGS
+            DEFAULT=DLIB_GLOBAL
         #else
             DEFAULT=GOLDEN
         #endif
