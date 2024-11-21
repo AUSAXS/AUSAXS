@@ -84,7 +84,7 @@ namespace ausaxs::hist {
             double exv_factor(double q) const override;
 
         private: 
-            static form_factor::storage::atomic::table_t ff_table;
+            inline static form_factor::storage::atomic::table_t ff_table;
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
 

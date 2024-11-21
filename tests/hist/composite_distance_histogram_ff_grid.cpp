@@ -26,7 +26,6 @@ using namespace data::record;
 TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     settings::general::verbose = false;
     data::Molecule protein("tests/files/2epe.pdb");
-    auto V = protein.get_volume_grid();
 
     std::vector<double> volumes;
     std::vector<double> rxs;
@@ -57,7 +56,7 @@ auto calc_scat = [] (double k) {
     const auto& q_axis = constants::axes::q_vals;
     auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
 
-    auto V = std::pow(2*settings::grid::exv::width, 3);
+    auto V = std::pow(settings::grid::exv::width, 3);
     form_factor::FormFactor ffx = form_factor::ExvFormFactor(V);
     auto d = SimpleCube::d_exact;
 
@@ -158,7 +157,6 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
-    settings::grid::min_exv_radius = 1;
     settings::grid::exv::width = 1;
     settings::grid::min_exv_radius = 0;
 
@@ -208,6 +206,40 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     }
 }
 
+// Check that solvent scaling is consistent
+TEST_CASE("HistogramManagerMTFFGrid: consistent solvent density fitting", "[files]") {
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = true;
+    settings::hist::weighted_bins = true;
+    settings::grid::min_exv_radius = 0;
+    settings::grid::exv::width = 1;
+
+    data::Molecule protein("tests/files/2epe.pdb");
+    auto hg = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+    auto hg_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hg.get());
+    
+    auto hs = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+    auto hs_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(hs.get());
+
+    auto hse = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+    auto hse_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(hse.get());
+
+    std::vector<double> rho = {0.2, 0.3, 0.4, 0.5};
+    for (auto r : rho) {
+        hg_cast->apply_solvent_density_scaling_factor(r);
+        hs_cast->apply_solvent_density_scaling_factor(r);
+        hse_cast->apply_solvent_density_scaling_factor(r);
+
+        auto Ig = hg_cast->debye_transform();
+        auto Is = hs_cast->debye_transform();
+        auto Ise = hse_cast->debye_transform();
+
+        REQUIRE(compare_hist(Ig, Is));
+        REQUIRE(compare_hist(Ig, Ise));
+    }
+}
+
 // Check that the surface scaling works as expected
 TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     settings::molecule::use_effective_charge = false;
@@ -215,7 +247,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
     settings::grid::cell_width = 1;
-    settings::grid::exv::width = 0.5;
+    settings::grid::exv::width = 1;
     settings::grid::min_exv_radius = 0;
 
     std::vector<Atom> atoms = SimpleCube::get_atoms();

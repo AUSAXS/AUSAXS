@@ -10,11 +10,21 @@ For more information, please refer to the LICENSE file in the project root.
 #include <math/CubicSpline.h>
 #include <mini/All.h>
 #include <settings/FitSettings.h>
+#include <constants/ConstantsFitParameters.h>
 
 #include <cassert>
 
 using namespace ausaxs;
 using namespace ausaxs::fitter;
+
+unsigned int get_number_of_enabled_pars() {
+    return 
+        settings::fit::fit_hydration + 
+        settings::fit::fit_excluded_volume + 
+        settings::fit::fit_solvent_density + 
+        settings::fit::fit_atomic_debye_waller + 
+        settings::fit::fit_exv_debye_waller;
+}
 
 SmartFitter::~SmartFitter() = default;
 SmartFitter::SmartFitter(SmartFitter&&) noexcept = default;
@@ -34,6 +44,9 @@ void validate_model(observer_ptr<hist::DistanceHistogram> h) {
     if ((settings::fit::fit_excluded_volume || settings::fit::fit_solvent_density) && dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h) == nullptr) {
         throw except::invalid_argument("SmartFitter::validate_model: Histogram must support excluded volume operations.");
     }
+    if ((settings::fit::fit_atomic_debye_waller || settings::fit::fit_exv_debye_waller) && dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h) == nullptr) {
+        throw except::invalid_argument("SmartFitter::validate_model: Histogram must support Debye-Waller operations.");
+    }
 }
 
 observer_ptr<hist::ICompositeDistanceHistogramExv> cast_exv(observer_ptr<hist::DistanceHistogram> hist) {
@@ -46,23 +59,40 @@ observer_ptr<hist::ICompositeDistanceHistogram> cast_h(observer_ptr<hist::Distan
 
 std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     std::vector<mini::Parameter> guess;
-    if (settings::fit::fit_hydration) {guess.push_back(mini::Parameter{"c", 1, cast_h(model.get())->get_water_scaling_factor_limits()});}
-    if (settings::fit::fit_excluded_volume) {guess.push_back(mini::Parameter{"d", 1, cast_exv(model.get())->get_excluded_volume_scaling_factor_limits()});}
-    if (settings::fit::fit_solvent_density) {guess.push_back(mini::Parameter{"e", 1, cast_exv(model.get())->get_solvent_density_scaling_factor_limits()});}
+    if (settings::fit::fit_hydration) {
+        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), 1, cast_h(model.get())->get_water_scaling_factor_limits()});
+    }
+
+    if (settings::fit::fit_excluded_volume) {
+        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_EXV), 1, cast_exv(model.get())->get_excluded_volume_scaling_factor_limits()});
+    }
+
+    if (settings::fit::fit_solvent_density) {
+        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_RHO), 1, cast_exv(model.get())->get_solvent_density_scaling_factor_limits()});
+    }
+
+    if (settings::fit::fit_atomic_debye_waller) {
+        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC), 0, cast_exv(model.get())->get_debye_waller_factor_limits()});
+    }
+
+    if (settings::fit::fit_exv_debye_waller) {
+        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV), 0, cast_exv(model.get())->get_debye_waller_factor_limits()});
+    }
     return guess;
 }
 
 fitter::detail::LinearLeastSquares SmartFitter::prepare_linear_fitter(const std::vector<double>& params) {
     assert(
-        static_cast<int>(params.size()) == settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density 
+        params.size() == get_number_of_enabled_pars()
         && "SmartFitter::get_model_curve: Invalid number of parameters."
     );
 
     int index = 0;
-    if (settings::fit::fit_hydration) {cast_h(model.get())->apply_water_scaling_factor(params[index++]);}
-    if (settings::fit::fit_excluded_volume) {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
-    if (settings::fit::fit_solvent_density) {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index]);}
-
+    if (settings::fit::fit_hydration)           {cast_h(model.get())->apply_water_scaling_factor(params[index++]);}
+    if (settings::fit::fit_excluded_volume)     {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
+    if (settings::fit::fit_solvent_density)     {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index++]);}
+    if (settings::fit::fit_atomic_debye_waller) {cast_exv(model.get())->apply_atomic_debye_waller_factor(params[index++]);}
+    if (settings::fit::fit_exv_debye_waller)    {cast_exv(model.get())->apply_exv_debye_waller_factor(params[index++]);}
     return detail::LinearLeastSquares(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
 }
 
@@ -123,25 +153,38 @@ unsigned int SmartFitter::size() const {
 }
 
 unsigned int SmartFitter::dof() const {
-    return data.size() - 2 - settings::fit::fit_excluded_volume - settings::fit::fit_hydration - settings::fit::fit_solvent_density;
+    return data.size() - 2 - get_number_of_enabled_pars();
 }
 
 void SmartFitter::set_guess(std::vector<mini::Parameter>&& guess) {
-    if (unsigned int N = settings::fit::fit_hydration + settings::fit::fit_excluded_volume + settings::fit::fit_solvent_density; guess.size() != N) {
+    if (unsigned int N = get_number_of_enabled_pars(); guess.size() != N) {
         throw except::invalid_argument("SmartFitter::set_guess: Invalid number of parameters. Got " + std::to_string(guess.size()) + ", expected " + std::to_string(N) + ".");
     }
-    for (auto g : guess) {
-        if (g.name == "c" && !settings::fit::fit_hydration) {
-            throw except::invalid_argument("SmartFitter::set_guess: Cannot set hydration scaling factor when hydration is disabled.");
-        }
-        if (g.name == "d" && !settings::fit::fit_excluded_volume) {
-            throw except::invalid_argument("SmartFitter::set_guess: Cannot set excluded volume scaling factor when excluded volume is disabled.");
-        }
-        if (g.name == "e" && !settings::fit::fit_solvent_density) {
-            throw except::invalid_argument("SmartFitter::set_guess: Cannot set solvent density scaling factor when solvent density is disabled.");
+
+    // validate and reorder the parameters
+    std::vector<int> order;
+    for (unsigned int i = 0; i < guess.size(); ++i) {
+        if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::SCALING_WATER)) {
+            if (!settings::fit::fit_hydration) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set hydration scaling factor when hydration is disabled.");}
+            order.push_back(0);
+        } else if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::SCALING_EXV)) {
+            if (!settings::fit::fit_excluded_volume) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set excluded volume scaling factor when excluded volume is disabled.");}
+            order.push_back(1);
+        } else if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::SCALING_RHO)) {
+            if (!settings::fit::fit_solvent_density) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set solvent density scaling factor when solvent density is disabled.");}
+            order.push_back(2);
+        } else if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC)) {
+            if (!settings::fit::fit_atomic_debye_waller) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set atomic Debye-Waller factor when atomic Debye-Waller is disabled.");}
+            order.push_back(3);
+        } else if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV)) {
+            if (!settings::fit::fit_exv_debye_waller) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set excluded volume Debye-Waller factor when excluded volume Debye-Waller is disabled.");}
+            order.push_back(4);
+        } else {
+            throw except::invalid_argument("SmartFitter::set_guess: Unknown parameter name: \"" + guess[i].name + "\"");
         }
     }
-    this->guess = std::move(guess);
+    this->guess.clear();
+    std::for_each(order.begin(), order.end(), [&] (int i) {this->guess.push_back(guess[i]);});
 }
 
 void SmartFitter::set_model(std::unique_ptr<hist::DistanceHistogram> h) {

@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
@@ -224,5 +225,64 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     REQUIRE(Iq.size() == profile_sum.size());
     for (unsigned int i = 0; i < Iq.size(); ++i) {
         REQUIRE_THAT(Iq[i], Catch::Matchers::WithinAbs(profile_sum[i], 1e-3));
+    }
+}
+
+TEST_CASE("CompositeDistanceHistogramFFAvg: Debye-Waller factors") {
+    settings::general::verbose = false;
+    data::Molecule protein("tests/files/2epe.pdb");
+    auto h = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+    auto h_cast = static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
+
+    auto analytical = [&] (double Ba_, double Bx_) {
+        h_cast->apply_atomic_debye_waller_factor(0);
+        h_cast->apply_exv_debye_waller_factor(0);
+        auto aa = h_cast->get_profile_aa();
+        auto aw = h_cast->get_profile_aw();
+        auto ww = h_cast->get_profile_ww();
+        auto xx = h_cast->get_profile_xx();
+        auto ax = h_cast->get_profile_ax();
+        auto wx = h_cast->get_profile_wx();
+        auto Iq = std::vector<double>(aa.size(), 0);
+        for (unsigned int i = 0; i < Iq.size(); ++i) {
+            double Ba = hist::CompositeDistanceHistogramFFAvg::get_atomic_debye_waller_factor(constants::axes::q_vals[i], Ba_);
+            double Bx = hist::CompositeDistanceHistogramFFAvg::get_exv_debye_waller_factor(constants::axes::q_vals[i], Bx_);
+            Iq[i] = Ba*Ba*aa[i] + Ba*aw[i] + ww[i] + Bx*Bx*xx[i] - Ba*Bx*ax[i] - Bx*wx[i];
+        }
+        return Iq;
+    };
+
+    SECTION("no change") {
+        auto Iq_base = analytical(0, 0);
+        h_cast->apply_atomic_debye_waller_factor(0);
+        h_cast->apply_exv_debye_waller_factor(0);
+        auto Iq = h_cast->debye_transform();
+        REQUIRE(compare_hist(Iq_base, Iq));
+    }
+
+    SECTION("atomic") {
+        auto B = GENERATE(0.1, 0.5, 1.0, 2.0);
+        auto Iq_exp = analytical(B, 0);
+        h_cast->apply_atomic_debye_waller_factor(B);
+        auto Iq = h_cast->debye_transform();
+        REQUIRE(compare_hist(Iq_exp, Iq));
+    }
+
+    SECTION("excluded volume") {
+        auto B = GENERATE(0.1, 0.5, 1.0, 2.0);
+        auto Iq_exp = analytical(0, B);
+        h_cast->apply_exv_debye_waller_factor(B);
+        auto Iq = h_cast->debye_transform();
+        REQUIRE(compare_hist(Iq_exp, Iq));
+    }
+
+    SECTION("both") {
+        auto Ba = GENERATE(0.1, 0.5, 1.0, 2.0);
+        auto Bx = GENERATE(0.1, 0.5, 1.0, 2.0);
+        auto Iq_exp = analytical(Ba, Bx);
+        h_cast->apply_atomic_debye_waller_factor(Ba);
+        h_cast->apply_exv_debye_waller_factor(Bx);
+        auto Iq = h_cast->debye_transform();
+        REQUIRE(compare_hist(Iq_exp, Iq));
     }
 }

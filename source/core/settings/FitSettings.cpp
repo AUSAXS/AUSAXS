@@ -14,6 +14,8 @@ unsigned int settings::fit::max_iterations = 100;
 bool settings::fit::fit_excluded_volume = false;
 bool settings::fit::fit_solvent_density = false;
 bool settings::fit::fit_hydration = true;
+bool settings::fit::fit_atomic_debye_waller = false;
+bool settings::fit::fit_exv_debye_waller = false;
 
 namespace ausaxs::settings::fit::io {
     settings::io::SettingSection general_settings("General", {

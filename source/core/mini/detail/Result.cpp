@@ -38,6 +38,14 @@ FittedParameter& Result::get_parameter(const std::string& name) {
     return const_cast<FittedParameter&>(std::as_const(*this).get_parameter(name));
 }
 
+const FittedParameter& Result::get_parameter(ausaxs::constants::fit::Parameters param) const {
+    return get_parameter(constants::fit::to_string(param));
+}
+
+FittedParameter& Result::get_parameter(ausaxs::constants::fit::Parameters param) {
+    return const_cast<FittedParameter&>(std::as_const(*this).get_parameter(param));
+}
+
 const FittedParameter& Result::get_parameter(unsigned int index) const {
     if (size() < index) {throw except::out_of_bounds("Result::get_parameter: Index \"" + std::to_string(index) + "\" is out of bounds (" + std::to_string(size()) + ").");}
     return parameters[index];

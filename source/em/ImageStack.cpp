@@ -97,14 +97,14 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             p->generate_new_hydration();    // generate a new hydration layer
 
             // pointer cast is ok since the type should always be HydrationFitter when hydration is enabled
-            fitter->set_guess({mini::Parameter{"c", last_c, {0, 200}}});
+            fitter->set_guess({mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), last_c, {0, 200}}});
             fitter->set_algorithm(mini::algorithm::SCAN);
             fitter->set_model(p->get_histogram());
 
-            auto mass = p->get_excluded_volume_mass()/1e3;          // mass in kDa
-            last_fit = fitter->fit();                               // do the fit
-            water_factors.push_back(last_fit->get_parameter("c"));  // record c value
-            last_c = last_fit->get_parameter("c").value;            // update c for next iteration
+            auto mass = p->get_excluded_volume_mass()/1e3;                                                // mass in kDa
+            last_fit = fitter->fit();                                                                     // do the fit
+            water_factors.push_back(last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER));  // record c value
+            last_c = last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER).value;            // update c for next iteration
             evals.push_back(detail::ExtendedLandscape(params[0], mass, p->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
         } else {
             p->clear_grid();                                    // clear grid from previous iteration
@@ -466,7 +466,13 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(res, fval, dof+3); // +3 because they'll be subtracted again by the add_fit call
     {
         auto data = fitter->get_data();
-        emfit->set_data_curves(data.x(), data.y(), data.yerr(), fitter->get_model_curve({last_fit->get_parameter("c")}), fitter->get_residuals({last_fit->get_parameter("c")}));
+        emfit->set_data_curves(
+            data.x(), 
+            data.y(), 
+            data.yerr(), 
+            fitter->get_model_curve({last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER)}), 
+            fitter->get_residuals({last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER)})
+        );
     }
     emfit->add_fit(last_fit.get(), true);
     emfit->fevals = evals.evals.size();

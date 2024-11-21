@@ -32,8 +32,6 @@ CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
     initialize(p_tot_ax.get_weighted_axis(), p_tot_xx.get_weighted_axis());
 }
 
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::ff_table = CompositeDistanceHistogramFFGrid::generate_ff_table();
-
 template<FormFactorType T>
 void CompositeDistanceHistogramFFGrid::regenerate_ff_table(T&& ffx) {ff_table = generate_ff_table(std::move(ffx));}
 template void CompositeDistanceHistogramFFGrid::regenerate_ff_table(ExvFormFactor&&);
@@ -134,6 +132,12 @@ observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGrid::get_sinc
 }
 
 void CompositeDistanceHistogramFFGrid::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
+    static bool init_table = false;
+    if (!init_table) {
+        ff_table = generate_ff_table();
+        init_table = true;
+    }
+
     this->distance_axes = {.xx=std::move(d_axis_xx), .ax=std::move(d_axis_ax)};
     sinc_tables = {.xx=std::make_unique<table::VectorDebyeTable>(this->distance_axes.xx), .ax=std::make_unique<table::VectorDebyeTable>(this->distance_axes.ax)};
 }

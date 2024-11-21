@@ -35,6 +35,7 @@ target_sources(ausaxs_core PRIVATE
 	"intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.cpp"
 	"intensity_calculator/DistanceHistogram.cpp"
 	"intensity_calculator/ExactDebyeCalculator.cpp"
+	"intensity_calculator/ICompositeDistanceHistogramExv.cpp"
 	"intensity_calculator/crysol/CompositeDistanceHistogramCrysol.cpp"
 	"intensity_calculator/foxs/CompositeDistanceHistogramFoXS.cpp"
 	"intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.cpp"

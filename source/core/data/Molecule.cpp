@@ -210,6 +210,7 @@ double Molecule::get_volume_vdw() const {
 
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
@@ -253,16 +254,28 @@ double Molecule::get_volume_exv(double d) const {
             return fraser_helper()*CompositeDistanceHistogramFoXS::exv_factor(0, d);
         }
 
-        // grid-based volumes
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv:        
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid: {
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: {
             // note: not equivalent to grid volume! 
             // the grid can be finer than the resolution of the excluded volume, in which case every Nth bin is used
             unsigned int exv_atoms = get_grid()->generate_excluded_volume(false).interior.size();
             double single_vol = std::pow(settings::grid::cell_width, 3);
             return exv_atoms*single_vol;
+        }
+
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: {
+            // scale the volume by the cubed factor
+            auto exv = get_grid()->generate_excluded_volume(false).interior.size();
+            return exv*std::pow(settings::grid::cell_width*d, 3);
+        }
+
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: {
+            // scale surface volumes by the factor
+            auto exv = get_grid()->generate_excluded_volume(true);
+            unsigned int interior_atoms = exv.interior.size();
+            unsigned int exterior_atoms = exv.surface.size();
+            double interior_vol = std::pow(settings::grid::cell_width, 3);
+            double exterior_vol = std::pow(settings::grid::cell_width, 3)*CompositeDistanceHistogramFFGridSurface::exv_factor(0, d);
+            return interior_atoms*interior_vol + exterior_atoms*exterior_vol;
         }
 
         default:

@@ -173,6 +173,16 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_solvent_den
 }
 
 template<typename FormFactorTableType>
+void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_atomic_debye_waller_factor(double sigma) {
+    free_params.DW_sigma_atomic = sigma;
+}
+
+template<typename FormFactorTableType>
+void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_exv_debye_waller_factor(double sigma) {
+    free_params.DW_sigma_exv = sigma;
+}
+
+template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_aa() const {
     std::vector<double> aa;
     std::tie(aa, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();
@@ -222,24 +232,93 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_distance_pro
 }
 
 template<typename FormFactorTableType>
-std::tuple<const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&>
-CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_intensity_profiles() const {
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q, double sigma) {
+    return std::exp(-q*q*sigma*sigma*0.5);
+}
+
+template<typename FormFactorTableType>
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_exv_debye_waller_factor(double q, double sigma) {
+    return std::exp(-q*q*sigma*sigma*0.5);
+}
+
+template<typename FormFactorTableType>
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q) const {
+    return get_atomic_debye_waller_factor(q, free_params.DW_sigma_atomic);
+}
+
+template<typename FormFactorTableType>
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_exv_debye_waller_factor(double q) const {
+    return get_exv_debye_waller_factor(q, free_params.DW_sigma_exv);
+}
+
+template<typename FormFactorTableType>
+std::tuple<
+    std::vector<double>, std::vector<double>, std::vector<double>, 
+    std::vector<double>, std::vector<double>, std::vector<double>
+> CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::apply_debye_waller_factors(const std::tuple<
+    const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
+    const std::vector<double>&, const std::vector<double>&, const std::vector<double>&> profiles
+) const {
+    if (free_params.DW_sigma_atomic == 0 && free_params.DW_sigma_exv == 0) {return profiles;}
+    auto pool = utility::multi_threading::get_global_pool();
+    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+
+    // copy the profiles
+    std::vector<double> aa, ax, aw, xx, wx, ww;
+    std::tie(aa, ax, aw, xx, wx, ww) = profiles;
+
+    std::vector<double> B_atomic(debye_axis.bins, 0), B_exv(debye_axis.bins, 0);
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {B_atomic[q-q0] = get_atomic_debye_waller_factor(constants::axes::q_vals[q]);}
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {B_exv[q-q0] = get_exv_debye_waller_factor(constants::axes::q_vals[q]);}
+
+    assert(aa.size() == B_atomic.size() && "CompositeDistanceHistogramFFAvgBase::apply_debye_waller_factors: B_atomic.size() != cache.intensity_profiles.aa.size()");
+    assert(ax.size() == B_atomic.size() && "CompositeDistanceHistogramFFAvgBase::apply_debye_waller_factors: B_atomic.size() != cache.intensity_profiles.ax.size()");
+    assert(aw.size() == B_atomic.size() && "CompositeDistanceHistogramFFAvgBase::apply_debye_waller_factors: B_atomic.size() != cache.intensity_profiles.aw.size()");
+    assert(xx.size() == B_exv.size()    && "CompositeDistanceHistogramFFAvgBase::apply_debye_waller_factors: B_exv.size() != cache.intensity_profiles.xx.size()");
+    assert(ax.size() == B_exv.size()    && "CompositeDistanceHistogramFFAvgBase::apply_debye_waller_factors: B_exv.size() != cache.intensity_profiles.ax.size()");
+    assert(wx.size() == B_exv.size()    && "CompositeDistanceHistogramFFAvgBase::apply_debye_waller_factors: B_exv.size() != cache.intensity_profiles.wx.size()");
+
+    pool->detach_task([&] () {
+        std::transform(aa.begin(), aa.end(), B_atomic.begin(), aa.begin(), [] (double I, double B) {return I*B*B;});
+    });
+    pool->detach_task([&] () {
+        std::transform(xx.begin(), xx.end(), B_exv.begin(), xx.begin(), [] (double I, double B) {return I*B*B;});
+    });
+    pool->detach_task([&] () {
+        for (unsigned int i = 0; i < ax.size(); ++i) {ax[i] *= B_atomic[i]*B_exv[i];}
+    });
+    pool->detach_task([&] () {
+        std::transform(aw.begin(), aw.end(), B_atomic.begin(), aw.begin(), std::multiplies<>());
+    });
+    pool->detach_task([&] () {
+        std::transform(wx.begin(), wx.end(), B_exv.begin(), wx.begin(), std::multiplies<>());
+    });
+    pool->wait();
+    return std::make_tuple(std::move(aa), std::move(ax), std::move(aw), std::move(xx), std::move(wx), std::move(ww));
+}
+
+template<typename FormFactorTableType>
+std::tuple<
+    std::vector<double>, std::vector<double>, std::vector<double>, 
+    std::vector<double>, std::vector<double>, std::vector<double>
+> CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_intensity_profiles() const {
     if (!cache.sinqd.valid) {
         cache_refresh_sinqd();
         cache_refresh_intensity_profiles(true, true, true);
         cache.sinqd.valid = true;
     } else {
-        if (cache.intensity_profiles.cached_cx != free_params.cx || cache.intensity_profiles.cached_crho != free_params.crho) {
-            cache.intensity_profiles.cached_cw != free_params.cw ? cache_refresh_intensity_profiles(false, true, true) : cache_refresh_intensity_profiles(false, false, true);
-        } else if (cache.intensity_profiles.cached_cw != free_params.cw) {
-            cache_refresh_intensity_profiles(false, true, false);
+        bool cx_changed = cache.intensity_profiles.cached_cx != free_params.cx || cache.intensity_profiles.cached_crho != free_params.crho;
+        bool cw_changed = cache.intensity_profiles.cached_cw != free_params.cw;
+        if (cx_changed || cw_changed) {
+            cache_refresh_intensity_profiles(false, cw_changed, cx_changed);
         }
     }
 
-    return std::forward_as_tuple(
+    return apply_debye_waller_factors(std::forward_as_tuple(
         cache.intensity_profiles.aa, cache.intensity_profiles.ax, cache.intensity_profiles.aw, 
         cache.intensity_profiles.xx, cache.intensity_profiles.wx, cache.intensity_profiles.ww
-    );
+    ));
 }
 
 template<typename FormFactorTableType>
@@ -335,10 +414,12 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
         cache.intensity_profiles.wx = std::vector<double>(debye_axis.bins, 0);
     }
 
+    // calculate exv factor
     std::vector<double> cx(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(q);}
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(constants::axes::q_vals[q]);}
 
     if (sinqd_changed) {
+        // aa
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -351,6 +432,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     }
 
     if (cx_changed) {
+        // ax
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
@@ -358,6 +440,8 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
                 }
             }
         });
+
+        // xx
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                 cache.intensity_profiles.xx[q-q0] += std::pow(cx[q-q0]*free_params.crho, 2)*cache.sinqd.xx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
@@ -366,6 +450,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     }
 
     if (cw_changed) {
+        // aw
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
@@ -373,6 +458,8 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
                 }
             }
         });
+
+        // ww
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                 cache.intensity_profiles.ww[q-q0] += free_params.cw*free_params.cw*cache.sinqd.ww.index(q-q0)*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
@@ -381,12 +468,14 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     }
 
     if (cw_changed || cx_changed) {
+        // wx
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                 cache.intensity_profiles.wx[q-q0] += 2*free_params.crho*cx[q-q0]*free_params.cw*cache.sinqd.wx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
             }
         });
     }
+
     cache.intensity_profiles.cached_cx = free_params.cx;
     cache.intensity_profiles.cached_crho = free_params.crho;
     cache.intensity_profiles.cached_cw = free_params.cw;

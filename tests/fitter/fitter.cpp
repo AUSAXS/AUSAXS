@@ -19,36 +19,6 @@
 using namespace ausaxs;
 using namespace data;
 
-// TODO: get proper test data for this - the typical EM maps are too large to be included in the repo
-// TEST_CASE("fitter: EM_consistency", "[manual]") {
-//     unsigned int repeats = 100;
-
-//     settings::molecule::use_effective_charge = false;
-//     settings::em::sample_frequency = 2;
-//     // setting::axes::qmax = 0.4;
-
-//     // prepare measured data
-//     Molecule protein("tests/files/2epe.pdb");
-//     SimpleDataset data = protein.get_histogram()->debye_transform();
-//     data.reduce(settings::fit::N, true);
-//     data.limit_x(Limit(settings::axes::qmin, settings::axes::qmax));
-//     data.simulate_errors();
-
-//     // prepare fit data
-//     em::ImageStack image("tests/files/2epe.ccp4");
-
-//     std::vector<double> optimal_vals;
-//     for (unsigned int i = 0; i < repeats; i++) {
-//         auto hist = protein.get_histogram();
-//         auto fit = image.fit(std::move(hist));
-//         optimal_vals.push_back(fit->get_parameter("cutoff").value);
-//     }
-//     hist::Histogram h(optimal_vals);
-//     h.generate_axis();
-
-//     plots::PlotHistogram::quick_plot(h, {}, settings::general::output + "tests/fitter/consistency_check.png");
-// }
-
 TEST_CASE("fitter: consistent_charge_scaling") {
     settings::molecule::use_effective_charge = true;
     settings::general::verbose = false;
@@ -118,7 +88,7 @@ TEST_CASE("SmartFitter::fit") {
             auto d = h->debye_transform().as_dataset();
             d.simulate_errors();
             fitter.set_data(d);
-            REQUIRE_THAT(fitter.fit()->get_parameter("c").value, Catch::Matchers::WithinAbs(v, 1e-3));
+            REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::SCALING_WATER).value, Catch::Matchers::WithinAbs(v, 1e-3));
         }
     }
 
@@ -132,7 +102,7 @@ TEST_CASE("SmartFitter::fit") {
             auto d = h->debye_transform().as_dataset();
             d.simulate_errors();
             fitter.set_data(d);
-            REQUIRE_THAT(fitter.fit()->get_parameter("d").value, Catch::Matchers::WithinAbs(v, 1e-3));
+            REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::SCALING_EXV).value, Catch::Matchers::WithinAbs(v, 1e-3));
         }
     }
 
@@ -146,7 +116,38 @@ TEST_CASE("SmartFitter::fit") {
             auto d = h->debye_transform().as_dataset();
             d.simulate_errors();
             fitter.set_data(d);
-            REQUIRE_THAT(fitter.fit()->get_parameter("e").value, Catch::Matchers::WithinAbs(v, 1e-3));
+            REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::SCALING_RHO).value, Catch::Matchers::WithinAbs(v, 1e-3));
+        }
+    }
+
+    SECTION("atomic debye waller") {
+        settings::fit::fit_hydration = false;
+        settings::fit::fit_excluded_volume = false;
+        settings::fit::fit_solvent_density = false;
+        settings::fit::fit_atomic_debye_waller = true;
+
+        for (auto v : std::vector{0.1, 0.5, 1.0, 2.0}) {
+            h->apply_atomic_debye_waller_factor(v);
+            auto d = h->debye_transform().as_dataset();
+            d.simulate_errors();
+            fitter.set_data(d);
+            REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::DEBYE_WALLER_ATOMIC).value, Catch::Matchers::WithinAbs(v, 1e-3));
+        }
+    }
+
+    SECTION("excluded volume debye waller") {
+        settings::fit::fit_hydration = false;
+        settings::fit::fit_excluded_volume = false;
+        settings::fit::fit_solvent_density = false;
+        settings::fit::fit_atomic_debye_waller = false;
+        settings::fit::fit_exv_debye_waller = true;
+
+        for (auto v : std::vector{0.1, 0.5, 1.0, 2.0}) {
+            h->apply_exv_debye_waller_factor(v);
+            auto d = h->debye_transform().as_dataset();
+            d.simulate_errors();
+            fitter.set_data(d);
+            REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::DEBYE_WALLER_EXV).value, Catch::Matchers::WithinAbs(v, 1e-3));
         }
     }
 }
@@ -156,6 +157,12 @@ TEST_CASE("fitter: correct dof") {
     Molecule protein("tests/files/2epe.pdb");
     SimpleDataset data("tests/files/2epe.dat");
     unsigned int size = data.size();
+
+    settings::fit::fit_hydration = false;
+    settings::fit::fit_excluded_volume = false;
+    settings::fit::fit_solvent_density = false;
+    settings::fit::fit_atomic_debye_waller = false;
+    settings::fit::fit_exv_debye_waller = false;
 
     SECTION("LinearFitter") {
         fitter::LinearFitter fitter(data, protein.get_histogram());
@@ -184,6 +191,14 @@ TEST_CASE("fitter: correct dof") {
             settings::fit::fit_excluded_volume = false;
             settings::fit::fit_solvent_density = true;
             fit_and_check(3);
+
+            settings::fit::fit_solvent_density = false;
+            settings::fit::fit_atomic_debye_waller = true;
+            fit_and_check(3);
+
+            settings::fit::fit_atomic_debye_waller = false;
+            settings::fit::fit_exv_debye_waller = true;
+            fit_and_check(3);
         }
 
         SECTION("double") {
@@ -201,6 +216,13 @@ TEST_CASE("fitter: correct dof") {
             settings::fit::fit_excluded_volume = true;
             settings::fit::fit_solvent_density = true;
             fit_and_check(4);
+
+            settings::fit::fit_hydration = false;
+            settings::fit::fit_excluded_volume = false;
+            settings::fit::fit_solvent_density = false;
+            settings::fit::fit_atomic_debye_waller = true;
+            settings::fit::fit_exv_debye_waller = true;
+            fit_and_check(4);
         }
 
         SECTION("triple") {
@@ -208,6 +230,30 @@ TEST_CASE("fitter: correct dof") {
             settings::fit::fit_excluded_volume = true;
             settings::fit::fit_solvent_density = true;
             fit_and_check(5);
+        }
+
+        SECTION("quadruple") {
+            settings::fit::fit_hydration = true;
+            settings::fit::fit_excluded_volume = true;
+            settings::fit::fit_solvent_density = true;
+            settings::fit::fit_atomic_debye_waller = true;
+            fit_and_check(6);
+
+            settings::fit::fit_hydration = true;
+            settings::fit::fit_excluded_volume = true;
+            settings::fit::fit_solvent_density = true;
+            settings::fit::fit_atomic_debye_waller = false;
+            settings::fit::fit_exv_debye_waller = true;
+            fit_and_check(6);
+        }
+
+        SECTION("quintuple") {
+            settings::fit::fit_hydration = true;
+            settings::fit::fit_excluded_volume = true;
+            settings::fit::fit_solvent_density = true;
+            settings::fit::fit_atomic_debye_waller = true;
+            settings::fit::fit_exv_debye_waller = true;
+            fit_and_check(7);
         }
     }
 }

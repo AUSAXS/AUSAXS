@@ -113,6 +113,12 @@ observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGridSurface::g
 }
 
 void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
+    static bool initialized = false;
+    if (!initialized) {
+        CompositeDistanceHistogramFFGrid::ff_table = CompositeDistanceHistogramFFGrid::generate_ff_table();
+        initialized = true;
+    }
+
     this->distance_axes = {.xx=std::move(d_axis_xx), .ax=std::move(d_axis_ax)};
     sinc_tables = {.xx=std::make_unique<table::VectorDebyeTable>(this->distance_axes.xx), .ax=std::make_unique<table::VectorDebyeTable>(this->distance_axes.ax)};
 
@@ -195,6 +201,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(constants::axes::q_vals[q]);}
 
     if (sinqd_changed) {
+        // aa
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -208,6 +215,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
     }
 
     if (cx_changed) {
+        // ax
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                 auto ax = evaluate_ax_distance_profile(cx[q]);
@@ -218,6 +226,8 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
                 }
             }
         });
+
+        // xx
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                 auto xx = evaluate_xx_distance_profile(cx[q]);
@@ -229,6 +239,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
     }
 
     if (cw_changed) {
+        // aw
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
@@ -238,6 +249,8 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
                 }
             }
         });
+
+        // ww
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                 this->cache.intensity_profiles.ww[q-q0] += 
@@ -248,12 +261,13 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
     }
 
     if (cw_changed || cx_changed) {
+        // wx
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                 auto wx = evaluate_wx_distance_profile(cx[q]);
                 double wx_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
                 this->cache.intensity_profiles.wx[q-q0] += 
-                    2*this->free_params.crho*wx_sum*this->free_params.crho*this->free_params.cw*ff_table.index(form_factor::water_bin, form_factor::exv_bin).evaluate(q);
+                    2*this->free_params.crho*wx_sum*this->free_params.cw*ff_table.index(form_factor::water_bin, form_factor::exv_bin).evaluate(q);
             }
         });
     }
