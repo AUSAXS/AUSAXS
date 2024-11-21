@@ -12,6 +12,7 @@
 #include <fitter/FitterFwd.h>
 #include <grid/GridFwd.h>
 #include <hydrate/HydrationFwd.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 
 #include <string>
 #include <vector>
