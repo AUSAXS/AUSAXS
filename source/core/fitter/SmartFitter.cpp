@@ -183,6 +183,7 @@ void SmartFitter::set_guess(std::vector<mini::Parameter>&& guess) {
             throw except::invalid_argument("SmartFitter::set_guess: Unknown parameter name: \"" + guess[i].name + "\"");
         }
     }
+    this->guess.clear();
     std::for_each(order.begin(), order.end(), [&] (int i) {this->guess.push_back(guess[i]);});
 }
 
