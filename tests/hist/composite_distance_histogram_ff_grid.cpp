@@ -207,7 +207,6 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
 
 // Check that solvent scaling is consistent
 TEST_CASE("HistogramManagerMTFFGrid: consistent solvent density fitting", "[files]") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
