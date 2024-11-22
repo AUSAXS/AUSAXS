@@ -16,7 +16,7 @@ bool Miller::operator==(const Miller& other) const {return h == other.h && k == 
 bool Miller::operator!=(const Miller& other) const {return !(*this == other);}
 Miller Miller::operator*(int n) const {return Miller(h*n, k*n, l*n);}
 
-Vector3<double> Miller::normalize() const {
+ausaxs::Vector3<double> Miller::normalize() const {
     double length = std::sqrt(h*h + k*k + l*l);
     return Vector3<double>(h/length, k/length, l/length);
 }

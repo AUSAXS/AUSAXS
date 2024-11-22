@@ -124,7 +124,7 @@ int FibonacciMillers::estimate_n(double) const {
     // return 1000;
 }
 
-std::vector<Vector3<double>> FibonacciMillers::generate_fibonacci_sphere(int n) const {
+std::vector<ausaxs::Vector3<double>> FibonacciMillers::generate_fibonacci_sphere(int n) const {
     std::cout << "Generating fibonacci sphere with " << n << " points" << std::endl;
     std::vector<Vector3<double>> points(n);
 

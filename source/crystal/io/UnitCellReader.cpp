@@ -14,13 +14,13 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::read(const ::io::ExistingFile& filename) const {
+std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::read(const ausaxs::io::ExistingFile& filename) const {
     std::ifstream file(filename);
-    if (!file.is_open()) {throw except::io_error("GridReader::read: Could not open file " + filename);}
+    if (!file.is_open()) {throw except::io_error("GridReader::read: Could not open file " + filename.str());}
 
     std::string line;
     std::getline(file, line);
-    if (line.substr(0, 6) != "BASIS") {throw except::io_error("GridReader::read: File \"" + filename + "\" is not a crystal file (missing section: \"BASIS\").");}
+    if (line.substr(0, 6) != "BASIS") {throw except::io_error("GridReader::read: File \"" + filename.str() + "\" is not a crystal file (missing section: \"BASIS\").");}
 
     std::getline(file, line);
     auto tokens = utility::split(line, ' ');
@@ -36,7 +36,7 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::re
 
     std::getline(file, line);
     std::getline(file, line);
-    if (line.substr(0, 11) != "CRYSTALDATA") {throw except::io_error("GridReader::read: File \"" + filename + "\" is not a crystal file (missing section: \"CRYSTALDATA\").");}
+    if (line.substr(0, 11) != "CRYSTALDATA") {throw except::io_error("GridReader::read: File \"" + filename.str() + "\" is not a crystal file (missing section: \"CRYSTALDATA\").");}
 
     // sanity checks
     if (xaxis.y() != 0 || xaxis.z() != 0) {throw except::io_error("GridReader::read: Grid x-axis must be parallel to the x-axis");}

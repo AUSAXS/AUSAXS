@@ -17,12 +17,12 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const ::io::ExistingFile& input) const {
+std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const ausaxs::io::ExistingFile& input) const {
     data::Molecule protein(input);
     double expansion = settings::crystal::grid_expansion;
 
     auto prot_atoms = protein.get_atoms();
-    if (prot_atoms.empty()) {throw except::invalid_argument("PDBReader::read: No atoms were found in file \"" + input + "\".");}
+    if (prot_atoms.empty()) {throw except::invalid_argument("PDBReader::read: No atoms were found in file \"" + input.str() + "\".");}
     auto position = prot_atoms[0].get_coordinates();
     Axis3D axis({position.x(), position.x(), position.y(), position.y(), position.z(), position.z()});
     for (const auto& atom : prot_atoms) {

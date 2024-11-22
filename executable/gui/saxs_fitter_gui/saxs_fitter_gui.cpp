@@ -360,12 +360,10 @@ auto selection_menu_settings(gui::view&) {
 				case ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMT:
 				case ausaxs::settings::hist::HistogramManagerChoice::PartialHistogramManager:
 				case ausaxs::settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-					ausaxs::settings::molecule::use_effective_charge = true;
 					ausaxs::settings::fit::fit_excluded_volume = false;
 					deck.select(0);
 					break;
 				default:
-					ausaxs::settings::molecule::use_effective_charge = false;
 					deck.select(1);
 					break;
 			}

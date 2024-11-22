@@ -43,7 +43,6 @@ int main(int argc, char const *argv[]) {
     app.add_option("--iterations", settings::rigidbody::iterations, "Maximum number of iterations. Default: 1000.");
     app.add_option("--constraints", settings::rigidbody::detail::constraints, "Constraints to apply to the rigid body.");
     app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered. Default: true.");
-    app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, "Decides whether the protein will be centered. Default: true.");
     app.add_flag("--quit-on-unknown-atom,!--no-quit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, "Decides whether the program will quit if an unknown atom is found. Default: true.");
     CLI11_PARSE(app, argc, argv);
 
