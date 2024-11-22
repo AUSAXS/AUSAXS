@@ -19,7 +19,6 @@ using namespace rigidbody;
 
 TEST_CASE("BodySelectStrategy::next") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};

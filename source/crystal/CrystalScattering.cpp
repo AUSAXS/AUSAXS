@@ -88,7 +88,7 @@ void CrystalScattering::initialize() {
 std::mutex checkpointMutex;
 void CrystalScattering::save_checkpoint(unsigned int stop, const std::vector<Fval>& fvals) {
     std::lock_guard<std::mutex> lock(checkpointMutex); // Lock the mutex
-    ::io::File file(settings::general::output + "temp/checkpoint.dat"); 
+    ausaxs::io::File file(settings::general::output + "temp/checkpoint.dat"); 
     file.create();
 
     std::ofstream checkpoint_file(file, std::ios::binary);
@@ -107,7 +107,7 @@ void CrystalScattering::save_checkpoint(unsigned int stop, const std::vector<Fva
 }
 
 unsigned int CrystalScattering::load_checkpoint(std::vector<Fval>& fvals) {
-    ::io::File file(settings::general::output + "temp/checkpoint.dat"); 
+    ausaxs::io::File file(settings::general::output + "temp/checkpoint.dat"); 
 
     std::ifstream checkpoint_file(file, std::ios::binary);
     if (!checkpoint_file.is_open()) {

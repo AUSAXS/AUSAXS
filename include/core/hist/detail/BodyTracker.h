@@ -10,8 +10,7 @@ namespace ausaxs::signaller {class Signaller;}
 namespace ausaxs::hist {
     struct BodyTracker {
         BodyTracker(observer_ptr<const data::Molecule> protein);
-
-        ~BodyTracker();
+        virtual ~BodyTracker();
 
         /**
          * @brief Get a signalling object for signalling a change of state. 

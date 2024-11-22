@@ -95,7 +95,6 @@ class DistanceHistogramDebug : public DistanceHistogram {
 };
 
 TEST_CASE("WeightedDistribution: sinc_table") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -127,7 +126,6 @@ TEST_CASE("WeightedDistribution: sinc_table") {
 
 // Check that the weighted distance axis is correctly calculated for all histogram managers.
 TEST_CASE("WeightedDistribution: distance_calculators") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -169,7 +167,6 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
 
 // Check that the basic histogram managers agree on a weighted debye transform.
 TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::general::warnings = true;
     auto d_exact = SimpleCube::d_exact;
@@ -291,7 +288,6 @@ TEST_CASE("6lyz_exv", "[manual]") {
         return I;
     };
 
-    settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::axes::qmin = 5e-2;
     settings::axes::qmax = 1;
@@ -314,7 +310,6 @@ TEST_CASE("6lyz_exv", "[manual]") {
 }
 
 TEST_CASE("sphere_comparison", "[manual]") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::axes::qmax = 1;
     auto lims = Limit3D(-50, 50, -50, 50, -50, 50);
@@ -356,7 +351,6 @@ TEST_CASE("sphere_comparison", "[manual]") {
 }
 
 TEST_CASE("real_comparison", "[manual]") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::axes::qmax = 1;
 

@@ -11,6 +11,6 @@
 namespace ausaxs::crystal::io {
     struct CrystalReader {
         virtual ~CrystalReader() = default;
-        virtual std::pair<Basis3D, std::vector<Vector3<double>>> read(const ::io::ExistingFile& input) const = 0;
+        virtual std::pair<Basis3D, std::vector<Vector3<double>>> read(const ausaxs::io::ExistingFile& input) const = 0;
     };
 }

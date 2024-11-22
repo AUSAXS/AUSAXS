@@ -341,8 +341,8 @@ TEST_CASE("Atom::equals_content") {
     }
 }
 
-TEST_CASE("use_effective_charge") {
-    settings::molecule::use_effective_charge = true;
+TEST_CASE("Atom: implicit hydrogens") {
+    // settings::molecule::use_effective_charge = true;
     Atom a(15, "O", "altLoc", "LYS", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::O, "0+");
 
     auto res = constants::charge::get_charge(constants::atom_t::O) + constants::hydrogen_atoms::residues.get("LYS").get("O", constants::atom_t::O);
@@ -351,11 +351,11 @@ TEST_CASE("use_effective_charge") {
     CHECK(a.get_effective_charge() == res+1.5);
 
     CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O) + constants::hydrogen_atoms::residues.get("LYS").get("O", constants::atom_t::O));
-    settings::molecule::use_effective_charge = false;
+    // settings::molecule::use_effective_charge = false;
     CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O));
 }
 
-TEST_CASE("operators") {
+TEST_CASE("Atom: operators") {
 //*** ATOMS ***//
     Atom a1({3, 0, 5}, 2, constants::atom_t::He, "", 3);
     Atom a2 = a1;

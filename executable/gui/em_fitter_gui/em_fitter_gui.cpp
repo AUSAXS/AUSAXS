@@ -682,7 +682,6 @@ int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
 	ausaxs::settings::axes::qmin = 0;
 	ausaxs::settings::axes::qmax = 1;
-    ausaxs::settings::molecule::use_effective_charge = false;
     ausaxs::settings::em::mass_axis = true;
     ausaxs::settings::em::hydrate = true;
     ausaxs::settings::fit::verbose = true;

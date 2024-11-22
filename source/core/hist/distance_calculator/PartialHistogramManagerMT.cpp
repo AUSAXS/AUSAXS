@@ -138,6 +138,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
 template<bool use_weighted_distribution>
 void PartialHistogramManagerMT<use_weighted_distribution>::update_compact_representation_body(unsigned int index) {
     this->coords_a[index] = detail::CompactCoordinates(this->protein->get_body(index));
+    this->apply_simple_excluded_volume(this->coords_a[index]);
 }
 
 template<bool use_weighted_distribution>
@@ -323,7 +324,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_aa(unsigned int 
         }
     };
 
-    detail::CompactCoordinates& coords_n = this->coords_a[n];
+    auto& coords_n = this->coords_a[n];
     for (unsigned int i = 0; i < coords_n.size(); i += settings::general::detail::job_size) {
         pool->detach_task(
             [this, n, m, i, &coords_n] () {calc_pp(this->partials_aa_all, n, m, coords_n, this->coords_a[m], i, std::min<int>(i+settings::general::detail::job_size, coords_n.size()));}
@@ -363,7 +364,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_aw(unsigned int 
         }
     };
 
-    detail::CompactCoordinates& coords = this->coords_a[index];
+    auto& coords = this->coords_a[index];
     for (unsigned int i = 0; i < coords.size(); i += settings::general::detail::job_size) {
         pool->detach_task(
             [this, index, i, &coords] () {

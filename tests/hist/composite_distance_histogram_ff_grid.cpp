@@ -153,7 +153,6 @@ auto calc_scat_water = [] () {
 
 // Check that the debye transform is correct
 TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
@@ -208,7 +207,6 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
 
 // Check that solvent scaling is consistent
 TEST_CASE("HistogramManagerMTFFGrid: consistent solvent density fitting", "[files]") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
@@ -242,7 +240,6 @@ TEST_CASE("HistogramManagerMTFFGrid: consistent solvent density fitting", "[file
 
 // Check that the surface scaling works as expected
 TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;
@@ -291,7 +288,6 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
 
 // Check that the excluded volume scaling works as expected
 TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = true;
     settings::hist::weighted_bins = true;

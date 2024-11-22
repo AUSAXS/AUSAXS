@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hist/distance_calculator/IHistogramManager.h>
+#include <hist/distance_calculator/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -96,7 +97,7 @@ Molecule& Molecule::operator=(Molecule&& other) {
 void Molecule::initialize() {
     set_histogram_manager(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins));
     if (!centered && settings::molecule::center) {center();} // Centering *must* happen before generating the grid in 'update_effective_charge'!
-    if (!updated_charge && settings::molecule::use_effective_charge) {update_effective_charge();}
+    // if (!updated_charge && settings::molecule::use_effective_charge) {update_effective_charge();}
 }
 
 void Molecule::add_implicit_hydrogens() {
@@ -159,9 +160,9 @@ double Molecule::get_total_atomic_charge() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_atomic_charge();});
 }
 
-double Molecule::get_total_effective_charge() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_effective_charge();});
-}
+// double Molecule::get_total_effective_charge() const {
+//     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_effective_charge();});
+// }
 
 double Molecule::get_Rg() const {
     Vector3<double> cm = get_cm();
@@ -175,7 +176,7 @@ double Molecule::get_Rg() const {
     }
 
     // return the RMS
-    return std::sqrt(Rg/get_total_effective_charge());
+    return std::sqrt(Rg/get_total_atomic_charge());
 }
 
 double Molecule::get_relative_charge() const {
@@ -360,7 +361,7 @@ void Molecule::generate_new_hydration() {
         hydration_strategy = hydrate::factory::construct_hydration_generator(this);
     }
     hydration = hydration_strategy->hydrate();
-    phm->signal_modified_hydration_layer();
+    signal_modified_hydration_layer();
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
@@ -411,29 +412,29 @@ Water& Molecule::get_waters(unsigned int i) {return get_waters()[i];}
 
 const Water& Molecule::get_water(unsigned int i) const {return get_waters()[i];}
 
-void Molecule::update_effective_charge(double scaling) {
-    static double previous_charge = 0;
+// void Molecule::update_effective_charge(double scaling) {
+//     static double previous_charge = 0;
 
-    std::size_t N = size_atom();
-    if (N == 0) [[unlikely]] {return;}
+//     std::size_t N = size_atom();
+//     if (N == 0) [[unlikely]] {return;}
 
-    double displaced_vol = scaling*get_volume_grid();
-    double displaced_charge = constants::charge::density::water*displaced_vol - previous_charge;
-    previous_charge += displaced_charge;
+//     double displaced_vol = scaling*get_volume_grid();
+//     double displaced_charge = constants::charge::density::water*displaced_vol - previous_charge;
+//     previous_charge += displaced_charge;
 
-    double charge_per_atom = -displaced_charge/N;
-    if (settings::general::verbose) {
-        std::cout << "Total displaced charge: " << displaced_charge << std::endl;
-        std::cout << "Added " << charge_per_atom << " electrons to each atom (N: " << N << ")." << std::endl;
-    }
+//     double charge_per_atom = -displaced_charge/N;
+//     if (settings::general::verbose) {
+//         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
+//         std::cout << "Added " << charge_per_atom << " electrons to each atom (N: " << N << ")." << std::endl;
+//     }
 
-    // subtract the charge from all molecule atoms
-    for (auto& body : bodies) {
-        body.update_effective_charge(charge_per_atom);
-    }
+//     // subtract the charge from all molecule atoms
+//     for (auto& body : bodies) {
+//         body.update_effective_charge(charge_per_atom);
+//     }
 
-    updated_charge = true;
-}
+//     updated_charge = true;
+// }
 
 void Molecule::center() {
     translate(-get_cm());
@@ -442,13 +443,20 @@ void Molecule::center() {
 
 void Molecule::signal_modified_hydration_layer() const {
     if (phm == nullptr) {return;}
-    phm->signal_modified_hydration_layer();
+
+    // send signal to the histogram manager if relevant
+    if (auto cast = dynamic_cast<IPartialHistogramManager*>(phm.get()); cast) {
+        cast->signal_modified_hydration_layer();
+    }
 }
 
 void Molecule::bind_body_signallers() {
     if (phm == nullptr) {return;}
+
+    auto cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
+    if (!cast) {return;}
     for (unsigned int i = 0; i < bodies.size(); i++) {
-        bodies[i].register_probe(phm->get_probe(i));
+        bodies[i].register_probe(cast->get_probe(i));
     }
 }
 

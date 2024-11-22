@@ -19,7 +19,6 @@ namespace ausaxs::hist {
 	class PartialHistogramManagerMT : public PartialHistogramManager<use_weighted_distribution> {
 		public:
 			PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein);
-
 			virtual ~PartialHistogramManagerMT() override;
 
 			/**

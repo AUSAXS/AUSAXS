@@ -7,6 +7,7 @@ target_sources(ausaxs_core PRIVATE
 	"detail/CompactCoordinatesData.cpp"
 	"detail/CompactCoordinatesFF.cpp"
 	"detail/MasterHistogram.cpp"
+	"detail/SimpleExvModel.cpp"
 	
 	"distance_calculator/HistogramManager.cpp"
 	"distance_calculator/HistogramManagerFactory.cpp"

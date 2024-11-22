@@ -15,7 +15,6 @@ using namespace rigidbody;
 
 struct fixture {
     fixture() {
-        settings::molecule::use_effective_charge = false;
         settings::molecule::implicit_hydrogens = false;
 
         a1 = Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1);

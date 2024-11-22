@@ -54,18 +54,13 @@ int main(int argc, char const *argv[]) {
     auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
     sub_mol->add_flag("--center,!--no-center", settings::molecule::center, 
         "Decides whether the protein will be centered.")->default_val(settings::molecule::center);
-    sub_mol->add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, 
-        "Decides whether the effective atomic charge will be used.")->default_val(settings::molecule::use_effective_charge);
     sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, 
         "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy);
 
     // exv subcommands
     auto sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
     sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) 
-        {
-            settings::detail::parse_option("histogram_manager", {s});
-            if (s == "fraser" || s == "grid") {settings::molecule::use_effective_charge = false;} // ensure correct setup for standard args
-        }, 
+        {settings::detail::parse_option("histogram_manager", {s});}, 
         "The excluded volume model to use. Options: Simple, Fraser, Grid.");
     sub_exv->add_flag("--fit", settings::fit::fit_excluded_volume, 
         "Fit the excluded volume.")->default_val(settings::fit::fit_excluded_volume);

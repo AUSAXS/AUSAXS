@@ -10,9 +10,8 @@ namespace ausaxs::hist {
 	 * @brief A generic histogram manager interface. 
      *        This class is responsible for calculating all distances for a given molecule.
 	 */
-	class IHistogramManager : public hist::BodyTracker {
+	class IHistogramManager {
 		public:
-            using BodyTracker::BodyTracker;
 			virtual ~IHistogramManager() = default;
 
 			/**

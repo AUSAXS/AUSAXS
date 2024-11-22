@@ -51,7 +51,6 @@ TEST_CASE("Parameters::Parameter") {
 
 TEST_CASE_METHOD(fixture, "Parameters::Parameters") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
 
     SECTION("Protein*") {
         Molecule protein(bodies);
@@ -64,7 +63,6 @@ TEST_CASE_METHOD(fixture, "Parameters::Parameters") {
 TEST_CASE_METHOD(fixture, "Parameters::update") {
     // also tests Parameters::get
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
 
     SECTION("unsigned int, const Parameter&") {
         Molecule protein(bodies);

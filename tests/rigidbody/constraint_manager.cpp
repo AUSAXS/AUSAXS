@@ -17,7 +17,6 @@ using namespace rigidbody;
 
 struct fixture {
     fixture() {
-        settings::molecule::use_effective_charge = false;
         settings::molecule::implicit_hydrogens = false;
         settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }

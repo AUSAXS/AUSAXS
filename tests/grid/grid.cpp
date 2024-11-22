@@ -271,7 +271,6 @@ TEST_CASE("Grid::width") {
 
 TEST_CASE("Grid::expand_volume") {
     SECTION("shape test") {
-        settings::molecule::use_effective_charge = false;
         Limit3D lims(-10, 10, -10, 10, -10, 10);
         settings::grid::cell_width = 1;
         settings::grid::min_exv_radius = 2.15;

@@ -36,6 +36,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     auto& data_w = *data_w_ptr;
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
+    this->apply_simple_excluded_volume(data_a);
 
     //########################//
     // PREPARE MULTITHREADING //

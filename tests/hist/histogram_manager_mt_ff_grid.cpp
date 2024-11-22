@@ -111,7 +111,6 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
 
 // Check that the Grid histograms are correct
 TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
-    settings::molecule::use_effective_charge = false;
     SECTION("simple") {
         settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
         settings::grid::exv::width = settings::grid::cell_width;
@@ -135,7 +134,6 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
 
 template<typename H, typename C>
 auto test_derived = [] () {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::general::verbose = false;
 
@@ -226,7 +224,6 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv::calculate", "[files]") {
 
 // Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
 TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
-    settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::hist::weighted_bins = true;
     settings::general::verbose = false;

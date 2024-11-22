@@ -188,7 +188,6 @@ TEST_CASE("io: xml input", "[broken]") {
  */
 TEST_CASE("io: real data", "[files],[broken]") {
     settings::general::verbose = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
         if (file.path().extension() != ".pdb") {
@@ -211,7 +210,6 @@ TEST_CASE("io: real data", "[files],[broken]") {
 
 TEST_CASE("io: protein") {
     settings::molecule::center = false;
-    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
 
     Molecule protein("tests/files/2epe.pdb");

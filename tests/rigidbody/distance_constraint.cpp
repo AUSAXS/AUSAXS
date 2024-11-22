@@ -32,7 +32,6 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraint::DistanceConstraint") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
@@ -73,7 +72,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraint::DistanceConstraint") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraint::evaluate") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
@@ -119,7 +117,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraint::evaluate") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraint::operator==") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
