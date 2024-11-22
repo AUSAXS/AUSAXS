@@ -19,9 +19,10 @@ int main(int, char const*[]) {
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;
     settings::molecule::use_effective_charge = false;
     settings::fit::fit_exv_debye_waller = true;
+    settings::axes::qmax = 1;
 
-    SimpleDataset saxs("data/hub_data/193l_lyz/193l_lyz.dat");
-    data::Molecule protein("data/hub_data/193l_lyz/193l_lyz.pdb");
+    SimpleDataset saxs("data/hub_data/ubiq/ubiq.dat");
+    data::Molecule protein("data/hub_data/ubiq/ubiq.pdb");
     protein.add_implicit_hydrogens();
 
     unsigned int N = 1000; 
