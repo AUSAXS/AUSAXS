@@ -138,6 +138,14 @@ namespace ausaxs::residue::detail {
 
             std::string to_string() const;
 
+            std::vector<Atom>& get_atoms() {return atoms;}
+            const std::vector<Atom>& get_atoms() const {return atoms;}
+
+            std::unordered_map<std::string, int>& get_name_map() {return name_map;}
+            const std::unordered_map<std::string, int>& get_name_map() const {return name_map;}
+
+            std::string get_name() const {return name;}
+
         private: 
             std::string name;
             std::unordered_map<std::string, int> name_map;

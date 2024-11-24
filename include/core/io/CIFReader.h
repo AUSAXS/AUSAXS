@@ -8,10 +8,10 @@ namespace ausaxs::io::detail {
     /**
      * @brief This class handles reading of input PDB format data files. 
      */
-    class PDBReader : public Reader {
+    class CIFReader : public Reader {
         public:
-            PDBReader(observer_ptr<data::detail::AtomCollection> const file);
-            ~PDBReader() override;
+            CIFReader(observer_ptr<data::detail::AtomCollection> const file);
+            ~CIFReader() override;
 
             void read(const io::File& path) override;
 
