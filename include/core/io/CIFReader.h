@@ -16,6 +16,6 @@ namespace ausaxs::io::detail {
             void read(const io::File& path) override;
 
         private: 
-            observer_ptr<data::detail::AtomCollection> const file; // The File backing this Reader. 
+            observer_ptr<data::detail::AtomCollection> file; // The File backing this Reader. 
     };
 }

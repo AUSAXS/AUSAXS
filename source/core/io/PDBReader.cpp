@@ -51,7 +51,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
 
                 // check if this is a water molecule
                 if (atom.is_water()) {collection.add(Water(std::move(atom)));} 
-                else {collection.add(atom);}
+                else {collection.add(std::move(atom));}
                 break;
             } case RecordType::TERMINATE: {
                 Terminate term;

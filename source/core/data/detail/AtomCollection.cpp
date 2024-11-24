@@ -13,6 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <io/ExistingFile.h>
 #include <io/PDBReader.h>
+#include <io/CIFReader.h>
 #include <io/PDBWriter.h>
 #include <utility/Exceptions.h>
 
@@ -171,6 +172,8 @@ std::unique_ptr<io::detail::Reader> AtomCollection::construct_reader(const io::F
         return std::make_unique<io::detail::PDBReader>(this);
     } else if (path.extension() == ".ent" || path.extension() == ".ENT") { // .ent AtomCollection
         return std::make_unique<io::detail::PDBReader>(this);
+    } else if (path.extension() == ".cif" || path.extension() == ".CIF") { // .cif AtomCollection
+        return std::make_unique<io::detail::CIFReader>(this);
     } else { // anything else - we cannot handle this
         throw except::invalid_argument("AtomCollection::construct_reader: Unsupported extension \"" + path.extension() + "\" of input file \"" + path.str() + "\".");
     }
