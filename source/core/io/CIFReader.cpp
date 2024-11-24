@@ -159,6 +159,11 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     if (atom.data.empty()) {throw except::io_error("CIFReader::parse_atom_site_section: Empty data section");}
     auto labels = atom.get_label_map();
 
+    std::cout << "Labels:" << std::endl;
+    for (auto l : labels) {
+        std::cout << "\"" << l.first << "\" \"" << l.second << "\"" << std::endl;
+    }
+
     // PDB & mmCIF equivalence:
     //   Section   	        _atom_site.group_PDB   	 
     //   Serial_No   	    _atom_site.id   	 
@@ -182,17 +187,17 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     //   Charge           	_atom_site.pdbx_formal_charge   	 
 
     {   // mandatory data 
-        if (!labels.contains("group_PDB")) {     // HETATM or ATOM
+        if (!labels.contains("group_PDB")) {        // HETATM or ATOM
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"group_PDB\"");
-        } if (!labels.contains("comp_id")) {     // residue name
+        } if (!labels.contains("label_comp_id")) {  // residue name
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"comp_id\"");
-        } if (!labels.contains("Cartn_x")) {     // x-coordinate
+        } if (!labels.contains("Cartn_x")) {        // x-coordinate
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_x\"");
-        } if (!labels.contains("Cartn_y")) {     // y-coordinate
+        } if (!labels.contains("Cartn_y")) {        // y-coordinate
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_y\"");
-        } if (!labels.contains("Cartn_z")) {     // z-coordinate
+        } if (!labels.contains("Cartn_z")) {        // z-coordinate
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_z\"");
-        } if (!labels.contains("type_symbol")) { // atomic element
+        } if (!labels.contains("type_symbol")) {    // atomic element
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"type_symbol\"");
         }
     }
@@ -200,10 +205,12 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     bool optional_data = true;
     {   // optional data
         if (!(
+            labels.contains("id") &&                // serial number
             labels.contains("label_alt_id") &&      // alternate location
+            labels.contains("label_atom_id") &&     // atom name
             labels.contains("label_asym_id") &&     // chain ID
             labels.contains("label_seq_id") &&      // residue sequence number
-            labels.contains("PDB_ins_code") &&      // insertion code
+            labels.contains("pdbx_PDB_ins_code") && // insertion code
             labels.contains("occupancy") &&         // occupancy
             labels.contains("B_iso_or_equiv") &&    // temperature factor
             labels.contains("pdbx_formal_charge")   // charge
@@ -214,20 +221,29 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     }
 
     int i_group_PDB = labels.at("group_PDB");
-    int i_id = labels.at("id");
-    int i_type_symbol = labels.at("type_symbol");
-    int i_label_atom_id = labels.at("label_atom_id");
-    int i_label_alt_id = labels.at("label_alt_id");
     int i_label_comp_id = labels.at("label_comp_id");
-    int i_label_asym_id = labels.at("label_asym_id");
-    int i_label_seq_id = labels.at("label_seq_id");
-    int i_PDB_ins_code = labels.at("PDB_ins_code");
     int i_Cartn_x = labels.at("Cartn_x");
     int i_Cartn_y = labels.at("Cartn_y");
     int i_Cartn_z = labels.at("Cartn_z");
-    int i_occupancy = labels.at("occupancy");
-    int i_B_iso_or_equiv = labels.at("B_iso_or_equiv");
-    int i_pdbx_formal_charge = labels.at("pdbx_formal_charge");
+    int i_type_symbol = labels.at("type_symbol");
+
+    int i_id = 0, i_label_alt_id = 0, i_label_atom_id = 0, i_label_asym_id = 0, i_label_seq_id = 0, 
+        i_PDB_ins_code = 0, i_occupancy = 0, i_B_iso_or_equiv = 0, i_pdbx_formal_charge = 0;
+    if (optional_data) {
+        i_id = labels.at("id");
+        i_label_alt_id = labels.at("label_alt_id");
+        i_label_atom_id = labels.at("label_atom_id");
+        i_label_asym_id = labels.at("label_asym_id");
+        i_label_seq_id = labels.at("label_seq_id");
+        i_PDB_ins_code = labels.at("pdbx_PDB_ins_code");
+        i_occupancy = labels.at("occupancy");
+        i_B_iso_or_equiv = labels.at("B_iso_or_equiv");
+        i_pdbx_formal_charge = labels.at("pdbx_formal_charge");
+    }
+
+    auto shorten = [] (const std::string& s) -> std::string {
+        return s.size() < 6 ? s : s.substr(0, 5);
+    };
 
     int discarded_hydrogens = 0;
     for (size_t i = 0; i < atom.data.size(); ++i) {
@@ -244,21 +260,36 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
         constants::atom_t element;
 
         // load mandatory data
-        name = atom.data[i][i_label_atom_id];
-        resName = atom.data[i][i_label_comp_id];
-        coords = {std::stod(atom.data[i][i_Cartn_x]), std::stod(atom.data[i][i_Cartn_y]), std::stod(atom.data[i][i_Cartn_z])};
-        element = constants::symbols::parse_element_string(atom.data[i][i_type_symbol]);
-        if (optional_data) {
-            serial = std::stoi(atom.data[i][i_id]);
-            altLoc = atom.data[i][i_label_alt_id];
-            chainID = atom.data[i][i_label_asym_id][0];
-            resSeq = std::stoi(atom.data[i][i_label_seq_id]);
-            iCode = atom.data[i][i_PDB_ins_code];
-            occupancy = std::stod(atom.data[i][i_occupancy]);
-            tempFactor = std::stod(atom.data[i][i_B_iso_or_equiv]);
-            charge = atom.data[i][i_pdbx_formal_charge];
+        try {
+            name = atom.data[i][i_label_atom_id];
+            resName = atom.data[i][i_label_comp_id];
+            coords = {
+                std::stod(shorten(atom.data[i][i_Cartn_x])), 
+                std::stod(shorten(atom.data[i][i_Cartn_y])), 
+                std::stod(shorten(atom.data[i][i_Cartn_z])),
+            };
+            element = constants::symbols::parse_element_string(atom.data[i][i_type_symbol]);
+            if (optional_data) {
+                altLoc = atom.data[i][i_label_alt_id];
+                chainID = atom.data[i][i_label_asym_id][0];
+                iCode = atom.data[i][i_PDB_ins_code];
+                charge = atom.data[i][i_pdbx_formal_charge];
+                if (!atom.data[i][i_id].starts_with(".")) {serial = std::stoi(atom.data[i][i_id]);}
+                if (!atom.data[i][i_label_seq_id].starts_with(".")) {resSeq = std::stoi(atom.data[i][i_label_seq_id]);}
+                if (!atom.data[i][i_occupancy].starts_with(".")) {occupancy = std::stod(shorten(atom.data[i][i_occupancy]));}
+                if (!atom.data[i][i_B_iso_or_equiv].starts_with(".")) {tempFactor = std::stod(shorten(atom.data[i][i_B_iso_or_equiv]));}
+            }
+        } catch (const std::exception& e) {
+            console::print_warning(
+                "CIFReader::parse_atom_site_section: Invalid field values in line: \n\"" + 
+                std::accumulate(
+                    atom.data[i].begin(), atom.data[i].end(), std::string(), 
+                    [] (const std::string& a, const std::string& b) {return a + " " + b;}
+                ) + "\".");
+            throw e;
         }
         data::record::Atom a(serial, name, altLoc, resName, chainID, resSeq, iCode, coords, occupancy, tempFactor, element, charge);
+        std::cout << a.as_pdb() << std::endl;
 
         // check if this is a hydrogen atom
         if (a.element == constants::atom_t::H && !settings::general::keep_hydrogens) {
@@ -300,7 +331,7 @@ void io::detail::CIFReader::read(const io::File& path) {
             if (line.starts_with('#')) {continue;}
             if (line.starts_with('_')) {
                 auto tokens = utility::split(line, ' ');
-                labels.push_back(utility::split(line, '.').back());
+                labels.push_back(utility::split(tokens[0], '.').back());
 
                 // if the label is followed by a value, add it to the data
                 if (tokens.size() == 2) {
@@ -355,7 +386,7 @@ void io::detail::CIFReader::read(const io::File& path) {
         }
 
         if (line.find("_atom_site.") != std::string::npos) {
-            chem_comp_atom = extract_section(line);
+            atom_site = extract_section(line);
         }
     }
 
