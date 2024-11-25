@@ -22,6 +22,10 @@ Atom::Atom(const std::string& name, const std::string& altname, constants::atom_
 }
 
 Atom::Atom(const std::string& name, int charge, constants::atom_t atom) : name(name), atom(atom) {
+    set_charge(charge);
+}
+
+void Atom::set_charge(int charge) {
     // the goal of this whole class is to determine the total charge surrounding an atom
     // we do this by counting the "hidden" hydrogen bonds not typically present in a PDB file
     // thus the number of hydrogen bonds is later used as the effective charge of the atom

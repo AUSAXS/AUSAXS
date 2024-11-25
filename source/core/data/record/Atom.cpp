@@ -30,7 +30,7 @@ Atom::Atom(Vector3<double> v, double occupancy, constants::atom_t element, const
     set_element(element);
     set_residue_name(resName);
     set_serial(serial);
-    set_effective_charge(constants::charge::get_charge(this->element));
+    set_effective_charge(constants::charge::nuclear::get_charge(this->element));
 }
 
 Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
@@ -47,7 +47,7 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
         set_temperature_factor(tempFactor);
         set_element(element);
         set_charge(charge);
-        effective_charge = constants::charge::get_charge(this->element);
+        effective_charge = constants::charge::nuclear::get_charge(this->element);
         atomic_group = constants::atomic_group_t::unknown;
         uid = uid_counter++;
 }
@@ -138,14 +138,14 @@ void Atom::parse_pdb(const std::string& str) {
         throw e;
     }
 
-    effective_charge = constants::charge::get_charge(this->element);
+    effective_charge = constants::charge::nuclear::get_charge(this->element);
     atomic_group = constants::atomic_group_t::unknown;
 }
 
 void Atom::add_implicit_hydrogens() {
     assert(get_element() != constants::atom_t::H && "Atom::add_implicit_hydrogens: Attempted to add implicit hydrogens to a hydrogen atom.");
     try {
-        effective_charge = constants::charge::get_charge(element) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
+        effective_charge = constants::charge::nuclear::get_charge(element) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
         atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
     } catch (const except::base&) {
         throw except::invalid_argument(
@@ -262,7 +262,7 @@ unsigned int Atom::Z() const {
             throw except::invalid_argument("Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
         }
     #endif
-    return constants::charge::get_charge(element);
+    return constants::charge::nuclear::get_charge(element);
 }
 
 void Atom::add_effective_charge(const double charge) {effective_charge += charge;}

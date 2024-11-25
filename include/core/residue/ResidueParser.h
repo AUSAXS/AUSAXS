@@ -38,6 +38,11 @@ namespace ausaxs::residue::detail {
          * @param order The order of the bond.
          */
         void add_bond(constants::atom_t symbol, unsigned int order);
+
+        /**
+         * @brief Set the charge of the atom. Note that this will affect the valency and hydrogen bonds.
+         */
+        void set_charge(int charge);
         
         std::string to_string() const;
 

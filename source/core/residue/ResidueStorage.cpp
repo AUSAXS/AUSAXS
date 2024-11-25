@@ -118,11 +118,6 @@ void ResidueStorage::download_residue(const std::string& name) {
     }
 }
 
-void ResidueStorage::insert_and_write(const std::string& name, const detail::ResidueMap& residue) {
-    insert(name, residue);
-    write_residue(name);
-}
-
 void ResidueStorage::write_residue(const std::string& name) {
     std::string path = settings::general::residue_folder;
     io::Folder(path).create();

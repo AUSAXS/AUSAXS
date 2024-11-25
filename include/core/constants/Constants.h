@@ -109,10 +109,19 @@ namespace ausaxs::constants {
      * This namespace contains the net charge of the most common atomic elements encountered in SAXS. 
      */
     namespace charge {
-        /**
-         * @brief Get the charge of an atom in e.
-         */
-        unsigned int get_charge(atom_t atom);
+        namespace nuclear {
+            /**
+            * @brief Get the charge of an atom in e.
+            */
+            unsigned int get_charge(atom_t atom);
+        }
+
+        namespace ionic {
+            /**
+             * @brief Get the ionic charge of an atom in e.
+             */
+            unsigned int get_charge(atom_t atom);
+        }
 
         namespace density {
             constexpr double water = 0.334; // e/Å^3

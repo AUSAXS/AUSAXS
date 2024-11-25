@@ -136,7 +136,7 @@ constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t
     return constants::atomic_group_t::unknown;
 }
 
-unsigned int constants::charge::get_charge(atom_t atom) {
+unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
     switch(atom) {
         case atom_t::H: return 1;
         case atom_t::He: return 2;
@@ -172,7 +172,16 @@ unsigned int constants::charge::get_charge(atom_t atom) {
         case atom_t::W: return 74;
         case atom_t::M: return 0;
         case atom_t::dummy: return 1;
-        default: throw std::runtime_error("constants::charge::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
+        default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
+    }
+}
+
+unsigned int constants::charge::ionic::get_charge(atom_t atom) {
+    switch (atom) {
+        case atom_t::Ca: return 2;
+        case atom_t::Cl: return -1;
+        case atom_t::Zn: return 2;
+        default: throw std::runtime_error("constants::charge::ionic::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 

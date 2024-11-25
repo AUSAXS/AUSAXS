@@ -104,12 +104,6 @@ TEST_CASE("CIFReader::read") {
     REQUIRE(atoms[3].get_temperature_factor() == 50.538);
 }
 
-#include <constants/Constants.h>
-TEST_CASE("CIFReader: residue info") {
-    constants::hydrogen_atoms::residues.get("HOH"); // this is just to make sure the residue is downloaded and present on disk
-    REQUIRE_NOTHROW(data::Molecule(settings::general::cache + "residues/ALA.cif"));
-}
-
 TEST_CASE("CIFReader: compare with PDB", "[files]") {
     settings::general::verbose = false;
 

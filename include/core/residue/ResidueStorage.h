@@ -39,11 +39,6 @@ namespace ausaxs::residue {
              */
             void insert(const std::string& name, const detail::ResidueMap& residue);
 
-            /**
-             * @brief Insert a residue into the storage and write it to the master file. 
-             */
-            void insert_and_write(const std::string& name, const detail::ResidueMap& residue);
-
         private: 
             /**
              * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 
