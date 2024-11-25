@@ -345,7 +345,7 @@ TEST_CASE("Atom: implicit hydrogens") {
     // settings::molecule::use_effective_charge = true;
     Atom a(15, "O", "altLoc", "LYS", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::O, "0+");
 
-    auto res = constants::charge::get_charge(constants::atom_t::O) + constants::hydrogen_atoms::residues.get("LYS").get("O", constants::atom_t::O);
+    auto res = constants::charge::nuclear::get_charge(constants::atom_t::O) + constants::hydrogen_atoms::residues.get("LYS").get("O", constants::atom_t::O);
     CHECK(a.get_effective_charge() == res);
     a.add_effective_charge(1.5);
     CHECK(a.get_effective_charge() == res+1.5);
