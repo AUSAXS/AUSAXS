@@ -65,14 +65,9 @@ Residue::Residue(const std::string& name, std::vector<Atom> atoms, std::vector<B
     apply_bond(bonds);
 }
 
-#include <iostream>
 void Residue::add_atom(const std::string& name, const std::string& altname, constants::atom_t atom) {
-    // std::cout << this->name << ": add_atom " << name << " " << altname << std::endl;
     name_map.insert({name, atoms.size()});
-    // name_map.insert({altname, atoms.size()});
     atoms.push_back(Atom(name, altname, atom));
-    // std::cout << "state: " << to_string() << std::endl;
-    // std::cout << "add_atom end\n" << std::endl;
 }
 
 void Residue::add_atom(const std::string& name, int charge, constants::atom_t atom) {
@@ -87,9 +82,6 @@ void Residue::apply_bond(const std::vector<Bond>& bonds) {
 }
 
 void Residue::apply_bond(const Bond& bond) {
-    // std::cout << name << ": apply_bond" << std::endl;
-    // std::cout << "state: " << to_string() << std::endl;
-    // std::cout << "applying bond: " << bond.to_string() << std::endl;
     Atom& a1 = atoms.at(name_map.at(bond.name1));
     Atom& a2 = atoms.at(name_map.at(bond.name2));
     a1.add_bond(a2.atom, bond.order);

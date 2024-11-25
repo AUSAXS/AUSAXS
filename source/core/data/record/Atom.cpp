@@ -275,7 +275,7 @@ bool Atom::operator==(const Atom& rhs) const {
     return uid == rhs.uid;
 }
 
-#define FAILURE_MSG true
+#define FAILURE_MSG false
 #if FAILURE_MSG
     #include <iostream>
 #endif

@@ -194,10 +194,15 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     //   Symbol           	_atom_site.type_symbol   	 
     //   Charge           	_atom_site.pdbx_formal_charge   	 
 
+    std::string s_residue_name = "auth_comp_id";
     {   // mandatory data 
+
+        // prefer author labels
+        if (!labels.contains(s_residue_name)) {s_residue_name = "label_comp_id";}
+
         if (!labels.contains("group_PDB")) {        // HETATM or ATOM
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"group_PDB\"");
-        } if (!labels.contains("label_comp_id")) {  // residue name
+        } if (!labels.contains(s_residue_name)) {   // residue name
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"comp_id\"");
         } if (!labels.contains("Cartn_x")) {        // x-coordinate
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_x\"");
@@ -211,17 +216,26 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     }
 
     bool optional_data = true;
+    std::string s_atom_name = "auth_atom_id";
+    std::string s_chainID = "auth_asym_id";
+    std::string s_residue_sequence_number = "auth_seq_id";
     {   // optional data
+
+        // prefer author labels
+        if (!labels.contains(s_atom_name)) {s_atom_name = "label_atom_id";}
+        if (!labels.contains(s_residue_name)) {s_residue_name = "label_comp_id";}
+        if (!labels.contains(s_chainID)) {s_chainID = "label_asym_id";}
+        if (!labels.contains(s_residue_sequence_number)) {s_residue_sequence_number = "label_seq_id";}
         if (!(
-            labels.contains("id") &&                // serial number
-            labels.contains("label_alt_id") &&      // alternate location
-            labels.contains("label_atom_id") &&     // atom name
-            labels.contains("label_asym_id") &&     // chain ID
-            labels.contains("label_seq_id") &&      // residue sequence number
-            labels.contains("pdbx_PDB_ins_code") && // insertion code
-            labels.contains("occupancy") &&         // occupancy
-            labels.contains("B_iso_or_equiv") &&    // temperature factor
-            labels.contains("pdbx_formal_charge")   // charge
+            labels.contains("id") &&                        // serial number
+            labels.contains("label_alt_id") &&              // alternate location
+            labels.contains(s_atom_name) &&                 // atom name
+            labels.contains(s_chainID) &&                   // chain ID
+            labels.contains(s_residue_sequence_number) &&   // residue sequence number
+            labels.contains("pdbx_PDB_ins_code") &&         // insertion code
+            labels.contains("occupancy") &&                 // occupancy
+            labels.contains("B_iso_or_equiv") &&            // temperature factor
+            labels.contains("pdbx_formal_charge")           // charge
         )) {
             console::print_warning("CIFReader::parse_atom_site_section: Missing optional labels in \"_atom_site\" section. Non-critical data will not be loaded.");
             optional_data = false;
@@ -229,7 +243,7 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     }
 
     int i_group_PDB = labels.at("group_PDB");
-    int i_label_comp_id = labels.at("label_comp_id");
+    int i_label_comp_id = labels.at(s_residue_name);
     int i_Cartn_x = labels.at("Cartn_x");
     int i_Cartn_y = labels.at("Cartn_y");
     int i_Cartn_z = labels.at("Cartn_z");
@@ -240,9 +254,9 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     if (optional_data) {
         i_id = labels.at("id");
         i_label_alt_id = labels.at("label_alt_id");
-        i_label_atom_id = labels.at("label_atom_id");
-        i_label_asym_id = labels.at("label_asym_id");
-        i_label_seq_id = labels.at("label_seq_id");
+        i_label_atom_id = labels.at(s_atom_name);
+        i_label_asym_id = labels.at(s_chainID);
+        i_label_seq_id = labels.at(s_residue_sequence_number);
         i_PDB_ins_code = labels.at("pdbx_PDB_ins_code");
         i_occupancy = labels.at("occupancy");
         i_B_iso_or_equiv = labels.at("B_iso_or_equiv");
@@ -297,7 +311,6 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
             throw e;
         }
         data::record::Atom a(serial, name, altLoc, resName, chainID, resSeq, iCode, coords, occupancy, tempFactor, element, charge);
-        std::cout << a.as_pdb() << std::endl;
 
         // check if this is a hydrogen atom
         if (a.element == constants::atom_t::H && !settings::general::keep_hydrogens) {

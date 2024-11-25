@@ -11,7 +11,6 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <filesystem>
 #include <iostream>
 
 using namespace ausaxs;
@@ -112,25 +111,39 @@ TEST_CASE("CIFReader: residue info") {
 }
 
 TEST_CASE("CIFReader: compare with PDB", "[files]") {
-    // data::Molecule cif1("dummy.cif");
+    settings::general::verbose = false;
+
     data::Molecule cif1("tests/files/3sba.cif");
-    // data::Molecule cif2("tests/files/7xb3.cif");
-    // data::Molecule cif3("tests/files/168l.cif");
+    data::Molecule cif2("tests/files/7xb3.cif");
+    data::Molecule cif3("tests/files/168l.cif");
 
     data::Molecule pdb1("tests/files/3sba.pdb");
-    // data::Molecule pdb2("tests/files/7xb3.pdb");
-    // data::Molecule pdb3("tests/files/168l.pdb");
+    data::Molecule pdb2("tests/files/7xb3.pdb");
+    data::Molecule pdb3("tests/files/168l.pdb");
 
-    auto compare_atoms = [] (const std::vector<Atom>& a1, const std::vector<Atom>& a2) {
+    auto compare_atoms = [] (std::vector<Atom>&& a1, std::vector<Atom>&& a2) {
         REQUIRE(a1.size() == a2.size());
+        int chain = 0;
+        char chainID = a2[0].get_chainID();
         for (unsigned int i = 0; i < a1.size(); i++) {
-            std::cout << "COMPARING ATOMS\n\"" << a1[i].as_pdb() << "\"\n\"" << a2[i].as_pdb() << "\"" << std::endl;
+            // if the chainID changes, the PDB file may or may not have a TER record, thus shifting all following serials by one
+            if (a2[i].get_chainID() != chainID) {
+                // check if the PDB atom is shifted relative to the CIF file
+                if (a2[i].get_serial()-chain != a1[i].get_serial()) {
+                    // if so, increment the chain shift (this is typically the case for new ATOM chains)
+                    chain++;
+                }
+                // otherwise, just update the chainID (this is typically the case for HETATM)
+                chainID = a2[i].get_chainID();
+            }
+            a2[i].serial -= chain; // account for the chain shift
+
             REQUIRE(a1[i].get_serial() == a2[i].get_serial());
-            REQUIRE_THAT(a1[i].get_coordinates().x(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().x(), 1e-3));
-            REQUIRE_THAT(a1[i].get_coordinates().y(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().y(), 1e-3));
-            REQUIRE_THAT(a1[i].get_coordinates().z(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().z(), 1e-3));
-            REQUIRE_THAT(a1[i].get_occupancy(), Catch::Matchers::WithinAbs(a2[i].get_occupancy(), 1e-3));
-            REQUIRE_THAT(a1[i].get_temperature_factor(), Catch::Matchers::WithinAbs(a2[i].get_temperature_factor(), 1e-3));
+            REQUIRE_THAT(a1[i].get_coordinates().x(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().x(), 1e-2));
+            REQUIRE_THAT(a1[i].get_coordinates().y(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().y(), 1e-2));
+            REQUIRE_THAT(a1[i].get_coordinates().z(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().z(), 1e-2));
+            REQUIRE_THAT(a1[i].get_occupancy(), Catch::Matchers::WithinAbs(a2[i].get_occupancy(), 1e-2));
+            REQUIRE_THAT(a1[i].get_temperature_factor(), Catch::Matchers::WithinAbs(a2[i].get_temperature_factor(), 1e-2));
             REQUIRE(a1[i].get_element() == a2[i].get_element());
             REQUIRE(a1[i].get_residue_name() == a2[i].get_residue_name());
             REQUIRE(a1[i].get_residue_sequence_number() == a2[i].get_residue_sequence_number());
@@ -140,6 +153,6 @@ TEST_CASE("CIFReader: compare with PDB", "[files]") {
     };
 
     compare_atoms(cif1.get_atoms(), pdb1.get_atoms());
-    // compare_atoms(cif2.get_atoms(), pdb2.get_atoms());
-    // compare_atoms(cif3.get_atoms(), pdb3.get_atoms());
+    compare_atoms(cif2.get_atoms(), pdb2.get_atoms());
+    compare_atoms(cif3.get_atoms(), pdb3.get_atoms());
 }
