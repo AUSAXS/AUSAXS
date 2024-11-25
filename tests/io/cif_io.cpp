@@ -7,6 +7,9 @@
 #include <data/record/Record.h>
 #include <utility/Console.h>
 #include <settings/All.h>
+#include <io/CIFReader.h>
+#include <residue/ResidueParser.h>
+#include <constants/Constants.h>
 
 #include <vector>
 #include <string>
@@ -102,6 +105,41 @@ TEST_CASE("CIFReader::read") {
     REQUIRE(atoms[3].get_residue_sequence_number() == 1);
     REQUIRE(atoms[3].get_chainID() == 'A');
     REQUIRE(atoms[3].get_temperature_factor() == 50.538);
+}
+
+TEST_CASE("CIFReader: uses file residues") {
+    settings::general::verbose = false;
+
+    data::Molecule cif("tests/files/3sba.cif");
+    auto residues = io::detail::CIFReader::read_residue("tests/files/3sba.cif");
+
+    for (const auto& residue : residues) {
+        auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
+        auto expected = residue.to_map();
+        for (const auto& [atom, num] : expected) {
+            REQUIRE(loaded.get(atom) == num);
+        }
+    }
+}
+
+TEST_CASE("CIFReader: file residues agrees with PDB") {
+    settings::general::verbose = false;
+
+    // loading the PDB file first to load default ResidueStorage data
+    data::Molecule pdb("tests/files/3sba.pdb");
+    pdb.add_implicit_hydrogens(); // ensure hydrogen data is initialized
+
+    auto residues = io::detail::CIFReader::read_residue("tests/files/3sba.cif");
+    for (const auto& residue : residues) {
+        auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
+        auto expected = residue.to_map();
+        for (const auto& [atom, num] : expected) {
+            if (loaded.get(atom) != num) {
+                std::cout << "Residue: " << residue.get_name() << " Atom: " << constants::symbols::to_string(atom.atom) << " Expected: " << num << " Loaded: " << loaded.get(atom) << std::endl;
+            }
+            REQUIRE(loaded.get(atom) == num);
+        }
+    }
 }
 
 TEST_CASE("CIFReader: compare with PDB", "[files]") {

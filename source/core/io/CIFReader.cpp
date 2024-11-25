@@ -117,7 +117,7 @@ std::vector<residue::detail::Residue> parse_residue(CIFSection& atom, CIFSection
     int i_atom_id_2 = bond_labels.at("atom_id_2");
     int i_value_order = bond_labels.at("value_order");
     for (size_t i = 0; i < bond.data.size();) { // nested loops are responsible for incrementing i
-        std::string current_comp_id = bond.data[i][i_comp_id_bond];
+        const std::string& current_comp_id = bond.data[i][i_comp_id_bond];
 
         // parse bonds
         auto& current_residue = residues[residue_names.at(current_comp_id)];
@@ -373,7 +373,7 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
     return CIFSection{labels, data};
 }
 
-std::vector<residue::detail::Residue> io::detail::CIFReader::read_residue(const io::File& path) const {
+std::vector<residue::detail::Residue> io::detail::CIFReader::read_residue(const io::File& path) {
     std::ifstream input(path);
     if (!input.is_open()) {throw except::io_error("CIFReader::read_residue: Could not open file \"" + path.str() + "\"");}
 
