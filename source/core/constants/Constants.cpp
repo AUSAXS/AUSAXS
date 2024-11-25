@@ -45,7 +45,8 @@ namespace ausaxs::constants {
         {"H", atom_t::H},   {"He", atom_t::He}, {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B},   {"C", atom_t::C},   {"N", atom_t::N}, {"O", atom_t::O}, 
         {"F", atom_t::F},   {"Ne", atom_t::Ne}, {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P}, {"S", atom_t::S}, 
         {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, {"K", atom_t::K},   {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V}, {"Cr", atom_t::Cr}, 
-        {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"W", atom_t::W}, {"M", atom_t::M}
+        {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"I", atom_t::I}, {"W", atom_t::W}, 
+        {"M", atom_t::M}
     };
 
     residue::ResidueStorage hydrogen_atoms::residues;
@@ -91,6 +92,7 @@ std::string constants::symbols::to_string(atom_t atom) {
         case atom_t::Ni: return "Ni";
         case atom_t::Cu: return "Cu";
         case atom_t::Zn: return "Zn";
+        case atom_t::I: return "I";
         case atom_t::W: return "W";
         case atom_t::M: return "M";
         case atom_t::dummy: return "#";
@@ -134,7 +136,7 @@ constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t
     return constants::atomic_group_t::unknown;
 }
 
-unsigned int constants::charge::get_charge(atom_t atom) {
+unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
     switch(atom) {
         case atom_t::H: return 1;
         case atom_t::He: return 2;
@@ -166,10 +168,20 @@ unsigned int constants::charge::get_charge(atom_t atom) {
         case atom_t::Ni: return 28;
         case atom_t::Cu: return 29;
         case atom_t::Zn: return 30;
+        case atom_t::I: return 53;
         case atom_t::W: return 74;
         case atom_t::M: return 0;
         case atom_t::dummy: return 1;
-        default: throw std::runtime_error("constants::charge::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
+        default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
+    }
+}
+
+unsigned int constants::charge::ionic::get_charge(atom_t atom) {
+    switch (atom) {
+        case atom_t::Ca: return 2;
+        case atom_t::Cl: return -1;
+        case atom_t::Zn: return 2;
+        default: throw std::runtime_error("constants::charge::ionic::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 
@@ -222,6 +234,7 @@ double constants::mass::get_mass(atom_t atom) {
         case atom_t::Ni: return 58.6934;
         case atom_t::Cu: return 63.546;
         case atom_t::Zn: return 65.39;
+        case atom_t::I: return 126.904;
         case atom_t::W: return 183.84;
         case atom_t::M: return 0;
         case atom_t::dummy: return 1;
@@ -262,6 +275,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::Ni: return vdw::Ni;
         case atom_t::Cu: return vdw::Cu;
         case atom_t::Zn: return vdw::Zn;
+        case atom_t::I: return vdw::I;
         case atom_t::W: return vdw::W;
 
         // fake elements

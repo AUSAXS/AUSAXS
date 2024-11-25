@@ -38,6 +38,11 @@ namespace ausaxs::residue::detail {
          * @param order The order of the bond.
          */
         void add_bond(constants::atom_t symbol, unsigned int order);
+
+        /**
+         * @brief Set the charge of the atom. Note that this will affect the valency and hydrogen bonds.
+         */
+        void set_charge(int charge);
         
         std::string to_string() const;
 
@@ -137,6 +142,14 @@ namespace ausaxs::residue::detail {
             static Residue parse(const io::ExistingFile& filename);
 
             std::string to_string() const;
+
+            std::vector<Atom>& get_atoms() {return atoms;}
+            const std::vector<Atom>& get_atoms() const {return atoms;}
+
+            std::unordered_map<std::string, int>& get_name_map() {return name_map;}
+            const std::unordered_map<std::string, int>& get_name_map() const {return name_map;}
+
+            std::string get_name() const {return name;}
 
         private: 
             std::string name;

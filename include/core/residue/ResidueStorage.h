@@ -34,12 +34,12 @@ namespace ausaxs::residue {
              */
             constants::atomic_group_t get_atomic_group(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom);
 
-        private: 
             /**
              * @brief Insert a residue into the storage. 
              */
             void insert(const std::string& name, const detail::ResidueMap& residue);
 
+        private: 
             /**
              * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 
              */
@@ -52,7 +52,7 @@ namespace ausaxs::residue {
             void download_residue(const std::string& name);
 
             /**
-             * @brief Write a residue to the auto-loaded file. 
+             * @brief Write a residue to the master file. 
              */
             void write_residue(const std::string& name);
 

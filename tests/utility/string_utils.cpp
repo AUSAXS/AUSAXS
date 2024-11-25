@@ -168,6 +168,26 @@ TEST_CASE("StringUtils::split") {
             REQUIRE(result[1] == "b");
             REQUIRE(result[2] == "c");
         }
+
+        SECTION("consecutive") {
+            std::vector<std::string> result = utility::split("a,,,b,c", ',');
+            REQUIRE(result.size() == 3);
+            REQUIRE(result[0] == "a");
+            REQUIRE(result[1] == "b");
+            REQUIRE(result[2] == "c");
+
+            result = utility::split("a,b,c,,", ',');
+            REQUIRE(result.size() == 3);
+            REQUIRE(result[0] == "a");
+            REQUIRE(result[1] == "b");
+            REQUIRE(result[2] == "c");
+
+            result = utility::split(",,,a,b,c", ',');
+            REQUIRE(result.size() == 3);
+            REQUIRE(result[0] == "a");
+            REQUIRE(result[1] == "b");
+            REQUIRE(result[2] == "c");
+        }
     }
 
     SECTION("multiple delimiters") {

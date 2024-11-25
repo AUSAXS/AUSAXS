@@ -6,7 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 
 #include <algorithm>
-#include <sstream>
 
 using namespace ausaxs;
 
@@ -24,11 +23,20 @@ std::string utility::remove_spaces(std::string s) {
 }
 
 std::vector<std::string> utility::split(std::string_view str, char delimiter) {
-    std::string token;
-    std::stringstream ss((std::string(str)));
+    size_t start = 0;
     std::vector<std::string> tokens;
-    while(std::getline(ss, token, delimiter)) {
-        tokens.push_back(token);
+    size_t i = 0; 
+    while (i < str.size()) {
+        while (i < str.size() && str[i] == delimiter) {
+            ++i;
+        }
+        start = i;
+        while (i < str.size() && str[i] != delimiter) {
+            ++i;
+        }
+        if (start < i) {
+            tokens.push_back(std::string(str.substr(start, i-start)));
+        }
     }
     return tokens;
 }

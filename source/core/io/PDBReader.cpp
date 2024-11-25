@@ -23,7 +23,7 @@ using namespace ausaxs;
 using namespace ausaxs::io::detail;
 using namespace ausaxs::data::record;
 
-PDBReader::PDBReader(data::detail::AtomCollection* const file) : file(file) {}
+PDBReader::PDBReader(observer_ptr<data::detail::AtomCollection> const file) : file(file) {}
 
 PDBReader::~PDBReader() = default;
 
@@ -33,7 +33,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
     if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + file + "\"");}
 
     unsigned int discarded_hydrogens = 0;
-    std::string line; // placeholder for the current line
+    std::string line;
     while(getline(input, line)) {
         if (utility::remove_all(line, " \n\r").empty()) {continue;}
         std::string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
@@ -51,7 +51,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
 
                 // check if this is a water molecule
                 if (atom.is_water()) {collection.add(Water(std::move(atom)));} 
-                else {collection.add(atom);}
+                else {collection.add(std::move(atom));}
                 break;
             } case RecordType::TERMINATE: {
                 Terminate term;

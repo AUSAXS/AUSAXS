@@ -6,11 +6,12 @@ For more information, please refer to the LICENSE file in the project root.
 #include <residue/ResidueParser.h>
 #include <residue/ResidueMap.h>
 #include <utility/Exceptions.h>
+#include <utility/StringUtils.h>
 #include <constants/Constants.h>
 #include <io/ExistingFile.h>
+#include <io/CIFReader.h>
 
 #include <sstream>
-#include <fstream>
 
 using namespace ausaxs;
 using namespace ausaxs::residue::detail;
@@ -21,6 +22,10 @@ Atom::Atom(const std::string& name, const std::string& altname, constants::atom_
 }
 
 Atom::Atom(const std::string& name, int charge, constants::atom_t atom) : name(name), atom(atom) {
+    set_charge(charge);
+}
+
+void Atom::set_charge(int charge) {
     // the goal of this whole class is to determine the total charge surrounding an atom
     // we do this by counting the "hidden" hydrogen bonds not typically present in a PDB file
     // thus the number of hydrogen bonds is later used as the effective charge of the atom
@@ -37,7 +42,7 @@ void Atom::add_bond(const constants::atom_t atom, unsigned int order) {
 }
 
 std::string Atom::to_string() const {
-    return "Atom " + name + " with valency " + std::to_string(valency) + " and " + std::to_string(hydrogen_bonds) + " hydrogen bonds";
+    return "Atom " + name + " " + altname + " with valency " + std::to_string(valency) + " and " + std::to_string(hydrogen_bonds) + " hydrogen bonds";
 }
 
 
@@ -49,9 +54,10 @@ std::string Bond::to_string() const {
 }
 
 unsigned int Bond::parse_order(const std::string& order) {
-    if (order == "SING") {return 1;}
-    else if (order == "DOUB") {return 2;}
-    else if (order == "TRIP") {return 3;}
+    std::string order_lower = utility::to_lowercase(order);
+    if (order_lower == "sing") {return 1;}
+    else if (order_lower == "doub") {return 2;}
+    else if (order_lower == "trip") {return 3;}
     else {throw std::runtime_error("Bond::parse_order: Invalid bond order: " + order);}
 }
 
@@ -112,111 +118,9 @@ ResidueMap Residue::to_map() const {
 }
 
 Residue Residue::parse(const io::ExistingFile& filename) {
-    std::ifstream file(filename);
-
-    std::string line;
-    Residue residue(filename.stem());
-    bool found_atom_section = false, found_bond_section = false;
-
-    // check if we are dealing with a single ion
-    while (std::getline(file, line)) {
-        if (line.find("formula") != std::string::npos) {
-            std::vector<std::string> tokens = utility::split(line, " \n\r");
-            std::string formula = tokens[1];
-
-            // the formula is of the form "Xn Ym" for residues (e.g. "C10 H22 O6"), but X for ions (e.g. "Zn"). 
-            // if it is an ion, X can be parsed as an element
-            if (!constants::symbols::detail::string_to_atomt_map.contains(formula)) {
-                break;
-            }
-
-            // parse ion
-            while(std::getline(file, line)) {
-                // find the formal charge
-                if (line.find("pdbx_formal_charge") != std::string::npos) {
-                    tokens = utility::split(line, " \n\r");
-                    int charge = std::stoi(tokens[1]);
-                    residue.add_atom(formula, charge, constants::symbols::parse_element_string(formula));
-                    return residue;
-                }
-            }
-        }
-    }
-
-    // find the beginning of the atom section
-    while (std::getline(file, line)) {
-        if (line.find("atom.pdbx_ordinal") != std::string::npos) {
-            found_atom_section = true;
-            break;
-        }
-    }
-
-    // parse the atoms in the atom section
-    while (std::getline(file, line)) {
-        // check for end of section
-        if (line.find("#") != std::string::npos) {
-            break;
-        }
-
-        std::vector<std::string> tokens = utility::split(line, " \n\r");
-        std::string atom_id = utility::remove_quotation_marks(tokens[1]);
-        std::string atom_id_alt = utility::remove_quotation_marks(tokens[2]);
-        std::string type_symbol = tokens[3];
-
-        // Sometimes the "1" in e.g. CD1 is omitted
-        if (atom_id == atom_id_alt) {
-            if (auto N = atom_id.size(); N > 2) { // second character must be a locator e.g. A, B, C, D, E, ...
-                if (atom_id[N - 1] == '1' && !std::isdigit(atom_id[N - 2])) { // last character must be 1 & previous character must be a locator
-                    atom_id_alt = atom_id.substr(0, N - 1);
-                }
-            }
-        }
-
-        residue.add_atom(atom_id, atom_id_alt, constants::symbols::parse_element_string(type_symbol));
-    }
-
-    // find the beginning of the bond section
-    while (std::getline(file, line)) {
-        if (line.find("bond.pdbx_ordinal") != std::string::npos) {
-            found_bond_section = true;
-            break;
-        }
-    }
-
-    // parse the bonds in the bond section
-    while (std::getline(file, line)) {
-        // check for end of section
-        if (line.find("#") != std::string::npos) {
-            break;
-        }
-
-        std::vector<std::string> tokens = utility::split(line, " \n\r");
-        std::string atom1 = utility::remove_quotation_marks(tokens[1]);
-        std::string atom2 = utility::remove_quotation_marks(tokens[2]);
-        unsigned int order = Bond::parse_order(tokens[3]);
-        residue.apply_bond(Bond(atom1, atom2, order));
-    }
-
-    // remove a hydrogen bond from the N-terminus since it will almost always be bonded to the CA of the next chain
-    if (residue.name_map.contains("N")) {
-        residue.atoms[(residue.name_map.at("N"))].hydrogen_bonds -= 1;
-    }
-
-    // add aliases for O and OXT that are used in e.g. GROMACS output files
-    // ? it does not seem like there is any way to distinguish between the single and double bonded O's
-    // ? since there is at most a single O-terminus, the impact of switching them is minimal anyway
-    residue.add_atom("OC1", "OC1", constants::atom_t::O);
-    residue.atoms.back().hydrogen_bonds = 1;
-    residue.atoms.back().valency = 1; // single-bonded
-    residue.add_atom("OC2", "OC2", constants::atom_t::O);
-    residue.atoms.back().valency = 0; // double-bonded
-
-    // check that the file was read correctly
-    if (!found_atom_section || !found_bond_section) {
-        throw except::io_error("Could not find atom or bond section in file \"" + filename + "\"");
-    }
-    
-    return residue;
+    auto residues = io::detail::CIFReader::read_residue(filename);
+    if (1 < residues.size()) {throw except::io_error("Residue::parse: Expected a single residue in file \"" + filename + "\"");}
+    return residues.front();
 }
 
 //### STREAM OPERATORS ###//
