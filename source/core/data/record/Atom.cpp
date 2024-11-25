@@ -240,8 +240,8 @@ double Atom::get_mass() const {
             try {
                 return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
             } catch (const std::exception& e) {
-                console::print_warning(e.what());
-                throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::to_string(element) + " (atom number " + std::to_string(serial) + ") is not defined.");
+                console::print_critical(e.what());
+                throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::to_string(element) + " (serial " + std::to_string(serial) + ") is not defined.");
             }
         #endif
         // mass of this nucleus + mass of attached H atoms

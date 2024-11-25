@@ -39,18 +39,20 @@ residue::detail::Residue parse_ion(const CIFSection& atom) {
     if (atom.data.size() != 1) {throw except::io_error("CIFReader::parse_ion: Invalid number of data entries in atom section");}
     auto labels = atom.get_label_map();
 
-    if (!labels.contains("formula") || !labels.contains("pdbx_formal_charge")) {
-        throw except::io_error("CIFReader::parse_ion: Missing required labels in \"_chem_comp\" section");
+    if (!labels.contains("comp_id")) {
+        throw except::io_error("CIFReader::parse_ion: Missing required label \"comp_id\" in \"_chem_comp\" section");
+    } if (!labels.contains("charge")) {
+        throw except::io_error("CIFReader::parse_ion: Missing required label \"charge\" in \"_chem_comp\" section");
     }
 
-    std::string formula = atom.data[0][labels.at("formula")];
-    if (!constants::symbols::detail::string_to_atomt_map.contains(formula)) {
-        throw except::io_error("CIFReader::parse_ion: Unrecognized ion: \"" + formula + "\"");
+    std::string comp_id = atom.data[0][labels.at("comp_id")];
+    if (!constants::symbols::detail::string_to_atomt_map.contains(comp_id)) {
+        throw except::io_error("CIFReader::parse_ion: Unrecognized ion: \"" + comp_id + "\"");
     }
 
-    int charge = std::stoi(atom.data[0][labels.at("pdbx_formal_charge")]);
-    residue::detail::Residue residue(formula);
-    residue.add_atom(formula, charge, constants::symbols::parse_element_string(formula));
+    int charge = std::stoi(atom.data[0][labels.at("charge")]);
+    residue::detail::Residue residue(comp_id);
+    residue.add_atom(comp_id, charge, constants::symbols::parse_element_string(comp_id));
     return residue;
 }
 
@@ -333,15 +335,13 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
             labels.push_back(utility::split(tokens[0], '.').back());
 
             // if the label is followed by a value, add it to the data
-            if (tokens.size() == 2) {
-                data[0].push_back(tokens[1]);
-            }
+            if (tokens.size() == 2) {data[0].push_back(tokens[1]);}
             continue;
         }
     } while(input.peek() == '_' && getline(input, line));
 
     // read data
-    if (data[0].empty()) {data.pop_back();} // remove the data if empty
+    if (data[0].empty()) {data.pop_back();} // remove the dummy data if empty
     while(input.peek() != '_' && getline(input, line) && !line.starts_with("loop_")) {
         if (line.starts_with('#')) {continue;}
         auto values = utility::split(line, " ");
