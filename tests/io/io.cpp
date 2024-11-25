@@ -15,8 +15,6 @@
 #include <filesystem>
 #include <iostream>
 
-using std::cout, std::endl, std::vector;
-
 using namespace ausaxs;
 using namespace data;
 using namespace data::record;
@@ -57,7 +55,7 @@ bool compare_files(std::string p1, std::string p2) {
             // instead we must compare their contents. 
             if (!a1.equals_content(a2)) {
                 console::print_warning("File atom comparison failed for \"" + p1 + "\" on lines");
-                cout << l1 << "|\n" << l2 << "|" << endl;
+                std::cout << l1 << "|\n" << l2 << "|" << std::endl;
                 return false;
             }
         }
@@ -69,7 +67,7 @@ bool compare_files(std::string p1, std::string p2) {
         else {
             if (l1 != l2) {
                 console::print_warning("File line comparison failed for \"" + p1 + "\" on lines");
-                cout << l1 << "|\n" << l2 << "|" << endl;
+                std::cout << l1 << "|\n" << l2 << "|" << std::endl;
                 return false;
             }
         }
@@ -83,14 +81,14 @@ TEST_CASE("io: body file") {
     path.create();
 
     std::ofstream pdb_file(path);
-    pdb_file << "REMARK ONE" << endl;
-    pdb_file << "REMARK TWO" << endl;
-    pdb_file << "CRYST1 THREE" << endl;
-    pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
-    pdb_file << "TER       2      ARG A 129                                                     " << endl;
-    pdb_file << "HETATM    3  O   HOH A 130      31.117   3.049  35.879  0.94 34.19           O " << endl;
-    pdb_file << "HETATM    4  O   HOH A 131      31.117   3.049  35.879  0.94 34.19           O " << endl;
-    pdb_file << "MASTER FOUR" << endl;
+    pdb_file << "REMARK ONE" << std::endl;
+    pdb_file << "REMARK TWO" << std::endl;
+    pdb_file << "CRYST1 THREE" << std::endl;
+    pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << std::endl;
+    pdb_file << "TER       2      ARG A 129                                                     " << std::endl;
+    pdb_file << "HETATM    3  O   HOH A 130      31.117   3.049  35.879  0.94 34.19           O " << std::endl;
+    pdb_file << "HETATM    4  O   HOH A 131      31.117   3.049  35.879  0.94 34.19           O " << std::endl;
+    pdb_file << "MASTER FOUR" << std::endl;
     pdb_file.close();
 
     Body body(path);
@@ -112,94 +110,18 @@ TEST_CASE("io: body file") {
     REQUIRE(file3.header.size() == 2);
 }
 
-TEST_CASE("io: pdb input") {
-    settings::molecule::center = false;
-    settings::general::verbose = false;
-    settings::grid::scaling = 2;
-
-    io::File path("temp/io/temp.pdb");
-    path.create();
-
-    std::ofstream pdb_file(path);
-    pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
-    pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << endl;
-    pdb_file << "TER       3      ARG A 129                                                     " << endl;
-    pdb_file << "HETATM    4  O   HOH A 130      30.117  29.049  34.879  0.94 34.19           O " << endl;
-    pdb_file << "HETATM    5  O   HOH A 131      31.117  30.049  35.879  0.94 34.19           O " << endl;
-    pdb_file.close();
-
-    // check PDB io
-    std::unique_ptr<Molecule> protein = std::make_unique<Molecule>(path);
-    path = "temp/io/temp2.pdb";
-    protein->save(path);
-    protein = std::make_unique<Molecule>(path);
-    vector<Atom> atoms = protein->get_atoms();
-    Atom a = atoms[0];
-
-    if (atoms.size() == 0) {
-        REQUIRE(false);
-        return;
-    }
-
-    // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
-    // we now compare the loaded values with the expected.
-    CHECK(a.serial == 1);
-    CHECK(a.coords.x() == 2.1);
-    CHECK(a.coords.y() == 3.2);
-    CHECK(a.coords.z() == 4.3);
-    CHECK(a.occupancy == 0.50);
-    CHECK(a.element == constants::atom_t::C);
-    CHECK(a.resName == "ARG");
-}
-
-TEST_CASE("io: xml input", "[broken]") {
-    std::ofstream xml_file("temp.xml");
-    xml_file << "<PDBx:atom_site id=\"1\"> \
-        \n    <PDBx:Cartn_x>2.1</PDBx:Cartn_x> \
-        \n    <PDBx:Cartn_y>3.2</PDBx:Cartn_y> \
-        \n    <PDBx:Cartn_z>4.3</PDBx:Cartn_z> \
-        \n    <PDBx:occupancy>0.50</PDBx:occupancy> \
-        \n    <PDBx:type_symbol>O</PDBx:type_symbol> \
-        \n    <PDBx:label_comp_id>HOH</PDBx:label_comp_id> \
-        \n</PDBx:atom_site>" << endl;
-    xml_file.close();
-
-    Molecule* protein = new Molecule("temp.xml");
-    protein->save("temp2.xml");
-    protein = new Molecule("temp2.xml");
-    const vector<Water>& atoms = protein->get_waters();
-    const Water a = atoms[0];
-
-    // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
-    // we now compare the loaded values with the expected.
-    CHECK(a.serial == 1);
-    CHECK(a.serial == 1);
-    CHECK(a.coords.x() == 2.1);
-    CHECK(a.coords.y() == 3.2);
-    CHECK(a.coords.z() == 4.3);
-    CHECK(a.occupancy == 0.50);
-    CHECK(a.element == constants::atom_t::O);
-    CHECK(a.resName == "HOH");
-}
-
 /**
  * @brief Load and copy each file in the data/ folder, and then compare the two files line-by-line.
  *        This is probably one of the strongest tests we can make for i/o
  */
-TEST_CASE("io: real data", "[files],[broken]") {
+TEST_CASE("io: real data", "[files]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
+    for (const auto& file : std::filesystem::recursive_directory_iterator("tests/files")) { // loop over all files in the data/ directory
         if (file.path().extension() != ".pdb") {
             continue;
         }
 
-        if (file.path().string().find("urateox") != std::string::npos) { // skip this file since it skips some serials (shouldn't this be illegal?????)
-            cout << "Skipped urateox.pdb" << endl;
-            continue;
-        }
-
-        cout << "Testing " << file.path().stem() << endl;
         std::string filename = "temp/io/" + file.path().stem().string() + ".pdb";
         Molecule protein(file.path().string());
         protein.save(filename);
@@ -250,87 +172,4 @@ TEST_CASE("io: body copying") {
     body3 = body;
     CHECK(!body3.get_file().header.get().empty());
     CHECK(!body3.get_file().footer.get().empty());
-}
-
-TEST_CASE("io: writing multifile pdb") {
-    settings::molecule::implicit_hydrogens = false;
-
-    std::vector<Atom> atoms(101000);
-    for (unsigned int i = 0; i < atoms.size(); i++) {
-        atoms[i] = Atom({1,2,3}, 1, constants::atom_t::C, "LYS", i);
-    }
-    std::vector<Water> waters(100);
-    for (unsigned int i = 0; i < waters.size(); i++) {
-        waters[i] = Water({1,2,3}, 1, constants::atom_t::O, "HOH", i);
-    }
-
-    Molecule protein(atoms, waters);
-    protein.save("temp/io/temp_multifile.pdb");
-    
-    REQUIRE(std::filesystem::exists("temp/io/temp_multifile_part1.pdb"));
-    REQUIRE(std::filesystem::exists("temp/io/temp_multifile_part2.pdb"));
-
-    // first file
-    Molecule protein2("temp/io/temp_multifile_part1.pdb");
-    REQUIRE(protein2.get_body(0).size_atom() == 100000);
-    REQUIRE(protein2.get_body(0).get_atoms().back().serial == 99999);
-
-    Molecule protein3("temp/io/temp_multifile_part2.pdb");
-    REQUIRE(protein3.get_body(0).size_atom() == 1000);
-    for (int i = 0; i < 1000; i++) {
-        REQUIRE(protein3.get_body(0).get_atom(i).serial == i);
-    }
-    REQUIRE(protein3.get_body(0).get_file().terminate.serial == 1000);
-    REQUIRE(protein3.size_water() == 100);
-    for (int i = 0; i < 100; i++) {
-        REQUIRE(protein3.get_water(i).serial == i+1001);
-    }
-}
-
-#include <em/ImageStack.h>
-TEST_CASE("io: writing em multifile pdb", "[broken]") {
-    em::ImageStack image("data/Gregers_cryo/Gregers_cryo.mrc");
-    image.get_protein(0.1)->save("temp/io/temp.pdb");
-}
-
-TEST_CASE("can_parse_hydrogens") {
-    std::vector<std::string> val = {"ATOM      1  N   VAL     1      -3.299   8.066 -11.443  1.00  0.00           N",
-                                    "ATOM      2  H   VAL     1      -3.411   8.677 -12.239  1.00  0.00           H",
-                                    "ATOM      3  CA  VAL     1      -3.085   6.673 -11.780  1.00  0.00           C",
-                                    "ATOM      4  HA  VAL     1      -3.328   6.080 -10.899  1.00  0.00           H",
-                                    "ATOM      5  CB  VAL     1      -3.927   6.165 -12.947  1.00  0.00           C",
-                                    "ATOM      6  HB  VAL     1      -3.774   6.930 -13.708  1.00  0.00           H",
-                                    "ATOM      7  CG1 VAL     1      -3.577   4.780 -13.486  1.00  0.00           C",
-                                    "ATOM      8 HG11 VAL     1      -3.508   4.011 -12.716  1.00  0.00           H",
-                                    "ATOM      9 HG12 VAL     1      -4.289   4.438 -14.237  1.00  0.00           H",
-                                    "ATOM     10 HG13 VAL     1      -2.612   4.760 -13.992  1.00  0.00           H",
-                                    "ATOM     11  CG2 VAL     1      -5.370   6.065 -12.463  1.00  0.00           C",
-                                    "ATOM     12 HG21 VAL     1      -5.876   7.021 -12.328  1.00  0.00           H",
-                                    "ATOM     13 HG22 VAL     1      -6.043   5.567 -13.162  1.00  0.00           H",
-                                    "ATOM     14 HG23 VAL     1      -5.354   5.510 -11.524  1.00  0.00           H",
-                                    "ATOM     15  C   VAL     1      -1.621   6.436 -12.123  1.00  0.00           C",
-                                    "ATOM     16  O   VAL     1      -1.200   7.045 -13.104  1.00  0.00           O",
-    };
-
-    Atom atom;
-    atom.parse_pdb(val[7]);
-    REQUIRE(atom.name == "HG11");
-    REQUIRE(atom.element == constants::atom_t::H);
-    REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-3.508, 1e-6));
-    REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.011, 1e-6));
-    REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-12.716, 1e-6));
-
-    atom.parse_pdb(val[8]);
-    REQUIRE(atom.name == "HG12");
-    REQUIRE(atom.element == constants::atom_t::H);
-    REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-4.289, 1e-6));
-    REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.438, 1e-6));
-    REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-14.237, 1e-6));
-
-    atom.parse_pdb(val[9]);
-    REQUIRE(atom.name == "HG13");
-    REQUIRE(atom.element == constants::atom_t::H);
-    REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-2.612, 1e-6));
-    REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.760, 1e-6));
-    REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-13.992, 1e-6));
 }

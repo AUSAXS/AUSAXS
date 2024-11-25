@@ -61,31 +61,38 @@ void parse_residue(CIFSection& atom, CIFSection& bond) {
     auto atom_labels = atom.get_label_map();
     auto bond_labels = bond.get_label_map();
 
-    if (!atom_labels.contains("comp_id") || !atom_labels.contains("atom_id") || !atom_labels.contains("alt_atom_id")) {
+    // mandatory labels
+    if (!atom_labels.contains("comp_id") || !atom_labels.contains("atom_id")) {
         throw except::io_error("CIFReader::parse_residue: Missing required labels in \"_chem_comp_atom\" section");
     }
+
+    // optional label
+    bool has_alt_atom_id = atom_labels.contains("alt_atom_id");
 
     // parse atoms
     int i_comp_id = atom_labels.at("comp_id");
     int i_atom_id = atom_labels.at("atom_id");
-    int i_alt_atom_id = atom_labels.at("alt_atom_id");
+    int i_alt_atom_id = has_alt_atom_id ? atom_labels.at("alt_atom_id") : i_atom_id;
     int i_type_symbol = atom_labels.at("type_symbol");
     std::vector<residue::detail::Residue> residues;
     std::unordered_map<std::string, size_t> residue_names;
-    for (size_t i = 0; i < atom.data.size(); ++i) {
+    for (size_t i = 0; i < atom.data.size();) { // nested loops are responsible for incrementing i
         std::string current_comp_id = atom.data[i][i_comp_id];
 
         // if the residue is already present, skip it
         if (constants::hydrogen_atoms::residues.contains(current_comp_id)) {
             while (i < atom.data.size() && atom.data[i][i_comp_id] == current_comp_id) {++i;}
+            continue;
         }
 
         // else, parse all atoms in the residue
         residue::detail::Residue residue(current_comp_id);
         while (i < atom.data.size() && atom.data[i][i_comp_id] == current_comp_id) {
-            auto& atom_id = atom.data[i][i_atom_id];
-            auto& alt_atom_id = atom.data[i][i_alt_atom_id];
-            auto& type_symbol = atom.data[i][i_type_symbol];
+            const std::string& atom_id = atom.data[i][i_atom_id];
+            const std::string& type_symbol = atom.data[i][i_type_symbol];
+            std::string alt_atom_id = atom.data[i][i_alt_atom_id];
+
+            std::cout << "parsing atom in " << residue.get_name() << ": " << atom_id << " " << alt_atom_id << " " << type_symbol << std::endl;
 
             // Sometimes the "1" in e.g. CD1 is omitted
             if (atom_id == alt_atom_id) {
@@ -112,19 +119,20 @@ void parse_residue(CIFSection& atom, CIFSection& bond) {
     int i_atom_id_1 = bond_labels.at("atom_id_1");
     int i_atom_id_2 = bond_labels.at("atom_id_2");
     int i_value_order = bond_labels.at("value_order");
-    for (size_t i = 0; i < bond.data.size(); ++i) {
+    for (size_t i = 0; i < bond.data.size();) { // nested loops are responsible for incrementing i
         std::string current_comp_id = bond.data[i][i_comp_id_bond];
 
         // skip if not present in atom section
         if (!residue_names.contains(current_comp_id)) {
             while (i < bond.data.size() && bond.data[i][i_comp_id_bond] == current_comp_id) {++i;}
+            continue;
         }
 
         // parse bonds
         auto& current_residue = residues[residue_names.at(current_comp_id)];
         while (i < bond.data.size() && bond.data[i][i_comp_id_bond] == current_comp_id) {
-            auto& atom_id_1 = bond.data[i][i_atom_id_1];
-            auto& atom_id_2 = bond.data[i][i_atom_id_2];
+            const std::string& atom_id_1 = bond.data[i][i_atom_id_1];
+            const std::string& atom_id_2 = bond.data[i][i_atom_id_2];
             unsigned int value_order = residue::detail::Bond::parse_order(bond.data[i][i_value_order]);
             current_residue.apply_bond(residue::detail::Bond(atom_id_1, atom_id_2, value_order));
             ++i;
@@ -242,7 +250,7 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     }
 
     auto shorten = [] (const std::string& s) -> std::string {
-        return s.size() < 6 ? s : s.substr(0, 5);
+        return s.size() < 6 ? s : s.substr(0, 7);
     };
 
     int discarded_hydrogens = 0;
@@ -274,10 +282,10 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
                 chainID = atom.data[i][i_label_asym_id][0];
                 iCode = atom.data[i][i_PDB_ins_code];
                 charge = atom.data[i][i_pdbx_formal_charge];
-                if (!atom.data[i][i_id].starts_with(".")) {serial = std::stoi(atom.data[i][i_id]);}
-                if (!atom.data[i][i_label_seq_id].starts_with(".")) {resSeq = std::stoi(atom.data[i][i_label_seq_id]);}
-                if (!atom.data[i][i_occupancy].starts_with(".")) {occupancy = std::stod(shorten(atom.data[i][i_occupancy]));}
-                if (!atom.data[i][i_B_iso_or_equiv].starts_with(".")) {tempFactor = std::stod(shorten(atom.data[i][i_B_iso_or_equiv]));}
+                if (!atom.data[i][i_id].starts_with('.')) {serial = std::stoi(atom.data[i][i_id]);}
+                if (!atom.data[i][i_label_seq_id].starts_with('.')) {resSeq = std::stoi(atom.data[i][i_label_seq_id]);}
+                if (!atom.data[i][i_occupancy].starts_with('.')) {occupancy = std::stod(shorten(atom.data[i][i_occupancy]));}
+                if (!atom.data[i][i_B_iso_or_equiv].starts_with('.')) {tempFactor = std::stod(shorten(atom.data[i][i_B_iso_or_equiv]));}
             }
         } catch (const std::exception& e) {
             console::print_warning(
@@ -379,21 +387,24 @@ void io::detail::CIFReader::read(const io::File& path) {
     while(getline(input, line)) {
         if (line.find("_chem_comp_atom.") != std::string::npos) {
             chem_comp_atom = extract_section(line);
+            std::cout << "Found chem_comp_atom" << std::endl;
         }
 
         if (line.find("_chem_comp_bond.") != std::string::npos) {
             chem_comp_bond = extract_section(line);
+            std::cout << "Found chem_comp_bond" << std::endl;
         }
 
         if (line.find("_atom_site.") != std::string::npos) {
             atom_site = extract_section(line);
+            std::cout << "Found atom_site" << std::endl;
         }
     }
 
     if (atom_site.empty() && chem_comp_atom.empty() && chem_comp_bond.empty()) {throw except::io_error("CIFReader::read: Could not find any data sections in file \"" + path.str() + "\"");}
     if (!atom_site.empty()) {parse_atom_site_section(atom_site, *file);}
     if (int v = chem_comp_atom.empty() + chem_comp_bond.empty(); v == 1) {throw except::io_error("CIFReader::read: Incomplete data sections in file \"" + path.str() + "\"");}
-    else if (v != 0) {parse_chem_comp_section(chem_comp_atom, chem_comp_bond);}
+    else if (v == 0) {parse_chem_comp_section(chem_comp_atom, chem_comp_bond);}
 
     unsigned int n_pa = file->protein_atoms.size();
     unsigned int n_ha = file->hydration_atoms.size();
