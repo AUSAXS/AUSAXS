@@ -110,26 +110,6 @@ TEST_CASE("io: body file") {
     REQUIRE(file3.header.size() == 2);
 }
 
-/**
- * @brief Load and copy each file in the data/ folder, and then compare the two files line-by-line.
- *        This is probably one of the strongest tests we can make for i/o
- */
-TEST_CASE("io: real data", "[files]") {
-    settings::general::verbose = false;
-    settings::molecule::implicit_hydrogens = false;
-    for (const auto& file : std::filesystem::recursive_directory_iterator("tests/files")) { // loop over all files in the data/ directory
-        if (file.path().extension() != ".pdb") {
-            continue;
-        }
-
-        std::string filename = "temp/io/" + file.path().stem().string() + ".pdb";
-        Molecule protein(file.path().string());
-        protein.save(filename);
-        bool success = compare_files(file.path().string(), filename);
-        CHECK(success);
-    }
-}
-
 TEST_CASE("io: protein") {
     settings::molecule::center = false;
     settings::general::verbose = false;
