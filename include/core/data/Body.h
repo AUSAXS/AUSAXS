@@ -143,13 +143,6 @@ namespace ausaxs::data {
 			void rotate(double alpha, double beta, double gamma);
 
 			/**
-			 * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
-			 * 
-			 * @param charge the charge to be subtracted.
-			 */
-			void update_effective_charge(double charge);
-
-			/**
 			 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
 			 */
 			void register_probe(std::shared_ptr<signaller::Signaller> signal);
@@ -192,7 +185,6 @@ namespace ausaxs::data {
 
 		private:
 			int uid;                     				// A unique identifier for this body
-			bool updated_charge = false;          		// True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
 			bool centered = false;                		// True if this object is centered, false otherwise
 			inline static unsigned int uid_counter = 0; // The unique counter. 
 			data::detail::AtomCollection file;          // The file backing this body
