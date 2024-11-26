@@ -332,7 +332,7 @@ namespace ausaxs::data::record {
 
             // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
             Vector3<double> coords = {0, 0, 0};
-            std::string name, altLoc, resName, iCode, charge, recName = "ATOM  ";
+            std::string name, altLoc, resName, iCode, charge;
             char chainID = ' ';
             constants::atom_t element = constants::atom_t::unknown;
             constants::atomic_group_t atomic_group = constants::atomic_group_t::unknown;

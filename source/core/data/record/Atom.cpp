@@ -111,7 +111,6 @@ void Atom::parse_pdb(const std::string& str) {
 
     // set all of the properties
     try {
-        this->recName = std::move(recName);
         this->serial = std::stoi(serial);
         this->name = std::move(name);
         this->altLoc = std::move(altLoc);
@@ -231,7 +230,7 @@ std::string Atom::get_charge() const {return charge;}
 std::string Atom::get_residue_name() const {return resName;}
 std::string Atom::get_group_name() const {return name;}
 constants::atom_t Atom::get_element() const {return element;}
-std::string Atom::get_recName() const {return recName;}
+std::string Atom::get_recName() const {return "ATOM  ";}
 constants::atomic_group_t Atom::get_atomic_group() const {return atomic_group;}
 
 double Atom::get_mass() const {
