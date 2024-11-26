@@ -107,13 +107,6 @@ void Body::rotate(const Vector3<double>& axis, double angle) {
     rotate(R);
 }
 
-void Body::update_effective_charge(double charge) {
-    changed_external_state();
-    changed_internal_state();
-    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&charge] (record::Atom& a) {a.add_effective_charge(charge);});
-    updated_charge = true;
-}
-
 double Body::get_total_atomic_charge() const {
     return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const record::Atom& atom) {return sum + atom.Z();});
 }
