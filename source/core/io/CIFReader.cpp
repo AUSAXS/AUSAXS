@@ -345,19 +345,12 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
     while(input.peek() != '_' && getline(input, line) && !line.starts_with("loop_")) {
         if (line.starts_with('#')) {continue;}
         auto values = utility::split(line, " ");
-        if (values.size() != labels.size()) {
-            throw except::io_error(
-                "CIFReader::read: Inconsistent number of values in data section: \n\"" + line + "\"" +
-                "\nExpected " + std::to_string(labels.size()) + " values, got " + std::to_string(values.size())
-            );
-        }
 
         int concatenated = 0;
         for (size_t i = 0; i < values.size(); i++) {
             if (values[i].starts_with('"')) {
                 if (i < values.size() && values[i+1].ends_with('"')) {
                     values[i] = values[i].substr(1) + " " + values[i+1].substr(0, values[i+1].size()-1);
-                    continue;
                 } else {
                     throw except::io_error("CIFReader::read: Unterminated quote in data section: \n\"" + line + "\"");
                 }
@@ -367,6 +360,15 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
             values[i-concatenated] = values[i];
         }
         values.resize(values.size()-concatenated);
+
+        // sanity check
+        if (values.size() != labels.size()) {
+            throw except::io_error(
+                "CIFReader::read: Inconsistent number of values in data section: \n\"" + line + "\"" +
+                "\nExpected " + std::to_string(labels.size()) + " values, got " + std::to_string(values.size())
+            );
+        }
+
         data.push_back(values);
     };
 

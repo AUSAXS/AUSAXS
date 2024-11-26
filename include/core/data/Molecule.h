@@ -158,11 +158,6 @@ namespace ausaxs::data {
 			[[nodiscard]] double get_total_atomic_charge() const;
 
 			/**
-			 * @brief Get the total effective charge. 
-			 */
-			// [[nodiscard]] double get_total_effective_charge() const;
-
-			/**
 			 * @brief Get the relative charge density. 
 			 */
 			[[nodiscard]] double get_relative_charge_density() const;
@@ -319,13 +314,6 @@ namespace ausaxs::data {
 			 */
 			void signal_modified_hydration_layer() const;
 
-			/**
-			 * @brief Subtract the charge of the displaced water molecules from the effective charge of the molecule atoms. 
-			 * 
-			 * @param scaling The excluded volume scaling factor. Default: 1. 
-			 */
-			// void update_effective_charge(double scaling = 1);
-
 			/** 
 			 * @brief Move the entire molecule by a vector.
 			 * @param v the translation vector.
@@ -339,7 +327,6 @@ namespace ausaxs::data {
 			std::vector<Body> bodies;           			// The constituent bodies
 
 			// the following two variables are only necessary to ensure copying cannot repeat the same work
-			bool updated_charge = false;	// True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise.
 			bool centered = false;      	// True if this object has been centered, false otherwise. 
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const

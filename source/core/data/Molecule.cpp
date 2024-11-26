@@ -87,7 +87,6 @@ Molecule& Molecule::operator=(Molecule&& other) {
     if (this == &other) {return *this;}
     hydration = std::move(other.hydration);
     bodies = std::move(other.bodies);
-    updated_charge = other.updated_charge;
     centered = other.centered;
     grid = std::move(other.grid);
     initialize(); // reinitialize since some of the members contains pointers to the old object
@@ -96,8 +95,7 @@ Molecule& Molecule::operator=(Molecule&& other) {
 
 void Molecule::initialize() {
     set_histogram_manager(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins));
-    if (!centered && settings::molecule::center) {center();} // Centering *must* happen before generating the grid in 'update_effective_charge'!
-    // if (!updated_charge && settings::molecule::use_effective_charge) {update_effective_charge();}
+    if (!centered && settings::molecule::center) {center();}
 }
 
 void Molecule::add_implicit_hydrogens() {
@@ -159,10 +157,6 @@ double Molecule::get_excluded_volume_mass() const {
 double Molecule::get_total_atomic_charge() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_atomic_charge();});
 }
-
-// double Molecule::get_total_effective_charge() const {
-//     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_effective_charge();});
-// }
 
 double Molecule::get_Rg() const {
     Vector3<double> cm = get_cm();
@@ -411,30 +405,6 @@ std::size_t Molecule::size_water() const {
 Water& Molecule::get_waters(unsigned int i) {return get_waters()[i];}
 
 const Water& Molecule::get_water(unsigned int i) const {return get_waters()[i];}
-
-// void Molecule::update_effective_charge(double scaling) {
-//     static double previous_charge = 0;
-
-//     std::size_t N = size_atom();
-//     if (N == 0) [[unlikely]] {return;}
-
-//     double displaced_vol = scaling*get_volume_grid();
-//     double displaced_charge = constants::charge::density::water*displaced_vol - previous_charge;
-//     previous_charge += displaced_charge;
-
-//     double charge_per_atom = -displaced_charge/N;
-//     if (settings::general::verbose) {
-//         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
-//         std::cout << "Added " << charge_per_atom << " electrons to each atom (N: " << N << ")." << std::endl;
-//     }
-
-//     // subtract the charge from all molecule atoms
-//     for (auto& body : bodies) {
-//         body.update_effective_charge(charge_per_atom);
-//     }
-
-//     updated_charge = true;
-// }
 
 void Molecule::center() {
     translate(-get_cm());
