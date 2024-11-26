@@ -57,8 +57,6 @@ int main(int argc, char const *argv[]) {
                 CLI11_PARSE(app, argc, argv);
             }
         }
-        if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
-        settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 
         // validate input
         if (!constants::filetypes::em_map.check(mapfile)) {
@@ -71,6 +69,8 @@ int main(int argc, char const *argv[]) {
         if (!constants::filetypes::saxs_data.check(mfile)) {
             throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile + "\"");
         }
+        if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
+        settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 
         std::cout << "Performing EM fit with map \"" << mapfile << "\" and measurement \"" << mfile << "\"" << std::endl;
         em::ImageStack map(mapfile); 
