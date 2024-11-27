@@ -33,8 +33,12 @@ class Data(Enum):
     SH = 13
 
 file = sys.argv[1]
-target = sys.argv[2]
-with open(file, 'r') as f:
+
+target = 'mf'
+if len(sys.argv) == 3:
+    target = sys.argv[2]
+
+with open("output/vary_exv_tables/" + file + ".txt", 'r') as f:
     lines = f.readlines()
 
 data_voronoi = []
@@ -98,15 +102,15 @@ if (True):
     plt.figure(figsize=(12, 8))
     plt.subplots_adjust(hspace=0, wspace=0.05)
     plt.subplot(2, 1, 1)
-    bins = np.linspace(5, 20, 50)
+    bins = np.linspace(2, 15, 50)
     plt.hist(data_voronoi[:, Data.chi2.value], bins=bins, color='tab:blue', alpha=0.5)
     plt.hist(data_mf[:, Data.chi2.value], bins=bins, color='tab:orange', alpha=0.5)
 
-    plt.axvline(6.97, color='tab:blue', linestyle='--', label="Voronoi")
-    plt.axvline(6.78, color='tab:orange', linestyle='--', label="Minimum fluctuation")
-    plt.axvline(6.65, color='tab:red', linestyle='--', label="Traube")
+    plt.axvline(3.2, color='tab:blue', linestyle='--', label="Voronoi")
+    plt.axvline(5.7, color='tab:orange', linestyle='--', label="Minimum fluctuation")
+    plt.axvline(3.1, color='tab:red', linestyle='--', label="Traube")
 
-    plt.yscale('log')
+    # plt.yscale('log')
     plt.xlabel('$\chi^2_r$')
     plt.ylabel('Count')
     plt.legend()
