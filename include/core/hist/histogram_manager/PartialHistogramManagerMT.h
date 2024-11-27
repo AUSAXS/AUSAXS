@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hist/distribution/GenericDistribution1D.h>
-#include <hist/distance_calculator/PartialHistogramManager.h>
+#include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <container/ThreadLocalWrapper.h>

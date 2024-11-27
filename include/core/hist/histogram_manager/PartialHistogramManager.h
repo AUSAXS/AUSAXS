@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/distance_calculator/IPartialHistogramManager.h>
+#include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/SimpleExvModel.h>

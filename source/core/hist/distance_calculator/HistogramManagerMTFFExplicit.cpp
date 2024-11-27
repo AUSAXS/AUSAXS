@@ -3,8 +3,8 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
-#include <hist/distance_calculator/detail/TemplateHelpersFFExplicit.h>
+#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/detail/TemplateHelpersFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>

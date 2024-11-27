@@ -3,8 +3,8 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <hist/distance_calculator/PartialHistogramManagerMT.h>
-#include <hist/distance_calculator/detail/TemplateHelpers.h>
+#include <hist/histogram_manager/PartialHistogramManagerMT.h>
+#include <hist/histogram_manager/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>

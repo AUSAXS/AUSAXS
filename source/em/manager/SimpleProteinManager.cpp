@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <em/manager/SimpleProteinManager.h>
-#include <hist/distance_calculator/HistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMT.h>
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>
 #include <data/record/Atom.h>

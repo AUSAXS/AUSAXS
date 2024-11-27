@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/distance_calculator/IHistogramManager.h>
+#include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/detail/BodyTracker.h>
 
 namespace ausaxs::hist {

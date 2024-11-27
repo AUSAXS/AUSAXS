@@ -3,16 +3,16 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <hist/distance_calculator/HistogramManagerFactory.h>
-#include <hist/distance_calculator/HistogramManager.h>
-#include <hist/distance_calculator/HistogramManagerMT.h>
-#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGridSurface.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGridScalableExv.h>
-#include <hist/distance_calculator/PartialHistogramManager.h>
-#include <hist/distance_calculator/PartialHistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerFactory.h>
+#include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
+#include <hist/histogram_manager/PartialHistogramManager.h>
+#include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <settings/HistogramSettings.h>
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>

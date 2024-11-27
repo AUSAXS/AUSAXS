@@ -3,7 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <hist/distance_calculator/HistogramManagerMTFFGridScalableExv.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
@@ -14,7 +14,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
-#include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
+#include <hist/histogram_manager/detail/TemplateHelpersFFAvg.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
 

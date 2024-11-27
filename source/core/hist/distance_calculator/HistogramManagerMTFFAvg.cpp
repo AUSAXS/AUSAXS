@@ -3,12 +3,12 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/detail/TemplateHelpersFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
-#include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
 #include <container/ThreadLocalWrapper.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>

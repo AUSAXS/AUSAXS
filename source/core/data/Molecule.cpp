@@ -3,8 +3,9 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <hist/distance_calculator/IHistogramManager.h>
-#include <hist/distance_calculator/IPartialHistogramManager.h>
+#include <hist/histogram_manager/IHistogramManager.h>
+#include <hist/histogram_manager/IPartialHistogramManager.h>
+#include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -20,7 +21,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
-#include <hist/distance_calculator/HistogramManagerFactory.h>
 #include <constants/Constants.h>
 #include <grid/Grid.h>
 #include <hydrate/ExplicitHydration.h>
