@@ -16,6 +16,8 @@
 #include <settings/All.h>
 #include <plots/All.h>
 
+using namespace ausaxs;
+
 // calculate the exact aa profile without form factors
 [[maybe_unused]] auto exact_aa_debye = [] (const data::Molecule& molecule) {
     container::Container2D<double> distances(molecule.get_atoms().size(), molecule.get_atoms().size());
