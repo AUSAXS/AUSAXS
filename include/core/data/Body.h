@@ -162,6 +162,19 @@ namespace ausaxs::data {
 			 */
 			data::detail::AtomCollection& get_file();
 
+			[[nodiscard]] int get_id() const;
+
+			/**
+			 * @brief Get the total number of constituent atoms, excluding hydration. 
+			 */
+			[[nodiscard]] std::size_t size_atom() const;
+
+		private:
+			/**
+			 * @brief Get the signaller object for this body. 
+			 */
+			std::shared_ptr<signaller::Signaller> get_signaller() const;
+
 			/**
 			 * @brief Signal that this object has changed its external state.
 			 *        This triggers recalculating all external distances between this body and everything else the next time a histogram is requested. 
@@ -174,16 +187,6 @@ namespace ausaxs::data {
 			 */
 			void changed_internal_state() const;
 
-			std::shared_ptr<signaller::Signaller> get_signaller() const;
-
-			[[nodiscard]] int get_id() const;
-
-			/**
-			 * @brief Get the total number of constituent atoms, excluding hydration. 
-			 */
-			[[nodiscard]] std::size_t size_atom() const;
-
-		private:
 			int uid;                     				// A unique identifier for this body
 			bool centered = false;                		// True if this object is centered, false otherwise
 			inline static unsigned int uid_counter = 0; // The unique counter. 
