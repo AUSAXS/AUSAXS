@@ -101,7 +101,7 @@ jobs:
             vcpkg_triplet: arm64-osx
             CC: $(brew --prefix llvm@15)/bin/clang
             CXX: $(brew --prefix llvm@15)/bin/clang++
-            XCODE_VER: 14.3.1
+            XCODE_VER: 15.4
 
     steps:
       - uses: actions/checkout@v4
