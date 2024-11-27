@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManager.h>
 #include <hist/detail/CompactCoordinates.h>
 
 namespace ausaxs::hist {

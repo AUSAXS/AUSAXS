@@ -8,8 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
-#include <hist/distance_calculator/detail/TemplateHelpers.h>
-#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/histogram_manager/detail/TemplateHelpers.h>
+#include <hist/histogram_manager/HistogramManager.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>

@@ -1,21 +1,21 @@
 #pragma once
 
-#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManager.h>
+#include <hist/detail/CompactCoordinatesFF.h>
 
 namespace ausaxs::hist {
-	class CompositeDistanceHistogram;
-	namespace detail {class CompactCoordinatesFF;}
-
 	/**
-	 * @brief A histogram manager using explicit excluded volume form factors for each atomic type.
-	 *		  This is equivalent to the CRYSOL implementation. 
+	 * @brief A histogram manager which uses an average excluded volume approximation. 
+	 *
+	 * This is equivalent to the CRYSOL implementation, but with a single average excluded volume for all atoms.
+	 * To use unique excluded volumes for each atom, see HistogramManagerMTFFExplicit. 
 	 */
 	template<bool use_weighted_distribution>
-	class HistogramManagerMTFFExplicit : public HistogramManager<use_weighted_distribution> {
+	class HistogramManagerMTFFAvg : public HistogramManager<use_weighted_distribution> {
 		public:
 			using HistogramManager<use_weighted_distribution>::HistogramManager;
 
-			virtual ~HistogramManagerMTFFExplicit() override;
+			virtual ~HistogramManagerMTFFAvg() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 
@@ -28,6 +28,7 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
+			// data stored for inheritance
 			std::unique_ptr<hist::detail::CompactCoordinatesFF> data_a_ptr;
 		    std::unique_ptr<hist::detail::CompactCoordinatesFF> data_w_ptr;
 	};
