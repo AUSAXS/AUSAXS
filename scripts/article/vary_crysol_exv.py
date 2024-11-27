@@ -172,11 +172,12 @@ def extract_chi2(crysol_output):
 
 start_index = {}
 def main():
+    file = os.sys.argv[1]
     home = os.path.expanduser("~")
-    input_filename = 'output/vary_exv_tables/SASDJY3.txt'
+    input_filename = f'output/vary_exv_tables/{file}.txt'
     default_data_filename = home+'/tools/ATSAS/share/atsas/data/atomic_groups.cif.original'
-    pdb_file = 'data/SASDJY3/SASDJY3.pdb'
-    data_file = 'data/SASDJY3/SASDJY3.dat'
+    pdb_file = f'data/{file}/{file}.pdb'
+    data_file = f'data/{file}/{file}.dat'
 
     element_data = parse_default_data(default_data_filename)
     methods = parse_input_file(input_filename)
@@ -187,7 +188,7 @@ def main():
         print(f"Processing method: {method_name}")
         start_index[method_name] = len(chi2_values)
         for idx, volume_set in enumerate(volume_sets):
-            if (idx > 100): break
+            if (idx > 1000): break
             # Generate the parameters file for this volume set
             parameters_content = generate_parameters_file(volume_set, element_data, method_name)
             parameters_filename = home+'/tools/ATSAS/share/atsas/data/atomic_groups.cif'
@@ -206,7 +207,7 @@ def main():
                 print(f"Chi2 not found for volume set {idx+1}")
 
     # Save the chi2 values to a file
-    with open('chi2_values.txt', 'w') as f:
+    with open(f'{file}_crysol_chi2_values.txt', 'w') as f:
         for method_name, idx in start_index.items():
             f.write(f"\n### {method_name}\n")
             for chi2 in chi2_values[idx:]:
