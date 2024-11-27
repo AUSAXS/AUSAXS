@@ -2,8 +2,7 @@
 
 #include <data/record/Water.h>
 #include <data/Molecule.h>
-#include <fitter/HydrationFitter.h>
-#include <fitter/ExcludedVolumeFitter.h>
+#include <fitter/SmartFitter.h>
 #include <io/ExistingFile.h>
 #include <constants/Constants.h>
 #include <form_factor/DisplacedVolumeTable.h>
@@ -16,6 +15,8 @@
 #include <string>
 #include <iostream>
 #include <random>
+
+using namespace ausaxs;
 
 std::random_device rd;
 std::mt19937 gen(rd());
@@ -127,10 +128,10 @@ int main(int argc, char const *argv[]) {
     settings::molecule::throw_on_unknown_atom = false;
     settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::Custom;
     settings::molecule::use_effective_charge = false;
-    settings::hist::fit_excluded_volume = true;
+    settings::fit::fit_excluded_volume = true;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
 
-    unsigned int repeats = 10000;
+    unsigned int repeats = 1000;
     data::Molecule molecule(pdb);
     SimpleDataset data(mfile);
     molecule.add_implicit_hydrogens();
@@ -138,13 +139,8 @@ int main(int argc, char const *argv[]) {
     auto hist = molecule.get_histogram();
 
     auto make_fit = [&] () {
-        std::shared_ptr<fitter::HydrationFitter> fitter;
-        if (settings::hist::fit_excluded_volume) {
-            fitter = std::make_shared<fitter::ExcludedVolumeFitter>(data, std::make_unique<hist::CompositeDistanceHistogramFFExplicit>(*static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist.get())));
-        } else {
-            fitter = std::make_shared<fitter::HydrationFitter>(data, std::make_unique<hist::CompositeDistanceHistogramFFExplicit>(*static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist.get())));
-        }
-        auto fit = fitter->fit();
+        fitter::SmartFitter fitter(data, std::make_unique<hist::CompositeDistanceHistogramFFExplicit>(*static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist.get())));
+        auto fit = fitter.fit();
         return fit->fval/fit->dof;
     };
 
