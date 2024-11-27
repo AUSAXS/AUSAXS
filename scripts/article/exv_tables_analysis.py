@@ -98,7 +98,7 @@ if (True):
     plt.figure(figsize=(12, 8))
     plt.subplots_adjust(hspace=0, wspace=0.05)
     plt.subplot(2, 1, 1)
-    bins = np.linspace(5, 10, 50)
+    bins = np.linspace(5, 20, 50)
     plt.hist(data_voronoi[:, Data.chi2.value], bins=bins, color='tab:blue', alpha=0.5)
     plt.hist(data_mf[:, Data.chi2.value], bins=bins, color='tab:orange', alpha=0.5)
 

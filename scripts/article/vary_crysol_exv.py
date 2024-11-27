@@ -172,10 +172,11 @@ def extract_chi2(crysol_output):
 
 start_index = {}
 def main():
-    input_filename = 'output/vary_exv_tables/SASDJG5.txt'
-    default_data_filename = '/home/au561871/tools/ATSAS/share/atsas/data/atomic_groups.cif.original'
-    pdb_file = 'data/SASDJG5/SASDJG5.pdb'
-    data_file = 'data/SASDJG5/SASDJG5.dat'
+    home = os.path.expanduser("~")
+    input_filename = 'output/vary_exv_tables/SASDJY3.txt'
+    default_data_filename = home+'/tools/ATSAS/share/atsas/data/atomic_groups.cif.original'
+    pdb_file = 'data/SASDJY3/SASDJY3.pdb'
+    data_file = 'data/SASDJY3/SASDJY3.dat'
 
     element_data = parse_default_data(default_data_filename)
     methods = parse_input_file(input_filename)
@@ -189,7 +190,7 @@ def main():
             if (idx > 100): break
             # Generate the parameters file for this volume set
             parameters_content = generate_parameters_file(volume_set, element_data, method_name)
-            parameters_filename = '/home/au561871/tools/ATSAS/share/atsas/data/atomic_groups.cif'
+            parameters_filename = home+'/tools/ATSAS/share/atsas/data/atomic_groups.cif'
             with open(parameters_filename, 'w') as outfile:
                 outfile.write('\n'.join(parameters_content))
             # Run CRYSOL with the parameters file
