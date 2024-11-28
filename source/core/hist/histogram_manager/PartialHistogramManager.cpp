@@ -10,6 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <data/state/StateManager.h>
 #include <data/Molecule.h>
+#include <data/Body.h>
 #include <settings/HistogramSettings.h>
 
 #include <algorithm>
@@ -48,7 +49,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
                 calc_self_correlation(i);
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
-                this->coords_a[i] = detail::CompactCoordinates(this->protein->get_body(i));
+                this->coords_a[i] = detail::CompactCoordinates(this->protein->get_body(i).get_atoms());
                 hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], protein);
             }
         }
@@ -152,7 +153,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<use_weighte
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(unsigned int index) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    detail::CompactCoordinates current(this->protein->get_body(index));
+    detail::CompactCoordinates current(this->protein->get_body(index).get_atoms());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
 
     // calculate internal distances between atoms

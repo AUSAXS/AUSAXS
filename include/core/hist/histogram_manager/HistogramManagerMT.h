@@ -25,9 +25,5 @@ namespace ausaxs::hist {
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
-
-		protected:
-			std::unique_ptr<hist::detail::CompactCoordinates> data_a_ptr;
-		    std::unique_ptr<hist::detail::CompactCoordinates> data_w_ptr;
 	};
 }
