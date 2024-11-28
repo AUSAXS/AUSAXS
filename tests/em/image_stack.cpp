@@ -9,7 +9,7 @@
 #include <data/record/Atom.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
-#include <hist/distance_calculator/HistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <plots/All.h>
 

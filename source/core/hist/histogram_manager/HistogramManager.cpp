@@ -8,12 +8,13 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
-#include <hist/histogram_manager/detail/TemplateHelpers.h>
+#include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/SimpleExvModel.h>
 #include <settings/HistogramSettings.h>
 #include <constants/ConstantsAxes.h>
 
@@ -21,7 +22,7 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution>
-HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : detail::SimpleExvModel(protein), protein(protein) {}
+HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : protein(protein) {}
 
 template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::~HistogramManager() = default;
@@ -40,7 +41,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
     hist::detail::CompactCoordinates data_w = hist::detail::CompactCoordinates(protein->get_waters());
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
-    apply_simple_excluded_volume(data_a);
+    hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);
 
     // calculate aa distances
     for (int i = 0; i < data_a_size; ++i) {

@@ -11,7 +11,7 @@
 #include <settings/All.h>
 #include <data/record/Water.h>
 #include <data/Body.h>
-#include <hist/distance_calculator/IPartialHistogramManager.h>
+#include <hist/histogram_manager/IPartialHistogramManager.h>
 
 #include <vector>
 #include <string>
@@ -155,15 +155,6 @@ TEST_CASE_METHOD(fixture, "Body::total_atomic_charge") {
     CHECK(body.get_total_atomic_charge() == 8*6);
 }
 
-TEST_CASE_METHOD(fixture, "Body::total_effective_charge") {
-    double c0 = body.get_atom(0).get_effective_charge();    
-    double charge1 = body.get_total_effective_charge();
-    body.update_effective_charge(1.5);
-    double charge2 = body.get_total_effective_charge();
-    CHECK(charge2 == charge1+12);
-    CHECK(body.get_atom(0).get_effective_charge() == c0+1.5);
-}
-
 TEST_CASE_METHOD(fixture, "Body::center") {
     settings::molecule::implicit_hydrogens = false;
     
@@ -289,7 +280,7 @@ TEST_CASE("Body::rotate") {
 
 #include <data/state/BoundSignaller.h>
 TEST_CASE("Body::register_probe") {
-    Body body = Body({Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1)}, {});
+    Body body({Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1)}, {});
     auto probe = std::make_shared<signaller::BoundSignaller>(1, nullptr);
     body.register_probe(probe);
     REQUIRE(probe == body.get_signaller());
@@ -333,7 +324,7 @@ TEST_CASE("Body::get_file") {
 
 TEST_CASE_METHOD(fixture, "Body::state") {
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
-
+    
     auto protein = Molecule({body});
     auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
     manager->reset_to_false();

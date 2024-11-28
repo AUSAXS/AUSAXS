@@ -10,9 +10,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::hist::detail;
 
-SimpleExvModel::SimpleExvModel(observer_ptr<const data::Molecule> protein) : protein(protein) {}
-SimpleExvModel::~SimpleExvModel() = default;
-
 bool flag_simple_excluded_volume = false;
 void SimpleExvModel::enable() {
     flag_simple_excluded_volume = true;
@@ -24,7 +21,7 @@ void SimpleExvModel::disable() {
     logging::log("SimpleExvModel disabled.");
 }
 
-void SimpleExvModel::apply_simple_excluded_volume(hist::detail::CompactCoordinates& data_a) {
+void SimpleExvModel::apply_simple_excluded_volume(hist::detail::CompactCoordinates& data_a, observer_ptr<const data::Molecule> protein) {
     if (flag_simple_excluded_volume) {
         data_a.implicit_excluded_volume(protein->get_volume_grid()/protein->size_atom());
     }

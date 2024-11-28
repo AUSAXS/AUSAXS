@@ -3,13 +3,13 @@
 
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <hist/distance_calculator/HistogramManager.h>
-#include <hist/distance_calculator/HistogramManagerMT.h>
-#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
-#include <hist/distance_calculator/PartialHistogramManager.h>
-#include <hist/distance_calculator/PartialHistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/histogram_manager/PartialHistogramManager.h>
+#include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/WeightedDistribution2D.h>
 #include <hist/distribution/WeightedDistribution3D.h>

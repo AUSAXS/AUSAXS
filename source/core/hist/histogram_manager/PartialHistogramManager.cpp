@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/histogram_manager/detail/TemplateHelpers.h>
+#include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -20,7 +20,6 @@ using namespace ausaxs::hist;
 template<bool use_weighted_distribution> 
 PartialHistogramManager<use_weighted_distribution>::PartialHistogramManager(observer_ptr<const data::Molecule> protein) 
     : IPartialHistogramManager(protein), 
-      detail::SimpleExvModel(protein),
       protein(protein),
       coords_a(this->body_size), 
       partials_aa(this->body_size, this->body_size), 
@@ -50,7 +49,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
                 this->coords_a[i] = detail::CompactCoordinates(this->protein->get_body(i));
-                this->apply_simple_excluded_volume(coords_a[i]);
+                hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], protein);
             }
         }
     }
@@ -154,7 +153,7 @@ template<bool use_weighted_distribution>
 void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(unsigned int index) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     detail::CompactCoordinates current(this->protein->get_body(index));
-    this->apply_simple_excluded_volume(current);
+    hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
 
     // calculate internal distances between atoms
     GenericDistribution1D_t p_aa(this->master.axis.bins);

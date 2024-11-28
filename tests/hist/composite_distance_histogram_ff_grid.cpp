@@ -2,9 +2,9 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGridSurface.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGridScalableExv.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>

@@ -169,7 +169,6 @@ namespace ausaxs::data {
 			 */
 			[[nodiscard]] std::size_t size_atom() const;
 
-		private:
 			/**
 			 * @brief Get the signaller object for this body. 
 			 */
@@ -187,6 +186,7 @@ namespace ausaxs::data {
 			 */
 			void changed_internal_state() const;
 
+		private:
 			int uid;                     				// A unique identifier for this body
 			bool centered = false;                		// True if this object is centered, false otherwise
 			inline static unsigned int uid_counter = 0; // The unique counter. 

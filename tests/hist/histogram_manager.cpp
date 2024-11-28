@@ -6,14 +6,14 @@
 #include <data/Body.h>
 #include <data/state/StateManager.h>
 #include <data/state/Signaller.h>
-#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/distance_calculator/HistogramManagerMT.h>
-#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
-#include <hist/distance_calculator/PartialHistogramManager.h>
-#include <hist/distance_calculator/PartialHistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/histogram_manager/PartialHistogramManager.h>
+#include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <form_factor/FormFactor.h>
 #include <io/ExistingFile.h>
@@ -260,8 +260,6 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     }
 
     SECTION("real data with hydration") {
-//        settings::molecule::implicit_hydrogens = false;
-
         // create the atom, and perform a sanity check on our extracted list
         Molecule protein("tests/files/2epe.pdb");
         protein.generate_new_hydration();

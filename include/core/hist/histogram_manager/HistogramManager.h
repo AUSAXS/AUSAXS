@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hist/histogram_manager/IHistogramManager.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <hist/detail/HistDetailFwd.h>
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
@@ -18,7 +17,7 @@ namespace ausaxs::hist {
 	 * This class is not meant for production use. 
 	 */
 	template<bool use_weighted_distribution>
-	class HistogramManager : public IHistogramManager, public detail::SimpleExvModel {
+	class HistogramManager : public IHistogramManager {
 		public:
 			HistogramManager(observer_ptr<const data::Molecule> protein); 
 			virtual ~HistogramManager();

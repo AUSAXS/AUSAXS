@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
-#include <hist/histogram_manager/detail/TemplateHelpersFFAvg.h>
+#include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>

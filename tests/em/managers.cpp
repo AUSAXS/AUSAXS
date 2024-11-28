@@ -15,8 +15,8 @@
 #include <data/state/UnboundSignaller.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <hist/distance_calculator/HistogramManager.h>
-#include <hist/distance_calculator/IPartialHistogramManager.h>
+#include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/HistFwd.h>
 #include <settings/All.h>

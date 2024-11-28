@@ -12,7 +12,7 @@
 #include <settings/All.h>
 #include <fitter/SmartFitter.h>
 #include <hydrate/generation/RadialHydration.h>
-#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManager.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
 
@@ -681,8 +681,8 @@ TEST_CASE("Molecule::histogram", "[files]") {
 
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
-#include <hist/distance_calculator/HistogramManagerFactory.h>
-#include <hist/distance_calculator/IPartialHistogramManager.h>
+#include <hist/histogram_manager/HistogramManagerFactory.h>
+#include <hist/histogram_manager/IPartialHistogramManager.h>
 TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
     settings::general::verbose = false;
