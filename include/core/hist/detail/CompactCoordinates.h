@@ -31,7 +31,7 @@ namespace ausaxs::hist::detail {
             /**
              * @brief Extract the necessary coordinates and weights from a body. 
              */
-            CompactCoordinates(const data::Body& body);
+            CompactCoordinates(const std::vector<data::record::Atom>& body);
 
             /**
              * @brief Extract the necessary coordinates and weights from a vector of bodies. 

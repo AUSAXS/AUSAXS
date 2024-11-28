@@ -18,9 +18,9 @@ CompactCoordinates::CompactCoordinates(std::vector<Vector3<double>>&& coordinate
     std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return CompactCoordinatesData(v, weight);});
 }
 
-CompactCoordinates::CompactCoordinates(const data::Body& body) : data(body.size_atom()) {
+CompactCoordinates::CompactCoordinates(const std::vector<data::record::Atom>& atoms) : data(atoms.size()) {
     for (unsigned int i = 0; i < size(); ++i) {
-        const auto& a = body.get_atom(i); 
+        const auto& a = atoms[i]; 
         data[i] = CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
     }
 }
