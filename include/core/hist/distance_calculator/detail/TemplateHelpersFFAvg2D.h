@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/histogram_manager/detail/TemplateHelpers.h>
+#include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>

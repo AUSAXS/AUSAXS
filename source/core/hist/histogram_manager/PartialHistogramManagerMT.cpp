@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
-#include <hist/histogram_manager/detail/TemplateHelpers.h>
+#include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -138,7 +138,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
 template<bool use_weighted_distribution>
 void PartialHistogramManagerMT<use_weighted_distribution>::update_compact_representation_body(unsigned int index) {
     this->coords_a[index] = detail::CompactCoordinates(this->protein->get_body(index));
-    this->apply_simple_excluded_volume(this->coords_a[index]);
+    hist::detail::SimpleExvModel::apply_simple_excluded_volume(this->coords_a[index], this->protein);
 }
 
 template<bool use_weighted_distribution>

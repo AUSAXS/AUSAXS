@@ -6,13 +6,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/histogram_manager/detail/TemplateHelpers.h>
-#include <container/ThreadLocalWrapper.h>
+#include <hist/detail/SimpleExvModel.h>
+#include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <data/Molecule.h>
-#include <settings/GeneralSettings.h>
-#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -26,108 +24,22 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMT<use_weighted_distribution>
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_distribution>::calculate_all() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    auto pool = utility::multi_threading::get_global_pool();
 
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
-    data_a_ptr = std::make_unique<hist::detail::CompactCoordinates>(this->protein->get_bodies());
-    data_w_ptr = std::make_unique<hist::detail::CompactCoordinates>(this->protein->get_waters());
-    auto& data_a = *data_a_ptr;
-    auto& data_w = *data_w_ptr;
-    int data_a_size = (int) data_a.size();
-    int data_w_size = (int) data_w.size();
-    this->apply_simple_excluded_volume(data_a);
+    hist::detail::CompactCoordinates data_a(this->protein->get_bodies());
+    hist::detail::CompactCoordinates data_w(this->protein->get_waters());
+    hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, this->protein);
 
-    //########################//
-    // PREPARE MULTITHREADING //
-    //########################//
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aa_all(constants::axes::d_axis.bins);
-    auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
-        auto& p_aa = p_aa_all.get();
-        for (int i = imin; i < imax; ++i) { // atom
-            int j = i+1;                    // atom
-            for (; j+7 < data_a_size; j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
-            }
+    hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
+    calculator.enqueue_calculate_self(data_a);
+    calculator.enqueue_calculate_self(data_w);
+    calculator.enqueue_calculate_cross(data_a, data_w);
+    auto res = calculator.run();
 
-            for (; j+3 < data_a_size; j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
-            }
-
-            for (; j < data_a_size; ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
-            }
-        }
-    };
-
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aw_all(constants::axes::d_axis.bins);
-    auto calc_aw = [&data_w, &data_a, &p_aw_all, data_a_size] (int imin, int imax) {
-        auto& p_aw = p_aw_all.get();
-        for (int i = imin; i < imax; ++i) { // water
-            int j = 0;                      // atom
-            for (; j+7 < data_a_size; j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
-            }
-
-            for (; j+3 < data_a_size; j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
-            }
-
-            for (; j < data_a_size; ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
-            }
-        }
-    };
-    
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(constants::axes::d_axis.bins);
-    auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
-        auto& p_ww = p_ww_all.get();
-        for (int i = imin; i < imax; ++i) { // water
-            int j = i+1;                    // water
-            for (; j+7 < data_w_size; j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
-            }
-
-            for (; j+3 < data_w_size; j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
-            }
-
-            for (; j < data_w_size; ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
-            }
-        }
-    };
-
-    //##############//
-    // SUBMIT TASKS //
-    //##############//
-    int job_size = settings::general::detail::job_size;
-    for (int i = 0; i < (int) data_a_size; i+=job_size) {
-        pool->detach_task(
-            [&calc_aa, i, job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
-        );
-    }
-    for (int i = 0; i < (int) data_w_size; i+=job_size) {
-        pool->detach_task(
-            [&calc_aw, i, job_size, data_w_size] () {calc_aw(i, std::min(i+job_size, data_w_size));}
-        );
-    }
-    for (int i = 0; i < (int) data_w_size; i+=job_size) {
-        pool->detach_task(
-            [&calc_ww, i, job_size, data_w_size] () {calc_ww(i, std::min(i+job_size, data_w_size));}
-        );
-    }
-
-    pool->wait();
-    GenericDistribution1D_t p_aa = p_aa_all.merge();
-    GenericDistribution1D_t p_aw = p_aw_all.merge();
-    GenericDistribution1D_t p_ww = p_ww_all.merge();
-
-    //###################//
-    // SELF-CORRELATIONS //
-    //###################//
-    p_aa.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} ));
-    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} ));
+    auto p_aa = res.self[0];
+    auto p_ww = res.self[1];
+    auto p_aw = res.cross[0];
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);

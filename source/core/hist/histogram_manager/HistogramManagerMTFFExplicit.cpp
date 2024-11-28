@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
-#include <hist/histogram_manager/detail/TemplateHelpersFFExplicit.h>
+#include <hist/distance_calculator/detail/TemplateHelpersFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
