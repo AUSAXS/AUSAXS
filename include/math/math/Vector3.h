@@ -186,13 +186,11 @@ namespace ausaxs {
 			}
 		#endif
 
-		Vector3<Q> w;
-		for (unsigned int row = 0; row < v.size(); ++row) {
-			for (unsigned int col = 0; col < M.M; ++col) {
-				w[row] += M.index(row, col) * v[col];
-			}
-		}
-		return w;
+		return {
+			M[0][0]*v[0] + M[0][1]*v[1] + M[0][2]*v[2],
+			M[1][0]*v[0] + M[1][1]*v[1] + M[1][2]*v[2],
+			M[2][0]*v[0] + M[2][1]*v[1] + M[2][2]*v[2]
+		};
 	}
 
 	template<numeric T, numeric Q>
