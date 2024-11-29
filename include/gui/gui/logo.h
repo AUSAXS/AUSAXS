@@ -11,7 +11,7 @@ namespace resources {
     extern const std::array<unsigned char, 36838> logo;
 
     inline io::ExistingFile generate_logo_file() {
-        io::File file("temp/logo.png");
+        io::File file("resources/logo.png");
         if (file.exists()) {return file;}
         else {file.create();}
         std::ofstream out(file.path(), std::ios::binary);

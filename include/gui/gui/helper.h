@@ -237,7 +237,7 @@ inline auto q_slider(gui::view& view) {
 		return std::pow(10, logy);
 	};
 
-	auto update_removed_counter = [&view] () {
+	auto update_removed_counter = [&view, axis_transform] () {
 		static bool extend_wait = false;
 		static bool waiting = false;
 		static std::thread worker;
@@ -257,16 +257,18 @@ inline auto q_slider(gui::view& view) {
 		}
 
 		waiting = true;
-		worker = std::thread([&view] () {
+		worker = std::thread([&view, axis_transform] () {
 			do {
 				extend_wait = false;
 				std::this_thread::sleep_for(std::chrono::milliseconds(500));			
 			} while (extend_wait);
 
 			unsigned int removed_elements = 0;
+			double qmin = axis_transform(qslider.value_first());
+			double qmax = axis_transform(qslider.value_second());
 			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
 				auto x = setup::saxs_dataset->x(i);
-				removed_elements += !(qslider.value_first() < x && x < qslider.value_second());
+				removed_elements += !(qmin < x && x < qmax);
 			}
 			if (removed_elements != 0) {
 				qinfo_box.set_text("note: ignoring " + std::to_string(removed_elements) + " lines in SAXS file" 
@@ -283,6 +285,7 @@ inline auto q_slider(gui::view& view) {
 		value = axis_transform(value);
 		qmin_textbox.second->set_text(pretty_printer(value));
 		update_removed_counter();
+		ausaxs::settings::axes::qmin = value;
 		view.refresh(qmin_textbox.first);
 		view.refresh(qinfo_box);
 	};
@@ -291,6 +294,7 @@ inline auto q_slider(gui::view& view) {
 		value = axis_transform(value);
 		qmax_textbox.second->set_text(pretty_printer(value));
 		update_removed_counter();
+		ausaxs::settings::axes::qmax = value;
 		view.refresh(qmax_textbox.first);
 		view.refresh(qinfo_box);
 	};
@@ -305,7 +309,7 @@ inline auto q_slider(gui::view& view) {
 
 	qmin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
-			qslider.value_first(axis_transform_inv(std::stof(std::string(text))));
+			qslider.edit_value_first(axis_transform_inv(std::stof(std::string(text))));
 			qmin_bg.get() = ColorManager::get_color_background();
 			view.refresh(qslider);
 		} catch (std::exception&) {
@@ -324,7 +328,7 @@ inline auto q_slider(gui::view& view) {
 
 	qmax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
-			qslider.value_second(axis_transform_inv(std::stof(std::string(text))));
+			qslider.edit_value_second(axis_transform_inv(std::stof(std::string(text))));
 			qmax_bg.get() = ColorManager::get_color_background();
 			view.refresh(qslider);
 		} catch (std::exception&) {
