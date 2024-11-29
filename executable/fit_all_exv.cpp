@@ -3,8 +3,7 @@
 #include <data/Body.h>
 #include <data/record/Water.h>
 #include <data/Molecule.h>
-#include <fitter/HydrationFitter.h>
-#include <fitter/ExcludedVolumeFitter.h>
+#include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
 #include <plots/All.h>
 #include <settings/All.h>
@@ -20,6 +19,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
+
+using namespace ausaxs;
 
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
@@ -43,7 +44,6 @@ int main(int argc, char const *argv[]) {
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");
     app.add_option("--grid_width,--gw", settings::grid::cell_width, "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::cell_width)->group("Advanced options");
     app.add_option_function<std::string>("--placement-strategy,--ps", [] (const std::string& s) {settings::detail::parse_option("placement_strategy", {s});}, "The placement strategy to use. Options: Radial, Axes, Jan.")->group("Advanced options");
-    app.add_option("--exv_radius,--er", settings::grid::exv::radius, "The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Ångström.")->default_val(settings::grid::exv::radius)->group("Advanced options");
     app.add_flag("--exit-on-unknown-atom,!--no-exit-on-unknown-atom", settings::molecule::throw_on_unknown_atom, "Decides whether the program will exit if an unknown atom is encountered.")->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
     app.add_flag("--implicit-hydrogens,!--no-implicit-hydrogens", settings::molecule::implicit_hydrogens, "Decides whether implicit hydrogens will be added to the structure.")->default_val(settings::molecule::implicit_hydrogens)->group("Advanced options");
     CLI11_PARSE(app, argc, argv);
@@ -66,6 +66,7 @@ int main(int argc, char const *argv[]) {
     bool printed_volume = false;
     auto runner = [&] (std::vector<settings::hist::HistogramManagerChoice> loop, std::vector<std::string> loop_names, std::string postfix) {
         auto perform_fit = [&] (const std::string& name, settings::hist::HistogramManagerChoice choice, bool fit_exv) {
+            settings::fit::fit_excluded_volume = fit_exv;
             settings::hist::histogram_manager = choice;
 
             data::Molecule protein(pdb);
@@ -73,10 +74,8 @@ int main(int argc, char const *argv[]) {
             protein.add_implicit_hydrogens();
             if (!printed_volume) {out << "size: " << std::to_string(protein.size_atom()) << std::endl; printed_volume = true;}
 
-            std::shared_ptr<fitter::HydrationFitter> fitter;
-            if (fit_exv) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
-            else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
-            auto result = fitter->fit();
+            fitter::SmartFitter fitter(mfile, protein.get_histogram());
+            auto result = fitter.fit();
             std::cout << name << ": " << result->fval/result->dof << std::endl;
             out << name << postfix << ": " << result->fval/result->dof << std::endl;
             // fitter::FitReporter::save(result.get(), settings::general::output + volumes + "/" + name + ".txt");

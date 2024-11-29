@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
+import os
 
 # Read Data
-with open('chi2_values.txt') as f:
+file = os.sys.argv[1]
+with open(f'{file}_crysol_chi2_values.txt') as f:
     data = f.read().splitlines()
 
 # Initialize variables

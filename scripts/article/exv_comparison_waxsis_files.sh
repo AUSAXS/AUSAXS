@@ -78,8 +78,8 @@ fi
 for ((i=0; i<${size}; i++)); do
 	folder_pdb=$(dirname ${pdbs[i]})
 	stripped_pdb=${folder_pdb}/${files[i]}_stripped.pdb
-    grep -E -v ' H |H$|[123]H|OW|HOH| H[ABCDEFGHZ][123]?|NA|CL| D[AGCT] |CYX' "${pdbs[i]}" | grep 'ATOM  ' > "${stripped_pdb}"
-	build/bin/remove_fourth_column_data ${dats[i]}
+    # grep -E -v ' H |H$|[123]H|OW|HOH| H[ABCDEFGHZ][123]?|NA|CL| D[AGCT] |CYX' "${pdbs[i]}" | grep 'ATOM  ' > "${stripped_pdb}"
+	# build/bin/remove_fourth_column_data ${dats[i]}
     folder_dat=$(dirname ${dats[i]})
     stripped_dat=${folder_dat}/${files[i]}_stripped.dat
     cp ${stripped_dat} ${folder_pdb}
