@@ -131,7 +131,7 @@ int main(int argc, char const *argv[]) {
     settings::fit::fit_excluded_volume = true;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
 
-    unsigned int repeats = 1000;
+    unsigned int repeats = 10000;
     data::Molecule molecule(pdb);
     SimpleDataset data(mfile);
     molecule.add_implicit_hydrogens();
