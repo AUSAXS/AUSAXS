@@ -312,12 +312,14 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
             }
 
             if (settings::em::hydrate) {
-                plots.water_factors = get_fitted_water_factors_dataset();
-                plots::PlotDataset::quick_plot(
-                    plots.water_factors,
-                    plots::PlotOptions(style::draw::points, {{"xlabel", "Iteration"}, {"ylabel", "Scaling factor"}}),
-                    settings::general::output + "water_factors." + settings::plots::format
-                );
+                if (settings::general::supplementary_plots) {
+                    plots.water_factors = get_fitted_water_factors_dataset();
+                    plots::PlotDataset::quick_plot(
+                        plots.water_factors,
+                        plots::PlotOptions(style::draw::points, {{"xlabel", "Iteration"}, {"ylabel", "Scaling factor"}}),
+                        settings::general::output + "water_factors." + settings::plots::format
+                    );
+                }
             }
         }
 
@@ -338,7 +340,8 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
                 );
             }
 
-            { // volume as a function of cutoff
+            // volume as a function of cutoff
+            if (settings::general::supplementary_plots) {
                 SimpleDataset volume_data(this->evals.size()); 
                 for (unsigned int i = 0; i < this->evals.size(); ++i) {
                     volume_data.x(i) = to_level(this->evals[i].cutoff);

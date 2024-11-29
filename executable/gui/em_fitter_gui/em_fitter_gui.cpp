@@ -353,7 +353,7 @@ auto alpha_level_slider(gui::view& view) {
 
 	amin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
-			aslider.value_first(axis_transform_inv(std::stof(std::string(text))));
+			aslider.edit_value_first(axis_transform_inv(std::stof(std::string(text))));
 			amin_bg = bg_color;
 			view.refresh(aslider);
 		} catch (std::exception&) {
@@ -373,7 +373,7 @@ auto alpha_level_slider(gui::view& view) {
 
 	amax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
 		try {
-			aslider.value_second(axis_transform_inv(std::stof(std::string(text))));
+			aslider.edit_value_second(axis_transform_inv(std::stof(std::string(text))));
 			amax_bg = bg_color;
 			view.refresh(aslider);
 		} catch (std::exception&) {
@@ -614,7 +614,11 @@ auto make_start_button(gui::view& view) {
 			perform_plot(ausaxs::settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
-				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.15);
+				if (!path.exists()) {
+					console::print_critical("file " + path.path() + " does not exist");
+					throw std::runtime_error("file " + path.path() + " does not exist");
+				}
+				return gui::image(path.str().c_str(), 0.15);
 			};
 
 			auto chi2_landscape_pane = gui::vnotebook(
