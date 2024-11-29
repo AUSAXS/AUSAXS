@@ -99,8 +99,8 @@ jobs:
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
-            CC: $(brew --prefix llvm@15)/bin/clang
-            CXX: $(brew --prefix llvm@15)/bin/clang++
+            CC: $(brew --prefix llvm@16)/bin/clang
+            CXX: $(brew --prefix llvm@16)/bin/clang++
             XCODE_VER: 16.0
 
     steps:
