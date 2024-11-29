@@ -87,21 +87,21 @@ jobs:
       fail-fast: false
       matrix: 
         include: 
-          - runner: macos-12
+          - runner: macos-13
             name: "MacOS x86"
             arch: x86_64
             vcpkg_triplet: x64-osx
             CC: $(brew --prefix llvm@15)/bin/clang
             CXX: $(brew --prefix llvm@15)/bin/clang++
-            XCODE_VER: 14.2
+            XCODE_VER: 15.2
 
-          - runner: macos-14
+          - runner: macos-15
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
             CC: $(brew --prefix llvm@15)/bin/clang
             CXX: $(brew --prefix llvm@15)/bin/clang++
-            XCODE_VER: 16.1
+            XCODE_VER: 16.0
 
     steps:
       - uses: actions/checkout@v4
