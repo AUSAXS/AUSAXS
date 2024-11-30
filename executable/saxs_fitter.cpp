@@ -115,13 +115,13 @@ int main(int argc, char const *argv[]) {
     )->default_val(settings::grid::cell_width);
 
     // fit subcommands
-    auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
-    sub_fit->add_flag("--atomic-debye-waller", settings::fit::fit_atomic_debye_waller, 
-        "Fit the atomic form factor debye-waller factor."
-    )->default_val(settings::fit::fit_atomic_debye_waller);
-    sub_fit->add_flag("--exv-debye-waller", settings::fit::fit_exv_debye_waller, 
-        "Fit the excluded volume form factor debye-waller factor."
-    )->default_val(settings::fit::fit_exv_debye_waller);
+    // auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
+    // sub_fit->add_flag("--atomic-debye-waller", settings::fit::fit_atomic_debye_waller, 
+    //     "Fit the atomic form factor debye-waller factor."
+    // )->default_val(settings::fit::fit_atomic_debye_waller);
+    // sub_fit->add_flag("--exv-debye-waller", settings::fit::fit_exv_debye_waller, 
+    //     "Fit the excluded volume form factor debye-waller factor."
+    // )->default_val(settings::fit::fit_exv_debye_waller);
 
     // hidden options group
     app.add_flag("--weighted-bins", settings::hist::weighted_bins, 
