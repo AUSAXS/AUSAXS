@@ -36,19 +36,20 @@ int main(int argc, char const *argv[]) {
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {std::cout << constants::version << std::endl; exit(0);}, "Print the AUSAXS version.");
 
-    // dataset options group
-    app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax)->group("Dataset options");
-    app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("Dataset options");
-    app.add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
-        "The unit of the q values in the measurement file. Options: A, nm.")->group("Dataset options");
-    app.add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip)->group("Dataset options");
-
     // advanced options
     app.add_flag("!--ignore-unknown-atom", settings::molecule::throw_on_unknown_atom, 
         "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of issues."
     )->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
     app.add_flag("--save-settings", save_settings, "Save the settings to a file.")->default_val(save_settings)->group("Advanced options");
+
+    // data subcommands
+    auto sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
+    sub_data->add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax);
+    sub_data->add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin);
+    sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
+        "The unit of the q values in the measurement file. Options: A, nm.");
+    sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
 
     // molecule subcommands
     auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
