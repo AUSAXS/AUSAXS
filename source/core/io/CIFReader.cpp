@@ -1,3 +1,8 @@
+/*
+This software is distributed under the GNU Lesser General Public License v3.0. 
+For more information, please refer to the LICENSE file in the project root.
+*/
+
 #include <io/CIFReader.h>
 #include <io/File.h>
 #include <utility/Exceptions.h>
@@ -348,7 +353,7 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
 
         int concatenated = 0;
         for (size_t i = 0; i < values.size(); i++) {
-            if (values[i].starts_with('"')) {
+            if (values[i].starts_with('"') && !values[i].ends_with('"')) {
                 if (i < values.size() && values[i+1].ends_with('"')) {
                     values[i] = values[i].substr(1) + " " + values[i+1].substr(0, values[i+1].size()-1);
                 } else {

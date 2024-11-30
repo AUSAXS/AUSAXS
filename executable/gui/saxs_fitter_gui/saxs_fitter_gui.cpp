@@ -102,7 +102,7 @@ auto make_start_button(gui::view& view) {
 			perform_plot(ausaxs::settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
-				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.13);
+				return gui::image(path.path().c_str(), 0.13);
 			};
 
 			auto main_pane = gui::vnotebook(

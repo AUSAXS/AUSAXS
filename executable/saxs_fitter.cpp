@@ -36,19 +36,20 @@ int main(int argc, char const *argv[]) {
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {std::cout << constants::version << std::endl; exit(0);}, "Print the AUSAXS version.");
 
-    // dataset options group
-    app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax)->group("Dataset options");
-    app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("Dataset options");
-    app.add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
-        "The unit of the q values in the measurement file. Options: A, nm.")->group("Dataset options");
-    app.add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip)->group("Dataset options");
-
     // advanced options
     app.add_flag("!--ignore-unknown-atom", settings::molecule::throw_on_unknown_atom, 
         "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of issues."
     )->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
     app.add_flag("--save-settings", save_settings, "Save the settings to a file.")->default_val(save_settings)->group("Advanced options");
+
+    // data subcommands
+    auto sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
+    sub_data->add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax);
+    sub_data->add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin);
+    sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
+        "The unit of the q values in the measurement file. Options: A, nm.");
+    sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
 
     // molecule subcommands
     auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
@@ -88,22 +89,12 @@ int main(int argc, char const *argv[]) {
         "Keep or discard water molecules from the structure file. "
         "If they are discarded, a new solvation shell is generated."
     )->default_val(use_existing_hydration);
-    sub_water->add_flag("--fit", settings::fit::fit_hydration, 
+    sub_water->add_flag("--fit,!--no-fit", settings::fit::fit_hydration, 
         "Fit the hydration shell.")->default_val(settings::fit::fit_hydration);
-    sub_water->add_option("--reduce,-r", settings::grid::water_scaling, 
-        "Reduce the number of generated water molecules to a percentage of the number of atoms. "
-        "Use 0 for no reduction."
-    )->default_val(settings::grid::water_scaling);
 
     // hydrogen subcommands
     auto sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
-    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, 
-        "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
-    sub_hydrogen->add_flag("--implicit,!--explicit", settings::molecule::implicit_hydrogens, 
-        "Add implicit hydrogens to the structure. "
-        "This should only be disabled if they are explicitly provided in the structure file. "
-        "This option also switches between the implicit and explicit hydrogen variants of the excluded volume tables."
-    )->default_val(settings::molecule::implicit_hydrogens)->group("Model options");
+    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
 
     // grid subcommands
     auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
@@ -115,13 +106,13 @@ int main(int argc, char const *argv[]) {
     )->default_val(settings::grid::cell_width);
 
     // fit subcommands
-    auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
-    sub_fit->add_flag("--atomic-debye-waller", settings::fit::fit_atomic_debye_waller, 
-        "Fit the atomic form factor debye-waller factor."
-    )->default_val(settings::fit::fit_atomic_debye_waller);
-    sub_fit->add_flag("--exv-debye-waller", settings::fit::fit_exv_debye_waller, 
-        "Fit the excluded volume form factor debye-waller factor."
-    )->default_val(settings::fit::fit_exv_debye_waller);
+    // auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
+    // sub_fit->add_flag("--atomic-debye-waller", settings::fit::fit_atomic_debye_waller, 
+    //     "Fit the atomic form factor debye-waller factor."
+    // )->default_val(settings::fit::fit_atomic_debye_waller);
+    // sub_fit->add_flag("--exv-debye-waller", settings::fit::fit_exv_debye_waller, 
+    //     "Fit the excluded volume form factor debye-waller factor."
+    // )->default_val(settings::fit::fit_exv_debye_waller);
 
     // hidden options group
     app.add_flag("--weighted-bins", settings::hist::weighted_bins, 

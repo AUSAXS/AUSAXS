@@ -63,4 +63,12 @@ void settings::validate_settings() {
             console::print_warning("Warning: The grid cell width is not a multiple of the excluded volume radius. This may lead to artifacts in the excluded volume calculation.");
         }
     }
+
+    {   // if the user wants to keep hydrogens, they should be treated explicitly
+        if (settings::general::keep_hydrogens) {
+            settings::molecule::implicit_hydrogens = false;
+        } else {
+            settings::molecule::implicit_hydrogens = true;
+        }
+    }
 }
