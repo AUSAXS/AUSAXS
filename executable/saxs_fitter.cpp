@@ -89,22 +89,12 @@ int main(int argc, char const *argv[]) {
         "Keep or discard water molecules from the structure file. "
         "If they are discarded, a new solvation shell is generated."
     )->default_val(use_existing_hydration);
-    sub_water->add_flag("--fit", settings::fit::fit_hydration, 
+    sub_water->add_flag("--fit,!--no-fit", settings::fit::fit_hydration, 
         "Fit the hydration shell.")->default_val(settings::fit::fit_hydration);
-    sub_water->add_option("--reduce,-r", settings::grid::water_scaling, 
-        "Reduce the number of generated water molecules to a percentage of the number of atoms. "
-        "Use 0 for no reduction."
-    )->default_val(settings::grid::water_scaling);
 
     // hydrogen subcommands
     auto sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
-    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, 
-        "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
-    sub_hydrogen->add_flag("--implicit,!--explicit", settings::molecule::implicit_hydrogens, 
-        "Add implicit hydrogens to the structure. "
-        "This should only be disabled if they are explicitly provided in the structure file. "
-        "This option also switches between the implicit and explicit hydrogen variants of the excluded volume tables."
-    )->default_val(settings::molecule::implicit_hydrogens)->group("Model options");
+    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
 
     // grid subcommands
     auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
