@@ -93,7 +93,7 @@ hist::Histogram2D Image::as_hist() const {
 
     for (unsigned int x = 0; x < N; x++) {
         for (unsigned int y = 0; y < M; y++) {
-            hist.index(x, y) = index(x, y);
+            hist.data.index(x, y) = index(x, y);
         }
     }
     return hist;

@@ -12,9 +12,13 @@
 
 namespace ausaxs {
 	template<numeric T> 
-	class Vector3 {
+	class Vector3 final {
 		public:
-			Vector3() : Vector3(0, 0, 0) {}
+			Vector3() = default;
+			Vector3(const Vector3<T>& v) = default;
+			Vector3(Vector3<T>&& v) = default;
+			Vector3& operator=(const Vector3<T>& v) = default;
+			Vector3& operator=(Vector3<T>&& v) = default;
 
 			Vector3(const std::initializer_list<T>& l) {
 				*this = l;
@@ -260,4 +264,7 @@ namespace ausaxs {
 }
 
 #include <math/Vector3.tpp>
+static_assert(sizeof(ausaxs::Vector3<double>) == 24, "Vector3 size is not 24 bytes");
+static_assert(std::is_trivial_v<ausaxs::Vector3<double>>, "Vector3 is not trivial");
+static_assert(std::is_standard_layout_v<ausaxs::Vector3<double>>, "Vector3 is not standard layout");
 static_assert(supports_nothrow_move_v<ausaxs::Vector3<double>>, "Vector3 should support nothrow move semantics.");

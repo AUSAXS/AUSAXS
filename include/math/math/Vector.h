@@ -11,9 +11,13 @@
 namespace ausaxs {
     // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
     template<numeric T>
-    class Vector {
+    class Vector final {
         public:
-            Vector() : data(0) {};
+            Vector() = default;
+            Vector(const Vector<T>& v) = default;
+            Vector(Vector<T>&& v) = default;
+            Vector& operator=(const Vector<T>& v) = default;
+            Vector& operator=(Vector<T>&& v) = default;
 
             /**
              * @brief Construct a vector based on an initializer list.
@@ -160,4 +164,5 @@ namespace ausaxs {
 }
 
 #include <math/Vector.tpp>
+static_assert(std::is_standard_layout_v<ausaxs::Vector<double>>, "Vector is not standard layout");
 static_assert(supports_nothrow_move_v<ausaxs::Vector<double>>, "Vector should support nothrow move semantics.");
