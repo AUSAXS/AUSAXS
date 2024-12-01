@@ -57,7 +57,7 @@ void Body::center() {
 }
 
 Vector3<double> Body::get_cm() const {
-    Vector3<double> cm;
+    Vector3<double> cm{0, 0, 0};
     double M = 0; // total mass
     auto weighted_sum = [&cm, &M] (auto& atoms) {
         for (auto const& a : atoms) {

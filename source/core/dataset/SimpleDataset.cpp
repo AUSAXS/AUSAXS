@@ -25,12 +25,12 @@ SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = defaul
 SimpleDataset::~SimpleDataset() = default;
 
 SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
-    if (d.M <= 1) {
+    if (d.data.M <= 1) {
         throw except::invalid_argument("SimpleDataset::SimpleDataset: Dataset must have at least two columns.");
-    } else if (d.M == 3) {
+    } else if (d.data.M == 3) {
         data = d.data;
     } else {
-        for (unsigned int i = 0; i < N; i++) {
+        for (unsigned int i = 0; i < data.N; i++) {
             row(i) = {d.x(i), d.y(i), 0};
         }
     }
@@ -86,7 +86,7 @@ void SimpleDataset::reduce(unsigned int target, bool log) {
         return;
     }
 
-    Matrix<double> reduced(0, M);
+    Matrix<double> reduced(0, data.M);
 
     if (log) {
         double start = std::log10(x().front()); 
@@ -123,9 +123,9 @@ void SimpleDataset::reduce(unsigned int target, bool log) {
 }
 
 void SimpleDataset::operator=(Matrix<double>&& other) {
-    if (other.M != M) {throw except::invalid_operation("SimpleDataset::operator=: Matrix has wrong number of columns.");}
-    this->data = std::move(other.data);
-    this->N = other.N;
+    if (other.M != data.M) {throw except::invalid_operation("SimpleDataset::operator=: Matrix has wrong number of columns.");}
+    this->data.data = std::move(other.data);
+    this->data.N = other.N;
 }
 
 Limit SimpleDataset::span_x() const noexcept {
@@ -197,8 +197,8 @@ SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double min,
 }
 
 void SimpleDataset::push_back(double x, double y, double yerr) {
-    extend(1);
-    row(N-1) = {x, y, yerr};
+    data.extend(1);
+    row(data.N-1) = {x, y, yerr};
 }
 
 double SimpleDataset::normalize(double y0) {
@@ -250,8 +250,8 @@ void SimpleDataset::simulate_errors() {
 }
 
 Point2D SimpleDataset::get_point(unsigned int index) const {
-    if (M < 3) {return Point2D(x(index), y(index));}
-    else {      return Point2D(x(index), y(index), yerr(index));}
+    if (data.M < 3) {return Point2D(x(index), y(index));}
+    else {           return Point2D(x(index), y(index), yerr(index));}
 }
 
 Point2D SimpleDataset::find_minimum() const {
@@ -314,7 +314,7 @@ void SimpleDataset::remove_consecutive_duplicates() {
         return;
     }
 
-    Matrix new_data(N, M);
+    Matrix<double> new_data(data.N, data.M);
     new_data.row(0) = this->row(0);
 
     unsigned int index = 1;
@@ -325,7 +325,7 @@ void SimpleDataset::remove_consecutive_duplicates() {
             v = y(i);
         }
     }
-    new_data.resize(index, M);
+    new_data.resize(index, data.M);
     this->assign_matrix(std::move(new_data));
 }
 

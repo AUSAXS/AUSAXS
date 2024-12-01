@@ -299,7 +299,7 @@ std::vector<Atom> Molecule::get_atoms() const {
 }
 
 Vector3<double> Molecule::get_cm() const {
-    Vector3<double> cm;
+    Vector3<double> cm{0, 0, 0};
     double M = 0; // total mass
 
     // iterate through all constituent bodies

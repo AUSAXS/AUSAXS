@@ -14,14 +14,13 @@ namespace ausaxs {
      * This class uses a single 1D array to efficiently store the data, and offers a variety of vector operations.
      */
     template<numeric Q>
-    class Matrix {
+    class Matrix final {
         public: 
             Matrix() = default;
             Matrix(const Matrix<Q>& A) = default;
             Matrix(Matrix<Q>&& A) = default;
             Matrix& operator=(const Matrix<Q>& A) = default;
             Matrix& operator=(Matrix<Q>&& A) = default;
-            virtual ~Matrix() = default;
 
             /**
              * @brief Construct a Matrix based on a nested initializer list. The lists must be of the same size. 

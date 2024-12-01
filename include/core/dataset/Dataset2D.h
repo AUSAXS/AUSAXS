@@ -77,10 +77,10 @@ namespace ausaxs {
             [[nodiscard]] MutableColumn<double> xerr() {return col(3);}
 
             // Get the ith value in the fourth column.
-            [[nodiscard]] const double& xerr(unsigned int i) const {return index(i, 3);}
+            [[nodiscard]] const double& xerr(unsigned int i) const {return data.index(i, 3);}
 
             // Get the ith value in the fourth column.
-            [[nodiscard]] double& xerr(unsigned int i) {return index(i, 3);}
+            [[nodiscard]] double& xerr(unsigned int i) {return data.index(i, 3);}
     };
 
     // Object conversion between Dataset2D and SimpleDataset is often used. This check ensures that the conversion is safe.

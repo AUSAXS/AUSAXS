@@ -223,7 +223,8 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     if (settings::em::mass_axis) {
         Dataset mass_data(this->evals.size(), 2);
         for (unsigned int i = 0; i < this->evals.size(); ++i) {
-            mass_data[i] = {this->evals[i].cutoff, this->evals[i].mass};
+            mass_data.index(i, 0) = this->evals[i].cutoff;
+            mass_data.index(i, 1) = this->evals[i].mass;
         }
         mass_data.sort_x();
         data_avg_int.col("mass") = mass_data.interpolate(data_avg_int.x()).y();

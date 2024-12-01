@@ -66,10 +66,10 @@ namespace ausaxs {
             [[nodiscard]] MutableColumn<double> yerr() {return col(2);}
 
             // Get the ith value in the third column.
-            [[nodiscard]] const double& yerr(unsigned int i) const {return index(i, 2);}
+            [[nodiscard]] const double& yerr(unsigned int i) const {return data.index(i, 2);}
 
             // Get the ith value in the third column.
-            [[nodiscard]] double& yerr(unsigned int i) {return index(i, 2);}
+            [[nodiscard]] double& yerr(unsigned int i) {return data.index(i, 2);}
 
             /**
              * @brief Load a dataset from the specified file. 
@@ -116,8 +116,6 @@ namespace ausaxs {
              *        This can be useful for setting log ranges. 
              */
             [[nodiscard]] Limit span_y_positive() const noexcept;
-
-            using Dataset::push_back;
 
             /**
              * @brief Add a new point at the end of the dataset.
