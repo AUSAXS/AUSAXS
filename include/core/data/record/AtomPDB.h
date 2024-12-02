@@ -1,20 +1,21 @@
 #pragma once
 
 #include <data/record/Record.h>
+#include <data/atoms/AtomExtended.h>
 #include <math/Vector3.h>
 #include <constants/ConstantsFwd.h>
 
 #include <string>
 
 namespace ausaxs::data::record {
-    class Atom : public Record {
+    class AtomPDB : public Record {
         public:
-			Atom();
-			Atom(const Atom& rhs) = default;
-			Atom(Atom&& rhs) noexcept = default;
-			Atom &operator=(const Atom& rhs) = default;
-			Atom &operator=(Atom&& rhs) noexcept = default;
-			~Atom() override = default;
+			AtomPDB();
+			AtomPDB(const AtomPDB& rhs) = default;
+			AtomPDB(AtomPDB&& rhs) noexcept = default;
+			AtomPDB &operator=(const AtomPDB& rhs) = default;
+			AtomPDB &operator=(AtomPDB&& rhs) noexcept = default;
+			~AtomPDB() override = default;
 
             /** 
              * @brief Construct a new Atom object.
@@ -25,14 +26,14 @@ namespace ausaxs::data::record {
              * @param name the molecule (e.g. HOH).
              * @param serial the serial number of this atom.
              */
-            Atom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& name, int serial);
+            AtomPDB(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& name, int serial);
 
             /**
              * @brief Construct a new Atom object.
              * 
              * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
              */
-            Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, 
+            AtomPDB(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, 
                 const std::string& iCode, Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge);
 
             RecordType get_type() const override;
@@ -56,12 +57,12 @@ namespace ausaxs::data::record {
             /** 
              * @brief Calculate the distance to another atom. 
              */
-            double distance(const Atom& a) const;
+            double distance(const AtomPDB& a) const;
 
             /** 
              * @brief Calculate the squared distance to another atom. 
              */
-            double distance_squared(const Atom& a) const;
+            double distance_squared(const AtomPDB& a) const;
 
             /** 
              * @brief Translate this atom.
@@ -303,7 +304,7 @@ namespace ausaxs::data::record {
              * 
              * @param rhs Atom to compare against.
              */
-            bool operator<(const Atom& rhs) const;
+            bool operator<(const AtomPDB& rhs) const;
 
             /**
              * @brief Equality operator to determine if two atoms are equal.
@@ -312,14 +313,14 @@ namespace ausaxs::data::record {
              *        from equality of id. 
              * @param rhs Atom to compare against. 
              */
-            bool operator==(const Atom& rhs) const;
+            bool operator==(const AtomPDB& rhs) const;
 
             /**
              * @brief Equality operator to determine if two atoms are equal.
              *        Note that this is a @a content comparator, and thus determines if two atoms are equal based on their contents. 
              * @param rhs Atom to compare against. 
              */
-            bool equals_content(const Atom& rhs) const;
+            bool equals_content(const AtomPDB& rhs) const;
 
             /**
              * @brief Inequality operator to determine if two atoms are not equal.
@@ -328,15 +329,15 @@ namespace ausaxs::data::record {
              *        from inequality of id. 
              * @param rhs Atom to compare against. 
              */
-            bool operator!=(const Atom& rhs) const {return !operator==(rhs);}
+            bool operator!=(const AtomPDB& rhs) const {return !operator==(rhs);}
 
             // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
-            Vector3<double> coords = {0, 0, 0};
+            AtomExtended atom;
             std::string name, altLoc, resName, iCode, charge;
             char chainID = ' ';
             constants::atom_t element = constants::atom_t::unknown;
             constants::atomic_group_t atomic_group = constants::atomic_group_t::unknown;
-            double occupancy = -1, tempFactor = -1;
+            double tempFactor = -1;
             int serial = -1, resSeq = -1; 
 
             // other properties

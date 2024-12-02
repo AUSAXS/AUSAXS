@@ -4,6 +4,7 @@
 namespace ausaxs::data {
     class Body;
     class Molecule;
+    class AtomExtended;
 
     namespace record {
         class Atom;
