@@ -19,8 +19,6 @@ using namespace ausaxs::hist::detail;
 
 constexpr float inv_width = constants::axes::d_inv_width;
 
-CompactCoordinatesData::CompactCoordinatesData() : data(std::array<float, 4>({0, 0, 0, 0})) {}
-
 EvaluatedResult CompactCoordinatesData::evaluate(const CompactCoordinatesData& other) const {
     #if defined __SSE2__
         return evaluate_sse(other);

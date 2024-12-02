@@ -77,9 +77,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         // stretch the excluded volume cells by the given scale factor
         auto scaled_data_x = data_x;
         for (auto& coord : scaled_data_x.get_data()) {
-            coord.value.x *= scale;
-            coord.value.y *= scale;
-            coord.value.z *= scale;
+            coord.value.pos.x() *= scale;
+            coord.value.pos.y() *= scale;
+            coord.value.pos.z() *= scale;
         }
 
         //########################//
