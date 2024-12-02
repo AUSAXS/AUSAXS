@@ -59,4 +59,5 @@ namespace ausaxs::hist::detail {
         protected: 
             std::vector<CompactCoordinatesData> data;
     };
+    static_assert(supports_nothrow_move_v<CompactCoordinates>, "CompactCoordinates should support nothrow move semantics.");
 }

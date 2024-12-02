@@ -36,6 +36,11 @@ namespace ausaxs::hist {
             const constants::axes::d_type& get_content(int i) const; // @copydoc get_content(int i)
 
             /**
+             * @brief Set the value of the ith bin.
+             */
+            void set_content(int i, constants::axes::d_type value);
+
+            /**
              * @brief Extract the weights from this distribution.
              */
             std::vector<double> get_weighted_axis() const;

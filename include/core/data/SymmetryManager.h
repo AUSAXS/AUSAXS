@@ -4,7 +4,7 @@
 
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/AtomPDB.h>
+#include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/distribution/GenericDistribution1D.h>
