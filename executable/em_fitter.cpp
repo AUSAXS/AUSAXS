@@ -78,7 +78,10 @@ int main(int argc, char const *argv[]) {
 
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), {settings::general::output + "report.txt"}, argc, argv);
-        res->curves.select_columns({0, 1, 2, 3}).save(settings::general::output + "ausaxs.fit");
+        res->curves.select_columns({0, 1, 2, 3}).save(
+            settings::general::output + "ausaxs.fit",
+            "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof)
+        );
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;
