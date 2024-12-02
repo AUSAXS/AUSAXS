@@ -4,9 +4,8 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hist/detail/CompactCoordinates.h>
+#include <data/atoms/AtomBasic.h>
 #include <math/Vector3.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <data/Body.h>
 #include <constants/Constants.h>
 
@@ -18,7 +17,7 @@ CompactCoordinates::CompactCoordinates(std::vector<Vector3<double>>&& coordinate
     std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return CompactCoordinatesData(v, weight);});
 }
 
-CompactCoordinates::CompactCoordinates(const std::vector<data::record::Atom>& atoms) : data(atoms.size()) {
+CompactCoordinates::CompactCoordinates(const std::vector<data::AtomBasic>& atoms) : data(atoms.size()) {
     for (unsigned int i = 0; i < size(); ++i) {
         const auto& a = atoms[i]; 
         data[i] = CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);

@@ -7,7 +7,7 @@ namespace ausaxs::data {
     /**
      * @brief The most basic atomic information extended with form factor information.
      */
-    class AtomFF : public AtomBasicForwarder<AtomFF> {
+    class AtomFF : public detail::AtomBasicForwarder<AtomFF> {
         public:
             AtomBasic& get_atom_basic() {return basic;}
             const AtomBasic& get_atom_basic() const {return basic;}
