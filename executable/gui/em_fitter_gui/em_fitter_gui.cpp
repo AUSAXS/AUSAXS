@@ -91,14 +91,14 @@ auto io_menu(gui::view& view) {
 	map_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
 		if (!constants::filetypes::em_map.check(file)) {
-			std::cout << "invalid map file " << file.path() << std::endl;
+			console::print_warning("invalid map file " + file.path());
 			map_box_bg = bred;
 			map_ok = false;
 			return true;
 		}
 
 		::settings::map_file = file.path();
-		std::cout << "map file was set to " << ::settings::map_file << std::endl;
+		console::print_text("map file was set to " + ::settings::map_file);
 		try {
 			setup::map = std::make_unique<em::ImageStack>(::settings::map_file);
 			map_box_bg = bgreen;
@@ -152,7 +152,7 @@ auto io_menu(gui::view& view) {
 	saxs_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
 		if (!constants::filetypes::saxs_data.check(file)) {
-			std::cout << "invalid saxs file " << file.path() << std::endl;
+			console::print_text("invalid saxs file " + file.path());
 			saxs_box_bg = bred;
 			saxs_ok = false;
 			setup::saxs_dataset = nullptr;
@@ -160,7 +160,7 @@ auto io_menu(gui::view& view) {
 		}
 
 		::settings::saxs_file = file.path();
-		std::cout << "saxs file was set to " << ::settings::saxs_file << std::endl;
+		console::print_text("saxs file was set to " + ::settings::saxs_file);
 		try {
 			setup::saxs_dataset = std::make_unique<SimpleDataset>(::settings::saxs_file);
 			saxs_box_bg = bgreen;
@@ -197,7 +197,7 @@ auto io_menu(gui::view& view) {
 			ausaxs::settings::general::output += "/";
 			view.refresh(output_box.first);
 		}
-		std::cout << "output path was set to " << ausaxs::settings::general::output << std::endl;
+		console::print_text("output path was set to " + ausaxs::settings::general::output);
 		return true;
 	};
 
@@ -246,7 +246,7 @@ auto alpha_level_slider(gui::view& view) {
 		gui::slider_labels<16>(
 			gui::slider_marks_lin<20, 15, 5>(track), 0.8, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"
 		),
-		{1./15, 8./15}
+		{1./15, 10./15}
 	);
 
 	static auto amin_textbox = gui::input_box("min level");
@@ -506,7 +506,7 @@ auto make_misc_settings() {
 			ausaxs::settings::em::sample_frequency = std::stof(std::string(text));
 			frequency_bg = bg_color;
 		} catch (std::exception&) {
-			std::cout << "invalid sample frequency input" << std::endl;
+			console::print_warning("invalid sample frequency input");
 			frequency_bg = bred;
 		}
 		return true;
@@ -585,7 +585,7 @@ auto make_start_button(gui::view& view) {
 		}
 
 		if (!setup::saxs_dataset || !setup::map) {
-			std::cout << "no saxs data or map file was provided" << std::endl;
+			console::print_warning("no saxs data or map file was provided");
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 			return;
 		}
@@ -615,10 +615,10 @@ auto make_start_button(gui::view& view) {
 
 			auto make_image_pane = [] (const io::File& path) {
 				if (!path.exists()) {
-					console::print_critical("file " + path.path() + " does not exist");
-					throw std::runtime_error("file " + path.path() + " does not exist");
+					throw except::io_error("file " + path.absolute_path() + " does not exist");
 				}
-				return gui::image(path.str().c_str(), 0.15);
+				console::print_text_minor("loading image " + path.absolute_path());
+				return gui::image(path.absolute_path().c_str(), 0.15);
 			};
 
 			auto chi2_landscape_pane = gui::vnotebook(
@@ -682,15 +682,23 @@ auto make_start_button(gui::view& view) {
 	return link(deck);
 }
 
-int main(int, char*[]) {
+int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 	ausaxs::settings::axes::qmin = 0;
 	ausaxs::settings::axes::qmax = 1;
     ausaxs::settings::em::mass_axis = true;
     ausaxs::settings::em::hydrate = true;
     ausaxs::settings::fit::verbose = true;
-    ausaxs::settings::em::alpha_levels = {1, 8};
+    ausaxs::settings::em::alpha_levels = {1, 10};
     ausaxs::settings::hist::weighted_bins = true;
+    ausaxs::settings::general::supplementary_plots = false;
+
+	for (int i = 1; i < argc; ++i) {
+		if (std::string(argv[i]) == "--log") {
+			console::enable_logging();
+		}
+	}
+	console::print_info("Starting em_fitter_gui");
 
 	resources::generate_resource_file();
 	auto logo_path = resources::generate_logo_file();

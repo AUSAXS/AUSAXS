@@ -6,7 +6,7 @@ import os
 
 from plot_helper import *
 
-max_depth = 3
+max_depth = 4
 max_files = 30
 
 def main():

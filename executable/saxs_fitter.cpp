@@ -42,6 +42,7 @@ int main(int argc, char const *argv[]) {
     )->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
     app.add_flag("--save-settings", save_settings, "Save the settings to a file.")->default_val(save_settings)->group("Advanced options");
+    app.add_flag_callback("--log", [] () {console::enable_logging();}, "Enable logging to a file.")->group("Advanced options");
 
     // data subcommands
     auto sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");

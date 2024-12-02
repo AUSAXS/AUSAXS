@@ -67,7 +67,7 @@ auto make_start_button(gui::view& view) {
 		}
 
 		if (!setup::saxs_dataset || !io::File(::settings::pdb_file).exists()) {
-			std::cout << "no saxs data or pdb file was provided" << std::endl;
+			ausaxs::console::print_warning("no saxs data or pdb file was provided");
 			start_button->set_body_color(ColorManager::get_color_fail());
 			start_button->set_text("missing input");
 			view.refresh(start_button);
@@ -102,7 +102,11 @@ auto make_start_button(gui::view& view) {
 			perform_plot(ausaxs::settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
-				return gui::image(path.path().c_str(), 0.13);
+				if (!path.exists()) {
+					throw except::io_error("file " + path.absolute_path() + " does not exist");
+				}
+				console::print_text_minor("loading image " + path.absolute_path());
+				return gui::image(path.absolute_path().c_str(), 0.13);
 			};
 
 			auto main_pane = gui::vnotebook(
@@ -184,7 +188,7 @@ auto io_menu(gui::view& view) {
 	pdb_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
 		if (!constants::filetypes::structure.check(file)) {
-			std::cout << "invalid pdb file " << file.path() << std::endl;
+			console::print_warning("invalid pdb file " + file.path());
 			pdb_box_bg.get() = ColorManager::get_color_fail();
 			pdb_ok = false;
 			return true;
@@ -197,7 +201,7 @@ auto io_menu(gui::view& view) {
 		pdb_box.second->set_text(file.path());
 
 		::settings::pdb_file = file.path();
-		std::cout << "pdb file was set to " << ::settings::pdb_file << std::endl;
+		console::print_text("pdb file was set to " + ::settings::pdb_file);
 		pdb_box_bg.get() = ColorManager::get_color_success();
 		pdb_ok = true;
 
@@ -242,7 +246,7 @@ auto io_menu(gui::view& view) {
 	saxs_box.second->on_enter = [] (std::string_view text) -> bool {
 		io::File file = io::File(std::string(text));
 		if (!constants::filetypes::saxs_data.check(file)) {
-			std::cout << "invalid saxs file " << file.path() << std::endl;
+			console::print_warning("invalid saxs file " + file.path());
 			saxs_box_bg.get() = ColorManager::get_color_fail();
 			saxs_ok = false;
 			setup::saxs_dataset = nullptr;
@@ -255,7 +259,7 @@ auto io_menu(gui::view& view) {
 		}
 		saxs_box.second->set_text(file.path());
 
-		std::cout << "saxs file was set to " << ::settings::saxs_file << std::endl;
+		console::print_text("saxs file was set to " + ::settings::saxs_file);
 		::settings::saxs_file = file.path();
 		saxs_box_bg.get() = ColorManager::get_color_success();
 		setup::saxs_dataset = std::make_unique<SimpleDataset>(::settings::saxs_file);
@@ -286,7 +290,7 @@ auto io_menu(gui::view& view) {
 			ausaxs::settings::general::output += "/";
 			view.refresh(output_box.first);
 		}
-		std::cout << "output path was set to " << ausaxs::settings::general::output << std::endl;
+		console::print_text("output path was set to " + ausaxs::settings::general::output);
 		return true;
 	};
 
@@ -472,8 +476,16 @@ auto toggle_mode_button(gui::view& view) {
 	return link(button);
 }
 
-int main(int, char*[]) {
+int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
+
+	for (int i = 1; i < argc; ++i) {
+		if (std::string(argv[i]) == "--log") {
+			console::enable_logging();
+		}
+	}
+	console::print_info("Starting saxs_fitter_gui");
+
 	gui::app app("AUSAXS saxs fitter");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), {50, 50, 1024+50, 768+50});
 	win.on_close = [&app]() {app.stop(); exit(0);};

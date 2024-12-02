@@ -259,7 +259,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
         out << info;
     }
 
-    if (settings::general::supplementary_plots) {
+    if (settings::general::generate_plots) {
         { // make a nice plot of the landscape within some range of the minimum; this is often nicer to look at than the full landscape due to the reduced y-range
             // plot the minimum in blue
             SimpleDataset p_min, chi2_copy = chi2_data, avg_copy = data_avg_int;
@@ -311,15 +311,13 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
                 plot_mass.save(settings::general::output + "chi2_evaluated_points_limited_mass." + settings::plots::format);
             }
 
-            if (settings::em::hydrate) {
-                if (settings::general::supplementary_plots) {
-                    plots.water_factors = get_fitted_water_factors_dataset();
-                    plots::PlotDataset::quick_plot(
-                        plots.water_factors,
-                        plots::PlotOptions(style::draw::points, {{"xlabel", "Iteration"}, {"ylabel", "Scaling factor"}}),
-                        settings::general::output + "water_factors." + settings::plots::format
-                    );
-                }
+            if (settings::em::hydrate && settings::general::supplementary_plots) {
+                plots.water_factors = get_fitted_water_factors_dataset();
+                plots::PlotDataset::quick_plot(
+                    plots.water_factors,
+                    plots::PlotOptions(style::draw::points, {{"xlabel", "Iteration"}, {"ylabel", "Scaling factor"}}),
+                    settings::general::output + "water_factors." + settings::plots::format
+                );
             }
         }
 
@@ -390,7 +388,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
         }
 
         // plot evaluated points near the minimum
-        if (settings::general::supplementary_plots) {
+        if (settings::general::generate_plots) {
             explored_points.y() = explored_points.y()/dof;
 
             // calculate the mean & standard deviation of the sampled points

@@ -19,6 +19,7 @@ int main(int argc, char const *argv[]) {
     settings::fit::verbose = true;
     settings::em::alpha_levels = {1, 10};
     settings::hist::weighted_bins = true;
+    settings::general::supplementary_plots = false;
 
     io::ExistingFile mfile, mapfile, settings;
     CLI::App app{"Fit an EM map to a SAXS measurement."};
@@ -39,6 +40,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--fixed-weight,!--dynamic-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
     app.add_flag("--verbose,!--quiet", settings::fit::verbose, "Print the progress of the fit to the console.");
     app.add_flag("--weighted-bins, --!no-weighted-bins", settings::hist::weighted_bins, "Use weighted bins for the distance histograms.")->default_val(settings::hist::weighted_bins)->group("");
+    app.add_flag_callback("--log", [] () {console::enable_logging();}, "Enable logging to a file.");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     CLI11_PARSE(app, argc, argv);
 
@@ -78,7 +80,10 @@ int main(int argc, char const *argv[]) {
 
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), {settings::general::output + "report.txt"}, argc, argv);
-        res->curves.select_columns({0, 1, 2, 3}).save(settings::general::output + "ausaxs.fit");
+        res->curves.select_columns({0, 1, 2, 3}).save(
+            settings::general::output + "ausaxs.fit",
+            "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof)
+        );
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;
