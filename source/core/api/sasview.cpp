@@ -17,6 +17,11 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::data;
 
+void test_integration(int* test_value) {
+    std::cout << "AUSAXS: Started testing integration." << std::endl;
+    *test_value += 1;
+}
+
 void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, int* _return_status, double* _return_Iq) {
     std::cout << "AUSAXS: Started evaluating Debye equation." << std::endl;
     // default state is error since we don't trust the input enough to assume success
