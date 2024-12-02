@@ -3,7 +3,7 @@
 #include <data/atoms/AtomFF.h>
 
 namespace ausaxs::data {
-    class AtomExtended : public AtomBasicForwarder<AtomExtended> {
+    class AtomExtended : public detail::AtomBasicForwarder<AtomExtended> {
         using precision_t = constants::coords_precision_t;
         public:
             AtomBasic& get_atom_basic() {return atom.get_atom_basic();}
