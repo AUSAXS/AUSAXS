@@ -8,9 +8,9 @@
  */
 namespace ausaxs::except {
     struct base : public std::exception {
-        base(const char* msg) : msg(msg) {}
-        base(const std::string msg) : msg(msg) {}
-        const char* what() const noexcept {return msg.data();}
+        base(const char* msg);
+        base(const std::string msg);
+        const char* what() const noexcept;
         const std::string msg;
     };
 

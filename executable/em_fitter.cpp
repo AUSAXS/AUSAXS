@@ -40,6 +40,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--fixed-weight,!--dynamic-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
     app.add_flag("--verbose,!--quiet", settings::fit::verbose, "Print the progress of the fit to the console.");
     app.add_flag("--weighted-bins, --!no-weighted-bins", settings::hist::weighted_bins, "Use weighted bins for the distance histograms.")->default_val(settings::hist::weighted_bins)->group("");
+    app.add_flag_callback("--log", [] () {console::enable_logging();}, "Enable logging to a file.");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     CLI11_PARSE(app, argc, argv);
 

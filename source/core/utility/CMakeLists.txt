@@ -3,6 +3,7 @@ target_sources(ausaxs_core PRIVATE
 	"Axis3D.cpp"
 	"Console.cpp"
 	"Curl.cpp"
+	"Exceptions.cpp"
 	"Limit.cpp"
 	"Limit2D.cpp"
 	"Limit3D.cpp"

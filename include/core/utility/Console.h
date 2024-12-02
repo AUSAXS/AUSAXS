@@ -4,6 +4,16 @@
 
 namespace ausaxs::console {
     /**
+     * @brief Enable logging. This will replicate all console output to a log file.
+     */
+    void enable_logging();
+
+    /**
+     * @brief Disable logging.
+     */
+    void disable_logging();
+
+    /**
      * @brief Print a critical message. The text will be red in the terminal. 
      *        This will always be printed. 
      */
