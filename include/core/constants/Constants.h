@@ -4,6 +4,7 @@
 #include <residue/ResidueStorage.h>
 #include <constants/ConstantsFwd.h>
 #include <constants/ConstantsAxes.h>
+#include <constants/ConstantsCoords.h>
 #include <constants/ConstantsFitParameters.h>
 #include <constants/ValidFileExtensions.h>
 #include <constants/Version.h>

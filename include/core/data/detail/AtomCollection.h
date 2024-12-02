@@ -1,6 +1,6 @@
 #pragma once
 
-#include <data/record/DataRecordFwd.h>
+#include <data/DataFwd.h>
 #include <io/IOFwd.h>
 
 #include <data/record/Terminate.h>
@@ -93,26 +93,6 @@ namespace ausaxs::data::detail {
              */
             void add(const record::Water& w);
 
-            /** 
-             * @brief Add a Hetatom record to this AtomCollection. 
-             * @param w The Hetatom record to be added. 
-             */
-            void add(record::Water&& w);
-
-            /**
-             * @brief Add a Terminate record to this AtomCollection. 
-             * @param t The Terminate record to be added. 
-             */
-            void add(const record::Terminate& t);
-
-            /**
-             * @brief Add a header or footer record to this AtomCollection. 
-             * 
-             * @param type HEADER or FOOTER.
-             * @param s The text string to be added. 
-             */
-            void add(const record::RecordType& type, const std::string& s);
-
             /**
              * @brief Internally updates the consistency of the currently stored data. This ensures this object is in a valid
              *        state for printing. 
@@ -123,11 +103,8 @@ namespace ausaxs::data::detail {
 
             bool equals_content(const AtomCollection& rhs) const;
 
-            record::Header header;
-            record::Footer footer;
-            record::Terminate terminate;
-            std::vector<record::Atom> protein_atoms;
-            std::vector<record::Water> hydration_atoms;
+            std::vector<data::AtomExtended> protein_atoms;
+            std::vector<data::AtomExtended> hydration_atoms;
 
         private:
             /**
