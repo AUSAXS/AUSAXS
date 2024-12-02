@@ -246,7 +246,7 @@ auto alpha_level_slider(gui::view& view) {
 		gui::slider_labels<16>(
 			gui::slider_marks_lin<20, 15, 5>(track), 0.8, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"
 		),
-		{1./15, 8./15}
+		{1./15, 10./15}
 	);
 
 	static auto amin_textbox = gui::input_box("min level");
