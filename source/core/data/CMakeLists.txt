@@ -1,6 +1,7 @@
 target_sources(ausaxs_core PRIVATE 
 	"Body.cpp"
 	"Molecule.cpp"
+	"SymmetryManager.cpp"
 
 	"detail/AtomCollection.cpp"
 

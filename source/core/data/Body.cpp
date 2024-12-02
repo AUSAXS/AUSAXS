@@ -179,3 +179,7 @@ data::detail::AtomCollection& Body::get_file() {return file;}
 int Body::get_id() const {return uid;}
 
 std::size_t Body::size_atom() const {return file.protein_atoms.size();}
+
+std::size_t Body::size_water() const {return file.hydration_atoms.size();}
+
+std::size_t Body::size_symmetry() const {return symmetries.size();}
