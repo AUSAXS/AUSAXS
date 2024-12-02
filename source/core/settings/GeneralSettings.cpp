@@ -17,6 +17,7 @@ unsigned int settings::general::threads = std::thread::hardware_concurrency()-1;
 std::string settings::general::output = "output/";
 bool settings::general::keep_hydrogens = false;
 bool settings::general::supplementary_plots = true;
+bool settings::general::generate_plots = true;
 settings::general::QUnit settings::general::input_q_unit = settings::general::QUnit::A;
 
 std::string settings::general::cache = [] () {

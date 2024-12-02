@@ -10,6 +10,7 @@ namespace ausaxs::settings::general {
     extern std::string output;          // The output directory.
     extern std::string cache;           // The cache directory.
     extern bool keep_hydrogens;         // Whether to keep bound hydrogens when reading a structure.
+    extern bool generate_plots;         // Whether to generate plots when possible.
     extern bool supplementary_plots;    // Whether to generate supplementary plots when possible.
 
     namespace detail {
