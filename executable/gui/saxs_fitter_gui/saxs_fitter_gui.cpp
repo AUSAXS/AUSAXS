@@ -103,7 +103,7 @@ auto make_start_button(gui::view& view) {
 
 			auto make_image_pane = [] (const io::File& path) {
 				if (!path.exists()) {
-					throw except::io_error("file " + path.path() + " does not exist");
+					throw except::io_error("file " + path.absolute_path() + " does not exist");
 				}
 				console::print_text_minor("loading image " + path.absolute_path());
 				return gui::image(path.absolute_path().c_str(), 0.13);
@@ -484,7 +484,7 @@ int main(int argc, char* argv[]) {
 			console::enable_logging();
 		}
 	}
-	console::print_info("starting saxs_fitter_gui");
+	console::print_info("Starting saxs_fitter_gui");
 
 	gui::app app("AUSAXS saxs fitter");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), {50, 50, 1024+50, 768+50});

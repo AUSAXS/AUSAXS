@@ -40,7 +40,7 @@ void log_msg(std::string_view msg) {
         static bool first_time = true;
         if (first_time) {
             std::cout << "Logging to " << log_path << std::endl;
-            log_path.create("AUSAXS " + std::string(constants::version) + " log file");
+            log_path.create("AUSAXS " + std::string(constants::version) + " log file\n");
             first_time = false;
         }
         std::ofstream log_file(log_path, std::ios_base::app);

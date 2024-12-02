@@ -615,7 +615,7 @@ auto make_start_button(gui::view& view) {
 
 			auto make_image_pane = [] (const io::File& path) {
 				if (!path.exists()) {
-					throw except::io_error("file " + path.path() + " does not exist");
+					throw except::io_error("file " + path.absolute_path() + " does not exist");
 				}
 				console::print_text_minor("loading image " + path.absolute_path());
 				return gui::image(path.absolute_path().c_str(), 0.15);
@@ -698,7 +698,7 @@ int main(int argc, char* argv[]) {
 			console::enable_logging();
 		}
 	}
-	console::print_info("starting em_fitter_gui");
+	console::print_info("Starting em_fitter_gui");
 
 	resources::generate_resource_file();
 	auto logo_path = resources::generate_logo_file();
