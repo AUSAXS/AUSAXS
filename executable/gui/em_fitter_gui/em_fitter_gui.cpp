@@ -689,7 +689,7 @@ int main(int argc, char* argv[]) {
     ausaxs::settings::em::mass_axis = true;
     ausaxs::settings::em::hydrate = true;
     ausaxs::settings::fit::verbose = true;
-    ausaxs::settings::em::alpha_levels = {1, 8};
+    ausaxs::settings::em::alpha_levels = {1, 10};
     ausaxs::settings::hist::weighted_bins = true;
     ausaxs::settings::general::supplementary_plots = false;
 
