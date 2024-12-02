@@ -2,6 +2,7 @@
 
 #include <data/detail/AtomCollection.h>
 #include <data/state/DataStateFwd.h>
+#include <data/Symmetry.h>
 #include <data/DataFwd.h>
 #include <io/IOFwd.h>
 #include <grid/GridFwd.h>
@@ -170,6 +171,27 @@ namespace ausaxs::data {
 			[[nodiscard]] std::size_t size_atom() const;
 
 			/**
+			 * @brief Get the total number of water molecules.
+			 */
+			[[nodiscard]] std::size_t size_water() const;
+			
+			/**
+			 * @brief Get the total number of symmetry duplicates of this body.
+			 */
+			[[nodiscard]] std::size_t size_symmetry() const;
+
+			/**
+			 * @brief Add a symmetry to this body.
+			 */
+			void add_symmetry(const detail::Symmetry& symmetry);
+
+			/**
+			 * @brief Get the symmetries of this body.
+			 */
+			std::vector<detail::Symmetry>& get_symmetries();
+			const std::vector<detail::Symmetry>& get_symmetries() const; //< @copydoc get_symmetries()
+
+			/**
 			 * @brief Get the signaller object for this body. 
 			 */
 			std::shared_ptr<signaller::Signaller> get_signaller() const;
@@ -191,6 +213,7 @@ namespace ausaxs::data {
 			bool centered = false;                		// True if this object is centered, false otherwise
 			inline static unsigned int uid_counter = 0; // The unique counter. 
 			data::detail::AtomCollection file;          // The file backing this body
+			std::vector<detail::Symmetry> symmetries;	// The symmetries of this body
 
 			// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
 			std::shared_ptr<signaller::Signaller> signal;

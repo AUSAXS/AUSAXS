@@ -8,14 +8,16 @@
 using namespace ausaxs;
 
 template<bool weighted_bins>
-void hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_self(const hist::detail::CompactCoordinates& a) {
+int hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_self(const hist::detail::CompactCoordinates& a) {
     self.push_back(a);
+    return self.size()-1;
 }
 
 template<bool weighted_bins>
-void hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2) {
+int hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2) {
     cross_1.push_back(a1);
     cross_2.push_back(a2);
+    return cross_1.size()-1;
 }
 
 template<bool weighted_bins>

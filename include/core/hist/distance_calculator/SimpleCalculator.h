@@ -27,16 +27,18 @@ namespace ausaxs::hist::distance_calculator {
              *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made. 
              *
              * @param a The data to calculate the self-correlation for. The reference must be valid until calculate is called.
+             * @return The index of the data in the result vector.
              */
-            void enqueue_calculate_self(const hist::detail::CompactCoordinates& a);
+            int enqueue_calculate_self(const hist::detail::CompactCoordinates& a);
 
             /**
              * @brief Queue a cross-correlation calculation. 
              *
              * @param a1 The first set of data to calculate the cross-correlation for. The reference must be valid until calculate is called.
              * @param a2 The second set of data to calculate the cross-correlation for. The reference must be valid until calculate is called.
+             * @return The index of the data in the result vector.
              */
-            void enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2);
+            int enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2);
 
             /**
              * @brief Calculate the queued histograms. 
