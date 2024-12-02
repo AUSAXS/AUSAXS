@@ -691,6 +691,7 @@ int main(int, char*[]) {
     ausaxs::settings::fit::verbose = true;
     ausaxs::settings::em::alpha_levels = {1, 8};
     ausaxs::settings::hist::weighted_bins = true;
+    ausaxs::settings::general::supplementary_plots = false;
 
 	resources::generate_resource_file();
 	auto logo_path = resources::generate_logo_file();

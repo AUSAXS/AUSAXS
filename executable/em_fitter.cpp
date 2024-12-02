@@ -19,6 +19,7 @@ int main(int argc, char const *argv[]) {
     settings::fit::verbose = true;
     settings::em::alpha_levels = {1, 10};
     settings::hist::weighted_bins = true;
+    settings::general::supplementary_plots = false;
 
     io::ExistingFile mfile, mapfile, settings;
     CLI::App app{"Fit an EM map to a SAXS measurement."};
