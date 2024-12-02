@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math/MathFwd.h>
+#include <math/Vector3.h>
 
 #include <array>
 #include <cstdint>
@@ -46,14 +46,8 @@ namespace ausaxs::hist::detail {
             : distances(distances), weights(weights) 
         {}
 
-        union {
-            struct {float first, second, third, fourth;} distance;          // The raw distances
-            std::array<float, 4> distances;                                 // The raw distances
-        };
-        union {
-            struct {float first, second, third, fourth;} weight;            // The combined weight
-            std::array<float, 4> weights;                                   // The combined weight
-        };
+        std::array<float, 4> distances; // The raw distances
+        std::array<float, 4> weights;   // The combined weight
     };
 
     /**
@@ -70,14 +64,8 @@ namespace ausaxs::hist::detail {
             : distances(distances), weights(weights) 
         {}
 
-        union {
-            struct {int32_t first, second, third, fourth;} distance;    // The distance bin
-            std::array<int32_t, 4> distances;                           // The distance bin
-        };
-        union {
-            struct {float first, second, third, fourth;} weight;        // The combined weight
-            std::array<float, 4> weights;                               // The combined weight
-        };
+        std::array<int32_t, 4> distances;   // The distance bin
+        std::array<float, 4> weights;       // The combined weight
     };
 
     /**
@@ -96,14 +84,8 @@ namespace ausaxs::hist::detail {
             : distances(distances), weights(weights) 
         {}
 
-        union {
-            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} distance;       // The distance
-            std::array<float, 8> distances;                                                             // The distance
-        };
-        union {
-            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} weight;         // The combined weight
-            std::array<float, 8> weights;                                                               // The combined weight
-        };
+        std::array<float, 8> distances; // The distance
+        std::array<float, 8> weights;   // The combined weight
     };
 
     /**
@@ -122,14 +104,8 @@ namespace ausaxs::hist::detail {
             : distances(distances), weights(weights) 
         {}
 
-        union {
-            struct {int32_t first, second, third, fourth, fifth, sixth, seventh, eighth;} distance; // The distance bin
-            std::array<int32_t, 8> distances;                                                       // The distance bin
-        };
-        union {
-            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} weight;     // The combined weight
-            std::array<float, 8> weights;                                                           // The combined weight
-        };
+        std::array<int32_t, 8> distances;   // The distance bin
+        std::array<float, 8> weights;       // The combined weight
     };
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
@@ -159,10 +135,11 @@ namespace ausaxs::hist::detail {
 
     class CompactCoordinatesData {
         public:
-            CompactCoordinatesData();
+            CompactCoordinatesData() = default;
 
-            template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-            CompactCoordinatesData(const Vector3<T>& v, float w) : value{.x=float(v.x()), .y=float(v.y()), .z=float(v.z()), .w=w} {}
+            template<numeric T, numeric V>
+            CompactCoordinatesData(const Vector3<T>& v, V w) : value{.pos={static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z())}, .w=static_cast<float>(w)} {}
+            CompactCoordinatesData(const Vector3<float>& v, float w) : value{.pos=v, .w=w} {}
 
             /**
              * @brief Calculate the @a binned distance and combined weight between this and a single other CompactCoordinatesData.
@@ -205,7 +182,7 @@ namespace ausaxs::hist::detail {
             ) const;
 
             union {
-                struct {float x, y, z, w;} value;
+                struct {Vector3<float> pos; float w;} value;
                 std::array<float, 4> data;
             };
 
@@ -259,5 +236,8 @@ namespace ausaxs::hist::detail {
                 ) const;
             #endif
     };
-    static_assert(sizeof(CompactCoordinatesData) == 16, "hist::detail::CompactCoordinates::CompactCoordinatesData is not 16 bytes. This is required for aligning SIMD instructions.");
+    static_assert(sizeof(CompactCoordinatesData) == 16,              "CompactCoordinatesData is not 16 bytes. This is required for aligning SIMD instructions.");
+    static_assert(std::is_trivial_v<CompactCoordinatesData>,         "CompactCoordinatesData is not trivial");
+    static_assert(std::is_standard_layout_v<CompactCoordinatesData>, "CompactCoordinatesData is not standard layout");
+    static_assert(supports_nothrow_move_v<CompactCoordinatesData>,   "CompactCoordinatesData should support nothrow move semantics.");
 }
