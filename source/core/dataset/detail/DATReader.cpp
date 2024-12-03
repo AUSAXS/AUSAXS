@@ -177,6 +177,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
         for (unsigned int i = 0; i < dataset->size_rows(); i++) {
             dataset->index(i, 0) /= 10;
         }
+        settings::flags::last_parsed_unit = static_cast<char>(settings::general::QUnit::NM);
     }
 
     // remove all rows outside the specified q-range

@@ -1,3 +1,4 @@
+#include "settings/HistogramSettings.h"
 #include <elements.hpp>
 #include <nfd.hpp>
 
@@ -85,6 +86,8 @@ auto make_start_button(gui::view& view) {
 
 		// use a worker thread to avoid locking the gui
 		worker = std::thread([&view] () {
+			ausaxs::settings::axes::qmin = qslider_axis_transform(qslider->value_first());
+			ausaxs::settings::axes::qmax = qslider_axis_transform(qslider->value_second());
 			setup::pdb = std::make_unique<data::Molecule>(::settings::pdb_file);
 			setup::pdb->generate_new_hydration();
 
@@ -272,6 +275,7 @@ auto io_menu(gui::view& view) {
 				output_box.second->on_enter(path);
 			}
 		}
+		qslider_update_range_from_file();
 		return true;
 	};
 
