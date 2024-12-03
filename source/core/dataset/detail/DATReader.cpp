@@ -13,6 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <math/Statistics.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
+#include <settings/Flags.h>
 
 #include <vector>
 #include <string>
@@ -196,9 +197,9 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
         getline(input, line);
 
         // check if file has already been rebinned
-        if (line.find("REBINNED") == std::string::npos) {
+        if (!settings::flags::data_rebin) {
             // if not, suggest it to the user
-            console::print_text("File contains more than 300 rows. Consider rebinning the data.");
+            console::print_text_minor("File contains more than 300 rows. Consider rebinning the data.");
         }
     }
 
