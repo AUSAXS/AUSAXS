@@ -30,6 +30,10 @@ const constants::axes::d_type& Distribution1D::get_content(int i) const {
     return index(i);
 }
 
+void Distribution1D::set_content(int i, constants::axes::d_type value) {
+    index(i) = value;
+}
+
 void Distribution1D::add(float distance, constants::axes::d_type value) {
     index(std::round(distance)) += value;
 }

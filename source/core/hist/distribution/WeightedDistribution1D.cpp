@@ -61,6 +61,10 @@ const constants::axes::d_type& WeightedDistribution1D::get_content(int i) const 
     return index(i).value;
 }
 
+void WeightedDistribution1D::set_content(int i, constants::axes::d_type value) {
+    index(i).value = value;
+}
+
 std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
     Distribution1D weights(size());
     for (std::size_t i = 0; i < size(); i++) {

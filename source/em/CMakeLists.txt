@@ -1,5 +1,4 @@
 add_library(ausaxs_em OBJECT 
-	"Box.cpp"
 	"Image.cpp"
 	"ImageStack.cpp"
 	"ObjectBounds2D.cpp"

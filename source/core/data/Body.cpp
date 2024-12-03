@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/state/UnboundSignaller.h>
+#include <data/Symmetry.h>
 #include <grid/Grid.h>
 #include <constants/Constants.h>
 #include <math/Matrix.h>
@@ -177,6 +178,21 @@ const record::Atom& Body::get_atom(unsigned int index) const {return file.protei
 data::detail::AtomCollection& Body::get_file() {return file;}
 
 int Body::get_id() const {return uid;}
+
+std::vector<data::detail::Symmetry>& Body::get_symmetries() {return symmetries;}
+const std::vector<data::detail::Symmetry>& Body::get_symmetries() const {return symmetries;}
+
+void Body::add_symmetry(const data::detail::Symmetry& symmetry) {
+    symmetries.push_back(symmetry);
+    changed_internal_state();
+    changed_external_state();
+}
+
+void Body::add_symmetry(data::detail::Symmetry&& symmetry) {
+    symmetries.push_back(std::move(symmetry));
+    changed_internal_state();
+    changed_external_state();
+}
 
 std::size_t Body::size_atom() const {return file.protein_atoms.size();}
 
