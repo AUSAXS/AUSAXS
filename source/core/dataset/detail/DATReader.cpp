@@ -138,22 +138,37 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
 
     // scan the headers for units. must be either [Å] or [nm]
     settings::general::QUnit unit = settings::general::input_q_unit;
-    for (auto& s : header) {
-        if (s.find("[nm]") != std::string::npos) {
-            if (settings::general::input_q_unit != settings::general::QUnit::NM) {
-                console::print_warning("Warning: File contains unit [nm], but default is set to [A]. Assuming [nm] is correct.");
+    if (unit != settings::general::QUnit::USER_A && unit != settings::general::QUnit::USER_NM) { // if the user has not specified a unit
+        bool found = false;
+        for (auto& s : header) {
+            if (s.find("[nm]") != std::string::npos) {
+                if (settings::general::input_q_unit != settings::general::QUnit::NM) {
+                    console::print_warning("Warning: File contains unit [nm], but default is set to [A]. Assuming [nm] is correct.");
+                }
+                unit = settings::general::QUnit::NM;
+                found = true;
+                break;
+            } else if ((s.find("[Å]") != std::string::npos) || (s.find("[AA]") != std::string::npos)) {
+                if (settings::general::input_q_unit != settings::general::QUnit::A) {
+                    console::print_warning("Warning: File contains unit [A], but default is set to [nm]. Assuming [A] is correct.");
+                }
+                unit = settings::general::QUnit::A;
+                found = true;
+                break;
             }
+        }
+        if (!found && 1 < dataset->x().back()) {
+            console::print_text("Detected q-values larger than 1. Assuming the unit is [nm].");
             unit = settings::general::QUnit::NM;
-            break;
-        } else if ((s.find("[Å]") != std::string::npos) || (s.find("[AA]") != std::string::npos)) {
-            if (settings::general::input_q_unit != settings::general::QUnit::A) {
-                console::print_warning("Warning: File contains unit [A], but default is set to [nm]. Assuming [A] is correct.");
-            }
+            found = true;
+        }
+        if (!found && dataset->x().front() < 1e-3) {
+            console::print_text("Detected q-values smaller than 1e-3. Assuming the unit is [A].");
             unit = settings::general::QUnit::A;
-            break;
+            found = true;
         }
     }
-    if (unit == settings::general::QUnit::NM) {
+    if (unit == settings::general::QUnit::NM || unit == settings::general::QUnit::USER_NM) {
         console::print_text("Scaling all q-values by 1/10 to convert from [nm] to [A].");
         for (unsigned int i = 0; i < dataset->size_rows(); i++) {
             dataset->index(i, 0) /= 10;

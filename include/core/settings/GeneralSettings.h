@@ -20,8 +20,10 @@ namespace ausaxs::settings::general {
 
 namespace ausaxs::settings::general {
     enum class QUnit {
-        A,  // Ångström
-        NM, // Nanometer
+        A,      // Ångström  (system-default, may be converted)
+        NM,     // Nanometer (system-default, may be converted)
+        USER_A, // Ångström  (user-specified, cannot be converted)
+        USER_NM // Nanometer (user-specified, cannot be converted)
     };
-    extern QUnit input_q_unit;          // Unit of q values in the input file.
+    extern QUnit input_q_unit; // Unit of q values in the input file.
 }
