@@ -138,18 +138,18 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
 
     // scan the headers for units. must be either [Å] or [nm]
     settings::general::QUnit unit = settings::general::input_q_unit;
-    if (unit != settings::general::QUnit::USER_A && unit != settings::general::QUnit::USER_NM) { // if the user has not specified a unit
+    if (!settings::general::helper::is_user_defined(unit)) {
         bool found = false;
         for (auto& s : header) {
-            if (s.find("[nm]") != std::string::npos) {
-                if (settings::general::input_q_unit != settings::general::QUnit::NM) {
+            if (s.starts_with("[nm]" || s.starts_with("[nm^-1]"))) {
+                if (!settings::general::helper::is_nanometers(settings::general::input_q_unit)) {
                     console::print_warning("Warning: File contains unit [nm], but default is set to [A]. Assuming [nm] is correct.");
                 }
                 unit = settings::general::QUnit::NM;
                 found = true;
                 break;
-            } else if ((s.find("[Å]") != std::string::npos) || (s.find("[AA]") != std::string::npos)) {
-                if (settings::general::input_q_unit != settings::general::QUnit::A) {
+            } else if ((s.starts_with("[A]") || s.starts_with("[A^-1]"))) {
+                if (settings::general::helper::is_nanometers(settings::general::input_q_unit)) {
                     console::print_warning("Warning: File contains unit [A], but default is set to [nm]. Assuming [A] is correct.");
                 }
                 unit = settings::general::QUnit::A;
@@ -157,19 +157,22 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
                 break;
             }
         }
-        if (!found && 1 < dataset->x().back()) {
-            console::print_text("Detected q-values larger than 1. Assuming the unit is [nm].");
-            unit = settings::general::QUnit::NM;
-            found = true;
-        }
-        if (!found && dataset->x().front() < 1e-3) {
-            console::print_text("Detected q-values smaller than 1e-3. Assuming the unit is [A].");
-            unit = settings::general::QUnit::A;
-            found = true;
+        if (!found) {
+            if (1 < dataset->x().back()) {
+                console::print_text("Detected q-values larger than 1. Assuming the unit is [nm].");
+                unit = settings::general::QUnit::NM;
+                found = true;
+            } else if (dataset->x().front() < 1e-3) {
+                console::print_text("Detected q-values smaller than 1e-3. Assuming the unit is [A].");
+                unit = settings::general::QUnit::A;
+                found = true;
+            } else {
+                console::print_warning("Warning: The q-value unit is ambiguous. Assuming [A].");
+            }
         }
     }
-    if (unit == settings::general::QUnit::NM || unit == settings::general::QUnit::USER_NM) {
-        console::print_text("Scaling all q-values by 1/10 to convert from [nm] to [A].");
+    if (settings::general::helper::is_nanometers(unit)) {
+        console::print_text("Scaling all q-values by 1/10 to convert from inverse [nm] to inverse [A].");
         for (unsigned int i = 0; i < dataset->size_rows(); i++) {
             dataset->index(i, 0) /= 10;
         }
