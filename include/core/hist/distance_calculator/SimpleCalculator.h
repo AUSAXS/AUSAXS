@@ -42,6 +42,7 @@ namespace ausaxs::hist::distance_calculator {
 
             /**
              * @brief Calculate the queued histograms. 
+             *        This will block until all calculations are done.
              *
              * @return The calculated histograms. 
              */

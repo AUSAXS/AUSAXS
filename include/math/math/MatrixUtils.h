@@ -9,7 +9,11 @@ namespace ausaxs::matrix {
     /**
      * @brief Generate a 3x3 extrinsic rotation matrix.
      */
-    Matrix<double> rotation_matrix(double alpha, double beta, double gamma);
+    template<numeric T>
+    Matrix<T> rotation_matrix(T alpha, T beta, T gamma);
+
+    template<numeric T>
+    Matrix<T> rotation_matrix(const Vector3<T>& angles); //< @copydoc rotation_matrix(T alpha, T beta, T gamma)
 
     /**
      * @brief Generate a 3x3 rotation matrix from a rotation axis and an angle around this axis. 
@@ -17,7 +21,8 @@ namespace ausaxs::matrix {
      * @param axis The rotation axis.
      * @param angle The rotation angle.
      */
-    Matrix<double> rotation_matrix(const Vector3<double>& axis, double angle);
+    template<numeric T>
+    Matrix<T> rotation_matrix(const Vector3<T>& axis, T angle);
 
     /**
      * @brief Get the identity matrix of a given dimension. 

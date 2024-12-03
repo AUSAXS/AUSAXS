@@ -7,11 +7,15 @@
 #include <data/Symmetry.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
+#include <settings/All.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
 
 TEST_CASE("SymmetryManager::calculate") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::general::threads = 1;
+
     SECTION("simple") {
         record::Atom a(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
         a.set_effective_charge(1);

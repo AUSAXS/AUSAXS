@@ -184,6 +184,7 @@ namespace ausaxs::data {
 			 * @brief Add a symmetry to this body.
 			 */
 			void add_symmetry(const detail::Symmetry& symmetry);
+			void add_symmetry(detail::Symmetry&& symmetry);
 
 			/**
 			 * @brief Get the symmetries of this body.
