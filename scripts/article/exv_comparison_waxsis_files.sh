@@ -52,6 +52,7 @@ files=(
 size=${#files[@]}
 pdbs=()
 dats=()
+waxsis_fit=()
 all_exist=true
 for ((i=0; i<${size}; i++)); do
     folder=$(find $pdbprefix -name *${files[i]})
@@ -62,14 +63,21 @@ for ((i=0; i<${size}; i++)); do
     fi
 
 	pdb=$(find $folder -name prot+solvlayer_0.pdb)
+	fit=$(find $folder -name intensity.dat)
 	dat=$(find $datprefix -name ${files[i]}.dat)
 	if [ -z "$pdb" ] || [ -z "$dat" ]; then
 		echo "Missing file for ${files[i]}"
 		all_exist=false
         continue
 	fi
+	if [ -z "$fit" ]; then
+		echo "Missing fit file for ${files[i]}"
+		all_exist=false
+		continue
+	fi
     pdbs+=("$pdb")
     dats+=("$dat")
+	waxsis_fit+=("$fit")
 done
 if ! $all_exist; then
 	exit 1
@@ -78,30 +86,33 @@ fi
 for ((i=0; i<${size}; i++)); do
 	folder_pdb=$(dirname ${pdbs[i]})
 	stripped_pdb=${folder_pdb}/${files[i]}_stripped.pdb
-    # grep -E -v ' H |H$|[123]H|OW|HOH| H[ABCDEFGHZ][123]?|NA|CL| D[AGCT] |CYX' "${pdbs[i]}" | grep 'ATOM  ' > "${stripped_pdb}"
-	# build/bin/remove_fourth_column_data ${dats[i]}
+    grep -E -v ' H |H$|[123]H|OW|HOH| H[ABCDEFGHZ][123]?|NA|CL| D[AGCT] |CYX' "${pdbs[i]}" | grep 'ATOM  ' > "${stripped_pdb}"
+	build/bin/remove_fourth_column_data ${dats[i]}
     folder_dat=$(dirname ${dats[i]})
     stripped_dat=${folder_dat}/${files[i]}_stripped.dat
     cp ${stripped_dat} ${folder_pdb}
 
-	# # ausaxs
-	# build/bin/fit_all_exv ${stripped_pdb} ${stripped_dat} --no-exit-on-unknown-atom --output output/fit_all_exv_waxsis/
-	# mkdir -p output/saxs_fitter/${files[i]}
+	# ausaxs
+	build/bin/fit_all_exv ${stripped_pdb} ${stripped_dat} --no-exit-on-unknown-atom --output output/fit_all_exv_waxsis/
+	mkdir -p output/saxs_fitter/${files[i]}
 
-	# # foxs
-	# rm -rf temp/foxs
-	# mkdir -p temp/foxs
-	# cp ${stripped_pdb} ${stripped_dat} temp/foxs
-	# cd temp/foxs
-	# foxs $(basename ${stripped_pdb}) $(basename ${stripped_dat}) --max_q=1
-	# cd ../..
-	# mv temp/foxs/*.fit output/fit_all_exv_waxsis/${files[i]}/foxs.fit
+	# waxsis
+	cp ${waxsis_fit[i]} output/fit_all_exv_waxsis/${files[i]}/waxsis.fit
 
-	# # pepsi
-	# rm -rf temp/pepsi
-	# mkdir -p temp/pepsi
-	# ~/tools/Pepsi-SAXS/Pepsi-SAXS ${stripped_pdb} ${stripped_dat} -o "temp/pepsi/pepsi.fit" -ms 1
-	# mv temp/pepsi/pepsi.fit output/fit_all_exv_waxsis/${files[i]}/pepsi.fit
+	# foxs
+	rm -rf temp/foxs
+	mkdir -p temp/foxs
+	cp ${stripped_pdb} ${stripped_dat} temp/foxs
+	cd temp/foxs
+	foxs $(basename ${stripped_pdb}) $(basename ${stripped_dat}) --max_q=1
+	cd ../..
+	mv temp/foxs/*.fit output/fit_all_exv_waxsis/${files[i]}/foxs.fit
+
+	# pepsi
+	rm -rf temp/pepsi
+	mkdir -p temp/pepsi
+	~/tools/Pepsi-SAXS/Pepsi-SAXS ${stripped_pdb} ${stripped_dat} -o "temp/pepsi/pepsi.fit" -ms 1
+	mv temp/pepsi/pepsi.fit output/fit_all_exv_waxsis/${files[i]}/pepsi.fit
 
 	# crysol
 	mkdir -p temp/crysol
@@ -116,5 +127,5 @@ for ((i=0; i<${size}; i++)); do
     fi
 
 	mkdir -p output/saxs_fitter/${files[i]}
-	cp output/fit_all_exv_waxsis/${files[i]}/*.fit output/saxs_fitter/$*
+	cp output/fit_all_exv_waxsis/${files[i]}/*.fit output/saxs_fitter/$*	
 done
