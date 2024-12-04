@@ -80,15 +80,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
         {
             int j = 0;
             for (; j+7 < data_a_size; j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
+                evaluate8<use_weighted_distribution, 2>(p_aw, data_w, data_a, i, j);
             }
 
             for (; j+3 < data_a_size; j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
+                evaluate4<use_weighted_distribution, 2>(p_aw, data_w, data_a, i, j);
             }
 
             for (; j < data_a_size; ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
+                evaluate1<use_weighted_distribution, 2>(p_aw, data_w, data_a, i, j);
             }
         }
     }
@@ -99,7 +99,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
-    for (int i = 0; i < (int) p_aa.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + 2*p_aw.index(i);}
+    for (int i = 0; i < (int) p_aa.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10

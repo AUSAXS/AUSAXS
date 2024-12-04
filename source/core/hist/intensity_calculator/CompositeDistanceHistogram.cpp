@@ -56,7 +56,7 @@ Distribution1D& CompositeDistanceHistogram::get_ww_counts() {
 
 void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     auto& p_tot = get_total_counts();
-    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot[i] = distance_profiles.aa.index(i) + 2*k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
+    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot[i] = distance_profiles.aa.index(i) + k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
 }
 
 auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::DebyeTable> sinqd_table) {

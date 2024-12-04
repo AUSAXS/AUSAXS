@@ -24,7 +24,6 @@ template<bool weighted_bins>
 hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::distance_calculator::SimpleCalculator<weighted_bins>::run() {
     auto pool = utility::multi_threading::get_global_pool();
     assert(cross_1.size() == cross_2.size() && "Cross-correlation data size mismatch");
-    std::cout << "starting run" << std::endl;
 
     // calculate self-correlations
     std::vector<container::ThreadLocalWrapper<GenericDistribution1D_t>> results_self(self.size(), container::ThreadLocalWrapper<GenericDistribution1D_t>(constants::axes::d_axis.bins));
@@ -33,7 +32,6 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
         int data_a_size = (int) self[idx].get().size();
 
         tasks_self[idx] = [this, &results_self, idx, data_a_size] (int imin, int imax) {
-            std::cout << "starting tasks_self" << std::endl;
             auto& p_aa = results_self[idx].get();
             auto& data_a = self[idx].get();
             for (int i = imin; i < imax; ++i) { // atom
@@ -47,7 +45,6 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
                 }
 
                 for (; j < data_a_size; ++j) {
-                    std::cout << "evaluating (" << i << ", " << j << ")" << std::endl;
                     evaluate1<weighted_bins, 2>(p_aa, data_a, data_a, i, j);
                 }
             }
@@ -69,23 +66,21 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
         int data_b_size = (int) cross_2[idx].get().size();
 
         tasks_cross[idx] = [this, &results_cross, idx, data_a_size] (int imin, int imax) {
-            std::cout << "starting tasks_cross" << std::endl;
             auto& p_ab = results_cross[idx].get();
             auto& data_a = cross_1[idx].get();
             auto& data_b = cross_2[idx].get();
             for (int i = imin; i < imax; ++i) { // b
                 int j = 0;                      // a
                 for (; j+7 < data_a_size; j+=8) {
-                    evaluate8<weighted_bins, 1>(p_ab, data_b, data_a, i, j);
+                    evaluate8<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
                 }
 
                 for (; j+3 < data_a_size; j+=4) {
-                    evaluate4<weighted_bins, 1>(p_ab, data_b, data_a, i, j);
+                    evaluate4<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
                 }
 
                 for (; j < data_a_size; ++j) {
-                    std::cout << "evaluating (" << i << ", " << j << ")" << std::endl;
-                    evaluate1<weighted_bins, 1>(p_ab, data_b, data_a, i, j);
+                    evaluate1<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
                 }
             }
         };

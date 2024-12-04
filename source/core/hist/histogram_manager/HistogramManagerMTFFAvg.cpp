@@ -70,15 +70,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
         for (int i = imin; i < imax; ++i) { // atom
             int j = 0;                      // water
             for (; j+7 < data_w_size; j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
+                evaluate8<use_weighted_distribution, 2>(p_aw, data_a, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
+                evaluate4<use_weighted_distribution, 2>(p_aw, data_a, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
+                evaluate1<use_weighted_distribution, 2>(p_aw, data_a, data_w, i, j);
             }
         }
     };
