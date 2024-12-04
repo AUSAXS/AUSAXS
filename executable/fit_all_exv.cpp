@@ -79,6 +79,12 @@ int main(int argc, char const *argv[]) {
             std::cout << name << ": " << result->fval/result->dof << std::endl;
             out << name << postfix << ": " << result->fval/result->dof << std::endl;
             // fitter::FitReporter::save(result.get(), settings::general::output + volumes + "/" + name + ".txt");
+            if (choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface && fit_exv) {
+                result->curves.select_columns({0, 1, 2, 3}).save(
+                    settings::general::output + "ausaxs.fit", 
+                    "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
+                );
+            }
         };
 
         for (unsigned int i = 0; i < loop.size(); ++i) {
