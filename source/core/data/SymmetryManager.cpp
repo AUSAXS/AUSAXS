@@ -163,19 +163,22 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
     assert(res.self.size() == self_indices.size() && "SymmetryManager::calculate: self size mismatch");
     assert(res.cross.size() == cross_indices.size() && "SymmetryManager::calculate: cross size mismatch");
 
-    GenericDistribution1D_t p_aa = res.self[0]; //*protein.get_body(0).size_symmetry();
-    GenericDistribution1D_t p_ww = res.self[1]; //*protein.get_body(0).size_symmetry();
-    GenericDistribution1D_t p_aw = res.cross[0];//*protein.get_body(0).size_symmetry();
-    for (int i = 0; i < static_cast<int>(p_aa.size()); ++i) {
-        p_aa.set_content(i, p_aa.get_content(i)*protein.get_body(0).size_symmetry());
-        p_ww.set_content(i, p_ww.get_content(i)*protein.get_body(0).size_symmetry());
-        p_aw.set_content(i, p_aw.get_content(i)*protein.get_body(0).size_symmetry());
+    GenericDistribution1D_t p_aa = res.self[0];
+    GenericDistribution1D_t p_ww = res.self[1];
+    GenericDistribution1D_t p_aw = res.cross[0];
+    {
+        int duplicates = 1 + protein.get_body(0).size_symmetry();
+        for (int i = 0; i < static_cast<int>(p_aa.size()); ++i) {
+            p_aa.set_content(i, p_aa.get_content(i)*duplicates);
+            p_ww.set_content(i, p_ww.get_content(i)*duplicates);
+            p_aw.set_content(i, p_aw.get_content(i)*duplicates);
+        }
     }
 
     for (int i = 1; i < static_cast<int>(protein.size_body()); ++i) {
         int duplicates = protein.get_body(i).size_symmetry();
         for (int j = 0; j < static_cast<int>(p_aa.size()); ++j) {
-            res.self[2*i].set_content(j, res.self[2*i].get_content(j)*duplicates);
+            res.self[2*i  ].set_content(j, res.self[2*i  ].get_content(j)*duplicates);
             res.self[2*i+1].set_content(j, res.self[2*i+1].get_content(j)*duplicates);
             res.cross[needs_scaling[i]].set_content(j, res.cross[needs_scaling[i]].get_content(j)*duplicates);
         }
