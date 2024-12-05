@@ -10,9 +10,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
 #include <settings/HistogramSettings.h>
-#include <constants/ConstantsMath.h>
-#include <math/ConstexprMath.h>
-#include <dataset/SimpleDataset.h>
 #include <utility/MultiThreading.h>
 
 using namespace ausaxs;

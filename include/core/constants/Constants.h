@@ -2,7 +2,6 @@
 
 #include <utility/SimpleMap.h>
 #include <residue/ResidueStorage.h>
-#include <constants/ConstantsMath.h>
 #include <constants/ConstantsFwd.h>
 #include <constants/ConstantsAxes.h>
 #include <constants/ConstantsFitParameters.h>

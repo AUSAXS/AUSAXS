@@ -49,7 +49,7 @@ void CompositeDistanceHistogramCrysol::initialize() {
 
 double CompositeDistanceHistogramCrysol::exv_factor(double q, double cx, double avg_displaced_V) {
     // G(q) factor from CRYSOL: https://doi.org/10.1107/S0021889895007047
-    double c = constexpr_math::pow(avg_displaced_V, 2./3)/(4*constants::pi);
+    double c = constexpr_math::pow(avg_displaced_V, 2./3)/(4*std::numbers::pi);
     return std::pow(cx, 3)*std::exp(-c*(std::pow(cx, 2) - 1)*q*q);
 }
 

@@ -25,13 +25,13 @@ void grid::ClusterCulling::prepare_rotations() {
     std::vector<Vector3<int>> bins_2ra;
     std::vector<Vector3<int>> bins_3ra;
 
-    double ang = 2*constants::pi/divisions;
+    double ang = 2*std::numbers::pi/divisions;
 
     // we generate one octant of a sphere, and then reflect it to generate the rest
     // we do this to ensure the sphere is symmetric. If we simply generate it all at once, floating-point errors moves some of the bins around
     std::vector<Vector3<double>> sphere;
-    for (double theta = 0; theta <= constants::pi*0.5; theta+=ang) {
-        for (double phi = 0; phi <= constants::pi*0.5; phi+=ang) {
+    for (double theta = 0; theta <= std::numbers::pi*0.5; theta+=ang) {
+        for (double phi = 0; phi <= std::numbers::pi*0.5; phi+=ang) {
             double x = cos(phi)*sin(theta);
             double y = sin(phi)*sin(theta);
             double z = cos(theta);

@@ -15,7 +15,7 @@ Limit CompositeDistanceHistogramFoXS::get_excluded_volume_scaling_factor_limits(
 
 double CompositeDistanceHistogramFoXS::exv_factor(double q, double cx) {
     constexpr double rm = 1.58;
-    constexpr double c = rm*rm/(4*constants::pi);
+    constexpr double c = rm*rm/(4*std::numbers::pi);
     return std::pow(cx, 3)*std::exp(-c*(std::pow(cx, 2) - 1)*q*q);
 }
 

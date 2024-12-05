@@ -1,8 +1,8 @@
 #pragma once
 
-#include <constants/ConstantsMath.h>
-
 #include <gcem.hpp>
+
+#include <numbers>
 
 namespace ausaxs::gcem {
     namespace fast {
@@ -11,7 +11,7 @@ namespace ausaxs::gcem {
          */
         [[maybe_unused]] inline constexpr double cos(double x) noexcept {
             // this is taken directly from https://stackoverflow.com/a/28050328
-            constexpr double tp = 1./(2.*constants::pi);
+            constexpr double tp = 1./(2*std::numbers::pi);
             x *= tp;
             x -= 0.25 + ::gcem::floor(x + 0.25);
             x *= 16.*(::gcem::abs(x) - 0.5);
@@ -24,7 +24,7 @@ namespace ausaxs::gcem {
          */
         inline constexpr double sin(double x) noexcept {
             // this is a slightly altered version of https://stackoverflow.com/a/28050328
-            constexpr double tp = 1./(2.*constants::pi);
+            constexpr double tp = 1./(2*std::numbers::pi);
             x *= tp;
             x -= 0.5 + ::gcem::floor(x);
             x *= 16.*(::gcem::abs(x) - 0.5);

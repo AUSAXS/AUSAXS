@@ -22,7 +22,7 @@ namespace ausaxs::form_factor::crysol {
             * @param volume The excluded volume of the atom in cubic angstroms.
             */
         constexpr ExvFormFactorCrysol(double volume) {
-            exponent = constexpr_math::pow(volume, 2./3)/(4*constants::pi);
+            exponent = constexpr_math::pow(volume, 2./3)/(4*std::numbers::pi);
             q0 = volume*constants::charge::density::water;
         }
 

@@ -3,7 +3,6 @@
 #include <constants/SI.h>
 #include <constants/vdwTable.h>
 #include <math/ConstexprMath.h>
-#include <constants/ConstantsMath.h>
 
 namespace ausaxs::constants::displaced_volume {
     namespace detail {
@@ -16,7 +15,7 @@ namespace ausaxs::constants::displaced_volume {
         };
 
         constexpr double volume(double radius) {
-            return 4*constants::pi/3*constexpr_math::pow(radius, 3);
+            return 4*std::numbers::pi/3*constexpr_math::pow(radius, 3);
         }
     }
 

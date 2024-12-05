@@ -41,7 +41,7 @@ RigidBody::RigidBody(data::Molecule&& protein) : data::Molecule(std::move(protei
 }
 
 void RigidBody::initialize() {
-    parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3);
+    parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, std::numbers::pi/3);
     body_selector = factory::create_selection_strategy(this);
     transform = factory::create_transform_strategy(this);
     constraints = std::make_shared<ConstraintManager>(this);

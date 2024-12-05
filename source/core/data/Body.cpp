@@ -76,7 +76,7 @@ double Body::get_volume_vdw() const {
     double volume = std::accumulate(file.protein_atoms.begin(), file.protein_atoms.end(), 0.0, [] (double sum, const record::Atom& atom) {
         return sum + std::pow(constants::radius::get_vdw_radius(atom.get_element()), 3);
     });
-    return 4*constants::pi*volume/3;
+    return 4*std::numbers::pi*volume/3;
 }
 
 void Body::translate(const Vector3<double>& v) {
