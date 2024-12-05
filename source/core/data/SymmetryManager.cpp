@@ -114,8 +114,8 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
             std::cout << "\tqueued w" + std::to_string(i) + "0 x a" + std::to_string(i) + std::to_string(j+1) << std::endl;
 
             // external histograms with other bodies
-            for (unsigned int k = 0; k < protein.size_body(); ++k) {
-                if (k == i) {continue;}
+            for (unsigned int k = i+1; k < protein.size_body(); ++k) {
+                const auto& body2 = protein.get_body(k);
                 const auto& body2_atomic = data[k].atomic[0];
                 const auto& body2_waters = data[k].waters[0];
 
@@ -134,9 +134,31 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
                 std::cout << "\t\tqueued a" + std::to_string(k) + "0 x w" + std::to_string(i) + std::to_string(j+1) << std::endl;
                 std::cout << "\t\tqueued w" + std::to_string(k) + "0 x w" + std::to_string(i) + std::to_string(j+1) << std::endl;
                 std::cout << "\t\tqueued w" + std::to_string(k) + "0 x a" + std::to_string(i) + std::to_string(j+1) << std::endl;
+
+                // external histograms with other symmetries in same body
+                for (unsigned int l = 0; l < body2.size_symmetry(); ++l) {
+                    const auto& body2_sym_atomic = data[k].atomic[l+1];
+                    const auto& body2_sym_waters = data[k].waters[l+1];
+
+                    calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic);
+                    calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_waters);
+                    cross_indices.push_back(SELF_SYM_AA);
+                    cross_indices.push_back(SELF_SYM_AW);
+
+                    calculator.enqueue_calculate_cross(body1_sym_waters, body2_sym_waters);
+                    calculator.enqueue_calculate_cross(body1_sym_waters, body2_sym_atomic);
+                    cross_indices.push_back(SELF_SYM_WW);
+                    cross_indices.push_back(SELF_SYM_AW);
+
+                    std::cout << "\t\t\tSYM " + std::to_string(l+1) << std::endl;
+                    std::cout << "\t\t\tqueued a" + std::to_string(i) + std::to_string(j+1) + " x a" + std::to_string(k) + std::to_string(l+1) << std::endl;
+                    std::cout << "\t\t\tqueued a" + std::to_string(i) + std::to_string(j+1) + " x w" + std::to_string(k) + std::to_string(l+1) << std::endl;
+                    std::cout << "\t\t\tqueued w" + std::to_string(i) + std::to_string(j+1) + " x w" + std::to_string(k) + std::to_string(l+1) << std::endl;
+                    std::cout << "\t\t\tqueued w" + std::to_string(i) + std::to_string(j+1) + " x a" + std::to_string(k) + std::to_string(l+1) << std::endl;
+                }
             }
 
-            // internal histogram with other symmetries
+            // internal histogram with other symmetries in same body
             for (unsigned int k = j+1; k < body.size_symmetry(); ++k) {
                 const auto& body2_sym_atomic = data[i].atomic[k+1];
                 const auto& body2_sym_waters = data[i].waters[k+1];
@@ -160,9 +182,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
         }
 
         // external histograms with other bodies
-        for (unsigned int j = 0; j < protein.size_body(); ++j) {
-            if (j == i) {continue;}
-
+        for (unsigned int j = i+1; j < protein.size_body(); ++j) {
             const auto& body2_atomic = data[j].atomic[0];
             const auto& body2_waters = data[j].waters[0];
 
@@ -181,6 +201,28 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
             std::cout << "\tqueued a" + std::to_string(i) + "0 x w" + std::to_string(j) + "0" << std::endl;
             std::cout << "\tqueued w" + std::to_string(i) + "0 x w" + std::to_string(j) + "0" << std::endl;
             std::cout << "\tqueued w" + std::to_string(i) + "0 x a" + std::to_string(j) + "0" << std::endl;
+
+            // external histograms with other symmetries in same body
+            for (unsigned int k = 0; k < body.size_symmetry(); ++k) {
+                const auto& body2_sym_atomic = data[j].atomic[k+1];
+                const auto& body2_sym_waters = data[j].waters[k+1];
+
+                calculator.enqueue_calculate_cross(body1_atomic, body2_sym_atomic);
+                calculator.enqueue_calculate_cross(body1_atomic, body2_sym_waters);
+                cross_indices.push_back(CROSS_AA);
+                cross_indices.push_back(CROSS_AW);
+
+                calculator.enqueue_calculate_cross(body1_waters, body2_sym_waters);
+                calculator.enqueue_calculate_cross(body1_waters, body2_sym_atomic);
+                cross_indices.push_back(CROSS_WW);
+                cross_indices.push_back(CROSS_AW);
+
+                std::cout << "\t\tSYM " + std::to_string(k+1) << std::endl;
+                std::cout << "\t\tqueued a" + std::to_string(i) + "0 x a" + std::to_string(j) + std::to_string(k+1) << std::endl;
+                std::cout << "\t\tqueued a" + std::to_string(i) + "0 x w" + std::to_string(j) + std::to_string(k+1) << std::endl;
+                std::cout << "\t\tqueued w" + std::to_string(i) + "0 x w" + std::to_string(j) + std::to_string(k+1) << std::endl;
+                std::cout << "\t\tqueued w" + std::to_string(i) + "0 x a" + std::to_string(j) + std::to_string(k+1) << std::endl;
+            }
         }
     }
 
@@ -201,16 +243,16 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
         }
     }
 
-    // for (int i = 1; i < static_cast<int>(protein.size_body()); ++i) {
-    //     int duplicates = protein.get_body(i).size_symmetry();
-    //     for (int j = 0; j < static_cast<int>(p_aa.size()); ++j) {
-    //         res.self[2*i  ].set_content(j, res.self[2*i  ].get_content(j)*duplicates);
-    //         res.self[2*i+1].set_content(j, res.self[2*i+1].get_content(j)*duplicates);
-    //         res.cross[needs_scaling[i]].set_content(j, res.cross[needs_scaling[i]].get_content(j)*duplicates);
-    //     }
-    //     p_aa += res.self[2*i];
-    //     p_ww += res.self[2*i+1];
-    // }
+    for (int i = 1; i < static_cast<int>(protein.size_body()); ++i) {
+        int duplicates = 1 + protein.get_body(i).size_symmetry();
+        for (int j = 0; j < static_cast<int>(p_aa.size()); ++j) {
+            res.self[2*i  ].set_content(j, res.self[2*i  ].get_content(j)*duplicates);
+            res.self[2*i+1].set_content(j, res.self[2*i+1].get_content(j)*duplicates);
+            res.cross[needs_scaling[i]].set_content(j, res.cross[needs_scaling[i]].get_content(j)*duplicates);
+        }
+        p_aa += res.self[2*i];
+        p_ww += res.self[2*i+1];
+    }
 
     for (int i = 1; i < static_cast<int>(cross_indices.size()); ++i) {
         switch (cross_indices[i]) {
@@ -230,7 +272,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
-    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + 2*p_aw.index(i);}
+    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
