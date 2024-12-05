@@ -410,24 +410,31 @@ TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("one body with one atom") {
-        record::Atom a(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
-        a.set_effective_charge(1);
-        Molecule m({a});
+        record::Atom a1(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
+        record::Atom a2(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
+        a1.set_effective_charge(1);
+        a2.set_effective_charge(1);
+        Molecule m({a1, a2});
 
-        SECTION("four copies") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 0, 0), Vector3<double>(0, 0, std::numbers::pi/2)});
+        SECTION("one copy") {
+            m.get_body(0).add_symmetry({Vector3<double>(0, 0, 0), Vector3<double>(0, std::numbers::pi/2, 0)});
 
             hist::detail::SymmetryManager sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = sm.calculate<true>(m)->get_total_counts();
 
-            int bin = std::round(1*constants::axes::d_inv_width);
-            REQUIRE(bin < static_cast<int>(h.size()));
-            CHECK(h[0] == 2);
-            for (int i = 1; i < bin; ++i) {
+            int bin1 = std::round(std::sqrt(0.5)*constants::axes::d_inv_width);
+            int bin2 = std::round(1*constants::axes::d_inv_width);
+            REQUIRE(bin2 < static_cast<int>(h.size()));
+            CHECK(h[0] == 4);
+            for (int i = 1; i < bin1; ++i) {
                 CHECK(h[i] == 0);
             }
-            CHECK(h[std::round(1*constants::axes::d_inv_width)] == 2);
-            for (int i = bin+1; i < static_cast<int>(h.size()); ++i) {
+            CHECK(h[bin1] == 8);
+            for (int i = bin1+1; i < bin2; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin2] == 4);
+            for (int i = bin2+1; i < static_cast<int>(h.size()); ++i) {
                 CHECK(h[i] == 0);
             }
         }
