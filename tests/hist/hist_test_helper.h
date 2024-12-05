@@ -25,16 +25,46 @@ class DebugMolecule : public data::Molecule {
         double volume_scaling = 1;
 };
 
+/**
+ * @brief Check that the two containers are exactly identical. 
+ */
 template<container_type T1, container_type T2>
 bool compare_hist(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
     int pmin = std::min<int>(p1.size(), p2.size());
-    for (int i = 0; i < pmin; i++) {
+    for (int i = 0; i < pmin; ++i) {
         if (!utility::approx(p1[i], p2[i], abs, rel)) {
             std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
             return false;
         }
     }
+    return true;
+}
 
+/**
+ * @brief Check that the two containers are approximately identical. 
+ *        Variations across bin edges are allowed, meaning if a given bin is off by some amount, the following bin is checked for the difference. 
+ */
+template<container_type T1, container_type T2>
+bool compare_hist_approx(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
+    int pmin = std::min<int>(p1.size(), p2.size());
+    for (int i = 0; i < pmin; ++i) {
+        if (!utility::approx(p1[i], p2[i], abs, rel)) {
+            if (i+1 < pmin) {
+                auto diffi = std::abs(p1[i] - p2[i]);
+                auto diffi1 = std::abs(p1[i+1] - p2[i+1]);
+                if (!utility::approx(diffi, diffi1, abs, rel)) {
+                    std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
+                    std::cout << "Difference to next bin: " << diffi << ", " << diffi1 << std::endl;
+                    return false;
+                } else {
+                    ++i;
+                }
+            } else {
+                std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
+                return false;
+            }
+        }
+    }
     return true;
 }
 
