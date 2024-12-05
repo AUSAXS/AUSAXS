@@ -183,6 +183,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
 
         // external histograms with other bodies
         for (unsigned int j = i+1; j < protein.size_body(); ++j) {
+            const auto& body2 = protein.get_body(j);
             const auto& body2_atomic = data[j].atomic[0];
             const auto& body2_waters = data[j].waters[0];
 
@@ -203,7 +204,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
             std::cout << "\tqueued w" + std::to_string(i) + "0 x a" + std::to_string(j) + "0" << std::endl;
 
             // external histograms with other symmetries in same body
-            for (unsigned int k = 0; k < body.size_symmetry(); ++k) {
+            for (unsigned int k = 0; k < body2.size_symmetry(); ++k) {
                 const auto& body2_sym_atomic = data[j].atomic[k+1];
                 const auto& body2_sym_waters = data[j].waters[k+1];
 

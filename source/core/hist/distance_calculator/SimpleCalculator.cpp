@@ -27,33 +27,30 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
 
     // calculate self-correlations
     std::vector<container::ThreadLocalWrapper<GenericDistribution1D_t>> results_self(self.size(), container::ThreadLocalWrapper<GenericDistribution1D_t>(constants::axes::d_axis.bins));
-    std::vector<std::function<void(int, int)>> tasks_self(self.size()); // to avoid unnecessary copies
     for (unsigned int idx = 0; idx < self.size(); ++idx) {
         int data_a_size = (int) self[idx].get().size();
-
-        tasks_self[idx] = [this, &results_self, idx, data_a_size] (int imin, int imax) {
-            auto& p_aa = results_self[idx].get();
-            auto& data_a = self[idx].get();
-            for (int i = imin; i < imax; ++i) { // atom
-                int j = i+1;                    // atom
-                for (; j+7 < data_a_size; j+=8) {
-                    evaluate8<weighted_bins, 2>(p_aa, data_a, data_a, i, j);
-                }
-
-                for (; j+3 < data_a_size; j+=4) {
-                    evaluate4<weighted_bins, 2>(p_aa, data_a, data_a, i, j);
-                }
-
-                for (; j < data_a_size; ++j) {
-                    evaluate1<weighted_bins, 2>(p_aa, data_a, data_a, i, j);
-                }
-            }
-        };
-
         int job_size = settings::general::detail::job_size;
         for (int i = 0; i < data_a_size; i+=job_size) {
             pool->detach_task(
-                [&tasks_self, idx, i, job_size, data_a_size] () {tasks_self[idx](i, std::min(i+job_size, data_a_size));}
+                [this, &results_self, idx, imin = i, imax = std::min(i+job_size, data_a_size)] () {
+                    int data_a_size = (int) self[idx].get().size();
+                    auto& p_aa = results_self[idx].get();
+                    auto& data_a = self[idx].get();
+                    for (int i = imin; i < imax; ++i) { // atom
+                        int j = i+1;                    // atom
+                        for (; j+7 < data_a_size; j+=8) {
+                            evaluate8<weighted_bins, 2>(p_aa, data_a, data_a, i, j);
+                        }
+
+                        for (; j+3 < data_a_size; j+=4) {
+                            evaluate4<weighted_bins, 2>(p_aa, data_a, data_a, i, j);
+                        }
+
+                        for (; j < data_a_size; ++j) {
+                            evaluate1<weighted_bins, 2>(p_aa, data_a, data_a, i, j);
+                        }
+                    }
+                }
             );
         }
     }
@@ -62,33 +59,31 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
     std::vector<container::ThreadLocalWrapper<GenericDistribution1D_t>> results_cross(cross_1.size(), container::ThreadLocalWrapper<GenericDistribution1D_t>(constants::axes::d_axis.bins));
     std::vector<std::function<void(int, int)>> tasks_cross(cross_1.size()); // to avoid unnecessary copies
     for (unsigned int idx = 0; idx < cross_1.size(); ++idx) {
-        int data_a_size = (int) cross_1[idx].get().size();
         int data_b_size = (int) cross_2[idx].get().size();
-
-        tasks_cross[idx] = [this, &results_cross, idx, data_a_size] (int imin, int imax) {
-            auto& p_ab = results_cross[idx].get();
-            auto& data_a = cross_1[idx].get();
-            auto& data_b = cross_2[idx].get();
-            for (int i = imin; i < imax; ++i) { // b
-                int j = 0;                      // a
-                for (; j+7 < data_a_size; j+=8) {
-                    evaluate8<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
-                }
-
-                for (; j+3 < data_a_size; j+=4) {
-                    evaluate4<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
-                }
-
-                for (; j < data_a_size; ++j) {
-                    evaluate1<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
-                }
-            }
-        };
 
         int job_size = settings::general::detail::job_size;
         for (int i = 0; i < data_b_size; i+=job_size) {
             pool->detach_task(
-                [&tasks_cross, idx, i, job_size, data_b_size] () {tasks_cross[idx](i, std::min(i+job_size, data_b_size));}
+                [this, &results_cross, idx, imin = i, imax = std::min(i+job_size, data_b_size)] () {
+                    int data_a_size = (int) cross_1[idx].get().size();
+                    auto& p_ab = results_cross[idx].get();
+                    auto& data_a = cross_1[idx].get();
+                    auto& data_b = cross_2[idx].get();
+                    for (int i = imin; i < imax; ++i) { // b
+                        int j = 0;                      // a
+                        for (; j+7 < data_a_size; j+=8) {
+                            evaluate8<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
+                        }
+
+                        for (; j+3 < data_a_size; j+=4) {
+                            evaluate4<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
+                        }
+
+                        for (; j < data_a_size; ++j) {
+                            evaluate1<weighted_bins, 2>(p_ab, data_b, data_a, i, j);
+                        }
+                    }
+                }
             );
         }
     }
