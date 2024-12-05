@@ -45,8 +45,8 @@ std::unique_ptr<Hydration> GridBasedHydration::hydrate() {
 
     // assume the protein is a perfect sphere. then we want the number of water molecules to be proportional to the surface area
     double vol = grid->get_volume();                    // volume in cubic Ångström
-    double r = std::cbrt(3*vol/(4*constants::pi));      // radius of the protein in Ångström
-    double area = 4*constants::pi*std::pow(r, 2.5);     // surface area of the protein in Ångström^2
+    double r = std::cbrt(3*vol/(4*std::numbers::pi));   // radius of the protein in Ångström
+    double area = 4*std::numbers::pi*std::pow(r, 2.5);  // surface area of the protein in Ångström^2
     double target = settings::grid::water_scaling*area; // the target number of water molecules
 
     culling_strategy->set_target_count(target);

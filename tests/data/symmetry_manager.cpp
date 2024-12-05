@@ -408,4 +408,28 @@ TEST_CASE("SymmetryManager: translations") {
 
 TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::implicit_hydrogens = false;
+
+    SECTION("one body with one atom") {
+        record::Atom a(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
+        a.set_effective_charge(1);
+        Molecule m({a});
+
+        SECTION("four copies") {
+            m.get_body(0).add_symmetry({Vector3<double>(0, 0, 0), Vector3<double>(0, 0, std::numbers::pi/2)});
+
+            hist::detail::SymmetryManager sm;
+            auto h = sm.calculate<false>(m)->get_total_counts();
+
+            int bin = std::round(1*constants::axes::d_inv_width);
+            REQUIRE(bin < static_cast<int>(h.size()));
+            CHECK(h[0] == 2);
+            for (int i = 1; i < bin; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[std::round(1*constants::axes::d_inv_width)] == 2);
+            for (int i = bin+1; i < static_cast<int>(h.size()); ++i) {
+                CHECK(h[i] == 0);
+            }
+        }
+    }
 }
