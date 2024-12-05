@@ -88,11 +88,6 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
         self_indices.push_back(SELF_WW);
         cross_indices.push_back(SELF_AW);
 
-        std::cout << "BODY " + std::to_string(i) << std::endl;
-        std::cout << "queued a" + std::to_string(i) + "0 x a" + std::to_string(i) + "0" << std::endl;
-        std::cout << "queued a" + std::to_string(i) + "0 x w" + std::to_string(i) + "0" << std::endl;
-        std::cout << "queued w" + std::to_string(i) + "0 x w" + std::to_string(i) + "0" << std::endl;
-
         for (unsigned int j = 0; j < body.size_symmetry(); ++j) {
             const auto& body1_sym_atomic = data[i].atomic[j+1];
             const auto& body1_sym_waters = data[i].waters[j+1];
@@ -106,12 +101,6 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
             calculator.enqueue_calculate_cross(body1_waters, body1_sym_atomic);
             cross_indices.push_back(SELF_SYM_WW);
             cross_indices.push_back(SELF_SYM_AW);
-
-            std::cout << "\tSYM " + std::to_string(j+1) << std::endl;
-            std::cout << "\tqueued a" + std::to_string(i) + "0 x a" + std::to_string(i) + std::to_string(j+1) << std::endl;
-            std::cout << "\tqueued a" + std::to_string(i) + "0 x w" + std::to_string(i) + std::to_string(j+1) << std::endl;
-            std::cout << "\tqueued w" + std::to_string(i) + "0 x w" + std::to_string(i) + std::to_string(j+1) << std::endl;
-            std::cout << "\tqueued w" + std::to_string(i) + "0 x a" + std::to_string(i) + std::to_string(j+1) << std::endl;
 
             // external histograms with other bodies
             for (unsigned int k = i+1; k < protein.size_body(); ++k) {
@@ -129,12 +118,6 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
                 cross_indices.push_back(CROSS_WW);
                 cross_indices.push_back(CROSS_AW);
 
-                std::cout << "\t\tBODY " + std::to_string(k) << std::endl;
-                std::cout << "\t\tqueued a" + std::to_string(k) + "0 x a" + std::to_string(i) + std::to_string(j+1) << std::endl;
-                std::cout << "\t\tqueued a" + std::to_string(k) + "0 x w" + std::to_string(i) + std::to_string(j+1) << std::endl;
-                std::cout << "\t\tqueued w" + std::to_string(k) + "0 x w" + std::to_string(i) + std::to_string(j+1) << std::endl;
-                std::cout << "\t\tqueued w" + std::to_string(k) + "0 x a" + std::to_string(i) + std::to_string(j+1) << std::endl;
-
                 // external histograms with other symmetries in same body
                 for (unsigned int l = 0; l < body2.size_symmetry(); ++l) {
                     const auto& body2_sym_atomic = data[k].atomic[l+1];
@@ -149,12 +132,6 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
                     calculator.enqueue_calculate_cross(body1_sym_waters, body2_sym_atomic);
                     cross_indices.push_back(SELF_SYM_WW);
                     cross_indices.push_back(SELF_SYM_AW);
-
-                    std::cout << "\t\t\tSYM " + std::to_string(l+1) << std::endl;
-                    std::cout << "\t\t\tqueued a" + std::to_string(i) + std::to_string(j+1) + " x a" + std::to_string(k) + std::to_string(l+1) << std::endl;
-                    std::cout << "\t\t\tqueued a" + std::to_string(i) + std::to_string(j+1) + " x w" + std::to_string(k) + std::to_string(l+1) << std::endl;
-                    std::cout << "\t\t\tqueued w" + std::to_string(i) + std::to_string(j+1) + " x w" + std::to_string(k) + std::to_string(l+1) << std::endl;
-                    std::cout << "\t\t\tqueued w" + std::to_string(i) + std::to_string(j+1) + " x a" + std::to_string(k) + std::to_string(l+1) << std::endl;
                 }
             }
 
@@ -172,12 +149,6 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
                 calculator.enqueue_calculate_cross(body1_sym_waters, body2_sym_atomic);
                 cross_indices.push_back(SELF_SYM_WW);
                 cross_indices.push_back(SELF_SYM_AW);
-
-                std::cout << "\t\tSYM " + std::to_string(k+1) << std::endl;
-                std::cout << "\t\tqueued a" + std::to_string(i) + std::to_string(j+1) + " x a" + std::to_string(i) + std::to_string(k+1) << std::endl;
-                std::cout << "\t\tqueued a" + std::to_string(i) + std::to_string(j+1) + " x w" + std::to_string(i) + std::to_string(k+1) << std::endl;
-                std::cout << "\t\tqueued w" + std::to_string(i) + std::to_string(j+1) + " x w" + std::to_string(i) + std::to_string(k+1) << std::endl;
-                std::cout << "\t\tqueued w" + std::to_string(i) + std::to_string(j+1) + " x a" + std::to_string(i) + std::to_string(k+1) << std::endl;
             }
         }
 
@@ -197,12 +168,6 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
             cross_indices.push_back(CROSS_WW);
             cross_indices.push_back(CROSS_AW);
 
-            std::cout << "\tBODY " + std::to_string(j) << std::endl;
-            std::cout << "\tqueued a" + std::to_string(i) + "0 x a" + std::to_string(j) + "0" << std::endl;
-            std::cout << "\tqueued a" + std::to_string(i) + "0 x w" + std::to_string(j) + "0" << std::endl;
-            std::cout << "\tqueued w" + std::to_string(i) + "0 x w" + std::to_string(j) + "0" << std::endl;
-            std::cout << "\tqueued w" + std::to_string(i) + "0 x a" + std::to_string(j) + "0" << std::endl;
-
             // external histograms with other symmetries in same body
             for (unsigned int k = 0; k < body2.size_symmetry(); ++k) {
                 const auto& body2_sym_atomic = data[j].atomic[k+1];
@@ -217,12 +182,6 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
                 calculator.enqueue_calculate_cross(body1_waters, body2_sym_atomic);
                 cross_indices.push_back(CROSS_WW);
                 cross_indices.push_back(CROSS_AW);
-
-                std::cout << "\t\tSYM " + std::to_string(k+1) << std::endl;
-                std::cout << "\t\tqueued a" + std::to_string(i) + "0 x a" + std::to_string(j) + std::to_string(k+1) << std::endl;
-                std::cout << "\t\tqueued a" + std::to_string(i) + "0 x w" + std::to_string(j) + std::to_string(k+1) << std::endl;
-                std::cout << "\t\tqueued w" + std::to_string(i) + "0 x w" + std::to_string(j) + std::to_string(k+1) << std::endl;
-                std::cout << "\t\tqueued w" + std::to_string(i) + "0 x a" + std::to_string(j) + std::to_string(k+1) << std::endl;
             }
         }
     }
