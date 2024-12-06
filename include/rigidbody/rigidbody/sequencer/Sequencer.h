@@ -14,15 +14,32 @@ namespace ausaxs::rigidbody::sequencer {
             Sequencer(const io::ExistingFile& saxs);
             ~Sequencer();
 
+            /**
+             * @brief Execute the sequencer.
+             * @return The result of the fit.
+             */
             std::shared_ptr<fitter::FitResult> execute() override;
 
+            /**
+             * @brief Get the RigidBody object.
+             */
             observer_ptr<RigidBody>& _get_rigidbody();
             observer_ptr<RigidBody> _get_rigidbody() const override;
 
+            /**
+             * @brief Get the best configuration.
+             */
             observer_ptr<detail::BestConf> _get_best_conf() const override;
 
+            /**
+             * @brief Get the top Sequencer object.
+             */
             observer_ptr<const Sequencer> _get_sequencer() const override;
 
+            /**
+             * @brief Perform an optimization step on the rigid body.
+             * @return True if a better configuration was found, false otherwise.
+             */
             bool _optimize_step() const;
 
         private:
