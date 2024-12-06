@@ -1,9 +1,5 @@
 #pragma once
 
-#include "elements/element/align.hpp"
-#include "elements/element/gallery/button.hpp"
-#include "elements/element/gallery/check_box.hpp"
-#include "settings/GeneralSettings.h"
 #include <elements.hpp>
 #include <nfd.hpp>
 
