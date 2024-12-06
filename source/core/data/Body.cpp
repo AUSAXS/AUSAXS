@@ -199,3 +199,7 @@ std::size_t Body::size_atom() const {return file.protein_atoms.size();}
 std::size_t Body::size_water() const {return file.hydration_atoms.size();}
 
 std::size_t Body::size_symmetry() const {return symmetries.size();}
+
+std::size_t Body::size_symmetry_total() const {
+    return std::accumulate(symmetries.begin(), symmetries.end(), 0, [] (int sum, const detail::Symmetry& sym) {return sum + sym.repeat;});
+}

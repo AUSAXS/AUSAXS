@@ -177,8 +177,15 @@ namespace ausaxs::data {
 			
 			/**
 			 * @brief Get the total number of symmetry duplicates of this body.
+			 * 		  This does not account for repeating symmetries. 
 			 */
 			[[nodiscard]] std::size_t size_symmetry() const;
+
+			/**
+			 * @brief Get the total number of symmetry duplicates of this body.
+			 * 		  This accounts for repeating symmetries. 
+			 */
+			[[nodiscard]] std::size_t size_symmetry_total() const;
 
 			/**
 			 * @brief Add a symmetry to this body.
