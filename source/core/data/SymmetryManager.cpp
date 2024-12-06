@@ -23,6 +23,14 @@ struct _data {
     std::vector<CompactCoordinates> waters;
 };
 
+std::size_t get_total_copy_number(const data::Body& body) {
+    std::size_t res = 1;
+    for (const auto& symmetry : body.get_symmetries()) {
+        res += symmetry.repeat;
+    }
+    return res;
+}
+
 std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
     std::vector<_data> res(protein.size_body());
     for (unsigned int i = 0; i < protein.size_body(); ++i) {
@@ -31,8 +39,8 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
         CompactCoordinates data_w(body.get_waters());
         auto cm = body.get_cm();
 
-        std::vector<CompactCoordinates> atomic(1+body.size_symmetry());
-        std::vector<CompactCoordinates> water(1+body.size_symmetry());
+        std::vector<CompactCoordinates> atomic(1+body.size_symmetry_total());
+        std::vector<CompactCoordinates> water(1+body.size_symmetry_total());
         for (unsigned int j = 0; j < body.size_symmetry(); ++j) {
             const auto& symmetry = body.get_symmetries()[j];
             Matrix<float> rotate = matrix::rotation_matrix<float>(symmetry.rotate.x(), symmetry.rotate.y(), symmetry.rotate.z());
