@@ -19,9 +19,17 @@ namespace ausaxs::settings::general {
 }
 
 namespace ausaxs::settings::general {
-    enum class QUnit {
-        A,  // Ångström
-        NM, // Nanometer
+    enum class QUnit : char {
+        A       = (1 << 1),          // Ångström  (system-default, may be converted)
+        USER_A  = (1 << 1)+(1 << 3), // Ångström  (user-specified, cannot be converted)
+        NM      = (1 << 2),          // Nanometer (system-default, may be converted)
+        USER_NM = (1 << 2)+(1 << 3), // Nanometer (user-specified, cannot be converted)
     };
-    extern QUnit input_q_unit;          // Unit of q values in the input file.
+    extern QUnit input_q_unit; // Unit of q values in the input file.
+
+    namespace helper {
+        bool is_angstroms(QUnit u);    // Whether the input unit is Ångström.
+        bool is_nanometers(QUnit u);   // Whether the input unit is Nanometer.
+        bool is_user_defined(QUnit u); // Whether the input unit is user-defined.
+    }
 }

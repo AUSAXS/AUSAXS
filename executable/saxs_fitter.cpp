@@ -51,6 +51,7 @@ int main(int argc, char const *argv[]) {
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
         "The unit of the q values in the measurement file. Options: A, nm.");
     sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
+    sub_data->add_flag("--rebin", settings::flags::data_rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::flags::data_rebin);
 
     // molecule subcommands
     auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
@@ -183,7 +184,10 @@ int main(int argc, char const *argv[]) {
             protein.generate_new_hydration();
         }
 
-        fitter::SmartFitter fitter(mfile, protein.get_histogram());
+        SimpleDataset saxs_data(mfile);
+        if (settings::flags::data_rebin) {console::indent(); saxs_data.rebin(); console::unindent();}
+
+        fitter::SmartFitter fitter(std::move(saxs_data), protein.get_histogram());
         auto result = fitter.fit();
         fitter::FitReporter::report(result.get());
         fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);

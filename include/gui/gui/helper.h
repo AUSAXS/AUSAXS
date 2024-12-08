@@ -193,13 +193,9 @@ inline auto make_tip(std::string text) {
 	);
 }
 
-inline auto q_slider(gui::view& view) {
-	static auto track = gui::basic_track<5, false>(gui::colors::black);
-	static auto thumb = gui::margin(
-		{1, 2, 1, 2},
-		gui::box(gui::colors::white_smoke)
-	);
-	static auto qslider = gui::range_slider(
+inline auto qunit_box = gui::share(gui::check_box("nm^-1"));
+inline auto qslider = gui::share(
+	gui::range_slider(
 		gui::fixed_size(
 			{5, 30},
 			gui::box(gui::colors::light_gray)
@@ -209,11 +205,32 @@ inline auto q_slider(gui::view& view) {
 			gui::box(gui::colors::light_gray)
 		),
 		gui::slider_labels<9>(
-			gui::slider_marks_log<20, 4>(track), 0.8, "1e-4", "1e-3", "1e-2", "1e-1", "1e0"
+			gui::slider_marks_log<20, 4>(gui::basic_track<5, false>(gui::colors::black)), 0.8, "1e-4", "1e-3", "1e-2", "1e-1", "1e0"
 		),
 		{0, 1}
-	);
+	)
+);
 
+inline auto qslider_axis_transform_inv = [] (float value) {
+	return (std::log10(value)-std::log10(constants::axes::q_axis.min))/(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min));
+};
+
+inline auto qslider_axis_transform = [] (float x) {
+	double logy = x*(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min)) + std::log10(constants::axes::q_axis.min);
+	return std::pow(10, logy);
+};
+
+inline void qslider_update_range_from_file() {
+	if (!setup::saxs_dataset) {return;}
+	auto [min, max] = setup::saxs_dataset->span_x();
+	qslider->edit_value_first(qslider_axis_transform_inv(min-1e-3));
+	qslider->edit_value_second(qslider_axis_transform_inv(max+1e-3));
+	if (ausaxs::settings::general::helper::is_nanometers(static_cast<ausaxs::settings::general::QUnit>(ausaxs::settings::flags::last_parsed_unit))) {
+		qunit_box->value(true);
+	}
+}
+
+inline auto q_slider(gui::view& view) {
 	static auto qmin_textbox = gui::input_box("q_min");
 	static auto qmax_textbox = gui::input_box("q_max");
 	static auto qinfo_box = gui::label("");
@@ -228,22 +245,13 @@ inline auto q_slider(gui::view& view) {
 		return ss.str();
 	};
 
-	auto axis_transform_inv = [] (float value) {
-		return (std::log10(value)-std::log10(constants::axes::q_axis.min))/(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min));
-	};
-
-	auto axis_transform = [] (float x) {
-		double logy = x*(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min)) + std::log10(constants::axes::q_axis.min);
-		return std::pow(10, logy);
-	};
-
-	auto update_removed_counter = [&view, axis_transform] () {
+	static auto update_removed_counter = [&view] (bool skip_wait = false) {
 		static bool extend_wait = false;
 		static bool waiting = false;
 		static std::thread worker;
 
 		// extend wait period if the user is still moving the slider
-		if (waiting) {
+		if (!skip_wait && waiting) {
 			extend_wait = true;
 			return;	
 		}
@@ -256,16 +264,21 @@ inline auto q_slider(gui::view& view) {
 			worker.join();
 		}
 
-		waiting = true;
-		worker = std::thread([&view, axis_transform] () {
+		if (skip_wait) {
+			waiting = false;
+			extend_wait = false;
+		} else {
+			waiting = true;
+		}
+		worker = std::thread([&view] () {
 			do {
 				extend_wait = false;
 				std::this_thread::sleep_for(std::chrono::milliseconds(500));			
 			} while (extend_wait);
 
 			unsigned int removed_elements = 0;
-			double qmin = axis_transform(qslider.value_first());
-			double qmax = axis_transform(qslider.value_second());
+			double qmin = qslider_axis_transform(qslider->value_first());
+			double qmax = qslider_axis_transform(qslider->value_second());
 			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
 				auto x = setup::saxs_dataset->x(i);
 				removed_elements += !(qmin < x && x < qmax);
@@ -281,20 +294,31 @@ inline auto q_slider(gui::view& view) {
 		});
 	};
 
-	qslider.on_change.first = [&view, pretty_printer, axis_transform, update_removed_counter] (float value) {
-		value = axis_transform(value);
+	qunit_box->on_click = [&view] (bool checked) {
+		if (checked) {
+			ausaxs::settings::general::input_q_unit = ausaxs::settings::general::QUnit::USER_NM;
+		} else {
+			ausaxs::settings::general::input_q_unit = ausaxs::settings::general::QUnit::USER_A;
+		}
+		view.refresh(*qunit_box);
+		if (!setup::saxs_dataset) {return;}
+		setup::saxs_dataset = std::make_unique<SimpleDataset>(::settings::saxs_file);
+		update_removed_counter(true);
+		view.refresh(*qslider); // avoid artefacts if counter changes to zero
+	};
+
+	qslider->on_change.first = [&view, pretty_printer] (float value) {
+		value = qslider_axis_transform(value);
 		qmin_textbox.second->set_text(pretty_printer(value));
 		update_removed_counter();
-		ausaxs::settings::axes::qmin = value;
 		view.refresh(qmin_textbox.first);
 		view.refresh(qinfo_box);
 	};
 
-	qslider.on_change.second = [&view, pretty_printer, axis_transform, update_removed_counter] (float value) {
-		value = axis_transform(value);
+	qslider->on_change.second = [&view, pretty_printer] (float value) {
+		value = qslider_axis_transform(value);
 		qmax_textbox.second->set_text(pretty_printer(value));
 		update_removed_counter();
-		ausaxs::settings::axes::qmax = value;
 		view.refresh(qmax_textbox.first);
 		view.refresh(qinfo_box);
 	};
@@ -307,11 +331,11 @@ inline auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
+	qmin_textbox.second->on_enter = [&view] (std::string_view text) -> bool {
 		try {
-			qslider.edit_value_first(axis_transform_inv(std::stof(std::string(text))));
+			qslider->edit_value_first(qslider_axis_transform_inv(std::stof(std::string(text))));
 			qmin_bg.get() = ColorManager::get_color_background();
-			view.refresh(qslider);
+			view.refresh(*qslider);
 		} catch (std::exception&) {
 			qmin_bg.get() = ColorManager::get_color_fail();
 		}
@@ -326,11 +350,11 @@ inline auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) -> bool {
+	qmax_textbox.second->on_enter = [&view] (std::string_view text) -> bool {
 		try {
-			qslider.edit_value_second(axis_transform_inv(std::stof(std::string(text))));
+			qslider->edit_value_second(qslider_axis_transform_inv(std::stof(std::string(text))));
 			qmax_bg.get() = ColorManager::get_color_background();
-			view.refresh(qslider);
+			view.refresh(*qslider);
 		} catch (std::exception&) {
 			qmax_bg.get() = ColorManager::get_color_fail();
 		}
@@ -341,7 +365,7 @@ inline auto q_slider(gui::view& view) {
 		gui::margin(
 			{50, 0, 50, 0},
 			gui::layer(
-				link(qslider)
+				hold(qslider)
 			)
 		),
 		gui::layer(
@@ -360,7 +384,12 @@ inline auto q_slider(gui::view& view) {
 			gui::align_center(
 				gui::margin(
 					{50, 10, 50, 10},
-					link(qinfo_box)
+					gui::vtile(
+						gui::align_center(
+							hold(qunit_box)
+						),
+						link(qinfo_box)
+					)
 				)
 			),
 			gui::align_right(

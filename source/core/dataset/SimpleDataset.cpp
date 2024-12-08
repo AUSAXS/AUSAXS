@@ -299,6 +299,7 @@ void SimpleDataset::rebin() noexcept {
         // fold data points
         func(fold, i);
     }
+    console::print_text("Rebinned dataset from " + std::to_string(size()) + " to " + std::to_string(newdata.size()) + " data points.");
     *this = std::move(newdata);
 }
 

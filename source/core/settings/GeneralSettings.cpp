@@ -76,3 +76,17 @@ template<> void settings::io::detail::SettingRef<settings::general::QUnit>::set(
     else if (str == "nm") {settingref = settings::general::QUnit::NM;}
     else {settingref = static_cast<settings::general::QUnit>(std::stoi(val[0]));}
 }
+
+bool ausaxs::settings::general::helper::is_angstroms(QUnit u) {
+    // QUnit::USER_A follows from QUnit::A due to the bit manipulation
+    return static_cast<char>(u) & static_cast<char>(QUnit::A);
+}
+
+bool ausaxs::settings::general::helper::is_nanometers(QUnit u) {
+    // QUnit::USER_NM follows from QUnit::NM due to the bit manipulation
+    return static_cast<char>(u) & static_cast<char>(QUnit::NM);
+}
+
+bool ausaxs::settings::general::helper::is_user_defined(QUnit u) {
+    return static_cast<char>(u) & (1 << 3);
+}
