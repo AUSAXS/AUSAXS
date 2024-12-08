@@ -142,7 +142,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     if (!settings::general::helper::is_user_defined(unit)) {
         bool found = false;
         for (auto& s : header) {
-            if (s.starts_with("[nm]" || s.starts_with("[nm^-1]"))) {
+            if (s.starts_with("[nm]") || s.starts_with("[nm^-1]")) {
                 if (!settings::general::helper::is_nanometers(settings::general::input_q_unit)) {
                     console::print_warning("Warning: File contains unit [nm], but default is set to [A]. Assuming [nm] is correct.");
                 }
