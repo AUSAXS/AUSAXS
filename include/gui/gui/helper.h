@@ -84,21 +84,41 @@ struct ColorManager {
 };
 static auto background = ColorManager::new_background_color();
 
+//? Seems to trigger false antivirus positives on Windows as a trojan; avoid until code signing is available
+// inline bool check_python_available() {
+// 	auto python = shell::Command("python --version").mute().execute();
+// 	if (python.exit_code != 0) {
+// 		console::print_text("python unavailable.");
+// 		return false;
+// 	}
+// 	std::string script =
+// 		"import matplotlib\n"
+// 		"import numpy\n"
+// 		"import scipy"
+// 	;
+// 	auto check = shell::Command("python -c \"" + script + "\"").execute();
+// 	if (check.exit_code != 0) {
+// 		console::print_text("python is available, but the required libraries are not installed.");
+// 		return false;
+// 	}
+// 	return true;
+// }
+
 inline shell::Command get_plotter_cmd() {
 	#if defined(_WIN32)
-		// first check if python is available
+		// check if plot.exe is available in the path
+		auto res = shell::Command("where.exe plot").mute().execute();
+		bool plot_exe_available = res.exit_code == 0;
+		if (plot_exe_available) {
+			return shell::Command("\"" + utility::remove_all(res.out, "\n\r") + "\"");
+		}
+
+		// check if python is available
 		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
 		auto path = resources::generate_plotting_script();
 		bool python_script_available = path.exists();
 		if (python_available && python_script_available) {
 			return shell::Command("python " + path.path());
-		}
-
-		// if not, check if plot.exe is available in the path
-		auto res = shell::Command("where.exe plot").mute().execute();
-		bool plot_exe_available = res.exit_code == 0;
-		if (plot_exe_available) {
-			return shell::Command(utility::remove_all(res.out, "\n\r"));
 		}
 	#elif defined(__linux__) || defined(__APPLE__)
 		// check if python & the python script is available
