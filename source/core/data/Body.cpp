@@ -175,6 +175,10 @@ record::Atom& Body::get_atom(unsigned int index) {return file.protein_atoms[inde
 
 const record::Atom& Body::get_atom(unsigned int index) const {return file.protein_atoms[index];}
 
+data::detail::Symmetry& Body::get_symmetry(unsigned int index) {return symmetries[index];}
+
+const data::detail::Symmetry& Body::get_symmetry(unsigned int index) const {return symmetries[index];}
+
 data::detail::AtomCollection& Body::get_file() {return file;}
 
 int Body::get_id() const {return uid;}

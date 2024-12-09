@@ -199,6 +199,9 @@ namespace ausaxs::data {
 			std::vector<detail::Symmetry>& get_symmetries();
 			const std::vector<detail::Symmetry>& get_symmetries() const; //< @copydoc get_symmetries()
 
+			detail::Symmetry& get_symmetry(unsigned int index);
+			const detail::Symmetry& get_symmetry(unsigned int index) const;
+
 			/**
 			 * @brief Get the signaller object for this body. 
 			 */
