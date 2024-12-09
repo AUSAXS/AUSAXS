@@ -15,6 +15,11 @@ namespace ausaxs::matrix {
     template<numeric T>
     Matrix<T> rotation_matrix(const Vector3<T>& angles); //< @copydoc rotation_matrix(T alpha, T beta, T gamma)
 
+    template<numeric T, numeric Q>
+    Matrix<T> rotation_matrix(const Vector3<Q>& angles) {
+        return rotation_matrix<T>(static_cast<T>(angles.x()), static_cast<T>(angles.y()), static_cast<T>(angles.z()));
+    }
+
     /**
      * @brief Generate a 3x3 rotation matrix from a rotation axis and an angle around this axis. 
      *        This uses the Euler-Rodrigues formulation.
@@ -23,6 +28,11 @@ namespace ausaxs::matrix {
      */
     template<numeric T>
     Matrix<T> rotation_matrix(const Vector3<T>& axis, T angle);
+
+    template<numeric T, numeric Q>
+    Matrix<T> rotation_matrix(const Vector3<Q>& axis, Q angle) {
+        return rotation_matrix<T>({static_cast<T>(axis.x()), static_cast<T>(axis.y()), static_cast<T>(axis.z())}, static_cast<T>(angle));
+    }
 
     /**
      * @brief Get the identity matrix of a given dimension. 
