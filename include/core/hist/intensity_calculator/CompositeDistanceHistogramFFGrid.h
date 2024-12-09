@@ -56,7 +56,12 @@ namespace ausaxs::hist {
              * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
              */
             template<FormFactorType T>
-            static void regenerate_ff_table(T&& ffx = {0});
+            static void regenerate_ff_table(T&& ffx);
+
+            /**
+             * @brief Regenerate the form factor table. This must be called to reflect changes in settings::grid::exv::width.
+             */
+            static void regenerate_ff_table();
 
             /**
              * @brief Get the distance axis for the excluded volume calculations. 
