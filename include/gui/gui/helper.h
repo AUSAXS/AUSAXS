@@ -110,7 +110,7 @@ inline shell::Command get_plotter_cmd() {
 		auto res = shell::Command("where.exe plot").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
-			return shell::Command(utility::remove_all(res.out, "\n\r"));
+			return shell::Command("\"" + utility::remove_all(res.out, "\n\r") + "\"");
 		}
 
 		// check if python is available
