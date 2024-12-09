@@ -1,10 +1,12 @@
 #include <CLI/CLI.hpp>
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <fitter/ExcludedVolumeFitter.h>
+#include <fitter/SmartFitter.h>
 #include <data/Molecule.h>
 #include <settings/All.h>
 #include <plots/All.h>
+
+using namespace ausaxs;
 
 int main(int argc, char const *argv[]) {
     settings::general::output = "output/vary_grid_cell_size/";
@@ -21,10 +23,10 @@ int main(int argc, char const *argv[]) {
 
     std::vector<SimpleDataset> profiles;
     std::vector<double> exv_radii;
-    Limit lims{0.25, 3.5};
-    for (double exv_radius = lims.min; exv_radius <= lims.max; exv_radius += 0.25) {
-        settings::grid::exv::radius = exv_radius;
-        hist::CompositeDistanceHistogramFFGrid::regenerate_table();
+    Limit lims{0.5, 5};
+    for (double exv_radius = lims.min; exv_radius <= lims.max; exv_radius += 0.5) {
+        settings::grid::exv::width = exv_radius;
+        hist::CompositeDistanceHistogramFFGrid::regenerate_ff_table();
         auto hist = static_cast<hist::CompositeDistanceHistogramFFGrid*>(molecule.get_histogram().get())->get_profile_xx();
         hist.normalize_max();
         profiles.push_back(std::move(hist));

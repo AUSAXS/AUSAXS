@@ -41,6 +41,8 @@ double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
     return free_params.cx;
 }
 
+void CompositeDistanceHistogramFFGrid::regenerate_ff_table() {generate_ff_table();}
+
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table() {
     auto V = std::pow(settings::grid::exv::width, 3);
     return generate_ff_table(ExvFormFactor(V));

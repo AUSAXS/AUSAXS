@@ -17,6 +17,8 @@
 
 #include <sstream>
 
+using namespace ausaxs;
+
 int main(int argc, char const *argv[]) {
     std::string s_pdb;
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
@@ -31,23 +33,23 @@ int main(int argc, char const *argv[]) {
     settings::axes::qmax = 1;
     settings::molecule::use_effective_charge = false;
 
-    settings::grid::exv_radius = 0.5;
-    hist::CompositeDistanceHistogramFFGrid::regenerate_table();
+    settings::grid::exv::width = 1;
+    hist::CompositeDistanceHistogramFFGrid::regenerate_ff_table();
     data::Molecule molecule(pdb);
 
-    auto mtffg1  = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid    <true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
+    auto mtffg1  = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid          (molecule).calculate_all().get())->get_profile_xx().as_dataset();
     auto mtffavg = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFAvg     <true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
     auto mtffexp = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFExplicit<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
 
-    settings::grid::exv_radius = 1;
+    settings::grid::exv::width = 1.5;
     molecule.clear_grid();
-    hist::CompositeDistanceHistogramFFGrid::regenerate_table();
-    auto mtffg2   = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
+    hist::CompositeDistanceHistogramFFGrid::regenerate_ff_table();
+    auto mtffg2   = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid(molecule).calculate_all().get())->get_profile_xx().as_dataset();
 
-    settings::grid::exv_radius = 1.5;
+    settings::grid::exv::width = 2;
     molecule.clear_grid();
-    hist::CompositeDistanceHistogramFFGrid::regenerate_table();
-    auto mtffg3   = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
+    hist::CompositeDistanceHistogramFFGrid::regenerate_ff_table();
+    auto mtffg3   = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid(molecule).calculate_all().get())->get_profile_xx().as_dataset();
 
     double cg1 = mtffg1.normalize();
     double cg2 = mtffg2.normalize();
@@ -62,7 +64,7 @@ int main(int argc, char const *argv[]) {
     ssa << "Average, c=" << std::fixed << std::setprecision(2) << ca/cg1;
     sse << "Explicit, c=" << std::fixed << std::setprecision(2) << ce/cg1;
 
-    plots::PlotIntensity()
+    plots::PlotDataset()
         .plot(mtffg1, plots::PlotOptions({{"legend", ssg1.str()}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::next()}, {"title", pdb.stem()}}))
         .plot(mtffg2, plots::PlotOptions({{"legend", ssg2.str()}, {"color", style::color::next()}}))
         .plot(mtffg3, plots::PlotOptions({{"legend", ssg3.str()}, {"color", style::color::next()}}))
@@ -116,7 +118,7 @@ int main(int argc, char const *argv[]) {
     foxs_data.normalize();
     gromacs_data.normalize();
 
-    plots::PlotIntensity()
+    plots::PlotDataset()
         .plot(crysol_data, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"yrange", Limit(1e-4, 1.1)}, {"xrange", Limit(1e-2, 1)}}))
         .plot(foxs_data, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
         .plot(gromacs_data, plots::PlotOptions({{"legend", "GROMACS"}, {"color", style::color::green}}))
