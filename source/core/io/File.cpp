@@ -119,7 +119,7 @@ bool File::empty() const noexcept {
 }
 
 bool File::exists() const noexcept {
-    return std::filesystem::is_regular_file(absolute_path());
+    return std::filesystem::is_regular_file(path());
 }
 
 std::string operator+(std::string_view str, const io::File& file) {
