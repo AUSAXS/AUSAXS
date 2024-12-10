@@ -1,4 +1,3 @@
-#include "plots/PlotOptions.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
@@ -6,7 +5,6 @@
 #include <math/Matrix.h>
 #include <math/Vector.h>
 #include <math/Vector3.h>
-#include <math/Cramer2DSolver.h>
 #include <math/CubicSpline.h>
 #include <math/LUPDecomposition.h>
 #include <math/QRDecomposition.h>
@@ -37,34 +35,6 @@ static Matrix<double> GenRandMatrix(int n, int m) {
         for (int j = 0; j < m; j++)
             M[i][j] = rand() % 100;
     return M;
-}
-
-TEST_CASE("math: Cramer") {
-    Matrix<double> A = {{2, 3}, {3, -4}};
-    Vector<double> b = {12, 1};
-    Cramer2DSolver solver1(A);
-    REQUIRE(solver1.solve(b) == Vector{3, 2});
-
-    A = {{1, 2}, {4, 5}};
-    b = {{3, 6}};
-    Cramer2DSolver solver2(A);
-    REQUIRE(solver2.solve(b) == Vector{-1, 2});
-
-    A = {{2, -2}, {2, 2}};
-    b = {{8, 2}};
-    Cramer2DSolver solver3(A);
-    REQUIRE(solver3.solve(b) == Vector{2.5, -1.5});
-
-    // randomized tests on 2x2 matrices
-    srand(time(NULL)); // seed rng
-    for (int i = 0; i < 100; i++) {
-        A = GenRandMatrix(2, 2);
-        b = GenRandVector(2);
-        Cramer2DSolver solver(A);
-        Vector x = solver.solve(b);
-        Vector Ax = A*x;
-        REQUIRE(Ax == b);
-    }
 }
 
 TEST_CASE("math: QRDecomposition") {
