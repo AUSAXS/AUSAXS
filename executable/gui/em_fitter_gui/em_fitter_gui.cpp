@@ -173,6 +173,7 @@ auto io_menu(gui::view& view) {
 				output_box.second->on_enter(path);
 			}
 		}
+		qslider_update_range_from_file();
 		return true;
 	};
 
