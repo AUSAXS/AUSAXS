@@ -16,6 +16,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Console.h>
 #include <utility/Limit.h>
 #include <utility/Utility.h>
+#include <utility/Logging.h>
 #include <constants/Constants.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -31,9 +32,13 @@ using namespace ausaxs;
 using namespace ausaxs::em;
 using namespace ausaxs::fitter;
 
-ImageStack::ImageStack(const io::ExistingFile& file) : ImageStackBase(file) {}
+ImageStack::ImageStack(const io::ExistingFile& file) : ImageStackBase(file) {
+    logging::log("ImageStack created from file \"" + file.str() + "\"");
+}
 
-ImageStack::ImageStack(const std::vector<Image>& images) : ImageStackBase(images) {}
+ImageStack::ImageStack(const std::vector<Image>& images) : ImageStackBase(images) {
+    logging::log("ImageStack created from " + std::to_string(images.size()) + " images");
+}
 
 ImageStack::~ImageStack() = default;
 
@@ -64,6 +69,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit(const io::ExistingFile& file) {
 }
 
 std::unique_ptr<EMFitResult> ImageStack::fit(const io::ExistingFile& file, mini::Parameter& param) {
+    logging::log("ImageStack: Preparing fit to file \"" + file.str() + "\" with cutoff bounds [" + std::to_string(param.bounds->min) + ", " + std::to_string(param.bounds->max) + "]");
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
     std::unique_ptr<SmartFitter> fitter = std::make_unique<SmartFitter>(file);
     return fit_helper(std::move(fitter), param);
@@ -117,7 +123,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
         double val = last_fit->fval;
         progress.notify(counter++);
         if (settings::fit::verbose) {
-            std::cout << "Step " << utility::print_element(counter, 4) << ": Evaluated cutoff value " << utility::print_element(params[0], 8) << " with chi2 " << utility::print_element(val, 8) << std::flush << "\r";
+            console::print_text_minor("Step " + std::to_string(counter) + ": Evaluated cutoff value " + std::to_string(params[0]) + " with chi2 " + std::to_string(val));
         }
         return val;
     }; 
@@ -136,11 +142,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     auto func = prepare_function(fitter);
     mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
     unsigned int dof = fitter->dof()-1; // minus one because we're also fitting the cutoff
-
-    if (settings::general::verbose) {
-        std::cout << "The mass range [" << std::left << std::setw(8) << get_mass(param.bounds->min) 
-                                << ", " << std::left << std::setw(8) << get_mass(param.bounds->max) << "] kDa will be scanned." << std::endl;
-    }
+    console::print_text("The mass range [" + std::to_string(get_mass(param.bounds->min)) + ", " + std::to_string(get_mass(param.bounds->max)) + "] kDa will be scanned."); 
 
     EMFitResult::EMFitInfo plots;
 
@@ -151,6 +153,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     minimizer.set_limit(5, true);
     SimpleDataset chi2_data;
     {
+        logging::log("ImageStack: running scan with " + std::to_string(settings::fit::max_iterations) + " iterations");
         auto l = minimizer.landscape(settings::fit::max_iterations);
         evals.append(l);
         chi2_data = l.as_dataset();
@@ -158,7 +161,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
 
     chi2_data.sort_x();
     auto min_abs = chi2_data.find_minimum();
-    std::cout << "Minimum at " << min_abs.x << " with chi2 " << min_abs.y << std::endl;
+    console::print_text_minor("Minimum at " + std::to_string(min_abs.x) + " with chi2 " + std::to_string(min_abs.y));
 
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
@@ -184,7 +187,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
         }
         chi2_data.sort_x();
         min_abs = chi2_data.find_minimum();
-        std::cout << "New minimum at " << min_abs.x << " with chi2 " << min_abs.y << std::endl;
+        console::print_text_minor("New minimum at " + std::to_string(min_abs.x) + " with chi2 " + std::to_string(min_abs.y));
         chi2_data.limit_y(0, min_abs.y*5);
 
         if (chi2_data.size_rows() < 10) {
@@ -209,9 +212,9 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     {   // find the absolute minimum in the smoothed landscape
         auto tmp = data_avg_int.find_minimum(1);
         if (tmp[1] < min_abs.y) {
-            std::cout << "Warning: Absolute minimum in the smoothed landscape is different from the original minimum. Using the smoothed minimum." << std::endl;
-            std::cout << "\tOriginal: " << min_abs.x << " " << min_abs.y << std::endl;
-            std::cout << "\tSmoothed: " << tmp[0] << " " << tmp[1] << std::endl;
+            console::print_warning("Warning: Absolute minimum in the smoothed landscape is different from the original minimum. Using the smoothed minimum.");
+            console::print_text("Original: " + std::to_string(min_abs.x) + " " + std::to_string(min_abs.y));
+            console::print_text("Smoothed: " + std::to_string(tmp[0]) + " " + std::to_string(tmp[1]));
             min_abs = {tmp[0], tmp[1], tmp[2]};
         }
     }
@@ -490,80 +493,6 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
         temp_protein->save(settings::general::output + "model.pdb");}
     return emfit;
 }
-
-// mini::Landscape ImageStack::cutoff_scan(const Axis& points, const io::ExistingFile& file) {
-//     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
-//     return cutoff_scan_helper(points, std::move(fitter));
-// }
-
-// mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingFile& file) {
-//     Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
-//     return cutoff_scan(axis, file);
-// }
-
-// mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
-//     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
-//     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-//     return cutoff_scan_helper(points, std::move(fitter));
-// }
-
-// mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
-//     Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
-//     return cutoff_scan(axis, std::move(h));
-// }
-
-// std::pair<EMFitResult, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
-//     Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
-//     return cutoff_scan_fit(axis, std::move(h));
-// }
-
-// std::pair<EMFitResult, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const io::ExistingFile& file) {
-//     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
-//     return cutoff_scan_fit_helper(points, std::move(fitter));
-// }
-
-// std::pair<EMFitResult, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const io::ExistingFile& file) {
-//     Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
-//     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
-//     return cutoff_scan_fit_helper(axis, std::move(fitter));
-// }
-
-// mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<LinearFitter> fitter) {
-//     update_charge_levels(points.limits());
-//     set_minimum_bounds(points.min);
-//     auto func = prepare_function(std::move(fitter));
-
-//     mini::Golden minimizer(std::move(func), mini::Parameter{"cutoff", points.limits()});
-//     return minimizer.landscape(points.bins);
-// }
-
-// std::pair<EMFitResult, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
-//     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
-//     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-//     return cutoff_scan_fit_helper(points, std::move(fitter));
-// }
-
-// std::pair<EMFitResult, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<LinearFitter> fitter) {
-//     update_charge_levels(points.limits());
-//     set_minimum_bounds(points.min);
-//     auto func = prepare_function(fitter);
-
-//     // cutoff scan
-//     mini::Golden minimizer(std::move(func), mini::Parameter{"cutoff", points.limits()});
-//     mini::Landscape landscape = minimizer.landscape(points.bins);
-
-//     // fit
-//     double l = from_level(1);
-//     Limit limit(settings::em::alpha_levels.min*l, settings::em::alpha_levels.max*l);
-//     minimizer.clear_parameters();
-//     minimizer.add_parameter({"cutoff", limit.center(), limit});
-//     auto res = minimizer.minimize();
-
-//     EMFitResult emfit(fitter.get(), res, res.fval);
-//     emfit.evaluated_points = minimizer.get_evaluated_points();
-
-//     return {emfit, landscape};
-// }
 
 const std::vector<mini::FittedParameter>& ImageStack::get_fitted_water_factors() const {
     return water_factors;

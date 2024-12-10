@@ -4,6 +4,7 @@
 #include <em/ImageStack.h>
 #include <utility/Utility.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <constants/Constants.h>
@@ -14,11 +15,7 @@ using namespace ausaxs;
 
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
-    settings::em::mass_axis = true;
-    settings::em::hydrate = true;
     settings::fit::verbose = true;
-    settings::em::alpha_levels = {1, 10};
-    settings::hist::weighted_bins = true;
     settings::general::supplementary_plots = false;
 
     io::ExistingFile mfile, mapfile, settings;
@@ -40,7 +37,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--fixed-weight,!--dynamic-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
     app.add_flag("--verbose,!--quiet", settings::fit::verbose, "Print the progress of the fit to the console.");
     app.add_flag("--weighted-bins, --!no-weighted-bins", settings::hist::weighted_bins, "Use weighted bins for the distance histograms.")->default_val(settings::hist::weighted_bins)->group("");
-    app.add_flag_callback("--log", [] () {console::enable_logging();}, "Enable logging to a file.");
+    app.add_flag_callback("--log", [] () {logging::start("em_fitter");}, "Enable logging to a file.");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     CLI11_PARSE(app, argc, argv);
 

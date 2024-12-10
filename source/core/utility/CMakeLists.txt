@@ -7,6 +7,7 @@ target_sources(ausaxs_core PRIVATE
 	"Limit.cpp"
 	"Limit2D.cpp"
 	"Limit3D.cpp"
+	"Logging.cpp"
 	"MultiThreading.cpp"
 	"StringUtils.cpp"
 	"Type.cpp"

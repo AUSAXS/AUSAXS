@@ -14,15 +14,9 @@ static struct _dummy{
 
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
-#include <fitter/SmartFitter.h>
-#include <plots/PlotDistance.h>
-#include <constants/Constants.h>
-#include <constants/Version.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <utility/Limit2D.h>
-#include <utility/MultiThreading.h>
+#include <utility/Logging.h>
 #include <fitter/FitReporter.h>
-#include <shell/Command.h>
 #include <constants/ValidFileExtensions.h>
 #include <settings/All.h>
 
@@ -590,6 +584,10 @@ auto make_start_button(gui::view& view) {
 			return;
 		}
 
+        // reinitialize the map to ensure it reflects the current settings
+        setup::map = nullptr; // delete first to free up memory
+        setup::map = std::make_unique<em::ImageStack>(::settings::map_file);
+
 		static auto observer = setup::map->get_progress_observer();
 		observer->on_notify = [&view] (int progress) {
 			progress_bar.value(float(progress)/(2*ausaxs::settings::fit::max_iterations));
@@ -682,22 +680,13 @@ auto make_start_button(gui::view& view) {
 	return link(deck);
 }
 
-int main(int argc, char* argv[]) {
+int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
 	ausaxs::settings::axes::qmin = 0;
 	ausaxs::settings::axes::qmax = 1;
-    ausaxs::settings::em::mass_axis = true;
-    ausaxs::settings::em::hydrate = true;
     ausaxs::settings::fit::verbose = true;
-    ausaxs::settings::em::alpha_levels = {1, 10};
-    ausaxs::settings::hist::weighted_bins = true;
     ausaxs::settings::general::supplementary_plots = false;
-
-	for (int i = 1; i < argc; ++i) {
-		if (std::string(argv[i]) == "--log") {
-			console::enable_logging();
-		}
-	}
+    logging::start("em_fitter_gui");
 	console::print_info("Starting em_fitter_gui");
 
 	resources::generate_resource_file();

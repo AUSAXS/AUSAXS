@@ -1,4 +1,3 @@
-#include "settings/HistogramSettings.h"
 #include <elements.hpp>
 #include <nfd.hpp>
 
@@ -16,10 +15,10 @@ static struct _dummy{
 #include <io/File.h>
 #include <constants/Constants.h>
 #include <data/Molecule.h>
-#include <dataset/SimpleDataset.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
+#include <fitter/SmartFitter.h>
+#include <utility/Logging.h>
 #include <settings/All.h>
 #include <plots/All.h>
 
@@ -480,14 +479,10 @@ auto toggle_mode_button(gui::view& view) {
 	return link(button);
 }
 
-int main(int argc, char* argv[]) {
+int main(int, char*[]) {
     std::ios_base::sync_with_stdio(false);
 
-	for (int i = 1; i < argc; ++i) {
-		if (std::string(argv[i]) == "--log") {
-			console::enable_logging();
-		}
-	}
+	logging::start("saxs_fitter_gui");
 	console::print_info("Starting saxs_fitter_gui");
 
 	gui::app app("AUSAXS saxs fitter");

@@ -16,8 +16,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/HistogramSettings.h>
 #include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
-#include <constants/Constants.h>
+#include <utility/Logging.h>
 #include <utility/Axis3D.h>
+#include <constants/Constants.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -39,7 +40,8 @@ ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images
         image(z).set_z(z);
     }
     phm = factory::create_manager(this);
-    hist::detail::SimpleExvModel::disable(); 
+    hist::detail::SimpleExvModel::disable();
+    logging::log("ImageStackBase created with " + std::to_string(size_z) + " images of dimension (" + std::to_string(size_x) + ", " + std::to_string(size_y) + ")");
 }
 
 ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
@@ -58,6 +60,7 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
     read(input);
     phm = factory::create_manager(this);
     hist::detail::SimpleExvModel::disable();
+    logging::log("ImageStackBase created from file \"" + file.str() + "\" with " + std::to_string(size_z) + " images of dimension (" + std::to_string(size_x) + ", " + std::to_string(size_y) + ")");
 }
 
 ImageStackBase::~ImageStackBase() = default;
@@ -163,7 +166,11 @@ void ImageStackBase::read(std::ifstream& istream) {
     double ywidth = axes.y.width();
     double zwidth = axes.z.width();
     double minwidth = std::min({xwidth, ywidth, zwidth})*settings::em::sample_frequency;
-    constants::radius::set_dummy_radius(std::sqrt(2*std::pow(minwidth, 2))/2 + settings::grid::cell_width);
+
+    // we want to avoid too much internal structure by expanding a sphere around each voxel in our resampled grid
+    // for the radius, we use 1 cell diameter + the radius of a sphere reaching the corners of each map cell
+    double r = std::sqrt(3)*minwidth/2 + settings::grid::cell_width;
+    constants::radius::set_dummy_radius(r);
 }
 
 float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {
