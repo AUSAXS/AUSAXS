@@ -32,27 +32,24 @@ std::size_t get_total_copy_number(const data::Body& body) {
     return res;
 }
 
-std::function<CompactCoordinatesData(const CompactCoordinatesData&)> get_transform(const data::detail::Symmetry& s, const Vector3<float>& cm) {
-    if (s.translate.magnitude() == 0) {
-        if (s.external_rotate.magnitude() == 0) {
-            throw except::invalid_argument("SymmetryManager::get_transform: Symmetry must have a translational or external rotation");
-        }
+template<bool translation, bool internal_rotation, bool external_rotation>
+CompactCoordinatesData transform(const CompactCoordinatesData& a, const data::detail::Symmetry& s, const Vector3<float>& cm) {
+    auto res = a;
+    if constexpr (internal_rotation) {
+        Matrix<float> internal_rotate = matrix::rotation_matrix<float>(s.internal_rotate);
+        res.value.pos = internal_rotate*(res.value.pos-cm) + cm;
+    }
+    if constexpr (external_rotation) {
         Matrix<float> external_rotate = matrix::rotation_matrix<float>(
             s.external_rotate,
             s.external_angle
         );
-        if (s.internal_rotate.magnitude() == 0) {
-            return [external_rotate] (const CompactCoordinatesData& a) -> CompactCoordinatesData {
-                return {external_rotate*a.value.pos, a.value.w};
-            };
-        }
-        Matrix<float> internal_rotate = matrix::rotation_matrix<float>(s.internal_rotate);
-        return [external_rotate, internal_rotate, cm] (const CompactCoordinatesData& a) -> CompactCoordinatesData {
-            return {external_rotate*(internal_rotate*(a.value.pos-cm) + cm) + cm, a.value.w};
-        };
+        res.value.pos = external_rotate*res.value.pos;
     }
-    if (s.external_rotate.magnitude() == 0) {}
-    if (s.internal_rotate.magnitude() == 0) {}
+    if constexpr (translation) {
+        res.value.pos += s.translate;
+    }
+    return res;
 }
 
 std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
@@ -63,7 +60,12 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
         const auto& body = protein.get_body(i_body1);
         CompactCoordinates data_a(body.get_atoms());
         CompactCoordinates data_w(body.get_waters());
-        auto cm = body.get_cm();
+
+        Vector3<float> cm;
+        {
+            auto tmp = body.get_cm();
+            cm = {static_cast<float>(tmp[0]), static_cast<float>(tmp[1]), static_cast<float>(tmp[2])};
+        }
 
         std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
         std::vector<std::vector<CompactCoordinates>> water(1+body.size_symmetry());
@@ -77,39 +79,57 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
             std::vector<CompactCoordinates> sym_atomic(symmetry.repeat);
             std::vector<CompactCoordinates> sym_water(symmetry.repeat);
 
+            auto t = [&symmetry, &cm] (const CompactCoordinatesData& a) -> CompactCoordinatesData {
+                bool translate = symmetry.translate != Vector3<float>(0, 0, 0);
+                bool internal_rotate = symmetry.internal_rotate != Vector3<float>(0, 0, 0);
+                bool external_rotate = symmetry.external_rotate != Vector3<float>(0, 0, 0);
+                if (translate && internal_rotate && external_rotate) {
+                    return transform<true, true, true>(a, symmetry, cm);
+                } else if (translate && internal_rotate) {
+                    return transform<true, true, false>(a, symmetry, cm);
+                } else if (translate && external_rotate) {
+                    return transform<true, false, true>(a, symmetry, cm);
+                } else if (internal_rotate && external_rotate) {
+                    return transform<false, true, true>(a, symmetry, cm);
+                } else if (translate) {
+                    return transform<true, false, false>(a, symmetry, cm);
+                } else if (internal_rotate) {
+                    return transform<false, true, false>(a, symmetry, cm);
+                } else if (external_rotate) {
+                    return transform<false, false, true>(a, symmetry, cm);
+                } else {
+                    return a;
+                }
+            };
+
             // for every symmetry, loop over how many times it should be repeated
             // it is then repeatedly applied to the same data
             for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
-                Matrix<float> internal_rotate = matrix::rotation_matrix<float>(symmetry.internal_rotate);
-                Matrix<float> external_rotate = matrix::rotation_matrix<float>(
-                    symmetry.external_rotate,
-                    symmetry.external_angle
-                );
-
-                auto transform = [&symmetry, &rotate, &cm] (const CompactCoordinatesData& a) -> CompactCoordinatesData {
-                    return {rotate*(a.value.pos-cm) + cm + symmetry.translate, a.value.w};
-                };
-
                 std::transform(
                     data_a_transformed.get_data().begin(), 
                     data_a_transformed.get_data().end(), 
                     data_a_transformed.get_data().begin(), 
-                    transform
+                    t
                 );
-
                 std::transform(
                     data_w_transformed.get_data().begin(), 
                     data_w_transformed.get_data().end(), 
                     data_w_transformed.get_data().begin(), 
-                    transform
+                    t
                 );
-
-                atomic[i_sym_1][i_repeat] = std::move(data_a_transformed);
-                water [i_sym_1][i_repeat] = std::move(data_w_transformed);                
+                if (i_repeat == symmetry.repeat-1) {
+                    sym_atomic[i_repeat] = std::move(data_a_transformed);
+                    sym_water [i_repeat] = std::move(data_w_transformed);
+                } else {
+                    sym_atomic[i_repeat] = data_a_transformed;
+                    sym_water [i_repeat] = data_w_transformed;
+                }
             }
+            atomic[1+i_sym_1] = std::move(sym_atomic);
+            water [1+i_sym_1] = std::move(sym_water);
         }
-        atomic[0][0] = std::move(data_a);
-        water[0][0] = std::move(data_w);
+        atomic[0] = {std::move(data_a)};
+        water[0] = {std::move(data_w)};
         res[i_body1] = {std::move(atomic), std::move(water)};
     }
     return res;

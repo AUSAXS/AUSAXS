@@ -15,7 +15,7 @@ namespace ausaxs::matrix {
     template<numeric T>
     Matrix<T> rotation_matrix(const Vector3<T>& angles); //< @copydoc rotation_matrix(T alpha, T beta, T gamma)
 
-    template<numeric T, numeric Q>
+    template<numeric T, numeric Q> requires (!std::same_as<Q, T>)
     Matrix<T> rotation_matrix(const Vector3<Q>& angles) {
         return rotation_matrix<T>(static_cast<T>(angles.x()), static_cast<T>(angles.y()), static_cast<T>(angles.z()));
     }
@@ -29,7 +29,8 @@ namespace ausaxs::matrix {
     template<numeric T>
     Matrix<T> rotation_matrix(const Vector3<T>& axis, T angle);
 
-    template<numeric T, numeric Q>
+    // enable if the angle type is different from the axis type
+    template<numeric T, numeric Q> requires (!std::same_as<Q, T>)
     Matrix<T> rotation_matrix(const Vector3<Q>& axis, Q angle) {
         return rotation_matrix<T>({static_cast<T>(axis.x()), static_cast<T>(axis.y()), static_cast<T>(axis.z())}, static_cast<T>(angle));
     }
