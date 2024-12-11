@@ -309,7 +309,7 @@ inline auto q_slider(gui::view& view) {
 			} else {
 				qinfo_box.set_text("");
 			}
-			view.refresh(qinfo_box);
+			view.refresh();
 			waiting = false;
 		});
 	};
