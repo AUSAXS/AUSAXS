@@ -1,4 +1,3 @@
-#include "hist/hist_test_helper.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -9,6 +8,8 @@
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <settings/All.h>
+
+#include "hist/hist_test_helper.h"
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -32,7 +33,7 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({Vector3<double>(1, 0, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(1, 0, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -50,8 +51,8 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("two copies") {
-            m.get_body(0).add_symmetry({Vector3<double>(-1, 0, 0), Vector3<double>(0, 0, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(-1, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -74,10 +75,10 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("four copies") {
-            m.get_body(0).add_symmetry({Vector3<double>(-1, 0, 0), Vector3<double>(0, 0, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0), Vector3<double>(0, 0, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>( 0,-1, 0), Vector3<double>(0, 0, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>( 0, 1, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(-1, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>( 0,-1, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>( 0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -129,7 +130,7 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -152,8 +153,8 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("two copies") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>(0, 2, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(0, 2, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -212,7 +213,7 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy of body1") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -235,8 +236,8 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy of each #1") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0)});
-            m.get_body(1).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
+            m.get_body(1).add_symmetry({Vector3<double>(0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -260,8 +261,8 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy of each #2") {
-            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0), Vector3<double>(0, 0, 0)});
-            m.get_body(1).add_symmetry({Vector3<double>(-1, 0, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0)});
+            m.get_body(1).add_symmetry({Vector3<double>(-1, 0, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -325,7 +326,7 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0)});
+            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m);
@@ -370,7 +371,7 @@ TEST_CASE("SymmetryManager: translations") {
         m.get_body(0).get_waters() = std::move(m.get_waters());
         m.clear_hydration();
 
-        data::detail::Symmetry s{{10, 0, 0}, {0, 0, 0}}; 
+        data::detail::Symmetry s{{10, 0, 0}}; 
         SECTION("single copy") {
             m.get_body(0).add_symmetry(s);
 
@@ -406,6 +407,39 @@ TEST_CASE("SymmetryManager: translations") {
     }
 }
 
+TEST_CASE("SymmetryManager: repeating symmetries") {
+    settings::molecule::implicit_hydrogens = false;
+
+    SECTION("one body with one atom") {
+        record::Atom a(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
+        a.set_effective_charge(1);
+        Molecule m({a});
+
+        SECTION("one copy") {
+            m.get_body(0).add_symmetry({Vector3<double>(1, 0, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
+
+            hist::detail::SymmetryManager sm;
+            auto h = sm.calculate<false>(m)->get_total_counts();
+
+            int bin1 = std::round(1*constants::axes::d_inv_width);
+            int bin2 = std::round(2*constants::axes::d_inv_width);
+            REQUIRE(bin2 < static_cast<int>(h.size()));
+            CHECK(h[0] == 3);
+            for (int i = 1; i < bin1; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin1] == 4);
+            for (int i = bin1+1; i < bin2; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin2] == 2);
+            for (int i = bin2+1; i < static_cast<int>(h.size()); ++i) {
+                CHECK(h[i] == 0);
+            }
+        }
+    }
+}
+
 TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::implicit_hydrogens = false;
 
@@ -417,7 +451,7 @@ TEST_CASE("SymmetryManager: rotations") {
         Molecule m({a1, a2});
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 0, 0), Vector3<double>(0, std::numbers::pi/2, 0)});
+            // m.get_body(0).add_symmetry({Vector3<double>(0, 0, 0), Vector3<double>(0, std::numbers::pi/2, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();

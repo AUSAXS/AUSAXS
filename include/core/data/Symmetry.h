@@ -1,28 +1,35 @@
 #pragma once
 
-#include "math/MatrixUtils.h"
 #include <math/Vector3.h>
 
 namespace ausaxs::data::detail {
     struct Symmetry {
+        Symmetry() = default;
+        Symmetry(Vector3<double> translate, Vector3<double> external_axis, double external_angle, Vector3<double> internal_rotate, int repeat) : 
+            translate(translate), 
+            external_rotate{external_axis, external_angle}, 
+            internal_rotate(internal_rotate), 
+            repeat(repeat) 
+        {}
+        Symmetry(Vector3<double> translate) : Symmetry(translate, Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 1) {}
+        Symmetry(Vector3<double> external_axis, double angle) : Symmetry(Vector3<double>(0, 0, 0), external_axis, angle, {0, 0, 0}, 1) {}
+
         // translational vector with respect to the original body
-        Vector3<double> translate = {0, 0, 0};
+        Vector3<double> translate;
 
         // external rotation with respect to an axis
-        Vector3<double> external_rotate = {0, 0, 0};
-        double external_angle = 0;
+        struct {
+            Vector3<double> axis;
+            double angle;
+        } external_rotate;
 
         // orientation with respect to the original body
-        Vector3<double> internal_rotate = {0, 0, 0};
+        Vector3<double> internal_rotate;
 
         // the number of times the symmetry should be repeated
-        int repeat = 1;
-
-        template<typename T>
-        Vector3<T> apply_transform(const Vector3<T>& v, const Vector3<T>& cm) const {
-            auto mi = matrix::rotation_matrix<T>(internal_rotate.x(), internal_rotate.y(), internal_rotate.z());
-            auto me = matrix::rotation_matrix<T>(external_rotate, external_angle);
-            return me*(mi*(v-cm) + cm + translate);
-        }
+        int repeat;
     };
+    static_assert(std::is_trivial_v<Symmetry>,          "Symmetry is not trivial");
+    static_assert(std::is_standard_layout_v<Symmetry>,  "Symmetry is not standard layout");
+    static_assert(supports_nothrow_move_v<Symmetry>,    "Symmetry should support nothrow move semantics.");   
 }
