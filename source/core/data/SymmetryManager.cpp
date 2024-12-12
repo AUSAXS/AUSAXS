@@ -32,32 +32,11 @@ struct ScaleResult {
     int scale;
 };
 
-template<bool translation, bool internal_rotation, bool external_rotation>
-CompactCoordinatesData transform(const CompactCoordinatesData& a, const data::detail::Symmetry& s, const Vector3<float>& cm) {
-    auto res = a;
-    if constexpr (internal_rotation) {
-        Matrix<float> internal_rotate = matrix::rotation_matrix<float>(s.internal_rotate);
-        res.value.pos = internal_rotate*(res.value.pos-cm) + cm;
-    }
-    if constexpr (external_rotation) {
-        Matrix<float> external_rotate = matrix::rotation_matrix<float>(
-            s.external_rotate.axis,
-            s.external_rotate.angle
-        );
-        res.value.pos = external_rotate*res.value.pos;
-    }
-    if constexpr (translation) {
-        res.value.pos += s.translate;
-    }
-    return res;
-}
-
 std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
     std::vector<_data> res(protein.size_body());
 
     // for every body
     for (int i_body1 = 0; i_body1 < static_cast<int>(protein.size_body()); ++i_body1) {
-        std::cout << "preparing data for body " << i_body1 << std::endl;
         const auto& body = protein.get_body(i_body1);
         CompactCoordinates data_a(body.get_atoms());
         CompactCoordinates data_w(body.get_waters());
@@ -73,7 +52,6 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
 
         // loop over its symmetries
         for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
-            std::cout << "\tevaluating symmetry " << i_sym_1 << std::endl;
             const auto& symmetry = body.get_symmetry(i_sym_1);
             CompactCoordinates data_a_transformed(data_a);
             CompactCoordinates data_w_transformed(data_w);
@@ -81,51 +59,27 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
             std::vector<CompactCoordinates> sym_atomic(symmetry.repeat);
             std::vector<CompactCoordinates> sym_water(symmetry.repeat);
 
-            auto t = [&symmetry, &cm] (const CompactCoordinatesData& a) -> CompactCoordinatesData {
-                bool translate = symmetry.translate != Vector3<float>(0, 0, 0);
-                bool internal_rotate = symmetry.internal_rotate != Vector3<float>(0, 0, 0);
-                bool external_rotate = symmetry.external_rotate.angle != 0;
-                if (translate && internal_rotate && external_rotate) {
-                    return transform<true, true, true>(a, symmetry, cm);
-                } else if (translate && internal_rotate) {
-                    return transform<true, true, false>(a, symmetry, cm);
-                } else if (translate && external_rotate) {
-                    return transform<true, false, true>(a, symmetry, cm);
-                } else if (internal_rotate && external_rotate) {
-                    return transform<false, true, true>(a, symmetry, cm);
-                } else if (translate) {
-                    return transform<true, false, false>(a, symmetry, cm);
-                } else if (internal_rotate) {
-                    return transform<false, true, false>(a, symmetry, cm);
-                } else if (external_rotate) {
-                    return transform<false, false, true>(a, symmetry, cm);
-                } else {
-                    return a;
-                }
-            };
+            auto t = symmetry.get_transform(cm);
 
             // for every symmetry, loop over how many times it should be repeated
             // it is then repeatedly applied to the same data
             for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
-                std::cout << "\t\ttransform number " << i_repeat << std::endl;
                 std::transform(
                     data_a_transformed.get_data().begin(), 
                     data_a_transformed.get_data().end(), 
                     data_a_transformed.get_data().begin(), 
-                    t
+                    [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
                 );
                 std::transform(
                     data_w_transformed.get_data().begin(), 
                     data_w_transformed.get_data().end(), 
                     data_w_transformed.get_data().begin(), 
-                    t
+                    [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
                 );
                 if (i_repeat == symmetry.repeat-1) {
-                    std::cout << "\t\t\tmoving result" << std::endl;
                     sym_atomic[i_repeat] = std::move(data_a_transformed);
                     sym_water [i_repeat] = std::move(data_w_transformed);
                 } else {
-                    std::cout << "\t\t\tcopying result" << std::endl;
                     sym_atomic[i_repeat] = data_a_transformed;
                     sym_water [i_repeat] = data_w_transformed;
                 }

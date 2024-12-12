@@ -415,7 +415,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         a.set_effective_charge(1);
         Molecule m({a});
 
-        SECTION("one copy") {
+        SECTION("two repeats") {
             m.get_body(0).add_symmetry({Vector3<double>(1, 0, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
 
             hist::detail::SymmetryManager sm;
@@ -437,28 +437,151 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
                 CHECK(h[i] == 0);
             }
         }
+
+        SECTION("three repeats") {
+            m.get_body(0).add_symmetry({Vector3<double>(1, 0, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 3});
+
+            hist::detail::SymmetryManager sm;
+            auto h = sm.calculate<false>(m)->get_total_counts();
+
+            int bin1 = std::round(1*constants::axes::d_inv_width);
+            int bin2 = std::round(2*constants::axes::d_inv_width);
+            int bin3 = std::round(3*constants::axes::d_inv_width);
+            REQUIRE(bin2 < static_cast<int>(h.size()));
+            CHECK(h[0] == 4);
+            for (int i = 1; i < bin1; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin1] == 6);
+            for (int i = bin1+1; i < bin2; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin2] == 4);
+            for (int i = bin2+1; i < bin3; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin3] == 2);
+            for (int i = bin3+1; i < static_cast<int>(h.size()); ++i) {
+                CHECK(h[i] == 0);
+            }
+        }
+    }
+
+    SECTION("two bodies") {
+        record::Atom a1(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
+        record::Atom a2(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);        
+        a1.set_effective_charge(1);
+        a2.set_effective_charge(1);
+        Body b1({a1});
+        Body b2({a2});
+        Molecule m({b1, b2});
+
+        SECTION("two repeats") {
+            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
+            m.get_body(1).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
+
+            hist::detail::SymmetryManager sm;
+            auto h = sm.calculate<false>(m)->get_total_counts();
+
+            int bin1 = std::round(1*constants::axes::d_inv_width);
+            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
+            int bin3 = std::round(2*constants::axes::d_inv_width);
+            int bin4 = std::round(std::sqrt(5)*constants::axes::d_inv_width);
+            REQUIRE(bin3 < static_cast<int>(h.size()));
+            CHECK(h[0] == 6);
+            for (int i = 1; i < bin1; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin1] == 14);
+            for (int i = bin1+1; i < bin2; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin2] == 8);
+            for (int i = bin2+1; i < bin3; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin3] == 4);
+            for (int i = bin3+1; i < bin4; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin4] == 4);
+            for (int i = bin4+1; i < static_cast<int>(h.size()); ++i) {
+                CHECK(h[i] == 0);
+            }
+        }
+
+        SECTION("different repeats") {
+            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 1});
+            m.get_body(1).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
+
+            hist::detail::SymmetryManager sm;
+            auto h = sm.calculate<false>(m)->get_total_counts();
+
+            int bin1 = std::round(1*constants::axes::d_inv_width);
+            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
+            int bin3 = std::round(2*constants::axes::d_inv_width);
+            int bin4 = std::round(std::sqrt(5)*constants::axes::d_inv_width);
+            REQUIRE(bin3 < static_cast<int>(h.size()));
+            CHECK(h[0] == 5);
+            for (int i = 1; i < bin1; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin1] == 10);
+            for (int i = bin1+1; i < bin2; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin2] == 6);
+            for (int i = bin2+1; i < bin3; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin3] == 2);
+            for (int i = bin3+1; i < bin4; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin4] == 2);
+            for (int i = bin4+1; i < static_cast<int>(h.size()); ++i) {
+                CHECK(h[i] == 0);
+            }
+        }
     }
 }
 
 TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
 
     SECTION("one body with one atom") {
-        record::Atom a1(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
-        record::Atom a2(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
-        a1.set_effective_charge(1);
-        a2.set_effective_charge(1);
-        Molecule m({a1, a2});
+        record::Atom a(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
+        a.set_effective_charge(1);
+        Molecule m({a});
 
         SECTION("one copy") {
-            // m.get_body(0).add_symmetry({Vector3<double>(0, 0, 0), Vector3<double>(0, std::numbers::pi/2, 0)});
+            m.get_body(0).add_symmetry({{0., 1., 0.}, std::numbers::pi/2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
 
-            int bin1 = std::round(std::sqrt(0.5)*constants::axes::d_inv_width);
-            int bin2 = std::round(1*constants::axes::d_inv_width);
-            REQUIRE(bin2 < static_cast<int>(h.size()));
+            int bin1 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
+            REQUIRE(bin1 < static_cast<int>(h.size()));
+            CHECK(h[0] == 2);
+            for (int i = 1; i < bin1; ++i) {
+                CHECK(h[i] == 0);
+            }
+            CHECK(h[bin1] == 2);
+            for (int i = bin1+1; i < static_cast<int>(h.size()); ++i) {
+                CHECK(h[i] == 0);
+            }
+        }
+
+        SECTION("three copies") {
+            m.get_body(0).add_symmetry({{0., 0., 0.}, {0., 1., 0.}, std::numbers::pi/2, {0., 0., 0.}, 3});
+
+            hist::detail::SymmetryManager sm;
+            auto h = sm.calculate<true>(m)->get_total_counts();
+
+            int bin1 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
+            int bin2 = std::round(2*constants::axes::d_inv_width);
+            REQUIRE(bin1 < static_cast<int>(h.size()));
             CHECK(h[0] == 4);
             for (int i = 1; i < bin1; ++i) {
                 CHECK(h[i] == 0);
