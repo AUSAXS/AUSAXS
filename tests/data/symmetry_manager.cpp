@@ -22,6 +22,15 @@ struct RES {
 
 void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
     std::sort(checks.begin(), checks.end(), [](const RES& a, const RES& b) {return a.index < b.index;});
+    std::vector<RES> tmp;
+    for (int i = 0; i < static_cast<int>(checks.size()); ++i) {
+        if (i == 0 || checks[i].index != checks[i-1].index) {
+            tmp.push_back(checks[i]);
+        } else {
+            tmp.back().val += checks[i].val;
+        }
+    }
+    checks = tmp;
     REQUIRE(checks.back().index < static_cast<int>(h.size()));
     int j = 0;
     for (int i = 0; i < static_cast<int>(h.size()); ++i) {
@@ -442,20 +451,19 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
             // external rotate pi/2 around the y-axis and replicate thrice
             // this gives the structure
             //
-            //       x
-            //       x
-            //       x
-            // x x x   x x x
-            //       x
-            //       x
-            //       x
+            //         x
+            //         x
+            //         x
+            //   x x x   x x x
+            //         x
+            //         x
+            //         x
             //
             m.get_body(0).add_symmetry({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, 0}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
-
-            std::vector<RES> checks = {
+            check_hist(h, {
                 {0, 12},
                 {1, 16},
                 {2, 12},
@@ -469,38 +477,36 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
                 {std::sqrt(10), 16},
                 {std::sqrt(13), 16},
                 {std::sqrt(18), 8}
-            };
-            check_hist(h, checks);
+            });
         }
 
         SECTION("cross with rotated arms") {
             // external rotate pi/2 around the y-axis while also rotating -pi/2 around itself, and replicate thrice
             // this gives the structure
-            //
-            //       x
-            //       x
-            //   x   x   x
-            //   x       x
-            //   x   x   x
-            //       x
-            //       x
-            //
+            //       
+            //       x x x
+            //          
+            //   x x x   x x x
+            //           
+            //       x x x
+            //       
             m.get_body(0).add_symmetry({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, -std::numbers::pi/2}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
             std::vector<RES> checks = {
-                {1, 8},
-                {2, 4},
-                {4, 6},
-                {std::sqrt(2), 4},
-                {std::sqrt(5), 8},
-                {std::sqrt(8), 4},
-                {std::sqrt(10), 8},
-                {std::sqrt(13), 8},
-                {std::sqrt(17), 8},
-                {std::sqrt(18), 4},
-                {std::sqrt(20), 4}
+                {0, 12},
+                {1, 16},
+                {2, 20},
+                {3, 4},
+                {4, 12},
+                {5, 4},
+                {6, 2},
+                {std::sqrt(5), 16},  // 2.23
+                {std::sqrt(8), 24},  // 2.83
+                {std::sqrt(13), 16}, // 3.61
+                {std::sqrt(17), 8},  // 4.12
+                {std::sqrt(20), 12}, // 4.47
             };
             check_hist(h, checks);
         }

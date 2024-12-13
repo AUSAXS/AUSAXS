@@ -50,45 +50,35 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
         std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
         std::vector<std::vector<CompactCoordinates>> water(1+body.size_symmetry());
 
+        for (int i = 0; i < static_cast<int>(data_a.get_data().size()); ++i) {
+            std::cout << "before: " << data_a.get_data()[i].value.pos << std::endl;
+        }
+
         // loop over its symmetries
         for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
             const auto& symmetry = body.get_symmetry(i_sym_1);
-            CompactCoordinates data_a_transformed(data_a);
-            CompactCoordinates data_w_transformed(data_w);
 
-            std::vector<CompactCoordinates> sym_atomic(symmetry.repeat);
-            std::vector<CompactCoordinates> sym_water(symmetry.repeat);
-
-            auto t = symmetry.get_transform(cm);
-
-            for (int i = 0; i < static_cast<int>(data_a_transformed.get_data().size()); ++i) {
-                std::cout << "before: " << data_a_transformed.get_data()[i].value.pos << std::endl;
-            }
+            std::vector<CompactCoordinates> sym_atomic(symmetry.repeat, data_a);
+            std::vector<CompactCoordinates> sym_water(symmetry.repeat, data_w);
 
             // for every symmetry, loop over how many times it should be repeated
             // it is then repeatedly applied to the same data
             for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
+                auto t = symmetry.get_transform(cm, i_repeat+1);
                 std::transform(
-                    data_a_transformed.get_data().begin(), 
-                    data_a_transformed.get_data().end(), 
-                    data_a_transformed.get_data().begin(), 
+                    sym_atomic[i_repeat].get_data().begin(), 
+                    sym_atomic[i_repeat].get_data().end(), 
+                    sym_atomic[i_repeat].get_data().begin(), 
                     [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
                 );
                 std::transform(
-                    data_w_transformed.get_data().begin(), 
-                    data_w_transformed.get_data().end(), 
-                    data_w_transformed.get_data().begin(), 
+                    sym_water[i_repeat].get_data().begin(), 
+                    sym_water[i_repeat].get_data().end(), 
+                    sym_water[i_repeat].get_data().begin(), 
                     [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
                 );
-                for (int i = 0; i < static_cast<int>(data_a_transformed.get_data().size()); ++i) {
-                    std::cout << "after: " << data_a_transformed.get_data()[i].value.pos << std::endl;
-                }
-                if (i_repeat == symmetry.repeat-1) {
-                    sym_atomic[i_repeat] = std::move(data_a_transformed);
-                    sym_water [i_repeat] = std::move(data_w_transformed);
-                } else {
-                    sym_atomic[i_repeat] = data_a_transformed;
-                    sym_water [i_repeat] = data_w_transformed;
+                for (int i = 0; i < static_cast<int>(sym_atomic[i_repeat].get_data().size()); ++i) {
+                    std::cout << "after: " << sym_atomic[i_repeat].get_data()[i].value.pos << std::endl;
                 }
             }
             atomic[1+i_sym_1] = std::move(sym_atomic);

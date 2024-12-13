@@ -22,6 +22,11 @@ namespace ausaxs {
             Matrix& operator=(const Matrix<Q>& A) = default;
             Matrix& operator=(Matrix<Q>&& A) = default;
 
+            template<typename T> requires std::is_floating_point_v<T>
+            Matrix(const Matrix<T>& A) : N(A.N), M(A.M), data(N*M) {
+                std::copy(A.begin(), A.end(), data.begin());
+            }
+
             /**
              * @brief Construct a Matrix based on a nested initializer list. The lists must be of the same size. 
              */
