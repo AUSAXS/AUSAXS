@@ -1,6 +1,7 @@
 #pragma once
 
-#include <data/detail/AtomCollection.h>
+#include <data/BodySymmetryFacade.h>
+#include <data/atoms/AtomFF.h>
 #include <data/state/DataStateFwd.h>
 #include <data/Symmetry.h>
 #include <data/DataFwd.h>
@@ -32,54 +33,35 @@ namespace ausaxs::data {
 			/**
 			 * @brief Create a new collection of atoms (body) based on two vectors
 			 */
-			explicit Body(const std::vector<record::Atom>& protein_atoms);
+			explicit Body(const std::vector<data::AtomFF>& atoms);
 
 			/**
 			 * @brief Create a new collection of atoms (body) based on two vectors
 			 */
-			Body(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms);
-
-			/**
-			 * @brief Add implicit hydrogens to each atom in this body.
-			 */
-			void add_implicit_hydrogens();
-
-			/** 
-			 * @brief Writes this body to disk.
-			 * 
-			 * @param path path to the destination. 
-			 */
-			void save(const io::File& path);
+			Body(const std::vector<data::AtomFF>& atoms, const std::vector<data::Water>& waters);
 
 			/**
 			 * @brief Get a reference to the constituent atoms.
 			 */
-			std::vector<record::Atom>& get_atoms();
-
-			/**
-			 * @brief Get a reference to the constituent atoms.
-			 */
-			const std::vector<record::Atom>& get_atoms() const;
+			[[nodiscard]] std::vector<data::AtomFF>& get_atoms();
+			[[nodiscard]] const std::vector<data::AtomFF>& get_atoms() const; //< @copydoc get_atoms()
 
 			/**
 			 * @brief Get a reference to the hydration atoms.
 			 */
-			std::vector<record::Water>& get_waters();
-
-			/**
-			 * @brief Get a reference to the hydration atoms.
-			 */
-			const std::vector<record::Water>& get_waters() const;
+			[[nodiscard]] std::vector<data::Water>& get_waters();
+			[[nodiscard]] const std::vector<data::Water>& get_waters() const; //< @copydoc get_waters()
 		
-			record::Atom& get_atom(unsigned int index);
-
-			const record::Atom& get_atom(unsigned int index) const;
+			/**
+			 * @brief Get a reference to the specified atom.
+			 */
+			[[nodiscard]] data::AtomFF& get_atom(unsigned int index);
+			[[nodiscard]] const data::AtomFF& get_atom(unsigned int index) const;
 
 			/** 
-			 * @brief Calculate the center-mass coordinates for the body.
-			 * @return The center-mass (x, y, z) coordinates. 
+			 * @brief Calculate the center-of-mass coordinates for the body.
 			 */
-			Vector3<double> get_cm() const;
+			[[nodiscard]] Vector3<double> get_cm() const;
 			
 			/**
 			 * @brief Calculate the van der Waals volume of this body.
@@ -91,22 +73,17 @@ namespace ausaxs::data {
 			/**
 			 * @brief Calculate the molar mass of this body in Daltons.
 			 */
-			double get_molar_mass() const;
+			[[nodiscard]] double get_molar_mass() const;
 
 			/**
 			 * @brief Get the absolute mass of this body in kg.
 			 */
-			double get_absolute_mass() const;
+			[[nodiscard]] double get_absolute_mass() const;
 
 			/**
 			 * @brief Get the total atomic charge of this body.
 			 */
-			double get_total_atomic_charge() const;
-
-			/**
-			 * @brief Get the total effective charge of this body.
-			 */
-			double get_total_effective_charge() const;
+			[[nodiscard]] double get_total_atomic_charge() const;
 
 			/**
 			 * @brief Center this Body on origo. 
@@ -114,42 +91,17 @@ namespace ausaxs::data {
 			void center();
 
 			/** 
-			 * @brief Move the entire body by a vector.
-			 * @param v the translation vector
+			 * @brief Translate all atoms by a given vector.
 			 */
-			void translate(const Vector3<double>& v);
+			void translate(Vector3<double> v);
 
 			/**
 			 * @brief Rotate all atoms by a given rotation matrix.
-			 * 
-			 * @param R The rotation matrix. 
 			 */
 			void rotate(const Matrix<double>& R);
-			
-			/**
-			 * @brief Rotate all atoms @a rad radians about the axis @a axis. 
-			 * 
-			 * @param axis the rotation axis. 
-			 * @param rad the amount to rotate in radians. 
-			 */
-			void rotate(const Vector3<double>& axis, double rad);
 
 			/**
-			 * @brief Euler angle rotation of all atoms. 
-			 * 
-			 * @param alpha radians to rotate about the z-axis.
-			 * @param beta radians to rotate about the y-axis. 
-			 * @param gamma radians to rotate about the x-axis. 
-			 */
-			void rotate(double alpha, double beta, double gamma);
-
-			/**
-			 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
-			 */
-			void register_probe(std::shared_ptr<signaller::Signaller> signal);
-
-			/**
-			 * @brief Check if this object is equal to another. 
+			 * @brief Check if this object is equal to another based on their unique ID. 
 			 */
 			bool operator==(const Body& rhs) const;
 
@@ -159,14 +111,12 @@ namespace ausaxs::data {
 			bool equals_content(const Body& rhs) const;
 
 			/**
-			 * @brief Get the File backing this object. 
+			 * @brief Get the unique identifier of this Body. 
 			 */
-			data::detail::AtomCollection& get_file();
-
-			[[nodiscard]] int get_id() const;
+			[[nodiscard]] int get_uid() const;
 
 			/**
-			 * @brief Get the total number of constituent atoms, excluding hydration. 
+			 * @brief Get the total number of constituent atoms, excluding waters. 
 			 */
 			[[nodiscard]] std::size_t size_atom() const;
 
@@ -188,46 +138,31 @@ namespace ausaxs::data {
 			[[nodiscard]] std::size_t size_symmetry_total() const;
 
 			/**
-			 * @brief Add a symmetry to this body.
+			 * @brief Access the symmetry operations of this body.
 			 */
-			void add_symmetry(const detail::Symmetry& symmetry);
-			void add_symmetry(detail::Symmetry&& symmetry);
+			[[nodiscard]] data::detail::BodySymmetryFacade<const Body> symmetry();
+			[[nodiscard]] data::detail::BodySymmetryFacade<Body> symmetry() const;
 
 			/**
-			 * @brief Get the symmetries of this body.
+			 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
 			 */
-			std::vector<detail::Symmetry>& get_symmetries();
-			const std::vector<detail::Symmetry>& get_symmetries() const; //< @copydoc get_symmetries()
-
-			detail::Symmetry& get_symmetry(unsigned int index);
-			const detail::Symmetry& get_symmetry(unsigned int index) const;
+			void register_probe(std::shared_ptr<signaller::Signaller> signal);
 
 			/**
 			 * @brief Get the signaller object for this body. 
 			 */
 			std::shared_ptr<signaller::Signaller> get_signaller() const;
 
-			/**
-			 * @brief Signal that this object has changed its external state.
-			 *        This triggers recalculating all external distances between this body and everything else the next time a histogram is requested. 
-			 */
-			void changed_external_state() const;
-
-			/**
-			 * @brief Signal that this object has changed its internal state.
-			 *        This triggers recalculating all distances, both external and internal, between this body and everything else the next time a histogram is requested. 
-			 */
-			void changed_internal_state() const;
-
 		private:
-			int uid;                     				// A unique identifier for this body
-			bool centered = false;                		// True if this object is centered, false otherwise
-			inline static unsigned int uid_counter = 0; // The unique counter. 
-			data::detail::AtomCollection file;          // The file backing this body
+			std::vector<data::AtomFF> atoms;			// The atoms of this body
+			std::vector<data::Water> waters;			// The waters of this body
 			std::vector<detail::Symmetry> symmetries;	// The symmetries of this body
 
+			int uid;                     				// A unique identifier for this body
+			inline static unsigned int uid_counter = 0; // The unique counter. 
+
 			// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
-			std::shared_ptr<signaller::Signaller> signal;
+			std::shared_ptr<signaller::Signaller> signal; //! move to Molecule?
 
 			void initialize();
 	};

@@ -3,11 +3,11 @@
 #include <data/atoms/AtomFF.h>
 
 namespace ausaxs::data {
-    class AtomExtended : public detail::AtomBasicForwarder<AtomExtended> {
+    class AtomExtended : public detail::AtomForwarder<AtomExtended> {
         using precision_t = constants::coords_precision_t;
         public:
-            AtomBasic& get_atom_basic() {return atom.get_atom_basic();}
-            const AtomBasic& get_atom_basic() const {return atom.get_atom_basic();}
+            Atom& get_atom_basic() {return atom.get_atom_basic();}
+            const Atom& get_atom_basic() const {return atom.get_atom_basic();}
 
             precision_t get_occupancy() const {return occupancy;}
             void set_occupancy(precision_t v) {occupancy = v;} 

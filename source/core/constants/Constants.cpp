@@ -60,46 +60,6 @@ constants::atom_t constants::symbols::parse_element_string(const std::string& el
     return constants::symbols::detail::string_to_atomt_map.get(element_string);
 }
 
-std::string constants::symbols::to_string(atom_t atom) {
-    switch(atom) {
-        case atom_t::H: return "H";
-        case atom_t::He: return "He";
-        case atom_t::Li: return "Li";
-        case atom_t::Be: return "Be";
-        case atom_t::B: return "B";
-        case atom_t::C: return "C";
-        case atom_t::N: return "N";
-        case atom_t::O: return "O";
-        case atom_t::F: return "F";
-        case atom_t::Ne: return "Ne";
-        case atom_t::Na: return "Na";
-        case atom_t::Mg: return "Mg";
-        case atom_t::Al: return "Al";
-        case atom_t::Si: return "Si";
-        case atom_t::P: return "P";
-        case atom_t::S: return "S";
-        case atom_t::Cl: return "Cl";
-        case atom_t::Ar: return "Ar";
-        case atom_t::K: return "K";
-        case atom_t::Ca: return "Ca";
-        case atom_t::Sc: return "Sc";
-        case atom_t::Ti: return "Ti";
-        case atom_t::V: return "V";
-        case atom_t::Cr: return "Cr";
-        case atom_t::Mn: return "Mn";
-        case atom_t::Fe: return "Fe";
-        case atom_t::Co: return "Co";
-        case atom_t::Ni: return "Ni";
-        case atom_t::Cu: return "Cu";
-        case atom_t::Zn: return "Zn";
-        case atom_t::I: return "I";
-        case atom_t::W: return "W";
-        case atom_t::M: return "M";
-        case atom_t::dummy: return "#";
-        default: throw std::runtime_error("constants::symbols::to_string: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
-    }
-}
-
 constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t atom_type, unsigned int hydrogens) {
     if (hydrogens == 0) {return constants::atomic_group_t::unknown;}
     switch (atom_type) {
@@ -199,47 +159,6 @@ unsigned int constants::valence::get_valence(atom_t atom) {
         case atom_t::Fe: return 4;
         case atom_t::M:  return 0;
         default: throw std::runtime_error("constants::valence::get_valence: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
-    }
-}
-
-double constants::mass::get_mass(atom_t atom) {
-    switch(atom) {
-        case atom_t::H: return 1.0079;
-        case atom_t::He: return 4.0026;
-        case atom_t::Li: return 6.941;
-        case atom_t::Be: return 9.0122;
-        case atom_t::B: return 10.811;
-        case atom_t::C: return 12.0107;
-        case atom_t::N: return 14.0067;
-        case atom_t::O: return 15.9994;
-        case atom_t::F: return 18.9984;
-        case atom_t::Ne: return 20.1797;
-        case atom_t::Na: return 22.9897;
-        case atom_t::Mg: return 24.305;
-        case atom_t::Al: return 26.9815;
-        case atom_t::Si: return 28.0855;
-        case atom_t::P: return 30.9738;
-        case atom_t::S: return 32.065;
-        case atom_t::Cl: return 35.453;
-        case atom_t::Ar: return 39.948;
-        case atom_t::K: return 39.0983;
-        case atom_t::Ca: return 40.078;
-        case atom_t::Sc: return 44.9559;
-        case atom_t::Ti: return 47.867;
-        case atom_t::V: return 50.9415;
-        case atom_t::Cr: return 51.9961;
-        case atom_t::Mn: return 54.938;
-        case atom_t::Fe: return 55.845;
-        case atom_t::Co: return 58.9332;
-        case atom_t::Ni: return 58.6934;
-        case atom_t::Cu: return 63.546;
-        case atom_t::Zn: return 65.39;
-        case atom_t::I: return 126.904;
-        case atom_t::W: return 183.84;
-        case atom_t::M: return 0;
-        case atom_t::dummy: return 1;
-        case atom_t::unknown: throw std::runtime_error("constants::mass::get_mass: Attempting to get mass of \"unknown\" atom type");
-        default: throw std::runtime_error("constants::mass:get_mass: Missing switch case for atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 

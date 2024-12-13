@@ -27,18 +27,22 @@ namespace ausaxs::data::detail {
         template<typename T>
         std::function<Vector3<T>(Vector3<T>)> get_transform(Vector3<T> cm, int repeat = 1) const;
 
+        bool operator==(const Symmetry& rhs) const = default;
+
         // translational vector with respect to the original body
         Vector3<double> translate;
 
         // external rotation with respect to an axis
-        struct {
+        struct _extrot {
             Vector3<double> center;
             Vector3<double> angle;
+            bool operator==(const _extrot& rhs) const = default;
         } external_rotate;
 
         // orientation with respect to the original body
-        struct {
+        struct _introt {
             Vector3<double> angle;
+            bool operator==(const _introt& rhs) const = default;
         } internal_rotate;
 
         // the number of times the symmetry should be repeated

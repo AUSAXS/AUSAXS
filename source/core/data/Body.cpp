@@ -4,8 +4,6 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <data/Body.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <data/state/UnboundSignaller.h>
 #include <data/Symmetry.h>
 #include <grid/Grid.h>
@@ -19,42 +17,37 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <numeric>
 
+#include <cassert>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-Body::Body() : uid(uid_counter++), file() {initialize();}
-Body::Body(const Body& body) : uid(body.uid), file(body.file) {initialize();}
-Body::Body(Body&& body) noexcept : uid(body.uid), file(std::move(body.file)) {initialize();}
+Body::Body() : uid(uid_counter++) {initialize();}
+Body::Body(const Body& body) : uid(body.uid) {initialize();}
+Body::Body(Body&& body) noexcept : uid(body.uid) {initialize();}
 Body::~Body() = default;
 
-Body::Body(const io::File& path) : uid(uid_counter++), file(path) {
+Body::Body(const io::File& path) : uid(uid_counter++) {
     initialize();
 }
 
-Body::Body(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms) : uid(uid_counter++), file(protein_atoms, hydration_atoms) {
+Body::Body(const std::vector<data::AtomFF>& atoms, const std::vector<data::Water>& waters) : uid(uid_counter++) {
     initialize();
 }
 
-Body::Body(const std::vector<record::Atom>& protein_atoms) : Body(protein_atoms, std::vector<record::Water>()) {}
+Body::Body(const std::vector<data::AtomFF>& atoms) : Body(atoms, std::vector<data::Water>()) {}
 
 void Body::initialize() {
     signal = std::make_shared<signaller::UnboundSignaller>();
 }
 
-void Body::add_implicit_hydrogens() {
-    changed_internal_state();
-    for (auto& a: get_atoms()) {
-        a.add_implicit_hydrogens();
-    }
-}
-
-void Body::save(const io::File& path) {file.write(path);}
+// data::detail::BodySymmetryFacade<Body> Body::symmetry() {return data::detail::BodySymmetryFacade<Body>(*this);}
+// data::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return data::detail::BodySymmetryFacade<const Body>(*this);}
 
 void Body::center() {
-    if (!centered) {
-        translate(-get_cm());
-        centered = true;
-    }
+    Vector3<double> cm = get_cm();
+    assert(cm.magnitude() != 0 && "Center of mass is zero. This is probably unintentional.");
+    translate(-get_cm());
 }
 
 Vector3<double> Body::get_cm() const {
@@ -62,58 +55,42 @@ Vector3<double> Body::get_cm() const {
     double M = 0; // total mass
     auto weighted_sum = [&cm, &M] (auto& atoms) {
         for (auto const& a : atoms) {
-            double m = a.get_mass();
+            double m = constants::mass::get_mass(a.get_form_factor_type());
             M += m;
-            cm += a.coords*m;
+            cm += a.coordinates()*m;
         }
     };
-    weighted_sum(file.protein_atoms);
-    weighted_sum(file.hydration_atoms);
+    weighted_sum(atoms);
+    weighted_sum(waters);
     return cm/M;
 }
 
 double Body::get_volume_vdw() const {
-    double volume = std::accumulate(file.protein_atoms.begin(), file.protein_atoms.end(), 0.0, [] (double sum, const record::Atom& atom) {
-        return sum + std::pow(constants::radius::get_vdw_radius(atom.get_element()), 3);
+    double volume = std::accumulate(atoms.begin(), atoms.end(), 0.0, [] (double sum, const data::AtomFF& atom) {
+        return sum + std::pow(constants::radius::get_vdw_radius(atom.get_form_factor_type()), 3);
     });
     return 4*std::numbers::pi*volume/3;
 }
 
-void Body::translate(const Vector3<double>& v) {
-    changed_external_state();
-
-    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&v] (record::Atom& atom) {atom.translate(v);});
-    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&v] (record::Water& atom) {atom.translate(v);});
+void Body::translate(Vector3<double> v) {
+    signal->external_change();
+    std::for_each(atoms.begin(), atoms.end(), [v] (data::AtomFF& atom) {atom.coordinates() += v;});
+    std::for_each(waters.begin(), waters.end(), [v] (data::Water& atom) {atom.coordinates() += v;});
 }
 
 void Body::rotate(const Matrix<double>& R) {
-    for (auto& atom : file.protein_atoms) {
-        atom.coords.rotate(R);
+    signal->external_change();
+    for (auto& atom : atoms) {
+        atom.coordinates().rotate(R);
     }
 
-    for (auto& atom : file.hydration_atoms) {
-        atom.coords.rotate(R);
+    for (auto& atom : waters) {
+        atom.coordinates().rotate(R);
     }
-}
-
-void Body::rotate(double alpha, double beta, double gamma) {
-    changed_external_state();
-    Matrix R = matrix::rotation_matrix(alpha, beta, gamma);
-    rotate(R);
-}
-
-void Body::rotate(const Vector3<double>& axis, double angle) {
-    changed_external_state();
-    Matrix R = matrix::rotation_matrix(axis, angle);
-    rotate(R);
 }
 
 double Body::get_total_atomic_charge() const {
-    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const record::Atom& atom) {return sum + atom.Z();});
-}
-
-double Body::get_total_effective_charge() const {
-    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [](double sum, const record::Atom& a) { return sum + a.get_effective_charge(); });
+    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const data::AtomFF& atom) {return sum + atom.weight();});
 }
 
 double Body::get_molar_mass() const {
@@ -122,24 +99,27 @@ double Body::get_molar_mass() const {
 
 double Body::get_absolute_mass() const {
     double M = 0;
-    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&M] (const record::Atom& a) {M += a.get_mass();});
-    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&M] (const record::Water& a) {M += a.get_mass();});
+    std::for_each(atoms.begin(), atoms.end(), [&M] (const data::AtomFF& a) {M += constants::mass::get_mass(a.get_form_factor_type());});
+    std::for_each(waters.begin(), waters.end(), [&M] (const data::Water& a) {M += constants::mass::get_mass(a.get_form_factor_type());});
     return M;
 }
 
 Body& Body::operator=(Body&& rhs) noexcept {
-    file = std::move(rhs.file); 
-    uid = rhs.uid;
-    changed_internal_state();
-    changed_external_state();
+    atoms = std::move(rhs.atoms);
+    waters = std::move(rhs.waters);
+    symmetries = std::move(rhs.symmetries);
+    uid = rhs.uid;    
+    signal->internal_change();
+    signal->external_change();
     return *this;
 }
 
 Body& Body::operator=(const Body& rhs) {
-    file = rhs.file; 
-    uid = rhs.uid;
-    changed_internal_state();
-    changed_external_state();
+    atoms = std::move(rhs.atoms);
+    waters = std::move(rhs.waters);
+    symmetries = std::move(rhs.symmetries);
+    signal->internal_change();
+    signal->external_change();
     return *this;
 }
 
@@ -148,12 +128,8 @@ bool Body::operator==(const Body& rhs) const {
 }
 
 bool Body::equals_content(const Body& rhs) const {
-    return file.equals_content(rhs.file);
+    return atoms == rhs.atoms && waters == rhs.waters && symmetries == rhs.symmetries;
 }
-
-void Body::changed_external_state() const {signal->external_change();}
-
-void Body::changed_internal_state() const {signal->internal_change();}
 
 std::shared_ptr<signaller::Signaller> Body::get_signaller() const {
     return signal;
@@ -163,44 +139,23 @@ void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
     this->signal = std::move(signal);
 }
 
-std::vector<record::Atom>& Body::get_atoms() {return file.protein_atoms;}
+std::vector<data::AtomFF>& Body::get_atoms() {return atoms;}
 
-std::vector<record::Water>& Body::get_waters() {return file.hydration_atoms;}
+std::vector<data::Water>& Body::get_waters() {return waters;}
 
-const std::vector<record::Atom>& Body::get_atoms() const {return file.protein_atoms;}
+const std::vector<data::AtomFF>& Body::get_atoms() const {return atoms;}
 
-const std::vector<record::Water>& Body::get_waters() const {return file.hydration_atoms;}
+const std::vector<data::Water>& Body::get_waters() const {return waters;}
 
-record::Atom& Body::get_atom(unsigned int index) {return file.protein_atoms[index];}
+data::AtomFF& Body::get_atom(unsigned int index) {return atoms[index];}
 
-const record::Atom& Body::get_atom(unsigned int index) const {return file.protein_atoms[index];}
+const data::AtomFF& Body::get_atom(unsigned int index) const {return atoms[index];}
 
-data::detail::Symmetry& Body::get_symmetry(unsigned int index) {return symmetries[index];}
+int Body::get_uid() const {return uid;}
 
-const data::detail::Symmetry& Body::get_symmetry(unsigned int index) const {return symmetries[index];}
+std::size_t Body::size_atom() const {return atoms.size();}
 
-data::detail::AtomCollection& Body::get_file() {return file;}
-
-int Body::get_id() const {return uid;}
-
-std::vector<data::detail::Symmetry>& Body::get_symmetries() {return symmetries;}
-const std::vector<data::detail::Symmetry>& Body::get_symmetries() const {return symmetries;}
-
-void Body::add_symmetry(const data::detail::Symmetry& symmetry) {
-    symmetries.push_back(symmetry);
-    changed_internal_state();
-    changed_external_state();
-}
-
-void Body::add_symmetry(data::detail::Symmetry&& symmetry) {
-    symmetries.push_back(std::move(symmetry));
-    changed_internal_state();
-    changed_external_state();
-}
-
-std::size_t Body::size_atom() const {return file.protein_atoms.size();}
-
-std::size_t Body::size_water() const {return file.hydration_atoms.size();}
+std::size_t Body::size_water() const {return waters.size();}
 
 std::size_t Body::size_symmetry() const {return symmetries.size();}
 

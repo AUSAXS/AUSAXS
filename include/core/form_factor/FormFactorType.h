@@ -102,3 +102,53 @@ namespace ausaxs::form_factor {
         }
     }
 }
+
+#include <constants/Constants.h>
+namespace ausaxs::constants::mass {
+    /**
+    * @brief Get the mass of an atom in amu.
+    */
+    constexpr double get_mass(form_factor::form_factor_t type) {
+        switch(type) {
+            case form_factor::form_factor_t::H: return get_mass(atom_t::H);
+            case form_factor::form_factor_t::C: return get_mass(atom_t::C);
+            case form_factor::form_factor_t::CH: return 13.019;
+            case form_factor::form_factor_t::CH2: return 14.027;
+            case form_factor::form_factor_t::CH3: return 15.035;
+            case form_factor::form_factor_t::N: return 14.00674;
+            case form_factor::form_factor_t::NH: return 15.01474;
+            case form_factor::form_factor_t::NH2: return 16.02274;
+            case form_factor::form_factor_t::NH3: return 17.03074;
+            case form_factor::form_factor_t::O: return 15.999;
+            case form_factor::form_factor_t::OH: return 16.999;
+            case form_factor::form_factor_t::S: return 32.06;
+            case form_factor::form_factor_t::SH: return 33.06;
+            case form_factor::form_factor_t::OTHER: return 39.948;
+            case form_factor::form_factor_t::EXCLUDED_VOLUME: return 0;
+            case form_factor::form_factor_t::COUNT: return 0;
+            default: throw std::runtime_error("constants::mass::get_mass: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+        }
+    }
+}
+
+namespace ausaxs::constants::radius {
+    constexpr double get_vdw_radius(form_factor::form_factor_t type) {
+        switch(type) {
+            case form_factor::form_factor_t::H: return get_vdw_radius(atom_t::H);
+            case form_factor::form_factor_t::C: return get_vdw_radius(atom_t::C);
+            case form_factor::form_factor_t::CH: return get_vdw_radius(atom_t::C);
+            case form_factor::form_factor_t::CH2: return get_vdw_radius(atom_t::C);
+            case form_factor::form_factor_t::CH3: return get_vdw_radius(atom_t::C);
+            case form_factor::form_factor_t::N: return get_vdw_radius(atom_t::N);
+            case form_factor::form_factor_t::NH: return get_vdw_radius(atom_t::N);
+            case form_factor::form_factor_t::NH2: return get_vdw_radius(atom_t::N);
+            case form_factor::form_factor_t::NH3: return get_vdw_radius(atom_t::N);
+            case form_factor::form_factor_t::O: return get_vdw_radius(atom_t::O);
+            case form_factor::form_factor_t::OH: return get_vdw_radius(atom_t::O);
+            case form_factor::form_factor_t::S: return get_vdw_radius(atom_t::S);
+            case form_factor::form_factor_t::SH: return get_vdw_radius(atom_t::S);
+            case form_factor::form_factor_t::OTHER: return get_vdw_radius(atom_t::Ar);
+            default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+        }
+    }
+}
