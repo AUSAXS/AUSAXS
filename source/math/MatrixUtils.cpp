@@ -28,7 +28,7 @@ template<numeric T>
 Matrix<T> matrix::rotation_matrix(const Vector3<T>& angles) {return rotation_matrix(angles.x(), angles.y(), angles.z());}
 
 template<numeric T>
-Matrix<T> matrix::rotation_matrix(const Vector3<T>& axis, T angle) {
+Matrix<T> matrix::rotation_matrix(const Vector3<T>& axis, double angle) {
     auto ax = axis; 
     ax.normalize();
     double a = std::cos(angle/2);
@@ -55,7 +55,7 @@ template Matrix<double> matrix::rotation_matrix(const Vector3<double>& angles);
 template Matrix<double> matrix::rotation_matrix(const Vector3<double>& axis, double angle);
 template Matrix<float> matrix::rotation_matrix(float alpha, float beta, float gamma);
 template Matrix<float> matrix::rotation_matrix(const Vector3<float>& angles);
-template Matrix<float> matrix::rotation_matrix(const Vector3<float>& axis, float angle);
+template Matrix<float> matrix::rotation_matrix(const Vector3<float>& axis, double angle);
 
 Matrix<double> matrix::identity(unsigned int dim) {
     Matrix<double> A(dim, dim);

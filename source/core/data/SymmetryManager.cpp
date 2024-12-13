@@ -61,6 +61,10 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
 
             auto t = symmetry.get_transform(cm);
 
+            for (int i = 0; i < static_cast<int>(data_a_transformed.get_data().size()); ++i) {
+                std::cout << "before: " << data_a_transformed.get_data()[i].value.pos << std::endl;
+            }
+
             // for every symmetry, loop over how many times it should be repeated
             // it is then repeatedly applied to the same data
             for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
@@ -76,6 +80,9 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
                     data_w_transformed.get_data().begin(), 
                     [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
                 );
+                for (int i = 0; i < static_cast<int>(data_a_transformed.get_data().size()); ++i) {
+                    std::cout << "after: " << data_a_transformed.get_data()[i].value.pos << std::endl;
+                }
                 if (i_repeat == symmetry.repeat-1) {
                     sym_atomic[i_repeat] = std::move(data_a_transformed);
                     sym_water [i_repeat] = std::move(data_w_transformed);
@@ -263,7 +270,6 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
     // scale the selected cross histograms
     for (int i = 0; i < static_cast<int>(scale_result.size()); ++i) {
         scale_hist(res.cross[scale_result[i].index], scale_result[i].scale);
-        if (scale_result[i].scale != 1) std::cout << "scaled " << scale_result[i].index << " by " << scale_result[i].scale << std::endl;
     }
 
     GenericDistribution1D_t p_aa = res.self[0];

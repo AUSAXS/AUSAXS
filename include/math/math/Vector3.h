@@ -24,6 +24,13 @@ namespace ausaxs {
 				*this = l;
 			}
 
+			template<typename Q> requires std::is_floating_point_v<Q>
+			Vector3(const Vector3<Q>& v) {
+				data[0] = static_cast<T>(v[0]);
+				data[1] = static_cast<T>(v[1]);
+				data[2] = static_cast<T>(v[2]);
+			}
+
 			Vector3(const Vector<T>& v) {
 				assert(v.size() == 3 && "Vector3: Vector must have size 3");
 				std::copy_n(v.begin(), 3, data.begin());

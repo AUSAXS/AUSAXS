@@ -14,6 +14,35 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
+struct RES {
+    RES(double d, int v) : index(std::round(d*constants::axes::d_inv_width)), val(v) {}
+    int index;
+    int val;
+};
+
+void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
+    std::sort(checks.begin(), checks.end(), [](const RES& a, const RES& b) {return a.index < b.index;});
+    REQUIRE(checks.back().index < static_cast<int>(h.size()));
+    int j = 0;
+    for (int i = 0; i < static_cast<int>(h.size()); ++i) {
+        if (i == checks[j].index) {
+            if (h[i] != checks[j].val) {
+                INFO("i = " << i << ", dist = " << i*constants::axes::d_axis.width());
+                INFO("h[i] = " << h[i] << ", checks[j].val = " << checks[j].val);
+                CHECK(false);
+            }
+            ++j;
+        } else {
+            if (h[i] != 0) {
+                INFO("i = " << i << ", dist = " << i*constants::axes::d_axis.width());
+                INFO("h[i] = " << h[i] << ", checks[j].val = " << 0);
+                CHECK(false);
+            }
+        }
+    }
+    SUCCEED();
+}
+
 TEST_CASE("SymmetryManager: translations") {
     settings::molecule::implicit_hydrogens = false;
 
@@ -25,11 +54,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-            REQUIRE(1 <= h.size());
-            CHECK(h[0] == 1);
-            for (int i = 1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {RES(0, 1)});
         }
 
         SECTION("one copy") {
@@ -37,17 +62,10 @@ TEST_CASE("SymmetryManager: translations") {
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin = std::round(1*constants::axes::d_inv_width);
-            REQUIRE(bin < static_cast<int>(h.size()));
-            CHECK(h[0] == 2);
-            for (int i = 1; i < bin; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[std::round(1*constants::axes::d_inv_width)] == 2);
-            for (int i = bin+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 2), 
+                RES(1, 2)
+            });
         }
 
         SECTION("two copies") {
@@ -56,22 +74,11 @@ TEST_CASE("SymmetryManager: translations") {
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(2*constants::axes::d_inv_width);
-            REQUIRE(bin2 < static_cast<int>(h.size()));
-            CHECK(h[0] == 3);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 4);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 2);
-            for (int i = bin2+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 3), 
+                RES(1, 4), 
+                RES(2, 2)
+            });
         }
 
         SECTION("four copies") {
@@ -82,27 +89,12 @@ TEST_CASE("SymmetryManager: translations") {
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            int bin3 = std::round(2*constants::axes::d_inv_width);
-            REQUIRE(bin3 < static_cast<int>(h.size()));
-            CHECK(h[0] == 5);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 8);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 8);
-            for (int i = bin2+1; i < bin3; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin3] == 4);
-            for (int i = bin3+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 5), 
+                RES(1, 8), 
+                RES(std::sqrt(2), 8), 
+                RES(2, 4)
+            });
         }
     }
 
@@ -116,17 +108,10 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            REQUIRE(bin1 < static_cast<int>(h.size()));
-            CHECK(h[0] == 2);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 2);
-            for (int i = bin1+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 2), 
+                RES(1, 2)
+            });
         }
 
         SECTION("one copy") {
@@ -134,22 +119,11 @@ TEST_CASE("SymmetryManager: translations") {
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            REQUIRE(bin1 < static_cast<int>(h.size()));
-            CHECK(h[0] == 4);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 8);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 4);
-            for (int i = bin2+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 4), 
+                RES(1, 8), 
+                RES(std::sqrt(2), 4)
+            });
         }
 
         SECTION("two copies") {
@@ -158,32 +132,13 @@ TEST_CASE("SymmetryManager: translations") {
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            int bin3 = std::round(2*constants::axes::d_inv_width);
-            int bin4 = std::round(std::sqrt(5)*constants::axes::d_inv_width);
-            REQUIRE(bin4 < static_cast<int>(h.size()));
-            CHECK(h[0] == 6);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 14);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 8);
-            for (int i = bin2+1; i < bin3; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin3] == 4);
-            for (int i = bin3+1; i < bin4; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin4] == 4);
-            for (int i = bin4+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 6), 
+                RES(1, 14), 
+                RES(std::sqrt(2), 8), 
+                RES(2, 4),
+                RES(std::sqrt(5), 4)
+            });
         }
     }
 
@@ -199,17 +154,10 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            REQUIRE(bin1 < static_cast<int>(h.size()));
-            CHECK(h[0] == 2);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 2);
-            for (int i = bin1+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 2), 
+                RES(1, 2)
+            });
         }
 
         SECTION("one copy of body1") {
@@ -217,22 +165,11 @@ TEST_CASE("SymmetryManager: translations") {
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            REQUIRE(bin1 < static_cast<int>(h.size()));
-            CHECK(h[0] == 3);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 4);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 2);
-            for (int i = bin2+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 3), 
+                RES(1, 4), 
+                RES(std::sqrt(2), 2)
+            });
         }
 
         SECTION("one copy of each #1") {
@@ -241,23 +178,11 @@ TEST_CASE("SymmetryManager: translations") {
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-
-            REQUIRE(bin2 < static_cast<int>(h.size()));
-            CHECK(h[0] == 4);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 8);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 4);
-            for (int i = bin2+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 4), 
+                RES(1, 8), 
+                RES(std::sqrt(2), 4)
+            });
         }
 
         SECTION("one copy of each #2") {
@@ -266,28 +191,12 @@ TEST_CASE("SymmetryManager: translations") {
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(2*constants::axes::d_inv_width);
-            int bin3 = std::round(3*constants::axes::d_inv_width);
-
-            REQUIRE(bin3 < static_cast<int>(h.size()));
-            CHECK(h[0] == 4);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 6);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 4);
-            for (int i = bin2+1; i < bin3; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin3] == 2);
-            for (int i = bin3+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 4), 
+                RES(1, 6),
+                RES(2, 4),
+                RES(3, 2)
+            });
         }        
     }
 
@@ -416,54 +325,28 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         Molecule m({a});
 
         SECTION("two repeats") {
-            m.get_body(0).add_symmetry({Vector3<double>(1, 0, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
+            m.get_body(0).add_symmetry({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(2*constants::axes::d_inv_width);
-            REQUIRE(bin2 < static_cast<int>(h.size()));
-            CHECK(h[0] == 3);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 4);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 2);
-            for (int i = bin2+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 3), 
+                RES(1, 4),
+                RES(2, 2)
+            });
         }
 
         SECTION("three repeats") {
-            m.get_body(0).add_symmetry({Vector3<double>(1, 0, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 3});
+            m.get_body(0).add_symmetry({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(2*constants::axes::d_inv_width);
-            int bin3 = std::round(3*constants::axes::d_inv_width);
-            REQUIRE(bin2 < static_cast<int>(h.size()));
-            CHECK(h[0] == 4);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 6);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 4);
-            for (int i = bin2+1; i < bin3; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin3] == 2);
-            for (int i = bin3+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 4), 
+                RES(1, 6),
+                RES(2, 4),
+                RES(3, 2)
+            });
         }
     }
 
@@ -477,71 +360,33 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         Molecule m({b1, b2});
 
         SECTION("two repeats") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
-            m.get_body(1).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
+            m.get_body(0).add_symmetry({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(1).add_symmetry({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            int bin3 = std::round(2*constants::axes::d_inv_width);
-            int bin4 = std::round(std::sqrt(5)*constants::axes::d_inv_width);
-            REQUIRE(bin3 < static_cast<int>(h.size()));
-            CHECK(h[0] == 6);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 14);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 8);
-            for (int i = bin2+1; i < bin3; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin3] == 4);
-            for (int i = bin3+1; i < bin4; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin4] == 4);
-            for (int i = bin4+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 6), 
+                RES(1, 14),
+                RES(std::sqrt(2), 8),
+                RES(2, 4),
+                RES(std::sqrt(5), 4)
+            });
         }
 
         SECTION("different repeats") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 1});
-            m.get_body(1).add_symmetry({Vector3<double>(0, 1, 0), Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 2});
+            m.get_body(0).add_symmetry({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 1});
+            m.get_body(1).add_symmetry({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
-
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            int bin3 = std::round(2*constants::axes::d_inv_width);
-            int bin4 = std::round(std::sqrt(5)*constants::axes::d_inv_width);
-            REQUIRE(bin3 < static_cast<int>(h.size()));
-            CHECK(h[0] == 5);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 10);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 6);
-            for (int i = bin2+1; i < bin3; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin3] == 2);
-            for (int i = bin3+1; i < bin4; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin4] == 2);
-            for (int i = bin4+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 5), 
+                RES(1, 10),
+                RES(std::sqrt(2), 6),
+                RES(2, 2),
+                RES(std::sqrt(5), 2)
+            });
         }
     }
 }
@@ -556,44 +401,108 @@ TEST_CASE("SymmetryManager: rotations") {
         Molecule m({a});
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({{0., 1., 0.}, std::numbers::pi/2});
+            m.get_body(0).add_symmetry({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
-
-            int bin1 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            REQUIRE(bin1 < static_cast<int>(h.size()));
-            CHECK(h[0] == 2);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 2);
-            for (int i = bin1+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            check_hist(h, {
+                RES(0, 2), 
+                RES(std::sqrt(2), 2)
+            });
         }
 
         SECTION("three copies") {
-            m.get_body(0).add_symmetry({{0., 0., 0.}, {0., 1., 0.}, std::numbers::pi/2, {0., 0., 0.}, 3});
+            m.get_body(0).add_symmetry({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, {0., 0., 0.}, 3});
+
+            hist::detail::SymmetryManager sm;
+            auto h = sm.calculate<true>(m)->get_total_counts();
+            check_hist(h, {
+                RES(0, 4), 
+                RES(std::sqrt(2), 8),
+                RES(2, 4)
+            });
+        }
+    }
+}
+
+TEST_CASE("SymmetryManager: multi-atom systems") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+
+    SECTION("line") {
+        record::Atom a1(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
+        record::Atom a2(Vector3<double>(2, 0, 0), 1, constants::atom_t::C, "C", 1);
+        record::Atom a3(Vector3<double>(3, 0, 0), 1, constants::atom_t::C, "C", 1);
+        a1.set_effective_charge(1);
+        a2.set_effective_charge(1);
+        a3.set_effective_charge(1);
+        Molecule m({a1, a2, a3});
+
+        SECTION("cross") {
+            // external rotate pi/2 around the y-axis and replicate thrice
+            // this gives the structure
+            //
+            //       x
+            //       x
+            //       x
+            // x x x   x x x
+            //       x
+            //       x
+            //       x
+            //
+            m.get_body(0).add_symmetry({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, 0}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
 
-            int bin1 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            int bin2 = std::round(2*constants::axes::d_inv_width);
-            REQUIRE(bin1 < static_cast<int>(h.size()));
-            CHECK(h[0] == 4);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin1] == 8);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(h[i] == 0);
-            }
-            CHECK(h[bin2] == 4);
-            for (int i = bin2+1; i < static_cast<int>(h.size()); ++i) {
-                CHECK(h[i] == 0);
-            }
+            std::vector<RES> checks = {
+                {0, 12},
+                {1, 16},
+                {2, 12},
+                {3, 8},
+                {4, 12},
+                {5, 8},
+                {6, 4},
+                {std::sqrt(2), 8},
+                {std::sqrt(5), 16},
+                {std::sqrt(8), 8},
+                {std::sqrt(10), 16},
+                {std::sqrt(13), 16},
+                {std::sqrt(18), 8}
+            };
+            check_hist(h, checks);
+        }
+
+        SECTION("cross with rotated arms") {
+            // external rotate pi/2 around the y-axis while also rotating -pi/2 around itself, and replicate thrice
+            // this gives the structure
+            //
+            //       x
+            //       x
+            //   x   x   x
+            //   x       x
+            //   x   x   x
+            //       x
+            //       x
+            //
+            m.get_body(0).add_symmetry({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, -std::numbers::pi/2}, 3});
+
+            hist::detail::SymmetryManager sm;
+            auto h = sm.calculate<true>(m)->get_total_counts();
+            std::vector<RES> checks = {
+                {1, 8},
+                {2, 4},
+                {4, 6},
+                {std::sqrt(2), 4},
+                {std::sqrt(5), 8},
+                {std::sqrt(8), 4},
+                {std::sqrt(10), 8},
+                {std::sqrt(13), 8},
+                {std::sqrt(17), 8},
+                {std::sqrt(18), 4},
+                {std::sqrt(20), 4}
+            };
+            check_hist(h, checks);
         }
     }
 }

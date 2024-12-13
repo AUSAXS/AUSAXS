@@ -27,11 +27,11 @@ namespace ausaxs::matrix {
      * @param angle The rotation angle.
      */
     template<numeric T>
-    Matrix<T> rotation_matrix(const Vector3<T>& axis, T angle);
+    Matrix<T> rotation_matrix(const Vector3<T>& axis, double angle);
 
     // enable if the angle type is different from the axis type
     template<numeric T, numeric Q> requires (!std::same_as<Q, T>)
-    Matrix<T> rotation_matrix(const Vector3<Q>& axis, Q angle) {
+    Matrix<T> rotation_matrix(const Vector3<Q>& axis, double angle) {
         return rotation_matrix<T>({static_cast<T>(axis.x()), static_cast<T>(axis.y()), static_cast<T>(axis.z())}, static_cast<T>(angle));
     }
 

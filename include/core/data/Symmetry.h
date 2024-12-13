@@ -6,17 +6,17 @@
 namespace ausaxs::data::detail {
     struct Symmetry {
         Symmetry() = default;
-        Symmetry(Vector3<double> translate, Vector3<double> external_axis, double external_angle, Vector3<double> internal_rotate, int repeat) : 
+        Symmetry(Vector3<double> translate, Vector3<double> center, Vector3<double> angles, Vector3<double> internal_rotate, int repeat) : 
             translate(translate), 
-            external_rotate{external_axis, external_angle}, 
+            external_rotate{center, angles}, 
             internal_rotate(internal_rotate), 
             repeat(repeat) 
         {}
-        Symmetry(Vector3<double> translate, Vector3<double> external_axis, double external_angle, Vector3<double> internal_rotate) : 
-            Symmetry(translate, external_axis, external_angle, internal_rotate, 1) 
+        Symmetry(Vector3<double> translate, Vector3<double> center, Vector3<double> angles, Vector3<double> internal_rotate) : 
+            Symmetry(translate, center, angles, internal_rotate, 1) 
         {}
-        Symmetry(Vector3<double> translate) : Symmetry(translate, Vector3<double>(0, 0, 0), 0, Vector3<double>(0, 0, 0), 1) {}
-        Symmetry(Vector3<double> external_axis, double angle) : Symmetry(Vector3<double>(0, 0, 0), external_axis, angle, {0, 0, 0}, 1) {}
+        Symmetry(Vector3<double> translate) : Symmetry(translate, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 1) {}
+        Symmetry(Vector3<double> center, Vector3<double> angles) : Symmetry({0, 0, 0}, center, angles, {0, 0, 0}, 1) {}
 
         /**
          * @brief Get the transformation function for this symmetry.
@@ -29,12 +29,14 @@ namespace ausaxs::data::detail {
 
         // external rotation with respect to an axis
         struct {
-            Vector3<double> axis;
-            double angle;
+            Vector3<double> center;
+            Vector3<double> angle;
         } external_rotate;
 
         // orientation with respect to the original body
-        Vector3<double> internal_rotate;
+        struct {
+            Vector3<double> angle;
+        } internal_rotate;
 
         // the number of times the symmetry should be repeated
         int repeat;
@@ -44,60 +46,18 @@ namespace ausaxs::data::detail {
     static_assert(supports_nothrow_move_v<Symmetry>,    "Symmetry should support nothrow move semantics.");   
 }
 
-template<typename T>
-std::function<ausaxs::Vector3<T>(ausaxs::Vector3<T>)> ausaxs::data::detail::Symmetry::get_transform(Vector3<T> cm) const {
-    bool translate = this->translate != Vector3<T>(0, 0, 0);
-    bool internal_rotate = this->internal_rotate != Vector3<T>(0, 0, 0);
-    bool external_rotate = this->external_rotate.angle != 0;
+template<typename Q>
+std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::data::detail::Symmetry::get_transform(Vector3<Q> cm) const {
+    // v' = r_ext * (r_int * (v - p_cm) + p_cm - p_sym) + p_sym + t
+    //    = r_ext*r_int*v - r_ext*r_int*p_cm + r_ext*p_cm - r_ext*p_sym + p_sym + t
+    //    = r_ext*r_int*v + (r_ext*p_cm - r_ext*r_int*p_cm - r_ext*p_sym + p_sym + t)
+    auto r_ext = matrix::rotation_matrix<Q>(external_rotate.angle);
+    auto r_int = matrix::rotation_matrix<Q>(internal_rotate.angle);
+    auto p_sym = external_rotate.center;
+    auto p_cm = cm;
+    auto t = translate;
 
-    if (internal_rotate && external_rotate) {
-        Matrix<T> internal_rotate = matrix::rotation_matrix<T>(this->internal_rotate);
-        Matrix<T> external_rotate = matrix::rotation_matrix<T>(this->external_rotate.axis, this->external_rotate.angle);
-
-        if (translate) {
-            return [cm, r_int=internal_rotate, r_ext=external_rotate, t=this->translate](Vector3<T> v) {
-                return r_ext*(r_int*(v-cm) + cm) + t;
-            };
-        } else {
-            return [cm, r_int=internal_rotate, r_ext=external_rotate](Vector3<T> v) {
-                return r_ext*(r_int*(v-cm) + cm);
-            };
-        }
-    }
-
-    if (internal_rotate) {
-        Matrix<T> internal_rotate = matrix::rotation_matrix<T>(this->internal_rotate);
-
-        if (translate) {
-            return [cm, r_int=internal_rotate, t=this->translate](Vector3<T> v) {
-                return r_int*(v-cm) + cm + t;
-            };
-        } else {
-            return [cm, r_int=internal_rotate](Vector3<T> v) {
-                return r_int*(v-cm) + cm;
-            };
-        }
-    }
-
-    if (external_rotate) {
-        Matrix<T> external_rotate = matrix::rotation_matrix<T>(this->external_rotate.axis, this->external_rotate.angle);
-
-        if (translate) {
-            return [r_ext=external_rotate, t=this->translate](Vector3<T> v) {
-                return r_ext*v + t;
-            };
-        } else {
-            return [r_ext=external_rotate](Vector3<T> v) {
-                return r_ext*v;
-            };
-        }
-    }
-
-    if (translate) {
-        return [t=this->translate](Vector3<T> v) {
-            return v + t;
-        };
-    }
-
-    return [] (Vector3<T> v) {return v;};
+    Matrix<Q> R = r_ext*r_int;
+    Vector3<Q> T = r_ext*p_cm - R*p_cm- r_ext*p_sym + p_sym + t;
+    return [R, T] (Vector3<Q> v) {return R*v + T;};
 }

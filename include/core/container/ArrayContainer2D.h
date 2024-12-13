@@ -7,10 +7,10 @@
 #endif
 
 namespace ausaxs::container {
-    template <typename T, int size_x, int size_y>
+    template <typename T, int N, int M>
     class ArrayContainer2D {
         public:
-            constexpr ArrayContainer2D() noexcept : N(size_x), M(size_y), data{} {}
+            constexpr ArrayContainer2D() noexcept = default;
 
             /**
              * @brief Get the value at index i, j, k. 
@@ -25,7 +25,7 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the beginning of the vector at index i.
              */
-            const typename std::array<T, size_y>::const_iterator begin(unsigned int i) const {
+            const typename std::array<T, M>::const_iterator begin(unsigned int i) const {
                 #if SAFE_MATH
                     if (i >= N) {
                         throw except::out_of_bounds("ArrayContainer2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
@@ -37,7 +37,7 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the end of the vector at index i.
              */
-            const typename std::array<T, size_y>::const_iterator end(unsigned int i) const {
+            const typename std::array<T, M>::const_iterator end(unsigned int i) const {
                 #if SAFE_MATH
                     if (i >= N) {
                         throw except::out_of_bounds("ArrayContainer2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
@@ -49,7 +49,7 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the beginning of the vector at index i.
              */
-            typename std::array<T, size_y>::iterator begin(unsigned int i) {
+            typename std::array<T, M>::iterator begin(unsigned int i) {
                 #if SAFE_MATH
                     if (i >= N) {
                         throw except::out_of_bounds("ArrayContainer2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
@@ -61,7 +61,7 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the end of the vector at index i.
              */
-            typename std::array<T, size_y>::iterator end(unsigned int i) {
+            typename std::array<T, M>::iterator end(unsigned int i) {
                 #if SAFE_MATH
                     if (i >= N) {
                         throw except::out_of_bounds("ArrayContainer2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
@@ -73,26 +73,24 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the beginning of the entire container.
              */
-            const typename std::array<T, size_y>::const_iterator begin() const {return data.begin();}
+            const typename std::array<T, M>::const_iterator begin() const {return data.begin();}
 
             /**
              * @brief Get an iterator to the beginning of the entire container.
              */
-            const typename std::array<T, size_y>::const_iterator end() const {return data.end();}
+            const typename std::array<T, M>::const_iterator end() const {return data.end();}
 
             /**
              * @brief Get an iterator to the beginning of the entire container.
              */
-            typename std::array<T, size_y>::iterator begin() {return data.begin();}
+            typename std::array<T, M>::iterator begin() {return data.begin();}
 
             /**
              * @brief Get an iterator to the beginning of the entire container.
              */
-            typename std::array<T, size_y>::iterator end() {return data.end();}
-
-            std::size_t N, M;
+            typename std::array<T, M>::iterator end() {return data.end();}
 
         protected:
-            std::array<T, size_x*size_y> data;
+            std::array<T, N*M> data;
     };
 }
