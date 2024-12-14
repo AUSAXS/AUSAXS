@@ -4,16 +4,16 @@
 #include <residue/ResidueStorage.h>
 #include <constants/ConstantsFwd.h>
 #include <constants/ConstantsAxes.h>
-#include <constants/ConstantsCoords.h>
+#include <constants/ConstantsCoordinates.h>
 #include <constants/ConstantsFitParameters.h>
+#include <constants/ConstantsProperties.h>
 #include <constants/ValidFileExtensions.h>
 #include <constants/Version.h>
-#include <constants/SI.h>
+#include <constants/ConstantsSI.h>
 #include <io/IOFwd.h>
 #include <math/ConstexprMath.h>
 
 #include <string>
-#include <stdexcept>
 
 /**
  * @brief This namespace contains all constants used in this project. 
@@ -63,28 +63,6 @@ namespace ausaxs::constants {
     namespace volume {
         // get the volume of a 3symbol amino acid
         extern const saxs::detail::SimpleMap<double> amino_acids;
-    }
-
-    /**
-     * @brief Mass 
-     * 
-     * This namespace contains the masses of the most common atomic elements encountered in SAXS. 
-     */
-    namespace mass {
-        /**
-         * @brief Get the mass of an atom in u.
-         */
-        constexpr double get_mass(atom_t atom);
-
-        /**
-         * @brief Get the mass of an atomic group in u.
-         */
-        constexpr double get_mass(atomic_group_t group); 
-
-        namespace density {
-            constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3;
-            constexpr double protein = 1.35*SI::mass::gm/SI::volume::cm3;
-        }
     }
 
     /**
@@ -153,8 +131,8 @@ namespace ausaxs::constants {
         }
 
         atom_t parse_element_string(const std::string& element_string);
-        constexpr std::string to_string(atom_t atom);
-        constexpr std::string to_string(atomic_group_t group);
+        std::string to_string(atom_t atom);
+        std::string to_string(atomic_group_t group);
 
         /**
          * @brief Get the atomic group of an atom.
@@ -180,116 +158,5 @@ namespace ausaxs::constants {
     namespace hydrogen_atoms {
         // get the number of hydrogen atoms attached to an atom of a specific acid. Example: get.at("GLY").at("CA") = 2
         extern residue::ResidueStorage residues;
-    }
-}
-
-constexpr double ausaxs::constants::mass::get_mass(atom_t atom) {
-    switch(atom) {
-        case atom_t::H: return 1.0079;
-        case atom_t::He: return 4.0026;
-        case atom_t::Li: return 6.941;
-        case atom_t::Be: return 9.0122;
-        case atom_t::B: return 10.811;
-        case atom_t::C: return 12.0107;
-        case atom_t::N: return 14.0067;
-        case atom_t::O: return 15.9994;
-        case atom_t::F: return 18.9984;
-        case atom_t::Ne: return 20.1797;
-        case atom_t::Na: return 22.9897;
-        case atom_t::Mg: return 24.305;
-        case atom_t::Al: return 26.9815;
-        case atom_t::Si: return 28.0855;
-        case atom_t::P: return 30.9738;
-        case atom_t::S: return 32.065;
-        case atom_t::Cl: return 35.453;
-        case atom_t::Ar: return 39.948;
-        case atom_t::K: return 39.0983;
-        case atom_t::Ca: return 40.078;
-        case atom_t::Sc: return 44.9559;
-        case atom_t::Ti: return 47.867;
-        case atom_t::V: return 50.9415;
-        case atom_t::Cr: return 51.9961;
-        case atom_t::Mn: return 54.938;
-        case atom_t::Fe: return 55.845;
-        case atom_t::Co: return 58.9332;
-        case atom_t::Ni: return 58.6934;
-        case atom_t::Cu: return 63.546;
-        case atom_t::Zn: return 65.39;
-        case atom_t::I: return 126.904;
-        case atom_t::W: return 183.84;
-        case atom_t::M: return 0;
-        case atom_t::dummy: return 1;
-        case atom_t::unknown: throw std::runtime_error("constants::mass::get_mass: Attempting to get mass of \"unknown\" atom type");
-        default: throw std::runtime_error("constants::mass:get_mass: Missing switch case for atom type \"" + constants::symbols::to_string(atom) + "\"");
-    }
-}
-
-constexpr double ausaxs::constants::mass::get_mass(atomic_group_t group) {
-    switch(group) {
-        case atomic_group_t::CH: return get_mass(atom_t::C) + get_mass(atom_t::H);
-        case atomic_group_t::CH2: return get_mass(atom_t::C) + 2*get_mass(atom_t::H);
-        case atomic_group_t::CH3: return get_mass(atom_t::C) + 3*get_mass(atom_t::H);
-        case atomic_group_t::NH: return get_mass(atom_t::N) + get_mass(atom_t::H);
-        case atomic_group_t::NH2: return get_mass(atom_t::N) + 2*get_mass(atom_t::H);
-        case atomic_group_t::NH3: return get_mass(atom_t::N) + 3*get_mass(atom_t::H);
-        case atomic_group_t::OH: return get_mass(atom_t::O) + get_mass(atom_t::H);
-        case atomic_group_t::SH: return get_mass(atom_t::S) + get_mass(atom_t::H);
-        case atomic_group_t::unknown: throw std::runtime_error("constants::mass::get_mass: Attempting to get mass of \"unknown\" atomic group");
-        default: throw std::runtime_error("constants::mass::get_mass: Missing switch case for atomic group \"" + constants::symbols::to_string(group) + "\"");
-    }
-}
-
-constexpr std::string ausaxs::constants::symbols::to_string(atom_t atom) {
-    switch(atom) {
-        case atom_t::H: return "H";
-        case atom_t::He: return "He";
-        case atom_t::Li: return "Li";
-        case atom_t::Be: return "Be";
-        case atom_t::B: return "B";
-        case atom_t::C: return "C";
-        case atom_t::N: return "N";
-        case atom_t::O: return "O";
-        case atom_t::F: return "F";
-        case atom_t::Ne: return "Ne";
-        case atom_t::Na: return "Na";
-        case atom_t::Mg: return "Mg";
-        case atom_t::Al: return "Al";
-        case atom_t::Si: return "Si";
-        case atom_t::P: return "P";
-        case atom_t::S: return "S";
-        case atom_t::Cl: return "Cl";
-        case atom_t::Ar: return "Ar";
-        case atom_t::K: return "K";
-        case atom_t::Ca: return "Ca";
-        case atom_t::Sc: return "Sc";
-        case atom_t::Ti: return "Ti";
-        case atom_t::V: return "V";
-        case atom_t::Cr: return "Cr";
-        case atom_t::Mn: return "Mn";
-        case atom_t::Fe: return "Fe";
-        case atom_t::Co: return "Co";
-        case atom_t::Ni: return "Ni";
-        case atom_t::Cu: return "Cu";
-        case atom_t::Zn: return "Zn";
-        case atom_t::I: return "I";
-        case atom_t::W: return "W";
-        case atom_t::M: return "M";
-        case atom_t::dummy: return "#";
-        default: throw std::runtime_error("constants::symbols::to_string: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
-    }
-}
-
-constexpr std::string ausaxs::constants::symbols::to_string(atomic_group_t group) {
-    switch(group) {
-        case atomic_group_t::CH: return "CH";
-        case atomic_group_t::CH2: return "CH2";
-        case atomic_group_t::CH3: return "CH3";
-        case atomic_group_t::NH: return "NH";
-        case atomic_group_t::NH2: return "NH2";
-        case atomic_group_t::NH3: return "NH3";
-        case atomic_group_t::OH: return "OH";
-        case atomic_group_t::SH: return "SH";
-        case atomic_group_t::unknown: return "unknown";
-        default: throw std::runtime_error("constants::symbols::to_string: Unknown atomic group \"" + std::to_string(static_cast<int>(group)) + "\"");
     }
 }

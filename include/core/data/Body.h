@@ -85,11 +85,6 @@ namespace ausaxs::data {
 			 */
 			[[nodiscard]] double get_total_atomic_charge() const;
 
-			/**
-			 * @brief Center this Body on origo. 
-			 */
-			void center();
-
 			/** 
 			 * @brief Translate all atoms by a given vector.
 			 */
@@ -154,15 +149,16 @@ namespace ausaxs::data {
 			std::shared_ptr<signaller::Signaller> get_signaller() const;
 
 		private:
-			std::vector<data::AtomFF> atoms;			// The atoms of this body
-			std::vector<data::Water> waters;			// The waters of this body
-			std::vector<detail::Symmetry> symmetries;	// The symmetries of this body
+			std::vector<data::AtomFF> atoms;
+			std::vector<data::Water> waters;
+			// std::unique_ptr<hydrate::Hydration> hydration;
+			std::vector<detail::Symmetry> symmetries;
 
-			int uid;                     				// A unique identifier for this body
-			inline static unsigned int uid_counter = 0; // The unique counter. 
+			int uid;
+			inline static unsigned int uid_counter = 0;
 
 			// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
-			std::shared_ptr<signaller::Signaller> signal; //! move to Molecule?
+			std::shared_ptr<signaller::Signaller> signal;
 
 			void initialize();
 	};

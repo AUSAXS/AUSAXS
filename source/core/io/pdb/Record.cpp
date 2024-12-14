@@ -3,13 +3,13 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <data/record/Record.h>
+#include <io/pdb/Record.h>
 
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
+using namespace ausaxs::io::pdb;
 
 RecordType Record::get_type(const std::string& s) {
     auto str = utility::remove_all(s, " \r"); // remove any space or carriage returns, since programs are inconsistent with the spacing after e.g. END or TER

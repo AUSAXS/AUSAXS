@@ -1,8 +1,8 @@
 #pragma once
 
-#include <data/record/Record.h>
+#include <io/pdb/Record.h>
 
-namespace ausaxs::data::record {
+namespace ausaxs::io::pdb {
 	/**
 	 * @brief A representation of a Terminate record. 
 	 */

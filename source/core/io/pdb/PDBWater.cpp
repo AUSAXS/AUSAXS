@@ -3,33 +3,33 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <data/record/Water.h>
+#include <io/pdb/PDBWater.h>
 #include <constants/Constants.h>
 #include <utility/Concepts.h>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
+using namespace ausaxs::io::pdb;
 
-Water::Water(Atom&& a) noexcept : Atom(std::move(a)) {set_residue_name("HOH");}
-Water::Water(const Atom& a) : Atom(a) {set_residue_name("HOH");}
+PDBWater::PDBWater(PDBAtom&& a) noexcept : PDBAtom(std::move(a)) {set_residue_name("HOH");}
+PDBWater::PDBWater(const PDBAtom& a) : PDBAtom(a) {set_residue_name("HOH");}
 
-RecordType Water::get_type() const {return RecordType::WATER;}
+RecordType PDBWater::get_type() const {return RecordType::WATER;}
 
-std::string Water::get_recName() const {return "HETATM";}
+std::string PDBWater::get_recName() const {return "HETATM";}
 
-double Water::get_mass() const {return constants::mass::get_mass(constants::atom_t::O) + 2*constants::mass::get_mass(constants::atom_t::H);}
+double PDBWater::get_mass() const {return constants::mass::get_mass(constants::atom_t::O) + 2*constants::mass::get_mass(constants::atom_t::H);}
 
-bool Water::is_water() const {return true;}
+bool PDBWater::is_water() const {return true;}
 
-Water Water::create_new_water() {
+PDBWater PDBWater::create_new_water() {
     return create_new_water(Vector3<double>{0, 0, 0});
 }
 
-Water Water::create_new_water(const Vector3<double>& coords) {
-    return Water(-1, "O", "", "HOH", ' ', -1, "", coords, 1, 0, constants::atom_t::O, "");
+PDBWater PDBWater::create_new_water(const Vector3<double>& coords) {
+    return PDBWater(-1, "O", "", "HOH", ' ', -1, "", coords, 1, 0, constants::atom_t::O, "");
 }
 
-bool Water::operator==(const Water& rhs) const {
+bool PDBWater::operator==(const PDBWater& rhs) const {
     if (name != rhs.name) {return false;}
     if (altLoc != rhs.altLoc) {return false;}
     if (resName != rhs.resName) {return false;}

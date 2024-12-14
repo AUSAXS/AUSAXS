@@ -8,8 +8,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/All.h>
 #include <dataset/Dataset.h>
 #include <dataset/SimpleDataset.h>
-#include <data/record/Atom.h>
+#include <data/atoms/Atom.h>
 #include <data/Molecule.h>
+#include <data/Body.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Utility.h>
@@ -47,14 +48,14 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     std::vector<double> w(_w, _w+_nc);
 
     // convert coordinate input to the Atom object
-    std::vector<Atom> atoms(_nc);
+    std::vector<data::AtomFF> atoms(_nc); //! should be Atom without FF
     for (int i = 0; i < _nc; ++i) {
-        atoms[i] = Atom({x[i], y[i], z[i]}, w[i], constants::atom_t::dummy, "", i);
+        atoms[i] = data::AtomFF({x[i], y[i], z[i]}, w[i], form_factor::form_factor_t::OTHER);
     }
 
     // construct a protein from the collection of atom
     *_return_status = 2;
-    Molecule protein(atoms);
+    Molecule protein({Body{atoms}});
 
     // calculate the distance histogram for the protein
     *_return_status = 3;

@@ -4,11 +4,10 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <io/PDBReader.h>
-#include <data/detail/AtomCollection.h>
 #include <io/ExistingFile.h>
-#include <data/record/Terminate.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
+#include <io/pdb/Terminate.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBWater.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 #include <settings/GeneralSettings.h>
@@ -20,14 +19,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 
 using namespace ausaxs;
-using namespace ausaxs::io::detail;
-using namespace ausaxs::data::record;
+using namespace ausaxs::io::pdb;
 
-PDBReader::PDBReader(observer_ptr<data::detail::AtomCollection> const file) : file(file) {}
-
-PDBReader::~PDBReader() = default;
-
-auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCollection& collection) -> void {
+auto parse_single_file = [] (const io::ExistingFile& file, io::pdb::PDBStructure& collection) -> void {
     // check if file was succesfully opened
     std::ifstream input(file);
     if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + file + "\"");}
@@ -40,7 +34,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
         switch(Record::get_type(type)) {
             case RecordType::ATOM: {
                 // first just parse it as an atom; we can reuse it anyway even if it is a water molecule
-                Atom atom;
+                PDBAtom atom;
                 atom.parse_pdb(line);
 
                 // check if this is a hydrogen atom
@@ -50,7 +44,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
                 }
 
                 // check if this is a water molecule
-                if (atom.is_water()) {collection.add(Water(std::move(atom)));} 
+                if (atom.is_water()) {collection.add(PDBWater(std::move(atom)));} 
                 else {collection.add(std::move(atom));}
                 break;
             } case RecordType::TERMINATE: {
@@ -74,7 +68,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
     input.close();
     
     if (!settings::molecule::use_occupancy) {
-        for (auto& a : collection.protein_atoms) {a.occupancy = 1.0;}
+        for (auto& a : collection.atoms) {a.occupancy = 1.0;}
     }
 
     if (discarded_hydrogens != 0) {
@@ -82,26 +76,28 @@ auto parse_single_file = [] (const io::ExistingFile& file, data::detail::AtomCol
     }
 };
 
-void PDBReader::read(const io::File& path) {
+io::pdb::PDBStructure io::detail::PDBReader::read(const io::File& path) {
     console::print_info("Reading PDB file from \"" + path.str() + "\"");
     console::indent();
 
+    io::pdb::PDBStructure res;
     if (path.append("_part1").exists()) {
         console::print_text("File is split into multiple parts.");
         unsigned int i = 1;
         while (path.append("_part" + std::to_string(i)).exists()) {
             console::print_text("\tParsed file " + path.append("_part" + std::to_string(i)).str());
-            parse_single_file(path.append("_part" + std::to_string(i)), *file);
+            parse_single_file(path.append("_part" + std::to_string(i)), res);
             i++;
         }
     } else {
-        parse_single_file(path, *file);
+        parse_single_file(path, res);
     }
 
-    unsigned int n_pa = file->protein_atoms.size();
-    unsigned int n_ha = file->hydration_atoms.size();
+    unsigned int n_pa = res.atoms.size();
+    unsigned int n_ha = res.waters.size();
 
     console::print_text("Successfully read " + std::to_string(n_pa + n_ha) + " atomic records.");
-    if (n_ha != 0) {console::print_text("\t" + std::to_string(file->hydration_atoms.size()) + " of these are hydration atoms.");}
+    if (n_ha != 0) {console::print_text("\t" + std::to_string(res.waters.size()) + " of these are hydration atoms.");}
     console::unindent();
+    return res;
 }

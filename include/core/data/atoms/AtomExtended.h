@@ -6,8 +6,8 @@ namespace ausaxs::data {
     class AtomExtended : public detail::AtomForwarder<AtomExtended> {
         using precision_t = constants::coords_precision_t;
         public:
-            Atom& get_atom_basic() {return atom.get_atom_basic();}
-            const Atom& get_atom_basic() const {return atom.get_atom_basic();}
+            Atom& get_atom() {return atom.get_atom();}
+            const Atom& get_atom() const {return atom.get_atom();}
 
             precision_t get_occupancy() const {return occupancy;}
             void set_occupancy(precision_t v) {occupancy = v;} 

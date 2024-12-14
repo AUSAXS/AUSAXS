@@ -6,7 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/generation/RadialHydration.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <constants/Constants.h>
 #include <settings/GridSettings.h>
@@ -96,13 +95,13 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
             double x = std::cos(phi)*std::sin(theta);
             double y = std::sin(phi)*std::sin(theta);
             double z = std::cos(theta);
-            sphere.push_back({x, y, z});
-            sphere.push_back({-x, y, z});
-            sphere.push_back({x, -y, z});
-            sphere.push_back({-x, -y, z});
-            sphere.push_back({x, y, -z});
-            sphere.push_back({-x, y, -z});
-            sphere.push_back({x, -y, -z});
+            sphere.push_back({ x,  y,  z});
+            sphere.push_back({-x,  y,  z});
+            sphere.push_back({ x, -y,  z});
+            sphere.push_back({-x, -y,  z});
+            sphere.push_back({ x,  y, -z});
+            sphere.push_back({-x,  y, -z});
+            sphere.push_back({ x, -y, -z});
             sphere.push_back({-x, -y, -z});
         }
     }
@@ -112,7 +111,7 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     for (auto& p : sphere) {
         bool present = false;
         for (int i = 0; i < 3; i++) { // fix the easy floating point errors
-            if (abs(p[i]) < 1e-5) {p[i] = 0;}
+            if (std::abs(p[i]) < 1e-5) {p[i] = 0;}
         }
         for (const auto& r : rots) { // go through all rotations and try to find a duplicate entry
             if (r.distance(p) < 1e-5) {

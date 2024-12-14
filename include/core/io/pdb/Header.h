@@ -1,12 +1,12 @@
 #pragma once
 
-#include <data/record/Record.h>
+#include <io/pdb/Record.h>
 #include <utility/Utility.h>
 
 #include <string>
 #include <vector>
 
-namespace ausaxs::data::record {
+namespace ausaxs::io::pdb {
 	class Header : Record {
 		public: 
 			Header() = default;

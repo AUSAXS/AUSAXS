@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
     #pragma warning(disable:4996) // disable sscanf deprecation warning on MSVC
 #endif
 
-#include <data/record/AtomPDB.h>
+#include <io/pdb/PDBAtom.h>
 #include <constants/Constants.h>
 #include <utility/Utility.h>
 #include <settings/MoleculeSettings.h>
@@ -19,11 +19,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cassert>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
+using namespace ausaxs::io::pdb;
 
-AtomPDB::AtomPDB() : uid(uid_counter++) {}
+PDBAtom::PDBAtom() : uid(uid_counter++) {}
 
-AtomPDB::AtomPDB(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& resName, int serial) : uid(uid_counter++) {
+PDBAtom::PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& resName, int serial) : uid(uid_counter++) {
     // we use our setters so we can validate the input if necessary
     set_coordinates(std::move(v));
     set_occupancy(occupancy);
@@ -33,7 +33,7 @@ AtomPDB::AtomPDB(Vector3<double> v, double occupancy, constants::atom_t element,
     set_effective_charge(constants::charge::nuclear::get_charge(this->element));
 }
 
-AtomPDB::AtomPDB(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
+PDBAtom::PDBAtom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
     Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge) : uid(uid_counter++) {
         set_serial(serial);
         set_group_name(name);
@@ -52,13 +52,13 @@ AtomPDB::AtomPDB(int serial, const std::string& name, const std::string& altLoc,
         uid = uid_counter++;
 }
 
-void AtomPDB::parse_pdb(const std::string& str) {
+void PDBAtom::parse_pdb(const std::string& str) {
     auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return
     int pad_size = 81 - static_cast<int>(s.size());
     if (pad_size < 0) {
         static bool warned = false;
         if (!warned) {
-            console::print_warning("Warning in AtomPDB::parse_pdb: Found line longer than 80 characters. Truncating. Further warnings of this type will be suppressed.");
+            console::print_warning("Warning in PDBAtom::parse_pdb: Found line longer than 80 characters. Truncating. Further warnings of this type will be suppressed.");
             warned = true;
         }
         std::cout << "\"" << s << "\"" << std::endl;
@@ -66,7 +66,7 @@ void AtomPDB::parse_pdb(const std::string& str) {
     } else if (pad_size > 0) {
         static bool warned = false;
         if (!warned) {
-            console::print_warning("Warning in AtomPDB::parse_pdb: Found line shorter than 80 characters. Padding with spaces. Further warnings of this type will be suppressed.");
+            console::print_warning("Warning in PDBAtom::parse_pdb: Found line shorter than 80 characters. Padding with spaces. Further warnings of this type will be suppressed.");
             warned = true;
         }
         s += std::string(pad_size, ' ');
@@ -88,7 +88,7 @@ void AtomPDB::parse_pdb(const std::string& str) {
 
     // sanity check
     if (!(Record::get_type(recName) == RecordType::ATOM)) [[unlikely]] {
-        throw except::parse_error("AtomPDB::parse_pdb: input std::string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
+        throw except::parse_error("PDBAtom::parse_pdb: input std::string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
     }
 
     // remove any spaces from the numbers
@@ -119,7 +119,7 @@ void AtomPDB::parse_pdb(const std::string& str) {
         this->resSeq = std::stoi(resSeq);
         this->iCode = std::move(iCode);
         set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
-        if (occupancy.empty()) {atom.occupancy = 1;} else {atom.occupancy = std::stod(occupancy);}
+        if (occupancy.empty()) {this->occupancy = 1;} else {this->occupancy = std::stod(occupancy);}
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {
             // if the element is not set, we can try to infer it from the name
@@ -133,7 +133,7 @@ void AtomPDB::parse_pdb(const std::string& str) {
         }
         this->charge = std::move(charge);
     } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
-        console::print_warning("AtomPDB::parse_pdb: Invalid field values in line \"" + s + "\".");
+        console::print_warning("PDBAtom::parse_pdb: Invalid field values in line \"" + s + "\".");
         throw e;
     }
 
@@ -141,21 +141,21 @@ void AtomPDB::parse_pdb(const std::string& str) {
     atomic_group = constants::atomic_group_t::unknown;
 }
 
-void AtomPDB::add_implicit_hydrogens() {
-    assert(get_element() != constants::atom_t::H && "AtomPDB::add_implicit_hydrogens: Attempted to add implicit hydrogens to a hydrogen atom.");
+void PDBAtom::add_implicit_hydrogens() {
+    assert(get_element() != constants::atom_t::H && "PDBAtom::add_implicit_hydrogens: Attempted to add implicit hydrogens to a hydrogen atom.");
     try {
         effective_charge = constants::charge::nuclear::get_charge(element) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
         atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
     } catch (const except::base&) {
         throw except::invalid_argument(
-            "AtomPDB::add_implicit_hydrogens: Could not identify group of atom " + std::to_string(serial) + ". Unknown element, residual or atom: "
+            "PDBAtom::add_implicit_hydrogens: Could not identify group of atom " + std::to_string(serial) + ". Unknown element, residual or atom: "
             "(" + constants::symbols::to_string(element) + ", " + this->resName + ", " + this->name + ")"
         );
     }
 }
 
 using std::left, std::right, std::setw;
-std::string AtomPDB::as_pdb() const {
+std::string PDBAtom::as_pdb() const {
     std::stringstream ss;
     //                   RN SE S1 NA AL RN CI S2 RS iC S3 X  Y  Z  OC TF S2  EL CH
     //                   0     1           2              3     4  5  6      7     8
@@ -172,10 +172,10 @@ std::string AtomPDB::as_pdb() const {
         << right << setw(4) << resSeq                                               // 23 - 26
         << right << setw(1) << iCode                                                // 27
         << "   "                                                                    // 28 - 30
-        << right << setw(8) << utility::fixedwidth(atom.x(), 7)                     // 31 - 38
-        << right << setw(8) << utility::fixedwidth(atom.y(), 7)                     // 39 - 46
-        << right << setw(8) << utility::fixedwidth(atom.z(), 7)                     // 47 - 54
-        << right << setw(6) << utility::fixedwidth(atom.get_occupancy(), 6)         // 55 - 60
+        << right << setw(8) << utility::fixedwidth(coords.x(), 7)                   // 31 - 38
+        << right << setw(8) << utility::fixedwidth(coords.y(), 7)                   // 39 - 46
+        << right << setw(8) << utility::fixedwidth(coords.z(), 7)                   // 47 - 54
+        << right << setw(6) << utility::fixedwidth(occupancy, 6)                    // 55 - 60
         << right << setw(6) << utility::fixedwidth(tempFactor, 6)                   // 61 - 66
         << "          "                                                             // 67 - 76
         << right << setw(2) << constants::symbols::to_string(element)               // 77 - 78
@@ -184,63 +184,62 @@ std::string AtomPDB::as_pdb() const {
     return ss.str();
 }
 
-RecordType AtomPDB::get_type() const {return RecordType::ATOM;}
+RecordType PDBAtom::get_type() const {return RecordType::ATOM;}
 
-double AtomPDB::distance_squared(const AtomPDB& a) const {return coords.distance2(a.coords);}
-double AtomPDB::distance(const AtomPDB& a) const {return coords.distance(a.coords);}
-void AtomPDB::translate(Vector3<double> v) {coords += v;}
-bool AtomPDB::is_water() const {return (resName == "HOH") || (resName == "SOL");}
-void AtomPDB::set_coordinates(Vector3<double> v) {coords = v;}
-void AtomPDB::set_x(double x) {coords.x() = x;}
-void AtomPDB::set_y(double y) {coords.y() = y;}
-void AtomPDB::set_z(double z) {coords.z() = z;}
-void AtomPDB::set_occupancy(double occupancy) {this->occupancy = occupancy;}
-void AtomPDB::set_temperature_factor(double tempFactor) {this->tempFactor = tempFactor;}
-void AtomPDB::set_alternate_location(const std::string& altLoc) {this->altLoc = altLoc;}
-void AtomPDB::set_serial(int serial) {this->serial = serial;}
-void AtomPDB::set_residue_sequence_number(int resSeq) {this->resSeq = resSeq;}
-void AtomPDB::set_effective_charge(double charge) {effective_charge = charge;}
-void AtomPDB::set_chainID(char chainID) {this->chainID = chainID;}
-void AtomPDB::set_insertion_code(const std::string& iCode) {this->iCode = iCode;}
-void AtomPDB::set_charge(const std::string& charge) {this->charge = charge;}
-void AtomPDB::set_residue_name(const std::string& resName) {this->resName = resName;}
-void AtomPDB::set_group_name(const std::string& name) {this->name = name;}
+double PDBAtom::distance_squared(const PDBAtom& a) const {return coords.distance2(a.coords);}
+double PDBAtom::distance(const PDBAtom& a) const {return coords.distance(a.coords);}
+void PDBAtom::translate(Vector3<double> v) {coords += v;}
+bool PDBAtom::is_water() const {return (resName == "HOH") || (resName == "SOL");}
+void PDBAtom::set_coordinates(Vector3<double> v) {coords = v;}
+void PDBAtom::set_x(double x) {coords.x() = x;}
+void PDBAtom::set_y(double y) {coords.y() = y;}
+void PDBAtom::set_z(double z) {coords.z() = z;}
+void PDBAtom::set_occupancy(double occupancy) {this->occupancy = occupancy;}
+void PDBAtom::set_temperature_factor(double tempFactor) {this->tempFactor = tempFactor;}
+void PDBAtom::set_alternate_location(const std::string& altLoc) {this->altLoc = altLoc;}
+void PDBAtom::set_serial(int serial) {this->serial = serial;}
+void PDBAtom::set_residue_sequence_number(int resSeq) {this->resSeq = resSeq;}
+void PDBAtom::set_effective_charge(double charge) {effective_charge = charge;}
+void PDBAtom::set_chainID(char chainID) {this->chainID = chainID;}
+void PDBAtom::set_insertion_code(const std::string& iCode) {this->iCode = iCode;}
+void PDBAtom::set_charge(const std::string& charge) {this->charge = charge;}
+void PDBAtom::set_residue_name(const std::string& resName) {this->resName = resName;}
+void PDBAtom::set_group_name(const std::string& name) {this->name = name;}
 
-void AtomPDB::set_element(constants::atom_t element) {
-    assert(element != constants::atom_t::unknown && "AtomPDB::set_element: Attempted to set element to unknown.");
+void PDBAtom::set_element(constants::atom_t element) {
+    assert(element != constants::atom_t::unknown && "PDBAtom::set_element: Attempted to set element to unknown.");
     this->element = element;
 }
 
-void AtomPDB::set_element(const std::string& element) {
+void PDBAtom::set_element(const std::string& element) {
     set_element(constants::symbols::parse_element_string(element));
 }
 
-Vector3<double>& AtomPDB::get_coordinates() {return coords;}
-const Vector3<double>& AtomPDB::get_coordinates() const {return coords;}
-int AtomPDB::get_serial() const {return serial;}
-int AtomPDB::get_residue_sequence_number() const {return resSeq;}
-double AtomPDB::get_occupancy() const {return occupancy;}
-double AtomPDB::get_temperature_factor() const {return tempFactor;}
-double AtomPDB::get_absolute_charge() const {return Z();}
-double AtomPDB::get_effective_charge() const {return effective_charge;}
-std::string AtomPDB::get_alternate_location() const {return altLoc;}
-char AtomPDB::get_chainID() const {return chainID;}
-std::string AtomPDB::get_insertion_code() const {return iCode;}
-std::string AtomPDB::get_charge() const {return charge;}
-std::string AtomPDB::get_residue_name() const {return resName;}
-std::string AtomPDB::get_group_name() const {return name;}
-constants::atom_t AtomPDB::get_element() const {return element;}
-std::string AtomPDB::get_recName() const {return "ATOM  ";}
-constants::atomic_group_t AtomPDB::get_atomic_group() const {return atomic_group;}
+Vector3<double>& PDBAtom::get_coordinates() {return coords;}
+const Vector3<double>& PDBAtom::get_coordinates() const {return coords;}
+int PDBAtom::get_serial() const {return serial;}
+int PDBAtom::get_residue_sequence_number() const {return resSeq;}
+double PDBAtom::get_occupancy() const {return occupancy;}
+double PDBAtom::get_temperature_factor() const {return tempFactor;}
+double PDBAtom::get_absolute_charge() const {return Z();}
+double PDBAtom::get_effective_charge() const {return effective_charge;}
+std::string PDBAtom::get_alternate_location() const {return altLoc;}
+char PDBAtom::get_chainID() const {return chainID;}
+std::string PDBAtom::get_insertion_code() const {return iCode;}
+std::string PDBAtom::get_charge() const {return charge;}
+std::string PDBAtom::get_residue_name() const {return resName;}
+std::string PDBAtom::get_group_name() const {return name;}
+constants::atom_t PDBAtom::get_element() const {return element;}
+constants::atomic_group_t PDBAtom::get_atomic_group() const {return atomic_group;}
 
-double AtomPDB::get_mass() const {
+double PDBAtom::get_mass() const {
     if (settings::molecule::implicit_hydrogens) {
         #ifdef DEBUG
             try {
                 return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
             } catch (const std::exception& e) {
                 console::print_critical(e.what());
-                throw except::invalid_argument("AtomPDB::get_mass: The mass of element " + constants::symbols::to_string(element) + " (serial " + std::to_string(serial) + ") is not defined.");
+                throw except::invalid_argument("PDBAtom::get_mass: The mass of element " + constants::symbols::to_string(element) + " (serial " + std::to_string(serial) + ") is not defined.");
             }
         #endif
         // mass of this nucleus + mass of attached H atoms
@@ -248,29 +247,29 @@ double AtomPDB::get_mass() const {
     } else {
         #ifdef DEBUG
             if (element == constants::atom_t::unknown) [[unlikely]] {
-                throw except::invalid_argument("AtomPDB::get_mass: Attempted to get atomic mass, but the element was not set!");
+                throw except::invalid_argument("PDBAtom::get_mass: Attempted to get atomic mass, but the element was not set!");
             }
         #endif
         return constants::mass::get_mass(element);
     }
 }
 
-unsigned int AtomPDB::Z() const {
+unsigned int PDBAtom::Z() const {
     #ifdef DEBUG
         if (element == constants::atom_t::unknown) [[unlikely]] {
-            throw except::invalid_argument("AtomPDB::get_Z: Attempted to get atomic charge, but the element was not set!");
+            throw except::invalid_argument("PDBAtom::get_Z: Attempted to get atomic charge, but the element was not set!");
         }
     #endif
     return constants::charge::nuclear::get_charge(element);
 }
 
-void AtomPDB::add_effective_charge(const double charge) {effective_charge += charge;}
+void PDBAtom::add_effective_charge(const double charge) {effective_charge += charge;}
 
-bool AtomPDB::operator<(const AtomPDB& rhs) const {
+bool PDBAtom::operator<(const PDBAtom& rhs) const {
     return serial < rhs.serial;
 }
 
-bool AtomPDB::operator==(const AtomPDB& rhs) const {
+bool PDBAtom::operator==(const PDBAtom& rhs) const {
     return uid == rhs.uid;
 }
 
@@ -278,7 +277,7 @@ bool AtomPDB::operator==(const AtomPDB& rhs) const {
 #if FAILURE_MSG
     #include <iostream>
 #endif
-bool AtomPDB::equals_content(const AtomPDB& rhs) const {
+bool PDBAtom::equals_content(const PDBAtom& rhs) const {
     if (coords != rhs.coords) {
         #if FAILURE_MSG
             std::cout << "coords \"" << coords.x() << ", " << coords.y() << ", " << coords.z() <<  "\" != rhs.coords \"" << rhs.coords.x() << ", " << rhs.coords.y() << ", " << rhs.coords.z() << "\"" << std::endl;

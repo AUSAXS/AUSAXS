@@ -17,8 +17,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <algorithm>
 #include <numeric>
 
-#include <cassert>
-
 using namespace ausaxs;
 using namespace ausaxs::data;
 
@@ -43,12 +41,6 @@ void Body::initialize() {
 
 // data::detail::BodySymmetryFacade<Body> Body::symmetry() {return data::detail::BodySymmetryFacade<Body>(*this);}
 // data::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return data::detail::BodySymmetryFacade<const Body>(*this);}
-
-void Body::center() {
-    Vector3<double> cm = get_cm();
-    assert(cm.magnitude() != 0 && "Center of mass is zero. This is probably unintentional.");
-    translate(-get_cm());
-}
 
 Vector3<double> Body::get_cm() const {
     Vector3<double> cm{0, 0, 0};

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <data/record/RecordType.h>
+#include <io/pdb/RecordType.h>
 
 #include <string>
 #include <unordered_map>
 
-namespace ausaxs::data::record {
+namespace ausaxs::io::pdb {
     class Record {
         public: 
             virtual ~Record() = default;

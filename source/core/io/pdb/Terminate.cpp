@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
     #pragma warning(disable:4996) // disable sscanf deprecation warning on MSVC
 #endif
 
-#include <data/record/Terminate.h>
+#include <io/pdb/Terminate.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
@@ -16,7 +16,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <sstream>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
+using namespace ausaxs::io::pdb;
 using std::left, std::right, std::setw;
 
 Terminate::Terminate(int serial, const std::string& resName, char chainID, int resSeq, const std::string& iCode) {

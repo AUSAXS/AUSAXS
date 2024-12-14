@@ -5,12 +5,12 @@ target_sources(ausaxs_core PRIVATE
 
 	"detail/AtomCollection.cpp"
 
-	"record/Atom.cpp"
+	"record/PDBAtom.cpp"
 	"record/Footer.cpp"
 	"record/Header.cpp"
 	"record/Record.cpp"
 	"record/Terminate.cpp"
-	"record/Water.cpp"
+	"record/PDBWater.cpp"
 
 	"state/BoundSignaller.cpp"
 	"state/StateManager.cpp"

@@ -203,3 +203,58 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
+
+std::string ausaxs::constants::symbols::to_string(atom_t atom) {
+    switch(atom) {
+        case atom_t::H: return "H";
+        case atom_t::He: return "He";
+        case atom_t::Li: return "Li";
+        case atom_t::Be: return "Be";
+        case atom_t::B: return "B";
+        case atom_t::C: return "C";
+        case atom_t::N: return "N";
+        case atom_t::O: return "O";
+        case atom_t::F: return "F";
+        case atom_t::Ne: return "Ne";
+        case atom_t::Na: return "Na";
+        case atom_t::Mg: return "Mg";
+        case atom_t::Al: return "Al";
+        case atom_t::Si: return "Si";
+        case atom_t::P: return "P";
+        case atom_t::S: return "S";
+        case atom_t::Cl: return "Cl";
+        case atom_t::Ar: return "Ar";
+        case atom_t::K: return "K";
+        case atom_t::Ca: return "Ca";
+        case atom_t::Sc: return "Sc";
+        case atom_t::Ti: return "Ti";
+        case atom_t::V: return "V";
+        case atom_t::Cr: return "Cr";
+        case atom_t::Mn: return "Mn";
+        case atom_t::Fe: return "Fe";
+        case atom_t::Co: return "Co";
+        case atom_t::Ni: return "Ni";
+        case atom_t::Cu: return "Cu";
+        case atom_t::Zn: return "Zn";
+        case atom_t::I: return "I";
+        case atom_t::W: return "W";
+        case atom_t::M: return "M";
+        case atom_t::dummy: return "#";
+        default: throw std::runtime_error("constants::symbols::to_string: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
+    }
+}
+
+std::string ausaxs::constants::symbols::to_string(atomic_group_t group) {
+    switch(group) {
+        case atomic_group_t::CH: return "CH";
+        case atomic_group_t::CH2: return "CH2";
+        case atomic_group_t::CH3: return "CH3";
+        case atomic_group_t::NH: return "NH";
+        case atomic_group_t::NH2: return "NH2";
+        case atomic_group_t::NH3: return "NH3";
+        case atomic_group_t::OH: return "OH";
+        case atomic_group_t::SH: return "SH";
+        case atomic_group_t::unknown: return "unknown";
+        default: throw std::runtime_error("constants::symbols::to_string: Unknown atomic group \"" + std::to_string(static_cast<int>(group)) + "\"");
+    }
+}

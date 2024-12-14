@@ -1,13 +1,13 @@
 #pragma once
 
-#include <data/record/Atom.h>
+#include <io/pdb/PDBAtom.h>
 
-namespace ausaxs::data::record {
-    class Water : public Atom {
+namespace ausaxs::io::pdb {
+    class PDBWater : public PDBAtom {
         public:
-            using Atom::Atom;
-            Water(Atom&& a) noexcept;
-            Water(const Atom& a);
+            using PDBAtom::PDBAtom;
+            PDBWater(PDBAtom&& a) noexcept;
+            PDBWater(const PDBAtom& a);
 
             double get_mass() const override;
 
@@ -20,14 +20,14 @@ namespace ausaxs::data::record {
             /**
              * @brief Create a new default water atom.
              */
-            static Water create_new_water();
+            static PDBWater create_new_water();
 
             /**
              * @brief Create a new water atom.
              * @param coords the coordinates for the new atom.
              */
-            static Water create_new_water(const Vector3<double>& coords);
+            static PDBWater create_new_water(const Vector3<double>& coords);
 
-            bool operator==(const Water& rhs) const;
+            bool operator==(const PDBWater& rhs) const;
     };
 }

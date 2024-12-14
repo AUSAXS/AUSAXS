@@ -1,9 +1,9 @@
 #pragma once
 
-namespace ausaxs::data::record {
+namespace ausaxs::io::pdb {
     enum class RecordType;
-    class Atom;
-    class Water;
+    class PDBAtom;
+    class PDBWater;
     class Footer;
     class Header;
     class Record;
