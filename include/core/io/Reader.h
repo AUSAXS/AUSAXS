@@ -1,10 +1,10 @@
 #pragma once
 
 #include <io/IOFwd.h>
-#include <data/Molecule.h>
+#include <io/pdb/PDBStructure.h>
 
 namespace ausaxs::io::detail {
-    class Reader {
-        static data::Molecule read(const io::ExistingFile& file);
+    struct Reader {
+        static io::pdb::PDBStructure read(const io::ExistingFile& file);
     };
 }

@@ -4,12 +4,11 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <io/PDBWriter.h>
-#include <io/Writer.h>
-#include <data/detail/AtomCollection.h>
+#include <io/pdb/PDBStructure.h>
 #include <io/File.h>
-#include <data/record/Terminate.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
+#include <io/pdb/Terminate.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBWater.h>
 #include <utility/Exceptions.h>
 #include <settings/GeneralSettings.h>
 
@@ -17,16 +16,58 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 using namespace ausaxs::io::detail;
-using namespace ausaxs::data::record;
+using namespace ausaxs::io::pdb;
 
-PDBWriter::PDBWriter(data::detail::AtomCollection* file) : file(file) {}
+std::vector<std::string> as_pdb(const PDBStructure& f) {
+    std::vector<std::string> files;
+    std::string s = f.header.get();
+    Terminate t = f.terminate;
 
-PDBWriter::~PDBWriter() = default;
+    unsigned int count = 0;
+    int i_ter = t.serial;
+    bool printed_ter = i_ter == -1;
+    for (unsigned int i = 0; i < f.atoms.size(); i++) {
+        if (static_cast<int>(i) == i_ter) { // check if this is where the terminate is supposed to go
+            t.set_serial(t.serial % 100000);
+            s += t.as_pdb(); // write it if so
+            printed_ter = true;
+        }
+        s += f.atoms[i].as_pdb();
+        count++;
+        if (count == 100000) {
+            count = 0;
+            files.push_back(std::move(s));
+            s = "";
+        }
+    }
 
-void PDBWriter::write(const io::File& path) {
+    // print terminate if missing
+    if (!printed_ter) {
+        t.set_serial(t.serial % 100000);
+        s += t.as_pdb();
+    }
+
+    // print hetatoms
+    for (unsigned int i = 0; i < f.waters.size(); i++) {
+        s += f.waters[i].as_pdb();
+        count++;
+        if (count == 100000) {
+            count = 0;
+            files.push_back(std::move(s));
+            s = "";
+        }
+    }
+
+    s += f.footer.get();
+    files.push_back(std::move(s));
+    return files;
+}
+
+void PDBWriter::write(const PDBStructure& s, const io::File& path) {
+    s.refresh();
     path.directory().create();
 
-    auto content = as_pdb();
+    auto content = as_pdb(s);
     if (content.size() == 1) {
         std::ofstream output(path);
         if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
@@ -44,49 +85,4 @@ void PDBWriter::write(const io::File& path) {
             output.close();
         }
     }
-}
-
-std::vector<std::string> PDBWriter::as_pdb() const {
-    data::detail::AtomCollection& f = *file;
-    std::vector<std::string> files;
-    std::string s = f.header.get();
-
-    unsigned int count = 0;
-    int i_ter = f.terminate.serial;
-    bool printed_ter = i_ter == -1;
-    for (unsigned int i = 0; i < f.protein_atoms.size(); i++) {
-        if (static_cast<int>(i) == i_ter) { // check if this is where the terminate is supposed to go
-            f.terminate.set_serial(f.terminate.serial % 100000);
-            s += f.terminate.as_pdb(); // write it if so
-            printed_ter = true;
-        }
-        s += f.protein_atoms[i].as_pdb();
-        count++;
-        if (count == 100000) {
-            count = 0;
-            files.push_back(std::move(s));
-            s = "";
-        }
-    }
-
-    // print terminate if missing
-    if (!printed_ter) {
-        f.terminate.set_serial(f.terminate.serial % 100000);
-        s += f.terminate.as_pdb();
-    }
-
-    // print hetatoms
-    for (unsigned int i = 0; i < f.hydration_atoms.size(); i++) {
-        s += f.hydration_atoms[i].as_pdb();
-        count++;
-        if (count == 100000) {
-            count = 0;
-            files.push_back(std::move(s));
-            s = "";
-        }
-    }
-
-    s += f.footer.get();
-    files.push_back(std::move(s));
-    return files;
 }

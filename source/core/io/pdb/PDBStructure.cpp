@@ -7,19 +7,15 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/pdb/Record.h>
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
-#include <io/pdb/Terminate.h>
-#include <io/pdb/Header.h>
-#include <io/pdb/Footer.h>
 #include <io/ExistingFile.h>
-#include <io/PDBReader.h>
-#include <io/CIFReader.h>
-#include <io/PDBWriter.h>
 #include <utility/Exceptions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
 
 PDBStructure::PDBStructure() = default;
+
+PDBStructure::~PDBStructure() = default;
 
 PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters) : atoms(atoms), waters(waters) {}
 
@@ -33,15 +29,6 @@ PDBStructure::PDBStructure(const io::File& file) {
 void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& hatoms) {
     atoms = patoms;
     waters = hatoms;
-}
-
-void PDBStructure::read(const io::File& path) {
-    construct_reader(path)->read(path);
-}
-
-void PDBStructure::write(const io::File& path) {
-    refresh();
-    construct_writer(path)->write(path);
 }
 
 const std::vector<PDBAtom>& PDBStructure::get_atoms() const {return atoms;}
@@ -66,7 +53,6 @@ void PDBStructure::add(PDBWater&& r) {
 
 void PDBStructure::add(const Terminate& ter) {
     terminate = ter;
-    // terminates.push_back(r);
 }
 
 void PDBStructure::add(const RecordType& type, const std::string& s) {
@@ -162,28 +148,4 @@ bool PDBStructure::equals_content(const PDBStructure& rhs) const {
     }
 
     return true;    
-}
-
-std::unique_ptr<io::detail::Reader> PDBStructure::construct_reader(const io::File& path) {
-    if (path.extension() == ".xml" || path.extension() == ".XML") { // .xml PDBStructure
-        throw except::invalid_argument("PDBStructure::construct_reader: .xml input PDBStructures are not supported.");
-    } else if (path.extension() == ".pdb" || path.extension() == ".PDB") { // .pdb PDBStructure
-        return std::make_unique<io::detail::PDBReader>(this);
-    } else if (path.extension() == ".ent" || path.extension() == ".ENT") { // .ent PDBStructure
-        return std::make_unique<io::detail::PDBReader>(this);
-    } else if (path.extension() == ".cif" || path.extension() == ".CIF") { // .cif PDBStructure
-        return std::make_unique<io::detail::CIFReader>(this);
-    } else { // anything else - we cannot handle this
-        throw except::invalid_argument("PDBStructure::construct_reader: Unsupported extension \"" + path.extension() + "\" of input file \"" + path.str() + "\".");
-    }
-}
-
-std::unique_ptr<io::detail::Writer> PDBStructure::construct_writer(const io::File& path) {
-    if (path.extension() == ".xml" || path.extension() == ".XML") { // .xml PDBStructure
-        throw except::invalid_argument("PDBStructure::construct_writer: .xml input PDBStructures are not supported.");
-    } else if (path.extension() == ".pdb" || path.extension() == ".PDB") { // .pdb PDBStructure
-        return std::make_unique<io::detail::PDBWriter>(this);
-    } else { // anything else - we cannot handle this
-        throw except::invalid_argument("PDBStructure::construct_writer: Unsupported extension \"" + path.extension() + "\" of input file \"" + path.str() + "\".");
-    }
 }

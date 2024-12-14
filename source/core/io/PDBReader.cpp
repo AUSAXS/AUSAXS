@@ -76,7 +76,7 @@ auto parse_single_file = [] (const io::ExistingFile& file, io::pdb::PDBStructure
     }
 };
 
-io::pdb::PDBStructure io::detail::PDBReader::read(const io::File& path) {
+io::pdb::PDBStructure io::detail::pdb::read(const io::File& path) {
     console::print_info("Reading PDB file from \"" + path.str() + "\"");
     console::indent();
 

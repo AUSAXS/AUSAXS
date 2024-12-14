@@ -10,19 +10,15 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Console.h>
 #include <residue/ResidueParser.h>
 #include <constants/Constants.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
-#include <data/detail/AtomCollection.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBWater.h>
+#include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
 
 #include <fstream>
 #include <unordered_map>
 
 using namespace ausaxs;
-
-io::detail::CIFReader::CIFReader(data::detail::AtomCollection* const file) : file(file) {}
-
-io::detail::CIFReader::~CIFReader() = default;
 
 using CIFRow = std::vector<std::string>;
 struct CIFSection {
@@ -161,7 +157,7 @@ void parse_chem_comp_section(CIFSection& atom, CIFSection& bond) {
     }
 }
 
-void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& collection) {
+void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection) {
     if (atom.data.empty()) {throw except::io_error("CIFReader::parse_atom_site_section: Empty data section");}
     auto labels = atom.get_label_map();
 
@@ -263,7 +259,7 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
     int discarded_hydrogens = 0;
     for (size_t i = 0; i < atom.data.size(); ++i) {
         auto& group_PDB = atom.data[i][i_group_PDB];
-        if (data::record::Record::get_type(group_PDB) != data::record::RecordType::ATOM) {
+        if (io::pdb::Record::get_type(group_PDB) != io::pdb::RecordType::ATOM) {
             throw except::io_error("CIFReader::parse_atom_site_section: Unrecognized group_PDB \"" + group_PDB + "\"");
         }
 
@@ -303,7 +299,7 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
                 ) + "\".");
             throw e;
         }
-        data::record::Atom a(serial, name, altLoc, resName, chainID, resSeq, iCode, coords, occupancy, tempFactor, element, charge);
+        io::pdb::PDBAtom a(serial, name, altLoc, resName, chainID, resSeq, iCode, coords, occupancy, tempFactor, element, charge);
 
         // check if this is a hydrogen atom
         if (a.element == constants::atom_t::H && !settings::general::keep_hydrogens) {
@@ -312,12 +308,12 @@ void parse_atom_site_section(CIFSection& atom, data::detail::AtomCollection& col
         }
 
         // check if this is a water molecule
-        if (a.is_water()) {collection.add(data::record::Water(std::move(a)));} 
+        if (a.is_water()) {collection.add(io::pdb::PDBWater(std::move(a)));} 
         else {collection.add(std::move(a));}
     }
 
     if (!settings::molecule::use_occupancy) {
-        for (auto& a : collection.protein_atoms) {a.occupancy = 1.0;}
+        for (auto& a : collection.atoms) {a.occupancy = 1.0;}
     }
 
     if (discarded_hydrogens != 0) {
@@ -380,7 +376,7 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
     return CIFSection{labels, data};
 }
 
-std::vector<residue::detail::Residue> io::detail::CIFReader::read_residue(const io::File& path) {
+std::vector<residue::detail::Residue> io::detail::cif::read_residue(const io::File& path) {
     std::ifstream input(path);
     if (!input.is_open()) {throw except::io_error("CIFReader::read_residue: Could not open file \"" + path.str() + "\"");}
 
@@ -404,9 +400,11 @@ std::vector<residue::detail::Residue> io::detail::CIFReader::read_residue(const 
     }
 }
 
-void io::detail::CIFReader::read(const io::File& path) {
+io::pdb::PDBStructure io::detail::cif::read(const io::File& path) {
     console::print_info("Reading CIF file from \"" + path.str() + "\"");
     console::indent();
+
+    io::pdb::PDBStructure file;
 
     std::ifstream input(path);
     if (!input.is_open()) {throw except::io_error("CIFReader::read: Could not open file \"" + path.str() + "\"");}
@@ -429,12 +427,13 @@ void io::detail::CIFReader::read(const io::File& path) {
 
     if (atom_site.empty()) {throw except::io_error("CIFReader::read: Could not find any atomic data section in file \"" + path.str() + "\"");}
     if (!chem_comp_atom.empty() && !chem_comp_bond.empty()) {parse_chem_comp_section(chem_comp_atom, chem_comp_bond);}
-    parse_atom_site_section(atom_site, *file);
+    parse_atom_site_section(atom_site, file);
 
-    unsigned int n_pa = file->protein_atoms.size();
-    unsigned int n_ha = file->hydration_atoms.size();
+    unsigned int n_pa = file.atoms.size();
+    unsigned int n_ha = file.waters.size();
 
     console::print_text("Successfully read " + std::to_string(n_pa + n_ha) + " atomic records.");
-    if (n_ha != 0) {console::print_text("\t" + std::to_string(file->hydration_atoms.size()) + " of these are hydration atoms.");}
+    if (n_ha != 0) {console::print_text("\t" + std::to_string(file.waters.size()) + " of these are hydration atoms.");}
     console::unindent();
+    return file;
 }

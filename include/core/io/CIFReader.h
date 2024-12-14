@@ -1,27 +1,12 @@
 #pragma once
 
-#include <io/Reader.h>
 #include <io/File.h>
-#include <data/detail/DataDetailFwd.h>
-#include <utility/observer_ptr.h>
+#include <io/pdb/PDBStructure.h>
 #include <residue/ResidueFwd.h>
 
 #include <vector>
 
-namespace ausaxs::io::detail {
-    /**
-     * @brief This class handles reading of input PDB format data files. 
-     */
-    class CIFReader : public Reader {
-        public:
-            CIFReader(observer_ptr<data::detail::AtomCollection> const file);
-            ~CIFReader() override;
-
-            void read(const io::File& path) override;
-
-            static std::vector<residue::detail::Residue> read_residue(const io::File& path);
-
-        private: 
-            observer_ptr<data::detail::AtomCollection> file; // The File backing this Reader. 
-    };
+namespace ausaxs::io::detail::cif {
+    static io::pdb::PDBStructure read(const io::File& path);
+    static std::vector<residue::detail::Residue> read_residue(const io::File& path);
 }
