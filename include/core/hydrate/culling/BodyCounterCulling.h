@@ -13,7 +13,7 @@ namespace ausaxs::hydrate {
             ~BodyCounterCulling() override = default;
 
             // runs in O(n) where n is the number of water molecules
-            std::vector<data::record::Water> cull(std::vector<grid::GridMember<data::record::Water>>& placed_water) const override;
+            std::vector<data::Water> cull(std::vector<grid::GridMember<data::Water>>& placed_water) const override;
 
             void set_body_ratios(const std::vector<double>& body_ratios);
 

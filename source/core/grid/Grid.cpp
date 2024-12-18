@@ -160,28 +160,6 @@ std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector
     return std::make_pair(min, max);
 }
 
-std::vector<Water> Grid::get_waters() const {
-    std::vector<Water> atoms(w_members.size());
-    int i = 0; // counter
-    for (const auto& water : w_members) {
-        atoms[i] = water.get_atom();
-        i++;
-    }
-    atoms.resize(i);
-    return atoms;
-}
-
-std::vector<AtomFF> Grid::get_atoms() const {
-    std::vector<AtomFF> atoms(a_members.size());
-    int i = 0; // counter
-    for (const auto& atom : a_members) {
-        atoms[i] = atom.get_atom();
-        i++;
-    }
-    atoms.resize(i);
-    return atoms;
-}
-
 void Grid::add_volume(double value) {
     volume += value;
 }

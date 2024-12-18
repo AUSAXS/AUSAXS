@@ -5,6 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <grid/detail/GridMember.h>
 #include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 
 using namespace ausaxs;
 using namespace ausaxs::grid;

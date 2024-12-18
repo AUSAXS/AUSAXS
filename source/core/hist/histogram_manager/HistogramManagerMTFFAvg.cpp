@@ -12,8 +12,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <container/ThreadLocalWrapper.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>

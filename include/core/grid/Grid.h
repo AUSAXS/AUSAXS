@@ -109,18 +109,6 @@ namespace ausaxs::grid {
 			Vector3<int> get_bins() const;
 
 			/**
-			 * @brief Get a copy of all waters in the grid. 
-			 * 		  Complexity: O(n) in the number of member waters.
-			 */
-			std::vector<data::Water> get_waters() const;
-
-			/**
-			 * @brief Get a copy of all atoms in the grid.
-			 * 		  Complexity: O(n) in the number of member atoms.
-			 */
-			std::vector<data::AtomFF> get_atoms() const;
-
-			/**
 			 * @brief Get the total volume spanned by the atoms in this grid in Å^3.
 			 * 		  This will trigger the expansion of all unexpanded atoms. 
 			 *        Waters do not count towards this volume.
@@ -298,7 +286,7 @@ namespace ausaxs::grid {
 			 * 		  All removed atoms are automatically deflated.
 			 * 		  Complexity: O(n) in the number of member atoms.
 			 */
-			void remove(std::vector<bool>& to_remove);
+			void remove(const std::vector<bool>& to_remove);
 
 			void setup();
 	};

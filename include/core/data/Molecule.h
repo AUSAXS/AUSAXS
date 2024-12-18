@@ -11,6 +11,7 @@
 #include <hydrate/HydrationFwd.h>
 
 #include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 
 #include <string>
 #include <vector>

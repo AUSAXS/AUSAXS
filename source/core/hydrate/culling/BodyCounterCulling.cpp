@@ -7,18 +7,16 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/culling/CounterCulling.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
 
 void hydrate::BodyCounterCulling::set_body_ratios(const std::vector<double>& body_ratios) {
     this->body_ratios = body_ratios;
 }
 
-std::vector<data::record::Water> hydrate::BodyCounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
+std::vector<data::Water> hydrate::BodyCounterCulling::cull(std::vector<grid::GridMember<data::Water>>& placed_water) const {
     if (body_ratios.empty()) {return CounterCulling(molecule).cull(placed_water);}
     double total_reduction_factor = static_cast<double>(placed_water.size())/target_count;
     double total_weight = std::accumulate(body_ratios.begin(), body_ratios.end(), 0.0);
@@ -30,8 +28,8 @@ std::vector<data::record::Water> hydrate::BodyCounterCulling::cull(std::vector<g
         reduction_factors[i] = total_reduction_factor*body_ratios[i]/total_weight;
     }
 
-    std::vector<Water> final_waters(placed_water.size());
-    std::vector<Water> removed_water(placed_water.size());
+    std::vector<data::Water> final_waters(placed_water.size());
+    std::vector<data::Water> removed_water(placed_water.size());
     std::vector<unsigned int> body_counts(molecule->size_body(), 0);
     std::vector<double> body_counters(molecule->size_body(), 0);
     unsigned int rm_index = 0; // current index in removed_water

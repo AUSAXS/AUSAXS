@@ -2,6 +2,7 @@
 
 #include <data/BodySymmetryFacade.h>
 #include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 #include <data/state/DataStateFwd.h>
 #include <data/Symmetry.h>
 #include <data/DataFwd.h>

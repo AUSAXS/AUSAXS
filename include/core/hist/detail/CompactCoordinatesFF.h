@@ -32,7 +32,7 @@ namespace ausaxs::hist::detail {
             /**
              * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
              */
-            CompactCoordinatesFF(const std::vector<data::record::Water>& atoms);
+            CompactCoordinatesFF(const std::vector<data::Water>& atoms);
 
             /**
              * @brief Get the form factor type of the atom at index i.

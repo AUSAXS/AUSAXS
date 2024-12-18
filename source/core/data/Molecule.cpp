@@ -168,7 +168,7 @@ double Molecule::get_volume_exv(double d) const {
         auto ff_table = form_factor::detail::ExvFormFactorSet(constants::displaced_volume::get_displaced_volume_set());
         for (const auto& body : get_bodies()) {
             volume += std::accumulate(body.get_atoms().begin(), body.get_atoms().end(), 0.0, [&ff_table] (double sum, const AtomFF& atom) {
-                return sum + ff_table.get_form_factor(atom.get_form_factor_type()).evaluate(0);
+                return sum + ff_table.get_form_factor(atom.form_factor_type()).evaluate(0);
             });
         }
         return volume /= constants::charge::density::water;
@@ -257,14 +257,14 @@ Vector3<double> Molecule::get_cm() const {
     for (const auto& body : bodies) {
         // iterate through their molecule atoms
         std::for_each(body.get_atoms().begin(), body.get_atoms().end(), [&M, &cm] (const auto& atom) {
-            double m = constants::mass::get_mass(atom.get_form_factor_type());
+            double m = constants::mass::get_mass(atom.form_factor_type());
             M += m;
             cm += atom.coordinates()*m;
         });
 
         // iterate through their hydration atoms
         std::for_each(body.get_waters().begin(), body.get_waters().end(), [&M, &cm] (const auto& water) {
-            double m = constants::mass::get_mass(water.get_form_factor_type());
+            double m = constants::mass::get_mass(water.form_factor_type());
             M += m;
             cm += water.coords*m;
         });
