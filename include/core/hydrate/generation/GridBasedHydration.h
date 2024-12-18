@@ -20,7 +20,7 @@ namespace ausaxs::hydrate {
         protected:
             observer_ptr<data::Molecule> protein;
 
-            virtual std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() = 0;
+            virtual std::vector<grid::GridMember<data::Water>> generate_explicit_hydration() = 0;
 
             virtual void initialize();
 

@@ -14,24 +14,24 @@ namespace ausaxs::data::detail {
              * @brief Add a symmetry to this body.
              */
             template<bool CONST = std::is_const_v<BODY>> requires (!CONST)
-            void add_symmetry(const detail::Symmetry& symmetry);
+            void add(const detail::Symmetry& symmetry);
 
             template<bool CONST = std::is_const_v<BODY>> requires (!CONST)
-            void add_symmetry(detail::Symmetry&& symmetry); //< @copydoc add_symmetry()
+            void add(detail::Symmetry&& symmetry); //< @copydoc add_symmetry()
 
             /**
              * @brief Get the symmetries of this body.
              */
             template<bool CONST = std::is_const_v<BODY>> requires (!CONST)
-            std::vector<detail::Symmetry>& get_symmetries();
-            const std::vector<detail::Symmetry>& get_symmetries() const; //< @copydoc get_symmetries()
+            std::vector<detail::Symmetry>& get();
+            const std::vector<detail::Symmetry>& get() const; //< @copydoc get_symmetries()
 
             /**
              * @brief Get the symmetry at the specified index.
              */
             template<bool CONST = std::is_const_v<BODY>> requires (!CONST)
-            detail::Symmetry& get_symmetry(unsigned int index);
-            const detail::Symmetry& get_symmetry(unsigned int index) const; //< @copydoc get_symmetry()
+            detail::Symmetry& get(unsigned int index);
+            const detail::Symmetry& get(unsigned int index) const; //< @copydoc get_symmetry()
 
             /**
              * @brief Write the Body and all its symmetries to a file.

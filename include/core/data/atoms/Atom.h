@@ -12,16 +12,16 @@ namespace ausaxs::data {
         struct AtomForwarder {
             using precision_t = constants::coords_precision_t;
 
-            [[nodiscard]] const Vector3<precision_t>& coordinates() const {return static_cast<T*>(this)->get_atom().coords;}
+            [[nodiscard]] const Vector3<precision_t>& coordinates() const {return static_cast<const T*>(this)->get_atom().coords;}
             [[nodiscard]] Vector3<precision_t>& coordinates() {return static_cast<T*>(this)->get_atom().coords;}
-            [[nodiscard]] const Vector3<precision_t>& position() const {return static_cast<T*>(this)->get_atom().coords;}
+            [[nodiscard]] const Vector3<precision_t>& position() const {return static_cast<const T*>(this)->get_atom().coords;}
             [[nodiscard]] Vector3<precision_t>& position() {return static_cast<T*>(this)->get_atom().coords;}
-            [[nodiscard]] precision_t weight() const {return static_cast<T*>(this)->get_atom().weight;}
+            [[nodiscard]] precision_t weight() const {return static_cast<const T*>(this)->get_atom().weight;}
             [[nodiscard]] precision_t& weight() {return static_cast<T*>(this)->get_atom().weight;}
 
-            [[nodiscard]] precision_t x() const {return static_cast<T*>(this)->get_atom().coords.x();}
-            [[nodiscard]] precision_t y() const {return static_cast<T*>(this)->get_atom().coords.y();}
-            [[nodiscard]] precision_t z() const {return static_cast<T*>(this)->get_atom().coords.z();}
+            [[nodiscard]] precision_t x() const {return static_cast<const T*>(this)->get_atom().coords.x();}
+            [[nodiscard]] precision_t y() const {return static_cast<const T*>(this)->get_atom().coords.y();}
+            [[nodiscard]] precision_t z() const {return static_cast<const T*>(this)->get_atom().coords.z();}
             [[nodiscard]] precision_t& x() {return static_cast<T*>(this)->get_atom().coords.x();}
             [[nodiscard]] precision_t& y() {return static_cast<T*>(this)->get_atom().coords.y();}
             [[nodiscard]] precision_t& z() {return static_cast<T*>(this)->get_atom().coords.z();}
@@ -51,7 +51,7 @@ namespace ausaxs::data {
      * @brief The most basic information of an atom that is needed to calculate a distance histogram.
      */
     struct Water : detail::AtomForwarder<Water> {
-        form_factor::form_factor_t get_form_factor_type() const {return form_factor::form_factor_t::OH;}
+        form_factor::form_factor_t form_factor_type() const {return form_factor::form_factor_t::OH;}
         [[nodiscard]] const Water& get_atom() const {return *this;}
         [[nodiscard]] Water& get_atom() {return *this;}
 

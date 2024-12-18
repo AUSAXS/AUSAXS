@@ -6,12 +6,13 @@
 #include <utility/Axis3D.h>
 #include <utility/TypeTraits.h>
 #include <data/DataFwd.h>
+#include <data/atoms/AtomConcept.h>
 #include <io/IOFwd.h>
 #include <math/Vector3.h>
 #include <constants/ConstantsFwd.h>
 
-#include <list>
 #include <vector>
+#include <span>
 
 namespace ausaxs::grid {
 	class Grid {
@@ -30,7 +31,7 @@ namespace ausaxs::grid {
 			 * 
 			 * @param atoms The atoms to be stored in the Grid. 
 			 */
-			Grid(const std::vector<data::record::Atom>& atoms);
+			Grid(const std::vector<data::AtomFF>& atoms);
 
 			/**
 			 * @brief Space-saving constructor. 
@@ -43,82 +44,37 @@ namespace ausaxs::grid {
 
 			Grid(const Grid& grid);
 			Grid(Grid&& grid) noexcept;
-			virtual ~Grid();
+			~Grid();
 
 			/**
 			 * @brief Get the atomic radius of an atom in Å.
 			 */
-			virtual double get_atomic_radius(constants::atom_t atom) const;
+			double get_atomic_radius(form_factor::form_factor_t atom) const;
 
 			/**
 			 * @brief Get the radius of a water molecule in Å.
 			 */
-			virtual double get_hydration_radius() const;
-
-			/** 
-			 * @brief Add a vector of atoms to the grid. 
-			 * 		  All added atoms are automatically expanded.
-			 * 		  Complexity: O(n) in the number of added atoms.
-			 */
-			template <typename T, typename = std::enable_if_t<std::is_base_of<data::record::Atom, T>::value>>
-			std::vector<grid::GridMember<T>> add(const std::vector<T>& atoms);
+			double get_hydration_radius() const;
 
 			/**
 			 * @brief Add the contents of a body to the grid.
 			 * 		  All added atoms are automatically expanded.
 			 * 		  Complexity: O(n) in the number of added atoms.
 			 */
-			std::vector<grid::GridMember<data::record::Atom>> add(const data::Body* body);
+			std::span<grid::GridMember<data::AtomFF>> add(const data::Body& body, bool expand = true);
 
-			/** 
-			 * @brief Add a single atom to the grid. 
-			 *        Complexity: O(1). 
+			/**
+			 * @brief Add waters to the grid.
+			 *        Existing waters are removed.
 			 */
-			const GridMember<data::record::Atom>& add(const data::record::Atom& atom, bool expand = false);
-
-			/** 
-			 * @brief Add a single water to the grid. 
-			 *        Complexity: O(1). 
-			 */
-			const GridMember<data::record::Water>& add(const data::record::Water& atom, bool expand = false);
+			std::vector<grid::GridMember<data::Water>>& add(const std::vector<data::Water>& waters, bool expand = true);
 
 			/**
 			 * @brief Remove the contents of a body from the grid.
 			 * 		  All removed atoms are automatically deflated. 
 			 * 		  Complexity: O(n) in the number of member atoms.
 			 */
-			void remove(const data::Body* body);
-
-			/**
-			 * @brief Remove atoms as specified by the @a to_remove vector. 
-			 * 		  All removed atoms are automatically deflated.
-			 * 		  Complexity: O(n) in the number of member atoms.
-			 */
-			void remove(std::vector<bool>& to_remove);
-
-			/**
-			 * @brief Remove a single atom from the grid.
-			 *        Complexity: O(n) in the number of member atoms. 
-			 */
-			void remove(const data::record::Atom& atom);
-
-			/**
-			 * @brief Remove a single waters from the grid.
-			 *        Complexity: O(n) in the number of member waters. 
-			 */
-			void remove(const data::record::Water& atom);
-
-			/**
-			 * @brief Remove multiple waters from the grid.
-			 *        Complexity: O(n) in the number of removed waters. 
-			 */
-			void remove(const std::vector<data::record::Water>& atom);
-
-			/**
-			 * @brief Remove multiple protein atoms from the grid.
-			 *        Complexity: O(n) in the number of removed atoms. 
-			 */
-			void remove(const std::vector<data::record::Atom>& atom);
+			void remove(const data::Body& body);
 
 			/**
 			 * @brief Remove all waters from the grid.
@@ -148,14 +104,6 @@ namespace ausaxs::grid {
 			void deflate_volume();
 
 			/**
-			 * @brief Count the number of atoms in each cluster, and get those with less than \a min atoms.
-			 *        This is useful for removing "floating" atoms from e.g. EM map data.
-			 * 
-			 * @return A vector of booleans indicating whether the atom at the corresponding index is part of a cluster with less than \a min atoms.
-			 */
-			std::vector<bool> remove_disconnected_atoms(unsigned int min);
-
-			/**
 			 * @brief Get the number of bins in each dimension.
 			 */
 			Vector3<int> get_bins() const;
@@ -164,13 +112,13 @@ namespace ausaxs::grid {
 			 * @brief Get a copy of all waters in the grid. 
 			 * 		  Complexity: O(n) in the number of member waters.
 			 */
-			std::vector<data::record::Water> get_waters() const;
+			std::vector<data::Water> get_waters() const;
 
 			/**
 			 * @brief Get a copy of all atoms in the grid.
 			 * 		  Complexity: O(n) in the number of member atoms.
 			 */
-			std::vector<data::record::Atom> get_atoms() const;
+			std::vector<data::AtomFF> get_atoms() const;
 
 			/**
 			 * @brief Get the total volume spanned by the atoms in this grid in Å^3.
@@ -256,7 +204,7 @@ namespace ausaxs::grid {
 			 */
 			virtual detail::GridExcludedVolume generate_excluded_volume(bool determine_surface);
 
-			std::vector<data::record::Atom> get_surface_atoms() const;
+			std::vector<data::AtomFF> get_surface_atoms() const;
 
 			/**
 			 * @brief Get the contents of a single bin.
@@ -274,8 +222,9 @@ namespace ausaxs::grid {
 			void add_volume(double value);
 
 			detail::GridObj grid; // The actual grid.
-			std::list<GridMember<data::record::Atom>> a_members; // A list of all member atoms and where they are located.
-			std::list<GridMember<data::record::Water>> w_members; // A list of all member water molecules and where they are located. 
+			std::vector<GridMember<data::AtomFF>> a_members; // The member atoms and where they are located.
+			std::vector<GridMember<data::Water>>  w_members; // The member water molecules and where they are located. 
+			std::unordered_map<int, int> body_start; 		 // The starting index of each body in the a_members vector. 
 
 		protected: // only protected since they are important for testing
 			unsigned int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
@@ -285,28 +234,28 @@ namespace ausaxs::grid {
 			 * 		  Only expands atoms if they have not already been expanded. 
 			 * 		  Complexity: O(1).
 			 */
-			void expand_volume(GridMember<data::record::Atom>& atom);
+			void expand_volume(GridMember<data::AtomFF>& atom);
 
 			/** 
 			 * @brief Expand a single member water molecule into an actual sphere.
 			 * 		  Only expands molecules if they have not already been expanded.
 			 * 		  Complexity: O(1).
 			 */
-			void expand_volume(GridMember<data::record::Water>& atom);
+			void expand_volume(GridMember<data::Water>& atom);
 
 			/** 
 			 * @brief Deflate a single member atom into an actual sphere.
 			 * 		  Only deflates atoms if they have been expanded.
 			 * 		  Complexity: O(1).
 			 */
-			void deflate_volume(GridMember<data::record::Atom>& atom);
+			void deflate_volume(GridMember<data::AtomFF>& atom);
 
 			/** 
 			 * @brief Deflate a single member atom into an actual sphere.
 			 * 		  Only deflates atoms if they have been expanded.
 			 * 		  Complexity: O(1).
 			 */
-			void deflate_volume(GridMember<data::record::Water>& atom);
+			void deflate_volume(GridMember<data::Water>& atom);
 
 			/**
 			 * @brief Create the smallest possible box containing all atoms.
@@ -314,7 +263,7 @@ namespace ausaxs::grid {
 			 * 
 			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
 			 */
-			static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<data::record::Atom>& atoms);
+			static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<data::AtomFF>& atoms);
 
 		private:
 			Axis3D axes;
@@ -343,6 +292,13 @@ namespace ausaxs::grid {
 			 * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
 			 */
 			void deflate_volume(const Vector3<int>& loc, bool is_water);
+
+			/**
+			 * @brief Remove atoms as specified by the @a to_remove vector. 
+			 * 		  All removed atoms are automatically deflated.
+			 * 		  Complexity: O(n) in the number of member atoms.
+			 */
+			void remove(std::vector<bool>& to_remove);
 
 			void setup();
 	};

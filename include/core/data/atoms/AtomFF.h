@@ -15,8 +15,8 @@ namespace ausaxs::data {
             Atom& get_atom() {return basic;}
             const Atom& get_atom() const {return basic;}
 
-            form_factor::form_factor_t get_form_factor_type() const {return type;}
-            void set_form_factor_type(form_factor::form_factor_t t) {type = t;}
+            form_factor::form_factor_t form_factor_type() const {return type;}
+            form_factor::form_factor_t& form_factor_type() {return type;}
 
         private:
             Atom basic;

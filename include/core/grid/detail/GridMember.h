@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math/Vector3.h>
+#include <form_factor/FormFactorType.h>
 #include <constants/Constants.h>
 
 namespace ausaxs::grid {
@@ -81,7 +82,7 @@ namespace ausaxs::grid {
             /**
              * @brief Get the atom type.
              */
-            constants::atom_t get_atom_type() const;
+            form_factor::form_factor_t get_atom_type() const;
 
             GridMember& operator=(const GridMember& gm) = default;
             GridMember& operator=(GridMember&& gm) noexcept = default;
@@ -92,6 +93,5 @@ namespace ausaxs::grid {
             T atom;
             Vector3<int> loc;               // bin location
             bool expanded_volume = false;   // whether the volume of this atom has been expanded
-
     };
 }

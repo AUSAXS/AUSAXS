@@ -47,7 +47,7 @@ Vector3<double> Body::get_cm() const {
     double M = 0; // total mass
     auto weighted_sum = [&cm, &M] (auto& atoms) {
         for (auto const& a : atoms) {
-            double m = constants::mass::get_mass(a.get_form_factor_type());
+            double m = constants::mass::get_mass(a.form_factor_type());
             M += m;
             cm += a.coordinates()*m;
         }
@@ -59,7 +59,7 @@ Vector3<double> Body::get_cm() const {
 
 double Body::get_volume_vdw() const {
     double volume = std::accumulate(atoms.begin(), atoms.end(), 0.0, [] (double sum, const data::AtomFF& atom) {
-        return sum + std::pow(constants::radius::get_vdw_radius(atom.get_form_factor_type()), 3);
+        return sum + std::pow(constants::radius::get_vdw_radius(atom.form_factor_type()), 3);
     });
     return 4*std::numbers::pi*volume/3;
 }
@@ -91,8 +91,8 @@ double Body::get_molar_mass() const {
 
 double Body::get_absolute_mass() const {
     double M = 0;
-    std::for_each(atoms.begin(), atoms.end(), [&M] (const data::AtomFF& a) {M += constants::mass::get_mass(a.get_form_factor_type());});
-    std::for_each(waters.begin(), waters.end(), [&M] (const data::Water& a) {M += constants::mass::get_mass(a.get_form_factor_type());});
+    std::for_each(atoms.begin(), atoms.end(), [&M] (const data::AtomFF& a) {M += constants::mass::get_mass(a.form_factor_type());});
+    std::for_each(waters.begin(), waters.end(), [&M] (const data::Water& a) {M += constants::mass::get_mass(a.form_factor_type());});
     return M;
 }
 

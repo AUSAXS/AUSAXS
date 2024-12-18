@@ -4,8 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <grid/detail/GridMember.h>
-#include <data/record/Water.h>
-#include <data/record/Atom.h>
+#include <data/atoms/AtomFF.h>
 
 using namespace ausaxs;
 using namespace ausaxs::grid;
@@ -29,10 +28,10 @@ template<typename T>
 const Vector3<int>& GridMember<T>::get_bin_loc() const {return loc;}
 
 template<typename T>
-Vector3<double>& GridMember<T>::get_absolute_loc() {return atom.get_coordinates();}
+Vector3<double>& GridMember<T>::get_absolute_loc() {return atom.coordinates();}
 
 template<typename T>
-const Vector3<double>& GridMember<T>::get_absolute_loc() const {return atom.get_coordinates();}
+const Vector3<double>& GridMember<T>::get_absolute_loc() const {return atom.coordinates();}
 
 template<typename T>
 bool GridMember<T>::is_expanded() const {return expanded_volume;}
@@ -47,7 +46,11 @@ template<typename T>
 const T& GridMember<T>::get_atom() const {return atom;}
 
 template<typename T>
-constants::atom_t GridMember<T>::get_atom_type() const {return atom.get_element();}
+form_factor::form_factor_t GridMember<T>::get_atom_type() const {return atom.form_factor_type();}
 
-template class grid::GridMember<data::record::Atom>;
-template class grid::GridMember<data::record::Water>;
+template class grid::GridMember<data::AtomFF>;
+template class grid::GridMember<data::Water>;
+
+static_assert(std::is_trivial_v<data::AtomFF>,          "GridMember is not trivial");
+static_assert(std::is_standard_layout_v<data::AtomFF>,  "GridMember is not standard layout");
+static_assert(supports_nothrow_move_v<data::AtomFF>,    "GridMember should support nothrow move semantics.");

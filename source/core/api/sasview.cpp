@@ -6,7 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <api/sasview.h>
 
 #include <settings/All.h>
-#include <dataset/Dataset.h>
 #include <dataset/SimpleDataset.h>
 #include <data/atoms/Atom.h>
 #include <data/Molecule.h>
@@ -14,11 +13,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Utility.h>
-#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
-using namespace ausaxs::data::record;
 
 void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, int* _return_status, double* _return_Iq) {
     std::cout << "AUSAXS: Started evaluating Debye equation." << std::endl;

@@ -31,7 +31,8 @@ namespace ausaxs::hist::detail {
             /**
              * @brief Extract the necessary coordinates and weights from a body. 
              */
-            CompactCoordinates(const std::vector<data::AtomBasic>& body);
+            CompactCoordinates(const std::vector<data::Atom>& body);
+            CompactCoordinates(const std::vector<data::AtomFF>& body);
 
             /**
              * @brief Extract the necessary coordinates and weights from a vector of bodies. 
@@ -41,7 +42,7 @@ namespace ausaxs::hist::detail {
             /**
              * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
              */
-            CompactCoordinates(const std::vector<data::record::Water>& atoms);
+            CompactCoordinates(const std::vector<data::Water>& atoms);
 
             /**
              * @brief Calculate and subtract the average excluded volume charge from each atom to implicitly account for the excluded volume contribution.

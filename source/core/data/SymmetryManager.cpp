@@ -1,10 +1,8 @@
-#include "utility/Exceptions.h"
 #include <data/SymmetryManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
@@ -56,7 +54,7 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
 
         // loop over its symmetries
         for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
-            const auto& symmetry = body.get_symmetry(i_sym_1);
+            const auto& symmetry = body.symmetry().get(i_sym_1);
 
             std::vector<CompactCoordinates> sym_atomic(symmetry.repeat, data_a);
             std::vector<CompactCoordinates> sym_water(symmetry.repeat, data_w);
@@ -92,9 +90,7 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
 }
 
 template<bool use_weighted_distribution>
-std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager::calculate(
-    const data::Molecule& protein
-) {
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate(const data::Molecule& protein) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
 
@@ -122,7 +118,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
         cross_indices.emplace_back(SELF_AW);
 
         for (int i_sym1 = 0; i_sym1 < static_cast<int>(body.size_symmetry()); ++i_sym1) {
-            const auto& sym1 = body.get_symmetry(i_sym1);
+            const auto& sym1 = body.symmetry().get(i_sym1);
             for (int i_repeat1 = 0; i_repeat1 < sym1.repeat; ++i_repeat1) {
                 const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
                 const auto& body1_sym_waters = data[i_body1].waters[1+i_sym1][i_repeat1];
@@ -160,7 +156,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
 
                     // external histograms with other symmetries in same body
                     for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
-                        const auto& sym2 = body2.get_symmetry(j_sym1);
+                        const auto& sym2 = body2.symmetry().get(j_sym1);
                         for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
                             const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
                             const auto& body2_sym_waters = data[j_body1].waters[1+j_sym1][j_repeat1];
@@ -180,7 +176,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
 
                 // internal histogram with other symmetries in same body
                 for (int i_sym2 = i_sym1+1; i_sym2 < static_cast<int>(body.size_symmetry()); ++i_sym2) {
-                    const auto& sym2 = body.get_symmetry(i_sym2);
+                    const auto& sym2 = body.symmetry().get(i_sym2);
                     for (int i_repeat2 = 0; i_repeat2 < sym2.repeat; ++i_repeat2) {
                         const auto& body2_sym_atomic = data[i_body1].atomic[1+i_sym2][i_repeat2];
                         const auto& body2_sym_waters = data[i_body1].waters[1+i_sym2][i_repeat2];
@@ -217,7 +213,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
 
             // external histograms with other symmetries in same body
             for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
-                const auto& sym2 = body2.get_symmetry(j_sym1);
+                const auto& sym2 = body2.symmetry().get(j_sym1);
                 for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
                     const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
                     const auto& body2_sym_waters = data[j_body1].waters[1+j_sym1][j_repeat1];
@@ -323,5 +319,5 @@ std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager:
     }
 }
 
-template std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<true>(const data::Molecule&);
-template std::unique_ptr<hist::CompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<false>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<true>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<false>(const data::Molecule&);

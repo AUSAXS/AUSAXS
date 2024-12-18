@@ -24,6 +24,7 @@ namespace ausaxs::form_factor {
         OTHER,              // all other atoms
         EXCLUDED_VOLUME,    // excluded volume
         COUNT,              // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
+        UNKNOWN,            // this is used to indicate that the form factor is unknown
     };
     constexpr int exv_bin   = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::OH);

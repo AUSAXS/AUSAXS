@@ -6,9 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <grid/detail/GridSurfaceDetection.h>
-#include <data/detail/AtomCollection.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <settings/GridSettings.h>
@@ -20,13 +17,12 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::grid;
 using namespace ausaxs::data;
-using namespace ausaxs::data::record;
 
 Grid::Grid(const Limit3D& axes) : axes(Axis3D(axes, settings::grid::cell_width)) {
     setup();
 }
 
-Grid::Grid(const std::vector<Atom>& atoms) : Grid({Body(atoms)}) {}
+Grid::Grid(const std::vector<AtomFF>& atoms) : Grid({Body(atoms)}) {}
 
 Grid::Grid(const std::vector<Body>& bodies) {
     // find the total bounding box containing all bodies
@@ -60,7 +56,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
-        add(body.get_atoms());
+        add(body);
     }
 }
 
@@ -126,7 +122,7 @@ void Grid::setup() {
     this->grid = detail::GridObj(axes.x.bins, axes.y.bins, axes.z.bins);
 }
 
-double Grid::get_atomic_radius(constants::atom_t atom) const {
+double Grid::get_atomic_radius(form_factor::form_factor_t atom) const {
     return constants::radius::get_vdw_radius(atom);
 }
 
@@ -151,14 +147,14 @@ std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
     return std::make_pair(min, max);
 }
 
-std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector<Atom>& atoms) {
+std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector<AtomFF>& atoms) {
     // initialize the bounds as large as possible
     Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
     Vector3 max = {std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min()};
     for (const auto& atom : atoms) {
         for (int i = 0; i < 3; i++) {
-            min[i] = std::min(min[i], atom.coords[i]);
-            max[i] = std::max(max[i], atom.coords[i]);
+            min[i] = std::min(min[i], atom.coordinates()[i]);
+            max[i] = std::max(max[i], atom.coordinates()[i]);
         }
     }
     return std::make_pair(min, max);
@@ -175,8 +171,8 @@ std::vector<Water> Grid::get_waters() const {
     return atoms;
 }
 
-std::vector<Atom> Grid::get_atoms() const {
-    std::vector<Atom> atoms(a_members.size());
+std::vector<AtomFF> Grid::get_atoms() const {
+    std::vector<AtomFF> atoms(a_members.size());
     int i = 0; // counter
     for (const auto& atom : a_members) {
         atoms[i] = atom.get_atom();
@@ -213,7 +209,7 @@ void Grid::expand_volume() {
     }
 }
 
-void Grid::expand_volume(GridMember<Atom>& atom) {
+void Grid::expand_volume(GridMember<AtomFF>& atom) {
     if (atom.is_expanded()) {return;} // check if this location has already been expanded
     atom.set_expanded(true); // mark this location as expanded
 
@@ -298,7 +294,7 @@ void Grid::deflate_volume() {
     }
 }
 
-void Grid::deflate_volume(GridMember<Atom>& atom) {
+void Grid::deflate_volume(GridMember<AtomFF>& atom) {
     if (!atom.is_expanded()) {return;} // check if this location has already been deflated
     atom.set_expanded(false); // mark the atom as deflated
 
@@ -363,243 +359,111 @@ void Grid::deflate_volume(GridMember<Water>& water) {
     }
 }
 
-#include <hydrate/culling/ClusterCulling.h>
-std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
-    // throw except::not_implemented("Grid::remove_disconnected_atoms: Not implemented!");
-    expand_volume();
-    ClusterCulling culler(this);
-    auto to_remove = culler.remove_clusters(min);
-    remove(to_remove);
+std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
+    int start = a_members.size();
+    body_start[body.get_uid()] = start;
+    a_members.resize(a_members.size() + body.size_atom());
+    for (int i = start; i < static_cast<int>(a_members.size()); i++) {
+        auto& atom = body.get_atoms()[i-start];
+        auto loc = to_bins(atom.coordinates());
+        unsigned int x = loc.x(), y = loc.y(), z = loc.z();
 
-    auto to_remove_t = culler.remove_tendrils(10);
-    remove(to_remove_t);
+        // sanity check
+        #if DEBUG
+            bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
+            if (out_of_bounds) [[unlikely]] {
+                throw except::out_of_bounds(
+                    "Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\n"
+                    "Real location: " + atom.coordinates().to_string()
+                );
+            }
+        #endif
 
-    // combine the two vectors
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < to_remove.size(); i++) {
-        if (!to_remove[i]) {
-            to_remove[i] = to_remove_t[index++];
-        }
+        auto& bin = grid.index(x, y, z);
+        volume += grid.is_empty(bin);
+        bin = detail::A_CENTER;
+
+        GridMember gm(atom, std::move(loc));
+        if (expand) {expand_volume(gm);}
+        a_members[i] = std::move(gm);
+    }
+    return std::span<GridMember<AtomFF>>(a_members.begin() + start, a_members.end());
+}
+
+std::vector<grid::GridMember<data::Water>>& Grid::add(const std::vector<data::Water>& waters, bool expand) {
+    clear_waters();
+    w_members.resize(waters.size());
+    for (int i = 0; i < static_cast<int>(waters.size()); ++i) {
+        auto& w = waters[i];
+        auto loc = to_bins(w.coordinates());
+        int x = loc.x(), y = loc.y(), z = loc.z(); 
+
+        // sanity check
+        #if DEBUG
+            if (x >= (int) axes.x.bins || y >= (int) axes.y.bins || z >= (int) axes.z.bins || x < 0 || y < 0 || z < 0) [[unlikely]] {
+                throw except::out_of_bounds(
+                    "Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\n"
+                    "Real location: " + w.coordinates().to_string()
+                );
+            }
+
+            auto bin = grid.index(x, y, z);
+            if (!(bin == detail::EMPTY || bin == detail::W_CENTER || bin == detail::VOLUME)) {
+                throw except::invalid_operation(
+                    "Grid::add: Attempting to add a water molecule to a non-empty location"
+                    " (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")"
+                );
+            }
+        #endif
+
+        GridMember gm(w, std::move(loc));
+        grid.index(x, y, z) = detail::W_CENTER;
+        if (expand) {expand_volume(gm);}
+        w_members[i] = std::move(gm);
+    }
+    return w_members;
+}
+
+void Grid::remove(const Body& body) {
+    auto it = body_start.find(body.get_uid());
+    if (it == body_start.end()) {
+        throw except::invalid_operation("Grid::remove: Attempting to remove a body that is not in the grid!");
     }
 
-    // sanity check
-    if (index != to_remove_t.size()) {
-        throw except::unexpected("Grid::remove_disconnected_atoms: Index mismatch! Index is (" + std::to_string(index) + ") but the size of the vector is (" + std::to_string(to_remove_t.size()) + ")!");
+    unsigned int start = it->second;
+    unsigned int end = it->second + body.get_atoms().size();
+    for (unsigned int i = start; i < end; i++) {
+        deflate_volume(a_members[i]);
+        grid.index(a_members[i].get_bin_loc()) = detail::EMPTY;
     }
 
-    return to_remove;
-}
-
-template <typename T, typename>
-std::vector<GridMember<T>> Grid::add(const std::vector<T>& atoms) {
-    std::vector<GridMember<T>> v(atoms.size());
-    unsigned int index = 0;
-    for (const auto& a : atoms) {
-        v[index++] = add(a);
-    }
-    return v;
-}
-template std::vector<GridMember<Atom>> Grid::add<Atom>(const std::vector<Atom>&);
-template std::vector<GridMember<Water>> Grid::add<Water>(const std::vector<Water>&);
-
-std::vector<GridMember<Atom>> Grid::add(const Body* body) {
-    return add(body->get_atoms());
-}
-
-void Grid::remove(const Body* body) {
-    remove(body->get_atoms());
-}
-
-const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
-    auto loc = to_bins(atom.coords);
-    unsigned int i = loc.x(), j = loc.y(), k = loc.z();
-
-    // sanity check
-    #if DEBUG
-        bool out_of_bounds = i >= axes.x.bins || j >= axes.y.bins || k >= axes.z.bins;
-        if (out_of_bounds) [[unlikely]] {
-            throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
-        }
-    #endif
-
-    auto& bin = grid.index(i, j, k);
-    volume += grid.is_empty(bin);
-    bin = detail::A_CENTER;
-
-    GridMember gm(atom, std::move(loc));
-    if (expand) {expand_volume(gm);}
-    a_members.push_back(std::move(gm));
-
-    return a_members.back();
-}
-
-const GridMember<Water>& Grid::add(const Water& water, bool expand) {
-    auto loc = to_bins(water.coords);
-    int i = loc.x(), j = loc.y(), k = loc.z(); 
-
-    // sanity check
-    #if DEBUG
-        if (i >= (int) axes.x.bins || j >= (int) axes.y.bins || k >= (int) axes.z.bins || i < 0 || j < 0 || k < 0) [[unlikely]] {
-            throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
-        } 
-
-        if (!(grid.index(i, j, k) == detail::EMPTY || grid.index(i, j, k) == detail::W_CENTER || grid.index(i, j, k) == detail::VOLUME)) {
-            throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
-        }
-    #endif
-
-    GridMember gm(water, std::move(loc));
-    grid.index(i, j, k) = detail::W_CENTER;
-    if (expand) {expand_volume(gm);}
-    w_members.push_back(std::move(gm));
-
-    return w_members.back();
+    a_members.erase(a_members.begin()+start, a_members.begin()+end);
+    body_start.erase(it);
 }
 
 void Grid::remove(std::vector<bool>& to_remove) {
-    // create a map of uids to remove
-    std::unordered_map<unsigned int, bool> removed;
+    assert(to_remove.size() == a_members.size());
 
-    // fill it based on the to_remove vector
-    unsigned int index = 0;
-    unsigned int total_removed = 0;
-    for(auto& atom : a_members) {
-        if (to_remove[index++]) {
-            removed[atom.get_atom().uid] = true;
-            total_removed++;
+    int sum = std::accumulate(to_remove.begin(), to_remove.end(), 0);
+    std::vector<GridMember<AtomFF>> new_atoms(a_members.size() - sum);
+
+    for (unsigned int i = 0, j = 0; i < a_members.size(); i++) {
+        if (!to_remove[i]) {
+            new_atoms[j++] = a_members[i];
         } else {
-            removed[atom.get_atom().uid] = false;
+            deflate_volume(a_members[i]);
+            grid.index(a_members[i].get_bin_loc()) = detail::EMPTY;
+            volume--;
         }
-    }
-
-    index = 0;
-    std::vector<GridMember<Atom>> removed_atoms(total_removed);
-    auto predicate = [&removed, &removed_atoms, &index] (GridMember<Atom>& gm) {
-        if (removed[gm.get_atom().uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
-            removed_atoms[index++] = std::move(gm);
-            return true;
-        }
-        return false;
-    };
-
-    // we save the sizes so we can make a sanity check after the removal    
-    size_t prev_size = a_members.size();
-    a_members.remove_if(predicate);
-    size_t cur_size = a_members.size();
-
-    // sanity check
-    if (prev_size - cur_size != total_removed) [[unlikely]] {
-        throw except::invalid_operation("Grid::remove: Something went wrong.");
-    }
-
-    // clean up the grid
-    for (auto& atom : removed_atoms) {
-        deflate_volume(atom);
-        grid.index(atom.get_bin_loc()) = detail::EMPTY;
-        volume--;
-    }
-}
-
-void Grid::remove(const Atom& atom) {
-    auto pos = std::find(a_members.begin(), a_members.end(), atom);
-    if (pos == a_members.end()) [[unlikely]] {
-        throw except::invalid_operation("Grid::remove: Attempting to remove an atom which is not part of the grid!");
-    }
-
-    GridMember<Atom>& member = *pos;
-
-    a_members.erase(pos);
-    deflate_volume(member);
-    grid.index(member.get_bin_loc()) = detail::EMPTY;
-    volume--;
-}
-
-void Grid::remove(const Water& water) {
-    auto pos = std::find(w_members.begin(), w_members.end(), water);
-    if (pos == w_members.end()) [[unlikely]] {
-        throw except::invalid_operation("Grid::remove: Attempting to remove an atom which is not part of the grid!");
-    }
-
-    GridMember<Water>& member = *pos;
-
-    w_members.erase(pos);
-    deflate_volume(member);
-    grid.index(member.get_bin_loc()) = detail::EMPTY;
-}
-
-void Grid::remove(const std::vector<Atom>& atoms) {
-    // we make a vector of all possible uids
-    std::unordered_map<int, bool> removed;
-    // and fill it with the uids that should be removed
-    std::for_each(atoms.begin(), atoms.end(), [&removed] (const Atom& atom) {removed[atom.uid] = true;});
-
-    unsigned int index = 0; // current index in removed_atoms
-    std::vector<GridMember<Atom>> removed_atoms(atoms.size()); // the atoms which will be removed
-    auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
-        if (removed[gm.get_atom().uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
-            removed_atoms[index++] = gm;
-            return true;
-        }
-        return false;
-    };
-
-    // we save the sizes so we can make a sanity check after the removal    
-    unsigned int prev_size = a_members.size();
-    a_members.remove_if(predicate);
-    unsigned int cur_size = a_members.size();
-
-    // sanity check
-    if (prev_size - cur_size != atoms.size()) [[unlikely]] {
-        throw except::unexpected("Grid::remove: Expected to remove " + std::to_string(atoms.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
-    }
-
-    // clean up the grid
-    for (auto& atom : removed_atoms) {
-        deflate_volume(atom);
-        auto& bin = grid.index(atom.get_bin_loc());
-        volume -= grid.is_atom_center(bin); // bin may in rare cases contain two atoms, so we need to check
-        bin = detail::EMPTY;
-    }
-}
-
-void Grid::remove(const std::vector<Water>& waters) {
-    // we make a map and fill it with the uids that should be removed
-    std::unordered_map<unsigned int, bool> to_remove_id;
-    std::for_each(waters.begin(), waters.end(), [&to_remove_id] (const Water& water) {to_remove_id[water.uid] = true;});
-
-    unsigned int index = 0; // current index in removed_waters
-    std::vector<GridMember<Water>> to_remove(waters.size()); // the waters which will be removed
-    auto predicate = [&to_remove_id, &to_remove, &index] (const GridMember<Water>& gm) {
-        if (to_remove_id.contains(gm.get_atom().uid)) { // now we can simply look up in our removed vector to determine if an element should be removed
-            to_remove[index++] = gm;
-            return true;
-        }
-        return false;
-    };
-
-    // we save the sizes so we can make a sanity check after the removal    
-    unsigned int prev_size = w_members.size();
-    w_members.remove_if(predicate);
-    unsigned int cur_size = w_members.size();
-
-    // sanity check
-    if (prev_size - cur_size != waters.size()) [[unlikely]] {
-        throw except::unexpected("Grid::remove: Expected to remove " + std::to_string(waters.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
-    }
-
-    // clean up the grid
-    for (auto& water : to_remove) {
-        deflate_volume(water);
-        grid.index(water.get_bin_loc()) = detail::EMPTY;
     }
 }
 
 void Grid::clear_waters() {
-    std::vector<Water> waters;
-    waters.reserve(w_members.size());
-    std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Water>& water) {waters.push_back(water.get_atom());});
-    remove(waters);
-    if (w_members.size() != 0) [[unlikely]] {throw except::unexpected("Grid::clear_waters: Something went wrong.");}
+    for (auto& water : w_members) {
+        deflate_volume(water);
+        grid.index(water.get_bin_loc()) = detail::EMPTY;
+    }
+    w_members.clear();
 }
 
 Vector3<int> Grid::get_bins() const {
@@ -655,30 +519,28 @@ bool Grid::operator==(const Grid& rhs) const {
 }
 
 void Grid::save(const io::File& path) const {
-    std::vector<Atom> atoms;
-    std::vector<Water> waters;
-    unsigned int c = 0;
+    std::vector<std::vector<AtomFF>> atoms(7);
     for (unsigned int i = 0; i < grid.size_x(); i++) {
         for (unsigned int j = 0; j < grid.size_y(); j++) {
             for (unsigned int k = 0; k < grid.size_z(); k++) {
                 switch (grid.index(i, j, k)) {
                     case detail::A_CENTER:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", 'A', 1, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms[0].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
                         break;
                     case detail::A_AREA:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", 'B', 2, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms[1].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
                         break;
                     case detail::VOLUME:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", 'C', 3, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms[2].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
                         break;
                     case detail::W_CENTER:
-                        waters.push_back(Atom(c++, "C", "", "LYS", 'D', 4, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms[3].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
                         break;
                     case detail::W_AREA:
-                        waters.push_back(Atom(c++, "C", "", "LYS", 'E', 5, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms[4].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
                         break;
                     case detail::VACUUM:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms[5].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
                     default:
                         break;
                 }
@@ -687,16 +549,25 @@ void Grid::save(const io::File& path) const {
     }
 
     // visualize corners
-    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, 0, 0), 1, 0, constants::atom_t::C, ""));
-    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, 0, 0), 1, 0, constants::atom_t::C, ""));
-    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, axes.y.bins, 0), 1, 0, constants::atom_t::C, ""));
-    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, axes.y.bins, 0), 1, 0, constants::atom_t::C, ""));
-    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, axes.y.bins, axes.z.bins), 1, 0, constants::atom_t::C, ""));
-    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(0, 0, axes.z.bins), 1, 0, constants::atom_t::C, ""));
-    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, 0, axes.z.bins), 1, 0, constants::atom_t::C, ""));
-    atoms.push_back(Atom(c++, "C", "", "LYS", 'F', 6, "", to_xyz(axes.x.bins, axes.y.bins, axes.z.bins), 1, 0, constants::atom_t::C, ""));
+    atoms[6].emplace_back(to_xyz(0,             0,              0),           1, form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   0,              0),           1, form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    0),           1, form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    0),           1, form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    axes.z.bins), 1, form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(0,             0,              axes.z.bins), 1, form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   0,              axes.z.bins), 1, form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    axes.z.bins), 1, form_factor::form_factor_t::C);
+    
+    std::vector<Body> bodies;
+    bodies.emplace_back(atoms[0]);
+    bodies.emplace_back(atoms[1]);
+    bodies.emplace_back(atoms[2]);
+    bodies.emplace_back(atoms[3]);
+    bodies.emplace_back(atoms[4]);
+    bodies.emplace_back(atoms[5]);
+    bodies.emplace_back(atoms[6]);
 
-    data::Molecule p(atoms, waters);
+    data::Molecule p(bodies);
     p.save(path);
 }
 
@@ -705,23 +576,18 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
     auto vol = determine_surface ? detail::GridSurfaceDetection(this).detect() : detail::GridSurfaceDetection(this).no_detect();
 
     if (settings::grid::exv::save) {
-        std::vector<Atom> atoms;
-        atoms.reserve(vol.interior.size()+vol.surface.size());
+        std::vector<AtomFF> atoms1, atoms2;
     
-        unsigned int i = 0, j = 0;
-        for (; i < vol.interior.size(); ++i) {
-            atoms.emplace_back(i, "C", "", "LYS", 'A', 1, "", vol.interior[i], 1, 0, constants::atom_t::C, "");
+        for (int i = 0; i < static_cast<int>(vol.interior.size()); ++i) {
+            atoms1.emplace_back(vol.interior[i], 1, form_factor::form_factor_t::C);
         }
 
-        for (;j < vol.surface.size(); ++j) {
-            atoms.emplace_back(i+j, "C", "", "LYS", 'B', 2, "", vol.surface[j], 1, 0, constants::atom_t::C, "");
+        for (int j = 0; j < static_cast<int>(vol.surface.size()); ++j) {
+            atoms2.emplace_back(vol.surface[j], 1, form_factor::form_factor_t::C);
         }
 
-        // for (unsigned int k = 0; k < vol.vacuum.size(); ++k) {
-        //     atoms.emplace_back(i+j+k, "C", "", "LYS", 'C', 3, "", vol.vacuum[k], 1, 0, constants::atom_t::C, "");
-        // }
-
-        data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
+        std::vector<Body> bodies = {atoms1, atoms2};
+        data::Molecule(bodies).save(settings::general::output + "exv.pdb");
     }
 
     if (!determine_surface) {
@@ -734,7 +600,7 @@ const grid::detail::State& Grid::index(unsigned int i, unsigned int j, unsigned 
     return grid.index(i, j, k);
 }
 
-std::vector<Atom> Grid::get_surface_atoms() const {
+std::vector<AtomFF> Grid::get_surface_atoms() const {
     throw except::not_implemented("Grid::get_surface_atoms: Not implemented.");
 }
 
