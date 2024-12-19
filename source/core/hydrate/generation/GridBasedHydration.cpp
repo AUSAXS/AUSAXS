@@ -3,12 +3,12 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
+#include "data/atoms/Water.h"
 #include <hydrate/generation/GridBasedHydration.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/culling/CullingFactory.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <utility/Console.h>
 #include <settings/GridSettings.h>
@@ -50,6 +50,11 @@ std::unique_ptr<Hydration> GridBasedHydration::hydrate() {
     double target = settings::grid::water_scaling*area; // the target number of water molecules
 
     culling_strategy->set_target_count(target);
-    auto remaining_waters = culling_strategy->cull(waters);
+    culling_strategy->cull(waters);
+
+    std::vector<data::Water> remaining_waters(grid->w_members.size());
+    std::transform(grid->w_members.begin(), grid->w_members.end(), remaining_waters.begin(), 
+        [] (const auto& water) {return water.get_atom();}
+    );
     return std::make_unique<ExplicitHydration>(std::move(remaining_waters));
 }

@@ -118,7 +118,7 @@ ResidueMap Residue::to_map() const {
 }
 
 Residue Residue::parse(const io::ExistingFile& filename) {
-    auto residues = io::detail::CIFReader::read_residue(filename);
+    auto residues = io::detail::cif::read_residue(filename);
     if (1 < residues.size()) {throw except::io_error("Residue::parse: Expected a single residue in file \"" + filename + "\"");}
     return residues.front();
 }

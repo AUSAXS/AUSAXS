@@ -14,10 +14,10 @@ namespace ausaxs::hydrate {
             PepsiHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
             ~PepsiHydration() override;
 
-            std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
+            std::vector<grid::GridMember<data::Water>> generate_explicit_hydration() override;
 
         private:
-            void modified_expand_volume(grid::GridMember<data::record::Atom>& atom);
+            void modified_expand_volume(grid::GridMember<data::Atom>& atom);
             void initialize() override;
     };
 }

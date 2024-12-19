@@ -419,23 +419,6 @@ void Grid::remove(const Body& body) {
     body_start.erase(it);
 }
 
-void Grid::remove(std::vector<bool>& to_remove) {
-    assert(to_remove.size() == a_members.size());
-
-    int sum = std::accumulate(to_remove.begin(), to_remove.end(), 0);
-    std::vector<GridMember<AtomFF>> new_atoms(a_members.size() - sum);
-
-    for (unsigned int i = 0, j = 0; i < a_members.size(); i++) {
-        if (!to_remove[i]) {
-            new_atoms[j++] = a_members[i];
-        } else {
-            deflate_volume(a_members[i]);
-            grid.index(a_members[i].get_bin_loc()) = detail::EMPTY;
-            volume--;
-        }
-    }
-}
-
 void Grid::clear_waters() {
     for (auto& water : w_members) {
         deflate_volume(water);

@@ -16,7 +16,7 @@ void hydrate::BodyCounterCulling::set_body_ratios(const std::vector<double>& bod
     this->body_ratios = body_ratios;
 }
 
-std::vector<data::Water> hydrate::BodyCounterCulling::cull(std::vector<grid::GridMember<data::Water>>& placed_water) const {
+void hydrate::BodyCounterCulling::cull(std::vector<grid::GridMember<data::Water>>& placed_water) const {
     if (body_ratios.empty()) {return CounterCulling(molecule).cull(placed_water);}
     double total_reduction_factor = static_cast<double>(placed_water.size())/target_count;
     double total_weight = std::accumulate(body_ratios.begin(), body_ratios.end(), 0.0);
@@ -28,8 +28,7 @@ std::vector<data::Water> hydrate::BodyCounterCulling::cull(std::vector<grid::Gri
         reduction_factors[i] = total_reduction_factor*body_ratios[i]/total_weight;
     }
 
-    std::vector<data::Water> final_waters(placed_water.size());
-    std::vector<data::Water> removed_water(placed_water.size());
+    std::vector<bool> removed_water(placed_water.size(), false);
     std::vector<unsigned int> body_counts(molecule->size_body(), 0);
     std::vector<double> body_counters(molecule->size_body(), 0);
     unsigned int rm_index = 0; // current index in removed_water
@@ -49,13 +48,10 @@ std::vector<data::Water> hydrate::BodyCounterCulling::cull(std::vector<grid::Gri
         body_counters[min_index] += reduction_factors[min_index];
         if (body_counts[min_index] < body_counters[min_index]) {
             body_counts[min_index]++;
-            final_waters[fw_index++] = water.get_atom();
+            removed_water[fw_index++] = true;
             continue;
         }
-        removed_water[rm_index++] = water.get_atom();
+        removed_water[rm_index++] = true;
     }
-    removed_water.resize(rm_index);
-    final_waters.resize(fw_index);
-    molecule->get_grid()->remove(removed_water);
-    return final_waters;
+    molecule->get_grid()->remove_waters(removed_water);
 }

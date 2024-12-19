@@ -15,7 +15,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <random>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
 
 std::function<Vector3<double>()> hydrate::RadialHydration::noise_generator = [] () {
     static std::random_device rd;
@@ -44,23 +43,23 @@ void hydrate::RadialHydration::set_noise_generator(std::function<Vector3<double>
     noise_generator = std::move(f);
 }
 
-std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
+std::vector<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
     assert(protein != nullptr && "RadialHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
     assert(grid != nullptr && "RadialHydration::generate_explicit_hydration: grid is nullptr.");
 
     // we define a helper lambda
-    std::vector<grid::GridMember<Water>> placed_water; 
+    std::vector<grid::GridMember<data::Water>> placed_water; 
     placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (Vector3<double>&& exact_loc) {
-        Water a = Water::create_new_water(std::move(exact_loc));
-        grid::GridMember<Water> gm = grid->add(a, true);
+        data::Water a(std::move(exact_loc));
+        grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
         placed_water.emplace_back(std::move(gm));
     };
 
     double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
     for (const auto& atom : grid->a_members) {
-        const auto& coords_abs = atom.get_atom().get_coordinates();
+        const auto& coords_abs = atom.get_atom().coordinates();
         double ra = grid->get_atomic_radius(atom.get_atom_type());
         double reff = ra + rh;
     
@@ -68,7 +67,7 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::RadialHydration::gen
             auto noise = noise_generator();
             auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff + noise);
             if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()))) {
-                Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff + noise;
+                Vector3<double> exact_loc = atom.get_atom().coordinates() + rot_locs[i]*reff + noise;
                 add_loc(std::move(exact_loc));
             }
         }

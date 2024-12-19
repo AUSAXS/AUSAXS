@@ -3,11 +3,10 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
+#include "form_factor/FormFactorType.h"
 #include <hydrate/culling/OutlierCulling.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
-#include <math/Vector3.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <constants/Constants.h>
 
@@ -15,19 +14,14 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;
-using namespace ausaxs::data::record;
 
-std::vector<data::record::Water> OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
+void OutlierCulling::cull(std::vector<grid::GridMember<data::Water>>& placed_water) const {
     auto grid = molecule->get_grid();
 
-    if (target_count == 0) {
-        std::vector<Water> final_water(placed_water.size());
-        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (const grid::GridMember<Water>& gm) -> const auto& {return gm.get_atom();});
-        return final_water;
-    }
+    if (target_count == 0) {return;}
 
-    std::vector<std::pair<grid::GridMember<Water>, int>> v(placed_water.size());
-    int r = 3*grid->get_atomic_radius(constants::atom_t::C)/grid->get_width(); // use 2*atomic_radius as the boundary
+    std::vector<std::pair<grid::GridMember<data::Water>, int>> v(placed_water.size());
+    int r = 3*grid->get_atomic_radius(form_factor::form_factor_t::C)/grid->get_width(); // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();
     const grid::detail::GridObj& gref = grid->grid;
     unsigned int index = 0;
@@ -55,16 +49,11 @@ std::vector<data::record::Water> OutlierCulling::cull(std::vector<grid::GridMemb
     std::sort(v.begin(), v.end(), [](auto &left, auto &right) {return left.second < right.second;});
 
     // copy the first target_count entries in the sorted vector
-    std::vector<Water> final_water(target_count); // the final water molecules that will be used
-    std::vector<Water> removed_water(placed_water.size() - target_count); // the water molecules which will be removed
+    std::vector<bool> to_remove(placed_water.size() - target_count, false);
     unsigned int n = 0;
-    for (n = 0; n < target_count; n++) {
-        final_water[n] = v[n].first.get_atom();
-    }
+    while (n < target_count) {n++;}
     for (; n < placed_water.size(); n++) {
-        removed_water[n] = v[n].first.get_atom();
+        to_remove[n] = true;
     }
-
-    grid->remove(removed_water);
-    return final_water;
+    grid->remove_waters(to_remove);
 }

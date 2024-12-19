@@ -70,11 +70,24 @@ namespace ausaxs::grid {
 			std::vector<grid::GridMember<data::Water>>& add(const std::vector<data::Water>& waters, bool expand = true);
 
 			/**
+			 * @brief Add a single water to the grid.
+			 * 		  Complexity: O(1).
+			 */
+			grid::GridMember<data::Water>& add(const data::Water& water, bool expand = true);
+
+			/**
 			 * @brief Remove the contents of a body from the grid.
 			 * 		  All removed atoms are automatically deflated. 
 			 * 		  Complexity: O(n) in the number of member atoms.
 			 */
 			void remove(const data::Body& body);
+
+			/**
+			 * @brief Remove the given waters. 
+			 * 		  All removed waters are automatically deflated.
+			 * 		  Complexity: O(n) in the number of waters.
+			 */
+			void remove_waters(const std::vector<bool>& to_remove);
 
 			/**
 			 * @brief Remove all waters from the grid.

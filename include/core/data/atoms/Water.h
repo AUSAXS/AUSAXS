@@ -7,6 +7,9 @@ namespace ausaxs::data {
      * @brief The most basic information of an atom that is needed to calculate a distance histogram.
      */
     struct Water : detail::AtomForwarder<Water> {
+        Water() = default;
+        Water(const Vector3<precision_t>& coords) : coords(coords), w(1) {}
+
         form_factor::form_factor_t form_factor_type() const {return form_factor::form_factor_t::OH;}
         [[nodiscard]] const Water& get_atom() const {return *this;}
         [[nodiscard]] Water& get_atom() {return *this;}

@@ -8,7 +8,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/File.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
-#include <data/record/Atom.h>
 
 #include <iomanip>
 
@@ -32,10 +31,11 @@ void io::XYZWriter::write_frame(const data::Molecule* protein) {
     auto atoms = protein->get_atoms();
     file << " " << atoms.size() << std::endl;
     file << " Frame " << frame++ << std::endl;
+    int i = 0;
     for (const auto& atom : atoms) {
-        file << std::setw(10) << atom.serial << " " 
-                << std::setw(10) << std::setprecision(6) << atom.coords.x() << " " 
-                << std::setw(10) << std::setprecision(6) << atom.coords.y() << " " 
-                << std::setw(10) << std::setprecision(6) << atom.coords.z() << std::endl;
+        file << std::setw(10) << i++ << " " 
+                << std::setw(10) << std::setprecision(6) << atom.coordinates().x() << " " 
+                << std::setw(10) << std::setprecision(6) << atom.coordinates().y() << " " 
+                << std::setw(10) << std::setprecision(6) << atom.coordinates().z() << std::endl;
     }
 }

@@ -6,7 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/generation/JanHydration.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <constants/Constants.h>
 #include <settings/MoleculeSettings.h>
@@ -14,7 +13,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <cassert>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
 
 hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
     initialize();
@@ -24,7 +22,7 @@ hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein, std::u
     initialize();
 }
 
-std::vector<grid::GridMember<data::record::Water>> hydrate::JanHydration::generate_explicit_hydration() {
+std::vector<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explicit_hydration() {
     assert(protein != nullptr && "JanHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
     assert(grid != nullptr && "JanHydration::generate_explicit_hydration: grid is nullptr.");
@@ -32,14 +30,14 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::JanHydration::genera
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
-    std::vector<Water> placed_water;
+    std::vector<data::Water> placed_water;
     placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (const Vector3<int>& v) {
-        placed_water.emplace_back(Water::create_new_water(grid->to_xyz(v)));
+        placed_water.emplace_back(data::Water(grid->to_xyz(v)));
     };
 
     // loop over the location of all member atoms
-    int r_eff = (grid->get_atomic_radius(constants::atom_t::C) + grid->get_hydration_radius() + settings::hydrate::shell_correction)/grid->get_width();
+    int r_eff = (grid->get_atomic_radius(form_factor::form_factor_t::C) + grid->get_hydration_radius() + settings::hydrate::shell_correction)/grid->get_width();
     auto[min, max] = grid->bounding_box_index();
     for (int i = min.x(); i < max.x(); i++) {
         int im = std::max(i-r_eff, 0), ip = std::min(i+r_eff, bins.x()-1); // xminus and xplus

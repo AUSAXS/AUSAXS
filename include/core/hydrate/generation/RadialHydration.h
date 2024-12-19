@@ -22,7 +22,7 @@ namespace ausaxs::hydrate {
             RadialHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
             virtual ~RadialHydration();
 
-            std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() override;
+            std::vector<grid::GridMember<data::Water>> generate_explicit_hydration() override;
 
             static void set_noise_generator(std::function<Vector3<double>()>&& noise_function);
 

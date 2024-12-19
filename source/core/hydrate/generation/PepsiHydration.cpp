@@ -4,10 +4,8 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <hydrate/generation/PepsiHydration.h>
-#include <data/record/Water.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <settings/GridSettings.h>
 #include <settings/MoleculeSettings.h>
@@ -16,7 +14,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;
-using namespace ausaxs::data::record;
 
 PepsiHydration::PepsiHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
     initialize();
@@ -39,7 +36,7 @@ auto get_shell_width(double Rg) {
     return std::clamp(a*Rg, 3., 5.);
 }
 
-std::vector<grid::GridMember<data::record::Water>> PepsiHydration::generate_explicit_hydration() {
+std::vector<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hydration() {
     double shell_width = get_shell_width(protein->get_Rg());
     double r = 3; // distance from the atom to the hydration shell
 
@@ -50,17 +47,17 @@ std::vector<grid::GridMember<data::record::Water>> PepsiHydration::generate_expl
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
-    std::vector<Water> placed_water;
+    std::vector<data::Water> placed_water;
     placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (const Vector3<int>& v) {
-        placed_water.emplace_back(Water::create_new_water(grid->to_xyz(v)));
+        placed_water.emplace_back(data::Water(grid->to_xyz(v)));
     };
 
     // loop over the location of all member atoms
     double max_r = r+shell_width;
     double max_r2 = max_r*max_r;
     for (const auto& atom : grid->a_members) {
-        const auto& coords_abs = atom.get_atom().get_coordinates();
+        const auto& coords_abs = atom.get_atom().coordinates();
 
         // scan for free cells in a box of size [x-r, x+r][y-r, y+r][z-r, z+r]
         auto bin_min = grid->to_bins(coords_abs - max_r);
@@ -90,7 +87,7 @@ std::vector<grid::GridMember<data::record::Water>> PepsiHydration::generate_expl
     return placed;
 }
 
-void PepsiHydration::modified_expand_volume(grid::GridMember<data::record::Atom>& atom) {
+void PepsiHydration::modified_expand_volume(grid::GridMember<data::Atom>& atom) {
     if (atom.is_expanded()) {return;} // check if this location has already been expanded
     atom.set_expanded(true); // mark this location as expanded
 
