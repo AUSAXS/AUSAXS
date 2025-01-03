@@ -368,38 +368,48 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
     return std::span<GridMember<AtomFF>>(a_members.begin() + start, a_members.end());
 }
 
+auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
+    auto loc = g.to_bins(w.coordinates());
+    int x = loc.x(), y = loc.y(), z = loc.z(); 
+
+    // sanity check
+    #if DEBUG
+        auto ax = g.get_axes();
+        if (x >= (int) ax.x.bins || y >= (int) ax.y.bins || z >= (int) ax.z.bins || x < 0 || y < 0 || z < 0) [[unlikely]] {
+            throw except::out_of_bounds(
+                "Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + g.get_axes().to_string() + "\n"
+                "Real location: " + w.coordinates().to_string()
+            );
+        }
+
+        auto bin = g.index(x, y, z);
+        if (!(bin == grid::detail::EMPTY || bin == grid::detail::W_CENTER || bin == grid::detail::VOLUME)) {
+            throw except::invalid_operation(
+                "Grid::add: Attempting to add a water molecule to a non-empty location"
+                " (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")"
+            );
+        }
+    #endif
+    g.grid.index(x, y, z) = grid::detail::W_CENTER;
+    return GridMember(w, std::move(loc));
+};
+
 std::vector<grid::GridMember<data::Water>>& Grid::add(const std::vector<data::Water>& waters, bool expand) {
     clear_waters();
     w_members.resize(waters.size());
     for (int i = 0; i < static_cast<int>(waters.size()); ++i) {
         auto& w = waters[i];
-        auto loc = to_bins(w.coordinates());
-        int x = loc.x(), y = loc.y(), z = loc.z(); 
-
-        // sanity check
-        #if DEBUG
-            if (x >= (int) axes.x.bins || y >= (int) axes.y.bins || z >= (int) axes.z.bins || x < 0 || y < 0 || z < 0) [[unlikely]] {
-                throw except::out_of_bounds(
-                    "Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\n"
-                    "Real location: " + w.coordinates().to_string()
-                );
-            }
-
-            auto bin = grid.index(x, y, z);
-            if (!(bin == detail::EMPTY || bin == detail::W_CENTER || bin == detail::VOLUME)) {
-                throw except::invalid_operation(
-                    "Grid::add: Attempting to add a water molecule to a non-empty location"
-                    " (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")"
-                );
-            }
-        #endif
-
-        GridMember gm(w, std::move(loc));
-        grid.index(x, y, z) = detail::W_CENTER;
+        auto gm = add_single_water(*this, w);
         if (expand) {expand_volume(gm);}
         w_members[i] = std::move(gm);
     }
     return w_members;
+}
+
+grid::GridMember<data::Water>& Grid::add(const data::Water& water, bool expand) {
+    w_members.emplace_back(add_single_water(*this, water));
+    if (expand) {expand_volume(w_members.back());}
+    return w_members.back();
 }
 
 void Grid::remove(const Body& body) {

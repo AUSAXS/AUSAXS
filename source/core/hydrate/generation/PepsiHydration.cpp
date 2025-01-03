@@ -87,7 +87,7 @@ std::vector<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hyd
     return placed;
 }
 
-void PepsiHydration::modified_expand_volume(grid::GridMember<data::Atom>& atom) {
+void PepsiHydration::modified_expand_volume(grid::GridMember<data::AtomFF>& atom) {
     if (atom.is_expanded()) {return;} // check if this location has already been expanded
     atom.set_expanded(true); // mark this location as expanded
 

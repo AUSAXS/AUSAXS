@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <data/Body.h>
+#include <data/BodySymmetryFacade.h>
 #include <data/state/UnboundSignaller.h>
 #include <data/Symmetry.h>
 #include <grid/Grid.h>
@@ -39,8 +40,9 @@ void Body::initialize() {
     signal = std::make_shared<signaller::UnboundSignaller>();
 }
 
-// data::detail::BodySymmetryFacade<Body> Body::symmetry() {return data::detail::BodySymmetryFacade<Body>(*this);}
-// data::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return data::detail::BodySymmetryFacade<const Body>(*this);}
+data::detail::BodySymmetryFacade<Body> Body::symmetry() {return data::detail::BodySymmetryFacade<Body>(this);}
+
+data::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return data::detail::BodySymmetryFacade<const Body>(this);}
 
 Vector3<double> Body::get_cm() const {
     Vector3<double> cm{0, 0, 0};

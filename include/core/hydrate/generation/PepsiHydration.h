@@ -17,7 +17,7 @@ namespace ausaxs::hydrate {
             std::vector<grid::GridMember<data::Water>> generate_explicit_hydration() override;
 
         private:
-            void modified_expand_volume(grid::GridMember<data::Atom>& atom);
+            void modified_expand_volume(grid::GridMember<data::AtomFF>& atom);
             void initialize() override;
     };
 }

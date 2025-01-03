@@ -15,6 +15,8 @@
 
 namespace ausaxs::data {
 	class Body {
+		friend class detail::BodySymmetryFacade<Body>;
+		friend class detail::BodySymmetryFacade<const Body>;
 		public:
 			Body();
 			Body(const Body& body);
@@ -136,8 +138,8 @@ namespace ausaxs::data {
 			/**
 			 * @brief Access the symmetry operations of this body.
 			 */
-			[[nodiscard]] data::detail::BodySymmetryFacade<const Body> symmetry();
-			[[nodiscard]] data::detail::BodySymmetryFacade<Body> symmetry() const;
+			[[nodiscard]] detail::BodySymmetryFacade<Body> symmetry();
+			[[nodiscard]] detail::BodySymmetryFacade<const Body> symmetry() const; //< @copydoc symmetry()
 
 			/**
 			 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
