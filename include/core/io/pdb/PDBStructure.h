@@ -6,6 +6,7 @@
 #include <io/pdb/Footer.h>
 #include <io/pdb/Header.h>
 #include <utility/TypeTraits.h>
+#include <data/DataFwd.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
 
@@ -44,6 +45,9 @@ namespace ausaxs::io::pdb {
              * @param terminate The terminate of this PDBStructure. 
              */
             PDBStructure(const std::vector<PDBAtom>& protein_atoms, const std::vector<PDBWater>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate);
+
+            PDBStructure(const data::Body& body);
+            PDBStructure(const data::Molecule& molecule);
 
             /**
              * @brief Update the contents of this PDBStructure.

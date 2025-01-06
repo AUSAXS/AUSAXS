@@ -211,7 +211,7 @@ std::size_t Body::size_atom() const {return atoms.size();}
 std::size_t Body::size_water() const {
     auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
     if (h) {return h->waters.size();}
-    throw std::runtime_error("Body::size_water: hydration is not an ExplicitHydration object.");
+    return 0;
 }
 
 std::size_t Body::size_symmetry() const {return symmetries.size();}

@@ -102,6 +102,25 @@ namespace ausaxs::form_factor {
             default: return get_type(atom_type);
         }
     }
+
+    constexpr constants::atom_t get_type(form_factor_t ff_type) {
+        switch(ff_type) {
+            case form_factor_t::H: return constants::atom_t::H;
+            case form_factor_t::C:
+            case form_factor_t::CH:
+            case form_factor_t::CH2:
+            case form_factor_t::CH3: return constants::atom_t::C;
+            case form_factor_t::N:
+            case form_factor_t::NH:
+            case form_factor_t::NH2:
+            case form_factor_t::NH3: return constants::atom_t::N;
+            case form_factor_t::O:
+            case form_factor_t::OH: return constants::atom_t::O;
+            case form_factor_t::S:
+            case form_factor_t::SH: return constants::atom_t::S;
+            default: return constants::atom_t::Ar;
+        }
+    }
 }
 
 #include <constants/Constants.h>

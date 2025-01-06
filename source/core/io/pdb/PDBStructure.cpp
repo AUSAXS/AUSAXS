@@ -9,6 +9,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/pdb/PDBWater.h>
 #include <io/ExistingFile.h>
 #include <utility/Exceptions.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
@@ -21,6 +23,38 @@ PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<
 
 PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters, const Header& header, const Footer& footer, const Terminate& terminate) 
     : header(header), footer(footer), terminate(terminate), atoms(atoms), waters(waters) {}
+
+auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, char chain) {
+    for (const auto& a : body.get_atoms()) {
+        atoms.emplace_back(
+            ++serial, form_factor::to_string(a.form_factor_type()), "", "UNK", chain, 0, "", a.coordinates(), 1, 1, form_factor::get_type(a.form_factor_type()), ""
+        );
+    }
+    for (const auto& w : body.get_waters()) {
+        waters.emplace_back(
+            ++serial, "O", "", "HOH", chain, ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
+        );
+    }
+};
+
+PDBStructure::PDBStructure(const data::Body& body) {
+    int serial = 0;
+    int residue_serial = 0;
+    atoms.reserve(body.size_atom());
+    waters.reserve(body.size_water());
+    add_single_body(this->atoms, this->waters, body, serial, residue_serial, 'A');
+}
+
+PDBStructure::PDBStructure(const data::Molecule& molecule) {
+    int serial = 0;
+    int residue_serial = 0;
+    char chain = 'A';
+    atoms.reserve(molecule.size_atom());
+    waters.reserve(molecule.size_water());
+    for (const auto& body : molecule.get_bodies()) {
+        add_single_body(this->atoms, this->waters, body, serial, residue_serial, chain++);
+    }
+}
 
 void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& hatoms) {
     atoms = patoms;

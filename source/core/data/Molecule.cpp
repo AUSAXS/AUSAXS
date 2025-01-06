@@ -278,12 +278,11 @@ std::vector<Water> Molecule::get_waters() const {
 }
 
 void Molecule::generate_new_hydration() {
-    // if (hydration_strategy == nullptr) {
-    //     hydration_strategy = hydrate::factory::construct_hydration_generator(this);
-    // }
-    // hydration = hydration_strategy->hydrate();
-    // signal_modified_hydration_layer();
-    throw std::runtime_error("Molecule::generate_new_hydration: Not implemented.");
+    if (hydration_strategy == nullptr) {
+        hydration_strategy = hydrate::factory::construct_hydration_generator(this);
+    }
+    hydration_strategy->hydrate();
+    signal_modified_hydration_layer();
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
@@ -324,11 +323,11 @@ std::size_t Molecule::size_body() const {
 }
 
 std::size_t Molecule::size_atom() const {
-    return std::accumulate(bodies.begin(), bodies.end(), std::size_t{ 0 }, [] (std::size_t sum, const Body& body) {return sum + body.get_atoms().size(); });
+    return std::accumulate(bodies.begin(), bodies.end(), std::size_t{ 0 }, [] (std::size_t sum, const Body& body) {return sum + body.size_atom(); });
 }
 
 std::size_t Molecule::size_water() const {
-    return get_waters().size();
+    return std::accumulate(bodies.begin(), bodies.end(), std::size_t{ 0 }, [] (std::size_t sum, const Body& body) {return sum + body.size_water(); });
 }
 
 void Molecule::center() {

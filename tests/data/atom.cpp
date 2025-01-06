@@ -2,18 +2,17 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBWater.h>
 #include <settings/All.h>
 #include <constants/Constants.h>
 
 using namespace ausaxs;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs::io::pdb;
 
-TEST_CASE("Atom::Atom") {
+TEST_CASE("PDBAtom::PDBAtom") {
     SECTION("Vector3<double>, double, std::string&, std::string&, int") {
-        Atom a1({3, 0, 5}, 2, constants::atom_t::He, "LYS", 3);
+        PDBAtom a1({3, 0, 5}, 2, constants::atom_t::He, "LYS", 3);
 
         CHECK(a1.get_serial() == 3);
         CHECK(a1.get_residue_name() == "LYS");
@@ -24,7 +23,7 @@ TEST_CASE("Atom::Atom") {
     }
 
     SECTION("int, std::string&, std::string&, std::string&, int, std::string&, Vector3<double>, double, double, std::string&, std::string&") {
-        Atom a1(15, "CA", "altLoc", "GLY", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::He, "2-");
+        PDBAtom a1(15, "CA", "altLoc", "GLY", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::He, "2-");
 
         CHECK(a1.get_serial() == 15);
         CHECK(a1.get_group_name() == "CA");
@@ -42,21 +41,21 @@ TEST_CASE("Atom::Atom") {
     }    
 }
 
-TEST_CASE("Atom::get_type") {
-    SECTION("Atom") {
-        Atom a1({3, 0, 5}, 2, constants::atom_t::He, "resName", 3);
+TEST_CASE("PDBAtom::get_type") {
+    SECTION("PDBAtom") {
+        PDBAtom a1({3, 0, 5}, 2, constants::atom_t::He, "resName", 3);
         CHECK(a1.get_type() == RecordType::ATOM);
     }
-    SECTION("Water") {
-        Water w1 = Water::create_new_water(Vector3<double>({1, 2, 3}));
+    SECTION("PDBWater") {
+        PDBWater w1 = PDBWater::create_new_water(Vector3<double>({1, 2, 3}));
         CHECK(w1.get_type() == RecordType::WATER);
     }
 }
 
-TEST_CASE("Atom::parse_pdb") {
+TEST_CASE("PDBAtom::parse_pdb") {
     SECTION("atom") {
         std::string line = "ATOM      1  N   GLY A   1       1.000   2.000   3.000  1.00  0.00           N  ";
-        Atom a1; a1.parse_pdb(line);
+        PDBAtom a1; a1.parse_pdb(line);
         CHECK(a1.get_serial() == 1);
         CHECK(a1.get_group_name() == "N");
         CHECK(a1.get_alternate_location() == " ");
@@ -74,7 +73,7 @@ TEST_CASE("Atom::parse_pdb") {
 
     SECTION("hetatm") {
         std::string line = "HETATM    2  C   LYS B   2       5.000   4.000   2.000  0.50  0.50           C  ";
-        Atom a1; a1.parse_pdb(line);
+        PDBAtom a1; a1.parse_pdb(line);
         CHECK(a1.get_serial() == 2);
         CHECK(a1.get_group_name() == "C");
         CHECK(a1.get_alternate_location() == " ");
@@ -92,7 +91,7 @@ TEST_CASE("Atom::parse_pdb") {
 
     SECTION("custom") {
         std::string line = "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C ";
-        Atom a; a.parse_pdb(line);
+        PDBAtom a; a.parse_pdb(line);
         CHECK(a.get_serial() == 1);
         CHECK(a.get_group_name() == "CB");
         CHECK(a.get_alternate_location() == " "); // spaces are only removed from number strings
@@ -109,47 +108,47 @@ TEST_CASE("Atom::parse_pdb") {
     }
 }
 
-TEST_CASE("Atom::as_pdb", "[broken]") {
+TEST_CASE("PDBAtom::as_pdb", "[broken]") {
     SECTION("atom") {
-        Atom a1({1, 2, 3}, 1, constants::atom_t::N, "GLY", 1);
+        PDBAtom a1({1, 2, 3}, 1, constants::atom_t::N, "GLY", 1);
         std::string line = a1.as_pdb();
-        Atom a2; a2.parse_pdb(line);
+        PDBAtom a2; a2.parse_pdb(line);
         CHECK(a1.equals_content(a2));
     }
 
     SECTION("parse and as_pdb") {
-        Atom a1; a1.parse_pdb("ATOM      1  N   GLY A   1     1.00000 2.00000 3.000001.00000.0000           N  ");
+        PDBAtom a1; a1.parse_pdb("ATOM      1  N   GLY A   1     1.00000 2.00000 3.000001.00000.0000           N  ");
         std::string res = a1.as_pdb();
-        Atom a2; a2.parse_pdb(res);
+        PDBAtom a2; a2.parse_pdb(res);
         CHECK(a1.equals_content(a2));
     }
 }
 
-TEST_CASE("Atom::distance") {
+TEST_CASE("PDBAtom::distance") {
     SECTION("simple") {
-        Atom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
-        Atom a2({1, 0, 0}, 2, constants::atom_t::C, "GLY", 1);
+        PDBAtom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
+        PDBAtom a2({1, 0, 0}, 2, constants::atom_t::C, "GLY", 1);
         CHECK(a1.distance(a2) == 1);
     }
 
     SECTION("complex") {
-        Atom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
-        Atom a2({1, 0, 0}, 2, constants::atom_t::C, "GLY", 1);
-        Atom a3({1, 1, 0}, 3, constants::atom_t::O, "GLY", 1);
+        PDBAtom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
+        PDBAtom a2({1, 0, 0}, 2, constants::atom_t::C, "GLY", 1);
+        PDBAtom a3({1, 1, 0}, 3, constants::atom_t::O, "GLY", 1);
         CHECK(a1.distance(a2) == 1);
         CHECK(a1.distance(a3) == std::sqrt(2));
     }
 }
 
-TEST_CASE("Atom::translate") {
+TEST_CASE("PDBAtom::translate") {
     SECTION("simple") {
-        Atom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
+        PDBAtom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
         a1.translate({1, 2, 3});
         CHECK(a1.get_coordinates() == Vector3({1, 2, 3}));
     }
 
     SECTION("complex") {
-        Atom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
+        PDBAtom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
         a1.translate({1, 2, 3});
         CHECK(a1.get_coordinates() == Vector3({1, 2, 3}));
         a1.translate({1, 2, 3});
@@ -157,110 +156,110 @@ TEST_CASE("Atom::translate") {
     }
 }
 
-TEST_CASE("Atom::set_coordinates") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_coordinates") {
+    PDBAtom a1;
     a1.set_coordinates({1, 2, 3});
     CHECK(a1.get_coordinates() == Vector3({1, 2, 3}));
 }
 
-TEST_CASE("Atom::set_x") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_x") {
+    PDBAtom a1;
     a1.set_x(1);
     CHECK(a1.get_coordinates() == Vector3({1, 0, 0}));
 }
 
-TEST_CASE("Atom::set_y") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_y") {
+    PDBAtom a1;
     a1.set_y(1);
     CHECK(a1.get_coordinates() == Vector3({0, 1, 0}));
 }
 
-TEST_CASE("Atom::set_z") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_z") {
+    PDBAtom a1;
     a1.set_z(1);
     CHECK(a1.get_coordinates() == Vector3({0, 0, 1}));
 }
 
-TEST_CASE("Atom::set_occupancy") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_occupancy") {
+    PDBAtom a1;
     a1.set_occupancy(2);
     CHECK(a1.get_occupancy() == 2);
 }
 
-TEST_CASE("Atom::set_tempFactor") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_tempFactor") {
+    PDBAtom a1;
     a1.set_temperature_factor(2);
     CHECK(a1.get_temperature_factor() == 2);
 }
 
-TEST_CASE("Atom::set_altLoc") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_altLoc") {
+    PDBAtom a1;
     a1.set_alternate_location("Z");
     CHECK(a1.get_alternate_location() == "Z");
 }
 
-TEST_CASE("Atom::set_serial") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_serial") {
+    PDBAtom a1;
     a1.set_serial(2);
     CHECK(a1.get_serial() == 2);
 }
 
-TEST_CASE("Atom::set_resSeq") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_resSeq") {
+    PDBAtom a1;
     a1.set_residue_sequence_number(2);
     CHECK(a1.get_residue_sequence_number() == 2);
 }
 
-TEST_CASE("Atom::set_iCode") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_iCode") {
+    PDBAtom a1;
     a1.set_insertion_code("Z");
     CHECK(a1.get_insertion_code() == "Z");
 }
 
-TEST_CASE("Atom::set_chainID") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_chainID") {
+    PDBAtom a1;
     a1.set_chainID('Z');
     CHECK(a1.get_chainID() == 'Z');
 }
 
-TEST_CASE("Atom::set_element") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_element") {
+    PDBAtom a1;
     a1.set_element(constants::atom_t::He);
     CHECK(a1.get_element() == constants::atom_t::He);
 }
 
-TEST_CASE("Atom::set_charge") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_charge") {
+    PDBAtom a1;
     a1.set_charge("2-");
     CHECK(a1.get_charge() == "2-");
 }
 
-TEST_CASE("Atom::set_resName") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_resName") {
+    PDBAtom a1;
     a1.set_residue_name("resName");
     CHECK(a1.get_residue_name() == "resName");
 }
 
-TEST_CASE("Atom::set_name") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_name") {
+    PDBAtom a1;
     a1.set_group_name("name");
     CHECK(a1.get_group_name() == "name");
 }
 
-TEST_CASE("Atom::set_effective_charge") {
-    Atom a1;
+TEST_CASE("PDBAtom::set_effective_charge") {
+    PDBAtom a1;
     a1.set_effective_charge(2);
     CHECK(a1.get_effective_charge() == 2);
 }
 
-TEST_CASE("Atom::get_recName") {
-    Atom a1;
+TEST_CASE("PDBAtom::get_recName") {
+    PDBAtom a1;
     CHECK(a1.get_recName() == "ATOM  ");
 }
 
-TEST_CASE("Atom::get_mass") {
+TEST_CASE("PDBAtom::get_mass") {
     SECTION("H") {
-        Atom a1;
+        PDBAtom a1;
         a1.set_element("H");
         a1.set_residue_name("GLY");
         a1.set_group_name("H");
@@ -268,7 +267,7 @@ TEST_CASE("Atom::get_mass") {
     }
 
     SECTION("C") {
-        Atom a1;
+        PDBAtom a1;
         a1.set_element("C");
         a1.set_residue_name("GLY");
         a1.set_group_name("CA"); // CA has 2 H attached
@@ -276,16 +275,16 @@ TEST_CASE("Atom::get_mass") {
     }
 }
 
-TEST_CASE("Atom::Z") {
+TEST_CASE("PDBAtom::Z") {
     SECTION("H") {
-        Atom a1;
+        PDBAtom a1;
         a1.set_element("H");
         CHECK(a1.Z() == 1);
         CHECK(a1.get_absolute_charge() == a1.Z());
     }
 
     SECTION("C") {
-        Atom a1;
+        PDBAtom a1;
         a1.set_element("C");
         CHECK(a1.Z() == 6);
         CHECK(a1.get_absolute_charge() == a1.Z());
@@ -293,9 +292,9 @@ TEST_CASE("Atom::Z") {
 }
 
 // compares by serial
-TEST_CASE("Atom::operator<") {
-    Atom a1;
-    Atom a2;
+TEST_CASE("PDBAtom::operator<") {
+    PDBAtom a1;
+    PDBAtom a2;
     a1.set_serial(1);
     a2.set_serial(2);
     CHECK(a1 < a2);
@@ -305,19 +304,19 @@ TEST_CASE("Atom::operator<") {
 }
 
 // compares by uid
-TEST_CASE("Atom::operator==") {
-    Atom a1;
-    Atom a2;
+TEST_CASE("PDBAtom::operator==") {
+    PDBAtom a1;
+    PDBAtom a2;
     CHECK(!(a1 == a2));
 
-    Atom a3;
+    PDBAtom a3;
     CHECK(!(a1 == a3));
 }
 
-TEST_CASE("Atom::equals_content") {
+TEST_CASE("PDBAtom::equals_content") {
     SECTION("simple") {
-        Atom a1;
-        Atom a2;
+        PDBAtom a1;
+        PDBAtom a2;
         CHECK(a1.equals_content(a2));
 
         a1.set_serial(5);
@@ -329,8 +328,8 @@ TEST_CASE("Atom::equals_content") {
 
     SECTION("complex") {
         std::string line = "ATOM      1  N   GLY A   1      11.000  12.000  13.000  1.00  0.00           N  ";
-        Atom a1; a1.parse_pdb(line);
-        Atom a2; a2.parse_pdb(line);
+        PDBAtom a1; a1.parse_pdb(line);
+        PDBAtom a2; a2.parse_pdb(line);
         CHECK(a1.equals_content(a2));
 
         a1.set_serial(5);
@@ -341,9 +340,9 @@ TEST_CASE("Atom::equals_content") {
     }
 }
 
-TEST_CASE("Atom: implicit hydrogens") {
+TEST_CASE("PDBAtom: implicit hydrogens") {
     // settings::molecule::use_effective_charge = true;
-    Atom a(15, "O", "altLoc", "LYS", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::O, "0+");
+    PDBAtom a(15, "O", "altLoc", "LYS", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::O, "0+");
 
     auto res = constants::charge::nuclear::get_charge(constants::atom_t::O) + constants::hydrogen_atoms::residues.get("LYS").get("O", constants::atom_t::O);
     CHECK(a.get_effective_charge() == res);
@@ -355,33 +354,33 @@ TEST_CASE("Atom: implicit hydrogens") {
     CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O));
 }
 
-TEST_CASE("Atom: operators") {
+TEST_CASE("PDBAtom: operators") {
 //*** ATOMS ***//
-    Atom a1({3, 0, 5}, 2, constants::atom_t::He, "", 3);
-    Atom a2 = a1;
+    PDBAtom a1({3, 0, 5}, 2, constants::atom_t::He, "", 3);
+    PDBAtom a2 = a1;
     REQUIRE(a1 == a2);
     REQUIRE(a1.equals_content(a2));
 
-    a2 = Atom({0, 4, 1}, 2, constants::atom_t::He, "", 2);
+    a2 = PDBAtom({0, 4, 1}, 2, constants::atom_t::He, "", 2);
     REQUIRE(a1 != a2);
     REQUIRE(!a1.equals_content(a2));
     REQUIRE(a2 < a1);
 
 //*** HETATOMS ***//
-    Water w1 = Water({3, 0, 5}, 2, constants::atom_t::He, "", 3);
-    Water w2 = w1;
+    PDBWater w1 = PDBWater({3, 0, 5}, 2, constants::atom_t::He, "", 3);
+    PDBWater w2 = w1;
     REQUIRE(w1 == w2);
 
-    w2 = Atom({0, 4, 1}, 2, constants::atom_t::He, "", 2);
+    w2 = PDBAtom({0, 4, 1}, 2, constants::atom_t::He, "", 2);
     REQUIRE(w1 != w2);
     REQUIRE(w2 < w1);
 }
 
 #include <form_factor/FormFactorType.h>
-TEST_CASE("Atom: correct_atomic_group_ff") {
+TEST_CASE("PDBAtom: correct_atomic_group_ff") {
     settings::molecule::implicit_hydrogens = true;
     settings::molecule::throw_on_unknown_atom = true;
-    Atom atom;
+    PDBAtom atom;
 
     SECTION("lys") {
         std::string lys1 = "ATOM      1  N   LYS A   1      -3.462  69.119  -8.662  1.00 19.81           N  ";
