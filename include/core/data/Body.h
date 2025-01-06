@@ -9,14 +9,19 @@
 #include <io/IOFwd.h>
 #include <grid/GridFwd.h>
 #include <math/MathFwd.h>
+#include <hydrate/HydrationFwd.h>
 
 #include <vector>
 #include <memory>
 
 namespace ausaxs::data {
+	template<typename T>
+	concept AtomVector = std::is_same_v<std::remove_cvref_t<T>, std::vector<data::AtomFF>>;
+
+	template<typename T>
+	concept WaterVector = std::is_same_v<std::remove_cvref_t<T>, std::vector<data::Water>>;
+
 	class Body {
-		friend class detail::BodySymmetryFacade<Body>;
-		friend class detail::BodySymmetryFacade<const Body>;
 		public:
 			Body();
 			Body(const Body& body);
@@ -33,15 +38,11 @@ namespace ausaxs::data {
 			 */
 			Body(const io::File& path);
 
-			/**
-			 * @brief Create a new collection of atoms (body) based on two vectors
-			 */
-			Body(const std::vector<data::AtomFF>& atoms);
+			template<AtomVector T>
+			Body(T&& atoms);
 
-			/**
-			 * @brief Create a new collection of atoms (body) based on two vectors
-			 */
-			Body(const std::vector<data::AtomFF>& atoms, const std::vector<data::Water>& waters);
+			template<AtomVector T, WaterVector U>
+			Body(T&& atoms, U&& waters);
 
 			/**
 			 * @brief Get a reference to the constituent atoms.
@@ -152,10 +153,9 @@ namespace ausaxs::data {
 			std::shared_ptr<signaller::Signaller> get_signaller() const;
 
 		private:
-			std::vector<data::AtomFF> atoms;
-			std::vector<data::Water> waters;
-			// std::unique_ptr<hydrate::Hydration> hydration;
-			std::vector<detail::Symmetry> symmetries;
+			std::vector<data::AtomFF> 			atoms;
+			std::unique_ptr<hydrate::Hydration> hydration;
+			std::vector<detail::Symmetry> 		symmetries;
 
 			int uid;
 			inline static unsigned int uid_counter = 0;
@@ -164,5 +164,8 @@ namespace ausaxs::data {
 			std::shared_ptr<signaller::Signaller> signal;
 
 			void initialize();
+
+		friend class detail::BodySymmetryFacade<Body>;
+		friend class detail::BodySymmetryFacade<const Body>;
 	};
 }

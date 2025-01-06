@@ -33,7 +33,7 @@ bool settings::detail::is_comment_char(char c) {
 }
 
 void settings::read(const ::io::ExistingFile& path) {
-    console::print_info("Reading settings from file: \"" + path + "\"");
+    console::print_info("Reading settings from file: \"" + path.str() + "\"");
 
     std::ifstream input(path);
     if (!input.is_open()) {throw std::ios_base::failure("settings::read: Could not open setup file.");}

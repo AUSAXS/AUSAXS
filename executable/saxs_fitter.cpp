@@ -165,11 +165,11 @@ int main(int argc, char const *argv[]) {
                 // if so, silently swap them and proceed
                 std::swap(pdb, mfile);
             } else {
-                throw except::invalid_argument("Unknown PDB extensions: " + pdb + " and " + mfile);
+                throw except::invalid_argument("Unknown PDB extensions: " + pdb.str() + " and " + mfile.str());
             }
         }
         if (!constants::filetypes::saxs_data.check(mfile)) {
-            throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
+            throw except::invalid_argument("Unknown SAXS data extension: " + mfile.str());
         }
 
         settings::general::output += mfile.stem() + "/";

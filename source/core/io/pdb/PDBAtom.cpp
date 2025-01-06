@@ -184,6 +184,8 @@ std::string PDBAtom::as_pdb() const {
     return ss.str();
 }
 
+std::string PDBAtom::get_recName() const {return "ATOM  ";}
+
 RecordType PDBAtom::get_type() const {return RecordType::ATOM;}
 
 double PDBAtom::distance_squared(const PDBAtom& a) const {return coords.distance2(a.coords);}

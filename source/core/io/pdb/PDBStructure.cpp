@@ -22,10 +22,6 @@ PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<
 PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters, const Header& header, const Footer& footer, const Terminate& terminate) 
     : header(header), footer(footer), terminate(terminate), atoms(atoms), waters(waters) {}
 
-PDBStructure::PDBStructure(const io::File& file) {
-    read(file);
-}
-
 void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& hatoms) {
     atoms = patoms;
     waters = hatoms;
@@ -106,6 +102,21 @@ void PDBStructure::refresh() {
         a.set_residue_sequence_number(resSeq++ % 10000);
         a.set_chainID(chainID + int(resSeq/10000));
     }
+}
+
+PDBStructure::_res PDBStructure::reduced_representation() {
+    PDBStructure::_res res;
+    res.atoms.reserve(atoms.size());
+    res.waters.reserve(waters.size());
+
+    for (auto& a : atoms) {
+        res.atoms.emplace_back(a.coords, a.effective_charge*a.occupancy, form_factor::get_type(a.get_element(), a.get_atomic_group()));
+    }
+
+    for (auto& w : waters) {
+        res.waters.emplace_back(w.coords);
+    }
+    return res;
 }
 
 bool PDBStructure::operator==(const PDBStructure& rhs) const = default;

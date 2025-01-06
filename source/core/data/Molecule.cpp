@@ -38,28 +38,19 @@ Molecule::Molecule(std::vector<Body>&& bodies) : bodies(std::move(bodies)), grid
     initialize();
 }
 
-Molecule::Molecule(const std::vector<Body>& bodies) : Molecule(bodies, std::vector<Water>()) {}
-Molecule::Molecule(const std::vector<Body>& bodies, const std::vector<Water>& waters) : bodies(bodies), grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr) {
+Molecule::Molecule(const std::vector<Body>& bodies) : bodies(bodies), grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr) {
     initialize();
 }
 
 Molecule::Molecule(const io::File& input) : Molecule() {
-    Body b1(input);
-    bodies = {std::move(b1)};
-    this->get_waters() = std::move(bodies[0].get_waters());
-    bodies[0].get_waters().clear();
+    bodies = {Body(input)};
     initialize();
 }
 
 Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
-    std::vector<Water> waters;
     for (const std::string& str : input) {
         bodies.emplace_back(str);
-        std::vector<Water>& bodyWaters = bodies.back().get_waters();
-        waters.insert(waters.end(), bodyWaters.begin(), bodyWaters.end());
-        bodyWaters.clear();
     }
-    this->get_waters() = std::move(waters);
     initialize();
 }
 
@@ -286,14 +277,14 @@ std::vector<Water> Molecule::get_waters() const {
     return waters;
 }
 
-observer_ptr<hydrate::HydrationStrategy> Molecule::get_hydration_generator() const {
-    assert(hydration_strategy != nullptr && "Molecule::get_hydration_generator: hydration_strategy is nullptr.");
-    return hydration_strategy.get();
-}
+// observer_ptr<hydrate::HydrationStrategy> Molecule::get_hydration_generator() const {
+//     assert(hydration_strategy != nullptr && "Molecule::get_hydration_generator: hydration_strategy is nullptr.");
+//     return hydration_strategy.get();
+// }
 
-void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager) {
-    hydration_strategy = std::move(manager);
-}
+// void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager) {
+//     hydration_strategy = std::move(manager);
+// }
 
 void Molecule::generate_new_hydration() {
     // if (hydration_strategy == nullptr) {

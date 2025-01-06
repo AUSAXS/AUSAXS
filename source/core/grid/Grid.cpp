@@ -337,6 +337,21 @@ void Grid::deflate_volume(GridMember<Water>& water) {
     }
 }
 
+void Grid::remove_waters(const std::vector<bool>& to_remove) {
+    assert(to_remove.size() == w_members.size() && "Grid::remove_waters: The size of the removal vector does not match the number of waters!");
+
+    std::vector<GridMember<Water>> new_waters;
+    new_waters.reserve(w_members.size());
+    for (unsigned int i = 0; i < w_members.size(); ++i) {
+        if (!to_remove[i]) {
+            new_waters.push_back(w_members[i]);
+        } else {
+            deflate_volume(w_members[i]);
+        }
+    }
+    w_members = std::move(new_waters);
+}
+
 std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
     int start = a_members.size();
     body_start[body.get_uid()] = start;

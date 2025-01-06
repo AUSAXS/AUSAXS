@@ -3,7 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <io/PDBWriter.h>
+#include <io/detail/PDBWriter.h>
 #include <io/pdb/PDBStructure.h>
 #include <io/File.h>
 #include <io/pdb/Terminate.h>
@@ -15,7 +15,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 
 using namespace ausaxs;
-using namespace ausaxs::io::detail;
+using namespace ausaxs::io::detail::pdb;
 using namespace ausaxs::io::pdb;
 
 std::vector<std::string> as_pdb(const PDBStructure& f) {

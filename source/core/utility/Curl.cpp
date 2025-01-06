@@ -38,7 +38,7 @@ void curl::download(const std::string& url, const io::File& path) {
     }
 
     if (res == CURLE_OK) {
-        if (settings::general::verbose) {console::print_success("\tSuccessfully downloaded " + url + " to " + path);}
+        if (settings::general::verbose) {console::print_success("\tSuccessfully downloaded " + url + " to " + path.str());}
         return;
     }
     console::print_warning("\tcurl::download: Failed to download " + url);

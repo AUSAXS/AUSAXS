@@ -3,7 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <io/XYZWriter.h>
+#include <io/detail/XYZWriter.h>
 #include <data/Molecule.h>
 #include <io/File.h>
 #include <utility/Exceptions.h>
@@ -11,9 +11,9 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <iomanip>
 
-using namespace ausaxs;
+using namespace ausaxs::io::detail::xyz;
 
-io::XYZWriter::XYZWriter(const io::File& path) : path(path) {
+XYZWriter::XYZWriter(const io::File& path) : path(path) {
     path.directory().create();
     file.open(path);
     if (!file.is_open()) {
@@ -21,12 +21,12 @@ io::XYZWriter::XYZWriter(const io::File& path) : path(path) {
     }
 }
 
-io::XYZWriter::~XYZWriter() {
+XYZWriter::~XYZWriter() {
     file.close();
     console::print_info("Trajectory written to " + path);
 }
 
-void io::XYZWriter::write_frame(const data::Molecule* protein) {
+void XYZWriter::write_frame(const data::Molecule* protein) {
     static unsigned int frame = 0;
     auto atoms = protein->get_atoms();
     file << " " << atoms.size() << std::endl;

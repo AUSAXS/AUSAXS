@@ -55,15 +55,6 @@ void Folder::create() const {
     std::filesystem::create_directories(dir);
 }
 
-std::string operator+(const io::Folder& folder, std::string_view str) {
-    return folder.path() + "/" + std::string(str);
-}
-
-std::string operator+(std::string_view str, const io::Folder& folder) {
-    auto s = str.back() == '/' ? str.substr(0, str.size() - 1) : str;
-    return std::string(s) + "/" + folder.path();
-}
-
 template Folder::Folder(const char* const&);
 template Folder::Folder(const std::string&);
 template Folder::Folder(const std::string_view&);

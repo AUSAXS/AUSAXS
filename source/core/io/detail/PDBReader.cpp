@@ -3,7 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <io/PDBReader.h>
+#include <io/detail/PDBReader.h>
 #include <io/ExistingFile.h>
 #include <io/pdb/Terminate.h>
 #include <io/pdb/PDBAtom.h>
@@ -24,7 +24,7 @@ using namespace ausaxs::io::pdb;
 auto parse_single_file = [] (const io::ExistingFile& file, io::pdb::PDBStructure& collection) -> void {
     // check if file was succesfully opened
     std::ifstream input(file);
-    if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + file + "\"");}
+    if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + file.str() + "\"");}
 
     unsigned int discarded_hydrogens = 0;
     std::string line;

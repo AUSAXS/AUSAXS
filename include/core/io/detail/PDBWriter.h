@@ -3,7 +3,7 @@
 #include <io/pdb/PDBFwd.h>
 #include <io/IOFwd.h>
 
-namespace ausaxs::io::detail {
+namespace ausaxs::io::detail::pdb {
     struct PDBWriter {
         static void write(const io::pdb::PDBStructure&, const io::File& path);
     };

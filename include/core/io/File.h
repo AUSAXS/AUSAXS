@@ -134,6 +134,4 @@ namespace ausaxs::io {
     static_assert(supports_nothrow_move_v<File>, "File should support nothrow move semantics.");
 }
 
-std::string operator+(std::string_view str, const ausaxs::io::File& file);
-std::string operator+(const ausaxs::io::File& file, std::string_view str);
 std::ostream& operator<<(std::ostream& os, const ausaxs::io::File& file);

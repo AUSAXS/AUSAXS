@@ -2,6 +2,8 @@
 
 #include <hist/HistFwd.h>
 #include <data/DataFwd.h>
+#include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 #include <math/MathFwd.h>
 #include <io/ExistingFile.h>
 #include <utility/observer_ptr.h>
@@ -9,9 +11,6 @@
 #include <fitter/FitterFwd.h>
 #include <grid/GridFwd.h>
 #include <hydrate/HydrationFwd.h>
-
-#include <data/atoms/AtomFF.h>
-#include <data/atoms/Water.h>
 
 #include <string>
 #include <vector>
@@ -31,11 +30,10 @@ namespace ausaxs::data {
 			Molecule& operator=(const Molecule& other) = delete;
 			Molecule(Molecule&& other);
 			Molecule& operator=(Molecule&& other);
-			virtual ~Molecule();
+			~Molecule();
 
 			explicit Molecule(std::vector<Body>&& bodies);
 			explicit Molecule(const std::vector<Body>& bodies);
-			Molecule(const std::vector<Body>& bodies, const std::vector<data::Water>& hydration_atoms);
 
 			explicit Molecule(const std::vector<std::string>& input);
 			explicit Molecule(const io::File& input);
@@ -240,12 +238,12 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get the hydration generator of this molecule. 
 			 */
-			[[nodiscard]] observer_ptr<hydrate::HydrationStrategy> get_hydration_generator() const;
+			// [[nodiscard]] observer_ptr<hydrate::HydrationStrategy> get_hydration_generator() const;
 
 			/**
 			 * @brief Set the hydration generator of this molecule. 
 			 */
-			void set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager);
+			// void set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager);
 
 			/**
 			 * @brief Signal that the hydration layer has been modified.

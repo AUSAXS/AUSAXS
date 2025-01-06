@@ -344,7 +344,6 @@ namespace ausaxs::io::pdb {
             int uid = -1;
 
         private: 
-            inline static std::string recName = "ATOM  ";
             static inline int uid_counter = 0; // global counter for unique ids
     };
 }
