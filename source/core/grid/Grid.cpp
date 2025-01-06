@@ -409,16 +409,16 @@ auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
     return GridMember(w, std::move(loc));
 };
 
-std::vector<grid::GridMember<data::Water>>& Grid::add(const std::vector<data::Water>& waters, bool expand) {
-    clear_waters();
-    w_members.resize(waters.size());
+std::span<grid::GridMember<data::Water>> Grid::add(const std::vector<data::Water>& waters, bool expand) {
+    size_t start = w_members.size();
+    w_members.reserve(w_members.size() + waters.size());
     for (int i = 0; i < static_cast<int>(waters.size()); ++i) {
         auto& w = waters[i];
         auto gm = add_single_water(*this, w);
         if (expand) {expand_volume(gm);}
-        w_members[i] = std::move(gm);
+        w_members.emplace_back(std::move(gm));
     }
-    return w_members;
+    return std::span<grid::GridMember<data::Water>>(w_members.begin() + start, w_members.end());
 }
 
 grid::GridMember<data::Water>& Grid::add(const data::Water& water, bool expand) {

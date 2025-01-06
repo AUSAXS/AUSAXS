@@ -5,7 +5,7 @@
 #include <grid/GridFwd.h>
 #include <grid/detail/GridInternalFwd.h>
 
-#include <vector>
+#include <span>
 
 namespace ausaxs::hydrate {    
     /**
@@ -20,7 +20,7 @@ namespace ausaxs::hydrate {
             /**
              * @brief Cull the water molecules.
              */
-            virtual void cull(std::vector<grid::GridMember<data::Water>>& placed_water) const = 0;
+            virtual void cull(std::span<grid::GridMember<data::Water>>& placed_water) const = 0;
 
             /**
              * @brief Set the desired number of water molecules after the culling. 

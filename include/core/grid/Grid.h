@@ -65,9 +65,8 @@ namespace ausaxs::grid {
 
 			/**
 			 * @brief Add waters to the grid.
-			 *        Existing waters are removed.
 			 */
-			std::vector<grid::GridMember<data::Water>>& add(const std::vector<data::Water>& waters, bool expand = true);
+			std::span<grid::GridMember<data::Water>> add(const std::vector<data::Water>& waters, bool expand = true);
 
 			/**
 			 * @brief Add a single water to the grid.

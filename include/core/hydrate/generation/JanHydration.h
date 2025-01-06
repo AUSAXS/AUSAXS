@@ -17,6 +17,8 @@ namespace ausaxs::hydrate {
             JanHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
             ~JanHydration() override = default;
 
-            std::vector<grid::GridMember<data::Water>> generate_explicit_hydration() override;
+            bool global() const override {return true;}
+
+            std::span<grid::GridMember<data::Water>> generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>>) override;
         };
 }

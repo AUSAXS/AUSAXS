@@ -17,7 +17,9 @@ namespace ausaxs::hydrate {
             AxesHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
             virtual ~AxesHydration();
 
-            std::vector<grid::GridMember<data::Water>> generate_explicit_hydration() override;
+            std::span<grid::GridMember<data::Water>> generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) override;
+
+            bool global() const override {return false;}
 
         private:
             void initialize() override;

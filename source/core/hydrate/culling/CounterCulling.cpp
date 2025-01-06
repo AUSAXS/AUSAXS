@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-void hydrate::CounterCulling::cull(std::vector<grid::GridMember<data::Water>>& placed_water) const {
+void hydrate::CounterCulling::cull(std::span<grid::GridMember<data::Water>>& placed_water) const {
     if (target_count == 0) {return;}
     int factor = std::floor(placed_water.size()/target_count); // reduction factor
     if (factor < 2) {return;}

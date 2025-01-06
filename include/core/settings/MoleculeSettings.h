@@ -47,9 +47,6 @@ namespace ausaxs::settings {
             // Every N molecule is removed from the list of possible waters to achieve the target number of molecules
             CounterStrategy, 
 
-            // Every N molecule is removed from the list of possible waters to achieve the target number of molecules per body
-            BodyCounterStrategy,
-
             // Molecules are removed from the list of possible waters in an attempt to make a more uniform distribution
             OutlierStrategy, 
 
@@ -58,9 +55,6 @@ namespace ausaxs::settings {
 
             // Identical to the BodyCounterStrategy, except the list of possible waters is randomized
             RandomOutlierStrategy,
-
-            // Identical to the BodyCounterStrategy, except the list of possible waters is randomized
-            RandomBodyCounterStrategy,
 
             // No molecules will be removed with this strategy
             NoStrategy

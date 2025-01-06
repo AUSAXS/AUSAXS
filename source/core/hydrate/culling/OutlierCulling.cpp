@@ -15,7 +15,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::hydrate;
 
-void OutlierCulling::cull(std::vector<grid::GridMember<data::Water>>& placed_water) const {
+void OutlierCulling::cull(std::span<grid::GridMember<data::Water>>& placed_water) const {
     auto grid = molecule->get_grid();
 
     if (target_count == 0) {return;}

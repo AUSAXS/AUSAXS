@@ -16,7 +16,7 @@ void hydrate::BodyCounterCulling::set_body_ratios(const std::vector<double>& bod
     this->body_ratios = body_ratios;
 }
 
-void hydrate::BodyCounterCulling::cull(std::vector<grid::GridMember<data::Water>>& placed_water) const {
+void hydrate::BodyCounterCulling::cull(std::span<grid::GridMember<data::Water>>& placed_water) const {
     if (body_ratios.empty()) {return CounterCulling(molecule).cull(placed_water);}
     double total_reduction_factor = static_cast<double>(placed_water.size())/target_count;
     double total_weight = std::accumulate(body_ratios.begin(), body_ratios.end(), 0.0);

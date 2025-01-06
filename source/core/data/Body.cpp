@@ -193,6 +193,11 @@ std::vector<data::Water>& Body::get_waters() {
     return const_cast<std::vector<data::Water>&>(const_cast<const Body*>(this)->get_waters());
 }
 
+void Body::set_hydration(std::unique_ptr<hydrate::Hydration> hydration) {
+    this->hydration = std::move(hydration);
+    signal->external_change();
+}
+
 const std::vector<data::AtomFF>& Body::get_atoms() const {return atoms;}
 
 data::AtomFF& Body::get_atom(unsigned int index) {return atoms[index];}

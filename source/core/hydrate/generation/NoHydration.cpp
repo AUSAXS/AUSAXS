@@ -9,6 +9,4 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-std::unique_ptr<hydrate::Hydration> hydrate::NoHydration::hydrate() {
-    return std::make_unique<ExplicitHydration>(std::vector<data::Water>());
-}
+void hydrate::NoHydration::hydrate() {}

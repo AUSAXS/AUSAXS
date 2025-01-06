@@ -11,6 +11,6 @@ namespace ausaxs::hydrate {
             using CullingStrategy::CullingStrategy;
             ~NoCulling() override = default;
 
-            void cull(std::vector<grid::GridMember<data::Water>>& placed_water) const override;
+            void cull(std::span<grid::GridMember<data::Water>>& placed_water) const override;
     };       
 }

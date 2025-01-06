@@ -28,7 +28,7 @@ void hydrate::AxesHydration::initialize() {
     hydrate::GridBasedHydration::initialize();
 }
 
-std::vector<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explicit_hydration() {
+std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) {
     assert(protein != nullptr && "AxesHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
     assert(grid != nullptr && "AxesHydration::generate_explicit_hydration: grid is nullptr.");
@@ -38,7 +38,7 @@ std::vector<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_expl
 
     // short lambda to actually place the generated water molecules
     std::vector<grid::GridMember<data::Water>> placed_water;
-    placed_water.reserve(grid->a_members.size());
+    placed_water.reserve(atoms.size());
     auto add_loc = [&] (Vector3<double>&& exact_loc) {
         data::Water a(std::move(exact_loc));
         grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
@@ -46,8 +46,9 @@ std::vector<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_expl
     };
 
     // loop over the location of all member atoms
+    std::size_t water_start = grid->w_members.size();
     double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
-    for (const auto& atom : grid->a_members) {
+    for (const auto& atom : atoms) {
         double ra = grid->get_atomic_radius(atom.get_atom_type()); // radius of the atom
         double r_eff_real = ra+rh; // the effective bin radius
         // int r_eff_bin = std::round(r_eff_real)/grid->get_width(); // the effective bin radius in bins
@@ -100,7 +101,7 @@ std::vector<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_expl
             add_loc(std::move(exact_loc));
         }
     }
-    return placed_water;
+    return std::span(grid->w_members.begin() + water_start, grid->w_members.end());
 }
 
 bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, double ra) const {

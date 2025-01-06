@@ -2,6 +2,8 @@
 
 #include <hydrate/culling/CullingStrategy.h>
 
+#include <vector>
+
 namespace ausaxs::hydrate {
     /**
      * @brief Iterates through all placed water molecules, rejecting all but the nth, where n is determined from the desired number of water molecules. 
@@ -13,7 +15,7 @@ namespace ausaxs::hydrate {
             ~BodyCounterCulling() override = default;
 
             // runs in O(n) where n is the number of water molecules
-            void cull(std::vector<grid::GridMember<data::Water>>& placed_water) const override;
+            void cull(std::span<grid::GridMember<data::Water>>& placed_water) const override;
 
             void set_body_ratios(const std::vector<double>& body_ratios);
 

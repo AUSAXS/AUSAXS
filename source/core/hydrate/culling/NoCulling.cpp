@@ -7,8 +7,4 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
 
-using namespace ausaxs;
-
-void hydrate::NoCulling::cull(std::vector<grid::GridMember<data::Water>>&) const {
-    return;
-}
+void ausaxs::hydrate::NoCulling::cull(std::span<grid::GridMember<data::Water>>&) const {return;}

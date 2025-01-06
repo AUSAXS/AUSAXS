@@ -22,7 +22,7 @@ hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein, std::u
     initialize();
 }
 
-std::vector<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explicit_hydration() {
+std::span<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>>) {
     assert(protein != nullptr && "JanHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
     assert(grid != nullptr && "JanHydration::generate_explicit_hydration: grid is nullptr.");

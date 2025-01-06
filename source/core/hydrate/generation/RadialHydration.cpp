@@ -43,14 +43,14 @@ void hydrate::RadialHydration::set_noise_generator(std::function<Vector3<double>
     noise_generator = std::move(f);
 }
 
-std::vector<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_explicit_hydration() {
+std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) {
     assert(protein != nullptr && "RadialHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
     assert(grid != nullptr && "RadialHydration::generate_explicit_hydration: grid is nullptr.");
 
     // we define a helper lambda
     std::vector<grid::GridMember<data::Water>> placed_water; 
-    placed_water.reserve(grid->a_members.size());
+    placed_water.reserve(atoms.size());
     auto add_loc = [&] (Vector3<double>&& exact_loc) {
         data::Water a(std::move(exact_loc));
         grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
@@ -58,7 +58,8 @@ std::vector<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_ex
     };
 
     double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
-    for (const auto& atom : grid->a_members) {
+    std::size_t water_start = grid->w_members.size();
+    for (const auto& atom : atoms) {
         const auto& coords_abs = atom.get_atom().coordinates();
         double ra = grid->get_atomic_radius(atom.get_atom_type());
         double reff = ra + rh;
@@ -72,7 +73,7 @@ std::vector<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_ex
             }
         }
     }
-    return placed_water;
+    return std::span(grid->w_members.begin() + water_start, grid->w_members.end());
 }
 
 void hydrate::RadialHydration::prepare_rotations(int divisions) {

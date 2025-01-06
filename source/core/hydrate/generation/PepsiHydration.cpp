@@ -36,7 +36,7 @@ auto get_shell_width(double Rg) {
     return std::clamp(a*Rg, 3., 5.);
 }
 
-std::vector<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hydration() {
+std::span<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) {
     double shell_width = get_shell_width(protein->get_Rg());
     double r = 3; // distance from the atom to the hydration shell
 
@@ -48,7 +48,7 @@ std::vector<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hyd
     auto bins = grid->get_bins();
 
     std::vector<data::Water> placed_water;
-    placed_water.reserve(grid->a_members.size());
+    placed_water.reserve(atoms.size());
     auto add_loc = [&] (const Vector3<int>& v) {
         placed_water.emplace_back(data::Water(grid->to_xyz(v)));
     };
@@ -56,7 +56,7 @@ std::vector<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hyd
     // loop over the location of all member atoms
     double max_r = r+shell_width;
     double max_r2 = max_r*max_r;
-    for (const auto& atom : grid->a_members) {
+    for (const auto& atom : atoms) {
         const auto& coords_abs = atom.get_atom().coordinates();
 
         // scan for free cells in a box of size [x-r, x+r][y-r, y+r][z-r, z+r]
@@ -83,8 +83,7 @@ std::vector<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hyd
         }
     }
 
-    auto placed = grid->add(placed_water);
-    return placed;
+    return grid->add(placed_water);
 }
 
 void PepsiHydration::modified_expand_volume(grid::GridMember<data::AtomFF>& atom) {

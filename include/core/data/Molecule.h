@@ -236,16 +236,6 @@ namespace ausaxs::data {
 			void set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager);
 
 			/**
-			 * @brief Get the hydration generator of this molecule. 
-			 */
-			// [[nodiscard]] observer_ptr<hydrate::HydrationStrategy> get_hydration_generator() const;
-
-			/**
-			 * @brief Set the hydration generator of this molecule. 
-			 */
-			// void set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager);
-
-			/**
 			 * @brief Signal that the hydration layer has been modified.
 			 */
 			void signal_modified_hydration_layer() const;

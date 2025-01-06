@@ -55,6 +55,11 @@ namespace ausaxs::data {
 			 */
 			[[nodiscard]] std::vector<data::Water>& get_waters();
 			[[nodiscard]] const std::vector<data::Water>& get_waters() const; //< @copydoc get_waters()
+
+			/**
+			 * @brief Set the hydration object.
+			 */
+			void set_hydration(std::unique_ptr<hydrate::Hydration> hydration);
 		
 			/**
 			 * @brief Get a reference to the specified atom.

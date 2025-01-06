@@ -13,6 +13,6 @@ namespace ausaxs::hydrate {
             ~RandomCulling() override;
 
             // runs in O(n) where n is the number of water molecules
-            void cull(std::vector<grid::GridMember<data::Water>>& placed_water) const override;
+            void cull(std::span<grid::GridMember<data::Water>>& placed_water) const override;
     };
 }

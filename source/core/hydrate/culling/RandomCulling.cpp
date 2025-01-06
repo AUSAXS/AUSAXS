@@ -18,7 +18,7 @@ template<typename Wrapped>
 hydrate::RandomCulling<Wrapped>::RandomCulling::~RandomCulling() = default;
 
 template<typename Wrapped>
-void hydrate::RandomCulling<Wrapped>::cull(std::vector<grid::GridMember<data::Water>>& placed_water) const {
+void hydrate::RandomCulling<Wrapped>::cull(std::span<grid::GridMember<data::Water>>& placed_water) const {
     std::shuffle(placed_water.begin(), placed_water.end(), std::mt19937{std::random_device{}()}); // shuffle the molecules
     Wrapped::cull(placed_water);
 }
