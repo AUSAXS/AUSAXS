@@ -16,11 +16,16 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 
 std::unique_ptr<hydrate::CullingStrategy> hydrate::factory::construct_culling_strategy(observer_ptr<data::Molecule> molecule, bool global) {
-    if (settings::hydrate::culling_strategy == settings::hydrate::CullingStrategy::CounterStrategy) {
-        if (global) {return std::make_unique<hydrate::CounterCulling>(molecule);}
-        return std::make_unique<hydrate::BodyCounterCulling>(molecule);
+    switch (settings::hydrate::culling_strategy) {
+        case settings::hydrate::CullingStrategy::CounterStrategy: 
+            if (global) {return std::make_unique<hydrate::CounterCulling>(molecule);}
+            return std::make_unique<hydrate::BodyCounterCulling>(molecule);
+        case settings::hydrate::CullingStrategy::RandomCounterStrategy:
+            if (global) {return std::make_unique<hydrate::RandomCulling<hydrate::CounterCulling>>(molecule);}
+            return std::make_unique<hydrate::RandomCulling<hydrate::BodyCounterCulling>>(molecule);
+        default:
+            return construct_culling_strategy(molecule, settings::hydrate::culling_strategy);
     }
-    return construct_culling_strategy(molecule, settings::hydrate::culling_strategy);
 }
 
 std::unique_ptr<hydrate::CullingStrategy> hydrate::factory::construct_culling_strategy(observer_ptr<data::Molecule> molecule, const settings::hydrate::CullingStrategy& choice) {

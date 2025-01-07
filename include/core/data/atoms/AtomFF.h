@@ -15,8 +15,8 @@ namespace ausaxs::data {
             Atom& get_atom() {return basic;}
             const Atom& get_atom() const {return basic;}
 
-            form_factor::form_factor_t form_factor_type() const {return type;}
-            form_factor::form_factor_t& form_factor_type() {return type;}
+            [[nodiscard]] form_factor::form_factor_t form_factor_type() const {return type;}
+            [[nodiscard]] form_factor::form_factor_t& form_factor_type() {return type;}
 
         private:
             Atom basic;
@@ -26,4 +26,7 @@ namespace ausaxs::data {
     static_assert(std::is_trivial_v<AtomFF>,         "AtomFF is not trivial");
     static_assert(std::is_standard_layout_v<AtomFF>, "AtomFF is not standard layout");
     static_assert(supports_nothrow_move_v<AtomFF>,   "AtomFF should support nothrow move semantics.");
+
+	template<typename T>
+	concept AtomVector = std::is_same_v<std::remove_cvref_t<T>, std::vector<data::AtomFF>>;
 }

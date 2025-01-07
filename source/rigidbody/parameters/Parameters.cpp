@@ -14,7 +14,7 @@ using namespace ausaxs::rigidbody::parameter;
 Parameters::Parameters(const data::Molecule* protein) : params(protein->size_body()) {
     const std::vector<data::Body>& bodies = protein->get_bodies();
     for (unsigned int i = 0; i < params.size(); i++) {
-        id_to_index[bodies[i].get_id()] = i;
+        id_to_index[bodies[i].get_uid()] = i;
     }
 }
 

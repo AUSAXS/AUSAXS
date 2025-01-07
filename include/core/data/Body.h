@@ -15,12 +15,6 @@
 #include <memory>
 
 namespace ausaxs::data {
-	template<typename T>
-	concept AtomVector = std::is_same_v<std::remove_cvref_t<T>, std::vector<data::AtomFF>>;
-
-	template<typename T>
-	concept WaterVector = std::is_same_v<std::remove_cvref_t<T>, std::vector<data::Water>>;
-
 	class Body {
 		public:
 			Body();

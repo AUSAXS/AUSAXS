@@ -6,7 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <em/Image.h>
 #include <em/detail/header/MapHeader.h>
 #include <settings/EMSettings.h>
-#include <data/record/Atom.h>
 #include <utility/Axis3D.h>
 #include <constants/Constants.h>
 #include <hist/Histogram2D.h>
@@ -31,9 +30,9 @@ unsigned int Image::get_z() const {return z;}
 float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y);}
 float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
 
-std::list<data::record::Atom> Image::generate_atoms(double cutoff) const {
+std::list<data::EMAtomFF> Image::generate_atoms(double cutoff) const {
     if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::generate_atoms: Header must be initialized to use this method.");}
-    std::list<data::record::Atom> atoms;
+    std::list<data::EMAtomFF> atoms;
     auto map_axes = header->get_axes();
 
     // loop through all pixels in this image
@@ -51,12 +50,9 @@ std::list<data::record::Atom> Image::generate_atoms(double cutoff) const {
         for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
             float val = index(x, y);
             if (val < cutoff) {continue;}
-            data::record::Atom atom;
-            atom.coords = {x*xscale, y*yscale, z*zscale};
-            atom.element = constants::atom_t::dummy;
-            atom.occupancy = 1;
-            atom.effective_charge = weight(val); // weight in debye calculation is effective_charge * occupancy
-            atom.tempFactor = val;               // hijacking the tempFactor field to store the original density value
+            data::EMAtomFF atom({x*xscale, y*yscale, z*zscale}, weight(val), form_factor::form_factor_t::C, val);
+            // atom.element = constants::atom_t::dummy;
+            std::cout << "Image::generate_atoms: element is not set to dummy" << std::endl;
             atoms.push_back(atom);
         }
     }

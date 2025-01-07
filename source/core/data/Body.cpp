@@ -51,11 +51,14 @@ template Body::Body(std::vector<data::AtomFF>& atoms);
 template Body::Body(const std::vector<data::AtomFF>& atoms);
 
 template Body::Body(std::vector<data::AtomFF>&& atoms, std::vector<data::Water>&& waters);
-template Body::Body(std::vector<data::AtomFF>& atoms, const std::vector<data::Water>& waters);
-template Body::Body(const std::vector<data::AtomFF>& atoms, const std::vector<data::Water>& waters);
-template Body::Body(std::vector<data::AtomFF>&& atoms, const std::vector<data::Water>& waters);
-template Body::Body(std::vector<data::AtomFF>& atoms, std::vector<data::Water>&& waters);
 template Body::Body(const std::vector<data::AtomFF>& atoms, std::vector<data::Water>&& waters);
+template Body::Body(std::vector<data::AtomFF>& atoms, std::vector<data::Water>&& waters);
+template Body::Body(std::vector<data::AtomFF>&& atoms, const std::vector<data::Water>& waters);
+template Body::Body(std::vector<data::AtomFF>&& atoms, std::vector<data::Water>& waters);
+template Body::Body(const std::vector<data::AtomFF>& atoms, const std::vector<data::Water>& waters);
+template Body::Body(std::vector<data::AtomFF>& atoms, const std::vector<data::Water>& waters);
+template Body::Body(const std::vector<data::AtomFF>& atoms, std::vector<data::Water>& waters);
+template Body::Body(std::vector<data::AtomFF>& atoms, std::vector<data::Water>& waters);
 
 void Body::initialize() {
     signal = std::make_shared<signaller::UnboundSignaller>();

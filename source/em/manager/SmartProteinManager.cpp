@@ -6,8 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <em/manager/SmartProteinManager.h>
 #include <em/detail/ImageStackBase.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <data/record/Water.h>
-#include <data/record/Atom.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/Console.h>
@@ -21,7 +19,6 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::em::managers;
 using namespace ausaxs::data;
-using namespace ausaxs::data::record;
 
 SmartProteinManager::~SmartProteinManager() = default;
 
@@ -30,24 +27,24 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> SmartProteinManager::get_hist
     return protein->get_histogram();
 }
 
-std::vector<Atom> SmartProteinManager::generate_atoms(double cutoff) const {
+std::vector<EMAtomFF> SmartProteinManager::generate_atoms(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
-    std::list<Atom> atoms;
+    std::list<EMAtomFF> atoms;
     const auto& imagestack = images->images();
     unsigned int step = settings::em::sample_frequency;
     for (unsigned int i = 0; i < imagestack.size(); i += step) {
-        std::list<Atom> im_atoms = imagestack[i].generate_atoms(cutoff);
+        std::list<EMAtomFF> im_atoms = imagestack[i].generate_atoms(cutoff);
         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
     }
 
     // convert list to vector
-    return std::vector<Atom>(std::make_move_iterator(std::begin(atoms)), std::make_move_iterator(std::end(atoms)));
+    return std::vector<EMAtomFF>(std::make_move_iterator(std::begin(atoms)), std::make_move_iterator(std::end(atoms)));
 }
 
 std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cutoff) const {
-    std::vector<Atom> atoms = generate_atoms(cutoff);
+    std::vector<EMAtomFF> atoms = generate_atoms(cutoff);
     std::vector<Body> bodies(charge_levels.size());
-    std::vector<Atom> current_atoms(atoms.size());
+    std::vector<AtomFF> current_atoms(atoms.size());
 
     if (atoms.empty()) {
         console::print_warning("Warning in SmartProteinManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");
@@ -60,16 +57,16 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
 
     // sort vector so we can slice it into levels of charge density
     std::function<bool(double, double)> compare_func = [] (double v1, double v2) {return v1 < v2;};
-    std::sort(atoms.begin(), atoms.end(), [&compare_func] (const Atom& atom1, const Atom& atom2) {return compare_func(atom1.tempFactor, atom2.tempFactor);});
+    std::sort(atoms.begin(), atoms.end(), [&compare_func] (const EMAtomFF& atom1, const EMAtomFF& atom2) {return compare_func(atom1.get_density(), atom2.get_density());});
 
     unsigned int charge_index = 0, atom_index = 0, current_index = 0;
     double charge = charge_levels[charge_index]; // initialize charge
 
-    while (compare_func(atoms[atom_index].tempFactor, cutoff)) {++atom_index;} // search for first atom with charge larger than the cutoff
+    while (compare_func(atoms[atom_index].get_density(), cutoff)) {++atom_index;} // search for first atom with charge larger than the cutoff
     while (compare_func(charge, cutoff)) {charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
     while (atom_index < atoms.size()) {
-        if (compare_func(atoms[atom_index].tempFactor, charge)) {
-            current_atoms[current_index++] = atoms[atom_index++];
+        if (compare_func(atoms[atom_index].get_density(), charge)) {
+            current_atoms[current_index++] = atoms[atom_index++].get_atom_ff();
         } else {
             // create the body for this charge bin
             current_atoms.resize(current_index);

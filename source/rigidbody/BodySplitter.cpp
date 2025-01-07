@@ -5,22 +5,23 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/BodySplitter.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>
-#include <rigidbody/constraints/Constraint.h>
+#include <io/pdb/PDBStructure.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBWater.h>
+#include <io/Reader.h>
 
 #include <algorithm>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::data;
-using namespace ausaxs::data::record;
+using namespace ausaxs::io::pdb;
 
 Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
-    Body body(input);
-    std::vector<Atom>& atoms = body.get_atoms();
+    io::pdb::PDBStructure data = io::Reader::read(input);
+    std::vector<PDBAtom>& atoms = data.atoms;
 
     // we define a boolean vector with one entry for each residue sequence id
     int max_id = 0;
@@ -42,31 +43,35 @@ Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
         int resSeq = std::max(atoms[i].resSeq, 0); // in some files resSeq starts negative
 
         if (split_at[resSeq]) {
-            std::vector<Atom> a(begin, atoms.begin()+i);
-            bodies[index_body++] = Body(a);
+            std::vector<PDBAtom> a(begin, atoms.begin()+i);
+            auto reduced = PDBStructure(a, {}).reduced_representation();
+            bodies[index_body++] = Body(reduced.atoms, reduced.waters);
             split_at[resSeq] = false; // mark it as false so we won't split again on the next atom
             begin = atoms.begin() + i;
         }
     }
-    bodies[index_body] = Body(std::vector<Atom>(begin, atoms.end()));
+    auto reduced = PDBStructure(std::vector<PDBAtom>(begin, atoms.end()), {}).reduced_representation();
+    bodies[index_body] = Body(reduced.atoms, reduced.waters);
     return Molecule(bodies);
 }
 
 data::Molecule BodySplitter::split(const io::File& input) {
-    Body body(input);
-    std::vector<Atom>& atoms = body.get_atoms();
+    io::pdb::PDBStructure data = io::Reader::read(input);
+    std::vector<PDBAtom>& atoms = data.atoms;
 
     std::vector<Body> bodies;
     auto begin = atoms.begin();
     char current_id = atoms[0].chainID;
     for (unsigned int i = 0; i < atoms.size(); i++) {
         if (atoms[i].chainID != current_id) {
-            std::vector<Atom> a(begin, atoms.begin() + i);
-            bodies.push_back(Body(a));
+            std::vector<PDBAtom> a(begin, atoms.begin() + i);
+            auto reduced = PDBStructure(a, {}).reduced_representation();
+            bodies.push_back(Body(reduced.atoms, reduced.waters));
             begin = atoms.begin() + i;
             current_id = atoms[i].chainID;
         }
     }
-    bodies.push_back(Body(std::vector<Atom>(begin, atoms.end())));
+    auto reduced = PDBStructure(std::vector<PDBAtom>(begin, atoms.end()), {}).reduced_representation();
+    bodies.push_back(Body(reduced.atoms, reduced.waters));
     return Molecule(bodies);
 }

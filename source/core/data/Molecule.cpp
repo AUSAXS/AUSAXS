@@ -285,6 +285,14 @@ void Molecule::generate_new_hydration() {
     signal_modified_hydration_layer();
 }
 
+observer_ptr<hydrate::HydrationStrategy> Molecule::get_hydration_generator() const {
+    return hydration_strategy.get();
+}
+
+void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager) {
+    hydration_strategy = std::move(manager);
+}
+
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
     assert(phm != nullptr && "Molecule::get_histogram: phm is nullptr.");
     return phm->calculate_all();

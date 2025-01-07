@@ -30,7 +30,7 @@ namespace ausaxs::data {
 			Molecule& operator=(const Molecule& other) = delete;
 			Molecule(Molecule&& other);
 			Molecule& operator=(Molecule&& other);
-			~Molecule();
+			virtual ~Molecule();
 
 			explicit Molecule(std::vector<Body>&& bodies);
 			explicit Molecule(const std::vector<Body>& bodies);
@@ -247,6 +247,16 @@ namespace ausaxs::data {
 			void translate(const Vector3<double>& v);
 
 			bool equals_content(const Molecule& other) const;
+
+			/**
+			 * @brief Get the hydration generator of this molecule. 
+			 */
+			[[nodiscard]] observer_ptr<hydrate::HydrationStrategy> get_hydration_generator() const;
+
+			/**
+			 * @brief Set the hydration generator of this molecule. 
+			 */
+			void set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager);
 
 		private:
 			std::vector<Body> bodies;

@@ -103,7 +103,7 @@ namespace ausaxs::form_factor {
         }
     }
 
-    constexpr constants::atom_t get_type(form_factor_t ff_type) {
+    constexpr constants::atom_t to_atom_type(form_factor_t ff_type) {
         switch(ff_type) {
             case form_factor_t::H: return constants::atom_t::H;
             case form_factor_t::C:

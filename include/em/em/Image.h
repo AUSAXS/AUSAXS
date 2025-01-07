@@ -4,6 +4,7 @@
 #include <em/ObjectBounds2D.h>
 #include <data/DataFwd.h>
 #include <em/detail/header/HeaderFwd.h>
+#include <em/detail/EMAtomFF.h>
 #include <hist/HistFwd.h>
 #include <utility/observer_ptr.h>
 
@@ -31,7 +32,7 @@ namespace ausaxs::em {
 
             hist::Histogram2D as_hist() const;
 
-            std::list<data::record::Atom> generate_atoms(double cutoff) const;
+            std::list<data::EMAtomFF> generate_atoms(double cutoff) const;
 
             /**
              * @brief Count the number of voxels larger than a given cutoff value.

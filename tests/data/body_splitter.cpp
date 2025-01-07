@@ -2,8 +2,10 @@
 
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
 #include <rigidbody/BodySplitter.h>
+#include <io/pdb/PDBStructure.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/Reader.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -13,11 +15,14 @@ TEST_CASE("BodySplitter::split") {
 
     auto test_splits = [] (std::string_view file, std::vector<int>&& splits) {
         data::Molecule protein = rigidbody::BodySplitter::split(file, splits);
+        io::pdb::PDBStructure data = io::Reader::read(file);
+        REQUIRE(protein.size_atom() == data.get_atoms().size());
         
         std::vector<unsigned int> expected_sizes;
         int count = 0;
-        for (int split = 0; auto& a : protein.get_atoms()) {
-            if (a.get_residue_sequence_number() == splits[split]) {
+        for (int split = 0, i = 0; i < static_cast<int>(protein.size_atom()); ++i) {
+            auto& ap = data.atoms[i];
+            if (ap.get_residue_sequence_number() == splits[split]) {
                 expected_sizes.push_back(count);
                 ++split;
                 count = 1;
@@ -28,15 +33,17 @@ TEST_CASE("BodySplitter::split") {
         expected_sizes.push_back(count);
 
         REQUIRE(protein.size_body() == expected_sizes.size());
+        int index = 0;
         for (unsigned int i = 0; i < expected_sizes.size(); ++i) {
+            index += expected_sizes[i];
             auto& atoms = protein.get_body(i).get_atoms();
             REQUIRE(atoms.size() == expected_sizes[i]);
 
             if (1 <= i) {
-                CHECK(atoms.front().get_residue_sequence_number() == splits[i-1]);
+                CHECK(data.atoms[index].get_residue_sequence_number() == splits[i-1]);
             }
             if (i < splits.size()) {
-                CHECK(atoms.back().get_residue_sequence_number() == splits[i]-1);
+                CHECK(data.atoms[index-1].get_residue_sequence_number() == splits[i]-1);
             }
         }
     };

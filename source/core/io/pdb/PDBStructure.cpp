@@ -27,7 +27,7 @@ PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<
 auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, char chain) {
     for (const auto& a : body.get_atoms()) {
         atoms.emplace_back(
-            ++serial, form_factor::to_string(a.form_factor_type()), "", "UNK", chain, 0, "", a.coordinates(), 1, 1, form_factor::get_type(a.form_factor_type()), ""
+            ++serial, form_factor::to_string(a.form_factor_type()), "", "UNK", chain, 0, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
         );
     }
     for (const auto& w : body.get_waters()) {

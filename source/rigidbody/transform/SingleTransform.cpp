@@ -7,7 +7,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
-#include <data/record/Atom.h>
 
 using namespace ausaxs::rigidbody::transform;
 
@@ -16,7 +15,7 @@ SingleTransform::SingleTransform(RigidBody* rigidbody) : TransformStrategy(rigid
 SingleTransform::~SingleTransform() = default;
 
 void SingleTransform::apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) {
-    TransformGroup group({&constraint.get_body1()}, {constraint.ibody1}, constraint, constraint.get_atom2().coords);
+    TransformGroup group({&constraint.get_body1()}, {constraint.ibody1}, constraint, constraint.get_atom2().coordinates());
     backup(group);
     rotate(M, group);
     translate(t, group);
