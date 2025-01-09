@@ -1,3 +1,4 @@
+#include "io/Writer.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -80,7 +81,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
 
     SECTION("Body&") {
         Body b(b1);
-        REQUIRE(b.get_atoms().size() == 2);
+        REQUIRE(b.size_atom() == 2);
         CHECK(b.get_atom(0) == a1);
         CHECK(b.get_atom(1) == a2);
 
@@ -91,7 +92,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
 
     SECTION("Body&&") {
         Body b5 = std::move(b1);
-        REQUIRE(b5.get_atoms().size() == 2);
+        REQUIRE(b5.size_atom() == 2);
         CHECK(b5.get_atom(0) == a1);
         CHECK(b5.get_atom(1) == a2);
     }
@@ -106,16 +107,15 @@ TEST_CASE("Body::save") {
         AtomFF({ 1, -1,  1}, 1, form_factor::form_factor_t::O), AtomFF({ 1, 1,  1}, 1, form_factor::form_factor_t::C)
     };
     Body body(a);
-
-    body.save("temp/body_io.pdb");
+    io::Writer::write({body}, "temp/body_io.pdb");
     Body body2("temp/body_io.pdb");
 
     CHECK(body.get_atoms().size() == body2.get_atoms().size());
     for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
-        CHECK(body.get_atom(i).as_pdb() == body2.get_atom(i).as_pdb());
+        CHECK(body.get_atom(i) == body2.get_atom(i));
     }
 
-    remove("temp/body_io.pdb");
+    std::remove("temp/body_io.pdb");
 }
 
 TEST_CASE_METHOD(fixture, "Body::get_atoms") {
@@ -131,7 +131,7 @@ TEST_CASE_METHOD(fixture, "Body::get_atom") {
 
 TEST_CASE_METHOD(multiple_fixture, "Body::get_waters") {
     auto waters = std::vector<Water>{w1, w2};
-    Body body(std::vector<Atom>{a1, a2}, waters);
+    Body body(std::vector<AtomFF>{a1, a2}, waters);
     REQUIRE(body.get_waters() == waters);
 }
 
@@ -242,7 +242,7 @@ TEST_CASE("Body::rotate") {
 
 #include <data/state/BoundSignaller.h>
 TEST_CASE("Body::register_probe") {
-    Body body(std::vector{AtomFF({0, 0, 0}, 1, form_factor::form_factor_t::C)});
+    Body body(std::vector<AtomFF>{AtomFF({0, 0, 0}, 1, form_factor::form_factor_t::C)});
     auto probe = std::make_shared<signaller::BoundSignaller>(1, nullptr);
     body.register_probe(probe);
     REQUIRE(probe == body.get_signaller());
@@ -260,7 +260,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body::operator=") {
     // assignment with temporary bodies
     b1 = Body();
     {
-        Body b5(std::vector{a1, a2});
+        Body b5(std::vector<AtomFF>{a1, a2});
         b1 = b5;
     }
     REQUIRE(b1.get_atoms().size() == 2);
@@ -287,12 +287,12 @@ TEST_CASE_METHOD(fixture, "Body::state") {
     manager->reset_to_false();
 
     SECTION("Body::changed_external_state") {
-        protein.get_body(0).changed_external_state();
+        protein.get_body(0).get_signaller()->external_change();
         CHECK(manager->get_externally_modified_bodies()[0] == true);
     }
 
     SECTION("Body::changed_internal_state") {
-        protein.get_body(0).changed_internal_state();
+        protein.get_body(0).get_signaller()->internal_change();
         CHECK(manager->get_internally_modified_bodies()[0] == true);
     }
 }

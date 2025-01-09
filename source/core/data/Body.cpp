@@ -25,8 +25,8 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 Body::Body() : uid(uid_counter++) {initialize();}
-Body::Body(const Body& body) : uid(body.uid) {initialize();}
-Body::Body(Body&& body) noexcept : uid(body.uid) {initialize();}
+Body::Body(const Body& body) : atoms(body.atoms), hydration(body.hydration->clone()), uid(body.uid) {initialize();}
+Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), hydration(std::move(body.hydration)), uid(body.uid) {initialize();}
 Body::~Body() = default;
 
 Body::Body(const io::File& path) : uid(uid_counter++) {
