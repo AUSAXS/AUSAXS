@@ -189,13 +189,6 @@ namespace ausaxs::data {
 			[[nodiscard]] std::vector<data::Water> get_waters() const;
 
 			/**
-			 * @brief Get a reference to the specified water molecule.
-			 *        Complexity: O(1)
-			 */
-			[[nodiscard]] data::Water& get_water(unsigned int i);
-			[[nodiscard]] const data::Water& get_water(unsigned int i) const; // @copydoc get_water(unsigned int)
-
-			/**
 			 * @brief Create a grid and fill it with the atoms of this molecule. 
 			 */
 			observer_ptr<grid::Grid> create_grid() const;

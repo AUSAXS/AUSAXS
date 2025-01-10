@@ -3,6 +3,8 @@
 #include <math/Vector3.h>
 #include <form_factor/FormFactorType.h>
 #include <constants/Constants.h>
+#include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 
 namespace ausaxs::grid {
     /**

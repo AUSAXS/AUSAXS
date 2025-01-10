@@ -3,7 +3,7 @@
 #include <data/DataFwd.h>
 #include <hist/HistFwd.h>
 #include <em/manager/ProteinManager.h>
-#include <em/detail/EMAtomFF.h>
+#include <em/detail/EMAtom.h>
 #include <utility/observer_ptr.h>
 
 #include <vector>
@@ -46,7 +46,7 @@ namespace ausaxs::em::managers {
             /**
              * @brief Generate the atmos for a given cutoff.
              */
-            std::vector<data::EMAtomFF> generate_atoms(double cutoff) const;
+            std::vector<data::EMAtom> generate_atoms(double cutoff) const;
 
             /**
              * @brief Update the Protein to reflect a new cutoff value.

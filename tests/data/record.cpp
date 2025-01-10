@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <data/record/Record.h>
+#include <io/pdb/Record.h>
 
 using namespace ausaxs;
-using namespace data::record;
+using namespace io::pdb;
 
 TEST_CASE("Record::get_type") {
     CHECK(Record::get_type("ATOM") == RecordType::ATOM);

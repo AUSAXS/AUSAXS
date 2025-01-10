@@ -3,8 +3,6 @@
 #include <constants/ConstantsAxes.h>
 #include <utility/Utility.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <utility/Concepts.h>
 
 #include <iostream>
@@ -84,21 +82,21 @@ void set_unity_charge(T& protein) {
 }
 
 struct SimpleCube {
-    inline static std::vector<data::record::Atom> get_atoms() {
+    inline static std::vector<data::Atom> get_atoms() {
         return {
-            data::record::Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)
+            data::Atom({-1, -1, -1}, 1), data::Atom({-1, 1, -1}, 1),
+            data::Atom({ 1, -1, -1}, 1), data::Atom({ 1, 1, -1}, 1),
+            data::Atom({-1, -1,  1}, 1), data::Atom({-1, 1,  1}, 1),
+            data::Atom({ 1, -1,  1}, 1), data::Atom({ 1, 1,  1}, 1)
         };
     }
 
-    inline static std::vector<data::record::Water> get_waters() {
+    inline static std::vector<data::Water> get_waters() {
         return {
-            data::record::Water::create_new_water(Vector3<double>(-1, -1, -1)), data::record::Water::create_new_water(Vector3<double>(-1, 1, -1)),
-            data::record::Water::create_new_water(Vector3<double>( 1, -1, -1)), data::record::Water::create_new_water(Vector3<double>( 1, 1, -1)),
-            data::record::Water::create_new_water(Vector3<double>(-1, -1,  1)), data::record::Water::create_new_water(Vector3<double>(-1, 1,  1)),
-            data::record::Water::create_new_water(Vector3<double>( 1, -1,  1)), data::record::Water::create_new_water(Vector3<double>( 1, 1,  1))
+            data::Water({-1, -1, -1}), data::Water({-1, 1, -1}),
+            data::Water({ 1, -1, -1}), data::Water({ 1, 1, -1}),
+            data::Water({-1, -1,  1}), data::Water({-1, 1,  1}),
+            data::Water({ 1, -1,  1}), data::Water({ 1, 1,  1})
         };
     }
 

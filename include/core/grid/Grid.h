@@ -6,10 +6,10 @@
 #include <utility/Axis3D.h>
 #include <utility/TypeTraits.h>
 #include <data/DataFwd.h>
-#include <data/atoms/AtomConcept.h>
 #include <io/IOFwd.h>
 #include <math/Vector3.h>
 #include <constants/ConstantsFwd.h>
+#include <form_factor/FormFactorType.h>
 
 #include <vector>
 #include <span>
@@ -49,12 +49,12 @@ namespace ausaxs::grid {
 			/**
 			 * @brief Get the atomic radius of an atom in Å.
 			 */
-			double get_atomic_radius(form_factor::form_factor_t atom) const;
+			virtual double get_atomic_radius(form_factor::form_factor_t atom) const;
 
 			/**
 			 * @brief Get the radius of a water molecule in Å.
 			 */
-			double get_hydration_radius() const;
+			virtual double get_hydration_radius() const;
 
 			/**
 			 * @brief Add the contents of a body to the grid.
@@ -215,6 +215,18 @@ namespace ausaxs::grid {
 			 * @brief Get the center of the grid in bin coordinates.
 			 */
 			Vector3<int> get_center() const;
+
+			/**
+			 * @brief Get the atoms in the grid.
+			 *		  Complexity: O(N).
+			 */
+			std::vector<data::AtomFF> get_atoms();
+
+			/**
+			 * @brief Get the water molecules in the grid.
+			 *		  Complexity: O(N).
+			 */
+			std::vector<data::Water> get_waters();
 
 			/**
 			 * @brief Add a value to the volume of the grid.

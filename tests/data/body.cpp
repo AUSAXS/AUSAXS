@@ -15,17 +15,16 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
 
 using namespace ausaxs;
 using namespace data;
 
 struct fixture {
     std::vector<AtomFF> a = {
-        AtomFF({-1, -1, -1}, 1, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, 1, form_factor::form_factor_t::C),
-        AtomFF({ 1, -1, -1}, 1, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, 1, form_factor::form_factor_t::C),
-        AtomFF({-1, -1,  1}, 1, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, 1, form_factor::form_factor_t::C),
-        AtomFF({ 1, -1,  1}, 1, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, 1, form_factor::form_factor_t::C)
+        AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
+        AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),
+        AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
+        AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
     };
     Body body = Body(a);
 };
@@ -35,14 +34,14 @@ struct multiple_fixture {
         settings::molecule::center = false;
     }
 
-    AtomFF a1 = AtomFF({-1, -1, -1}, 1, form_factor::form_factor_t::C);
-    AtomFF a2 = AtomFF({-1,  1, -1}, 1, form_factor::form_factor_t::C);
-    AtomFF a3 = AtomFF({-1, -1,  1}, 1, form_factor::form_factor_t::C);
-    AtomFF a4 = AtomFF({-1,  1,  1}, 1, form_factor::form_factor_t::C);
-    AtomFF a5 = AtomFF( {1, -1, -1}, 1, form_factor::form_factor_t::C);
-    AtomFF a6 = AtomFF( {1,  1, -1}, 1, form_factor::form_factor_t::C);
-    AtomFF a7 = AtomFF( {1, -1,  1}, 1, form_factor::form_factor_t::C);
-    AtomFF a8 = AtomFF( {1,  1,  1}, 1, form_factor::form_factor_t::H);
+    AtomFF a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
+    AtomFF a2 = AtomFF({-1,  1, -1}, form_factor::form_factor_t::C);
+    AtomFF a3 = AtomFF({-1, -1,  1}, form_factor::form_factor_t::C);
+    AtomFF a4 = AtomFF({-1,  1,  1}, form_factor::form_factor_t::C);
+    AtomFF a5 = AtomFF( {1, -1, -1}, form_factor::form_factor_t::C);
+    AtomFF a6 = AtomFF( {1,  1, -1}, form_factor::form_factor_t::C);
+    AtomFF a7 = AtomFF( {1, -1,  1}, form_factor::form_factor_t::C);
+    AtomFF a8 = AtomFF( {1,  1,  1}, form_factor::form_factor_t::H);
     Water w1 = Water({0, 1, 2});
     Water w2 = Water({3, 4, 5});
 
@@ -59,22 +58,22 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
         io::ExistingFile ef("tests/files/2epe.pdb");
         Body b(ef);
         REQUIRE(b.size_atom() == 1001);
-        REQUIRE(b.get_waters().size() == 48);
+        REQUIRE(b.size_water() == 48);
     }
 
     SECTION("vector<Atom>&") {
         Body b(std::vector<AtomFF>{a1, a2});
-        REQUIRE(b.get_atoms().size() == 2);
+        REQUIRE(b.size_atom() == 2);
         CHECK(b.get_atom(0) == a1);
         CHECK(b.get_atom(1) == a2);
     }
 
     SECTION("vector<Atom>&, vector<Water>&") {
         Body b(std::vector<AtomFF>{a1, a2}, std::vector<Water>{w1, w2});
-        REQUIRE(b.get_atoms().size() == 2);
+        REQUIRE(b.size_atom() == 2);
         CHECK(b.get_atom(0) == a1);
         CHECK(b.get_atom(1) == a2);
-        REQUIRE(b.get_waters().size() == 2);
+        REQUIRE(b.size_water() == 2);
         CHECK(b.get_waters()[0] == w1);
         CHECK(b.get_waters()[1] == w2);
     }
@@ -101,17 +100,17 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
 TEST_CASE("Body::save") {
     settings::general::verbose = false;
     std::vector<AtomFF> a = {
-        AtomFF({-1, -1, -1}, 1, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, 1, form_factor::form_factor_t::C),
-        AtomFF({ 1, -1, -1}, 1, form_factor::form_factor_t::O), AtomFF({ 1, 1, -1}, 1, form_factor::form_factor_t::C),
-        AtomFF({-1, -1,  1}, 1, form_factor::form_factor_t::N), AtomFF({-1, 1,  1}, 1, form_factor::form_factor_t::C),
-        AtomFF({ 1, -1,  1}, 1, form_factor::form_factor_t::O), AtomFF({ 1, 1,  1}, 1, form_factor::form_factor_t::C)
+        AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
+        AtomFF({ 1, -1, -1}, form_factor::form_factor_t::O), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),
+        AtomFF({-1, -1,  1}, form_factor::form_factor_t::N), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
+        AtomFF({ 1, -1,  1}, form_factor::form_factor_t::O), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
     };
     Body body(a);
     io::Writer::write({body}, "temp/body_io.pdb");
     Body body2("temp/body_io.pdb");
 
-    CHECK(body.get_atoms().size() == body2.get_atoms().size());
-    for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
+    CHECK(body.size_atom() == body2.size_atom());
+    for (unsigned int i = 0; i < body.size_atom(); i++) {
         CHECK(body.get_atom(i) == body2.get_atom(i));
     }
 
@@ -184,9 +183,9 @@ TEST_CASE("Body::rotate") {
     SECTION("Vector3<double>&, double") {
         SECTION("simple") {
             std::vector<AtomFF> a = {
-                AtomFF({1, 0, 0}, 1, form_factor::form_factor_t::C), 
-                AtomFF({0, 1, 0}, 1, form_factor::form_factor_t::C), 
-                AtomFF({0, 0, 1}, 1, form_factor::form_factor_t::C)};
+                AtomFF({1, 0, 0}, form_factor::form_factor_t::C), 
+                AtomFF({0, 1, 0}, form_factor::form_factor_t::C), 
+                AtomFF({0, 0, 1}, form_factor::form_factor_t::C)};
             Body body(a);
 
             Vector3<double> axis = {0, 1, 0};
@@ -204,10 +203,10 @@ TEST_CASE("Body::rotate") {
 
         SECTION("complex") {
             std::vector<AtomFF> a = {
-                AtomFF({0, 2, 1}, 1, form_factor::form_factor_t::C), 
-                AtomFF({5, 1, 3}, 1, form_factor::form_factor_t::C), 
-                AtomFF({6, 1, 4}, 1, form_factor::form_factor_t::C),
-                AtomFF({3, 7, 2}, 1, form_factor::form_factor_t::C)};
+                AtomFF({0, 2, 1}, form_factor::form_factor_t::C), 
+                AtomFF({5, 1, 3}, form_factor::form_factor_t::C), 
+                AtomFF({6, 1, 4}, form_factor::form_factor_t::C),
+                AtomFF({3, 7, 2}, form_factor::form_factor_t::C)};
             Body body(a);
 
             Vector3<double> axis = {0.5, 2, 1};
@@ -222,9 +221,9 @@ TEST_CASE("Body::rotate") {
     SECTION("double, double, double, ") {
         SECTION("simple") {
             std::vector<AtomFF> a = {
-                AtomFF({1, 0, 0}, 1, form_factor::form_factor_t::C), 
-                AtomFF({0, 1, 0}, 1, form_factor::form_factor_t::C), 
-                AtomFF({0, 0, 1}, 1, form_factor::form_factor_t::C)};
+                AtomFF({1, 0, 0}, form_factor::form_factor_t::C), 
+                AtomFF({0, 1, 0}, form_factor::form_factor_t::C), 
+                AtomFF({0, 0, 1}, form_factor::form_factor_t::C)};
             Body body(a);
 
             body.rotate(matrix::rotation_matrix(0., M_PI_2, 0.));
@@ -242,7 +241,7 @@ TEST_CASE("Body::rotate") {
 
 #include <data/state/BoundSignaller.h>
 TEST_CASE("Body::register_probe") {
-    Body body(std::vector<AtomFF>{AtomFF({0, 0, 0}, 1, form_factor::form_factor_t::C)});
+    Body body(std::vector<AtomFF>{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)});
     auto probe = std::make_shared<signaller::BoundSignaller>(1, nullptr);
     body.register_probe(probe);
     REQUIRE(probe == body.get_signaller());
@@ -269,8 +268,8 @@ TEST_CASE_METHOD(multiple_fixture, "Body::operator=") {
 }
 
 TEST_CASE("Body::operator==") {
-    std::vector<AtomFF> a1 = {AtomFF({-1, -1, -1}, 1, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, 1, form_factor::form_factor_t::C)};
-    std::vector<AtomFF> a2 = {AtomFF({-1, -1, -1}, 1, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, 1, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> a1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> a2 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
     Body b1(a1);
     Body b2(a2);
 

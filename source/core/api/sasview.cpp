@@ -45,9 +45,9 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     std::vector<double> w(_w, _w+_nc);
 
     // convert coordinate input to the Atom object
-    std::vector<data::AtomFF> atoms(_nc); //! should be Atom without FF
+    std::vector<data::Atom> atoms(_nc);
     for (int i = 0; i < _nc; ++i) {
-        atoms[i] = data::AtomFF({x[i], y[i], z[i]}, w[i], form_factor::form_factor_t::OTHER);
+        atoms[i] = data::Atom({x[i], y[i], z[i]}, w[i]);
     }
 
     // construct a protein from the collection of atom

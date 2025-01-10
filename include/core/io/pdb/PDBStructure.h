@@ -1,10 +1,11 @@
 #pragma once
 
 #include <io/pdb/PDBFwd.h>
-#include <io/IOFwd.h>
 #include <io/pdb/Terminate.h>
 #include <io/pdb/Footer.h>
 #include <io/pdb/Header.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBWater.h>
 #include <utility/TypeTraits.h>
 #include <data/DataFwd.h>
 #include <data/atoms/AtomFF.h>

@@ -9,8 +9,6 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <grid/Grid.h>
 #include <dataset/SimpleDataset.h>
 #include <plots/All.h>
@@ -21,7 +19,6 @@
 
 using namespace ausaxs;
 using namespace data;
-using namespace data::record;
 
 TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     settings::general::verbose = false;
@@ -160,14 +157,12 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     settings::grid::min_exv_radius = 0;
 
     std::vector<Atom> atoms = SimpleCube::get_atoms();
-    atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
-    std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
+    atoms.emplace_back(Atom({0, 0, 0}, 1));
 
     std::vector<Water> waters = SimpleCube::get_waters();
-    waters.push_back(Water::create_new_water(Vector3<double>(0, 0, 0)));
-    std::for_each(waters.begin(), waters.end(), [](Water& w) {w.set_effective_charge(1);});
+    waters.emplace_back(Water({0, 0, 0}));
 
-    Molecule protein(atoms);
+    Molecule protein({{atoms, waters}});
     GridDebug::generate_debug_grid(protein);
     protein.get_waters() = waters;
 
@@ -248,10 +243,9 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
     settings::grid::min_exv_radius = 0;
 
     std::vector<Atom> atoms = SimpleCube::get_atoms();
-    atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
-    std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
+    atoms.emplace_back(Atom({0, 0, 0}, 1));
 
-    Molecule protein(atoms);
+    Molecule protein({atoms});
     GridDebug::generate_debug_grid(protein);
     auto h = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
     auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(h.get());
@@ -296,10 +290,8 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
     settings::grid::min_exv_radius = 0;
 
     SECTION("simple") {
-        std::vector<Atom> atoms = {Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1)};
-        atoms[0].set_effective_charge(1);
-
-        Molecule protein(atoms);
+        std::vector<Atom> atoms = {Atom({0, 0, 0}, 1)};
+        Molecule protein({atoms});
         GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
         auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());
@@ -366,10 +358,9 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
     SECTION("cube") {
         std::vector<Atom> atoms = SimpleCube::get_atoms();
-        atoms.push_back(Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1));
-        std::for_each(atoms.begin(), atoms.end(), [](Atom& a) {a.set_effective_charge(1);});
+        atoms.emplace_back(Atom({0, 0, 0}, 1));
 
-        Molecule protein(atoms);
+        Molecule protein({atoms});
         GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
         auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());

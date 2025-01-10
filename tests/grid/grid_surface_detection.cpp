@@ -4,7 +4,6 @@
 #include <grid/detail/GridSurfaceDetection.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
 #include <settings/All.h>
  
 #include <vector>
@@ -12,13 +11,12 @@
 
 using namespace ausaxs;
 using namespace data;
-using namespace data::record;
 
 class GridDebug : public grid::Grid {
     public: 
         using Grid::Grid;
 
-		double get_atomic_radius(constants::atom_t) const override {return ra;}
+		double get_atomic_radius(form_factor::form_factor_t) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
         void set_hydration_radius(double rh) {this->rh = rh;}

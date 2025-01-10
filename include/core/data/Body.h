@@ -32,11 +32,15 @@ namespace ausaxs::data {
 			 */
 			Body(const io::File& path);
 
-			template<AtomVector T>
+			template<AtomVectorFF T>
 			Body(T&& atoms);
+			Body(const std::vector<Atom>& atoms);
 
-			template<AtomVector T, WaterVector U>
+			template<AtomVectorFF T, WaterVector U>
 			Body(T&& atoms, U&& waters);
+
+			template<WaterVector T>
+			Body(const std::vector<Atom>& atoms, T&& waters);
 
 			/**
 			 * @brief Get a reference to the constituent atoms.

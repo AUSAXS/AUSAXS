@@ -2,7 +2,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Symmetry.h>
-#include <data/record/Atom.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

@@ -18,12 +18,12 @@ PlotImage::PlotImage(const em::Image& image, const PlotOptions& options) {
 PlotImage::~PlotImage() = default;
 
 PlotImage& PlotImage::plot_atoms(const em::Image& image, double cutoff) {
-    std::list<data::EMAtomFF> atoms = image.generate_atoms(cutoff);
+    std::list<data::EMAtom> atoms = image.generate_atoms(cutoff);
     std::vector<double> x;
     std::vector<double> y;
     x.reserve(atoms.size());
     y.reserve(atoms.size());
-    for (const data::EMAtomFF& atom : atoms) {
+    for (const data::EMAtom& atom : atoms) {
         x.push_back(atom.coordinates().x());
         y.push_back(atom.coordinates().y());
     }

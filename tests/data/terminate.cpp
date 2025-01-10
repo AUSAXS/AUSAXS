@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/record/Terminate.h>
+#include <io/pdb/Terminate.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
-using namespace data::record;
+using namespace io::pdb;
 
 TEST_CASE("Terminate::Terminate") {
     SECTION("int, string&, string&, int, string&") {

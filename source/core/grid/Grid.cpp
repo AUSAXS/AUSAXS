@@ -511,22 +511,22 @@ void Grid::save(const io::File& path) const {
             for (unsigned int k = 0; k < grid.size_z(); k++) {
                 switch (grid.index(i, j, k)) {
                     case detail::A_CENTER:
-                        atoms[0].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
+                        atoms[0].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
                         break;
                     case detail::A_AREA:
-                        atoms[1].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
+                        atoms[1].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
                         break;
                     case detail::VOLUME:
-                        atoms[2].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
+                        atoms[2].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
                         break;
                     case detail::W_CENTER:
-                        atoms[3].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
+                        atoms[3].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
                         break;
                     case detail::W_AREA:
-                        atoms[4].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
+                        atoms[4].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
                         break;
                     case detail::VACUUM:
-                        atoms[5].emplace_back(to_xyz(i, j, k), 1, form_factor::form_factor_t::C);
+                        atoms[5].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
                     default:
                         break;
                 }
@@ -535,14 +535,14 @@ void Grid::save(const io::File& path) const {
     }
 
     // visualize corners
-    atoms[6].emplace_back(to_xyz(0,             0,              0),           1, form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(axes.x.bins,   0,              0),           1, form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    0),           1, form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    0),           1, form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    axes.z.bins), 1, form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(0,             0,              axes.z.bins), 1, form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(axes.x.bins,   0,              axes.z.bins), 1, form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    axes.z.bins), 1, form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(0,             0,              0),           form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   0,              0),           form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    0),           form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    0),           form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    axes.z.bins), form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(0,             0,              axes.z.bins), form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   0,              axes.z.bins), form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    axes.z.bins), form_factor::form_factor_t::C);
     
     std::vector<Body> bodies;
     bodies.emplace_back(atoms[0]);
@@ -565,11 +565,11 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
         std::vector<AtomFF> atoms1, atoms2;
     
         for (int i = 0; i < static_cast<int>(vol.interior.size()); ++i) {
-            atoms1.emplace_back(vol.interior[i], 1, form_factor::form_factor_t::C);
+            atoms1.emplace_back(vol.interior[i], form_factor::form_factor_t::C);
         }
 
         for (int j = 0; j < static_cast<int>(vol.surface.size()); ++j) {
-            atoms2.emplace_back(vol.surface[j], 1, form_factor::form_factor_t::C);
+            atoms2.emplace_back(vol.surface[j], form_factor::form_factor_t::C);
         }
 
         std::vector<Body> bodies = {atoms1, atoms2};
@@ -580,6 +580,22 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
         return {vol.interior, {}};
     }
     return vol;
+}
+
+std::vector<data::AtomFF> Grid::get_atoms() {
+    std::vector<data::AtomFF> atoms;
+    for (auto& atom : a_members) {
+        atoms.emplace_back(atom.get_atom());
+    }
+    return atoms;
+}
+
+std::vector<data::Water> Grid::get_waters() {
+    std::vector<data::Water> waters;
+    for (auto& water : w_members) {
+        waters.emplace_back(water.get_atom());
+    }
+    return waters;
 }
 
 const grid::detail::State& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {

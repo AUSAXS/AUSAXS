@@ -18,6 +18,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <hydrate/generation/GridBasedHydration.h>
+#include <io/Writer.h>
 #include <utility/Console.h>
 #include <settings/All.h>
 
@@ -81,7 +82,7 @@ SimpleDataset Molecule::simulate_dataset(bool add_noise) const {
 }
 
 void Molecule::save(const io::File& path) {
-    throw std::runtime_error("Molecule::save: Not implemented.");
+    io::Writer::write({*this}, path);
 }
 
 double Molecule::get_molar_mass() const {
@@ -268,6 +269,7 @@ std::vector<Water> Molecule::get_waters() const {
     std::vector<Water> waters(N);
     int n = 0; // current index
     for (const auto& body : bodies) {
+        if (body.size_water() == 0) {continue;}
         for (const auto& a : body.get_waters()) {
             waters[n] = a;
             n++;

@@ -30,9 +30,9 @@ unsigned int Image::get_z() const {return z;}
 float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y);}
 float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
 
-std::list<data::EMAtomFF> Image::generate_atoms(double cutoff) const {
+std::list<data::EMAtom> Image::generate_atoms(double cutoff) const {
     if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::generate_atoms: Header must be initialized to use this method.");}
-    std::list<data::EMAtomFF> atoms;
+    std::list<data::EMAtom> atoms;
     auto map_axes = header->get_axes();
 
     // loop through all pixels in this image
@@ -50,7 +50,7 @@ std::list<data::EMAtomFF> Image::generate_atoms(double cutoff) const {
         for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
             float val = index(x, y);
             if (val < cutoff) {continue;}
-            data::EMAtomFF atom({x*xscale, y*yscale, z*zscale}, weight(val), form_factor::form_factor_t::C, val);
+            data::EMAtom atom({x*xscale, y*yscale, z*zscale}, weight(val), val);
             // atom.element = constants::atom_t::dummy;
             std::cout << "Image::generate_atoms: element is not set to dummy" << std::endl;
             atoms.push_back(atom);

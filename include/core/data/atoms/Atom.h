@@ -46,4 +46,6 @@ namespace ausaxs::data {
     static_assert(std::is_trivial_v<Atom>,                                 "Atom is not trivial");
     static_assert(std::is_standard_layout_v<Atom>,                         "Atom is not standard layout");
     static_assert(supports_nothrow_move_v<Atom>,                           "Atom should support nothrow move semantics.");
+
+    template<typename T> concept AtomVector = std::is_same_v<std::remove_cvref_t<T>, std::vector<data::Atom>>;
 }

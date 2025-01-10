@@ -70,7 +70,7 @@ void PDBWriter::write(const PDBStructure& s, const io::File& path) {
     if (content.size() == 1) {
         std::ofstream output(path);
         if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
-        output << content[0] << std::flush;
+        output << content.at(0) << std::flush;
         output.close();
         if (settings::general::verbose) {std::cout << "Output written to file " + path.str() + "." << std::endl;}
     }
@@ -80,7 +80,7 @@ void PDBWriter::write(const PDBStructure& s, const io::File& path) {
             if (settings::general::verbose) {std::cout << "Output written to file " + nfile.str() << std::endl;}
             std::ofstream output(nfile);
             if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
-            output << content[i] << std::flush;
+            output << content.at(i) << std::flush;
             output.close();
         }
     }

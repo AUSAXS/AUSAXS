@@ -172,3 +172,28 @@ namespace ausaxs::constants::radius {
         }
     }
 }
+
+namespace ausaxs::constants::charge::nuclear {
+    /**
+     * @brief Get the charge of an atom in e.
+     */
+    constexpr unsigned int get_charge(form_factor::form_factor_t type) {
+        switch(type) {
+            case form_factor::form_factor_t::H: return 1;
+            case form_factor::form_factor_t::C: return 6;
+            case form_factor::form_factor_t::CH: return 7;
+            case form_factor::form_factor_t::CH2: return 8;
+            case form_factor::form_factor_t::CH3: return 9;
+            case form_factor::form_factor_t::N: return 7;
+            case form_factor::form_factor_t::NH: return 8;
+            case form_factor::form_factor_t::NH2: return 9;
+            case form_factor::form_factor_t::NH3: return 10;
+            case form_factor::form_factor_t::O: return 8;
+            case form_factor::form_factor_t::OH: return 9;
+            case form_factor::form_factor_t::S: return 16;
+            case form_factor::form_factor_t::SH: return 17;
+            case form_factor::form_factor_t::OTHER: return 18;
+            default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+        }
+    }
+}

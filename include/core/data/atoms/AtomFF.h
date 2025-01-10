@@ -11,7 +11,8 @@ namespace ausaxs::data {
         public:
             AtomFF() = default;
             AtomFF(const Atom& a, form_factor::form_factor_t t) : basic(a), type(t) {}
-            AtomFF(const Vector3<precision_t>& coords, precision_t weight, form_factor::form_factor_t t) : basic(coords, weight), type(t) {}
+            AtomFF(const Vector3<precision_t>& coords, form_factor::form_factor_t t) : basic(coords, constants::charge::nuclear::get_charge(t)), type(t) {}
+            AtomFF(const Vector3<precision_t>& coords, form_factor::form_factor_t t, double weight) : basic(coords, weight), type(t) {}
             Atom& get_atom() {return basic;}
             const Atom& get_atom() const {return basic;}
 
@@ -27,6 +28,5 @@ namespace ausaxs::data {
     static_assert(std::is_standard_layout_v<AtomFF>, "AtomFF is not standard layout");
     static_assert(supports_nothrow_move_v<AtomFF>,   "AtomFF should support nothrow move semantics.");
 
-	template<typename T>
-	concept AtomVector = std::is_same_v<std::remove_cvref_t<T>, std::vector<data::AtomFF>>;
+	template<typename T> concept AtomVectorFF = std::is_same_v<std::remove_cvref_t<T>, std::vector<data::AtomFF>>;
 }

@@ -13,8 +13,8 @@ using namespace ausaxs;
 
 void em::managers::SimpleProteinManager::update_protein(double cutoff) {
     auto atoms = generate_atoms(cutoff);
-    std::vector<data::AtomFF> converted(atoms.size());
-    std::transform(atoms.begin(), atoms.end(), converted.begin(), [] (const data::EMAtomFF& atom) {return atom.get_atom_ff();});
+    std::vector<data::Atom> converted(atoms.size());
+    std::transform(atoms.begin(), atoms.end(), converted.begin(), [] (const data::EMAtom& atom) {return atom.get_atom();});
     protein = std::make_unique<data::Molecule>(std::vector{data::Body{converted}});
     protein->set_histogram_manager(std::make_unique<hist::HistogramManagerMT<true>>(protein.get()));
 }

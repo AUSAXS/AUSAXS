@@ -6,7 +6,6 @@
 #include <em/detail/header/MRCHeader.h>
 #include <em/manager/SmartProteinManager.h>
 #include <settings/All.h>
-#include <data/record/Atom.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
@@ -92,7 +91,7 @@ TEST_CASE("ImageStack::get_protein") {
             REQUIRE(protein->get_atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
             std::map<float, unsigned int> counts = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}};
             for (const auto& atom : protein->get_atoms()) {
-                counts[atom.get_temperature_factor()]++;
+                counts[atom.weight()]++;
             }
             REQUIRE(counts.at(1) == 2+0+1+1+1+2 + 2+1+2+1+3+2);
             REQUIRE(counts.at(2) == 0+0+0+0+0+0 + 2+1+1+1+1+1);
@@ -116,7 +115,7 @@ TEST_CASE("ImageStack::get_protein") {
             auto protein = images.get_protein(1);
             REQUIRE(protein->get_atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
             for (const auto& atom : protein->get_atoms()) {
-                REQUIRE(atom.get_occupancy() == 1);
+                REQUIRE(atom.weight() == 1);
             }
             settings::em::fixed_weights = false;
         }

@@ -5,6 +5,6 @@
 
 namespace ausaxs::io::detail::pdb {
     struct PDBWriter {
-        static void write(const io::pdb::PDBStructure&, const io::File& path);
+        static void write(const io::pdb::PDBStructure& data, const io::File& path);
     };
 }

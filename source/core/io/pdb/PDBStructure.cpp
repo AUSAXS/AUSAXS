@@ -30,6 +30,8 @@ auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& w
             ++serial, form_factor::to_string(a.form_factor_type()), "", "UNK", chain, 0, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
         );
     }
+
+    if (body.size_water() == 0) {return;}
     for (const auto& w : body.get_waters()) {
         waters.emplace_back(
             ++serial, "O", "", "HOH", chain, ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
@@ -43,6 +45,7 @@ PDBStructure::PDBStructure(const data::Body& body) {
     atoms.reserve(body.size_atom());
     waters.reserve(body.size_water());
     add_single_body(this->atoms, this->waters, body, serial, residue_serial, 'A');
+    refresh();
 }
 
 PDBStructure::PDBStructure(const data::Molecule& molecule) {
@@ -54,6 +57,7 @@ PDBStructure::PDBStructure(const data::Molecule& molecule) {
     for (const auto& body : molecule.get_bodies()) {
         add_single_body(this->atoms, this->waters, body, serial, residue_serial, chain++);
     }
+    refresh();
 }
 
 void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& hatoms) {
@@ -144,7 +148,7 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     res.waters.reserve(waters.size());
 
     for (auto& a : atoms) {
-        res.atoms.emplace_back(a.coords, a.effective_charge*a.occupancy, form_factor::get_type(a.get_element(), a.get_atomic_group()));
+        res.atoms.emplace_back(a.coords, form_factor::get_type(a.get_element(), a.get_atomic_group()), a.effective_charge*a.occupancy);
     }
 
     for (auto& w : waters) {
