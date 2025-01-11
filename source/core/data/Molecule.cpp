@@ -280,6 +280,7 @@ std::vector<Water> Molecule::get_waters() const {
 }
 
 void Molecule::generate_new_hydration() {
+    clear_hydration();
     if (hydration_strategy == nullptr) {
         hydration_strategy = hydrate::factory::construct_hydration_generator(this);
     }

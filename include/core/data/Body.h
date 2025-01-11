@@ -33,8 +33,8 @@ namespace ausaxs::data {
 			Body(const io::File& path);
 
 			template<AtomVectorFF T>
-			Body(T&& atoms);
-			Body(const std::vector<Atom>& atoms);
+			explicit Body(T&& atoms);
+			explicit Body(const std::vector<Atom>& atoms);
 
 			template<AtomVectorFF T, WaterVector U>
 			Body(T&& atoms, U&& waters);

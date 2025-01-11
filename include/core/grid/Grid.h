@@ -58,7 +58,7 @@ namespace ausaxs::grid {
 
 			/**
 			 * @brief Add the contents of a body to the grid.
-			 * 		  All added atoms are automatically expanded.
+			 *		  Waters are ignored and must be added separately.
 			 * 		  Complexity: O(n) in the number of added atoms.
 			 */
 			std::span<grid::GridMember<data::AtomFF>> add(const data::Body& body, bool expand = true);

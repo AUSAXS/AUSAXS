@@ -140,8 +140,8 @@ std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
     Vector3<int> max(0, 0, 0);
     for (const auto& atom : a_members) {
         for (unsigned int i = 0; i < 3; i++) {
-            if (min[i] > atom.get_bin_loc()[i]) min[i] = atom.get_bin_loc()[i]; // min
-            if (max[i] < atom.get_bin_loc()[i]) max[i] = atom.get_bin_loc()[i]+1; // max. +1 since this will often be used as loop limits
+            if (min[i] > atom.get_bin_loc()[i]) min[i] = atom.get_bin_loc()[i];     // min
+            if (max[i] < atom.get_bin_loc()[i]) max[i] = atom.get_bin_loc()[i]+1;   // max. +1 since this will often be used as loop limits
         }
     }
     return std::make_pair(min, max);
@@ -381,7 +381,7 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
         if (expand) {expand_volume(gm);}
         a_members[i] = std::move(gm);
     }
-    return std::span<GridMember<AtomFF>>(a_members.begin() + start, a_members.end());
+    return {a_members.begin() + start, a_members.end()};
 }
 
 auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
@@ -419,7 +419,7 @@ std::span<grid::GridMember<data::Water>> Grid::add(const std::vector<data::Water
         if (expand) {expand_volume(gm);}
         w_members.emplace_back(std::move(gm));
     }
-    return std::span<grid::GridMember<data::Water>>(w_members.begin() + start, w_members.end());
+    return {w_members.begin() + start, w_members.end()};
 }
 
 grid::GridMember<data::Water>& Grid::add(const data::Water& water, bool expand) {
@@ -432,17 +432,29 @@ void Grid::remove(const Body& body) {
     assert(body_start.contains(body.get_uid()) && "Grid::remove: Attempting to remove a body that is not in the grid!");
     auto it = body_start.find(body.get_uid());
 
-    unsigned int start = it->second;
-    unsigned int end = it->second + body.get_atoms().size();
-    assert(end <= a_members.size() && "Grid::remove: Contained bodies have been modified after being added to the grid.");
-    for (unsigned int i = start; i < end; i++) {
+    // find start and end indices of the body atoms
+    int start = it->second;
+    int end = it->second + body.get_atoms().size();
+    assert(end <= static_cast<int>(a_members.size()) && "Grid::remove: Contained bodies have been modified after being added to the grid.");
+
+    // deflate and remove all atoms in the body from the grid
+    for (int i = start; i < end; i++) {
         deflate_volume(a_members[i]);
         grid.index(a_members[i].get_bin_loc()) = detail::EMPTY;
     }
-    volume -= end - start;
 
-    a_members.erase(a_members.begin()+start, a_members.begin()+end);
-    body_start.erase(it);
+    // fix volume
+    int diff = end - start;
+    volume -= diff;
+
+    // clean up the internal data
+    a_members.erase(a_members.begin()+start, a_members.begin()+end); // erase its atoms
+    body_start.erase(it);                   // erase removed body
+    for (auto& [_, start] : body_start) {   // update start indices of remaining bodies
+        if (end <= start) {
+            start -= diff;
+        }
+    }
 }
 
 void Grid::clear_waters() {

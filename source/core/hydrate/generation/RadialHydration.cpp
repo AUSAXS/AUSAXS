@@ -49,8 +49,8 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
     assert(grid != nullptr && "RadialHydration::generate_explicit_hydration: grid is nullptr.");
 
     // we define a helper lambda
-    auto add_loc = [&] (Vector3<double>&& exact_loc) {
-        data::Water a(std::move(exact_loc));
+    auto add_loc = [&] (Vector3<double> exact_loc) {
+        data::Water a(exact_loc);
         grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
     };
 
@@ -64,7 +64,7 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
             auto noise = noise_generator();
             auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff + noise);
-            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()))) {
+            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check({bins.x(), bins.y(), bins.z()})) {
                 Vector3<double> exact_loc = atom.get_atom().coordinates() + rot_locs[i]*reff + noise;
                 add_loc(std::move(exact_loc));
             }
