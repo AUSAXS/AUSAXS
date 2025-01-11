@@ -299,7 +299,7 @@ void Grid::deflate_volume(GridMember<AtomFF>& atom) {
                 if (dist <= rvol2) {
                     if (!grid.is_atom_area_or_volume(bin)) {continue;}
                     bin = detail::EMPTY;
-                    removed_volume++;
+                    ++removed_volume;
                 }
             }
         }
@@ -374,7 +374,7 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
         #endif
 
         auto& bin = grid.index(x, y, z);
-        volume += grid.is_empty(bin);
+        volume += grid.is_empty_or_water(bin);
         bin = detail::A_CENTER;
 
         GridMember gm(atom, std::move(loc));
@@ -440,12 +440,12 @@ void Grid::remove(const Body& body) {
     // deflate and remove all atoms in the body from the grid
     for (int i = start; i < end; i++) {
         deflate_volume(a_members[i]);
-        grid.index(a_members[i].get_bin_loc()) = detail::EMPTY;
+        auto& bin = grid.index(a_members[i].get_bin_loc());
+        volume -= !grid.is_empty(bin); // multiple atoms may share a center bin, so we have to check if its volume was already removed
+        bin = detail::EMPTY;
     }
 
-    // fix volume
     int diff = end - start;
-    volume -= diff;
 
     // clean up the internal data
     a_members.erase(a_members.begin()+start, a_members.begin()+end); // erase its atoms
@@ -495,6 +495,7 @@ Grid& Grid::operator=(const Grid& rhs) {
     w_members = rhs.w_members;
     volume = rhs.volume;
     axes = rhs.axes;
+    body_start = rhs.body_start;
     // culler & placer cannot be modified after program is run, so they'll automatically be equal always
     return *this;
 }
@@ -505,6 +506,7 @@ Grid& Grid::operator=(Grid&& rhs) noexcept {
     w_members = std::move(rhs.w_members);
     volume = rhs.volume;
     axes = std::move(rhs.axes);
+    body_start = std::move(rhs.body_start);
     return *this;
 }
 
@@ -585,7 +587,7 @@ grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_s
             atoms2.emplace_back(vol.surface[j], form_factor::form_factor_t::C);
         }
 
-        std::vector<Body> bodies = {atoms1, atoms2};
+        std::vector<Body> bodies = {Body{atoms1}, Body{atoms2}};
         data::Molecule(bodies).save(settings::general::output + "exv.pdb");
     }
 

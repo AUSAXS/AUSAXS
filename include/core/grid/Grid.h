@@ -239,7 +239,7 @@ namespace ausaxs::grid {
 			std::unordered_map<int, int> body_start; 		 // The starting index of each body in the a_members vector. 
 
 		protected: // only protected since they are important for testing
-			unsigned int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
+			int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
 
 			/** 
 			 * @brief Expand a single member atom into an actual sphere.
