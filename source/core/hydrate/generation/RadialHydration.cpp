@@ -49,12 +49,9 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
     assert(grid != nullptr && "RadialHydration::generate_explicit_hydration: grid is nullptr.");
 
     // we define a helper lambda
-    std::vector<grid::GridMember<data::Water>> placed_water; 
-    placed_water.reserve(atoms.size());
     auto add_loc = [&] (Vector3<double>&& exact_loc) {
         data::Water a(std::move(exact_loc));
         grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
-        placed_water.emplace_back(std::move(gm));
     };
 
     double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
@@ -73,7 +70,7 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
             }
         }
     }
-    return std::span(grid->w_members.begin() + water_start, grid->w_members.end());
+    return {grid->w_members.begin() + water_start, grid->w_members.end()};
 }
 
 void hydrate::RadialHydration::prepare_rotations(int divisions) {

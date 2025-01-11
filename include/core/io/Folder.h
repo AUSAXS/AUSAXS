@@ -23,6 +23,7 @@ namespace ausaxs::io {
              * @brief Get the non-'/' terminated path of this folder.
              */
             [[nodiscard]] std::string path() const;
+            [[nodiscard]] std::string str() const; //< @copydoc path
 
             /**
              * @brief Check if this folder exists on disk.

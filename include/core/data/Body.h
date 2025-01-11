@@ -58,7 +58,12 @@ namespace ausaxs::data {
 			 * @brief Set the hydration object.
 			 */
 			void set_hydration(std::unique_ptr<hydrate::Hydration> hydration);
-		
+
+			/**
+			 * @brief Clear the hydration layer.
+			 */
+			void clear_hydration();
+	
 			/**
 			 * @brief Get a reference to the specified atom.
 			 */

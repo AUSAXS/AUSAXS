@@ -3,11 +3,9 @@
 
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Water.h>
-#include <data/record/Record.h>
 #include <utility/Console.h>
 #include <settings/All.h>
-#include <io/CIFReader.h>
+#include <io/detail/CIFReader.h>
 #include <residue/ResidueParser.h>
 #include <constants/Constants.h>
 
@@ -18,7 +16,6 @@
 
 using namespace ausaxs;
 using namespace data;
-using namespace data::record;
 
 TEST_CASE("CIFReader::read") {
     settings::molecule::center = false;
@@ -63,9 +60,9 @@ TEST_CASE("CIFReader::read") {
     auto atoms = protein.get_atoms();
     REQUIRE(atoms.size() == 4);
     REQUIRE(atoms[0].get_serial() == 1);
-    REQUIRE(atoms[0].get_coordinates().x() == -32.928);
-    REQUIRE(atoms[0].get_coordinates().y() == -5.043);
-    REQUIRE(atoms[0].get_coordinates().z() == -33.904);
+    REQUIRE(atoms[0].coordinates().x() == -32.928);
+    REQUIRE(atoms[0].coordinates().y() == -5.043);
+    REQUIRE(atoms[0].coordinates().z() == -33.904);
     REQUIRE(atoms[0].get_occupancy() == 0.1);
     REQUIRE(atoms[0].get_element() == constants::atom_t::N);
     REQUIRE(atoms[0].get_residue_name() == "SER");
@@ -74,9 +71,9 @@ TEST_CASE("CIFReader::read") {
     REQUIRE(atoms[0].get_temperature_factor() == 45.216);
 
     REQUIRE(atoms[1].get_serial() == 2);
-    REQUIRE(atoms[1].get_coordinates().x() == -32.489);
-    REQUIRE(atoms[1].get_coordinates().y() == -6.122);
-    REQUIRE(atoms[1].get_coordinates().z() == -32.994);
+    REQUIRE(atoms[1].coordinates().x() == -32.489);
+    REQUIRE(atoms[1].coordinates().y() == -6.122);
+    REQUIRE(atoms[1].coordinates().z() == -32.994);
     REQUIRE(atoms[1].get_occupancy() == 0.2);
     REQUIRE(atoms[1].get_element() == constants::atom_t::C);
     REQUIRE(atoms[1].get_residue_name() == "SER");
@@ -85,9 +82,9 @@ TEST_CASE("CIFReader::read") {
     REQUIRE(atoms[1].get_temperature_factor() == 46.910);
 
     REQUIRE(atoms[2].get_serial() == 3);
-    REQUIRE(atoms[2].get_coordinates().x() == -30.974);
-    REQUIRE(atoms[2].get_coordinates().y() == -6.329);
-    REQUIRE(atoms[2].get_coordinates().z() == -33.145);
+    REQUIRE(atoms[2].coordinates().x() == -30.974);
+    REQUIRE(atoms[2].coordinates().y() == -6.329);
+    REQUIRE(atoms[2].coordinates().z() == -33.145);
     REQUIRE(atoms[2].get_occupancy() == 0.3);
     REQUIRE(atoms[2].get_element() == constants::atom_t::C);
     REQUIRE(atoms[2].get_residue_name() == "SER");
@@ -96,9 +93,9 @@ TEST_CASE("CIFReader::read") {
     REQUIRE(atoms[2].get_temperature_factor() == 46.121);
 
     REQUIRE(atoms[3].get_serial() == 4);
-    REQUIRE(atoms[3].get_coordinates().x() == -30.318);
-    REQUIRE(atoms[3].get_coordinates().y() == -5.462);
-    REQUIRE(atoms[3].get_coordinates().z() == -33.746);
+    REQUIRE(atoms[3].coordinates().x() == -30.318);
+    REQUIRE(atoms[3].coordinates().y() == -5.462);
+    REQUIRE(atoms[3].coordinates().z() == -33.746);
     REQUIRE(atoms[3].get_occupancy() == 0.4);
     REQUIRE(atoms[3].get_element() == constants::atom_t::O);
     REQUIRE(atoms[3].get_residue_name() == "SER");
@@ -171,9 +168,9 @@ TEST_CASE("CIFReader: compare with PDB", "[files]") {
             a2[i].serial -= chain; // account for the chain shift
 
             REQUIRE(a1[i].get_serial() == a2[i].get_serial());
-            REQUIRE_THAT(a1[i].get_coordinates().x(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().x(), 1e-2));
-            REQUIRE_THAT(a1[i].get_coordinates().y(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().y(), 1e-2));
-            REQUIRE_THAT(a1[i].get_coordinates().z(), Catch::Matchers::WithinAbsMatcher(a2[i].get_coordinates().z(), 1e-2));
+            REQUIRE_THAT(a1[i].coordinates().x(), Catch::Matchers::WithinAbsMatcher(a2[i].coordinates().x(), 1e-2));
+            REQUIRE_THAT(a1[i].coordinates().y(), Catch::Matchers::WithinAbsMatcher(a2[i].coordinates().y(), 1e-2));
+            REQUIRE_THAT(a1[i].coordinates().z(), Catch::Matchers::WithinAbsMatcher(a2[i].coordinates().z(), 1e-2));
             REQUIRE_THAT(a1[i].get_occupancy(), Catch::Matchers::WithinAbs(a2[i].get_occupancy(), 1e-2));
             REQUIRE_THAT(a1[i].get_temperature_factor(), Catch::Matchers::WithinAbs(a2[i].get_temperature_factor(), 1e-2));
             REQUIRE(a1[i].get_element() == a2[i].get_element());

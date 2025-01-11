@@ -23,6 +23,13 @@ namespace ausaxs::hydrate {
         protected:
             observer_ptr<data::Molecule> protein;
 
+            /**
+             * @brief Generate and add an explicit hydration layer to the grid.
+             * 
+             * @param atoms The member atoms to use as a basis for the hydration layer.
+             *              Not all hydration algorithms will respect this constraint. 
+             * @return std::span<grid::GridMember<data::Water>> The added water molecules.
+             */
             virtual std::span<grid::GridMember<data::Water>> generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) = 0;
 
             virtual void initialize();

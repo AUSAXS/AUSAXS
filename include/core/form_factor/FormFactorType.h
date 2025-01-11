@@ -47,6 +47,7 @@ namespace ausaxs::form_factor {
             case form_factor_t::OTHER: return "other";
             case form_factor_t::EXCLUDED_VOLUME: return "excluded volume";
             case form_factor_t::COUNT: return "count";
+            case form_factor_t::UNKNOWN: return "unknown";
             default: throw std::runtime_error("form_factor::to_string: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
         }
     }

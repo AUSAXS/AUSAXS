@@ -27,6 +27,8 @@ Folder::operator std::string() const {return dir;}
 
 std::string Folder::path() const {return dir;}
 
+std::string Folder::str() const {return path();}
+
 bool Folder::empty() const noexcept {return dir.empty();}
 
 bool Folder::exists() const noexcept {

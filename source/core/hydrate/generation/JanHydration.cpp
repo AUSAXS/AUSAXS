@@ -29,11 +29,11 @@ std::span<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explici
 
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
+    std::size_t water_start = grid->w_members.size();
 
-    std::vector<data::Water> placed_water;
-    placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (const Vector3<int>& v) {
-        placed_water.emplace_back(data::Water(grid->to_xyz(v)));
+        data::Water a(grid->to_xyz(v));
+        grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
     };
 
     // loop over the location of all member atoms
@@ -64,6 +64,5 @@ std::span<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explici
         }
     }
 
-    auto placed = grid->add(placed_water);
-    return placed;
+    return {grid->w_members.begin() + water_start, grid->w_members.end()};
 }

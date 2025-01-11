@@ -1,23 +1,18 @@
-#include "settings/MoleculeSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Water.h>
-#include <data/record/Record.h>
 #include <utility/Console.h>
 #include <settings/All.h>
 
 #include <vector>
 #include <string>
 #include <fstream>
-#include <filesystem>
 #include <iostream>
 
 using namespace ausaxs;
 using namespace data;
-using namespace data::record;
 
 bool compare_files(std::string p1, std::string p2) {
     std::ifstream f1(p1, std::ifstream::binary);

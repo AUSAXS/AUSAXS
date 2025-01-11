@@ -68,7 +68,10 @@ void GridBasedHydration::hydrate() {
 
     int start = 0; // body-specific hydration
     for (int i = 0; i < static_cast<int>(protein->size_body()); i++) {
-        int end = grid->body_start.at(protein->get_body(i).get_uid());
+        assert(grid->body_start.contains(protein->get_body(i).get_uid()) && "GridBasedHydration::hydrate: body_start does not contain body uid");
+        int end = start + protein->get_body(i).size_atom();
+        assert(end <= static_cast<int>(grid->a_members.size()) && "GridBasedHydration::hydrate: Contained bodies have been modified after being added to the grid.");
+
         auto atoms = std::span(grid->a_members.begin() + start, grid->a_members.begin() + end);
         auto waters = generate_explicit_hydration(atoms);
         culling_strategy->set_target_count(target);

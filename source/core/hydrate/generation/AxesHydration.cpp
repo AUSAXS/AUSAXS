@@ -37,12 +37,9 @@ std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explic
     auto bins = grid->get_bins();
 
     // short lambda to actually place the generated water molecules
-    std::vector<grid::GridMember<data::Water>> placed_water;
-    placed_water.reserve(atoms.size());
     auto add_loc = [&] (Vector3<double>&& exact_loc) {
         data::Water a(std::move(exact_loc));
         grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
-        placed_water.emplace_back(std::move(gm));
     };
 
     // loop over the location of all member atoms
@@ -101,7 +98,7 @@ std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explic
             add_loc(std::move(exact_loc));
         }
     }
-    return std::span(grid->w_members.begin() + water_start, grid->w_members.end());
+    return {grid->w_members.begin() + water_start, grid->w_members.end()};
 }
 
 bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, double ra) const {

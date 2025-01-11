@@ -249,6 +249,11 @@ void Body::set_hydration(std::unique_ptr<hydrate::Hydration> hydration) {
     signal->external_change();
 }
 
+void Body::clear_hydration() {
+    hydration->clear();
+    signal->external_change();
+}
+
 const std::vector<data::AtomFF>& Body::get_atoms() const {return atoms;}
 
 data::AtomFF& Body::get_atom(unsigned int index) {return atoms[index];}

@@ -74,19 +74,19 @@ TEST_CASE("Folder::operator+") {
     SECTION("chars before") {
         SECTION("without slash") {
             io::Folder folder("test");
-            folder = "folder" + folder;
+            folder = "folder" + folder.str();
             CHECK(folder.path() == "folder/test");
         }
 
         SECTION("with slash") {
             io::Folder folder("test");
-            folder = "folder/" + folder;
+            folder = "folder/" + folder.str();
             CHECK(folder.path() == "folder/test");
         }
 
         SECTION("nested") {
             io::Folder folder("test");
-            folder = "folder/nested" + folder;
+            folder = "folder/nested" + folder.str();
             CHECK(folder.path() == "folder/nested/test");
         }
     }
@@ -94,19 +94,19 @@ TEST_CASE("Folder::operator+") {
     SECTION("chars after") {
         SECTION("without slash") {
             io::Folder folder("tests");
-            folder = folder + "folder";
+            folder = folder.str() + "folder";
             CHECK(folder.path() == "tests/folder");
         }
 
         SECTION("with slash") {
             io::Folder folder("tests");
-            folder = folder + "folder/";
+            folder = folder.str() + "folder/";
             CHECK(folder.path() == "tests/folder");
         }
 
         SECTION("nested") {
             io::Folder folder("tests");
-            folder = folder + "folder/nested";
+            folder = folder.str() + "folder/nested";
             CHECK(folder.path() == "tests/folder/nested");
         }
     }
@@ -114,19 +114,19 @@ TEST_CASE("Folder::operator+") {
     SECTION("folder after") {
         SECTION("without slash") {
             io::Folder folder("tests");
-            folder = folder + "folder";
+            folder = folder.str() + "folder";
             CHECK(folder.path() == "tests/folder");
         }
 
         SECTION("with slash") {
             io::Folder folder("tests");
-            folder = folder + "folder/";
+            folder = folder.str() + "folder/";
             CHECK(folder.path() == "tests/folder");
         }
 
         SECTION("nested") {
             io::Folder folder("tests");
-            folder = folder + "folder/nested";
+            folder = folder.str() + "folder/nested";
             CHECK(folder.path() == "tests/folder/nested");
         }
     }

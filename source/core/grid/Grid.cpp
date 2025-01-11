@@ -347,6 +347,7 @@ void Grid::remove_waters(const std::vector<bool>& to_remove) {
             new_waters.push_back(w_members[i]);
         } else {
             deflate_volume(w_members[i]);
+            grid.index(w_members[i].get_bin_loc()) = detail::EMPTY;
         }
     }
     w_members = std::move(new_waters);
@@ -390,7 +391,7 @@ auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
     // sanity check
     #if DEBUG
         auto ax = g.get_axes();
-        if (x >= (int) ax.x.bins || y >= (int) ax.y.bins || z >= (int) ax.z.bins || x < 0 || y < 0 || z < 0) [[unlikely]] {
+        if (x >= (int) ax.x.bins || y >= (int) ax.y.bins || z >= (int) ax.z.bins || x < 0 || y < 0 || z < 0) {
             throw except::out_of_bounds(
                 "Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + g.get_axes().to_string() + "\n"
                 "Real location: " + w.coordinates().to_string()
@@ -398,9 +399,9 @@ auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
         }
 
         auto bin = g.index(x, y, z);
-        if (!(bin == grid::detail::EMPTY || bin == grid::detail::W_CENTER || bin == grid::detail::VOLUME)) {
+        if (!(bin == grid::detail::EMPTY || bin == grid::detail::W_AREA || bin == grid::detail::VOLUME)) {
             throw except::invalid_operation(
-                "Grid::add: Attempting to add a water molecule to a non-empty location"
+                "Grid::add: Attempting to add a water molecule to a non-empty location containing " + std::to_string(bin) +
                 " (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")"
             );
         }
@@ -428,17 +429,17 @@ grid::GridMember<data::Water>& Grid::add(const data::Water& water, bool expand) 
 }
 
 void Grid::remove(const Body& body) {
+    assert(body_start.contains(body.get_uid()) && "Grid::remove: Attempting to remove a body that is not in the grid!");
     auto it = body_start.find(body.get_uid());
-    if (it == body_start.end()) {
-        throw except::invalid_operation("Grid::remove: Attempting to remove a body that is not in the grid!");
-    }
 
     unsigned int start = it->second;
     unsigned int end = it->second + body.get_atoms().size();
+    assert(end <= a_members.size() && "Grid::remove: Contained bodies have been modified after being added to the grid.");
     for (unsigned int i = start; i < end; i++) {
         deflate_volume(a_members[i]);
         grid.index(a_members[i].get_bin_loc()) = detail::EMPTY;
     }
+    volume -= end - start;
 
     a_members.erase(a_members.begin()+start, a_members.begin()+end);
     body_start.erase(it);

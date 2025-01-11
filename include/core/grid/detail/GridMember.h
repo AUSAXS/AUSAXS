@@ -1,19 +1,20 @@
 #pragma once
 
-#include <math/Vector3.h>
 #include <form_factor/FormFactorType.h>
-#include <constants/Constants.h>
+#include <grid/detail/GridInternalFwd.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
+#include <math/Vector3.h>
+#include <constants/Constants.h>
 
 namespace ausaxs::grid {
     /**
      * @brief This class is used internally in Grid for storing all information about a particular member atom. 
      */
-    template<typename T>
+    template<grid_member_t T>
     class GridMember {
         public:
-            GridMember() = default;
+            GridMember();
 
             /**
              * @brief Copy constructor.
@@ -39,7 +40,7 @@ namespace ausaxs::grid {
              */
             GridMember(T&& atom, Vector3<int> loc);
 
-            ~GridMember() = default;
+            ~GridMember();
 
             /**
              * @brief Get the bin location of this atom.

@@ -6,7 +6,6 @@
 #include <rigidbody/selection/RandomBodySelect.h>
 #include <rigidbody/selection/SequentialBodySelect.h>
 #include <rigidbody/selection/SequentialConstraintSelect.h>
-#include <data/record/Atom.h>
 #include <data/Body.h>
 #include <rigidbody/RigidBody.h>
 #include <settings/MoleculeSettings.h>
@@ -14,16 +13,15 @@
 
 using namespace ausaxs;
 using namespace data;
-using namespace data::record;
 using namespace rigidbody;
 
 TEST_CASE("BodySelectStrategy::next") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-    std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-    std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-    std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
     std::vector<Body> atoms = {Body(b1), Body(b2), Body(b3), Body(b4)};
     RigidBody rigidbody(Molecule{atoms});
     auto manager = rigidbody.get_constraint_manager();

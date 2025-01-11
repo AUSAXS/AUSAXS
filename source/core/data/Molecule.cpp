@@ -322,10 +322,11 @@ void Molecule::clear_grid() {
 }
 
 void Molecule::clear_hydration() {
-    // if (grid != nullptr) {grid->clear_waters();} // also clear the waters from the grid
-    // hydration->clear();
-    // signal_modified_hydration_layer();
-    throw std::runtime_error("Molecule::clear_hydration: Not implemented.");
+    for (auto& body : bodies) {
+        body.clear_hydration();
+    }
+    if (grid != nullptr) {grid->clear_waters();}
+    signal_modified_hydration_layer();
 }
 
 std::size_t Molecule::size_body() const {
