@@ -6,6 +6,7 @@
 #include <utility/Console.h>
 #include <settings/All.h>
 #include <io/detail/CIFReader.h>
+#include <io/detail/PDBReader.h>
 #include <residue/ResidueParser.h>
 #include <constants/Constants.h>
 
@@ -56,7 +57,7 @@ TEST_CASE("CIFReader::read") {
     cif_file.close();
 
     // check CIF io
-    data::Molecule protein(path);
+    auto protein = io::detail::cif::read(path);
     auto atoms = protein.get_atoms();
     REQUIRE(atoms.size() == 4);
     REQUIRE(atoms[0].get_serial() == 1);
@@ -108,7 +109,7 @@ TEST_CASE("CIFReader: uses file residues") {
     settings::general::verbose = false;
 
     data::Molecule cif("tests/files/3sba.cif");
-    auto residues = io::detail::CIFReader::read_residue("tests/files/3sba.cif");
+    auto residues = io::detail::cif::read_residue("tests/files/3sba.cif");
 
     for (const auto& residue : residues) {
         auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
@@ -124,9 +125,10 @@ TEST_CASE("CIFReader: file residues agrees with PDB") {
 
     // loading the PDB file first to load default ResidueStorage data
     data::Molecule pdb("tests/files/3sba.pdb");
-    pdb.add_implicit_hydrogens(); // ensure hydrogen data is initialized
+    // pdb.add_implicit_hydrogens(); // ensure hydrogen data is initialized
+    std::cout << "ADD_IMPLICIT_HYDROGENS NOT IMPLEMENTED" << std::endl;
 
-    auto residues = io::detail::CIFReader::read_residue("tests/files/3sba.cif");
+    auto residues = io::detail::cif::read_residue("tests/files/3sba.cif");
     for (const auto& residue : residues) {
         auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
         auto expected = residue.to_map();
@@ -142,15 +144,15 @@ TEST_CASE("CIFReader: file residues agrees with PDB") {
 TEST_CASE("CIFReader: compare with PDB", "[files]") {
     settings::general::verbose = false;
 
-    data::Molecule cif1("tests/files/3sba.cif");
-    data::Molecule cif2("tests/files/7xb3.cif");
-    data::Molecule cif3("tests/files/168l.cif");
+    auto cif1 = io::detail::cif::read("tests/files/3sba.cif");
+    auto cif2 = io::detail::cif::read("tests/files/7xb3.cif");
+    auto cif3 = io::detail::cif::read("tests/files/168l.cif");
 
-    data::Molecule pdb1("tests/files/3sba.pdb");
-    data::Molecule pdb2("tests/files/7xb3.pdb");
-    data::Molecule pdb3("tests/files/168l.pdb");
+    auto pdb1 = io::detail::pdb::read("tests/files/3sba.pdb");
+    auto pdb2 = io::detail::pdb::read("tests/files/7xb3.pdb");
+    auto pdb3 = io::detail::pdb::read("tests/files/168l.pdb");
 
-    auto compare_atoms = [] (std::vector<Atom>&& a1, std::vector<Atom>&& a2) {
+    auto compare_atoms = [] (std::vector<io::pdb::PDBAtom>& a1, std::vector<io::pdb::PDBAtom>& a2) {
         REQUIRE(a1.size() == a2.size());
         int chain = 0;
         char chainID = a2[0].get_chainID();

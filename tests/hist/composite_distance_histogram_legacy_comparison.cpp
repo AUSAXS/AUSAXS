@@ -11,8 +11,6 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <grid/Grid.h>
 #include <dataset/SimpleDataset.h>
 #include <plots/All.h>
@@ -22,7 +20,7 @@
 #include "grid/grid_debug.h"
 
 using namespace ausaxs;
-using namespace hist;
+using namespace ausaxs::hist;
 
 /*
     This file tests the legacy single-threaded intensity calculations against the new cached multi-threaded implementations, ensuring they are consistent. 

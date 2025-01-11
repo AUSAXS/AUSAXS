@@ -71,23 +71,23 @@ void set_unity_charge(T& protein) {
     // set the weights to 1 so we can analytically determine the result
     // waters
     for (auto& atom : protein.get_waters()) {
-        atom.set_effective_charge(1);
+        atom.weight() = 1;
     }
     // atoms
     for (auto& body : protein.get_bodies()) {
         for (auto& atom : body.get_atoms()) {
-            atom.set_effective_charge(1);
+            atom.weight() = 1;
         }
     }
 }
 
 struct SimpleCube {
-    inline static std::vector<data::Atom> get_atoms() {
+    inline static std::vector<data::AtomFF> get_atoms() {
         return {
-            data::Atom({-1, -1, -1}, 1), data::Atom({-1, 1, -1}, 1),
-            data::Atom({ 1, -1, -1}, 1), data::Atom({ 1, 1, -1}, 1),
-            data::Atom({-1, -1,  1}, 1), data::Atom({-1, 1,  1}, 1),
-            data::Atom({ 1, -1,  1}, 1), data::Atom({ 1, 1,  1}, 1)
+            data::AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), data::AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
+            data::AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), data::AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),
+            data::AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), data::AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
+            data::AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), data::AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
         };
     }
 

@@ -217,8 +217,8 @@ void PDBAtom::set_element(const std::string& element) {
     set_element(constants::symbols::parse_element_string(element));
 }
 
-Vector3<double>& PDBAtom::get_coordinates() {return coords;}
-const Vector3<double>& PDBAtom::get_coordinates() const {return coords;}
+Vector3<double>& PDBAtom::coordinates() {return coords;}
+const Vector3<double>& PDBAtom::coordinates() const {return coords;}
 int PDBAtom::get_serial() const {return serial;}
 int PDBAtom::get_residue_sequence_number() const {return resSeq;}
 double PDBAtom::get_occupancy() const {return occupancy;}

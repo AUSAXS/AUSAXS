@@ -26,7 +26,7 @@ TEST_CASE("Symmetry::get_transform") {
     SECTION("internal rotation about X by +90 deg") {
         // A rotation about X by +90° (π/2): 
         // (x, y, z) -> (x, z, -y)
-        data::detail::Symmetry s({0, 0, 0}, {0, 0, 0}, 0, {std::numbers::pi/2, 0, 0}, 1);
+        data::detail::Symmetry s({0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {std::numbers::pi/2, 0, 0}, 1);
         auto f = s.get_transform<double>({0, 0, 0});
         
         CHECK(f({1, 0, 0}) == Vector3<double>(1,  0, 0));   // x-axis unchanged
@@ -37,7 +37,7 @@ TEST_CASE("Symmetry::get_transform") {
     SECTION("external rotation about Y by +90 deg") {
         // Rotate about Y by +90° (π/2):
         // (x, y, z) -> (z, y, -x)
-        data::detail::Symmetry s({0, 0, 0}, {0, 1, 0}, std::numbers::pi/2, {0, 0, 0}, 1);
+        data::detail::Symmetry s({0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, {0, 0, 0}, 1);
         auto f = s.get_transform<double>({0, 0, 0});
         
         CHECK(f({1, 0, 0}) == Vector3<double>(0, 0, -1));  // x -> -z
@@ -49,7 +49,7 @@ TEST_CASE("Symmetry::get_transform") {
         // Combine a translation (1,2,3) and internal rotation about X by +90°
         // Rotation about X by +90°: (x, y, z) -> (x, z, -y)
         // Then translate by (1,2,3).
-        data::detail::Symmetry s({1, 2, 3}, {0, 0, 0}, 0, {std::numbers::pi/2, 0, 0}, 1);
+        data::detail::Symmetry s({1, 2, 3}, {0, 0, 0}, {0, 0, 0}, {std::numbers::pi/2, 0, 0}, 1);
         auto f = s.get_transform<double>({0, 0, 0});
         
         // Before translation: (1,0,0) -> (1,0,0)
@@ -68,7 +68,7 @@ TEST_CASE("Symmetry::get_transform") {
     SECTION("external rotation about Z by 180 deg + translation") {
         // Rotate about Z by 180°: (x, y, z) -> (-x, -y, z)
         // Then translate by (1,1,0).
-        data::detail::Symmetry s({1, 1, 0}, {0, 0, 1}, std::numbers::pi, {0,0,0}, 1);
+        data::detail::Symmetry s({1, 1, 0}, {0, 0, 0}, {0, 0, std::numbers::pi}, {0,0,0}, 1);
         auto f = s.get_transform<double>({0, 0, 0});
 
         // (1,0,0) after rotation about Z by 180° -> (-1,0,0), then + (1,1,0) = (0,1,0)

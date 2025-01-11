@@ -7,7 +7,6 @@
 #include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/transform/TransformGroup.h>
 
-#include <data/record/Atom.h>
 #include <data/Body.h>
 #include <rigidbody/RigidBody.h>
 #include <math/MatrixUtils.h>
@@ -15,39 +14,38 @@
 #include <unordered_set>
 
 using namespace ausaxs;
-using namespace data;
-using namespace data::record;
-using namespace rigidbody;
+using namespace ausaxs::data;
+using namespace ausaxs::rigidbody;
 
 struct fixture {
     fixture() {
         settings::molecule::implicit_hydrogens = false;
         settings::molecule::center = false;
 
-        a1 =  Atom(1,  "C1", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0");
-        a2 =  Atom(2,  "C2", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::C, "0");
-        b1 = Body({a1, a2});
+        a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
+        a2 = AtomFF({-1,  1, -1}, form_factor::form_factor_t::C);
+        b1 = Body(std::vector{a1, a2});
 
-        a3 =  Atom(3,  "C3", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0");
-        a4 =  Atom(4,  "C4", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, constants::atom_t::C, "0");
-        b2 = Body({a3, a4});
+        a3 = AtomFF({1, -1, -1}, form_factor::form_factor_t::C);
+        a4 = AtomFF({1,  1, -1}, form_factor::form_factor_t::C);
+        b2 = Body(std::vector{a3, a4});
 
-        a5 =  Atom(5,  "C5", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0");
-        a6 =  Atom(6,  "C6", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, constants::atom_t::C, "0");
-        b3 = Body({a5, a6});
+        a5 =  AtomFF({-1, -1,  1}, form_factor::form_factor_t::C);
+        a6 =  AtomFF({-1,  1,  1}, form_factor::form_factor_t::C);
+        b3 = Body(std::vector{a5, a6});
 
-        a7 =  Atom(7,  "C7", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0");
-        a8 =  Atom(8,  "C8", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, constants::atom_t::C, "0");
-        b4 = Body({a7, a8});
+        a7 =  AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C);
+        a8 =  AtomFF({ 1,  1,  1}, form_factor::form_factor_t::C);
+        b4 = Body(std::vector{a7, a8});
 
-        a9 =  Atom(9,  "C9", "", "LYS", 'A', 1, "", Vector3<double>( 0,  0,  0), 1, 0, constants::atom_t::C, "0");
-        a10 = Atom(10, "C10", "", "LYS", 'A', 1, "", Vector3<double>( 0,  0,  2), 1, 0, constants::atom_t::C, "0");
-        b5 = Body({a9, a10});
+        a9 =  AtomFF({ 0,  0,  0}, form_factor::form_factor_t::C);
+        a10 = AtomFF({ 0,  0,  2}, form_factor::form_factor_t::C);
+        b5 = Body(std::vector{a9, a10});
 
         bodies = {b1, b2, b3, b4, b5};
     }
 
-    Atom a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;
+    AtomFF a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;
     Body b1, b2, b3, b4, b5;
     std::vector<Body> bodies;
 };
@@ -69,26 +67,26 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         // translate
         rigidbody::transform::SingleTransform transform(&rigidbody);
         transform.apply(Matrix<double>::identity(3), Vector3<double>(1, 0, 0), manager->distance_constraints[0]);
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(0, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(0,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
         transform.undo();
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(-1, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(-1,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(-1, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // rotate
-        transform.apply(matrix::rotation_matrix({0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[0]);
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>( 1, -3, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(-1, -3, -1));
+        transform.apply(matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[0]);
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 1, -3, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1, -3, -1));
         transform.undo();
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(-1, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(-1,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(-1, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
     }
 
     SECTION("RigidTransform::apply") {
         // generate an easier constraint to test the apply function on
-        Atom a11 = Atom(11,  "C11", "", "LYS", 'A', 1, "", Vector3<double>(3,  1, -1), 1, 0, constants::atom_t::C, "0");
-        Atom a12 = Atom(12,  "C12", "", "LYS", 'A', 1, "", Vector3<double>(3, -1,  1), 1, 0, constants::atom_t::C, "0");
-        Body b6({a11, a12});
+        AtomFF a11({3,  1, -1}, form_factor::form_factor_t::C);
+        AtomFF a12({3, -1,  1}, form_factor::form_factor_t::C);
+        Body b6(std::vector<AtomFF>{a11, a12});
         RigidBody rigidbody(std::vector<Body>{b1, b2, b3, b4, b5, b6});
         auto manager = rigidbody.get_constraint_manager();
 
@@ -101,43 +99,43 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         // single-body translate
         rigidbody::transform::RigidTransform transform(&rigidbody);
         transform.apply(Matrix<double>::identity(3), Vector3<double>(1, 0, 0), manager->distance_constraints[0]);
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(0, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(0,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
         transform.undo();
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(-1, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(-1,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(-1, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // single-body rotate
-        transform.apply(matrix::rotation_matrix({0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[0]);
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>( 1, -3, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(-1, -3, -1));
+        transform.apply(matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[0]);
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 1, -3, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1, -3, -1));
         transform.undo();
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(-1, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(-1,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(-1, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // multi-body translate
         transform.apply(Matrix<double>::identity(3), Vector3<double>(1, 0, 0), manager->distance_constraints[1]);
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(0, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(0,  1, -1));
-        CHECK(rigidbody.get_body(1).get_atom(0).coords == Vector3<double>(2, -1, -1));
-        CHECK(rigidbody.get_body(1).get_atom(1).coords == Vector3<double>(2,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
+        CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == Vector3<double>(2, -1, -1));
+        CHECK(rigidbody.get_body(1).get_atom(1).coordinates() == Vector3<double>(2,  1, -1));
         transform.undo();
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(-1, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(-1,  1, -1));
-        CHECK(rigidbody.get_body(1).get_atom(0).coords == Vector3<double>( 1, -1, -1));
-        CHECK(rigidbody.get_body(1).get_atom(1).coords == Vector3<double>( 1,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(-1, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
+        CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == Vector3<double>( 1, -1, -1));
+        CHECK(rigidbody.get_body(1).get_atom(1).coordinates() == Vector3<double>( 1,  1, -1));
 
         // multi-body rotate
-        transform.apply(matrix::rotation_matrix({0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[1]);
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>( 5, -3, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>( 3, -3, -1));
-        CHECK(rigidbody.get_body(1).get_atom(0).coords == Vector3<double>( 5, -1, -1));
-        CHECK(rigidbody.get_body(1).get_atom(1).coords == Vector3<double>( 3, -1, -1));
+        transform.apply(matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[1]);
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 5, -3, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>( 3, -3, -1));
+        CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == Vector3<double>( 5, -1, -1));
+        CHECK(rigidbody.get_body(1).get_atom(1).coordinates() == Vector3<double>( 3, -1, -1));
         transform.undo();
-        CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(-1, -1, -1));
-        CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(-1,  1, -1));
-        CHECK(rigidbody.get_body(1).get_atom(0).coords == Vector3<double>( 1, -1, -1));
-        CHECK(rigidbody.get_body(1).get_atom(1).coords == Vector3<double>( 1,  1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(-1, -1, -1));
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
+        CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == Vector3<double>( 1, -1, -1));
+        CHECK(rigidbody.get_body(1).get_atom(1).coordinates() == Vector3<double>( 1,  1, -1));
     }
 }
 
@@ -191,9 +189,9 @@ TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
         }
 
         SECTION("complex") {
-            Body b6({Atom(Vector3<double>(0, 1, 0), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(0, 2, 0), 1, constants::atom_t::C, "C", 1)});
-            Body b7({Atom(Vector3<double>(0, 3, 0), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(0, 4, 0), 1, constants::atom_t::C, "C", 1)});
-            Body b8({Atom(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(2, 0, 0), 1, constants::atom_t::C, "C", 1)});
+            Body b6(std::vector<AtomFF>{AtomFF({0, 1, 0}, form_factor::form_factor_t::C), AtomFF({0, 2, 0}, form_factor::form_factor_t::C)});
+            Body b7(std::vector<AtomFF>{AtomFF({0, 3, 0}, form_factor::form_factor_t::C), AtomFF({0, 4, 0}, form_factor::form_factor_t::C)});
+            Body b8(std::vector<AtomFF>{AtomFF({1, 0, 0}, form_factor::form_factor_t::C), AtomFF({2, 0, 0}, form_factor::form_factor_t::C)});
             bodies = {b1, b2, b3, b4, b5, b6, b7, b8};
             RigidBody rigidbody(bodies);
             auto manager = rigidbody.get_constraint_manager();

@@ -190,12 +190,12 @@ namespace ausaxs::io::pdb {
             /**
              * @brief Get the coordinates of this Atom.
              */
-            Vector3<double>& get_coordinates();
+            Vector3<double>& coordinates();
 
             /**
              * @brief Get the coordinates of this Atom.
              */
-            const Vector3<double>& get_coordinates() const;
+            const Vector3<double>& coordinates() const;
 
             /**
              * @brief Get the serial of this Atom.

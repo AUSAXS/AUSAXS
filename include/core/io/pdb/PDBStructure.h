@@ -61,11 +61,13 @@ namespace ausaxs::io::pdb {
              * @brief Get the protein atoms contained in this PDBStructure. 
              */
             const std::vector<PDBAtom>& get_atoms() const;
+            std::vector<PDBAtom>& get_atoms(); //< @copydoc get_atoms
 
             /**
              * @brief Get the hydration atoms contained in this PDBStructure. 
              */
             const std::vector<PDBWater> get_waters() const;
+            std::vector<PDBWater> get_waters(); //< @copydoc get_waters
 
             /** 
              * @brief Add an Atom record to this PDBStructure. 

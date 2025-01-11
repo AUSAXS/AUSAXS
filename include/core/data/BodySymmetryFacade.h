@@ -2,6 +2,7 @@
 
 #include <data/DataFwd.h>
 #include <data/Symmetry.h>
+#include <data/state/Signaller.h>
 #include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
 
@@ -42,15 +43,15 @@ namespace ausaxs::data::detail {
 template<typename BODY, bool CONST>
 void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(const detail::Symmetry& symmetry) requires (!CONST) {
     body->symmetries.emplace_back(symmetry);
-    body->changed_internal_state();
-    body->changed_external_state();
+    body->get_signaller()->internal_change();
+    body->get_signaller()->external_change();
 }
 
 template<typename BODY, bool CONST>
 void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(detail::Symmetry&& symmetry) requires (!CONST) {
     body->symmetries.emplace_back(std::move(symmetry));
-    body->changed_internal_state();
-    body->changed_external_state();
+    body->get_signaller()->internal_change();
+    body->get_signaller()->external_change();
 }
 
 template<typename BODY, bool CONST>
@@ -73,6 +74,8 @@ const ausaxs::data::detail::Symmetry& ausaxs::data::detail::BodySymmetryFacade<B
     return body->symmetries[index];
 }
 
+#include <cassert>
 template<typename BODY, bool CONST>
 void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::save(const io::File& path) const {
+    assert(false);
 }

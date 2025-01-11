@@ -2,30 +2,28 @@
 
 #include <rigidbody/parameters/Parameters.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
 #include <data/Body.h>
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
 
 using namespace ausaxs;
-using namespace data;
-using namespace data::record;
-using namespace rigidbody;
+using namespace ausaxs::data;
+using namespace ausaxs::rigidbody;
 
 struct fixture {
-    Atom a1 = Atom(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0");
-    Atom a2 = Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::C, "0");
-    Atom a3 = Atom(3, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0");
-    Atom a4 = Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, constants::atom_t::C, "0");
-    Atom a5 = Atom(5, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0");
-    Atom a6 = Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, constants::atom_t::C, "0");
-    Atom a7 = Atom(7, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0");
-    Atom a8 = Atom(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, constants::atom_t::C, "0");
+    AtomFF a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
+    AtomFF a2 = AtomFF({-1,  1, -1}, form_factor::form_factor_t::C);
+    AtomFF a3 = AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C);
+    AtomFF a4 = AtomFF({ 1,  1, -1}, form_factor::form_factor_t::C);
+    AtomFF a5 = AtomFF({-1, -1,  1}, form_factor::form_factor_t::C);
+    AtomFF a6 = AtomFF({-1,  1,  1}, form_factor::form_factor_t::C);
+    AtomFF a7 = AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C);
+    AtomFF a8 = AtomFF({ 1,  1,  1}, form_factor::form_factor_t::C);
     
-    std::vector<Atom> b1 = {a1, a2};
-    std::vector<Atom> b2 = {a3, a4};
-    std::vector<Atom> b3 = {a5, a6};
-    std::vector<Atom> b4 = {a7, a8};
+    std::vector<AtomFF> b1 = {a1, a2};
+    std::vector<AtomFF> b2 = {a3, a4};
+    std::vector<AtomFF> b3 = {a5, a6};
+    std::vector<AtomFF> b4 = {a7, a8};
     std::vector<Body> bodies = {Body(b1), Body(b2), Body(b3), Body(b4)};
 };
 
@@ -69,7 +67,7 @@ TEST_CASE_METHOD(fixture, "Parameters::update") {
         parameter::Parameters params(&protein);
         parameter::Parameter p(Vector3<double>(1, 2, 3), 4, 5, 6);
 
-        auto id = protein.get_body(1).get_id();
+        auto id = protein.get_body(1).get_uid();
         params.update(id, p);
         CHECK(params.get(id).dr == p.dr);
         CHECK(params.get(id).alpha == p.alpha);
@@ -83,7 +81,7 @@ TEST_CASE_METHOD(fixture, "Parameters::update") {
         Vector3<double> dx(1, 2, 3);
         double alpha = 4, beta = 5, gamma = 6;
         
-        auto id = protein.get_body(1).get_id();
+        auto id = protein.get_body(1).get_uid();
         params.update(id, dx, alpha, beta, gamma);
         CHECK(params.get(id).dr == dx);
         CHECK(params.get(id).alpha == alpha);

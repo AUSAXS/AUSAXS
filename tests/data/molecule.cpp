@@ -188,7 +188,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
             AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
             AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
         };
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
 
         std::vector<double> I_dumb = hist::exact_debye_transform(protein, constants::axes::q_axis.as_vector());
         std::vector<double> I_smart = protein.get_histogram()->debye_transform().get_counts();
@@ -456,7 +456,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
             AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
             AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
         };
-        Molecule one({ab});
+        Molecule one({Body{ab}});
 
         // create some water molecules
         std::vector<Water> ws(10);
@@ -560,14 +560,14 @@ TEST_CASE("Molecule::histogram", "[files]") {
         };
 
         // new auto-scaling approach
-        Molecule protein1({atoms});
+        Molecule protein1({Body{atoms}});
         protein1.set_grid(grid::Grid(atoms));
 
         // old approach
-        Molecule protein2({atoms});
+        Molecule protein2({Body{atoms}});
         {
             grid::Grid grid2({-2, 2, -2, 2, -2, 2}); 
-            grid2.add(atoms);
+            grid2.add(Body{atoms});
             protein2.set_grid(std::move(grid2));
         }
 

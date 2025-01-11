@@ -57,7 +57,7 @@ TEST_CASE("SymmetryManager: translations") {
 
     SECTION("one body with one atom") {
         Atom a({0, 0, 0}, 1);
-        Molecule m({{{a}}});
+        Molecule m({Body{{a}}});
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -109,7 +109,7 @@ TEST_CASE("SymmetryManager: translations") {
     SECTION("two atoms") {
         Atom a1(Vector3<double>(1, 0, 0), 1);
         Atom a2(Vector3<double>(0, 0, 0), 1);        
-        Molecule m({{{a1, a2}}});
+        Molecule m({Body{{a1, a2}}});
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -151,7 +151,7 @@ TEST_CASE("SymmetryManager: translations") {
     SECTION("two bodies with one atom") {
         Atom a1(Vector3<double>(1, 0, 0), 1);
         Atom a2(Vector3<double>(0, 0, 0), 1);        
-        Molecule m({{{a1}}, {{a2}}});
+        Molecule m({Body{{a1}}, Body{{a2}}});
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -321,7 +321,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
 
     SECTION("one body with one atom") {
         Atom a(Vector3<double>(0, 0, 0), 1);
-        Molecule m({{{a}}});
+        Molecule m({Body{{a}}});
 
         SECTION("two repeats") {
             m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
@@ -352,7 +352,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
     SECTION("two bodies") {
         Atom a1(Vector3<double>(1, 0, 0), 1);
         Atom a2(Vector3<double>(0, 0, 0), 1);        
-        Molecule m({{{a1}}, {{a2}}});
+        Molecule m({Body{{a1}}, Body{{a2}}});
 
         SECTION("two repeats") {
             m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
@@ -392,7 +392,7 @@ TEST_CASE("SymmetryManager: rotations") {
 
     SECTION("one body with one atom") {
         Atom a(Vector3<double>(1, 0, 0), 1);
-        Molecule m({{{a}}});
+        Molecule m({Body{{a}}});
 
         SECTION("one copy") {
             m.get_body(0).symmetry().add({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
@@ -427,7 +427,7 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
         Atom a1(Vector3<double>(1, 0, 0), 1);
         Atom a2(Vector3<double>(2, 0, 0), 1);
         Atom a3(Vector3<double>(3, 0, 0), 1);
-        Molecule m({{{a1, a2, a3}}});
+        Molecule m({Body{{a1, a2, a3}}});
 
         SECTION("cross") {
             // external rotate pi/2 around the y-axis and replicate thrice

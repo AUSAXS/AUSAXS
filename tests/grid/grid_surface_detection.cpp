@@ -56,7 +56,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
             AtomFF({1, 0, 0}, form_factor::form_factor_t::C)
         };
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -76,7 +76,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
         }
         REQUIRE(atoms.size() == 8);
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -96,7 +96,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
         }
         REQUIRE(atoms.size() == 8);
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -116,7 +116,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
         }
         REQUIRE(atoms.size() == 27);
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -128,7 +128,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
         settings::grid::min_exv_radius = 2;
         std::vector<AtomFF> atoms = {AtomFF({0, 0, 0}, form_factor::form_factor_t::C)};
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -140,7 +140,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
         settings::grid::min_exv_radius = 3;
         std::vector<AtomFF> atoms = {AtomFF({0, 0, 0}, form_factor::form_factor_t::C)};
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -160,7 +160,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
         }
         REQUIRE(atoms.size() == 27);
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -177,7 +177,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
             AtomFF({ 0,  2, 0}, form_factor::form_factor_t::C)
         };
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -244,7 +244,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
         }
         REQUIRE(atoms.size() == 8);
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -264,7 +264,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
         }
         REQUIRE(atoms.size() == 27);
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -276,7 +276,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
         settings::grid::min_exv_radius = 4;
         std::vector<AtomFF> atoms = {AtomFF({0, 0, 0}, form_factor::form_factor_t::C)};
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -294,7 +294,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
             AtomFF({ 0,  2, 0}, form_factor::form_factor_t::C)
         };
 
-        Molecule protein({atoms});
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 

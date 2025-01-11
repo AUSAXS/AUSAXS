@@ -16,7 +16,7 @@ TEST_CASE("PDBAtom::PDBAtom") {
 
         CHECK(a1.get_serial() == 3);
         CHECK(a1.get_residue_name() == "LYS");
-        CHECK(a1.get_coordinates() == Vector3<double>({3, 0, 5}));
+        CHECK(a1.coordinates() == Vector3<double>({3, 0, 5}));
         CHECK(a1.get_occupancy() == 2);
         CHECK(a1.get_element() == constants::atom_t::He);
         CHECK(a1.is_water() == false);
@@ -32,7 +32,7 @@ TEST_CASE("PDBAtom::PDBAtom") {
         CHECK(a1.get_chainID() == 'X');
         CHECK(a1.get_residue_sequence_number() == 3);
         CHECK(a1.get_insertion_code() == "iCode");
-        CHECK(a1.get_coordinates() == Vector3({0, 1, 2}));
+        CHECK(a1.coordinates() == Vector3({0, 1, 2}));
         CHECK(a1.get_occupancy() == 2.5);
         CHECK(a1.get_temperature_factor() == 3.5);
         CHECK(a1.get_element() == constants::atom_t::He);
@@ -63,7 +63,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a1.get_chainID() == 'A');
         CHECK(a1.get_residue_sequence_number() == 1);
         CHECK(a1.get_insertion_code() == " ");
-        CHECK(a1.get_coordinates() == Vector3({1, 2, 3}));
+        CHECK(a1.coordinates() == Vector3({1, 2, 3}));
         CHECK(a1.get_occupancy() == 1);
         CHECK(a1.get_temperature_factor() == 0);
         CHECK(a1.get_element() == constants::atom_t::N);
@@ -81,7 +81,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a1.get_chainID() == 'B');
         CHECK(a1.get_residue_sequence_number() == 2);
         CHECK(a1.get_insertion_code() == " ");
-        CHECK(a1.get_coordinates() == Vector3({5, 4, 2}));
+        CHECK(a1.coordinates() == Vector3({5, 4, 2}));
         CHECK(a1.get_occupancy() == 0.5);
         CHECK(a1.get_temperature_factor() == 0.5);
         CHECK(a1.get_element() == constants::atom_t::C);
@@ -99,7 +99,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a.get_chainID() == 'A');
         CHECK(a.get_residue_sequence_number() == 129);
         CHECK(a.get_insertion_code() == " "); // same
-        CHECK(a.get_coordinates() == Vector3({2.1, 3.2, 4.3}));
+        CHECK(a.coordinates() == Vector3({2.1, 3.2, 4.3}));
         CHECK(a.get_occupancy() == 0.5);
         CHECK(a.get_temperature_factor() == 42.04);
         CHECK(a.get_element() == constants::atom_t::C);
@@ -144,40 +144,40 @@ TEST_CASE("PDBAtom::translate") {
     SECTION("simple") {
         PDBAtom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
         a1.translate({1, 2, 3});
-        CHECK(a1.get_coordinates() == Vector3({1, 2, 3}));
+        CHECK(a1.coordinates() == Vector3({1, 2, 3}));
     }
 
     SECTION("complex") {
         PDBAtom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
         a1.translate({1, 2, 3});
-        CHECK(a1.get_coordinates() == Vector3({1, 2, 3}));
+        CHECK(a1.coordinates() == Vector3({1, 2, 3}));
         a1.translate({1, 2, 3});
-        CHECK(a1.get_coordinates() == Vector3({2, 4, 6}));
+        CHECK(a1.coordinates() == Vector3({2, 4, 6}));
     }
 }
 
 TEST_CASE("PDBAtom::set_coordinates") {
     PDBAtom a1;
     a1.set_coordinates({1, 2, 3});
-    CHECK(a1.get_coordinates() == Vector3({1, 2, 3}));
+    CHECK(a1.coordinates() == Vector3({1, 2, 3}));
 }
 
 TEST_CASE("PDBAtom::set_x") {
     PDBAtom a1;
     a1.set_x(1);
-    CHECK(a1.get_coordinates() == Vector3({1, 0, 0}));
+    CHECK(a1.coordinates() == Vector3({1, 0, 0}));
 }
 
 TEST_CASE("PDBAtom::set_y") {
     PDBAtom a1;
     a1.set_y(1);
-    CHECK(a1.get_coordinates() == Vector3({0, 1, 0}));
+    CHECK(a1.coordinates() == Vector3({0, 1, 0}));
 }
 
 TEST_CASE("PDBAtom::set_z") {
     PDBAtom a1;
     a1.set_z(1);
-    CHECK(a1.get_coordinates() == Vector3({0, 0, 1}));
+    CHECK(a1.coordinates() == Vector3({0, 0, 1}));
 }
 
 TEST_CASE("PDBAtom::set_occupancy") {
