@@ -14,9 +14,7 @@ namespace ausaxs::rigidbody {
 		friend rigidbody::sequencer::Sequencer;
 		public:
 			template <typename... Args, typename = decltype(Molecule(std::declval<Args>()...))>
-			RigidBody(Args&&... args) : Molecule(std::forward<Args>(args)...) {}
-
-			RigidBody(data::Molecule&& protein);
+			RigidBody(Args&&... args) : Molecule(std::forward<Args>(args)...) {initialize();}
 
 			virtual ~RigidBody() override;
 

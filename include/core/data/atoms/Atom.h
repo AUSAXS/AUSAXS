@@ -38,6 +38,7 @@ namespace ausaxs::data {
         Atom(const Vector3<precision_t>& coords, precision_t weight) : coords(coords), w(weight) {}
         [[nodiscard]] const Atom& get_atom() const {return *this;}
         [[nodiscard]] Atom& get_atom() {return *this;}
+        bool operator==(const Atom& rhs) const = default;
 
         Vector3<precision_t> coords;
         precision_t w;

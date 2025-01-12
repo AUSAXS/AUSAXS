@@ -31,7 +31,7 @@ struct fixture {
 TEST_CASE_METHOD(fixture, "DistanceConstraint::DistanceConstraint") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    Molecule protein = Molecule(ap);
+    Molecule protein(ap);
 
     SECTION("Protein*, uint, uint, uint, uint") {
         constraints::DistanceConstraint c(&protein, 2, 0, 1, 1);

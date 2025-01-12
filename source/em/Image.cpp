@@ -51,8 +51,6 @@ std::list<data::EMAtom> Image::generate_atoms(double cutoff) const {
             float val = index(x, y);
             if (val < cutoff) {continue;}
             data::EMAtom atom({x*xscale, y*yscale, z*zscale}, weight(val), val);
-            // atom.element = constants::atom_t::dummy;
-            std::cout << "Image::generate_atoms: element is not set to dummy" << std::endl;
             atoms.push_back(atom);
         }
     }

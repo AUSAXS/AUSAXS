@@ -36,10 +36,6 @@ using namespace ausaxs::rigidbody::parameter;
 
 RigidBody::~RigidBody() = default;
 
-RigidBody::RigidBody(data::Molecule&& protein) : data::Molecule(std::move(protein)) {
-    initialize();
-}
-
 void RigidBody::initialize() {
     parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, std::numbers::pi/3);
     body_selector = factory::create_selection_strategy(this);

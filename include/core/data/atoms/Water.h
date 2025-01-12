@@ -13,6 +13,7 @@ namespace ausaxs::data {
         form_factor::form_factor_t form_factor_type() const {return form_factor::form_factor_t::OH;}
         [[nodiscard]] const Water& get_atom() const {return *this;}
         [[nodiscard]] Water& get_atom() {return *this;}
+        bool operator==(const Water& rhs) const = default;
 
         Vector3<precision_t> coords;
         precision_t w;

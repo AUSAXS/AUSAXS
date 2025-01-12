@@ -18,6 +18,7 @@ namespace ausaxs::data {
 
             [[nodiscard]] form_factor::form_factor_t form_factor_type() const {return type;}
             [[nodiscard]] form_factor::form_factor_t& form_factor_type() {return type;}
+            bool operator==(const AtomFF& rhs) const = default;
 
         private:
             Atom basic;
