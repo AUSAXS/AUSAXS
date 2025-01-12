@@ -61,7 +61,7 @@ hist::CompositeDistanceHistogram generate_random(unsigned int size) {
         p_pp.index(i) = rand() % 100;
         p_hp.index(i) = rand() % 100;
         p_hh.index(i) = rand() % 100;
-        p.index(i) = p_pp.index(i) + 2*p_hp.index(i) + p_hh.index(i);
+        p.index(i) = p_pp.index(i) + p_hp.index(i) + p_hh.index(i);
     }
     Axis axis(1, 10, size);
     return hist::CompositeDistanceHistogram(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p));
@@ -96,17 +96,17 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
 
     hist->apply_water_scaling_factor(2);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 2*2*p_hp[i] + 4*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + 4*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
     }
 
     hist->apply_water_scaling_factor(3);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 3*2*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + 3*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
     }
 
     hist->apply_water_scaling_factor(1);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
     }
 }
 
@@ -227,19 +227,19 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
             auto Iq_exp = test_func(constants::axes::q_vals);
             {
                 auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
-                REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+                CHECK(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
                 auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-                REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+                CHECK(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
                 auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
-                REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+                CHECK(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
                 auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-                REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+                CHECK(compare_hist(Iq_exp, Iq.get_counts()));
             }
         }
 
@@ -252,19 +252,19 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
 
             {
                 auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
-                REQUIRE(compare_hist(Iq_exp, Iq.y()));
+                CHECK(compare_hist(Iq_exp, Iq.y()));
             }
             {
                 auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
-                REQUIRE(compare_hist(Iq_exp, Iq.y()));
+                CHECK(compare_hist(Iq_exp, Iq.y()));
             }
             {
                 auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
-                REQUIRE(compare_hist(Iq_exp, Iq.y()));
+                CHECK(compare_hist(Iq_exp, Iq.y()));
             }
             {
                 auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
-                REQUIRE(compare_hist(Iq_exp, Iq.y()));
+                CHECK(compare_hist(Iq_exp, Iq.y()));
             }
         }
     }

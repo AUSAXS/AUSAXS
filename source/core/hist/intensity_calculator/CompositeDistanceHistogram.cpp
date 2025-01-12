@@ -77,7 +77,7 @@ ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
 }
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_aw() const {
-    return partial_profile(get_aw_counts(), get_sinc_table())*2;
+    return partial_profile(get_aw_counts(), get_sinc_table());
 }
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_ww() const {

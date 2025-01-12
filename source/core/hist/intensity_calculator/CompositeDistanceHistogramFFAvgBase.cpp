@@ -375,7 +375,8 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
         }
         pool->detach_task([this, q0, bins=debye_axis.bins, ff1, sinqd_table] () {
             for (unsigned int q = q0; q < q0+bins; ++q) {
-                cache.sinqd.ax.index(ff1, q-q0) = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
+                // note the factor of 2 in the following line; necessary since the ax counts are based on the aa counts
+                cache.sinqd.ax.index(ff1, q-q0) = 2*std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
                 cache.sinqd.aw.index(ff1, q-q0) = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
             }
         });

@@ -35,7 +35,6 @@ TEST_CASE("BodySplitter::split") {
         REQUIRE(protein.size_body() == expected_sizes.size());
         int index = 0;
         for (unsigned int i = 0; i < expected_sizes.size(); ++i) {
-            index += expected_sizes[i];
             auto& atoms = protein.get_body(i).get_atoms();
             REQUIRE(atoms.size() == expected_sizes[i]);
 
@@ -43,8 +42,9 @@ TEST_CASE("BodySplitter::split") {
                 CHECK(data.atoms[index].get_residue_sequence_number() == splits[i-1]);
             }
             if (i < splits.size()) {
-                CHECK(data.atoms[index-1].get_residue_sequence_number() == splits[i]-1);
+                CHECK(data.atoms[index+expected_sizes[i]-1].get_residue_sequence_number() == splits[i]-1);
             }
+            index += expected_sizes[i];
         }
     };
 

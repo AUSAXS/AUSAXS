@@ -69,14 +69,14 @@ bool compare_hist_approx(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
 template<typename T>
 void set_unity_charge(T& protein) {
     // set the weights to 1 so we can analytically determine the result
-    // waters
-    for (auto& atom : protein.get_waters()) {
-        atom.weight() = 1;
-    }
-    // atoms
     for (auto& body : protein.get_bodies()) {
         for (auto& atom : body.get_atoms()) {
             atom.weight() = 1;
+        }
+        if (body.size_water() != 0) {
+            for (auto& water : body.get_waters()) {
+                water.weight() = 1;
+            }
         }
     }
 }

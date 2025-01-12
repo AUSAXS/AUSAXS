@@ -101,7 +101,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10
-    for (int i = (int) p_tot.size()-1; i >= 10; i--) {
+    for (int i = (int) p_tot.size()-1; i >= 10; --i) {
         if (p_tot.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;

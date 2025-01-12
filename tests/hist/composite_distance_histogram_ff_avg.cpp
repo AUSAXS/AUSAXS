@@ -64,6 +64,16 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                     std::cout << "\t24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
                     std::cout << "\t24*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
                     std::cout << "\t8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+
+                    std::cout << "axsum: " << axsum << std::endl;
+                    std::cout << "\t16*sin(" << q_axis[q] << "*" << d[1] << ")/(" << q_axis[q] << "*" << d[1] << ") = " << std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) << std::endl;
+                    std::cout << "\t24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
+                    std::cout << "\t24*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
+                    std::cout << "\t8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+
+                    std::cout << "Iaa: " << aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
+                    std::cout << "Iax: " << axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "Ixx: " << aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
                 }
             #endif
 
@@ -73,7 +83,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         }
 
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
     SECTION("with water") {
@@ -131,7 +141,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             #endif
         }
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
     SECTION("real scalings") {
@@ -181,7 +191,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
         }
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
     // TODO: fix this test
