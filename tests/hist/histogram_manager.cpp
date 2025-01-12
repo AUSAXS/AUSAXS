@@ -26,14 +26,13 @@ using namespace ausaxs::data;
 struct analytical_histogram {
     static void set_unity_charge(Molecule& protein) {
         // set the weights to 1 so we can analytically determine the result
-        // waters
-        for (auto& atom : protein.get_waters()) {
-            atom.weight() = 1;
-        }
-        // atoms
         for (auto& body : protein.get_bodies()) {
             for (auto& atom : body.get_atoms()) {
                 atom.weight() = 1;
+            }
+            if (body.size_water() == 0) {continue;}
+            for (auto& water : body.get_waters()) {
+                water.weight() = 1;
             }
         }
     }

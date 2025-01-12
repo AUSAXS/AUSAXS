@@ -58,6 +58,11 @@ namespace ausaxs::io::pdb {
             void update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& hatoms);
 
             /**
+             * @brief Add implicit hydrogens to the protein atoms.
+             */
+            void add_implicit_hydrogens();
+
+            /**
              * @brief Get the protein atoms contained in this PDBStructure. 
              */
             const std::vector<PDBAtom>& get_atoms() const;

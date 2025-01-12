@@ -7,7 +7,7 @@
 
 using namespace ausaxs;
 
-io::pdb::PDBStructure io::Reader::read(const io::ExistingFile& path) {
+io::pdb::PDBStructure io::Reader::read(const io::File& path) {
     auto ext = utility::to_lowercase(path.extension());
     if (path.extension() == ".xml" || path.extension() == ".XML") { // .xml PDBStructure
         throw except::invalid_argument("PDBStructure::construct_reader: .xml input PDBStructures are not supported.");

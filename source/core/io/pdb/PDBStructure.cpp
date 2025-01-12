@@ -8,9 +8,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
 #include <io/ExistingFile.h>
-#include <utility/Exceptions.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <utility/Console.h>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
@@ -63,6 +64,20 @@ PDBStructure::PDBStructure(const data::Molecule& molecule) {
 void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& hatoms) {
     atoms = patoms;
     waters = hatoms;
+}
+
+void PDBStructure::add_implicit_hydrogens() {
+    // sanity check: if the structure already contains hydrogens, don't implicitly add more
+    for (auto& a : atoms) {
+        if (a.get_element() != constants::atom_t::H) {continue;}
+        console::print_warning("Molecule::add_implicit_hydrogens: The molecule already contains hydrogen atoms. Skipping implicit addition.");
+        return;
+    }
+
+    console::print_text("\tAdding implicit hydrogens to the molecule.");
+    for (auto& a :atoms) {
+        a.add_implicit_hydrogens();
+    }
 }
 
 const std::vector<PDBAtom>& PDBStructure::get_atoms() const {return atoms;}

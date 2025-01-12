@@ -11,7 +11,7 @@ void io::Writer::write(const io::pdb::PDBStructure& s, const io::File& path) {
     if (ext == ".xml") { // .xml PDBStructure
         throw except::invalid_argument("PDBStructure::construct_writer: .xml input PDBStructures are not supported.");
     } else if (ext == ".pdb") { // .pdb PDBStructure
-        io::detail::pdb::PDBWriter::write(s, path);
+        io::detail::pdb::write(s, path);
     } else { // anything else - we cannot handle this
         throw except::invalid_argument("PDBStructure::construct_writer: Unsupported extension \"" + path.extension() + "\" of input file \"" + path.str() + "\".");
     }

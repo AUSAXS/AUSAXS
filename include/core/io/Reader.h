@@ -6,6 +6,6 @@
 
 namespace ausaxs::io {
     struct Reader {
-        static io::pdb::PDBStructure read(const io::ExistingFile& file);
+        static io::pdb::PDBStructure read(const io::File& file);
     };
 }

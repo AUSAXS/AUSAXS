@@ -18,6 +18,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 using namespace ausaxs;
 using namespace data;
@@ -87,14 +88,47 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
     }
 
     SECTION("ExistingFile&") {
-        io::ExistingFile file("tests/files/2epe.pdb");
-        Molecule protein(file);
-        Body body("tests/files/2epe.pdb"); // compare with body constructor
+        SECTION("fake data") {
+            io::File path("temp/io/temp.pdb");
+            path.create();
 
-        REQUIRE(protein.size_body() == 1);
-        CHECK(protein.size_atom() == 1001);
-        CHECK(protein.size_water() == 48);
-        CHECK(protein.get_body(0).equals_content(body));
+            std::ofstream pdb_file(path);
+            pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << std::endl;
+            pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << std::endl;
+            pdb_file << "TER       3      ARG A 129                                                     " << std::endl;
+            pdb_file << "HETATM    4  O   HOH A 130      30.117  29.049  34.879  0.94 34.19           O " << std::endl;
+            pdb_file << "HETATM    5  O   HOH A 131      31.117  30.049  35.879  0.94 34.19           O " << std::endl;
+            pdb_file.close();
+
+            // check PDB io
+            Molecule protein(path);
+
+            REQUIRE(protein.size_atom() == 2);
+            auto atoms = protein.get_atoms();
+            CHECK(atoms[0].coordinates().x() == 2.1);
+            CHECK(atoms[0].coordinates().y() == 3.2);
+            CHECK(atoms[0].coordinates().z() == 4.3);
+            CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::C);
+            CHECK(atoms[0].weight() == 0.5*constants::charge::nuclear::get_charge(atoms[0].form_factor_type()));
+
+            REQUIRE(protein.size_water() == 2);
+            auto waters = protein.get_waters();
+            CHECK(waters[0].coordinates().x() == 30.117);
+            CHECK(waters[0].coordinates().y() == 29.049);
+            CHECK(waters[0].coordinates().z() == 34.879);
+            CHECK(waters[0].weight() == 0.94*constants::charge::nuclear::get_charge(waters[0].form_factor_type()));
+        }
+
+        SECTION("real data") {
+            io::ExistingFile file("tests/files/2epe.pdb");
+            Molecule protein(file);
+            Body body("tests/files/2epe.pdb"); // compare with body constructor
+
+            REQUIRE(protein.size_body() == 1);
+            CHECK(protein.size_atom() == 1001);
+            CHECK(protein.size_water() == 48);
+            CHECK(protein.get_body(0).equals_content(body));
+        }
     }
 
     SECTION("vector<Body>&") {

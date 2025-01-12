@@ -4,6 +4,8 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <io/pdb/PDBStructure.h>
+#include <io/detail/PDBReader.h>
+#include <io/detail/PDBWriter.h>
 #include <utility/Console.h>
 #include <settings/All.h>
 
@@ -32,87 +34,92 @@ TEST_CASE("PDBReader::read") {
     pdb_file.close();
 
     // check PDB io
-    std::unique_ptr<Molecule> protein = std::make_unique<Molecule>(path);
+    auto protein = io::detail::pdb::read(path);
     path = "temp/io/temp2.pdb";
-    protein->save(path);
-    protein = std::make_unique<Molecule>(path);
-    std::vector<AtomFF> atoms = protein->get_atoms();
-    AtomFF a = atoms[0];
-
-    if (atoms.size() == 0) {
-        REQUIRE(false);
-        return;
-    }
+    io::detail::pdb::write(protein, path);
+    protein = io::detail::pdb::read(path);
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.
-    CHECK(a.coordinates().x() == 2.1);
-    CHECK(a.coordinates().y() == 3.2);
-    CHECK(a.coordinates().z() == 4.3);
-    CHECK(a.weight() == 0.50*constants::charge::nuclear::get_charge(form_factor::form_factor_t::C));
-    CHECK(a.form_factor_type() == form_factor::form_factor_t::C);
+    REQUIRE(protein.atoms.size() == 2);
+    CHECK(protein.atoms[0].serial == 1);
+    CHECK(protein.atoms[0].coords.x() == 2.1);
+    CHECK(protein.atoms[0].coords.y() == 3.2);
+    CHECK(protein.atoms[0].coords.z() == 4.3);
+    CHECK(protein.atoms[0].occupancy == 0.50);
+    CHECK(protein.atoms[0].element == constants::atom_t::C);
+    CHECK(protein.atoms[0].resName == "ARG");
+
+    REQUIRE(protein.waters.size() == 2);
+    CHECK(protein.waters[0].serial == 4);
+    CHECK(protein.waters[0].coords.x() == 30.117);
+    CHECK(protein.waters[0].coords.y() == 29.049);
+    CHECK(protein.waters[0].coords.z() == 34.879);
+    CHECK(protein.waters[0].occupancy == 0.94);
+    CHECK(protein.waters[0].element == constants::atom_t::O);
+    CHECK(protein.waters[0].resName == "HOH");
 }
 
 TEST_CASE("PDBReader: add_implicit_hydrogens", "[files]") {
-    FAIL();
-    // std::vector<AtomFF> atoms = {
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::N),
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::O),
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
-    //     AtomFF({0, 0, 0}, form_factor::form_factor_t::N),
-    // };
-    // Molecule protein({atoms});
+    settings::molecule::implicit_hydrogens = true;
+    std::vector<PDBAtom> atoms = {
+        PDBAtom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+        PDBAtom(2, "CA", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        PDBAtom(3, "C",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        PDBAtom(4, "O",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::O, "0"),
+        PDBAtom(5, "CB", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        PDBAtom(6, "CG", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        PDBAtom(7, "CD", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        PDBAtom(8, "CE", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+        PDBAtom(9, "NZ", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+    };
+    io::pdb::PDBStructure protein({atoms, {}});
 
-    // for (auto a : protein.get_atoms()) {
-    //     CHECK(a.effective_charge == constants::charge::nuclear::get_charge(a.form_factor_type()));
-    //     CHECK(a.get_atomic_group() == constants::atomic_group_t::unknown);
-    // }
+    for (auto a : protein.get_atoms()) {
+        CHECK(a.effective_charge == constants::charge::nuclear::get_charge(a.get_element()));
+        CHECK(a.get_atomic_group() == constants::atomic_group_t::unknown);
+    }
 
-    // protein.add_implicit_hydrogens();
-    // atoms = protein.get_atoms();
-    // CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].get_element()) + 1);
-    // CHECK(atoms[0].get_atomic_group() == constants::atomic_group_t::NH);
+    protein.add_implicit_hydrogens();
+    atoms = protein.get_atoms();
+    CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].get_element()) + 1);
+    CHECK(atoms[0].get_atomic_group() == constants::atomic_group_t::NH);
 
-    // CHECK(atoms[1].effective_charge == constants::charge::nuclear::get_charge(atoms[1].get_element()) + 1);
-    // CHECK(atoms[1].get_atomic_group() == constants::atomic_group_t::CH);
+    CHECK(atoms[1].effective_charge == constants::charge::nuclear::get_charge(atoms[1].get_element()) + 1);
+    CHECK(atoms[1].get_atomic_group() == constants::atomic_group_t::CH);
 
-    // CHECK(atoms[2].effective_charge == constants::charge::nuclear::get_charge(atoms[2].get_element()) + 0);
-    // CHECK(atoms[2].get_atomic_group() == constants::atomic_group_t::unknown);
+    CHECK(atoms[2].effective_charge == constants::charge::nuclear::get_charge(atoms[2].get_element()) + 0);
+    CHECK(atoms[2].get_atomic_group() == constants::atomic_group_t::unknown);
 
-    // CHECK(atoms[3].effective_charge == constants::charge::nuclear::get_charge(atoms[3].get_element()) + 0);
-    // CHECK(atoms[3].get_atomic_group() == constants::atomic_group_t::unknown);
+    CHECK(atoms[3].effective_charge == constants::charge::nuclear::get_charge(atoms[3].get_element()) + 0);
+    CHECK(atoms[3].get_atomic_group() == constants::atomic_group_t::unknown);
 
-    // CHECK(atoms[4].effective_charge == constants::charge::nuclear::get_charge(atoms[4].get_element()) + 2);
-    // CHECK(atoms[4].get_atomic_group() == constants::atomic_group_t::CH2);
+    CHECK(atoms[4].effective_charge == constants::charge::nuclear::get_charge(atoms[4].get_element()) + 2);
+    CHECK(atoms[4].get_atomic_group() == constants::atomic_group_t::CH2);
 
-    // CHECK(atoms[5].effective_charge == constants::charge::nuclear::get_charge(atoms[5].get_element()) + 2);
-    // CHECK(atoms[5].get_atomic_group() == constants::atomic_group_t::CH2);
+    CHECK(atoms[5].effective_charge == constants::charge::nuclear::get_charge(atoms[5].get_element()) + 2);
+    CHECK(atoms[5].get_atomic_group() == constants::atomic_group_t::CH2);
 
-    // CHECK(atoms[6].effective_charge == constants::charge::nuclear::get_charge(atoms[6].get_element()) + 2);
-    // CHECK(atoms[6].get_atomic_group() == constants::atomic_group_t::CH2);
+    CHECK(atoms[6].effective_charge == constants::charge::nuclear::get_charge(atoms[6].get_element()) + 2);
+    CHECK(atoms[6].get_atomic_group() == constants::atomic_group_t::CH2);
 
-    // CHECK(atoms[7].effective_charge == constants::charge::nuclear::get_charge(atoms[7].get_element()) + 2);
-    // CHECK(atoms[7].get_atomic_group() == constants::atomic_group_t::CH2);
+    CHECK(atoms[7].effective_charge == constants::charge::nuclear::get_charge(atoms[7].get_element()) + 2);
+    CHECK(atoms[7].get_atomic_group() == constants::atomic_group_t::CH2);
 
-    // CHECK(atoms[8].effective_charge == constants::charge::nuclear::get_charge(atoms[8].get_element()) + 3);
-    // CHECK(atoms[8].get_atomic_group() == constants::atomic_group_t::NH3);
+    CHECK(atoms[8].effective_charge == constants::charge::nuclear::get_charge(atoms[8].get_element()) + 3);
+    CHECK(atoms[8].get_atomic_group() == constants::atomic_group_t::NH3);
 }
 
 TEST_CASE("PDBWriter: writing multifile pdb") {
     settings::molecule::implicit_hydrogens = false;
 
     std::vector<AtomFF> atoms(101000);
-    for (unsigned int i = 0; i < atoms.size(); i++) {
-        atoms[i] = AtomFF({1,2,3}, form_factor::form_factor_t::C);
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        atoms[i] = AtomFF({1, 2, 3}, form_factor::form_factor_t::C);
     }
     std::vector<Water> waters(100);
-    for (unsigned int i = 0; i < waters.size(); i++) {
-        waters[i] = Water({1,2,3});
+    for (int i = 0; i < static_cast<int>(waters.size()); ++i) {
+        waters[i] = Water({1, 2, 3});
     }
 
     Molecule protein({{atoms, waters}});
@@ -130,7 +137,10 @@ TEST_CASE("PDBWriter: writing multifile pdb") {
     REQUIRE(protein3.size_water() == 100);
 
     Molecule protein4("temp/io/temp_multifile.pdb");
-    REQUIRE(protein.get_bodies() == protein4.get_bodies());
+    REQUIRE(protein.size_body() == protein4.size_body());
+    for (unsigned int i = 0; i < protein.get_bodies().size(); ++i) {
+        REQUIRE(protein.get_body(i).equals_content(protein4.get_body(i)));
+    }
 }
 
 TEST_CASE("PDBReader: can_parse_hydrogens") {

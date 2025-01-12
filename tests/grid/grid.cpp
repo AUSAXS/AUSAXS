@@ -902,7 +902,7 @@ TEST_CASE("Grid: add and remove") {
             auto wa = grid.get_waters();
             REQUIRE(wa.size() == 1);
             REQUIRE(ga.size() == 3);
-            REQUIRE(wa[0] == w2);
+            REQUIRE(wa[0] == w3);
         }
     }
 

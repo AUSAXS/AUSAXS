@@ -63,7 +63,7 @@ std::vector<std::string> as_pdb(const PDBStructure& f) {
     return files;
 }
 
-void PDBWriter::write(const PDBStructure& s, const io::File& path) {
+void io::detail::pdb::write(const PDBStructure& s, const io::File& path) {
     path.directory().create();
 
     auto content = as_pdb(s);
