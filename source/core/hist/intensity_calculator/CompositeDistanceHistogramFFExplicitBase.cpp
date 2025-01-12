@@ -161,7 +161,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         this->cache.intensity_profiles.ax[q-q0] += 
-                            this->free_params.crho*cx[q]*exv_cache.sinqd.ax.index(ff1, ff2, q-q0)*ff_ax_table.index(ff1, ff2).evaluate(q);
+                            2*this->free_params.crho*cx[q]*exv_cache.sinqd.ax.index(ff1, ff2, q-q0)*ff_ax_table.index(ff1, ff2).evaluate(q);
                     }
                 }
             }
@@ -183,7 +183,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     this->cache.intensity_profiles.aw[q-q0] += 
-                        this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)
+                        2*this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)
                         *ff_aa_table.index(ff1, form_factor::water_bin).evaluate(q);
                 }
             }
@@ -202,7 +202,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     this->cache.intensity_profiles.wx[q-q0] += 
-                        this->free_params.crho*cx[q]*this->free_params.cw*exv_cache.sinqd.wx.index(ff1, q-q0)
+                        2*this->free_params.crho*cx[q]*this->free_params.cw*exv_cache.sinqd.wx.index(ff1, q-q0)
                         *ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q);
                 }
             }
