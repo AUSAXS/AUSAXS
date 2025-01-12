@@ -8,7 +8,7 @@ namespace ausaxs::data {
      */
     struct Water : detail::AtomForwarder<Water> {
         Water() = default;
-        Water(const Vector3<precision_t>& coords) : coords(coords), w(constants::charge::nuclear::get_charge(constants::atom_t::O)) {}
+        Water(const Vector3<precision_t>& coords) : coords(coords), w(constants::charge::nuclear::get_charge(form_factor_type())) {}
 
         form_factor::form_factor_t form_factor_type() const {return form_factor::form_factor_t::OH;}
         [[nodiscard]] const Water& get_atom() const {return *this;}

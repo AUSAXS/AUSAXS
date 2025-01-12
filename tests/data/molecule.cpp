@@ -116,7 +116,7 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
             CHECK(waters[0].coordinates().x() == 30.117);
             CHECK(waters[0].coordinates().y() == 29.049);
             CHECK(waters[0].coordinates().z() == 34.879);
-            CHECK(waters[0].weight() == 0.94*constants::charge::nuclear::get_charge(waters[0].form_factor_type()));
+            CHECK(waters[0].weight() == constants::charge::nuclear::get_charge(waters[0].form_factor_type()));
         }
 
         SECTION("real data") {
@@ -630,24 +630,6 @@ TEST_CASE("Molecule::histogram", "[files]") {
     }
 }
 
-// struct fixture {
-//     Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
-//     Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
-//     Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
-//     Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
-//     Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
-//     Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
-//     Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
-//     Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
-
-//     Body b1 = Body(std::vector<Atom>{a1, a2});
-//     Body b2 = Body(std::vector<Atom>{a3, a4});
-//     Body b3 = Body(std::vector<Atom>{a5, a6});
-//     Body b4 = Body(std::vector<Atom>{a7, a8});
-//     std::vector<Body> ap = {b1, b2, b3, b4};
-//     Molecule protein = Molecule(ap);
-// };
-
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
@@ -696,4 +678,85 @@ TEST_CASE_METHOD(fixture, "Molecule::signal_modified_hydration_layer") {
 
     protein.signal_modified_hydration_layer();
     REQUIRE(manager->get_modified_hydration() == true);
+}
+
+#include <io/pdb/PDBStructure.h>
+TEST_CASE("Molecule: implicit hydrogens") {
+    auto generate_molecule = [] () {
+        std::vector<io::pdb::PDBAtom> a = {
+            io::pdb::PDBAtom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+            io::pdb::PDBAtom(2, "CA", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            io::pdb::PDBAtom(3, "C",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            io::pdb::PDBAtom(4, "O",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::O, "0"),
+            io::pdb::PDBAtom(5, "CB", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            io::pdb::PDBAtom(6, "CG", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            io::pdb::PDBAtom(7, "CD", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            io::pdb::PDBAtom(8, "CE", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            io::pdb::PDBAtom(9, "NZ", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+        };
+        auto res = io::pdb::PDBStructure({a, {}}).reduced_representation();
+        return Molecule({Body{res.atoms, res.waters}});
+    };
+
+    SECTION("enabled") {
+        settings::molecule::implicit_hydrogens = true;
+        auto protein = generate_molecule();
+
+        auto atoms = protein.get_atoms();
+        CHECK(atoms[0].weight() == constants::charge::nuclear::get_charge(atoms[0].form_factor_type()));
+        CHECK(atoms[0].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::N) + 1);
+        CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::NH);
+
+        CHECK(atoms[1].weight() == constants::charge::nuclear::get_charge(atoms[1].form_factor_type()));
+        CHECK(atoms[1].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 1);
+        CHECK(atoms[1].form_factor_type() == form_factor::form_factor_t::CH);
+
+        CHECK(atoms[2].weight() == constants::charge::nuclear::get_charge(atoms[2].form_factor_type()));
+        CHECK(atoms[2].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 0);
+        CHECK(atoms[2].form_factor_type() == form_factor::form_factor_t::C);
+
+        CHECK(atoms[3].weight() == constants::charge::nuclear::get_charge(atoms[3].form_factor_type()));
+        CHECK(atoms[3].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::O) + 0);
+        CHECK(atoms[3].form_factor_type() == form_factor::form_factor_t::O);
+
+        CHECK(atoms[4].weight() == constants::charge::nuclear::get_charge(atoms[4].form_factor_type()));
+        CHECK(atoms[4].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 2);
+        CHECK(atoms[4].form_factor_type() == form_factor::form_factor_t::CH2);
+
+        CHECK(atoms[5].weight() == constants::charge::nuclear::get_charge(atoms[5].form_factor_type()));
+        CHECK(atoms[5].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 2);
+        CHECK(atoms[5].form_factor_type() == form_factor::form_factor_t::CH2);
+
+        CHECK(atoms[6].weight() == constants::charge::nuclear::get_charge(atoms[6].form_factor_type()));
+        CHECK(atoms[6].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 2);
+        CHECK(atoms[6].form_factor_type() == form_factor::form_factor_t::CH2);
+
+        CHECK(atoms[7].weight() == constants::charge::nuclear::get_charge(atoms[7].form_factor_type()));
+        CHECK(atoms[7].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 2);
+        CHECK(atoms[7].form_factor_type() == form_factor::form_factor_t::CH2);
+
+        CHECK(atoms[8].weight() == constants::charge::nuclear::get_charge(atoms[8].form_factor_type()));
+        CHECK(atoms[8].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::N) + 3);
+        CHECK(atoms[8].form_factor_type() == form_factor::form_factor_t::NH3);
+    }
+
+    SECTION("disabled") {
+        settings::molecule::implicit_hydrogens = false;
+        auto protein = generate_molecule();
+
+        for (auto a : protein.get_atoms()) {
+            CHECK(a.weight() == constants::charge::nuclear::get_charge(a.form_factor_type()));
+        }
+
+        auto atoms = protein.get_atoms();
+        CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::N);
+        CHECK(atoms[1].form_factor_type() == form_factor::form_factor_t::C);
+        CHECK(atoms[2].form_factor_type() == form_factor::form_factor_t::C);
+        CHECK(atoms[3].form_factor_type() == form_factor::form_factor_t::O);
+        CHECK(atoms[4].form_factor_type() == form_factor::form_factor_t::C);
+        CHECK(atoms[5].form_factor_type() == form_factor::form_factor_t::C);
+        CHECK(atoms[6].form_factor_type() == form_factor::form_factor_t::C);
+        CHECK(atoms[7].form_factor_type() == form_factor::form_factor_t::C);
+        CHECK(atoms[8].form_factor_type() == form_factor::form_factor_t::N);
+    }
 }

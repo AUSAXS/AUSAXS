@@ -12,18 +12,30 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
+#include <settings/MoleculeSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
+
+void PDBStructure::initialize() {
+    if (settings::molecule::implicit_hydrogens) {
+        add_implicit_hydrogens();
+    }
+}
 
 PDBStructure::PDBStructure() = default;
 
 PDBStructure::~PDBStructure() = default;
 
-PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters) : atoms(atoms), waters(waters) {}
+PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters) : atoms(atoms), waters(waters) {
+    initialize();
+}
 
 PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters, const Header& header, const Footer& footer, const Terminate& terminate) 
-    : header(header), footer(footer), terminate(terminate), atoms(atoms), waters(waters) {}
+    : header(header), footer(footer), terminate(terminate), atoms(atoms), waters(waters) 
+{
+    initialize();
+}
 
 auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, char chain) {
     for (const auto& a : body.get_atoms()) {
@@ -46,6 +58,7 @@ PDBStructure::PDBStructure(const data::Body& body) {
     atoms.reserve(body.size_atom());
     waters.reserve(body.size_water());
     add_single_body(this->atoms, this->waters, body, serial, residue_serial, 'A');
+    initialize();
     refresh();
 }
 
@@ -58,6 +71,7 @@ PDBStructure::PDBStructure(const data::Molecule& molecule) {
     for (const auto& body : molecule.get_bodies()) {
         add_single_body(this->atoms, this->waters, body, serial, residue_serial, chain++);
     }
+    initialize();
     refresh();
 }
 

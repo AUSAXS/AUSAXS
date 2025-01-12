@@ -266,8 +266,7 @@ Vector3<double> Molecule::get_cm() const {
 }
 
 std::vector<Water> Molecule::get_waters() const {
-    std::size_t N = std::accumulate(bodies.begin(), bodies.end(), std::size_t{0}, [] (std::size_t sum, const Body& body) {return sum + body.size_water();});
-    std::vector<Water> waters(N);
+    std::vector<Water> waters(size_water());
     int n = 0; // current index
     for (const auto& body : bodies) {
         if (body.size_water() == 0) {continue;}
@@ -276,7 +275,6 @@ std::vector<Water> Molecule::get_waters() const {
             n++;
         }
     }
-    if (n != static_cast<int>(N)) [[unlikely]] {throw except::size_error("Molecule::atoms: incorrect number of waters. This should never happen.");}
     return waters;
 }
 

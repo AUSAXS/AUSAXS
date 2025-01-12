@@ -60,7 +60,7 @@ TEST_CASE("PDBReader::read") {
     CHECK(protein.waters[0].resName == "HOH");
 }
 
-TEST_CASE("PDBReader: add_implicit_hydrogens", "[files]") {
+TEST_CASE("PDBReader: add_implicit_hydrogens") {
     settings::molecule::implicit_hydrogens = true;
     std::vector<PDBAtom> atoms = {
         PDBAtom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
