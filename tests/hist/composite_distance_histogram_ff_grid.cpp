@@ -162,10 +162,10 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
 
     std::vector<Water> waters = SimpleCube::get_waters();
     waters.emplace_back(Water({0, 0, 0}));
+    for (auto& w : waters) {w.weight() = 1;}
 
-    Molecule protein({{atoms, waters}});
+    Molecule protein({Body{atoms, waters}});
     GridDebug::generate_debug_grid(protein);
-    protein.get_waters() = waters;
 
     SECTION("Grid") {
         auto h = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
@@ -292,7 +292,9 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
     settings::grid::min_exv_radius = 0;
 
     SECTION("simple") {
-        std::vector<Atom> atoms = {Atom({0, 0, 0}, 1)};
+        std::vector<AtomFF> atoms = {AtomFF({0, 0, 0}, form_factor::form_factor_t::C)};
+        for (auto& a : atoms) {a.weight() = 1;}
+
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
         auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
