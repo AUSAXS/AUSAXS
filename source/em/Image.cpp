@@ -50,8 +50,7 @@ std::list<data::EMAtom> Image::generate_atoms(double cutoff) const {
         for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
             float val = index(x, y);
             if (val < cutoff) {continue;}
-            data::EMAtom atom({x*xscale, y*yscale, z*zscale}, weight(val), val);
-            atoms.push_back(atom);
+            atoms.emplace_back(Vector3{x*xscale, y*yscale, z*zscale}, weight(val), val);
         }
     }
     return atoms;

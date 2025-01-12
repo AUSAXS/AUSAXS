@@ -15,8 +15,8 @@ namespace ausaxs::data {
             Atom& get_atom() {return basic.get_atom();}
             const Atom& get_atom() const {return basic.get_atom();}
 
-            [[nodiscard]] double get_density() const {return density;}
-            [[nodiscard]] double& get_density() {return density;}
+            [[nodiscard]] double charge_density() const {return density;}
+            [[nodiscard]] double& charge_density() {return density;}
 
         private:
             Atom basic;

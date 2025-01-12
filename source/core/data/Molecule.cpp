@@ -255,6 +255,7 @@ Vector3<double> Molecule::get_cm() const {
         });
 
         // iterate through their hydration atoms
+        if (body.size_water() == 0) {continue;}
         std::for_each(body.get_waters().begin(), body.get_waters().end(), [&M, &cm] (const auto& water) {
             double m = constants::mass::get_mass(water.form_factor_type());
             M += m;

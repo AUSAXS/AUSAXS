@@ -169,6 +169,7 @@ namespace ausaxs::constants::radius {
             case form_factor::form_factor_t::S: return get_vdw_radius(atom_t::S);
             case form_factor::form_factor_t::SH: return get_vdw_radius(atom_t::S);
             case form_factor::form_factor_t::OTHER: return get_vdw_radius(atom_t::Ar);
+            case form_factor::form_factor_t::UNKNOWN: return 0;
             default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
         }
     }

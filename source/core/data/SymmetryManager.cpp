@@ -37,7 +37,10 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
     for (int i_body1 = 0; i_body1 < static_cast<int>(protein.size_body()); ++i_body1) {
         const auto& body = protein.get_body(i_body1);
         CompactCoordinates data_a(body.get_atoms());
-        CompactCoordinates data_w(body.get_waters());
+        CompactCoordinates data_w;
+        if (body.size_water() != 0) {
+            data_w = CompactCoordinates(body.get_waters());
+        } 
 
         Vector3<float> cm;
         {
@@ -47,10 +50,6 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
 
         std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
         std::vector<std::vector<CompactCoordinates>> water(1+body.size_symmetry());
-
-        for (int i = 0; i < static_cast<int>(data_a.get_data().size()); ++i) {
-            std::cout << "before: " << data_a.get_data()[i].value.pos << std::endl;
-        }
 
         // loop over its symmetries
         for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
@@ -75,9 +74,6 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
                     sym_water[i_repeat].get_data().begin(), 
                     [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
                 );
-                for (int i = 0; i < static_cast<int>(sym_atomic[i_repeat].get_data().size()); ++i) {
-                    std::cout << "after: " << sym_atomic[i_repeat].get_data()[i].value.pos << std::endl;
-                }
             }
             atomic[1+i_sym_1] = std::move(sym_atomic);
             water [1+i_sym_1] = std::move(sym_water);

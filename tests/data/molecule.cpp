@@ -161,6 +161,7 @@ TEST_CASE("Molecule::simulate_dataset", "[files]") {
 
 TEST_CASE_METHOD(fixture, "Molecule::get_cm") {
     Molecule protein(bodies);
+    protein.center();
     Vector3<double> cm = protein.get_cm();
     REQUIRE(cm == Vector3<double>{0, 0, 0});
 }
@@ -297,6 +298,9 @@ TEST_CASE("Molecule::get_absolute_mass", "[files]") {
     for (auto& atom : protein.get_atoms()) {
         sum += constants::mass::get_mass(atom.form_factor_type());
     }
+    for (auto& water : protein.get_waters()) {
+        sum += constants::mass::get_mass(water.form_factor_type());
+    }
     REQUIRE(protein.get_absolute_mass() == sum);
 }
 
@@ -358,6 +362,7 @@ TEST_CASE_METHOD(fixture, "Molecule::clear_hydration") {
 
 TEST_CASE_METHOD(fixture, "Molecule::center") {
     Molecule protein(bodies);
+    protein.center();
     REQUIRE(protein.get_cm() == Vector3<double>{0, 0, 0});
 
     protein.translate(Vector3<double>{1, 1, 1});
@@ -417,6 +422,7 @@ TEST_CASE_METHOD(fixture, "Molecule::size_atom") {
 
 TEST_CASE_METHOD(fixture, "Molecule::size_water") {
     Molecule protein(bodies);
+    protein.clear_hydration();
     CHECK(protein.size_water() == 0);
     Molecule protein2(bodies);
     CHECK(protein2.size_water() == 2);

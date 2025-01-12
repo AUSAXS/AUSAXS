@@ -56,8 +56,9 @@ TEST_CASE("SymmetryManager: translations") {
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("one body with one atom") {
-        Atom a({0, 0, 0}, 1);
-        Molecule m({Body{{a}}});
+        AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
+        Molecule m({Body{std::vector{a}}});
+        set_unity_charge(m);
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -107,9 +108,10 @@ TEST_CASE("SymmetryManager: translations") {
     }
 
     SECTION("two atoms") {
-        Atom a1(Vector3<double>(1, 0, 0), 1);
-        Atom a2(Vector3<double>(0, 0, 0), 1);        
-        Molecule m({Body{{a1, a2}}});
+        AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
+        Molecule m({Body{std::vector{a1, a2}}});
+        set_unity_charge(m);
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -149,9 +151,10 @@ TEST_CASE("SymmetryManager: translations") {
     }
 
     SECTION("two bodies with one atom") {
-        Atom a1(Vector3<double>(1, 0, 0), 1);
-        Atom a2(Vector3<double>(0, 0, 0), 1);        
-        Molecule m({Body{{a1}}, Body{{a2}}});
+        AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
+        Molecule m({Body{std::vector{a1}}, Body{std::vector{a2}}});
+        set_unity_charge(m);
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -199,14 +202,15 @@ TEST_CASE("SymmetryManager: translations") {
                 RES(2, 4),
                 RES(3, 2)
             });
-        }        
+        }
     }
 
     SECTION("one body with waters") {
-        Atom  a1(Vector3<double>(0, 0, 0), 1);
-        Water w1(Vector3<double>(1, 0, 0));
-        Body b1({a1}, std::vector{w1});
+        AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
+        Water  w1({1, 0, 0});
+        Body b1(std::vector<AtomFF>{a1}, std::vector{w1});
         Molecule m({b1});
+        set_unity_charge(m);
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -279,6 +283,7 @@ TEST_CASE("SymmetryManager: translations") {
         m.generate_new_hydration();
         m.get_body(0).get_waters() = m.get_waters();
         m.clear_hydration();
+        set_unity_charge(m);
 
         data::detail::Symmetry s{{10, 0, 0}}; 
         SECTION("single copy") {
@@ -320,8 +325,9 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("one body with one atom") {
-        Atom a(Vector3<double>(0, 0, 0), 1);
-        Molecule m({Body{{a}}});
+        AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
+        Molecule m({Body{std::vector{a}}});
+        set_unity_charge(m);
 
         SECTION("two repeats") {
             m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
@@ -350,9 +356,10 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
     }
 
     SECTION("two bodies") {
-        Atom a1(Vector3<double>(1, 0, 0), 1);
-        Atom a2(Vector3<double>(0, 0, 0), 1);        
-        Molecule m({Body{{a1}}, Body{{a2}}});
+        AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
+        Molecule m({Body{std::vector{a1}}, Body{std::vector{a2}}});
+        set_unity_charge(m);
 
         SECTION("two repeats") {
             m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
@@ -391,8 +398,9 @@ TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::center = false;
 
     SECTION("one body with one atom") {
-        Atom a(Vector3<double>(1, 0, 0), 1);
-        Molecule m({Body{{a}}});
+        AtomFF a({1, 0, 0}, form_factor::form_factor_t::C);
+        Molecule m({Body{std::vector{a}}});
+        set_unity_charge(m);
 
         SECTION("one copy") {
             m.get_body(0).symmetry().add({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
@@ -424,10 +432,11 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
     settings::molecule::center = false;
 
     SECTION("line") {
-        Atom a1(Vector3<double>(1, 0, 0), 1);
-        Atom a2(Vector3<double>(2, 0, 0), 1);
-        Atom a3(Vector3<double>(3, 0, 0), 1);
-        Molecule m({Body{{a1, a2, a3}}});
+        AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({2, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a3({3, 0, 0}, form_factor::form_factor_t::C);
+        Molecule m({Body{std::vector{a1, a2, a3}}});
+        set_unity_charge(m);
 
         SECTION("cross") {
             // external rotate pi/2 around the y-axis and replicate thrice

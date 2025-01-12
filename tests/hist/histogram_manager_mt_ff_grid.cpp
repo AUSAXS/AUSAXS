@@ -50,8 +50,10 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
             for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
                 std::transform(aa.begin(i, j), aa.end(i, j), temp_aa.begin(), temp_aa.begin(), std::plus<>());
             }
+            // aw in HistogramManager is multiplied by 2, while CompositeDistanceHistogramFFAvg is not
+            // this may be fixed in the future to be consistent, but for now, we have to multiply by 2
             std::transform(aa.begin(i, form_factor::exv_bin), aa.end(i, form_factor::exv_bin), temp_ax.begin(), temp_ax.begin(), std::plus<>());
-            std::transform(aa.begin(form_factor::exv_bin, i), aa.end(form_factor::exv_bin, i), temp_ax.begin(), temp_ax.begin(), std::plus<>()); // should all be 0
+            std::transform(aa.begin(i, form_factor::exv_bin), aa.end(i, form_factor::exv_bin), temp_ax.begin(), temp_ax.begin(), std::plus<>());
         }
         std::transform(aa.begin(form_factor::exv_bin, form_factor::exv_bin), aa.end(form_factor::exv_bin, form_factor::exv_bin), temp_xx.begin(), temp_xx.begin(), std::plus<>());
 
@@ -113,8 +115,9 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
         settings::grid::exv::width = settings::grid::cell_width;
 
         SECTION(std::string("width = ") + std::to_string(settings::grid::cell_width)) {
-            AtomFF a1({0, 0, 0}, form_factor::form_factor_t::UNKNOWN);
+            AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
             Molecule protein({Body{std::vector{a1}}});
+            set_unity_charge(protein);
             test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
         }
     }
@@ -140,8 +143,9 @@ auto test_derived = [] () {
         settings::grid::exv::surface_thickness = settings::grid::cell_width;
 
         SECTION(std::string("width = ") + std::to_string(settings::grid::cell_width)) {
-            AtomFF a1({0, 0, 0}, form_factor::form_factor_t::UNKNOWN);
+            AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
             Molecule protein({Body{std::vector{a1}}});
+            set_unity_charge(protein);
             test(protein, [](const Molecule& protein) {return H(&protein).calculate_all();});
         }
     }
@@ -240,7 +244,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
         std::vector<AtomFF> atoms(exv_grid.interior.size());
         for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
-            atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::UNKNOWN);
+            atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::C);
         }
         Molecule exv({Body{std::vector{atoms}}});
 
@@ -284,10 +288,10 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
         std::vector<AtomFF> atoms(exv_grid.interior.size());
         for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
-            atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::UNKNOWN);
+            atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::C);
         }
         Molecule exv({Body{atoms}});
-        for (auto& b : exv.get_bodies()) {for (auto& a : b.get_atoms()) {a.weight() = 1;}}
+        set_unity_charge(exv);
 
         auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
         auto h_grids = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
