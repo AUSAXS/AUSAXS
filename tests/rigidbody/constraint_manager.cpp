@@ -7,13 +7,11 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
-using namespace data;
-using namespace data::record;
-using namespace rigidbody;
+using namespace ausaxs::data;
+using namespace ausaxs::rigidbody;
 
 struct fixture {
     fixture() {
@@ -21,19 +19,19 @@ struct fixture {
         settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }
 
-    Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1);
-    Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, constants::atom_t::C, "C", 1);
-    Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1);
-    Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, constants::atom_t::C, "C", 1);
-    Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1);
-    Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, constants::atom_t::C, "C", 1);
-    Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1);
-    Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, constants::atom_t::He, "He", 1);
+    AtomFF a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
+    AtomFF a2 = AtomFF({-1,  1, -1}, form_factor::form_factor_t::C);
+    AtomFF a3 = AtomFF({-1, -1,  1}, form_factor::form_factor_t::C);
+    AtomFF a4 = AtomFF({-1,  1,  1}, form_factor::form_factor_t::C);
+    AtomFF a5 = AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C);
+    AtomFF a6 = AtomFF({ 1,  1, -1}, form_factor::form_factor_t::C);
+    AtomFF a7 = AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C);
+    AtomFF a8 = AtomFF({ 1,  1,  1}, form_factor::form_factor_t::NH);
 
-    Body b1 = Body(std::vector<Atom>{a1, a2});
-    Body b2 = Body(std::vector<Atom>{a3, a4});
-    Body b3 = Body(std::vector<Atom>{a5, a6});
-    Body b4 = Body(std::vector<Atom>{a7, a8});
+    Body b1 = Body(std::vector{a1, a2});
+    Body b2 = Body(std::vector{a3, a4});
+    Body b3 = Body(std::vector{a5, a6});
+    Body b4 = Body(std::vector{a7, a8});
     std::vector<Body> ap = {b1, b2, b3, b4};
 };
 

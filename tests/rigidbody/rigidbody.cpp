@@ -12,8 +12,6 @@
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/BodySplitter.h>
 #include <fitter/SmartFitter.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <grid/Grid.h>
@@ -222,14 +220,14 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
 //     };
 
 //     SECTION("simple") {
-//         record::Atom a1(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "");
-//         record::Atom a2(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "");
-//         record::Atom a3(3, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::C, "");
-//         record::Atom a4(4, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, constants::atom_t::C, "");
-//         record::Atom a5(5, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "");
-//         record::Atom a6(6, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "");
-//         record::Atom a7(7, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, constants::atom_t::C, "");
-//         record::Atom a8(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, constants::atom_t::C, "");
+//         record::Atom a1(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, form_factor::form_factor_t::C, "");
+//         record::Atom a2(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, form_factor::form_factor_t::C, "");
+//         record::Atom a3(3, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, form_factor::form_factor_t::C, "");
+//         record::Atom a4(4, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, form_factor::form_factor_t::C, "");
+//         record::Atom a5(5, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, form_factor::form_factor_t::C, "");
+//         record::Atom a6(6, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, form_factor::form_factor_t::C, "");
+//         record::Atom a7(7, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, form_factor::form_factor_t::C, "");
+//         record::Atom a8(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, form_factor::form_factor_t::C, "");
 
 //         Body b1(std::vector<record::Atom>{a1, a2});
 //         Body b2(std::vector<record::Atom>{a3, a4});

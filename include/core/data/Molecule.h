@@ -2,6 +2,8 @@
 
 #include <hist/HistFwd.h>
 #include <data/DataFwd.h>
+#include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 #include <math/MathFwd.h>
 #include <io/ExistingFile.h>
 #include <utility/observer_ptr.h>
@@ -30,45 +32,11 @@ namespace ausaxs::data {
 			Molecule& operator=(Molecule&& other);
 			virtual ~Molecule();
 
-			/**
-			 * @brief Create a new molecule based on a set of bodies.
-			 * 
-			 * @param bodies The constituent bodies of this molecule. 
-			 */
 			explicit Molecule(std::vector<Body>&& bodies);
+			explicit Molecule(const std::vector<Body>& bodies);
 
-			/**
-			 * @brief Create a new molecule based on a list of input file paths. 
-			 * 
-			 * @param input A list of paths to the input files. File extensions can be mixed. 
-			 */
 			explicit Molecule(const std::vector<std::string>& input);
-
-			/**
-			 * @brief Create a new molecule based on a single input file path. 
-			 * 
-			 * @param input Path to the input file. 
-			 */
 			explicit Molecule(const io::File& input);
-
-			/**
-			 * @brief Create a new molecule based on a set of bodies.
-			 * 
-			 * @param bodies The constituent bodies of this molecule. 
-			 * @param hydration_atoms The hydration layer. 
-			 */
-			Molecule(const std::vector<Body>& bodies, const std::vector<record::Water>& hydration_atoms);
-			Molecule(const std::vector<Body>& bodies);
-
-			/**
-			 * @brief Create a new molecule based on a set of atoms. 
-			 * This will only create a single constituent body. 
-			 * 
-			 * @param molecule_atoms The constituent atoms of this molecule. 
-			 * @param hydration_atoms The hydration layer. 
-			 */
-			Molecule(const std::vector<record::Atom>& molecule_atoms, const std::vector<record::Water>& hydration_atoms);
-			Molecule(const std::vector<record::Atom>& molecule_atoms);
 
 			/**
 			 * @brief Get the distances between each atom.
@@ -97,11 +65,6 @@ namespace ausaxs::data {
 			 * @brief Use an algorithm to generate a new hydration layer for this body. Note that the previous one will be deleted.
 			 */
 			void generate_new_hydration();
-
-			/**
-			 * @brief Add implicit hydrogens to each atom in this molecule.
-			 */
-			void add_implicit_hydrogens();
 
 			/**
 			 * @brief Calculate the volume of this molecule based on the number of grid bins it spans.
@@ -204,54 +167,26 @@ namespace ausaxs::data {
 			 * 		  Complexity: O(1)
 			 */
 			[[nodiscard]] Body& get_body(unsigned int index);
-
-			/**
-			 * @brief Get a reference to the body at the given index. 
-			 * 		  Complexity: O(1)
-			 */
-			[[nodiscard]] const Body& get_body(unsigned int index) const;
+			[[nodiscard]] const Body& get_body(unsigned int index) const; // @copydoc get_body(unsigned int)
 
 			/**
 			 * @brief Get a reference to the bodies of this molecule. 
 			 *        Complexity: O(1)
 			 */
 			[[nodiscard]] std::vector<Body>& get_bodies();
-
-			/**
-			 * @brief Get a reference to the bodies of this molecule. 
-			 *        Complexity: O(1)
-			 */
-			[[nodiscard]] const std::vector<Body>& get_bodies() const;
+			[[nodiscard]] const std::vector<Body>& get_bodies() const; // @copydoc get_bodies()
 
 			/**
 			 * @brief Get a copy of all constituent atoms from the underlying bodies.
 			 *        Complexity: O(n)
 			 */
-			[[nodiscard]] std::vector<record::Atom> get_atoms() const;
+			[[nodiscard]] std::vector<data::AtomFF> get_atoms() const;
 
 			/**
-			 * @brief Get a reference to the water molecules of this molecule. 
-			 *        Complexity: O(1)
+			 * @brief Get a copy of all water molecules from the underlying bodies.
+			 *        Complexity: O(n)
 			 */
-			[[nodiscard]] std::vector<record::Water>& get_waters();
-
-			/**
-			 * @brief Get a reference to the water molecules of this molecule. 
-			 *        Complexity: O(1)
-			 */
-			[[nodiscard]] const std::vector<record::Water>& get_waters() const;
-
-			/**
-			 * @brief Get a reference to the specified water molecule.
-			 *        Complexity: O(1)
-			 */
-			[[nodiscard]] record::Water& get_waters(unsigned int i);
-
-			/**
-			 * @brief Get a reference to the specified water molecule.
-			 *        Complexity: O(1)
-			 */
-			[[nodiscard]] const record::Water& get_water(unsigned int i) const;
+			[[nodiscard]] std::vector<data::Water> get_waters() const;
 
 			/**
 			 * @brief Create a grid and fill it with the atoms of this molecule. 
@@ -284,12 +219,6 @@ namespace ausaxs::data {
 			void bind_body_signallers();
 
 			/**
-			 * @brief Count the number of atoms in each cluster, and remove those with less than \a min atoms.
-			 *        This is useful for removing "floating" atoms from e.g. EM map data.
-			 */
-			[[deprecated]] void remove_disconnected_atoms(double min_percent = 0.05);
-
-			/**
 			 * @brief Get the histogram manager of this molecule.
 			 */
 			[[nodiscard]] observer_ptr<hist::IHistogramManager> get_histogram_manager() const;
@@ -298,16 +227,6 @@ namespace ausaxs::data {
 			 * @brief Set the histogram manager of this molecule.
 			 */
 			void set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager);
-
-			/**
-			 * @brief Get the hydration generator of this molecule. 
-			 */
-			[[nodiscard]] observer_ptr<hydrate::HydrationStrategy> get_hydration_generator() const;
-
-			/**
-			 * @brief Set the hydration generator of this molecule. 
-			 */
-			void set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager);
 
 			/**
 			 * @brief Signal that the hydration layer has been modified.
@@ -322,12 +241,18 @@ namespace ausaxs::data {
 
 			bool equals_content(const Molecule& other) const;
 
-		private:
-			std::unique_ptr<hydrate::Hydration> hydration; 	// Abstract representation of the hydration layer
-			std::vector<Body> bodies;           			// The constituent bodies
+			/**
+			 * @brief Get the hydration generator of this molecule. 
+			 */
+			[[nodiscard]] observer_ptr<hydrate::HydrationStrategy> get_hydration_generator() const;
 
-			// the following two variables are only necessary to ensure copying cannot repeat the same work
-			bool centered = false;      	// True if this object has been centered, false otherwise. 
+			/**
+			 * @brief Set the hydration generator of this molecule. 
+			 */
+			void set_hydration_generator(std::unique_ptr<hydrate::HydrationStrategy> manager);
+
+		private:
+			std::vector<Body> bodies;
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 			mutable std::unique_ptr<grid::Grid> grid; 						// The grid representation of this body

@@ -18,7 +18,7 @@ namespace ausaxs::form_factor {
              * @brief Initialize a vacuum form factor based on a 5-Gaussian approximation.
              */
             constexpr FormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : a(a), b(b), c(c) {
-                f0 = 1./(a[0] + a[1] + a[2] + a[3] + a[4] + c);
+                f0 = 1./I0();
             }
 
             /**
@@ -38,6 +38,13 @@ namespace ausaxs::form_factor {
                     sum += a[i]*constexpr_math::exp(-b[i]*q*q);
                 }
                 return (sum + c)*f0;
+            }
+
+            /**
+             * @brief Evaluate the form factor at q = 0.
+             */
+            constexpr double I0() const {
+                return (a[0] + a[1] + a[2] + a[3] + a[4] + c);
             }
 
             /**

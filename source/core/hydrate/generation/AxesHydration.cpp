@@ -6,16 +6,13 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/generation/AxesHydration.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
-#include <math/Vector3.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
 
 #include <cassert>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
 
 hydrate::AxesHydration::AxesHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
     initialize();
@@ -31,7 +28,7 @@ void hydrate::AxesHydration::initialize() {
     hydrate::GridBasedHydration::initialize();
 }
 
-std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::generate_explicit_hydration() {
+std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) {
     assert(protein != nullptr && "AxesHydration::generate_explicit_hydration: protein is nullptr.");
     auto grid = protein->get_grid();
     assert(grid != nullptr && "AxesHydration::generate_explicit_hydration: grid is nullptr.");
@@ -40,22 +37,20 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::gener
     auto bins = grid->get_bins();
 
     // short lambda to actually place the generated water molecules
-    std::vector<grid::GridMember<data::record::Water>> placed_water;
-    placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (Vector3<double>&& exact_loc) {
-        Water a = Water::create_new_water(std::move(exact_loc));
-        grid::GridMember<Water> gm = grid->add(a, true);
-        placed_water.emplace_back(std::move(gm));
+        data::Water a(std::move(exact_loc));
+        grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
     };
 
     // loop over the location of all member atoms
+    std::size_t water_start = grid->w_members.size();
     double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
-    for (const auto& atom : grid->a_members) {
+    for (const auto& atom : atoms) {
         double ra = grid->get_atomic_radius(atom.get_atom_type()); // radius of the atom
         double r_eff_real = ra+rh; // the effective bin radius
         // int r_eff_bin = std::round(r_eff_real)/grid->get_width(); // the effective bin radius in bins
 
-        const auto& coords_abs = atom.get_atom().get_coordinates();
+        const auto& coords_abs = atom.get_atom().coordinates();
         auto x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
 
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
@@ -103,7 +98,7 @@ std::vector<grid::GridMember<data::record::Water>> hydrate::AxesHydration::gener
             add_loc(std::move(exact_loc));
         }
     }
-    return placed_water;
+    return {grid->w_members.begin() + water_start, grid->w_members.end()};
 }
 
 bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, double ra) const {

@@ -201,8 +201,8 @@ TEST_CASE("basics") {
         CHECK(data5.x() == Vector{1, 2, 3});
         CHECK(data5.y() == Vector{4, 5, 6});
         CHECK(data5.yerr() == Vector{7, 8, 9});
-        CHECK(data5.N == 3);
-        CHECK(data5.M == 3);
+        CHECK(data5.size_rows() == 3);
+        CHECK(data5.size_cols() == 3);
 
         data4 = Dataset(std::vector<std::vector<double>>{{1, 3, 5, 7, 9}, {2, 4, 6, 8, 10}});
         CHECK(data4.x() == Vector{1, 3, 5, 7, 9});
@@ -210,8 +210,8 @@ TEST_CASE("basics") {
         SimpleDataset data6(data4);
         CHECK(data6.x() == Vector{1, 3, 5, 7, 9});
         CHECK(data6.y() == Vector{2, 4, 6, 8, 10});
-        CHECK(data6.N == 5);
-        CHECK(data6.M == 3);
+        CHECK(data6.size_rows() == 5);
+        CHECK(data6.size_cols() == 3);
     }
 }
 

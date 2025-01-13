@@ -11,6 +11,8 @@ namespace ausaxs::hydrate {
             using HydrationStrategy::HydrationStrategy;
             ~NoHydration() override = default;
 
-            std::unique_ptr<Hydration> hydrate() override;
+            bool global() const override {return false;}
+
+            void hydrate() override;
         };
 }

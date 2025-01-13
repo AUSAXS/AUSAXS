@@ -5,6 +5,8 @@
 #include <constants/ConstantsAxes.h>
 #include <utility/TypeTraits.h>
 
+#include <cmath>
+
 namespace ausaxs::hist {
     /**
      * @brief This is a small wrapper around the Container1D class, indicating that the data
@@ -41,24 +43,26 @@ namespace ausaxs::hist {
              * 
              * @param distance The distance to add the value to.
              * @param value The value to add.
+             *
+             * @tparam N A multiplicative factor for the value.
              */
-            void add(float distance, constants::axes::d_type value);
-
-            /**
-             * @brief Add twice the value for a given distance.
-             * 
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             */
-            void add2(float distance, constants::axes::d_type value);
+            template<int N = 1>
+            void add(float distance, constants::axes::d_type value) {
+                index(std::round(distance)) += N*value;
+            }
 
             /**
              * @brief Add a value for a given index.
              * 
              * @param i The index to add the value to.
              * @param value The value to add.
+             *
+             * @tparam N A multiplicative factor for the value.
              */
-            void add_index(int32_t i, constants::axes::d_type value);
+            template<int N = 1>
+            void add_index(int32_t i, constants::axes::d_type value) {
+                index(i) += N*value;
+            }
 
             /**
              * @brief Clear the value for a given distance.

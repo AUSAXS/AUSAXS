@@ -5,8 +5,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <hist/distribution/Distribution3D.h>
 
-#include <cmath>
-
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
@@ -19,7 +17,3 @@ Distribution3D::Distribution3D(const WeightedDistribution3D& other) : container:
         }
     }
 }
-
-void Distribution3D::add(unsigned int x, unsigned int y, float distance, constants::axes::d_type value) {index(x, y, std::round(distance)) += value;}
-void Distribution3D::add2(unsigned int x, unsigned int y, float distance, constants::axes::d_type value) {index(x, y, std::round(distance)) += 2*value;}
-void Distribution3D::add(unsigned int x, unsigned int y, int32_t i, constants::axes::d_type value) {index(x, y, i) += value;}

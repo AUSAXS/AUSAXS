@@ -122,14 +122,6 @@ bool File::exists() const noexcept {
     return std::filesystem::is_regular_file(path());
 }
 
-std::string operator+(std::string_view str, const io::File& file) {
-    return std::string(str) + file.path();
-}
-
-std::string operator+(const io::File& file, std::string_view str) {
-    return file.path() + std::string(str);
-}
-
 std::ostream& operator<<(std::ostream& os, const io::File& file) {
     os << file.path();
     return os;

@@ -8,7 +8,7 @@
 
 namespace ausaxs::hydrate {
     namespace factory {
-        std::unique_ptr<CullingStrategy> construct_culling_strategy(observer_ptr<data::Molecule> molecule);
+        std::unique_ptr<CullingStrategy> construct_culling_strategy(observer_ptr<data::Molecule> molecule, bool global);
         std::unique_ptr<CullingStrategy> construct_culling_strategy(observer_ptr<data::Molecule> grid, const settings::hydrate::CullingStrategy& choice);
     }
 }

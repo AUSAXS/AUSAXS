@@ -1,8 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <data/Body.h>
 #include <data/state/StateManager.h>
 #include <data/state/Signaller.h>
@@ -20,22 +18,21 @@
 #include <settings/MoleculeSettings.h>
 #include <settings/HistogramSettings.h>
 #include <constants/Constants.h>
+#include <utility/Utility.h>
 
 using namespace ausaxs;
-using namespace data::record;
-using namespace data;
+using namespace ausaxs::data;
 
 struct analytical_histogram {
     static void set_unity_charge(Molecule& protein) {
         // set the weights to 1 so we can analytically determine the result
-        // waters
-        for (auto& atom : protein.get_waters()) {
-            atom.set_effective_charge(1);
-        }
-        // atoms
         for (auto& body : protein.get_bodies()) {
             for (auto& atom : body.get_atoms()) {
-                atom.set_effective_charge(1);
+                atom.weight() = 1;
+            }
+            if (body.size_water() == 0) {continue;}
+            for (auto& water : body.get_waters()) {
+                water.weight() = 1;
             }
         }
     }
@@ -85,10 +82,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     SECTION("analytical") {
         SECTION("atoms only") {
             // the following just describes the eight corners of a cube centered at origo
-            std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-            std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-            std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-            std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+            std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+            std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+            std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
             std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
             Molecule protein(a);
             set_unity_charge(protein);
@@ -143,12 +140,12 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
         SECTION("waters only") {
             // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-            std::vector<Atom> a = {};
-            std::vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1), 
-                                    Water(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1), 
-                                    Water(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
-                                    Water(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-            Molecule protein(a, w);
+            std::vector<AtomFF> a = {};
+            std::vector<Water> w = {Water({-1, -1, -1}), Water({-1, 1, -1}), 
+                                    Water({ 1, -1, -1}), Water({ 1, 1, -1}), 
+                                    Water({-1, -1,  1}), Water({-1, 1,  1}),
+                                    Water({ 1, -1,  1}), Water({ 1, 1,  1})};
+            Molecule protein({Body{a, w}});
             set_unity_charge(protein);
 
             { // hm
@@ -202,12 +199,12 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
         SECTION("both waters and atoms") {
             // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-            std::vector<Atom> b1 = {Atom( Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-            std::vector<Atom> b2 = {Atom( Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-            std::vector<Atom> b3 = {Atom( Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-            std::vector<Water> w = {Water(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-            std::vector<Body> a = {Body(b1), Body(b2), Body(b3)};
-            Molecule protein(a, w);
+            std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+            std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+            std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+            std::vector<Water> w = {Water({1, -1,  1}), Water({1, 1, 1})};
+            std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3)};
+            Molecule protein(a);
             set_unity_charge(protein);
 
             { // hm

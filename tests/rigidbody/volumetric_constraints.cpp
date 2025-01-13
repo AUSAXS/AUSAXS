@@ -6,7 +6,6 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/RigidBody.h>
-#include <data/record/Atom.h>
 #include <data/Body.h>
 #include <io/ExistingFile.h>
 #include <settings/MoleculeSettings.h>
@@ -14,8 +13,7 @@
 #include <settings/GeneralSettings.h>
 
 using namespace ausaxs;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs::data;
 
 TEST_CASE("VolumetricConstraints::generate") {
     settings::general::verbose = false;
@@ -23,26 +21,26 @@ TEST_CASE("VolumetricConstraints::generate") {
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("simple") {
-        int distance = settings::rigidbody::bond_distance;
-        Atom a1 = Atom(Vector3<double>(0,  0,  0), 1, constants::atom_t::C, "C", 1);
-        Atom a2 = Atom(Vector3<double>(0,  0,  1*distance), 1, constants::atom_t::C, "C", 1);
-        Atom a3 = Atom(Vector3<double>(0,  0, -1*distance), 1, constants::atom_t::C, "C", 1);
-        Atom a4 = Atom(Vector3<double>(0,  1*distance,  0), 1, constants::atom_t::C, "C", 1);
-        Atom a5 = Atom(Vector3<double>(0, -1*distance,  0), 1, constants::atom_t::C, "C", 1);
-        Atom a6 = Atom(Vector3<double>( 1*distance, 0,  0), 1, constants::atom_t::C, "C", 1);
-        Atom a7 = Atom(Vector3<double>(-1*distance, 0,  0), 1, constants::atom_t::C, "C", 1);
-        Atom a8 = Atom(Vector3<double>(0,  0,  2*distance), 1, constants::atom_t::C, "C", 1);
-        Atom a9 = Atom(Vector3<double>(0,  0,  3*distance), 1, constants::atom_t::C, "C", 1);
+        double distance = settings::rigidbody::bond_distance;
+        AtomFF a1({0,           0,           0}, form_factor::form_factor_t::C);
+        AtomFF a2({0,           0,  1*distance}, form_factor::form_factor_t::C);
+        AtomFF a3({0,           0, -1*distance}, form_factor::form_factor_t::C);
+        AtomFF a4({0,  1*distance,           0}, form_factor::form_factor_t::C);
+        AtomFF a5({0, -1*distance,           0}, form_factor::form_factor_t::C);
+        AtomFF a6({ 1*distance, 0,           0}, form_factor::form_factor_t::C);
+        AtomFF a7({-1*distance, 0,           0}, form_factor::form_factor_t::C);
+        AtomFF a8({0,           0,  2*distance}, form_factor::form_factor_t::C);
+        AtomFF a9({0,           0,  3*distance}, form_factor::form_factor_t::C);
 
-        Body b1 = Body(std::vector<Atom>{a1});
-        Body b2 = Body(std::vector<Atom>{a2});
-        Body b3 = Body(std::vector<Atom>{a3});
-        Body b4 = Body(std::vector<Atom>{a4});
-        Body b5 = Body(std::vector<Atom>{a5});
-        Body b6 = Body(std::vector<Atom>{a6});
-        Body b7 = Body(std::vector<Atom>{a7});
-        Body b8 = Body(std::vector<Atom>{a8});
-        Body b9 = Body(std::vector<Atom>{a9});
+        Body b1 = Body(std::vector<AtomFF>{a1});
+        Body b2 = Body(std::vector<AtomFF>{a2});
+        Body b3 = Body(std::vector<AtomFF>{a3});
+        Body b4 = Body(std::vector<AtomFF>{a4});
+        Body b5 = Body(std::vector<AtomFF>{a5});
+        Body b6 = Body(std::vector<AtomFF>{a6});
+        Body b7 = Body(std::vector<AtomFF>{a7});
+        Body b8 = Body(std::vector<AtomFF>{a8});
+        Body b9 = Body(std::vector<AtomFF>{a9});
         std::vector<Body> ap = {b1, b2, b3, b4, b5, b6, b7, b8, b9};
         rigidbody::RigidBody rigidbody(ap);
         REQUIRE(rigidbody.get_constraint_manager()->distance_constraints.size() == 8);

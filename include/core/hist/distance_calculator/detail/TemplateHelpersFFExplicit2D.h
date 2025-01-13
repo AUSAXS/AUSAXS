@@ -21,13 +21,8 @@ namespace ausaxs {
     inline void evaluate8(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_ww, typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_wx, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         auto res = detail::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 8; ++k) {
-            if constexpr (factor == 1) {
-                p_ww.add(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
-                p_wx.add(data_i.get_ff_type(i), res.distances[k], data_j[j+k].value.w);
-            } else {
-                p_ww.add2(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
-                p_wx.add2(data_i.get_ff_type(i), res.distances[k], data_j[j+k].value.w);
-            }
+            p_ww.template add<factor>(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
+            p_wx.template add<factor>(data_i.get_ff_type(i), res.distances[k], data_j[j+k].value.w);
         }
     }
 
@@ -46,13 +41,8 @@ namespace ausaxs {
     inline void evaluate4(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_ww, typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_wx, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         auto res = detail::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 4; ++k) {
-            if constexpr (factor == 1) {
-                p_ww.add(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
-                p_wx.add(data_i.get_ff_type(i), res.distances[k], data_j[j+k].value.w);
-            } else {
-                p_ww.add2(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
-                p_wx.add2(data_i.get_ff_type(i), res.distances[k], data_j[j+k].value.w);
-            }
+            p_ww.template add<factor>(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
+            p_wx.template add<factor>(data_i.get_ff_type(i), res.distances[k], data_j[j+k].value.w);
         }
     }
 
@@ -70,12 +60,7 @@ namespace ausaxs {
     template<bool use_weighted_distribution, int factor>
     inline void evaluate1(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_ww, typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_wx, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         auto res = detail::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
-        if constexpr (factor == 1) {
-            p_ww.add(data_i.get_ff_type(i), res.distance, res.weight);
-            p_wx.add(data_i.get_ff_type(i), res.distance, data_j[j].value.w);
-        } else {
-            p_ww.add2(data_i.get_ff_type(i), res.distance, res.weight);
-            p_wx.add2(data_i.get_ff_type(i), res.distance, data_j[j].value.w);
-        }
+        p_ww.template add<factor>(data_i.get_ff_type(i), res.distance, res.weight);
+        p_wx.template add<factor>(data_i.get_ff_type(i), res.distance, data_j[j].value.w);
     }
 }

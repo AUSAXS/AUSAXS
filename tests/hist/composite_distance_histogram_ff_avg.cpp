@@ -5,8 +5,6 @@
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <form_factor/FormFactor.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <io/ExistingFile.h>
@@ -18,7 +16,6 @@
 #include "hist/hist_test_helper.h"
 
 using namespace ausaxs;
-using namespace data::record;
 using namespace data;
 
 #define DEBYE_DEBUG 0
@@ -33,11 +30,11 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     auto d = SimpleCube::d;
 
     SECTION("no water") {
-        std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
+        std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b5 = {AtomFF({ 0,  0,  0}, form_factor::form_factor_t::C)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
         DebugMolecule protein(a);
 
@@ -67,6 +64,16 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                     std::cout << "\t24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
                     std::cout << "\t24*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
                     std::cout << "\t8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+
+                    std::cout << "axsum: " << axsum << std::endl;
+                    std::cout << "\t16*sin(" << q_axis[q] << "*" << d[1] << ")/(" << q_axis[q] << "*" << d[1] << ") = " << std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) << std::endl;
+                    std::cout << "\t24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
+                    std::cout << "\t24*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
+                    std::cout << "\t8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+
+                    std::cout << "Iaa: " << aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
+                    std::cout << "Iax: " << axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "Ixx: " << aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
                 }
             #endif
 
@@ -76,17 +83,17 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         }
 
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
     SECTION("with water") {
-        std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 =  {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 =  {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
-        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        DebugMolecule protein(a, w);
+        std::vector<AtomFF> b1 =  {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C),  AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b2 =  {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C),  AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b3 =  {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C),  AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b4 =  {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C),  AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<Water>  w  =  {Water({0,  0,  0})};
+        std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
+        DebugMolecule protein(a);
 
         set_unity_charge(protein);
         double Z = protein.get_volume_grid()*constants::charge::density::water/8;
@@ -134,21 +141,21 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             #endif
         }
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
     SECTION("real scalings") {
-        std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 =  {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 =  {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
-        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        DebugMolecule protein(a, w);
+        std::vector<AtomFF> b1 =  {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b2 =  {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b3 =  {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b4 =  {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<Water>  w  =  {Water({0,  0,  0})};
+        std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
+        DebugMolecule protein(a);
 
         double ZX = protein.get_volume_grid()*constants::charge::density::water/8;
-        double ZC = 6; // 6
-        double ZO = 8; // 8
+        double ZC = constants::charge::nuclear::get_charge(form_factor::form_factor_t::C);
+        double ZO = constants::charge::nuclear::get_charge(form_factor::form_factor_t::OH); 
 
         for (unsigned int q = 0; q < q_axis.size(); ++q) {
             double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
@@ -184,7 +191,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
         }
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
     // TODO: fix this test

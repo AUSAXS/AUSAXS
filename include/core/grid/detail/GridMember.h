@@ -1,5 +1,9 @@
 #pragma once
 
+#include <form_factor/FormFactorType.h>
+#include <grid/detail/GridInternalFwd.h>
+#include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 #include <math/Vector3.h>
 #include <constants/Constants.h>
 
@@ -7,10 +11,10 @@ namespace ausaxs::grid {
     /**
      * @brief This class is used internally in Grid for storing all information about a particular member atom. 
      */
-    template<typename T>
+    template<grid_member_t T>
     class GridMember {
         public:
-            GridMember() = default;
+            GridMember();
 
             /**
              * @brief Copy constructor.
@@ -36,7 +40,7 @@ namespace ausaxs::grid {
              */
             GridMember(T&& atom, Vector3<int> loc);
 
-            ~GridMember() = default;
+            ~GridMember();
 
             /**
              * @brief Get the bin location of this atom.
@@ -81,7 +85,7 @@ namespace ausaxs::grid {
             /**
              * @brief Get the atom type.
              */
-            constants::atom_t get_atom_type() const;
+            form_factor::form_factor_t get_atom_type() const;
 
             GridMember& operator=(const GridMember& gm) = default;
             GridMember& operator=(GridMember&& gm) noexcept = default;
@@ -92,6 +96,5 @@ namespace ausaxs::grid {
             T atom;
             Vector3<int> loc;               // bin location
             bool expanded_volume = false;   // whether the volume of this atom has been expanded
-
     };
 }

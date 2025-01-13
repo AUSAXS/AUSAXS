@@ -3,20 +3,20 @@
 
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Water.h>
-#include <data/record/Record.h>
+#include <io/pdb/PDBStructure.h>
+#include <io/detail/PDBReader.h>
+#include <io/detail/PDBWriter.h>
 #include <utility/Console.h>
 #include <settings/All.h>
 
 #include <vector>
 #include <string>
 #include <fstream>
-#include <filesystem>
 #include <iostream>
 
 using namespace ausaxs;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs::data;
+using namespace ausaxs::io::pdb;
 
 TEST_CASE("PDBReader::read") {
     settings::molecule::center = false;
@@ -34,84 +34,145 @@ TEST_CASE("PDBReader::read") {
     pdb_file.close();
 
     // check PDB io
-    std::unique_ptr<Molecule> protein = std::make_unique<Molecule>(path);
+    auto protein = io::detail::pdb::read(path);
     path = "temp/io/temp2.pdb";
-    protein->save(path);
-    protein = std::make_unique<Molecule>(path);
-    std::vector<Atom> atoms = protein->get_atoms();
-    Atom a = atoms[0];
-
-    if (atoms.size() == 0) {
-        REQUIRE(false);
-        return;
-    }
+    io::detail::pdb::write(protein, path);
+    protein = io::detail::pdb::read(path);
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.
-    CHECK(a.serial == 1);
-    CHECK(a.coords.x() == 2.1);
-    CHECK(a.coords.y() == 3.2);
-    CHECK(a.coords.z() == 4.3);
-    CHECK(a.occupancy == 0.50);
-    CHECK(a.element == constants::atom_t::C);
-    CHECK(a.resName == "ARG");
+    REQUIRE(protein.atoms.size() == 2);
+    CHECK(protein.atoms[0].serial == 1);
+    CHECK(protein.atoms[0].coords.x() == 2.1);
+    CHECK(protein.atoms[0].coords.y() == 3.2);
+    CHECK(protein.atoms[0].coords.z() == 4.3);
+    CHECK(protein.atoms[0].occupancy == 0.50);
+    CHECK(protein.atoms[0].element == constants::atom_t::C);
+    CHECK(protein.atoms[0].resName == "ARG");
+
+    REQUIRE(protein.waters.size() == 2);
+    CHECK(protein.waters[0].serial == 4);
+    CHECK(protein.waters[0].coords.x() == 30.117);
+    CHECK(protein.waters[0].coords.y() == 29.049);
+    CHECK(protein.waters[0].coords.z() == 34.879);
+    CHECK(protein.waters[0].occupancy == 0.94);
+    CHECK(protein.waters[0].element == constants::atom_t::O);
+    CHECK(protein.waters[0].resName == "HOH");
+}
+
+TEST_CASE("PDBReader: add_implicit_hydrogens") {
+    auto generate_molecule = [] () {
+        std::vector<PDBAtom> atoms = {
+            PDBAtom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+            PDBAtom(2, "CA", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(3, "C",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(4, "O",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::O, "0"),
+            PDBAtom(5, "CB", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(6, "CG", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(7, "CD", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(8, "CE", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(9, "NZ", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+        };
+        return io::pdb::PDBStructure({atoms, {}});
+    };
+
+    SECTION("enabled") {
+        auto protein = generate_molecule();
+        protein.add_implicit_hydrogens();
+        auto& atoms = protein.atoms;
+
+        CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].element) + 1);
+        CHECK(atoms[0].atomic_group == constants::atomic_group_t::NH);
+
+        CHECK(atoms[1].effective_charge == constants::charge::nuclear::get_charge(atoms[1].element) + 1);
+        CHECK(atoms[1].atomic_group == constants::atomic_group_t::CH);
+
+        CHECK(atoms[2].effective_charge == constants::charge::nuclear::get_charge(atoms[2].element) + 0);
+        CHECK(atoms[2].atomic_group == constants::atomic_group_t::unknown);
+
+        CHECK(atoms[3].effective_charge == constants::charge::nuclear::get_charge(atoms[3].element) + 0);
+        CHECK(atoms[3].atomic_group == constants::atomic_group_t::unknown);
+
+        CHECK(atoms[4].effective_charge == constants::charge::nuclear::get_charge(atoms[4].element) + 2);
+        CHECK(atoms[4].atomic_group == constants::atomic_group_t::CH2);
+
+        CHECK(atoms[5].effective_charge == constants::charge::nuclear::get_charge(atoms[5].element) + 2);
+        CHECK(atoms[5].atomic_group == constants::atomic_group_t::CH2);
+
+        CHECK(atoms[6].effective_charge == constants::charge::nuclear::get_charge(atoms[6].element) + 2);
+        CHECK(atoms[6].atomic_group == constants::atomic_group_t::CH2);
+
+        CHECK(atoms[7].effective_charge == constants::charge::nuclear::get_charge(atoms[7].element) + 2);
+        CHECK(atoms[7].atomic_group == constants::atomic_group_t::CH2);
+
+        CHECK(atoms[8].effective_charge == constants::charge::nuclear::get_charge(atoms[8].element) + 3);
+        CHECK(atoms[8].atomic_group == constants::atomic_group_t::NH3);
+    }
+
+    SECTION("disabled") {
+        auto protein = generate_molecule();
+
+        for (auto a : protein.atoms) {
+            CHECK(a.effective_charge == constants::charge::nuclear::get_charge(a.element));
+            CHECK(a.atomic_group == constants::atomic_group_t::unknown);
+        }
+    }
 }
 
 TEST_CASE("PDBWriter: writing multifile pdb") {
     settings::molecule::implicit_hydrogens = false;
 
-    std::vector<Atom> atoms(101000);
-    for (unsigned int i = 0; i < atoms.size(); i++) {
-        atoms[i] = Atom({1,2,3}, 1, constants::atom_t::C, "LYS", i);
+    std::vector<AtomFF> atoms(101000);
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        atoms[i] = AtomFF({1, 2, 3}, form_factor::form_factor_t::C);
     }
     std::vector<Water> waters(100);
-    for (unsigned int i = 0; i < waters.size(); i++) {
-        waters[i] = Water({1,2,3}, 1, constants::atom_t::O, "HOH", i);
+    for (int i = 0; i < static_cast<int>(waters.size()); ++i) {
+        waters[i] = Water({1, 2, 3});
     }
 
-    Molecule protein(atoms, waters);
+    Molecule protein({{atoms, waters}});
     protein.save("temp/io/temp_multifile.pdb");
     
-    REQUIRE(std::filesystem::exists("temp/io/temp_multifile_part1.pdb"));
-    REQUIRE(std::filesystem::exists("temp/io/temp_multifile_part2.pdb"));
+    REQUIRE(io::File("temp/io/temp_multifile_part1.pdb").exists());
+    REQUIRE(io::File("temp/io/temp_multifile_part2.pdb").exists());
 
     // first file
     Molecule protein2("temp/io/temp_multifile_part1.pdb");
     REQUIRE(protein2.get_body(0).size_atom() == 100000);
-    REQUIRE(protein2.get_body(0).get_atoms().back().serial == 99999);
 
     Molecule protein3("temp/io/temp_multifile_part2.pdb");
     REQUIRE(protein3.get_body(0).size_atom() == 1000);
-    for (int i = 0; i < 1000; i++) {
-        REQUIRE(protein3.get_body(0).get_atom(i).serial == i);
-    }
-    REQUIRE(protein3.get_body(0).get_file().terminate.serial == 1000);
     REQUIRE(protein3.size_water() == 100);
-    for (int i = 0; i < 100; i++) {
-        REQUIRE(protein3.get_water(i).serial == i+1001);
+
+    Molecule protein4("temp/io/temp_multifile.pdb");
+    REQUIRE(protein.size_body() == protein4.size_body());
+    for (unsigned int i = 0; i < protein.get_bodies().size(); ++i) {
+        REQUIRE(protein.get_body(i).equals_content(protein4.get_body(i)));
     }
 }
 
 TEST_CASE("PDBReader: can_parse_hydrogens") {
-    std::vector<std::string> val = {"ATOM      1  N   VAL     1      -3.299   8.066 -11.443  1.00  0.00           N",
-                                    "ATOM      2  H   VAL     1      -3.411   8.677 -12.239  1.00  0.00           H",
-                                    "ATOM      3  CA  VAL     1      -3.085   6.673 -11.780  1.00  0.00           C",
-                                    "ATOM      4  HA  VAL     1      -3.328   6.080 -10.899  1.00  0.00           H",
-                                    "ATOM      5  CB  VAL     1      -3.927   6.165 -12.947  1.00  0.00           C",
-                                    "ATOM      6  HB  VAL     1      -3.774   6.930 -13.708  1.00  0.00           H",
-                                    "ATOM      7  CG1 VAL     1      -3.577   4.780 -13.486  1.00  0.00           C",
-                                    "ATOM      8 HG11 VAL     1      -3.508   4.011 -12.716  1.00  0.00           H",
-                                    "ATOM      9 HG12 VAL     1      -4.289   4.438 -14.237  1.00  0.00           H",
-                                    "ATOM     10 HG13 VAL     1      -2.612   4.760 -13.992  1.00  0.00           H",
-                                    "ATOM     11  CG2 VAL     1      -5.370   6.065 -12.463  1.00  0.00           C",
-                                    "ATOM     12 HG21 VAL     1      -5.876   7.021 -12.328  1.00  0.00           H",
-                                    "ATOM     13 HG22 VAL     1      -6.043   5.567 -13.162  1.00  0.00           H",
-                                    "ATOM     14 HG23 VAL     1      -5.354   5.510 -11.524  1.00  0.00           H",
-                                    "ATOM     15  C   VAL     1      -1.621   6.436 -12.123  1.00  0.00           C",
-                                    "ATOM     16  O   VAL     1      -1.200   7.045 -13.104  1.00  0.00           O",
+    std::vector<std::string> val = {
+        "ATOM      1  N   VAL     1      -3.299   8.066 -11.443  1.00  0.00           N",
+        "ATOM      2  H   VAL     1      -3.411   8.677 -12.239  1.00  0.00           H",
+        "ATOM      3  CA  VAL     1      -3.085   6.673 -11.780  1.00  0.00           C",
+        "ATOM      4  HA  VAL     1      -3.328   6.080 -10.899  1.00  0.00           H",
+        "ATOM      5  CB  VAL     1      -3.927   6.165 -12.947  1.00  0.00           C",
+        "ATOM      6  HB  VAL     1      -3.774   6.930 -13.708  1.00  0.00           H",
+        "ATOM      7  CG1 VAL     1      -3.577   4.780 -13.486  1.00  0.00           C",
+        "ATOM      8 HG11 VAL     1      -3.508   4.011 -12.716  1.00  0.00           H",
+        "ATOM      9 HG12 VAL     1      -4.289   4.438 -14.237  1.00  0.00           H",
+        "ATOM     10 HG13 VAL     1      -2.612   4.760 -13.992  1.00  0.00           H",
+        "ATOM     11  CG2 VAL     1      -5.370   6.065 -12.463  1.00  0.00           C",
+        "ATOM     12 HG21 VAL     1      -5.876   7.021 -12.328  1.00  0.00           H",
+        "ATOM     13 HG22 VAL     1      -6.043   5.567 -13.162  1.00  0.00           H",
+        "ATOM     14 HG23 VAL     1      -5.354   5.510 -11.524  1.00  0.00           H",
+        "ATOM     15  C   VAL     1      -1.621   6.436 -12.123  1.00  0.00           C",
+        "ATOM     16  O   VAL     1      -1.200   7.045 -13.104  1.00  0.00           O",
     };
 
-    Atom atom;
+    PDBAtom atom;
     atom.parse_pdb(val[7]);
     REQUIRE(atom.name == "HG11");
     REQUIRE(atom.element == constants::atom_t::H);

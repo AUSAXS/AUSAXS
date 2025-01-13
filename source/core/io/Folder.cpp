@@ -27,6 +27,8 @@ Folder::operator std::string() const {return dir;}
 
 std::string Folder::path() const {return dir;}
 
+std::string Folder::str() const {return path();}
+
 bool Folder::empty() const noexcept {return dir.empty();}
 
 bool Folder::exists() const noexcept {
@@ -53,15 +55,6 @@ std::vector<io::Folder> Folder::directories() const {
 void Folder::create() const {
     if (exists()) {return;}
     std::filesystem::create_directories(dir);
-}
-
-std::string operator+(const io::Folder& folder, std::string_view str) {
-    return folder.path() + "/" + std::string(str);
-}
-
-std::string operator+(std::string_view str, const io::Folder& folder) {
-    auto s = str.back() == '/' ? str.substr(0, str.size() - 1) : str;
-    return std::string(s) + "/" + folder.path();
 }
 
 template Folder::Folder(const char* const&);

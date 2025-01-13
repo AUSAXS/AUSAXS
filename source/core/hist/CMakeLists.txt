@@ -3,9 +3,6 @@ target_sources(ausaxs_core PRIVATE
 	"Histogram2D.cpp"
 	
 	"detail/BodyTracker.cpp"
-	"detail/CompactCoordinates.cpp"
-	"detail/CompactCoordinatesData.cpp"
-	"detail/CompactCoordinatesFF.cpp"
 	"detail/MasterHistogram.cpp"
 	"detail/SimpleExvModel.cpp"
 

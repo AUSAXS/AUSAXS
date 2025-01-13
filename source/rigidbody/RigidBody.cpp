@@ -15,13 +15,13 @@ For more information, please refer to the LICENSE file in the project root.
 #include <mini/detail/Evaluation.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
-#include <io/XYZWriter.h>
+#include <io/detail/XYZWriter.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/LinearFitter.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
+#include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 #include <data/Body.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -35,10 +35,6 @@ using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::rigidbody::parameter;
 
 RigidBody::~RigidBody() = default;
-
-RigidBody::RigidBody(data::Molecule&& protein) : data::Molecule(std::move(protein)) {
-    initialize();
-}
 
 void RigidBody::initialize() {
     parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, std::numbers::pi/3);
@@ -81,7 +77,7 @@ std::shared_ptr<fitter::FitResult> RigidBody::optimize(const io::ExistingFile& m
     }
 
     // prepare the trajectory output
-    io::XYZWriter trajectory(settings::general::output + "trajectory.xyz");
+    io::detail::xyz::XYZWriter trajectory(settings::general::output + "trajectory.xyz");
     trajectory.write_frame(this);
 
     for (unsigned int i = 0; i < settings::rigidbody::iterations; i++) {

@@ -9,20 +9,18 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/culling/BodyCounterCulling.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-#include <data/record/Water.h>
 
 #include <random>
 
 using namespace ausaxs;
-using namespace ausaxs::data::record;
 
 template<typename Wrapped>
 hydrate::RandomCulling<Wrapped>::RandomCulling::~RandomCulling() = default;
 
 template<typename Wrapped>
-std::vector<data::record::Water> hydrate::RandomCulling<Wrapped>::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
+void hydrate::RandomCulling<Wrapped>::cull(std::span<grid::GridMember<data::Water>>& placed_water) const {
     std::shuffle(placed_water.begin(), placed_water.end(), std::mt19937{std::random_device{}()}); // shuffle the molecules
-    return Wrapped::cull(placed_water);
+    Wrapped::cull(placed_water);
 }
 
 template class ausaxs::hydrate::RandomCulling<hydrate::CounterCulling>;

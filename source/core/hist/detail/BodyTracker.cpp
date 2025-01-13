@@ -7,8 +7,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
 #include <data/Molecule.h>
-#include <data/Body.h>
-#include <data/record/Atom.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 #include <constants/Constants.h>
 #include <io/ExistingFile.h>
-#include <io/CIFReader.h>
+#include <io/detail/CIFReader.h>
 
 #include <sstream>
 
@@ -118,8 +118,8 @@ ResidueMap Residue::to_map() const {
 }
 
 Residue Residue::parse(const io::ExistingFile& filename) {
-    auto residues = io::detail::CIFReader::read_residue(filename);
-    if (1 < residues.size()) {throw except::io_error("Residue::parse: Expected a single residue in file \"" + filename + "\"");}
+    auto residues = io::detail::cif::read_residue(filename);
+    if (1 < residues.size()) {throw except::io_error("Residue::parse: Expected a single residue in file \"" + filename.str() + "\"");}
     return residues.front();
 }
 

@@ -9,23 +9,22 @@
 #include <data/state/StateManager.h>
 #include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
-#include <data/record/Water.h>
 #include <data/Body.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
+#include <io/Writer.h>
 
 #include <vector>
 #include <string>
-#include <iostream>
 
 using namespace ausaxs;
-using namespace data::record;
 using namespace data;
 
 struct fixture {
-    std::vector<Atom> a = {Atom(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1, -1), 1, 0, constants::atom_t::C, "0"),
-                           Atom(3, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1, -1), 1, 0, constants::atom_t::C, "0"),
-                           Atom(5, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0"), Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1,  1), 1, 0, constants::atom_t::C, "0"),
-                           Atom(7, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0"), Atom(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1,  1), 1, 0, constants::atom_t::C, "0")
+    std::vector<AtomFF> a = {
+        AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
+        AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),
+        AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
+        AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
     };
     Body body = Body(a);
 };
@@ -35,21 +34,21 @@ struct multiple_fixture {
         settings::molecule::center = false;
     }
 
-    Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1);
-    Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, constants::atom_t::C, "C", 1);
-    Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1);
-    Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, constants::atom_t::C, "C", 1);
-    Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1);
-    Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, constants::atom_t::C, "C", 1);
-    Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1);
-    Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, constants::atom_t::He, "He", 1);
-    Water w1 = Water(Vector3<double>(0, 1, 2), 1, constants::atom_t::H, "H", 1);
-    Water w2 = Water(Vector3<double>(3, 4, 5), 1, constants::atom_t::H, "H", 1);
+    AtomFF a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
+    AtomFF a2 = AtomFF({-1,  1, -1}, form_factor::form_factor_t::C);
+    AtomFF a3 = AtomFF({-1, -1,  1}, form_factor::form_factor_t::C);
+    AtomFF a4 = AtomFF({-1,  1,  1}, form_factor::form_factor_t::C);
+    AtomFF a5 = AtomFF( {1, -1, -1}, form_factor::form_factor_t::C);
+    AtomFF a6 = AtomFF( {1,  1, -1}, form_factor::form_factor_t::C);
+    AtomFF a7 = AtomFF( {1, -1,  1}, form_factor::form_factor_t::C);
+    AtomFF a8 = AtomFF( {1,  1,  1}, form_factor::form_factor_t::H);
+    Water w1 = Water({0, 1, 2});
+    Water w2 = Water({3, 4, 5});
 
-    Body b1 = Body(std::vector<Atom>{a1, a2});
-    Body b2 = Body(std::vector<Atom>{a3, a4});
-    Body b3 = Body(std::vector<Atom>{a5, a6});
-    Body b4 = Body(std::vector<Atom>{a7, a8});
+    Body b1 = Body(std::vector<AtomFF>{a1, a2});
+    Body b2 = Body(std::vector<AtomFF>{a3, a4});
+    Body b3 = Body(std::vector<AtomFF>{a5, a6});
+    Body b4 = Body(std::vector<AtomFF>{a7, a8});
     std::vector<Body> ap = {b1, b2, b3, b4};
 };
 
@@ -59,29 +58,29 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
         io::ExistingFile ef("tests/files/2epe.pdb");
         Body b(ef);
         REQUIRE(b.size_atom() == 1001);
-        REQUIRE(b.get_waters().size() == 48);
+        REQUIRE(b.size_water() == 48);
     }
 
     SECTION("vector<Atom>&") {
-        Body b(std::vector<Atom>{a1, a2});
-        REQUIRE(b.get_atoms().size() == 2);
+        Body b(std::vector<AtomFF>{a1, a2});
+        REQUIRE(b.size_atom() == 2);
         CHECK(b.get_atom(0) == a1);
         CHECK(b.get_atom(1) == a2);
     }
 
     SECTION("vector<Atom>&, vector<Water>&") {
-        Body b(std::vector<Atom>{a1, a2}, std::vector<Water>{w1, w2});
-        REQUIRE(b.get_atoms().size() == 2);
+        Body b(std::vector<AtomFF>{a1, a2}, std::vector<Water>{w1, w2});
+        REQUIRE(b.size_atom() == 2);
         CHECK(b.get_atom(0) == a1);
         CHECK(b.get_atom(1) == a2);
-        REQUIRE(b.get_waters().size() == 2);
+        REQUIRE(b.size_water() == 2);
         CHECK(b.get_waters()[0] == w1);
         CHECK(b.get_waters()[1] == w2);
     }
 
     SECTION("Body&") {
         Body b(b1);
-        REQUIRE(b.get_atoms().size() == 2);
+        REQUIRE(b.size_atom() == 2);
         CHECK(b.get_atom(0) == a1);
         CHECK(b.get_atom(1) == a2);
 
@@ -92,29 +91,31 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
 
     SECTION("Body&&") {
         Body b5 = std::move(b1);
-        REQUIRE(b5.get_atoms().size() == 2);
+        REQUIRE(b5.size_atom() == 2);
         CHECK(b5.get_atom(0) == a1);
         CHECK(b5.get_atom(1) == a2);
     }
 }
 
 TEST_CASE("Body::save") {
+    settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
-    std::vector<Atom> a = {Atom(1, "C"  , "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1, -1), 1, 0, constants::atom_t::C, "0"),
-                           Atom(3, "O"  , "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::O, "0"), Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1, -1), 1, 0, constants::atom_t::C, "0"),
-                           Atom(5, "N"  , "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::N, "0"), Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1,  1), 1, 0, constants::atom_t::C, "0"),
-                           Atom(7, "OXT", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::O, "0"), Atom(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1,  1), 1, 0, constants::atom_t::C, "0")};
-    Body body(a, {});
-
-    body.save("temp/body_io.pdb");
+    std::vector<AtomFF> a = {
+        AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
+        AtomFF({ 1, -1, -1}, form_factor::form_factor_t::O), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),
+        AtomFF({-1, -1,  1}, form_factor::form_factor_t::N), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
+        AtomFF({ 1, -1,  1}, form_factor::form_factor_t::O), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
+    };
+    Body body(a);
+    io::Writer::write({body}, "temp/body_io.pdb");
     Body body2("temp/body_io.pdb");
 
-    CHECK(body.get_atoms().size() == body2.get_atoms().size());
-    for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
-        CHECK(body.get_atom(i).as_pdb() == body2.get_atom(i).as_pdb());
+    CHECK(body.size_atom() == body2.size_atom());
+    for (unsigned int i = 0; i < body.size_atom(); i++) {
+        CHECK(body.get_atom(i) == body2.get_atom(i));
     }
 
-    remove("temp/body_io.pdb");
+    std::remove("temp/body_io.pdb");
 }
 
 TEST_CASE_METHOD(fixture, "Body::get_atoms") {
@@ -130,7 +131,7 @@ TEST_CASE_METHOD(fixture, "Body::get_atom") {
 
 TEST_CASE_METHOD(multiple_fixture, "Body::get_waters") {
     auto waters = std::vector<Water>{w1, w2};
-    Body body(std::vector<Atom>{a1, a2}, waters);
+    Body body(std::vector<AtomFF>{a1, a2}, waters);
     REQUIRE(body.get_waters() == waters);
 }
 
@@ -144,57 +145,15 @@ TEST_CASE_METHOD(fixture, "Body::get_cm") {
 // }
 
 TEST_CASE_METHOD(fixture, "Body::molar_mass") {
-    CHECK_THAT(body.get_molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(constants::atom_t::C)*constants::Avogadro, 1e-6));
+    CHECK_THAT(body.get_molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(form_factor::form_factor_t::C)*constants::Avogadro, 1e-6));
 }
 
 TEST_CASE_METHOD(fixture, "Body::absolute_mass") {
-    CHECK_THAT(body.get_absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(constants::atom_t::C), 1e-6));
+    CHECK_THAT(body.get_absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(form_factor::form_factor_t::C), 1e-6));
 }
 
 TEST_CASE_METHOD(fixture, "Body::total_atomic_charge") {
     CHECK(body.get_total_atomic_charge() == 8*6);
-}
-
-TEST_CASE_METHOD(fixture, "Body::center") {
-    settings::molecule::implicit_hydrogens = false;
-    
-    SECTION("trivial center") {
-        body.translate(Vector3<double>{-1, -1, -1});
-        body.center();
-        CHECK(body.get_atom(0).coords == Vector3<double>{-1, -1, -1});
-        CHECK(body.get_atom(1).coords == Vector3<double>{-1,  1, -1});
-        CHECK(body.get_atom(2).coords == Vector3<double>{ 1, -1, -1});
-        CHECK(body.get_atom(3).coords == Vector3<double>{ 1,  1, -1});
-    }
-
-    SECTION("non-trivial center") {
-        auto a = {  Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), 
-                    Atom(Vector3<double>(-1,  1, -1), 1, constants::atom_t::O, "O", 1),
-                    Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), 
-                    Atom(Vector3<double>( 1,  1, -1), 1, constants::atom_t::O, "O", 1)
-        };
-        body = Body(a);
-
-        body.center();
-        double shift = 0.142402;
-
-        // make checks in a roundabout fashion for better failure messages
-        auto res = Vector3<double>{-1, -1-shift, 0};
-        if (body.get_atom(0).coords.equals(res, 1e-3)) {CHECK(true);}
-        else {CHECK(body.get_atom(0).coords == res);}
-
-        res = Vector3<double>{-1, 1-shift, 0};
-        if (body.get_atom(1).coords.equals(res, 1e-3)) {CHECK(true);}
-        else {CHECK(body.get_atom(1).coords == res);}
-
-        res = Vector3<double>{1, -1-shift, 0};
-        if (body.get_atom(2).coords.equals(res, 1e-3)) {CHECK(true);}
-        else {CHECK(body.get_atom(2).coords == res);}
-
-        res = Vector3<double>{1, 1-shift, 0};
-        if (body.get_atom(3).coords.equals(res, 1e-3)) {CHECK(true);}
-        else {CHECK(body.get_atom(3).coords == res);}
-    }
 }
 
 TEST_CASE_METHOD(fixture, "Body::translate") {
@@ -202,10 +161,10 @@ TEST_CASE_METHOD(fixture, "Body::translate") {
 
     SECTION("basic translation") {
         body.translate(Vector3<double>{1, 1, 1});
-        CHECK(body.get_atom(0).coords == Vector3<double>{0, 0, 0});
-        CHECK(body.get_atom(1).coords == Vector3<double>{0, 2, 0});
-        CHECK(body.get_atom(2).coords == Vector3<double>{2, 0, 0});
-        CHECK(body.get_atom(3).coords == Vector3<double>{2, 2, 0});
+        CHECK(body.get_atom(0).coordinates() == Vector3<double>{0, 0, 0});
+        CHECK(body.get_atom(1).coordinates() == Vector3<double>{0, 2, 0});
+        CHECK(body.get_atom(2).coordinates() == Vector3<double>{2, 0, 0});
+        CHECK(body.get_atom(3).coordinates() == Vector3<double>{2, 2, 0});
     }
 
     SECTION("informs manager") {
@@ -213,8 +172,8 @@ TEST_CASE_METHOD(fixture, "Body::translate") {
         auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
         manager->reset_to_false();
         protein.get_body(0).translate(Vector3<double>(10, 0, 0));
-        CHECK(protein.get_body(0).get_atom(0).coords == Vector3<double>(9, -1, -1));
-        CHECK(protein.get_body(0).get_atom(1).coords == Vector3<double>(9, 1, -1));
+        CHECK(protein.get_body(0).get_atom(0).coordinates() == Vector3<double>(9, -1, -1));
+        CHECK(protein.get_body(0).get_atom(1).coordinates() == Vector3<double>(9, 1, -1));
         CHECK(manager->get_externally_modified_bodies()[0] == true);
     }
 }
@@ -224,63 +183,66 @@ TEST_CASE("Body::rotate") {
 
     SECTION("Vector3<double>&, double") {
         SECTION("simple") {
-            std::vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1), 
-                                   Atom(Vector3<double>(0, 1, 0), 1, constants::atom_t::C, "C", 1), 
-                                   Atom(Vector3<double>(0, 0, 1), 1, constants::atom_t::C, "C", 1)};
-            Body body(a, {});
+            std::vector<AtomFF> a = {
+                AtomFF({1, 0, 0}, form_factor::form_factor_t::C), 
+                AtomFF({0, 1, 0}, form_factor::form_factor_t::C), 
+                AtomFF({0, 0, 1}, form_factor::form_factor_t::C)};
+            Body body(a);
 
             Vector3<double> axis = {0, 1, 0};
-            body.rotate(axis, M_PI_2);
-            CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coords); 
-            CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coords); 
-            CHECK(Vector3<double>({1, 0, 0}) == body.get_atom(2).coords); 
+            body.rotate(matrix::rotation_matrix(axis, M_PI_2));
+            CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coordinates()); 
+            CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coordinates()); 
+            CHECK(Vector3<double>({1, 0, 0}) == body.get_atom(2).coordinates()); 
 
             axis = {1, 1, 1};
-            body.rotate(axis, M_PI/4);
-            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}) == body.get_atom(0).coords); 
-            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}) == body.get_atom(1).coords); 
-            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}) == body.get_atom(2).coords); 
+            body.rotate(matrix::rotation_matrix(axis, M_PI/4));
+            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}) == body.get_atom(0).coordinates()); 
+            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}) == body.get_atom(1).coordinates()); 
+            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}) == body.get_atom(2).coordinates()); 
         }
 
         SECTION("complex") {
-            std::vector<Atom> a = {Atom(Vector3<double>(0, 2, 1), 1, constants::atom_t::C, "C", 1), 
-                                   Atom(Vector3<double>(5, 1, 3), 1, constants::atom_t::C, "C", 1), 
-                                   Atom(Vector3<double>(6, 1, 4), 1, constants::atom_t::C, "C", 1),
-                                   Atom(Vector3<double>(3, 7, 2), 1, constants::atom_t::C, "C", 1)};
-            Body body(a, {});
+            std::vector<AtomFF> a = {
+                AtomFF({0, 2, 1}, form_factor::form_factor_t::C), 
+                AtomFF({5, 1, 3}, form_factor::form_factor_t::C), 
+                AtomFF({6, 1, 4}, form_factor::form_factor_t::C),
+                AtomFF({3, 7, 2}, form_factor::form_factor_t::C)};
+            Body body(a);
 
             Vector3<double> axis = {0.5, 2, 1};
-            body.rotate(axis, 1.8);
-            REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559}) == body.get_atom(0).coords); 
-            REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.get_atom(1).coords); 
-            REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794}) == body.get_atom(2).coords); 
-            REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825}) == body.get_atom(3).coords); 
+            body.rotate(matrix::rotation_matrix(axis, 1.8));
+            REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559}) == body.get_atom(0).coordinates()); 
+            REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.get_atom(1).coordinates()); 
+            REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794}) == body.get_atom(2).coordinates()); 
+            REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825}) == body.get_atom(3).coordinates()); 
         }
     }
 
     SECTION("double, double, double, ") {
         SECTION("simple") {
-            std::vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1), 
-                                   Atom(Vector3<double>(0, 1, 0), 1, constants::atom_t::C, "C", 1), 
-                                   Atom(Vector3<double>(0, 0, 1), 1, constants::atom_t::C, "C", 1)};
-            Body body(a, {});
+            std::vector<AtomFF> a = {
+                AtomFF({1, 0, 0}, form_factor::form_factor_t::C), 
+                AtomFF({0, 1, 0}, form_factor::form_factor_t::C), 
+                AtomFF({0, 0, 1}, form_factor::form_factor_t::C)};
+            Body body(a);
 
-            body.rotate(0, M_PI_2, 0);
-            CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coords); 
-            CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coords); 
-            CHECK(Vector3<double>({1, 0, 0}) == body.get_atom(2).coords); 
+            body.rotate(matrix::rotation_matrix(0., M_PI_2, 0.));
+            CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coordinates()); 
+            CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coordinates()); 
+            CHECK(Vector3<double>({1, 0, 0}) == body.get_atom(2).coordinates()); 
 
-            body.rotate(0.5612026, 0.3158423, 0.5612026);
-            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}).equals(body.get_atom(0).coords, 1e-3));
-            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}).equals(body.get_atom(1).coords, 1e-3));
-            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}).equals(body.get_atom(2).coords, 1e-3));
+            body.rotate(matrix::rotation_matrix(0.5612026, 0.3158423, 0.5612026));
+            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}).equals(body.get_atom(0).coordinates(), 1e-3));
+            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}).equals(body.get_atom(1).coordinates(), 1e-3));
+            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}).equals(body.get_atom(2).coordinates(), 1e-3));
         }
     }
 }
 
 #include <data/state/BoundSignaller.h>
 TEST_CASE("Body::register_probe") {
-    Body body({Atom(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1)}, {});
+    Body body(std::vector<AtomFF>{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)});
     auto probe = std::make_shared<signaller::BoundSignaller>(1, nullptr);
     body.register_probe(probe);
     REQUIRE(probe == body.get_signaller());
@@ -298,7 +260,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body::operator=") {
     // assignment with temporary bodies
     b1 = Body();
     {
-        Body b5({a1, a2});
+        Body b5(std::vector<AtomFF>{a1, a2});
         b1 = b5;
     }
     REQUIRE(b1.get_atoms().size() == 2);
@@ -307,19 +269,14 @@ TEST_CASE_METHOD(multiple_fixture, "Body::operator=") {
 }
 
 TEST_CASE("Body::operator==") {
-    std::vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-    std::vector<Atom> a2 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<AtomFF> a1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> a2 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
     Body b1(a1);
     Body b2(a2);
 
     CHECK(!(b1 == b2)); // even though they have the same contents, body equality is defined exclusively by a uid
     Body b2c = b2;
     CHECK(b2 == b2c);
-}
-
-TEST_CASE("Body::get_file") {
-    Body b1, b2;
-    CHECK(b1.get_file() != b2.get_file());
 }
 
 TEST_CASE_METHOD(fixture, "Body::state") {
@@ -330,20 +287,20 @@ TEST_CASE_METHOD(fixture, "Body::state") {
     manager->reset_to_false();
 
     SECTION("Body::changed_external_state") {
-        protein.get_body(0).changed_external_state();
+        protein.get_body(0).get_signaller()->external_change();
         CHECK(manager->get_externally_modified_bodies()[0] == true);
     }
 
     SECTION("Body::changed_internal_state") {
-        protein.get_body(0).changed_internal_state();
+        protein.get_body(0).get_signaller()->internal_change();
         CHECK(manager->get_internally_modified_bodies()[0] == true);
     }
 }
 
 TEST_CASE_METHOD(fixture, "Body::get_id") {
-    int id = body.get_id();
+    int id = body.get_uid();
     Body b2(a);
-    CHECK(id+1 == b2.get_id());
+    CHECK(id+1 == b2.get_uid());
 }
 
 TEST_CASE_METHOD(fixture, "Body::atom_size") {

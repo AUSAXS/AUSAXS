@@ -87,7 +87,7 @@ const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableTy
     auto[aa, aw, ww] = cache_get_distance_profiles();
     assert(aa.size() == p.size() && aw.size() == p.size() && ww.size() == p.size() && "CompositeDistanceHistogramFFAvgBase::get_counts(): Count mismatch.");
     for (unsigned int i = 0; i < p.size(); ++i) {
-        p[i] = aa.index(i) + free_params.cw*aw.index(i) + free_params.cw*free_params.cw*ww.index(i);
+        p[i] = aa.index(i) + 2*free_params.cw*aw.index(i) + free_params.cw*free_params.cw*ww.index(i);
     }
     return p.data;
 }
@@ -436,7 +436,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                    cache.intensity_profiles.ax[q-q0] += free_params.crho*cx[q-q0]*cache.sinqd.ax.index(ff1, q-q0)*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
+                    cache.intensity_profiles.ax[q-q0] += 2*free_params.crho*cx[q-q0]*cache.sinqd.ax.index(ff1, q-q0)*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
                 }
             }
         });
@@ -454,7 +454,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                    cache.intensity_profiles.aw[q-q0] += free_params.cw*cache.sinqd.aw.index(ff1, q-q0)*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
+                    cache.intensity_profiles.aw[q-q0] += 2*free_params.cw*cache.sinqd.aw.index(ff1, q-q0)*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
                 }
             }
         });
@@ -471,7 +471,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
         // wx
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                cache.intensity_profiles.wx[q-q0] += free_params.crho*cx[q-q0]*free_params.cw*cache.sinqd.wx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
+                cache.intensity_profiles.wx[q-q0] += 2*free_params.crho*cx[q-q0]*free_params.cw*cache.sinqd.wx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
             }
         });
     }

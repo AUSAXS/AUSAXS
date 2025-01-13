@@ -192,12 +192,12 @@ TEST_CASE("rotations", "[math]") {
     Matrix<double> C({{2, 3}, {3, 4}});
 
     // check basic rotations
-    Matrix R = matrix::rotation_matrix(M_PI/2, 0, 0);
+    Matrix R = matrix::rotation_matrix(M_PI/2, 0., 0.);
     REQUIRE(R == Matrix{{1, 0, 0}, {0, 0, -1}, {0, 1, 0}});
 
-    R = matrix::rotation_matrix(0, M_PI/2, 0);
+    R = matrix::rotation_matrix(0., M_PI/2, 0.);
     REQUIRE(R == Matrix{{0, 0, 1}, {0, 1, 0}, {-1, 0, 0}});
 
-    R = matrix::rotation_matrix(0, 0, M_PI/2);
+    R = matrix::rotation_matrix(0., 0., M_PI/2);
     REQUIRE(R == Matrix{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}});
 }

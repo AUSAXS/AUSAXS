@@ -9,7 +9,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/RigidBody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-#include <data/record/Atom.h>
 
 #include <vector>
 
@@ -42,14 +41,14 @@ void TransformStrategy::apply(const Matrix<double>& M, const Vector3<double>& t,
     bodybackup.emplace_back(body, ibody);
 
     auto grid = rigidbody->get_grid();
-    grid->remove(&body);
+    grid->remove(body);
 
     auto cm = body.get_cm();
     body.translate(-cm);
     body.rotate(M);
     body.translate(cm + t);
 
-    grid->add(&body);
+    grid->add(body);
 }
 
 void TransformStrategy::undo() {

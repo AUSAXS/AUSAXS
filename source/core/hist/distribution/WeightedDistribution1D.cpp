@@ -7,7 +7,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distribution/Distribution1D.h>
 #include <constants/Constants.h>
 
-#include <cmath>
 #include <vector>
 #include <cassert>
 #include <algorithm>
@@ -25,20 +24,6 @@ WeightedDistribution1D::WeightedDistribution1D(const std::vector<constants::axes
 
 std::vector<constants::axes::d_type> WeightedDistribution1D::as_vector() const {
     return get_content();
-}
-
-void WeightedDistribution1D::add_index(int32_t i, const detail::WeightedEntry& value) {
-    index(i) += value;
-}
-
-void WeightedDistribution1D::add(float distance, constants::axes::d_type value) {
-    int i = std::round(distance*constants::axes::d_inv_width);
-    index(i).add(distance, value);
-}
-
-void WeightedDistribution1D::add2(float distance, constants::axes::d_type value) {
-    int i = std::round(distance*constants::axes::d_inv_width);
-    index(i).add2(distance, value);
 }
 
 void WeightedDistribution1D::clear(int32_t i) {

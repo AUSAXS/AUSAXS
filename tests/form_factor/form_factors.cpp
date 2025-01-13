@@ -108,7 +108,7 @@ TEST_CASE("FormFactor: comparison with Waasmeier & Kirfel") {
     FormFactor Ba(a, s_to_q(b), c);
     SimpleDataset ff_q, ff_s;
     for (const double& q : q_vals) {
-        ff_q.push_back(q/(4*constants::pi), Ba.evaluate(q));
+        ff_q.push_back(q/(4*std::numbers::pi), Ba.evaluate(q));
     }
 
     auto ffBa = [a, b, c] (double s) {return a[0]*std::exp(-b[0]*s*s) + a[1]*std::exp(-b[1]*s*s) + a[2]*std::exp(-b[2]*s*s) + a[3]*std::exp(-b[3]*s*s) + a[4]*std::exp(-b[4]*s*s) + c;};

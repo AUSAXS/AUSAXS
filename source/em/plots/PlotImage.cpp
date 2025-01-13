@@ -7,7 +7,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/PlotSettings.h>
 #include <em/Image.h>
 #include <dataset/SimpleDataset.h>
-#include <data/record/Atom.h>
 #include <hist/Histogram2D.h>
 
 using namespace ausaxs::plots;
@@ -19,14 +18,14 @@ PlotImage::PlotImage(const em::Image& image, const PlotOptions& options) {
 PlotImage::~PlotImage() = default;
 
 PlotImage& PlotImage::plot_atoms(const em::Image& image, double cutoff) {
-    std::list<data::record::Atom> atoms = image.generate_atoms(cutoff);
+    std::list<data::EMAtom> atoms = image.generate_atoms(cutoff);
     std::vector<double> x;
     std::vector<double> y;
     x.reserve(atoms.size());
     y.reserve(atoms.size());
-    for (const data::record::Atom& atom : atoms) {
-        x.push_back(atom.coords.x());
-        y.push_back(atom.coords.y());
+    for (const data::EMAtom& atom : atoms) {
+        x.push_back(atom.coordinates().x());
+        y.push_back(atom.coordinates().y());
     }
 
     SimpleDataset p(x, y);

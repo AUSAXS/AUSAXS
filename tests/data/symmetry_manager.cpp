@@ -5,8 +5,8 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/Symmetry.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/distribution/Distribution1D.h>
 #include <settings/All.h>
 
 #include "hist/hist_test_helper.h"
@@ -56,9 +56,9 @@ TEST_CASE("SymmetryManager: translations") {
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("one body with one atom") {
-        record::Atom a(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
-        a.set_effective_charge(1);
-        Molecule m({a});
+        AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
+        Molecule m({Body{std::vector{a}}});
+        set_unity_charge(m);
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -67,7 +67,7 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({Vector3<double>(1, 0, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(1, 0, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -78,8 +78,8 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("two copies") {
-            m.get_body(0).add_symmetry({Vector3<double>(-1, 0, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -91,10 +91,10 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("four copies") {
-            m.get_body(0).add_symmetry({Vector3<double>(-1, 0, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>( 0,-1, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>( 0, 1, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>( 0,-1, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>( 0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -108,11 +108,10 @@ TEST_CASE("SymmetryManager: translations") {
     }
 
     SECTION("two atoms") {
-        record::Atom a1(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
-        record::Atom a2(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);        
-        a1.set_effective_charge(1);
-        a2.set_effective_charge(1);
-        Molecule m({a1, a2});
+        AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
+        Molecule m({Body{std::vector{a1, a2}}});
+        set_unity_charge(m);
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -124,7 +123,7 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -136,8 +135,8 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("two copies") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
-            m.get_body(0).add_symmetry({Vector3<double>(0, 2, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(0, 2, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -152,13 +151,10 @@ TEST_CASE("SymmetryManager: translations") {
     }
 
     SECTION("two bodies with one atom") {
-        record::Atom a1(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
-        record::Atom a2(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);        
-        a1.set_effective_charge(1);
-        a2.set_effective_charge(1);
-        Body b1({a1});
-        Body b2({a2});
-        Molecule m({b1, b2});
+        AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
+        Molecule m({Body{std::vector{a1}}, Body{std::vector{a2}}});
+        set_unity_charge(m);
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -170,7 +166,7 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy of body1") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -182,8 +178,8 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy of each #1") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
-            m.get_body(1).add_symmetry({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
+            m.get_body(1).symmetry().add({Vector3<double>(0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -195,8 +191,8 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy of each #2") {
-            m.get_body(0).add_symmetry({Vector3<double>( 1, 0, 0)});
-            m.get_body(1).add_symmetry({Vector3<double>(-1, 0, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
+            m.get_body(1).symmetry().add({Vector3<double>(-1, 0, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -206,16 +202,15 @@ TEST_CASE("SymmetryManager: translations") {
                 RES(2, 4),
                 RES(3, 2)
             });
-        }        
+        }
     }
 
     SECTION("one body with waters") {
-        record::Atom  a1(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
-        record::Water w1(Vector3<double>(1, 0, 0), 1, constants::atom_t::O, "O", 1);
-        a1.set_effective_charge(1);
-        w1.set_effective_charge(1);
-        Body b1({a1}, {w1});
+        AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
+        Water  w1({1, 0, 0});
+        Body b1(std::vector<AtomFF>{a1}, std::vector{w1});
         Molecule m({b1});
+        set_unity_charge(m);
 
         SECTION("no copies") {
             hist::detail::SymmetryManager sm;
@@ -244,7 +239,7 @@ TEST_CASE("SymmetryManager: translations") {
         }
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m);
@@ -286,12 +281,13 @@ TEST_CASE("SymmetryManager: translations") {
 
         data::Molecule m("tests/files/2epe.pdb");
         m.generate_new_hydration();
-        m.get_body(0).get_waters() = std::move(m.get_waters());
+        m.get_body(0).get_waters() = m.get_waters();
         m.clear_hydration();
+        set_unity_charge(m);
 
         data::detail::Symmetry s{{10, 0, 0}}; 
         SECTION("single copy") {
-            m.get_body(0).add_symmetry(s);
+            m.get_body(0).symmetry().add(s);
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m);
@@ -299,14 +295,14 @@ TEST_CASE("SymmetryManager: translations") {
             // manually perform the transformation for comparison
             data::Molecule m_copy({m.get_body(0)});
             data::Body& b_copy = m_copy.get_body(0);
-            std::vector<record::Atom> a_copy = b_copy.get_atoms();
+            std::vector<AtomFF> a_copy = b_copy.get_atoms();
             for (auto& a : b_copy.get_atoms()) {
-                a.get_coordinates() += s.translate;
+                a.coordinates() += s.translate;
                 a_copy.push_back(a);
             }
-            std::vector<record::Water> w_copy = b_copy.get_waters();
+            std::vector<Water> w_copy = b_copy.get_waters();
             for (auto& w : b_copy.get_waters()) {
-                w.get_coordinates() += s.translate;
+                w.coordinates() += s.translate;
                 w_copy.push_back(w);
             }
             b_copy.get_atoms() = std::move(a_copy);
@@ -329,12 +325,12 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("one body with one atom") {
-        record::Atom a(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);
-        a.set_effective_charge(1);
-        Molecule m({a});
+        AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
+        Molecule m({Body{std::vector{a}}});
+        set_unity_charge(m);
 
         SECTION("two repeats") {
-            m.get_body(0).add_symmetry({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -346,7 +342,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         }
 
         SECTION("three repeats") {
-            m.get_body(0).add_symmetry({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 3});
+            m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -360,17 +356,14 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
     }
 
     SECTION("two bodies") {
-        record::Atom a1(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
-        record::Atom a2(Vector3<double>(0, 0, 0), 1, constants::atom_t::C, "C", 1);        
-        a1.set_effective_charge(1);
-        a2.set_effective_charge(1);
-        Body b1({a1});
-        Body b2({a2});
-        Molecule m({b1, b2});
+        AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
+        Molecule m({Body{std::vector{a1}}, Body{std::vector{a2}}});
+        set_unity_charge(m);
 
         SECTION("two repeats") {
-            m.get_body(0).add_symmetry({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
-            m.get_body(1).add_symmetry({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -384,8 +377,8 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         }
 
         SECTION("different repeats") {
-            m.get_body(0).add_symmetry({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 1});
-            m.get_body(1).add_symmetry({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 1});
+            m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -405,12 +398,12 @@ TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::center = false;
 
     SECTION("one body with one atom") {
-        record::Atom a(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
-        a.set_effective_charge(1);
-        Molecule m({a});
+        AtomFF a({1, 0, 0}, form_factor::form_factor_t::C);
+        Molecule m({Body{std::vector{a}}});
+        set_unity_charge(m);
 
         SECTION("one copy") {
-            m.get_body(0).add_symmetry({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
+            m.get_body(0).symmetry().add({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
@@ -421,7 +414,7 @@ TEST_CASE("SymmetryManager: rotations") {
         }
 
         SECTION("three copies") {
-            m.get_body(0).add_symmetry({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, {0., 0., 0.}, 3});
+            m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, {0., 0., 0.}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
@@ -439,13 +432,11 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
     settings::molecule::center = false;
 
     SECTION("line") {
-        record::Atom a1(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1);
-        record::Atom a2(Vector3<double>(2, 0, 0), 1, constants::atom_t::C, "C", 1);
-        record::Atom a3(Vector3<double>(3, 0, 0), 1, constants::atom_t::C, "C", 1);
-        a1.set_effective_charge(1);
-        a2.set_effective_charge(1);
-        a3.set_effective_charge(1);
-        Molecule m({a1, a2, a3});
+        AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({2, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a3({3, 0, 0}, form_factor::form_factor_t::C);
+        Molecule m({Body{std::vector{a1, a2, a3}}});
+        set_unity_charge(m);
 
         SECTION("cross") {
             // external rotate pi/2 around the y-axis and replicate thrice
@@ -459,7 +450,7 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
             //         x
             //         x
             //
-            m.get_body(0).add_symmetry({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, 0}, 3});
+            m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, 0}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
@@ -480,35 +471,35 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
             });
         }
 
-        SECTION("cross with rotated arms") {
-            // external rotate pi/2 around the y-axis while also rotating -pi/2 around itself, and replicate thrice
-            // this gives the structure
-            //       
-            //       x x x
-            //          
-            //   x x x   x x x
-            //           
-            //       x x x
-            //       
-            m.get_body(0).add_symmetry({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, -std::numbers::pi/2}, 3});
+        // SECTION("cross with rotated arms") {
+        //     // external rotate pi/2 around the y-axis while also rotating -pi/2 around itself, and replicate thrice
+        //     // this gives the structure
+        //     //       
+        //     //       x x x
+        //     //          
+        //     //   x x x   x x x
+        //     //           
+        //     //       x x x
+        //     //       
+        //     m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, -std::numbers::pi/2}, 3});
 
-            hist::detail::SymmetryManager sm;
-            auto h = sm.calculate<true>(m)->get_total_counts();
-            std::vector<RES> checks = {
-                {0, 12},
-                {1, 16},
-                {2, 20},
-                {3, 4},
-                {4, 12},
-                {5, 4},
-                {6, 2},
-                {std::sqrt(5), 16},  // 2.23
-                {std::sqrt(8), 24},  // 2.83
-                {std::sqrt(13), 16}, // 3.61
-                {std::sqrt(17), 8},  // 4.12
-                {std::sqrt(20), 12}, // 4.47
-            };
-            check_hist(h, checks);
-        }
+        //     hist::detail::SymmetryManager sm;
+        //     auto h = sm.calculate<true>(m)->get_total_counts();
+        //     std::vector<RES> checks = {
+        //         {0, 12},
+        //         {1, 16},
+        //         {2, 20},
+        //         {3, 4},
+        //         {4, 12},
+        //         {5, 4},
+        //         {6, 2},
+        //         {std::sqrt(5), 16},  // 2.23
+        //         {std::sqrt(8), 24},  // 2.83
+        //         {std::sqrt(13), 16}, // 3.61
+        //         {std::sqrt(17), 8},  // 4.12
+        //         {std::sqrt(20), 12}, // 4.47
+        //     };
+        //     check_hist(h, checks);
+        // }
     }
 }

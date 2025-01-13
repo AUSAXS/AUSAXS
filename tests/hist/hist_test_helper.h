@@ -3,8 +3,6 @@
 #include <constants/ConstantsAxes.h>
 #include <utility/Utility.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <utility/Concepts.h>
 
 #include <iostream>
@@ -71,34 +69,34 @@ bool compare_hist_approx(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
 template<typename T>
 void set_unity_charge(T& protein) {
     // set the weights to 1 so we can analytically determine the result
-    // waters
-    for (auto& atom : protein.get_waters()) {
-        atom.set_effective_charge(1);
-    }
-    // atoms
     for (auto& body : protein.get_bodies()) {
         for (auto& atom : body.get_atoms()) {
-            atom.set_effective_charge(1);
+            atom.weight() = 1;
+        }
+        if (body.size_water() != 0) {
+            for (auto& water : body.get_waters()) {
+                water.weight() = 1;
+            }
         }
     }
 }
 
 struct SimpleCube {
-    inline static std::vector<data::record::Atom> get_atoms() {
+    inline static std::vector<data::AtomFF> get_atoms() {
         return {
-            data::record::Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)
+            data::AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), data::AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
+            data::AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), data::AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),
+            data::AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), data::AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
+            data::AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), data::AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
         };
     }
 
-    inline static std::vector<data::record::Water> get_waters() {
+    inline static std::vector<data::Water> get_waters() {
         return {
-            data::record::Water::create_new_water(Vector3<double>(-1, -1, -1)), data::record::Water::create_new_water(Vector3<double>(-1, 1, -1)),
-            data::record::Water::create_new_water(Vector3<double>( 1, -1, -1)), data::record::Water::create_new_water(Vector3<double>( 1, 1, -1)),
-            data::record::Water::create_new_water(Vector3<double>(-1, -1,  1)), data::record::Water::create_new_water(Vector3<double>(-1, 1,  1)),
-            data::record::Water::create_new_water(Vector3<double>( 1, -1,  1)), data::record::Water::create_new_water(Vector3<double>( 1, 1,  1))
+            data::Water({-1, -1, -1}), data::Water({-1, 1, -1}),
+            data::Water({ 1, -1, -1}), data::Water({ 1, 1, -1}),
+            data::Water({-1, -1,  1}), data::Water({-1, 1,  1}),
+            data::Water({ 1, -1,  1}), data::Water({ 1, 1,  1})
         };
     }
 

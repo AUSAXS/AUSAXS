@@ -32,7 +32,7 @@ RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner
 RelativeHydrationElement::~RelativeHydrationElement() = default;
 
 void RelativeHydrationElement::run() {
-    auto culling_strategy = hydrate::factory::construct_culling_strategy(owner->_get_rigidbody(), settings::hydrate::CullingStrategy::RandomBodyCounterStrategy);
+    auto culling_strategy = hydrate::factory::construct_culling_strategy(owner->_get_rigidbody(), settings::hydrate::CullingStrategy::RandomCounterStrategy);
     static_cast<hydrate::BodyCounterCulling*>(culling_strategy.get())->set_body_ratios(ratios);
 
     assert(

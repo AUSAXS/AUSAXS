@@ -12,8 +12,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <container/ThreadLocalWrapper.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
@@ -70,15 +68,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
         for (int i = imin; i < imax; ++i) { // atom
             int j = 0;                      // water
             for (; j+7 < data_w_size; j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_aw, data_a, data_w, i, j);
+                evaluate8<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_aw, data_a, data_w, i, j);
+                evaluate4<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_aw, data_a, data_w, i, j);
+                evaluate1<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
             }
         }
     };

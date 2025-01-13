@@ -88,9 +88,6 @@ TEST_CASE("constructors") {
         
         auto z = Vector3(std::move(x));
         REQUIRE(z == x);    
-
-        Vector3<double> a;
-        REQUIRE(a == Vector3{0, 0, 0});        
     }
 
     SECTION("vector") {

@@ -6,18 +6,16 @@ For more information, please refer to the LICENSE file in the project root.
 #include <api/sasview.h>
 
 #include <settings/All.h>
-#include <dataset/Dataset.h>
 #include <dataset/SimpleDataset.h>
-#include <data/record/Atom.h>
+#include <data/atoms/Atom.h>
 #include <data/Molecule.h>
+#include <data/Body.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Utility.h>
-#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
-using namespace ausaxs::data::record;
 
 void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, int* _return_status, double* _return_Iq) {
     std::cout << "AUSAXS: Started evaluating Debye equation." << std::endl;
@@ -47,14 +45,14 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     std::vector<double> w(_w, _w+_nc);
 
     // convert coordinate input to the Atom object
-    std::vector<Atom> atoms(_nc);
+    std::vector<data::Atom> atoms(_nc);
     for (int i = 0; i < _nc; ++i) {
-        atoms[i] = Atom({x[i], y[i], z[i]}, w[i], constants::atom_t::dummy, "", i);
+        atoms[i] = data::Atom({x[i], y[i], z[i]}, w[i]);
     }
 
     // construct a protein from the collection of atom
     *_return_status = 2;
-    Molecule protein(atoms);
+    Molecule protein({Body{atoms}});
 
     // calculate the distance histogram for the protein
     *_return_status = 3;

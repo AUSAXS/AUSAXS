@@ -4,10 +4,12 @@
 #include <residue/ResidueStorage.h>
 #include <constants/ConstantsFwd.h>
 #include <constants/ConstantsAxes.h>
+#include <constants/ConstantsCoordinates.h>
 #include <constants/ConstantsFitParameters.h>
+#include <constants/ConstantsProperties.h>
 #include <constants/ValidFileExtensions.h>
 #include <constants/Version.h>
-#include <constants/SI.h>
+#include <constants/ConstantsSI.h>
 #include <io/IOFwd.h>
 #include <math/ConstexprMath.h>
 
@@ -61,23 +63,6 @@ namespace ausaxs::constants {
     namespace volume {
         // get the volume of a 3symbol amino acid
         extern const saxs::detail::SimpleMap<double> amino_acids;
-    }
-
-    /**
-     * @brief Mass 
-     * 
-     * This namespace contains the masses of the most common atomic elements encountered in SAXS. 
-     */
-    namespace mass {
-        /**
-         * @brief Get the mass of an atom in u.
-         */
-        double get_mass(atom_t atom);
-
-        namespace density {
-            constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3;
-            constexpr double protein = 1.35*SI::mass::gm/SI::volume::cm3;
-        }
     }
 
     /**
@@ -147,6 +132,7 @@ namespace ausaxs::constants {
 
         atom_t parse_element_string(const std::string& element_string);
         std::string to_string(atom_t atom);
+        std::string to_string(atomic_group_t group);
 
         /**
          * @brief Get the atomic group of an atom.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "grid/detail/GridMember.h"
 #include <hydrate/culling/CullingStrategy.h>
 
 namespace ausaxs::hydrate {
@@ -12,6 +13,6 @@ namespace ausaxs::hydrate {
             ~CounterCulling() override = default;
 
             // runs in O(n) where n is the number of water molecules
-            std::vector<data::record::Water> cull(std::vector<grid::GridMember<data::record::Water>>& placed_water) const override;
+            void cull(std::span<grid::GridMember<data::Water>>& placed_water) const override;
     };       
 }

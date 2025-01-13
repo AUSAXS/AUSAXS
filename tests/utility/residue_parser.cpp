@@ -318,12 +318,12 @@ TEST_CASE("ResidueParser: parse_all") {
     }
 }
 
-#include <io/CIFReader.h>
+#include <io/detail/CIFReader.h>
 #include <settings/GeneralSettings.h>
 TEST_CASE("ResidueParser: cif_reader_single") {
     // check that 
     constants::hydrogen_atoms::residues.get("GLY");
-    auto residue = io::detail::CIFReader::read_residue(settings::general::cache + "residues/GLY.cif").front().to_map();
+    auto residue = io::detail::cif::read_residue(settings::general::cache + "residues/GLY.cif").front().to_map();
 
     for (const auto& [atom, num] : hydrogen_atoms::glycine::get) {
         REQUIRE(num == residue.get(atom, constants::symbols::parse_element_string(std::string(1, atom[0]))));
@@ -332,7 +332,7 @@ TEST_CASE("ResidueParser: cif_reader_single") {
 
 TEST_CASE("ResidueParser: cif_reader_all") {
     for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
-        auto residue = io::detail::CIFReader::read_residue(settings::general::cache + "residues/" + acid + ".cif").front().to_map();
+        auto residue = io::detail::cif::read_residue(settings::general::cache + "residues/" + acid + ".cif").front().to_map();
         for (const auto& [atom, num_hydrogens] : atom_map) {
             SECTION(acid + " " + atom) {
                 CHECK(hydrogen_atoms::get.at(acid).at(atom) == residue.get(atom, constants::symbols::parse_element_string(std::string(1, atom[0]))));

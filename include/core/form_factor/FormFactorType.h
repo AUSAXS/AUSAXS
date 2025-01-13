@@ -24,6 +24,7 @@ namespace ausaxs::form_factor {
         OTHER,              // all other atoms
         EXCLUDED_VOLUME,    // excluded volume
         COUNT,              // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
+        UNKNOWN,            // this is used to indicate that the form factor is unknown
     };
     constexpr int exv_bin   = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::OH);
@@ -46,6 +47,7 @@ namespace ausaxs::form_factor {
             case form_factor_t::OTHER: return "other";
             case form_factor_t::EXCLUDED_VOLUME: return "excluded volume";
             case form_factor_t::COUNT: return "count";
+            case form_factor_t::UNKNOWN: return "unknown";
             default: throw std::runtime_error("form_factor::to_string: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
         }
     }
@@ -99,6 +101,101 @@ namespace ausaxs::form_factor {
             case constants::atomic_group_t::OH: return form_factor_t::OH;
             case constants::atomic_group_t::SH: return form_factor_t::SH;
             default: return get_type(atom_type);
+        }
+    }
+
+    constexpr constants::atom_t to_atom_type(form_factor_t ff_type) {
+        switch(ff_type) {
+            case form_factor_t::H: return constants::atom_t::H;
+            case form_factor_t::C:
+            case form_factor_t::CH:
+            case form_factor_t::CH2:
+            case form_factor_t::CH3: return constants::atom_t::C;
+            case form_factor_t::N:
+            case form_factor_t::NH:
+            case form_factor_t::NH2:
+            case form_factor_t::NH3: return constants::atom_t::N;
+            case form_factor_t::O:
+            case form_factor_t::OH: return constants::atom_t::O;
+            case form_factor_t::S:
+            case form_factor_t::SH: return constants::atom_t::S;
+            default: return constants::atom_t::Ar;
+        }
+    }
+}
+
+#include <constants/Constants.h>
+namespace ausaxs::constants::mass {
+    /**
+    * @brief Get the mass of an atom in amu.
+    */
+    constexpr double get_mass(form_factor::form_factor_t type) {
+        switch(type) {
+            case form_factor::form_factor_t::H: return get_mass(atom_t::H);
+            case form_factor::form_factor_t::C: return get_mass(atom_t::C);
+            case form_factor::form_factor_t::CH: return 13.019;
+            case form_factor::form_factor_t::CH2: return 14.027;
+            case form_factor::form_factor_t::CH3: return 15.035;
+            case form_factor::form_factor_t::N: return 14.00674;
+            case form_factor::form_factor_t::NH: return 15.01474;
+            case form_factor::form_factor_t::NH2: return 16.02274;
+            case form_factor::form_factor_t::NH3: return 17.03074;
+            case form_factor::form_factor_t::O: return 15.999;
+            case form_factor::form_factor_t::OH: return 16.999;
+            case form_factor::form_factor_t::S: return 32.06;
+            case form_factor::form_factor_t::SH: return 33.06;
+            case form_factor::form_factor_t::OTHER: return 39.948;
+            case form_factor::form_factor_t::EXCLUDED_VOLUME: return 0;
+            case form_factor::form_factor_t::COUNT: return 0;
+            default: throw std::runtime_error("constants::mass::get_mass: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+        }
+    }
+}
+
+namespace ausaxs::constants::radius {
+    constexpr double get_vdw_radius(form_factor::form_factor_t type) {
+        switch(type) {
+            case form_factor::form_factor_t::H: return get_vdw_radius(atom_t::H);
+            case form_factor::form_factor_t::C: return get_vdw_radius(atom_t::C);
+            case form_factor::form_factor_t::CH: return get_vdw_radius(atom_t::C);
+            case form_factor::form_factor_t::CH2: return get_vdw_radius(atom_t::C);
+            case form_factor::form_factor_t::CH3: return get_vdw_radius(atom_t::C);
+            case form_factor::form_factor_t::N: return get_vdw_radius(atom_t::N);
+            case form_factor::form_factor_t::NH: return get_vdw_radius(atom_t::N);
+            case form_factor::form_factor_t::NH2: return get_vdw_radius(atom_t::N);
+            case form_factor::form_factor_t::NH3: return get_vdw_radius(atom_t::N);
+            case form_factor::form_factor_t::O: return get_vdw_radius(atom_t::O);
+            case form_factor::form_factor_t::OH: return get_vdw_radius(atom_t::O);
+            case form_factor::form_factor_t::S: return get_vdw_radius(atom_t::S);
+            case form_factor::form_factor_t::SH: return get_vdw_radius(atom_t::S);
+            case form_factor::form_factor_t::OTHER: return get_vdw_radius(atom_t::Ar);
+            case form_factor::form_factor_t::UNKNOWN: return 0;
+            default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+        }
+    }
+}
+
+namespace ausaxs::constants::charge::nuclear {
+    /**
+     * @brief Get the charge of an atom in e.
+     */
+    constexpr unsigned int get_charge(form_factor::form_factor_t type) {
+        switch(type) {
+            case form_factor::form_factor_t::H: return 1;
+            case form_factor::form_factor_t::C: return 6;
+            case form_factor::form_factor_t::CH: return 7;
+            case form_factor::form_factor_t::CH2: return 8;
+            case form_factor::form_factor_t::CH3: return 9;
+            case form_factor::form_factor_t::N: return 7;
+            case form_factor::form_factor_t::NH: return 8;
+            case form_factor::form_factor_t::NH2: return 9;
+            case form_factor::form_factor_t::NH3: return 10;
+            case form_factor::form_factor_t::O: return 8;
+            case form_factor::form_factor_t::OH: return 9;
+            case form_factor::form_factor_t::S: return 16;
+            case form_factor::form_factor_t::SH: return 17;
+            case form_factor::form_factor_t::OTHER: return 18;
+            default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
         }
     }
 }
