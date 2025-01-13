@@ -52,7 +52,7 @@ TEST_CASE("Water::Water") {
         );
         Water water(coords);
         CHECK(water.coordinates() == coords);
-        CHECK(water.weight() == constants::charge::nuclear::get_charge(constants::atom_t::O));
+        CHECK(water.weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::OH));
     }
 }
 

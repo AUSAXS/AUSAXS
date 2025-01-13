@@ -154,8 +154,8 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         DebugMolecule protein(a);
 
         double ZX = protein.get_volume_grid()*constants::charge::density::water/8;
-        double ZC = 6; // 6
-        double ZO = 8; // 8
+        double ZC = constants::charge::nuclear::get_charge(form_factor::form_factor_t::C);
+        double ZO = constants::charge::nuclear::get_charge(form_factor::form_factor_t::OH); 
 
         for (unsigned int q = 0; q < q_axis.size(); ++q) {
             double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);

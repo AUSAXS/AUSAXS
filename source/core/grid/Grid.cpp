@@ -56,7 +56,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
-        add(body);
+        add(body, false);
     }
 }
 

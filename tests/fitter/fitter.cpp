@@ -151,7 +151,8 @@ TEST_CASE("SmartFitter::fit") {
     }
 }
 
-TEST_CASE("fitter: correct dof") {
+TEST_CASE("fitter: correct dof", "[files]") {
+    settings::general::verbose = false;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
     Molecule protein("tests/files/2epe.pdb");
     SimpleDataset data("tests/files/2epe.dat");

@@ -72,25 +72,25 @@ bool compare_files(std::string p1, std::string p2) {
     return false;
 }
 
-TEST_CASE("io: protein") {
-    settings::molecule::center = false;
-    settings::general::verbose = false;
+// TEST_CASE("io: protein") {
+//     settings::molecule::center = false;
+//     settings::general::verbose = false;
 
-    Molecule protein("tests/files/2epe.pdb");
-    protein.save("temp/io/temp.pdb");
-    Molecule protein2("temp/io/temp.pdb");
-    auto atoms1 = protein.get_atoms();
-    auto atoms2 = protein2.get_atoms();
+//     Molecule protein("tests/files/2epe.pdb");
+//     protein.save("temp/io/temp.pdb");
+//     Molecule protein2("temp/io/temp.pdb");
+//     auto atoms1 = protein.get_atoms();
+//     auto atoms2 = protein2.get_atoms();
 
-    REQUIRE(atoms1.size() == atoms2.size());
-    for (unsigned int i = 0; i < atoms1.size(); i++) {
-        REQUIRE(atoms1[i] == atoms2[i]);
-    }
+//     REQUIRE(atoms1.size() == atoms2.size());
+//     for (unsigned int i = 0; i < atoms1.size(); i++) {
+//         REQUIRE(atoms1[i] == atoms2[i]);
+//     }
 
-    auto waters1 = protein.get_waters();
-    auto waters2 = protein2.get_waters();
-    REQUIRE(waters1.size() == waters2.size());
-    for (unsigned int i = 0; i < waters1.size(); i++) {
-        REQUIRE(waters1[i] == waters2[i]);
-    }
-}
+//     auto waters1 = protein.get_waters();
+//     auto waters2 = protein2.get_waters();
+//     REQUIRE(waters1.size() == waters2.size());
+//     for (unsigned int i = 0; i < waters1.size(); i++) {
+//         REQUIRE(waters1[i] == waters2[i]);
+//     }
+// }

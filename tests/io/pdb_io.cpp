@@ -61,53 +61,63 @@ TEST_CASE("PDBReader::read") {
 }
 
 TEST_CASE("PDBReader: add_implicit_hydrogens") {
-    settings::molecule::implicit_hydrogens = true;
-    std::vector<PDBAtom> atoms = {
-        PDBAtom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
-        PDBAtom(2, "CA", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-        PDBAtom(3, "C",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-        PDBAtom(4, "O",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::O, "0"),
-        PDBAtom(5, "CB", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-        PDBAtom(6, "CG", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-        PDBAtom(7, "CD", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-        PDBAtom(8, "CE", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-        PDBAtom(9, "NZ", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+    auto generate_molecule = [] () {
+        std::vector<PDBAtom> atoms = {
+            PDBAtom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+            PDBAtom(2, "CA", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(3, "C",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(4, "O",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::O, "0"),
+            PDBAtom(5, "CB", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(6, "CG", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(7, "CD", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(8, "CE", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
+            PDBAtom(9, "NZ", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
+        };
+        return io::pdb::PDBStructure({atoms, {}});
     };
-    io::pdb::PDBStructure protein({atoms, {}});
 
-    for (auto a : protein.get_atoms()) {
-        CHECK(a.effective_charge == constants::charge::nuclear::get_charge(a.get_element()));
-        CHECK(a.get_atomic_group() == constants::atomic_group_t::unknown);
+    SECTION("enabled") {
+        settings::molecule::implicit_hydrogens = true;
+        auto protein = generate_molecule();
+        auto& atoms = protein.get_atoms();
+
+        CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].get_element()) + 1);
+        CHECK(atoms[0].get_atomic_group() == constants::atomic_group_t::NH);
+
+        CHECK(atoms[1].effective_charge == constants::charge::nuclear::get_charge(atoms[1].get_element()) + 1);
+        CHECK(atoms[1].get_atomic_group() == constants::atomic_group_t::CH);
+
+        CHECK(atoms[2].effective_charge == constants::charge::nuclear::get_charge(atoms[2].get_element()) + 0);
+        CHECK(atoms[2].get_atomic_group() == constants::atomic_group_t::unknown);
+
+        CHECK(atoms[3].effective_charge == constants::charge::nuclear::get_charge(atoms[3].get_element()) + 0);
+        CHECK(atoms[3].get_atomic_group() == constants::atomic_group_t::unknown);
+
+        CHECK(atoms[4].effective_charge == constants::charge::nuclear::get_charge(atoms[4].get_element()) + 2);
+        CHECK(atoms[4].get_atomic_group() == constants::atomic_group_t::CH2);
+
+        CHECK(atoms[5].effective_charge == constants::charge::nuclear::get_charge(atoms[5].get_element()) + 2);
+        CHECK(atoms[5].get_atomic_group() == constants::atomic_group_t::CH2);
+
+        CHECK(atoms[6].effective_charge == constants::charge::nuclear::get_charge(atoms[6].get_element()) + 2);
+        CHECK(atoms[6].get_atomic_group() == constants::atomic_group_t::CH2);
+
+        CHECK(atoms[7].effective_charge == constants::charge::nuclear::get_charge(atoms[7].get_element()) + 2);
+        CHECK(atoms[7].get_atomic_group() == constants::atomic_group_t::CH2);
+
+        CHECK(atoms[8].effective_charge == constants::charge::nuclear::get_charge(atoms[8].get_element()) + 3);
+        CHECK(atoms[8].get_atomic_group() == constants::atomic_group_t::NH3);
     }
 
-    protein.add_implicit_hydrogens();
-    atoms = protein.get_atoms();
-    CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].get_element()) + 1);
-    CHECK(atoms[0].get_atomic_group() == constants::atomic_group_t::NH);
+    SECTION("disabled") {
+        settings::molecule::implicit_hydrogens = false;
+        auto protein = generate_molecule();
 
-    CHECK(atoms[1].effective_charge == constants::charge::nuclear::get_charge(atoms[1].get_element()) + 1);
-    CHECK(atoms[1].get_atomic_group() == constants::atomic_group_t::CH);
-
-    CHECK(atoms[2].effective_charge == constants::charge::nuclear::get_charge(atoms[2].get_element()) + 0);
-    CHECK(atoms[2].get_atomic_group() == constants::atomic_group_t::unknown);
-
-    CHECK(atoms[3].effective_charge == constants::charge::nuclear::get_charge(atoms[3].get_element()) + 0);
-    CHECK(atoms[3].get_atomic_group() == constants::atomic_group_t::unknown);
-
-    CHECK(atoms[4].effective_charge == constants::charge::nuclear::get_charge(atoms[4].get_element()) + 2);
-    CHECK(atoms[4].get_atomic_group() == constants::atomic_group_t::CH2);
-
-    CHECK(atoms[5].effective_charge == constants::charge::nuclear::get_charge(atoms[5].get_element()) + 2);
-    CHECK(atoms[5].get_atomic_group() == constants::atomic_group_t::CH2);
-
-    CHECK(atoms[6].effective_charge == constants::charge::nuclear::get_charge(atoms[6].get_element()) + 2);
-    CHECK(atoms[6].get_atomic_group() == constants::atomic_group_t::CH2);
-
-    CHECK(atoms[7].effective_charge == constants::charge::nuclear::get_charge(atoms[7].get_element()) + 2);
-    CHECK(atoms[7].get_atomic_group() == constants::atomic_group_t::CH2);
-
-    CHECK(atoms[8].effective_charge == constants::charge::nuclear::get_charge(atoms[8].get_element()) + 3);
-    CHECK(atoms[8].get_atomic_group() == constants::atomic_group_t::NH3);
+        for (auto a : protein.get_atoms()) {
+            CHECK(a.effective_charge == constants::charge::nuclear::get_charge(a.get_element()));
+            CHECK(a.get_atomic_group() == constants::atomic_group_t::unknown);
+        }
+    }
 }
 
 TEST_CASE("PDBWriter: writing multifile pdb") {
