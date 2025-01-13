@@ -77,8 +77,8 @@ TEST_CASE("PDBReader: add_implicit_hydrogens") {
     };
 
     SECTION("enabled") {
-        settings::molecule::implicit_hydrogens = true;
         auto protein = generate_molecule();
+        protein.add_implicit_hydrogens();
         auto& atoms = protein.atoms;
 
         CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].element) + 1);
@@ -110,7 +110,6 @@ TEST_CASE("PDBReader: add_implicit_hydrogens") {
     }
 
     SECTION("disabled") {
-        settings::molecule::implicit_hydrogens = false;
         auto protein = generate_molecule();
 
         for (auto a : protein.atoms) {

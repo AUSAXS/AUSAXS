@@ -226,6 +226,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv::calculate", "[files]") {
 // Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
 TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     settings::molecule::center = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::hist::weighted_bins = true;
     settings::general::verbose = false;
 

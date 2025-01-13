@@ -694,15 +694,16 @@ TEST_CASE("Molecule: implicit hydrogens") {
             io::pdb::PDBAtom(8, "CE", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
             io::pdb::PDBAtom(9, "NZ", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
         };
-        auto res = io::pdb::PDBStructure({a, {}}).reduced_representation();
-        return Molecule({Body{res.atoms, res.waters}});
+        return io::pdb::PDBStructure({a, {}});
     };
 
     SECTION("enabled") {
-        settings::molecule::implicit_hydrogens = true;
-        auto protein = generate_molecule();
-
+        auto file = generate_molecule();
+        file.add_implicit_hydrogens();
+        auto res = file.reduced_representation();
+        Molecule protein({Body{res.atoms, res.waters}});
         auto atoms = protein.get_atoms();
+
         CHECK(atoms[0].weight() == constants::charge::nuclear::get_charge(atoms[0].form_factor_type()));
         CHECK(atoms[0].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::N) + 1);
         CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::NH);
@@ -741,8 +742,9 @@ TEST_CASE("Molecule: implicit hydrogens") {
     }
 
     SECTION("disabled") {
-        settings::molecule::implicit_hydrogens = false;
-        auto protein = generate_molecule();
+        auto file = generate_molecule();
+        auto res = file.reduced_representation();
+        Molecule protein({Body{res.atoms, res.waters}});
 
         for (auto a : protein.get_atoms()) {
             CHECK(a.weight() == constants::charge::nuclear::get_charge(a.form_factor_type()));

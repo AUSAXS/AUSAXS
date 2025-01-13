@@ -679,6 +679,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
 // Test the legacy single-threaded implementation of the Debye calculations against the new cached multi-threaded implementation
 TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     std::string test_files = GENERATE("tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb");
     data::Molecule protein(test_files);
@@ -735,6 +736,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
 // Test the legacy single-threaded implementation of the Debye calculations against the new cached multi-threaded implementation
 TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     std::string test_files = GENERATE("tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb");
     data::Molecule protein(test_files);
@@ -791,6 +793,7 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
 // Test the legacy single-threaded implementation of the Debye calculations against the new cached multi-threaded implementation
 TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     std::string test_files = GENERATE("tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb");
     data::Molecule protein(test_files);
@@ -847,6 +850,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
 // Test the legacy single-threaded implementation of the Debye calculations against the new cached multi-threaded implementation
 TEST_CASE("CompositeDistanceHistogramFFGridSurface: legacy comparison") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     std::string test_files = GENERATE("tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb");
     data::Molecule protein(test_files);

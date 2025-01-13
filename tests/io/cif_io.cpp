@@ -125,8 +125,6 @@ TEST_CASE("CIFReader: file residues agrees with PDB") {
 
     // loading the PDB file first to load default ResidueStorage data
     data::Molecule pdb("tests/files/3sba.pdb");
-    // pdb.add_implicit_hydrogens(); // ensure hydrogen data is initialized
-    std::cout << "ADD_IMPLICIT_HYDROGENS NOT IMPLEMENTED" << std::endl;
 
     auto residues = io::detail::cif::read_residue("tests/files/3sba.cif");
     for (const auto& residue : residues) {
