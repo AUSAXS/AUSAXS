@@ -2,7 +2,6 @@
 
 #include <data/DataFwd.h>
 #include <data/Symmetry.h>
-#include <data/state/Signaller.h>
 #include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
 
@@ -38,44 +37,4 @@ namespace ausaxs::data::detail {
         private:
             observer_ptr<BODY> body;
     };
-}
-
-template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(const detail::Symmetry& symmetry) requires (!CONST) {
-    body->symmetries.emplace_back(symmetry);
-    body->get_signaller()->internal_change();
-    body->get_signaller()->external_change();
-}
-
-template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(detail::Symmetry&& symmetry) requires (!CONST) {
-    body->symmetries.emplace_back(std::move(symmetry));
-    body->get_signaller()->internal_change();
-    body->get_signaller()->external_change();
-}
-
-template<typename BODY, bool CONST>
-std::vector<ausaxs::data::detail::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() requires (!CONST) {
-    return body->symmetries;
-}
-
-template<typename BODY, bool CONST>
-const std::vector<ausaxs::data::detail::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() const {
-    return body->symmetries;
-}
-
-template<typename BODY, bool CONST>
-ausaxs::data::detail::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) requires (!CONST) {
-    return body->symmetries[index];
-}
-
-template<typename BODY, bool CONST>
-const ausaxs::data::detail::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) const {
-    return body->symmetries[index];
-}
-
-#include <cassert>
-template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::save(const io::File& path) const {
-    assert(false);
 }

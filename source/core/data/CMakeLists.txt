@@ -1,5 +1,6 @@
 target_sources(ausaxs_core PRIVATE 
 	"Body.cpp"
+	"BodySymmetryFacade.cpp"
 	"Molecule.cpp"
 	"SymmetryManager.cpp"
 
