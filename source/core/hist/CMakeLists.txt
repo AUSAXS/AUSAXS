@@ -4,7 +4,6 @@ target_sources(ausaxs_core PRIVATE
 	
 	"detail/BodyTracker.cpp"
 	"detail/CompactCoordinates.cpp"
-	"detail/CompactCoordinatesData.cpp"
 	"detail/CompactCoordinatesFF.cpp"
 	"detail/MasterHistogram.cpp"
 	"detail/SimpleExvModel.cpp"
