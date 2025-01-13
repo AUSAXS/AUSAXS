@@ -1,4 +1,3 @@
-#include "io/Writer.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -12,6 +11,7 @@
 #include <settings/All.h>
 #include <data/Body.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
+#include <io/Writer.h>
 
 #include <vector>
 #include <string>

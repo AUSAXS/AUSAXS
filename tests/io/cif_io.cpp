@@ -60,49 +60,49 @@ TEST_CASE("CIFReader::read") {
     auto protein = io::detail::cif::read(path);
     auto atoms = protein.get_atoms();
     REQUIRE(atoms.size() == 4);
-    REQUIRE(atoms[0].get_serial() == 1);
+    REQUIRE(atoms[0].serial == 1);
     REQUIRE(atoms[0].coordinates().x() == -32.928);
     REQUIRE(atoms[0].coordinates().y() == -5.043);
     REQUIRE(atoms[0].coordinates().z() == -33.904);
-    REQUIRE(atoms[0].get_occupancy() == 0.1);
-    REQUIRE(atoms[0].get_element() == constants::atom_t::N);
-    REQUIRE(atoms[0].get_residue_name() == "SER");
-    REQUIRE(atoms[0].get_residue_sequence_number() == 1);
-    REQUIRE(atoms[0].get_chainID() == 'A');
-    REQUIRE(atoms[0].get_temperature_factor() == 45.216);
+    REQUIRE(atoms[0].occupancy == 0.1);
+    REQUIRE(atoms[0].element == constants::atom_t::N);
+    REQUIRE(atoms[0].resName == "SER");
+    REQUIRE(atoms[0].resSeq == 1);
+    REQUIRE(atoms[0].chainID == 'A');
+    REQUIRE(atoms[0].tempFactor == 45.216);
 
-    REQUIRE(atoms[1].get_serial() == 2);
+    REQUIRE(atoms[1].serial == 2);
     REQUIRE(atoms[1].coordinates().x() == -32.489);
     REQUIRE(atoms[1].coordinates().y() == -6.122);
     REQUIRE(atoms[1].coordinates().z() == -32.994);
-    REQUIRE(atoms[1].get_occupancy() == 0.2);
-    REQUIRE(atoms[1].get_element() == constants::atom_t::C);
-    REQUIRE(atoms[1].get_residue_name() == "SER");
-    REQUIRE(atoms[1].get_residue_sequence_number() == 1);
-    REQUIRE(atoms[1].get_chainID() == 'A');
-    REQUIRE(atoms[1].get_temperature_factor() == 46.910);
+    REQUIRE(atoms[1].occupancy == 0.2);
+    REQUIRE(atoms[1].element == constants::atom_t::C);
+    REQUIRE(atoms[1].resName == "SER");
+    REQUIRE(atoms[1].resSeq == 1);
+    REQUIRE(atoms[1].chainID == 'A');
+    REQUIRE(atoms[1].tempFactor == 46.910);
 
-    REQUIRE(atoms[2].get_serial() == 3);
+    REQUIRE(atoms[2].serial == 3);
     REQUIRE(atoms[2].coordinates().x() == -30.974);
     REQUIRE(atoms[2].coordinates().y() == -6.329);
     REQUIRE(atoms[2].coordinates().z() == -33.145);
-    REQUIRE(atoms[2].get_occupancy() == 0.3);
-    REQUIRE(atoms[2].get_element() == constants::atom_t::C);
-    REQUIRE(atoms[2].get_residue_name() == "SER");
-    REQUIRE(atoms[2].get_residue_sequence_number() == 1);
-    REQUIRE(atoms[2].get_chainID() == 'A');
-    REQUIRE(atoms[2].get_temperature_factor() == 46.121);
+    REQUIRE(atoms[2].occupancy == 0.3);
+    REQUIRE(atoms[2].element == constants::atom_t::C);
+    REQUIRE(atoms[2].resName == "SER");
+    REQUIRE(atoms[2].resSeq == 1);
+    REQUIRE(atoms[2].chainID == 'A');
+    REQUIRE(atoms[2].tempFactor == 46.121);
 
-    REQUIRE(atoms[3].get_serial() == 4);
+    REQUIRE(atoms[3].serial == 4);
     REQUIRE(atoms[3].coordinates().x() == -30.318);
     REQUIRE(atoms[3].coordinates().y() == -5.462);
     REQUIRE(atoms[3].coordinates().z() == -33.746);
-    REQUIRE(atoms[3].get_occupancy() == 0.4);
-    REQUIRE(atoms[3].get_element() == constants::atom_t::O);
-    REQUIRE(atoms[3].get_residue_name() == "SER");
-    REQUIRE(atoms[3].get_residue_sequence_number() == 1);
-    REQUIRE(atoms[3].get_chainID() == 'A');
-    REQUIRE(atoms[3].get_temperature_factor() == 50.538);
+    REQUIRE(atoms[3].occupancy == 0.4);
+    REQUIRE(atoms[3].element == constants::atom_t::O);
+    REQUIRE(atoms[3].resName == "SER");
+    REQUIRE(atoms[3].resSeq == 1);
+    REQUIRE(atoms[3].chainID == 'A');
+    REQUIRE(atoms[3].tempFactor == 50.538);
 }
 
 TEST_CASE("CIFReader: uses file residues") {
@@ -155,31 +155,31 @@ TEST_CASE("CIFReader: compare with PDB", "[files]") {
     auto compare_atoms = [] (std::vector<io::pdb::PDBAtom>& a1, std::vector<io::pdb::PDBAtom>& a2) {
         REQUIRE(a1.size() == a2.size());
         int chain = 0;
-        char chainID = a2[0].get_chainID();
+        char chainID = a2[0].chainID;
         for (unsigned int i = 0; i < a1.size(); i++) {
             // if the chainID changes, the PDB file may or may not have a TER record, thus shifting all following serials by one
-            if (a2[i].get_chainID() != chainID) {
+            if (a2[i].chainID != chainID) {
                 // check if the PDB atom is shifted relative to the CIF file
-                if (a2[i].get_serial()-chain != a1[i].get_serial()) {
+                if (a2[i].serial-chain != a1[i].serial) {
                     // if so, increment the chain shift (this is typically the case for new ATOM chains)
                     chain++;
                 }
                 // otherwise, just update the chainID (this is typically the case for HETATM)
-                chainID = a2[i].get_chainID();
+                chainID = a2[i].chainID;
             }
             a2[i].serial -= chain; // account for the chain shift
 
-            REQUIRE(a1[i].get_serial() == a2[i].get_serial());
+            REQUIRE(a1[i].serial == a2[i].serial);
             REQUIRE_THAT(a1[i].coordinates().x(), Catch::Matchers::WithinAbsMatcher(a2[i].coordinates().x(), 1e-2));
             REQUIRE_THAT(a1[i].coordinates().y(), Catch::Matchers::WithinAbsMatcher(a2[i].coordinates().y(), 1e-2));
             REQUIRE_THAT(a1[i].coordinates().z(), Catch::Matchers::WithinAbsMatcher(a2[i].coordinates().z(), 1e-2));
-            REQUIRE_THAT(a1[i].get_occupancy(), Catch::Matchers::WithinAbs(a2[i].get_occupancy(), 1e-2));
-            REQUIRE_THAT(a1[i].get_temperature_factor(), Catch::Matchers::WithinAbs(a2[i].get_temperature_factor(), 1e-2));
-            REQUIRE(a1[i].get_element() == a2[i].get_element());
-            REQUIRE(a1[i].get_residue_name() == a2[i].get_residue_name());
-            REQUIRE(a1[i].get_residue_sequence_number() == a2[i].get_residue_sequence_number());
-            REQUIRE(a1[i].get_chainID() == a2[i].get_chainID());
-            if (!a1[i].get_alternate_location().starts_with('.')) {REQUIRE(a1[i].get_alternate_location() == a2[i].get_alternate_location());}
+            REQUIRE_THAT(a1[i].occupancy, Catch::Matchers::WithinAbs(a2[i].occupancy, 1e-2));
+            REQUIRE_THAT(a1[i].tempFactor, Catch::Matchers::WithinAbs(a2[i].tempFactor, 1e-2));
+            REQUIRE(a1[i].element == a2[i].element);
+            REQUIRE(a1[i].resName == a2[i].resName);
+            REQUIRE(a1[i].resSeq == a2[i].resSeq);
+            REQUIRE(a1[i].chainID == a2[i].chainID);
+            if (!a1[i].altLoc.starts_with('.')) {REQUIRE(a1[i].altLoc == a2[i].altLoc);}
         }
     };
 

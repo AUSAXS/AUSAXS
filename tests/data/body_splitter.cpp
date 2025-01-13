@@ -22,7 +22,7 @@ TEST_CASE("BodySplitter::split") {
         int count = 0;
         for (int split = 0, i = 0; i < static_cast<int>(protein.size_atom()); ++i) {
             auto& ap = data.atoms[i];
-            if (ap.get_residue_sequence_number() == splits[split]) {
+            if (ap.resSeq == splits[split]) {
                 expected_sizes.push_back(count);
                 ++split;
                 count = 1;
@@ -39,10 +39,10 @@ TEST_CASE("BodySplitter::split") {
             REQUIRE(atoms.size() == expected_sizes[i]);
 
             if (1 <= i) {
-                CHECK(data.atoms[index].get_residue_sequence_number() == splits[i-1]);
+                CHECK(data.atoms[index].resSeq == splits[i-1]);
             }
             if (i < splits.size()) {
-                CHECK(data.atoms[index+expected_sizes[i]-1].get_residue_sequence_number() == splits[i]-1);
+                CHECK(data.atoms[index+expected_sizes[i]-1].resSeq == splits[i]-1);
             }
             index += expected_sizes[i];
         }

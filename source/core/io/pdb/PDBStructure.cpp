@@ -83,7 +83,7 @@ void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& h
 void PDBStructure::add_implicit_hydrogens() {
     // sanity check: if the structure already contains hydrogens, don't implicitly add more
     for (auto& a : atoms) {
-        if (a.get_element() != constants::atom_t::H) {continue;}
+        if (a.element != constants::atom_t::H) {continue;}
         console::print_warning("Molecule::add_implicit_hydrogens: The molecule already contains hydrogen atoms. Skipping implicit addition.");
         return;
     }
@@ -155,7 +155,7 @@ void PDBStructure::refresh() {
             resSeq++; // TER records always denotes the end of a sequence
             serial++;
         }
-        a.set_serial(serial++ % 100000); // fix possible errors in the serial
+        a.serial = serial++ % 100000; // fix possible errors in the serial
     }
 
     if (!terminate_inserted) {
@@ -167,9 +167,9 @@ void PDBStructure::refresh() {
     chainID = atoms[atoms.size()-1].chainID+1;
     resSeq = atoms[atoms.size()-1].resSeq + 1;
     for (auto& a : waters) {
-        a.set_serial(serial++ % 100000);
-        a.set_residue_sequence_number(resSeq++ % 10000);
-        a.set_chainID(chainID + int(resSeq/10000));
+        a.serial = serial++ % 100000;
+        a.resSeq = resSeq++ % 10000;
+        a.chainID = chainID + int(resSeq/10000);
     }
 }
 
@@ -179,7 +179,7 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     res.waters.reserve(waters.size());
 
     for (auto& a : atoms) {
-        res.atoms.emplace_back(a.coords, form_factor::get_type(a.get_element(), a.get_atomic_group()), a.effective_charge*a.occupancy);
+        res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);
     }
 
     for (auto& w : waters) {

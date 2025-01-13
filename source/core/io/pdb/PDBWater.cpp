@@ -10,8 +10,8 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
 
-PDBWater::PDBWater(PDBAtom&& a) noexcept : PDBAtom(std::move(a)) {set_residue_name("HOH");}
-PDBWater::PDBWater(const PDBAtom& a) : PDBAtom(a) {set_residue_name("HOH");}
+PDBWater::PDBWater(PDBAtom&& a) noexcept : PDBAtom(std::move(a)) {resName = "HOH";}
+PDBWater::PDBWater(const PDBAtom& a) : PDBAtom(a) {resName = "HOH";}
 
 RecordType PDBWater::get_type() const {return RecordType::WATER;}
 

@@ -25,31 +25,31 @@ PDBAtom::PDBAtom() : uid(uid_counter++) {}
 
 PDBAtom::PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& resName, int serial) : uid(uid_counter++) {
     // we use our setters so we can validate the input if necessary
-    set_coordinates(std::move(v));
-    set_occupancy(occupancy);
-    set_element(element);
-    set_residue_name(resName);
-    set_serial(serial);
-    set_effective_charge(constants::charge::nuclear::get_charge(this->element));
+    this->coords = v;
+    this->occupancy = occupancy;
+    this->element = element;
+    this->resName = resName;
+    this->serial = serial;
+    this->effective_charge = constants::charge::nuclear::get_charge(this->element);
 }
 
 PDBAtom::PDBAtom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
-    Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge) : uid(uid_counter++) {
-        set_serial(serial);
-        set_group_name(name);
-        set_alternate_location(altLoc);
-        set_residue_name(resName);
-        set_chainID(chainID);
-        set_residue_sequence_number(resSeq);
-        set_insertion_code(iCode);
-        set_coordinates(std::move(coords));
-        set_occupancy(occupancy);
-        set_temperature_factor(tempFactor);
-        set_element(element);
-        set_charge(charge);
-        effective_charge = constants::charge::nuclear::get_charge(this->element);
-        atomic_group = constants::atomic_group_t::unknown;
-        uid = uid_counter++;
+    Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge) : uid(uid_counter++) 
+{
+    this->serial = serial;
+    this->name = name;
+    this->altLoc = altLoc;
+    this->resName = resName;
+    this->chainID = chainID;
+    this->resSeq = resSeq;
+    this->iCode = iCode;
+    this->coords = coords;
+    this->occupancy = occupancy;
+    this->tempFactor = tempFactor;
+    this->element = element;
+    this->charge = charge;
+    this->effective_charge = constants::charge::nuclear::get_charge(this->element);
+    atomic_group = constants::atomic_group_t::unknown;
 }
 
 void PDBAtom::parse_pdb(const std::string& str) {
@@ -118,7 +118,7 @@ void PDBAtom::parse_pdb(const std::string& str) {
         this->chainID = chainID;
         this->resSeq = std::stoi(resSeq);
         this->iCode = std::move(iCode);
-        set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
+        this->coords = {std::stod(x), std::stod(y), std::stod(z)};
         if (occupancy.empty()) {this->occupancy = 1;} else {this->occupancy = std::stod(occupancy);}
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {
@@ -142,10 +142,10 @@ void PDBAtom::parse_pdb(const std::string& str) {
 }
 
 void PDBAtom::add_implicit_hydrogens() {
-    assert(get_element() != constants::atom_t::H && "PDBAtom::add_implicit_hydrogens: Attempted to add implicit hydrogens to a hydrogen atom.");
+    assert(element != constants::atom_t::H && "PDBAtom::add_implicit_hydrogens: Attempted to add implicit hydrogens to a hydrogen atom.");
     try {
         effective_charge = constants::charge::nuclear::get_charge(element) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
-        atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
+        atomic_group = constants::symbols::get_atomic_group(resName, name, element);
     } catch (const except::base&) {
         throw except::invalid_argument(
             "PDBAtom::add_implicit_hydrogens: Could not identify group of atom " + std::to_string(serial) + ". Unknown element, residual or atom: "
@@ -188,25 +188,7 @@ std::string PDBAtom::get_recName() const {return "ATOM  ";}
 
 RecordType PDBAtom::get_type() const {return RecordType::ATOM;}
 
-double PDBAtom::distance_squared(const PDBAtom& a) const {return coords.distance2(a.coords);}
-double PDBAtom::distance(const PDBAtom& a) const {return coords.distance(a.coords);}
-void PDBAtom::translate(Vector3<double> v) {coords += v;}
 bool PDBAtom::is_water() const {return (resName == "HOH") || (resName == "SOL");}
-void PDBAtom::set_coordinates(Vector3<double> v) {coords = v;}
-void PDBAtom::set_x(double x) {coords.x() = x;}
-void PDBAtom::set_y(double y) {coords.y() = y;}
-void PDBAtom::set_z(double z) {coords.z() = z;}
-void PDBAtom::set_occupancy(double occupancy) {this->occupancy = occupancy;}
-void PDBAtom::set_temperature_factor(double tempFactor) {this->tempFactor = tempFactor;}
-void PDBAtom::set_alternate_location(const std::string& altLoc) {this->altLoc = altLoc;}
-void PDBAtom::set_serial(int serial) {this->serial = serial;}
-void PDBAtom::set_residue_sequence_number(int resSeq) {this->resSeq = resSeq;}
-void PDBAtom::set_effective_charge(double charge) {effective_charge = charge;}
-void PDBAtom::set_chainID(char chainID) {this->chainID = chainID;}
-void PDBAtom::set_insertion_code(const std::string& iCode) {this->iCode = iCode;}
-void PDBAtom::set_charge(const std::string& charge) {this->charge = charge;}
-void PDBAtom::set_residue_name(const std::string& resName) {this->resName = resName;}
-void PDBAtom::set_group_name(const std::string& name) {this->name = name;}
 
 void PDBAtom::set_element(constants::atom_t element) {
     assert(element != constants::atom_t::unknown && "PDBAtom::set_element: Attempted to set element to unknown.");
@@ -219,20 +201,6 @@ void PDBAtom::set_element(const std::string& element) {
 
 Vector3<double>& PDBAtom::coordinates() {return coords;}
 const Vector3<double>& PDBAtom::coordinates() const {return coords;}
-int PDBAtom::get_serial() const {return serial;}
-int PDBAtom::get_residue_sequence_number() const {return resSeq;}
-double PDBAtom::get_occupancy() const {return occupancy;}
-double PDBAtom::get_temperature_factor() const {return tempFactor;}
-double PDBAtom::get_absolute_charge() const {return Z();}
-double PDBAtom::get_effective_charge() const {return effective_charge;}
-std::string PDBAtom::get_alternate_location() const {return altLoc;}
-char PDBAtom::get_chainID() const {return chainID;}
-std::string PDBAtom::get_insertion_code() const {return iCode;}
-std::string PDBAtom::get_charge() const {return charge;}
-std::string PDBAtom::get_residue_name() const {return resName;}
-std::string PDBAtom::get_group_name() const {return name;}
-constants::atom_t PDBAtom::get_element() const {return element;}
-constants::atomic_group_t PDBAtom::get_atomic_group() const {return atomic_group;}
 
 double PDBAtom::get_mass() const {
     if (settings::molecule::implicit_hydrogens) {
@@ -264,8 +232,6 @@ unsigned int PDBAtom::Z() const {
     #endif
     return constants::charge::nuclear::get_charge(element);
 }
-
-void PDBAtom::add_effective_charge(const double charge) {effective_charge += charge;}
 
 bool PDBAtom::operator<(const PDBAtom& rhs) const {
     return serial < rhs.serial;

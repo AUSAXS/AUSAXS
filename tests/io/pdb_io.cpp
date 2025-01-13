@@ -81,32 +81,32 @@ TEST_CASE("PDBReader: add_implicit_hydrogens") {
         auto protein = generate_molecule();
         auto& atoms = protein.get_atoms();
 
-        CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].get_element()) + 1);
-        CHECK(atoms[0].get_atomic_group() == constants::atomic_group_t::NH);
+        CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].element) + 1);
+        CHECK(atoms[0].atomic_group == constants::atomic_group_t::NH);
 
-        CHECK(atoms[1].effective_charge == constants::charge::nuclear::get_charge(atoms[1].get_element()) + 1);
-        CHECK(atoms[1].get_atomic_group() == constants::atomic_group_t::CH);
+        CHECK(atoms[1].effective_charge == constants::charge::nuclear::get_charge(atoms[1].element) + 1);
+        CHECK(atoms[1].atomic_group == constants::atomic_group_t::CH);
 
-        CHECK(atoms[2].effective_charge == constants::charge::nuclear::get_charge(atoms[2].get_element()) + 0);
-        CHECK(atoms[2].get_atomic_group() == constants::atomic_group_t::unknown);
+        CHECK(atoms[2].effective_charge == constants::charge::nuclear::get_charge(atoms[2].element) + 0);
+        CHECK(atoms[2].atomic_group == constants::atomic_group_t::unknown);
 
-        CHECK(atoms[3].effective_charge == constants::charge::nuclear::get_charge(atoms[3].get_element()) + 0);
-        CHECK(atoms[3].get_atomic_group() == constants::atomic_group_t::unknown);
+        CHECK(atoms[3].effective_charge == constants::charge::nuclear::get_charge(atoms[3].element) + 0);
+        CHECK(atoms[3].atomic_group == constants::atomic_group_t::unknown);
 
-        CHECK(atoms[4].effective_charge == constants::charge::nuclear::get_charge(atoms[4].get_element()) + 2);
-        CHECK(atoms[4].get_atomic_group() == constants::atomic_group_t::CH2);
+        CHECK(atoms[4].effective_charge == constants::charge::nuclear::get_charge(atoms[4].element) + 2);
+        CHECK(atoms[4].atomic_group == constants::atomic_group_t::CH2);
 
-        CHECK(atoms[5].effective_charge == constants::charge::nuclear::get_charge(atoms[5].get_element()) + 2);
-        CHECK(atoms[5].get_atomic_group() == constants::atomic_group_t::CH2);
+        CHECK(atoms[5].effective_charge == constants::charge::nuclear::get_charge(atoms[5].element) + 2);
+        CHECK(atoms[5].atomic_group == constants::atomic_group_t::CH2);
 
-        CHECK(atoms[6].effective_charge == constants::charge::nuclear::get_charge(atoms[6].get_element()) + 2);
-        CHECK(atoms[6].get_atomic_group() == constants::atomic_group_t::CH2);
+        CHECK(atoms[6].effective_charge == constants::charge::nuclear::get_charge(atoms[6].element) + 2);
+        CHECK(atoms[6].atomic_group == constants::atomic_group_t::CH2);
 
-        CHECK(atoms[7].effective_charge == constants::charge::nuclear::get_charge(atoms[7].get_element()) + 2);
-        CHECK(atoms[7].get_atomic_group() == constants::atomic_group_t::CH2);
+        CHECK(atoms[7].effective_charge == constants::charge::nuclear::get_charge(atoms[7].element) + 2);
+        CHECK(atoms[7].atomic_group == constants::atomic_group_t::CH2);
 
-        CHECK(atoms[8].effective_charge == constants::charge::nuclear::get_charge(atoms[8].get_element()) + 3);
-        CHECK(atoms[8].get_atomic_group() == constants::atomic_group_t::NH3);
+        CHECK(atoms[8].effective_charge == constants::charge::nuclear::get_charge(atoms[8].element) + 3);
+        CHECK(atoms[8].atomic_group == constants::atomic_group_t::NH3);
     }
 
     SECTION("disabled") {
@@ -114,8 +114,8 @@ TEST_CASE("PDBReader: add_implicit_hydrogens") {
         auto protein = generate_molecule();
 
         for (auto a : protein.get_atoms()) {
-            CHECK(a.effective_charge == constants::charge::nuclear::get_charge(a.get_element()));
-            CHECK(a.get_atomic_group() == constants::atomic_group_t::unknown);
+            CHECK(a.effective_charge == constants::charge::nuclear::get_charge(a.element));
+            CHECK(a.atomic_group == constants::atomic_group_t::unknown);
         }
     }
 }
