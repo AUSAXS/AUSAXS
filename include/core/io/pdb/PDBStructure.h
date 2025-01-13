@@ -117,8 +117,5 @@ namespace ausaxs::io::pdb {
             Terminate terminate;
             std::vector<PDBAtom> atoms;
             std::vector<PDBWater> waters;
-
-        private:
-            void initialize();
     };
 }

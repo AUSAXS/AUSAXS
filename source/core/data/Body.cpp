@@ -16,6 +16,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/ImplicitHydration.h>
 #include <hydrate/NoHydration.h>
 #include <io/Reader.h>
+#include <settings/MoleculeSettings.h>
 
 #include <vector>
 #include <utility>
@@ -31,7 +32,9 @@ Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), hydration(std::
 Body::~Body() = default;
 
 Body::Body(const io::File& path) : uid(uid_counter++) {
-    auto data = io::Reader::read(path).reduced_representation();
+    auto file = io::Reader::read(path);
+    if (settings::molecule::implicit_hydrogens) {file.add_implicit_hydrogens();}
+    auto data = file.reduced_representation();
     atoms = std::move(data.atoms);
     if (data.waters.empty()) {
         hydration = hydrate::Hydration::create();
