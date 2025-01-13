@@ -7,8 +7,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distribution/Distribution2D.h>
 #include <constants/Constants.h>
 
-#include <cmath>
-
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
@@ -18,16 +16,6 @@ WeightedDistribution2D::WeightedDistribution2D(const Distribution2D& other) : Co
             index(x, y).value = other.index(x, y);
         }
     }
-}
-
-void WeightedDistribution2D::add(unsigned int x, float distance, constants::axes::d_type value) {
-    int i = std::round(distance*constants::axes::d_inv_width);
-    index(x, i).add(distance, value);
-}
-
-void WeightedDistribution2D::add2(unsigned int x, float distance, constants::axes::d_type value) {
-    int i = std::round(distance*constants::axes::d_inv_width);
-    index(x, i).add2(distance, value);
 }
 
 std::vector<double> WeightedDistribution2D::get_weighted_axis() const {

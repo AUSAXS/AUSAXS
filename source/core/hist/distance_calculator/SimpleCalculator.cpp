@@ -96,7 +96,7 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
         result.self[i] = results_self[i].merge();
 
         // self-correlations since we start from j=i+1
-        result.self[i].add(0, std::accumulate(
+        result.self[i].template add<1>(0, std::accumulate(
             self[i].get().get_data().begin(), 
             self[i].get().get_data().end(), 
             0.0, 
