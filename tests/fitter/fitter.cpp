@@ -71,6 +71,7 @@ class SmartFitterDebug : public fitter::SmartFitter {
 };
 
 TEST_CASE("SmartFitter::fit") {
+    settings::molecule::implicit_hydrogens = false;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
     Molecule protein("tests/files/2epe.pdb");
 

@@ -98,6 +98,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
 }
 
 TEST_CASE("Body::save") {
+    settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
     std::vector<AtomFF> a = {
         AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
