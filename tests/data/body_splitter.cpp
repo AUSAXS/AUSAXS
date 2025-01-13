@@ -16,7 +16,7 @@ TEST_CASE("BodySplitter::split") {
     auto test_splits = [] (std::string_view file, std::vector<int>&& splits) {
         data::Molecule protein = rigidbody::BodySplitter::split(file, splits);
         io::pdb::PDBStructure data = io::Reader::read(file);
-        REQUIRE(protein.size_atom() == data.get_atoms().size());
+        REQUIRE(protein.size_atom() == data.atoms.size());
         
         std::vector<unsigned int> expected_sizes;
         int count = 0;

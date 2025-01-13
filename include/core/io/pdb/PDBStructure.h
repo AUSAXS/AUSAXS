@@ -62,18 +62,6 @@ namespace ausaxs::io::pdb {
              */
             void add_implicit_hydrogens();
 
-            /**
-             * @brief Get the protein atoms contained in this PDBStructure. 
-             */
-            const std::vector<PDBAtom>& get_atoms() const;
-            std::vector<PDBAtom>& get_atoms(); //< @copydoc get_atoms
-
-            /**
-             * @brief Get the hydration atoms contained in this PDBStructure. 
-             */
-            const std::vector<PDBWater> get_waters() const;
-            std::vector<PDBWater> get_waters(); //< @copydoc get_waters
-
             /** 
              * @brief Add an Atom record to this PDBStructure. 
              * @param a The Atom record to be added.
@@ -121,7 +109,7 @@ namespace ausaxs::io::pdb {
             bool operator==(const PDBStructure& rhs) const;
 
             bool equals_content(const PDBStructure& rhs) const;
-            
+
             _res reduced_representation();
 
             Header header;

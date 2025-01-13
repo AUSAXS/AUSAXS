@@ -58,7 +58,7 @@ TEST_CASE("CIFReader::read") {
 
     // check CIF io
     auto protein = io::detail::cif::read(path);
-    auto atoms = protein.get_atoms();
+    auto atoms = protein.atoms;
     REQUIRE(atoms.size() == 4);
     REQUIRE(atoms[0].serial == 1);
     REQUIRE(atoms[0].coordinates().x() == -32.928);
@@ -183,7 +183,7 @@ TEST_CASE("CIFReader: compare with PDB", "[files]") {
         }
     };
 
-    compare_atoms(cif1.get_atoms(), pdb1.get_atoms());
-    compare_atoms(cif2.get_atoms(), pdb2.get_atoms());
-    compare_atoms(cif3.get_atoms(), pdb3.get_atoms());
+    compare_atoms(cif1.atoms, pdb1.atoms);
+    compare_atoms(cif2.atoms, pdb2.atoms);
+    compare_atoms(cif3.atoms, pdb3.atoms);
 }

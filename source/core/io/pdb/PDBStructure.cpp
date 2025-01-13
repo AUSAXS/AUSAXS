@@ -94,12 +94,6 @@ void PDBStructure::add_implicit_hydrogens() {
     }
 }
 
-const std::vector<PDBAtom>& PDBStructure::get_atoms() const {return atoms;}
-std::vector<PDBAtom>& PDBStructure::get_atoms() {return atoms;}
-
-const std::vector<PDBWater> PDBStructure::get_waters() const {return waters;}
-std::vector<PDBWater> PDBStructure::get_waters() {return waters;}
-
 void PDBStructure::add(const PDBAtom& r) {
     atoms.push_back(r);
 }
