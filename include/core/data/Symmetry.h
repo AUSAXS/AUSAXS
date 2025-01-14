@@ -6,17 +6,13 @@
 namespace ausaxs::data::detail {
     struct Symmetry {
         Symmetry() = default;
-        Symmetry(Vector3<double> translate, Vector3<double> center, Vector3<double> angles, Vector3<double> internal_rotate, int repeat) : 
+        Symmetry(Vector3<double> translate, Vector3<double> center, Vector3<double> angles, int repeat = 1) : 
             translate(translate), 
             external_rotate{center, angles}, 
-            internal_rotate(internal_rotate), 
             repeat(repeat) 
         {}
-        Symmetry(Vector3<double> translate, Vector3<double> center, Vector3<double> angles, Vector3<double> internal_rotate) : 
-            Symmetry(translate, center, angles, internal_rotate, 1) 
-        {}
-        Symmetry(Vector3<double> translate) : Symmetry(translate, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 1) {}
-        Symmetry(Vector3<double> center, Vector3<double> angles) : Symmetry({0, 0, 0}, center, angles, {0, 0, 0}, 1) {}
+        Symmetry(Vector3<double> translate) : Symmetry(translate, {0, 0, 0}, {0, 0, 0}, 1) {}
+        Symmetry(Vector3<double> center, Vector3<double> angles) : Symmetry({0, 0, 0}, center, angles, 1) {}
 
         /**
          * @brief Get the transform taking the original structure to the N-th repeat. 
@@ -25,7 +21,7 @@ namespace ausaxs::data::detail {
          * @param repeat The number of times the symmetry should be repeated.
          */
         template<typename T>
-        std::function<Vector3<T>(Vector3<T>)> get_transform(Vector3<T> cm, int repeat = 1) const;
+        std::function<Vector3<T>(Vector3<T>)> get_transform(int repeat = 1) const;
 
         bool operator==(const Symmetry& rhs) const = default;
 
@@ -39,12 +35,6 @@ namespace ausaxs::data::detail {
             bool operator==(const _extrot& rhs) const = default;
         } external_rotate;
 
-        // orientation with respect to the original body
-        struct _introt {
-            Vector3<double> angle;
-            bool operator==(const _introt& rhs) const = default;
-        } internal_rotate;
-
         // the number of times the symmetry should be repeated
         int repeat;
     };
@@ -54,26 +44,28 @@ namespace ausaxs::data::detail {
 }
 
 template<typename Q>
-std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::data::detail::Symmetry::get_transform(Vector3<Q> cm, int repeat) const {
+std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::data::detail::Symmetry::get_transform(int repeat) const {
     // accumulate transformations from 1 to repeat
     Matrix<double>  R_final = matrix::identity(3);
     Vector3<double> T_final(0, 0, 0);
-    Vector3<double> p_cm = cm;
     for (int i = 0; i < repeat; ++i) {
+        // transformation incorporating translation, rotation about an axis, and orientation (outdated)
         // v' = r_ext * (r_int * (v - p_cm) + p_cm - p_sym) + p_sym + t
         //    = r_ext*r_int*v - r_ext*r_int*p_cm + r_ext*p_cm - r_ext*p_sym + p_sym + t
         //    = r_ext*r_int*v + (r_ext*p_cm - r_ext*r_int*p_cm - r_ext*p_sym + p_sym + t)
+
+        // transformation incorporating translation and rotation about an axis
+        // v' = r_ext * (v - p_sym) + p_sym + t
+        //    = r_ext*v - r_ext*p_sym + p_sym + t
         auto r_ext = matrix::rotation_matrix<Q>(external_rotate.angle);
-        auto r_int = matrix::rotation_matrix<Q>(internal_rotate.angle);
         auto p_sym = external_rotate.center;
         auto t = translate;
 
-        Matrix<Q> R = r_ext*r_int;
-        Vector3<Q> T = r_ext*p_cm - R*p_cm - r_ext*p_sym + p_sym + t;
+        Matrix<Q>  R = r_ext;
+        Vector3<Q> T = r_ext*p_sym + p_sym + t;
 
         R_final = R*R_final;        // accumulate the rotation
         T_final = R*T_final + T;    // accumulate the translation
-        p_cm = R*p_cm + T;          // accumulate the center of mass
     }
 
     if constexpr (std::is_same_v<Q, double>) {

@@ -10,5 +10,9 @@ namespace ausaxs::hist::detail {
         public:
             template<bool use_weighted_distribution>
             std::unique_ptr<ICompositeDistanceHistogram> calculate(const data::Molecule& protein);
+        
+        private:
+            template<bool use_weighted_distribution, bool contains_waters>
+            std::unique_ptr<ICompositeDistanceHistogram> calculate(const data::Molecule& protein);
     };
 }

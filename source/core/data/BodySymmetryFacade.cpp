@@ -49,7 +49,7 @@ ausaxs::data::Body ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_ex
 
     for (const auto& symmetry : body->symmetries) {
         for (int i = 0; i < symmetry.repeat; ++i) {
-            auto t = symmetry.get_transform(body->get_cm(), i+1);
+            auto t = symmetry.template get_transform<double>(i+1);
             for (const auto& a : body->get_atoms()) {
                 atoms.emplace_back(t(a.coordinates()), a.form_factor_type());
             }

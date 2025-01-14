@@ -330,7 +330,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         set_unity_charge(m);
 
         SECTION("two repeats") {
-            m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -342,7 +342,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         }
 
         SECTION("three repeats") {
-            m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 3});
+            m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -362,8 +362,8 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         set_unity_charge(m);
 
         SECTION("two repeats") {
-            m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
-            m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0},  {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -377,8 +377,8 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         }
 
         SECTION("different repeats") {
-            m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 1});
-            m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 1});
+            m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
@@ -414,7 +414,7 @@ TEST_CASE("SymmetryManager: rotations") {
         }
 
         SECTION("three copies") {
-            m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, {0., 0., 0.}, 3});
+            m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, 3});
 
             hist::detail::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
@@ -431,80 +431,70 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
 
-    SECTION("line") {
+    // SECTION("cross") {
+    //     AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
+    //     AtomFF a2({2, 0, 0}, form_factor::form_factor_t::C);
+    //     AtomFF a3({3, 0, 0}, form_factor::form_factor_t::C);
+    //     Molecule m({Body{std::vector{a1, a2, a3}}});
+    //     set_unity_charge(m);
+
+    //     // external rotate pi/2 around the y-axis and replicate thrice
+    //     // this gives the structure
+    //     //
+    //     //         x
+    //     //         x
+    //     //         x
+    //     //   x x x   x x x
+    //     //         x
+    //     //         x
+    //     //         x
+    //     //
+    //     m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, 3});
+
+    //     hist::detail::SymmetryManager sm;
+    //     auto h = sm.calculate<true>(m)->get_total_counts();
+    //     check_hist(h, {
+    //         {0, 12},
+    //         {1, 16},
+    //         {2, 12},
+    //         {3, 8},
+    //         {4, 12},
+    //         {5, 8},
+    //         {6, 4},
+    //         {std::sqrt(2), 8},
+    //         {std::sqrt(5), 16},
+    //         {std::sqrt(8), 8},
+    //         {std::sqrt(10), 16},
+    //         {std::sqrt(13), 16},
+    //         {std::sqrt(18), 8}
+    //     });
+    // }
+
+    SECTION("helix") {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
-        AtomFF a2({2, 0, 0}, form_factor::form_factor_t::C);
-        AtomFF a3({3, 0, 0}, form_factor::form_factor_t::C);
-        Molecule m({Body{std::vector{a1, a2, a3}}});
+        Molecule m({Body{std::vector{a1}}});
         set_unity_charge(m);
 
-        // SECTION("cross") {
-        //     // external rotate pi/2 around the y-axis and replicate thrice
-        //     // this gives the structure
-        //     //
-        //     //         x
-        //     //         x
-        //     //         x
-        //     //   x x x   x x x
-        //     //         x
-        //     //         x
-        //     //         x
-        //     //
-        //     m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, 0}, 3});
+        m.get_body(0).symmetry().add({{0, 0, 1}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, 8});
+        m.get_body(0).symmetry().save("sym.pdb");
 
-        //     hist::detail::SymmetryManager sm;
-        //     auto h = sm.calculate<true>(m)->get_total_counts();
-        //     check_hist(h, {
-        //         {0, 12},
-        //         {1, 16},
-        //         {2, 12},
-        //         {3, 8},
-        //         {4, 12},
-        //         {5, 8},
-        //         {6, 4},
-        //         {std::sqrt(2), 8},
-        //         {std::sqrt(5), 16},
-        //         {std::sqrt(8), 8},
-        //         {std::sqrt(10), 16},
-        //         {std::sqrt(13), 16},
-        //         {std::sqrt(18), 8}
-        //     });
-        // }
+        hist::detail::SymmetryManager sm;
+        auto h = sm.calculate<true>(m)->get_total_counts();
 
-        SECTION("cross with rotated arms") {
-            // external rotate pi/2 around the y-axis while also rotating -pi/2 around itself, and replicate thrice
-            // this gives the structure
-            //       
-            //       x x x
-            //          
-            //   x x x   x x x
-            //           
-            //       x x x
-            //       
-            m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, {0, 0, -std::numbers::pi/2}, 3});
-            m.get_body(0).symmetry().save("sym.pdb");
-
-            hist::detail::SymmetryManager sm;
-            auto h = sm.calculate<true>(m)->get_total_counts();
-
-            auto m2 = Molecule({m.get_body(0).symmetry().get_explicit_structure()});
-            set_unity_charge(m2);
-            auto h2 = m2.get_histogram()->get_total_counts();
-            std::vector<RES> checks = {
-                {0, 12},
-                {1, 16},
-                {2, 18},
-                {3, 4},
-                {4, 12},
-                {5, 4},
-                {6, 2},
-                {std::sqrt(5), 16},  // 2.23
-                {std::sqrt(8), 24},  // 2.83
-                {std::sqrt(13), 16}, // 3.61
-                {std::sqrt(17), 8},  // 4.12
-                {std::sqrt(20), 12}, // 4.47
-            };
-            check_hist(h, checks);
-        }
+        auto m2 = Molecule({m.get_body(0).symmetry().get_explicit_structure()});
+        set_unity_charge(m2);
+        auto h2 = m2.get_histogram()->get_total_counts();
+        std::vector<RES> checks = {
+            {0, 9},
+            {std::sqrt(2),  8}, // 2.23
+            {std::sqrt(6),  7}, // 2.83
+            {std::sqrt(10), 6}, // 3.61
+            {4, 5},
+            {std::sqrt(26), 4}, // 5.10
+            {std::sqrt(38), 3}, // 6.16
+            {std::sqrt(50), 2}, // 7.07
+            {8, 1}
+        };
+        check_hist(h, checks);
     }
 }
