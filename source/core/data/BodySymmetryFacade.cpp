@@ -41,7 +41,7 @@ const ausaxs::data::detail::Symmetry& ausaxs::data::detail::BodySymmetryFacade<B
 }
 
 template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::save(const io::File& path) const {
+ausaxs::data::Body ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_explicit_structure() const {
     std::vector<AtomFF> atoms = body->get_atoms();
     std::vector<Water> waters = body->size_water() == 0 ? std::vector<Water>{} : body->get_waters();
     atoms.reserve(body->size_symmetry_total()*body->size_atom());
@@ -61,7 +61,13 @@ void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::save(const io::File&
         }
     }
 
-    io::Writer::write(io::pdb::PDBStructure(Body(atoms, waters)), path);
+    return Body(atoms, waters);
+}
+
+template<typename BODY, bool CONST>
+void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::save(const io::File& path) const {
+    auto body = get_explicit_structure();
+    io::Writer::write(io::pdb::PDBStructure(body), path);
 }
 
 template class ausaxs::data::detail::BodySymmetryFacade<ausaxs::data::Body>;

@@ -34,6 +34,11 @@ namespace ausaxs::data::detail {
              */
             void save(const io::File& path) const;
 
+            /**
+             * @brief Apply all symmetries to the body, returning a new larger body with all the symmetries applied.
+             */
+            Body get_explicit_structure() const;
+
         private:
             observer_ptr<BODY> body;
     };
