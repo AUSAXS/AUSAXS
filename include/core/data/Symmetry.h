@@ -23,6 +23,11 @@ namespace ausaxs::data::detail {
         template<typename T>
         std::function<Vector3<T>(Vector3<T>)> get_transform(int repeat = 1) const;
 
+        /**
+         * @brief Determine if the symmetry is closed, i.e. the repeat+1-th transformation is the identity.
+         */
+        bool is_closed() const;
+
         bool operator==(const Symmetry& rhs) const = default;
 
         // translational vector with respect to the original body
@@ -44,7 +49,7 @@ namespace ausaxs::data::detail {
 }
 
 template<typename Q>
-std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::data::detail::Symmetry::get_transform(int repeat) const {
+inline std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::data::detail::Symmetry::get_transform(int repeat) const {
     // accumulate transformations from 1 to repeat
     Matrix<double>  R_final = matrix::identity(3);
     Vector3<double> T_final(0, 0, 0);
@@ -80,4 +85,18 @@ std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::data::detail::Symm
     return [R_cast, T_cast](Vector3<Q> v) {
         return R_cast * v + T_cast;
     };    
+}
+
+inline bool ausaxs::data::detail::Symmetry::is_closed() const {
+    if (translate.magnitude() != 0) {return false;}
+
+    // due to floating point inaccuracies, we multiply by 100 and round to nearest integer
+    // we then compare the value modulo 100*2*pi = 628 with 0
+    auto angles = 100*(repeat+1)*external_rotate.angle;
+    constexpr int cmp = 100*2*M_PI;
+    return 
+        static_cast<int>(std::round(angles.x())) % cmp == 0 && 
+        static_cast<int>(std::round(angles.y())) % cmp == 0 && 
+        static_cast<int>(std::round(angles.z())) % cmp == 0
+    ;
 }
