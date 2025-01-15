@@ -3,7 +3,7 @@
 #include <math/Vector3.h>
 #include <math/MatrixUtils.h>
 
-namespace ausaxs::data::detail {
+namespace ausaxs::symmetry {
     struct Symmetry {
         Symmetry() = default;
         Symmetry(Vector3<double> translate, Vector3<double> center, Vector3<double> angles, int repeat = 1) : 
@@ -49,7 +49,7 @@ namespace ausaxs::data::detail {
 }
 
 template<typename Q>
-inline std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::data::detail::Symmetry::get_transform(int repeat) const {
+inline std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::symmetry::Symmetry::get_transform(int repeat) const {
     // accumulate transformations from 1 to repeat
     Matrix<double>  R_final = matrix::identity(3);
     Vector3<double> T_final(0, 0, 0);
@@ -87,7 +87,7 @@ inline std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::data::detai
     };    
 }
 
-inline bool ausaxs::data::detail::Symmetry::is_closed() const {
+inline bool ausaxs::symmetry::Symmetry::is_closed() const {
     if (translate.magnitude() != 0) {return false;}
 
     // due to floating point inaccuracies, we multiply by 100 and round to nearest integer

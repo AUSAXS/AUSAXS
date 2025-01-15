@@ -1,4 +1,4 @@
-#include <data/SymmetryManager.h>
+#include <data/symmetry/SymmetryManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
@@ -103,7 +103,7 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
 }
 
 template<bool use_weighted_distribution>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate(const data::Molecule& protein) {
+std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate(const data::Molecule& protein) {
     if (protein.size_water() == 0) {
         return calculate<use_weighted_distribution, false>(protein);
     } else {
@@ -112,7 +112,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager
 }
 
 template<bool use_weighted_distribution, bool contains_waters>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate(const data::Molecule& protein) {
+std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate(const data::Molecule& protein) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
 
@@ -513,14 +513,14 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager
     p_tot.resize(max_bin);
 
     if constexpr (use_weighted_distribution) {
-        return std::make_unique<CompositeDistanceHistogram>(
-            Distribution1D(std::move(p_aa)), 
-            Distribution1D(std::move(p_aw)), 
-            Distribution1D(std::move(p_ww)), 
+        return std::make_unique<hist::CompositeDistanceHistogram>(
+            hist::Distribution1D(std::move(p_aa)), 
+            hist::Distribution1D(std::move(p_aw)), 
+            hist::Distribution1D(std::move(p_ww)), 
             std::move(p_tot)
         );
     } else {
-        return std::make_unique<CompositeDistanceHistogram>(
+        return std::make_unique<hist::CompositeDistanceHistogram>(
             std::move(p_aa), 
             std::move(p_aw), 
             std::move(p_ww), 
@@ -529,9 +529,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager
     }
 }
 
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<false>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<true, true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<true, false>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<false, true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::detail::SymmetryManager::calculate<false, false>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<true>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<false>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<true, true>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<true, false>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<false, true>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<false, false>(const data::Molecule&);

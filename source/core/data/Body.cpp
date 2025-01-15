@@ -4,9 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <data/Body.h>
-#include <data/BodySymmetryFacade.h>
 #include <data/state/UnboundSignaller.h>
-#include <data/Symmetry.h>
 #include <grid/Grid.h>
 #include <constants/Constants.h>
 #include <math/Matrix.h>
@@ -276,5 +274,5 @@ std::size_t Body::size_water() const {
 std::size_t Body::size_symmetry() const {return symmetries.size();}
 
 std::size_t Body::size_symmetry_total() const {
-    return std::accumulate(symmetries.begin(), symmetries.end(), 0, [] (int sum, const detail::Symmetry& sym) {return sum + sym.repeat;});
+    return std::accumulate(symmetries.begin(), symmetries.end(), 0, [] (int sum, const symmetry::Symmetry& sym) {return sum + sym.repeat;});
 }

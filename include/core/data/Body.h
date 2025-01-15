@@ -1,11 +1,11 @@
 #pragma once
 
-#include <data/BodySymmetryFacade.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
 #include <data/state/DataStateFwd.h>
-#include <data/Symmetry.h>
 #include <data/DataFwd.h>
+#include <data/symmetry/Symmetry.h>
+#include <data/symmetry/BodySymmetryFacade.h>
 #include <io/IOFwd.h>
 #include <grid/GridFwd.h>
 #include <math/MathFwd.h>
@@ -163,7 +163,7 @@ namespace ausaxs::data {
 		private:
 			std::vector<data::AtomFF> 			atoms;
 			std::unique_ptr<hydrate::Hydration> hydration;
-			std::vector<detail::Symmetry> 		symmetries;
+			std::vector<symmetry::Symmetry> 	symmetries;
 
 			int uid;
 			inline static unsigned int uid_counter = 0;

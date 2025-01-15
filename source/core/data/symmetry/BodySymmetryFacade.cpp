@@ -1,4 +1,4 @@
-#include <data/BodySymmetryFacade.h>
+#include <data/symmetry/BodySymmetryFacade.h>
 #include <data/state/Signaller.h>
 #include <data/Body.h>
 #include <io/pdb/PDBStructure.h>
@@ -7,36 +7,36 @@
 using namespace ausaxs::data::detail;
 
 template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(const detail::Symmetry& symmetry) requires (!CONST) {
+void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(const symmetry::Symmetry& symmetry) requires (!CONST) {
     body->symmetries.emplace_back(symmetry);
     body->get_signaller()->internal_change();
     body->get_signaller()->external_change();
 }
 
 template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(detail::Symmetry&& symmetry) requires (!CONST) {
+void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::Symmetry&& symmetry) requires (!CONST) {
     body->symmetries.emplace_back(std::move(symmetry));
     body->get_signaller()->internal_change();
     body->get_signaller()->external_change();
 }
 
 template<typename BODY, bool CONST>
-std::vector<ausaxs::data::detail::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() requires (!CONST) {
+std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() requires (!CONST) {
     return body->symmetries;
 }
 
 template<typename BODY, bool CONST>
-const std::vector<ausaxs::data::detail::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() const {
+const std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() const {
     return body->symmetries;
 }
 
 template<typename BODY, bool CONST>
-ausaxs::data::detail::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) requires (!CONST) {
+ausaxs::symmetry::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) requires (!CONST) {
     return body->symmetries[index];
 }
 
 template<typename BODY, bool CONST>
-const ausaxs::data::detail::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) const {
+const ausaxs::symmetry::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) const {
     return body->symmetries[index];
 }
 
