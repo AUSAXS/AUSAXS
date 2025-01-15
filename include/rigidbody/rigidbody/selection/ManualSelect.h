@@ -9,7 +9,7 @@ namespace ausaxs::rigidbody {
          */
         class ManualSelect : public BodySelectStrategy {
             public: 
-                ManualSelect(const RigidBody* rigidbody);
+                ManualSelect(observer_ptr<const RigidBody> rigidbody);
                 ~ManualSelect() override;
 
                 std::pair<unsigned int, int> next() override; ///< @copydoc BodySelectStrategy::next()

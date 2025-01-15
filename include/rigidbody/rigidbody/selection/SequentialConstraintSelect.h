@@ -15,7 +15,7 @@ namespace ausaxs::rigidbody {
 		 */
 		class SequentialConstraintSelect : public BodySelectStrategy {
 			public: 
-				SequentialConstraintSelect(const RigidBody* rigidbody);
+				SequentialConstraintSelect(observer_ptr<const RigidBody> rigidbody);
 				~SequentialConstraintSelect() override;
 
 				std::pair<unsigned int, int> next() override; ///< @copydoc BodySelectStrategy::next()

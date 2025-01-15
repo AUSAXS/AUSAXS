@@ -10,7 +10,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::selection;
 
-RandomBodySelect::RandomBodySelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {
+RandomBodySelect::RandomBodySelect(observer_ptr<const RigidBody> rigidbody) : BodySelectStrategy(rigidbody) {
     std::random_device random;
     generator = std::mt19937(random());
     distribution = std::uniform_int_distribution<int>(0, N-1);

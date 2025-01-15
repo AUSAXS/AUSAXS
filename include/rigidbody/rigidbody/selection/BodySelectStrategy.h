@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rigidbody/RigidbodyFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <utility>
 
@@ -12,14 +13,7 @@ namespace ausaxs::rigidbody {
          */
         class BodySelectStrategy {
             public:
-                /**
-                 * @brief Construtor. 
-                 */
-                BodySelectStrategy(const RigidBody* rigidbody);
-
-                /**
-                 * @brief Destructor.
-                 */
+                BodySelectStrategy(observer_ptr<const RigidBody> rigidbody);
                 virtual ~BodySelectStrategy() = default;
 
                 /**

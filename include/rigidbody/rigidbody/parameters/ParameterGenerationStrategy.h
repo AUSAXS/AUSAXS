@@ -31,9 +31,6 @@ namespace ausaxs::rigidbody::parameter {
              */
             ParameterGenerationStrategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start);
 
-            /**
-             * @brief Destructor.
-             */
             virtual ~ParameterGenerationStrategy();
 
             /**

@@ -9,4 +9,4 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::selection;
 
-BodySelectStrategy::BodySelectStrategy(const RigidBody* rigidbody) : rigidbody(rigidbody), N(rigidbody->size_body()) {}
+BodySelectStrategy::BodySelectStrategy(observer_ptr<const RigidBody> rigidbody) : rigidbody(rigidbody), N(rigidbody->size_body()) {}

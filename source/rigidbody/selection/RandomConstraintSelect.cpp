@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::selection;
 
-RandomConstraintSelect::RandomConstraintSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {
+RandomConstraintSelect::RandomConstraintSelect(observer_ptr<const RigidBody> rigidbody) : BodySelectStrategy(rigidbody) {
     unsigned int M = rigidbody->get_constraint_manager()->distance_constraints.size();
     std::random_device random;
     generator = std::mt19937(random());
