@@ -15,11 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::sequencer;
 
-RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios) : owner(owner), ratios(ratios) {}
-RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios, const std::vector<std::string>& names) : owner(owner), ratios(ratios) {
-    if (names.size() != ratios.size()) {
-        throw std::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The number of names and ratios must be equal.");
-    }
+RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<double>& ratios) : owner(owner), ratios(ratios) {
+    assert(names.size() == ratios.size() && "RelativeHydrationElement::RelativeHydrationElement: The number of names and ratios must be equal.");
 
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (!owner->_get_body_names().contains(names[i])) {

@@ -15,4 +15,9 @@ namespace ausaxs::symmetry {
      * @brief Apply a given symmetry to a body.
      */
     void apply(observer_ptr<data::Body> body, type t);
+
+    /**
+     * @brief Get a predefined symmetry by name.
+     */
+    type get(std::string_view name);
 }

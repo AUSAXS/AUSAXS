@@ -9,10 +9,12 @@
 #include <string>
 
 namespace ausaxs::rigidbody::sequencer {
+    /**
+     * @brief Set a relative level of hydration molecules for each body.
+     */
     class RelativeHydrationElement : public GenericElement {
         public:
-            RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios);
-            RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios, const std::vector<std::string>& names);
+            RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<double>& ratios);
             ~RelativeHydrationElement() override;
 
             void run() override;

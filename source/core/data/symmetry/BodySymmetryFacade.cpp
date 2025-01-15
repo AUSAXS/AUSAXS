@@ -21,6 +21,13 @@ void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::Symmet
 }
 
 template<typename BODY, bool CONST>
+void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::type symmetry) requires (!CONST) {
+    body->symmetries.emplace_back(get(symmetry));
+    body->get_signaller()->internal_change();
+    body->get_signaller()->external_change();
+}
+
+template<typename BODY, bool CONST>
 std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() requires (!CONST) {
     return body->symmetries;
 }

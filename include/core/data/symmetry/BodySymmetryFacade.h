@@ -2,6 +2,7 @@
 
 #include <data/DataFwd.h>
 #include <data/symmetry/Symmetry.h>
+#include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
 
@@ -16,6 +17,7 @@ namespace ausaxs::data::detail {
              */
             void add(const symmetry::Symmetry& symmetry) requires (!CONST);
             void add(symmetry::Symmetry&& symmetry) requires (!CONST); //< @copydoc add_symmetry()
+            void add(symmetry::type symmetry) requires (!CONST); //< @copydoc add_symmetry()
 
             /**
              * @brief Get the symmetries of this body.

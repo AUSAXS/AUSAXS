@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <utility/StringUtils.h>
+#include <utility/Exceptions.h>
 
 #include <algorithm>
 
@@ -109,4 +110,14 @@ std::string utility::to_lowercase(std::string_view s) {
         new_s += std::tolower(c);
     }
     return new_s;
+}
+
+bool utility::parse_bool(std::string_view s) {
+    auto lower = to_lowercase(s);
+    if (lower == "true" || lower == "yes" || lower == "1") {
+        return true;
+    } else if (lower == "false" || lower == "no" || lower == "0") {
+        return false;
+    }
+    throw except::invalid_argument("utility::parse_bool: \"" + std::string(s) + "\" cannot be interpreted as a boolean value.");
 }

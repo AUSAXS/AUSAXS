@@ -31,3 +31,10 @@ void ausaxs::symmetry::apply(observer_ptr<data::Body> body, type t) {
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(t) + "\".");
     }
 }
+
+ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
+    if (name == "p2") {return p2;}
+    if (name == "p3") {return p3;}
+    if (name == "p4") {return p4;}
+    throw std::runtime_error("Unknown symmetry name \"" + std::string(name) + "\".");
+}
