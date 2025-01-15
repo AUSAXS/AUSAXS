@@ -11,7 +11,7 @@
 using namespace ausaxs;
 using namespace hist::detail;
 
-enum type {
+enum h_type {
     SELF_AA, SELF_AW, SELF_WW, 
     SELF_SYM_AA, SELF_SYM_AW, SELF_SYM_WW,
     CROSS_AA, CROSS_AW, CROSS_WW
@@ -122,7 +122,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::ca
 
     // since the results will be mixed together into a single anonymous vector, we need to keep track of which index corresponds to which type
     // we need this to distinguish between e.g. self and cross histograms
-    std::vector<type> self_indices, cross_indices;
+    std::vector<h_type> self_indices, cross_indices;
 
     // some of the calculations can be reused multiple times, so we store them in a vector so we can scale them later
     std::vector<ScaleResult> scale_result;

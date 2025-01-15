@@ -1,9 +1,10 @@
 #pragma once
 
 #include <math/MathFwd.h>
-#include <utility/Concepts.h>
+#include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/parameters/Parameter.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
+#include <utility/observer_ptr.h>
 
 #include <random>
 
@@ -20,7 +21,7 @@ namespace ausaxs::rigidbody::parameter {
              * @param length_start The start length of the generated translation vectors. 
              * @param rad_start The start angle in radians of the generated rotations. 
              */
-            ParameterGenerationStrategy(unsigned int iterations, double length_start, double rad_start);
+            ParameterGenerationStrategy(observer_ptr<const RigidBody> molecule, unsigned int iterations, double length_start, double rad_start);
 
             /**
              * @brief Construct a new parameter generation strategy.
@@ -29,7 +30,7 @@ namespace ausaxs::rigidbody::parameter {
              * @param length_start The start length of the generated translation vectors. 
              * @param rad_start The start angle in radians of the generated rotations. 
              */
-            ParameterGenerationStrategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start);
+            ParameterGenerationStrategy(observer_ptr<const RigidBody> molecule, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start);
 
             virtual ~ParameterGenerationStrategy();
 
@@ -54,9 +55,11 @@ namespace ausaxs::rigidbody::parameter {
             void set_max_rotation_angle(double radians);
 
         protected:
-            std::mt19937 generator;                                             // The random number generator. 
-            std::uniform_real_distribution<double> translation_dist;            // The random number distribution for translations. 
-            std::uniform_real_distribution<double> rotation_dist;               // The random number distribution for rotations. 
-            std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy;    // The decay strategy.
+            observer_ptr<const RigidBody> molecule;
+            std::mt19937 generator;
+            std::uniform_real_distribution<double> translation_dist; // Random number distribution for translations. 
+            std::uniform_real_distribution<double> rotation_dist;    // Random number distribution for rotations. 
+            std::uniform_real_distribution<double> symmetry_dist;    // Random number distribution for symmetry transforms.
+            std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy;
     };
 }

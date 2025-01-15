@@ -12,18 +12,24 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::parameter;
 
-ParameterGenerationStrategy::ParameterGenerationStrategy(unsigned int iterations, double length_start, double rad_start) : decay_strategy(rigidbody::factory::create_decay_strategy(iterations)) {
-    std::random_device random;
-    generator = std::mt19937(random());
+ParameterGenerationStrategy::ParameterGenerationStrategy(
+    observer_ptr<const RigidBody> molecule, unsigned int iterations, double length_start, double rad_start) 
+    : molecule(molecule), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
+) {
+    generator = std::mt19937(std::random_device{}());
     translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
     rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
+    symmetry_dist = std::uniform_real_distribution<double>(-10, 10);
 }
 
-ParameterGenerationStrategy::ParameterGenerationStrategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) : decay_strategy(std::move(decay_strategy)) {
-    std::random_device random;
-    generator = std::mt19937(random());
+ParameterGenerationStrategy::ParameterGenerationStrategy(
+    observer_ptr<const RigidBody> molecule, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) 
+    : molecule(molecule), decay_strategy(std::move(decay_strategy)
+) {
+    generator = std::mt19937(std::random_device{}());
     translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
     rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
+    symmetry_dist = std::uniform_real_distribution<double>(-10, 10);
 }
 
 ParameterGenerationStrategy::~ParameterGenerationStrategy() = default;

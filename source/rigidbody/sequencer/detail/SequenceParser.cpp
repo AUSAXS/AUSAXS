@@ -354,6 +354,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     return std::make_unique<ParameterElement>(
         loop_stack.back(),
         rigidbody::factory::create_parameter_strategy(
+            loop_stack.front()->_get_rigidbody(),
             rigidbody::factory::create_decay_strategy(iterations.value, decay_strategy),
             angstroms.value,
             radians.value,
