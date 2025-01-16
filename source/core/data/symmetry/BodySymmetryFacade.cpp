@@ -17,7 +17,7 @@ template<typename BODY, bool CONST>
 void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::type symmetry) requires (!CONST) {
     body->get_signaller()->internal_change();
     body->get_signaller()->external_change();
-    body->symmetries->get().emplace_back(symmetry::get(symmetry));
+    body->symmetries->add(symmetry);
 }
 
 template<typename BODY, bool CONST>

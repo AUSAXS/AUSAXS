@@ -2,10 +2,10 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/SymmetryManager.h>
+#include <data/symmetry/SymmetryManager.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/Symmetry.h>
+#include <data/symmetry/Symmetry.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/distribution/Distribution1D.h>
 #include <settings/All.h>
@@ -62,7 +62,7 @@ TEST_CASE("SymmetryManager: translations") {
         set_unity_charge(m);
 
         SECTION("no copies") {
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {RES(0, 1)});
         }
@@ -70,7 +70,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("one copy") {
             m.get_body(0).symmetry().add({Vector3<double>(1, 0, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 2), 
@@ -82,7 +82,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
             m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 3), 
@@ -97,7 +97,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>( 0,-1, 0)});
             m.get_body(0).symmetry().add({Vector3<double>( 0, 1, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 5), 
@@ -115,7 +115,7 @@ TEST_CASE("SymmetryManager: translations") {
         set_unity_charge(m);
 
         SECTION("no copies") {
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 2), 
@@ -126,7 +126,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("one copy") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
@@ -139,7 +139,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
             m.get_body(0).symmetry().add({Vector3<double>(0, 2, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 6), 
@@ -158,7 +158,7 @@ TEST_CASE("SymmetryManager: translations") {
         set_unity_charge(m);
 
         SECTION("no copies") {
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 2), 
@@ -169,7 +169,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("one copy of body1") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 3), 
@@ -182,7 +182,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
             m.get_body(1).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
@@ -195,7 +195,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
             m.get_body(1).symmetry().add({Vector3<double>(-1, 0, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
@@ -214,7 +214,7 @@ TEST_CASE("SymmetryManager: translations") {
         set_unity_charge(m);
 
         SECTION("no copies") {
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<true>(m);
             auto htot = h->get_total_counts();
             auto haa = h->get_aa_counts();
@@ -242,7 +242,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("one copy") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<true>(m);
             auto htot = h->get_total_counts();
             auto haa = h->get_aa_counts();
@@ -286,11 +286,11 @@ TEST_CASE("SymmetryManager: translations") {
         m.clear_hydration();
         set_unity_charge(m);
 
-        data::detail::Symmetry s{{10, 0, 0}}; 
+        symmetry::Symmetry s{{10, 0, 0}}; 
         SECTION("single copy") {
-            m.get_body(0).symmetry().add(s);
+            m.get_body(0).symmetry().add(symmetry::Symmetry(s));
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<true>(m);
 
             // manually perform the transformation for comparison
@@ -333,7 +333,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         SECTION("two repeats") {
             m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 3), 
@@ -345,7 +345,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         SECTION("three repeats") {
             m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, 3});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
@@ -366,7 +366,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
             m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
             m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 6), 
@@ -381,7 +381,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
             m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 1});
             m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<false>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 5), 
@@ -406,7 +406,7 @@ TEST_CASE("SymmetryManager: rotations") {
         SECTION("one copy") {
             m.get_body(0).symmetry().add({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 2), 
@@ -417,7 +417,7 @@ TEST_CASE("SymmetryManager: rotations") {
         SECTION("three copies") {
             m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, 3});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
@@ -452,7 +452,7 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
         //
         m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, 3});
 
-        hist::detail::SymmetryManager sm;
+        symmetry::SymmetryManager sm;
         auto h = sm.calculate<true>(m)->get_total_counts();
         check_hist(h, {
             {0, 12},
@@ -476,7 +476,7 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
         Molecule m({Body{std::vector{a1}}});
         set_unity_charge(m);
 
-        hist::detail::SymmetryManager sm;
+        symmetry::SymmetryManager sm;
         auto h = sm.calculate<true>(m)->get_total_counts();
 
         std::vector<RES> checks = {
@@ -521,7 +521,7 @@ TEST_CASE("SymmetryManager: random tests") {
             set_unity_charge(m);
             m.get_body(0).symmetry().add({translate, axis, angles, repeats});
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
 
             auto m2 = Molecule({m.get_body(0).symmetry().get_explicit_structure()});
@@ -556,7 +556,7 @@ TEST_CASE("SymmetryManager: random tests") {
                 m.get_body(0).symmetry().add({translate, axis, angles, repeats});
             }
 
-            hist::detail::SymmetryManager sm;
+            symmetry::SymmetryManager sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
 
             auto m2 = Molecule({m.get_body(0).symmetry().get_explicit_structure()});

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <data/symmetry/Symmetry.h>
+#include <data/symmetry/PredefinedSymmetries.h>
 
 namespace ausaxs::symmetry {
     struct SymmetryStorage {
@@ -8,6 +9,8 @@ namespace ausaxs::symmetry {
 
         const std::vector<Symmetry>& get() const;
         std::vector<Symmetry>& get();
+
+        virtual void add(symmetry::type symmetry);
 
         virtual std::unique_ptr<SymmetryStorage> clone();
 
@@ -25,4 +28,8 @@ inline std::vector<ausaxs::symmetry::Symmetry>& ausaxs::symmetry::SymmetryStorag
 
 inline std::unique_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::symmetry::SymmetryStorage::clone() {
     return std::make_unique<SymmetryStorage>(*this);
+}
+
+inline void ausaxs::symmetry::SymmetryStorage::add(symmetry::type symmetry) {
+    symmetries.emplace_back(symmetry::get(symmetry));
 }
