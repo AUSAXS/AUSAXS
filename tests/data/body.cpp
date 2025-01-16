@@ -248,24 +248,43 @@ TEST_CASE("Body::register_probe") {
     REQUIRE(probe == body.get_signaller());
 }
 
-TEST_CASE_METHOD(multiple_fixture, "Body::operator=") {
-    b1 = b3;
-    REQUIRE(b1.get_atoms().size() == 2);
-    REQUIRE(b1.get_atom(0) == a5);
-    REQUIRE(b1.get_atom(1) == a6);
+TEST_CASE_METHOD(multiple_fixture, "Body: equality") {
+    SECTION("operator=") {
+        b1 = b3;
+        REQUIRE(b1.get_atoms().size() == 2);
+        REQUIRE(b1.get_atom(0) == a5);
+        REQUIRE(b1.get_atom(1) == a6);
 
-    b1.get_atom(0) = a1;
-    REQUIRE(b3.get_atom(0) == a5);
+        b1.get_atom(0) = a1;
+        REQUIRE(b3.get_atom(0) == a5);
 
-    // assignment with temporary bodies
-    b1 = Body();
-    {
-        Body b5(std::vector<AtomFF>{a1, a2});
-        b1 = b5;
+        // assignment with temporary bodies
+        b1 = Body();
+        {
+            Body b5(std::vector<AtomFF>{a1, a2});
+            b1 = b5;
+        }
+        REQUIRE(b1.get_atoms().size() == 2);
+        REQUIRE(b1.get_atom(0) == a1);
+        REQUIRE(b1.get_atom(1) == a2);
     }
-    REQUIRE(b1.get_atoms().size() == 2);
-    REQUIRE(b1.get_atom(0) == a1);
-    REQUIRE(b1.get_atom(1) == a2);
+
+    SECTION("equals_content") {
+        b1 = b3;
+        REQUIRE(b1.equals_content(b3));
+
+        b2 = Body();
+        {
+            Body b5(std::vector<AtomFF>{a5, a6});
+            b2 = b5;
+        }
+        REQUIRE(b2.equals_content(b3));
+
+        b2.symmetry().add(symmetry::type::p3);
+        REQUIRE(!b2.equals_content(b3));
+        b4 = b3;
+        REQUIRE(b3.equals_content(b4));
+    }
 }
 
 TEST_CASE("Body::operator==") {

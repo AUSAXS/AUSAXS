@@ -30,6 +30,6 @@ namespace ausaxs::rigidbody::transform {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) override;
+            void apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) override;
     };
 }

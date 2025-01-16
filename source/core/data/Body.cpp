@@ -25,8 +25,8 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 Body::Body() : hydration(hydrate::Hydration::create()), uid(uid_counter++) {initialize();}
-Body::Body(const Body& body) : atoms(body.atoms), hydration(body.hydration->clone()), uid(body.uid) {initialize();}
-Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), hydration(std::move(body.hydration)), uid(body.uid) {initialize();}
+Body::Body(const Body& body) : atoms(body.atoms), hydration(body.hydration->clone()), symmetries(body.symmetries->clone()), uid(body.uid) {initialize();}
+Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), hydration(std::move(body.hydration)), symmetries(std::move(body.symmetries)), uid(body.uid) {initialize();}
 Body::~Body() = default;
 
 Body::Body(const io::File& path) : uid(uid_counter++) {
@@ -39,6 +39,7 @@ Body::Body(const io::File& path) : uid(uid_counter++) {
     } else {
         hydration = hydrate::Hydration::create(std::move(data.waters));
     }
+    symmetries = std::make_unique<symmetry::SymmetryStorage>();
     initialize();
 }
 
@@ -52,21 +53,33 @@ auto convert_atom_atomff = [] (const std::vector<data::Atom>& atoms) {
 };
 
 template<AtomVectorFF T>
-Body::Body(T&& atoms) : atoms(std::forward<T>(atoms)), hydration(hydrate::Hydration::create()), uid(uid_counter++) {
+Body::Body(T&& atoms) 
+    : atoms(std::forward<T>(atoms)), hydration(hydrate::Hydration::create()), 
+      symmetries(std::make_unique<symmetry::SymmetryStorage>()), uid(uid_counter++
+) {
     initialize();
 }
 
 template<AtomVectorFF T, WaterVector U>
-Body::Body(T&& atoms, U&& waters) : atoms(std::forward<T>(atoms)), hydration(hydrate::Hydration::create(std::forward<U>(waters))), uid(uid_counter++) {
+Body::Body(T&& atoms, U&& waters) 
+    : atoms(std::forward<T>(atoms)), hydration(hydrate::Hydration::create(std::forward<U>(waters))), 
+      symmetries(std::make_unique<symmetry::SymmetryStorage>()), uid(uid_counter++
+) {
     initialize();
 }
 
-Body::Body(const std::vector<Atom>& atoms) : atoms(convert_atom_atomff(atoms)), hydration(hydrate::Hydration::create()), uid(uid_counter++) {
+Body::Body(const std::vector<Atom>& atoms) 
+    : atoms(convert_atom_atomff(atoms)), hydration(hydrate::Hydration::create()), 
+      symmetries(std::make_unique<symmetry::SymmetryStorage>()), uid(uid_counter++
+) {
     initialize();
 }
 
 template<WaterVector U>
-Body::Body(const std::vector<Atom>& atoms, U&& waters) : atoms(convert_atom_atomff(atoms)), hydration(hydrate::Hydration::create(std::forward<U>(waters))), uid(uid_counter++) {
+Body::Body(const std::vector<Atom>& atoms, U&& waters) 
+    : atoms(convert_atom_atomff(atoms)), hydration(hydrate::Hydration::create(std::forward<U>(waters))), 
+    symmetries(std::make_unique<symmetry::SymmetryStorage>()), uid(uid_counter++
+) {
     initialize();
 }
 
@@ -215,9 +228,9 @@ bool Body::equals_content(const Body& rhs) const {
             return false;
         }
     }
-    if (symmetries != rhs.symmetries) {
+    if (symmetries->get() != rhs.symmetries->get()) {
         #if FAILURE_MSG
-            std::cout << "symmetries != rhs.symmetries" << std::endl;
+            std::cout << "symmetries->get() != rhs.symmetries->get()" << std::endl;
         #endif
         return false;
     }

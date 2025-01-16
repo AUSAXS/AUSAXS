@@ -2,8 +2,10 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
+#include <rigidbody/parameters/Parameter.h>
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <vector>
 
@@ -16,7 +18,7 @@ namespace ausaxs::rigidbody::transform {
      */
     class TransformStrategy {
         public:
-            TransformStrategy(RigidBody* rigidbody);
+            TransformStrategy(observer_ptr<RigidBody> rigidbody);
             virtual ~TransformStrategy();
 
             /**
@@ -24,22 +26,20 @@ namespace ausaxs::rigidbody::transform {
              * 
              * The most recent transformation can be undone by calling undo().
              * 
-             * @param M The rotation matrix.
-             * @param t The translation vector. 
+             * @param par The parameters to apply.
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) = 0;
+            virtual void apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) = 0;
 
             /**
              * @brief Apply a transformation to a body. 
              * 
              * The most recent transformation can be undone by calling undo().
              * 
-             * @param M The rotation matrix.
-             * @param t The translation vector. 
+             * @param par The parameters to apply.
              * @param ibody The index of the body to transform.
              */
-            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, unsigned int ibody);
+            virtual void apply(parameter::Parameter&& par, unsigned int ibody);
 
             /**
              * @brief Undo the previous transformation. 
@@ -47,8 +47,7 @@ namespace ausaxs::rigidbody::transform {
             virtual void undo();
 
         protected: 
-            RigidBody* rigidbody;
-
+            observer_ptr<RigidBody> rigidbody;
             std::vector<BackupBody> bodybackup;
 
             /**
@@ -80,5 +79,10 @@ namespace ausaxs::rigidbody::transform {
              * @param constraint The group to apply the translation to. 
              */
             virtual void translate(const Vector3<double>& t, TransformGroup& group);
+
+            /**
+             * @brief Apply symmetry transformations to a body.
+             */
+            virtual void symmetry(std::vector<parameter::Parameter::SymmetryParameter>&& symmetry_pars, data::Body& body);
     };
 }

@@ -25,7 +25,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
 
     // add default names
     for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-        owner->_get_body_names().emplace("b" + std::to_string(i), i);
+        owner->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names
@@ -58,7 +58,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
 
     // add default names
     for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-        owner->_get_body_names().emplace("b" + std::to_string(i), i);
+        owner->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names
@@ -85,7 +85,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
 
     // add default names
     for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-        owner->_get_body_names().emplace("b" + std::to_string(i), i);
+        owner->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names

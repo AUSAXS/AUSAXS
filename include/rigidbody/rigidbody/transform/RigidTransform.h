@@ -10,11 +10,11 @@ namespace ausaxs::rigidbody::transform {
      */
     class RigidTransform : public TransformStrategy {
         public:
-            RigidTransform(RigidBody* rigidbody);
+            RigidTransform(observer_ptr<RigidBody> rigidbody);
             ~RigidTransform() override;
 
             ///< @copydoc TransformStrategy::apply(const Matrix<double>&, const Vector3<double>&, constraints::DistanceConstraint&)
-            void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) override;
+            void apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) override;
 
         protected:
             /**

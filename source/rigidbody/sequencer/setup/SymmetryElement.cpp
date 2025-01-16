@@ -20,6 +20,10 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (!owner->_get_body_names().contains(names[i])) {
+            std::cout << "Body names:" << std::endl;
+            for (const auto& [name, index] : owner->_get_body_names()) {
+                std::cout << name << " " << index << std::endl;
+            }
             throw std::runtime_error("SymmetryElement::SymmetryElement: The body name \"" + names[i] + "\" is not known.");
         }
         int ibody = owner->_get_body_names().at(names[i]);
@@ -31,6 +35,8 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
             owner->_get_rigidbody()->get_body(ibody).symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>());
         }
         owner->_get_rigidbody()->get_body(ibody).symmetry().add(symmetry[i]);
+        std::cout << "SymmetryElement::SymmetryElement: Added symmetry to body " << names[i] << std::endl;
+        std::cout << "\tIt now has " << owner->_get_rigidbody()->get_body(ibody).size_symmetry() << " symmetries." << std::endl;
     }
 }
 

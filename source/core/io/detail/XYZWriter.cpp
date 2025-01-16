@@ -5,6 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <io/detail/XYZWriter.h>
 #include <data/Molecule.h>
+#include <data/Body.h>
 #include <io/File.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
@@ -28,7 +29,12 @@ XYZWriter::~XYZWriter() {
 
 void XYZWriter::write_frame(const data::Molecule* protein) {
     static unsigned int frame = 0;
-    auto atoms = protein->get_atoms();
+    std::vector<data::AtomFF> atoms;
+    atoms.reserve(protein->size_atom());
+    for (const auto& body : protein->get_bodies()) {
+        auto bsym = body.symmetry().get_explicit_structure();
+        atoms.insert(atoms.end(), bsym.get_atoms().begin(), bsym.get_atoms().end());
+    }
     file << " " << atoms.size() << std::endl;
     file << " Frame " << frame++ << std::endl;
     int i = 0;

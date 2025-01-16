@@ -35,6 +35,8 @@ std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_paramete
             return std::make_unique<RotationsOnly>(molecule, std::move(decay_strategy), translate_amp, rotate_amp);
         case settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly:
             return std::make_unique<TranslationsOnly>(molecule, std::move(decay_strategy), translate_amp, rotate_amp);
+        case settings::rigidbody::ParameterGenerationStrategyChoice::SymmetryOnly:
+            return std::make_unique<SymmetryOnly>(molecule, std::move(decay_strategy), translate_amp, rotate_amp);
         default: 
             throw except::unknown_argument("rigidbody::factory::create_parameter_strategy: Unknown strategy. Did you forget to add it to the switch statement?");
     }

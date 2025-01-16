@@ -42,7 +42,8 @@ namespace ausaxs::settings::rigidbody {
     enum class ParameterGenerationStrategyChoice {
         Simple,             // Generate translation and rotation parameters.
         RotationsOnly,      // Only generate rotation parameters.
-        TranslationsOnly    // Only generate translation parameters.
+        TranslationsOnly,   // Only generate translation parameters.
+        SymmetryOnly        // Only generate symmetry parameters.
     };
     extern ParameterGenerationStrategyChoice parameter_generation_strategy;
 }

@@ -9,10 +9,10 @@ namespace ausaxs::rigidbody::transform {
      */
     class SingleTransform : public TransformStrategy {
         public:
-            SingleTransform(RigidBody* rigidbody);
+            SingleTransform(observer_ptr<RigidBody> rigidbody);
             ~SingleTransform() override;
 
             ///< @copydoc TransformStrategy::apply(const Matrix<double>&, const Vector3<double>&, constraints::DistanceConstraint&)
-            void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) override;
+            void apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) override;
     };
 }

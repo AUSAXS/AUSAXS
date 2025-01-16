@@ -19,11 +19,11 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::transform;
 
-RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
+RigidTransform::RigidTransform(observer_ptr<RigidBody> rigidbody) : TransformStrategy(rigidbody) {}
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) {
+void RigidTransform::apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
 
@@ -33,7 +33,8 @@ void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, co
         grid->remove(*body);
     }
 
-    rotate_and_translate(M, t, group);
+    rotate_and_translate(matrix::rotation_matrix(par.rotation), par.translation, group);
+    symmetry(std::move(par.symmetry_pars), *group.bodies.front());
 
     // add them back to the grid
     for (auto& body : group.bodies) {

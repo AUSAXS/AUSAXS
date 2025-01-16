@@ -104,6 +104,7 @@ settings::rigidbody::DecayStrategyChoice get_decay_strategy(std::string_view lin
 settings::rigidbody::ParameterGenerationStrategyChoice get_parameter_strategy(std::string_view line) {
     if (line == "rotate_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}
     if (line == "translate_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly;}
+    if (line == "symmetry_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::SymmetryOnly;}
     if (line == "both" || line == "rotate_and_translate") {return settings::rigidbody::ParameterGenerationStrategyChoice::Simple;}
     throw except::invalid_argument("SequenceParser::get_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
@@ -281,6 +282,11 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sym
             "SequenceParser::parse_arguments: Too many arguments for \"symmetry\". "
             "Expected no more than " + std::to_string(rigidbody->size_body()) + "."
         );
+    }
+
+    // anonymous arg support
+    if (args.size() == 1) {
+        return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{"b1"}, std::vector{symmetry::get(args.begin()->second[0])});
     }
 
     std::vector<symmetry::type> symmetries;

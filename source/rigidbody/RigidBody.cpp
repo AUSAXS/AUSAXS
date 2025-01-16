@@ -105,11 +105,11 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     auto [ibody, iconstraint] = body_selector->next();
     if (iconstraint == -1) {    // transform free body
         Parameter param = parameter_generator->next(ibody);
-        transform->apply(matrix::rotation_matrix(param.rotation), param.translation, ibody);
+        transform->apply(std::move(param), ibody);
     } else {                    // transform constrained body
         DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
         Parameter param = parameter_generator->next(ibody);
-        transform->apply(matrix::rotation_matrix(param.rotation), param.translation, constraint);
+        transform->apply(std::move(param), constraint);
     }
     generate_new_hydration(); 
 
