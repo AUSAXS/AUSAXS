@@ -4,7 +4,7 @@
 #include <data/atoms/Water.h>
 #include <data/state/DataStateFwd.h>
 #include <data/DataFwd.h>
-#include <data/symmetry/Symmetry.h>
+#include <data/symmetry/SymmetryStorage.h>
 #include <data/symmetry/BodySymmetryFacade.h>
 #include <io/IOFwd.h>
 #include <grid/GridFwd.h>
@@ -161,9 +161,9 @@ namespace ausaxs::data {
 			std::shared_ptr<signaller::Signaller> get_signaller() const;
 
 		private:
-			std::vector<data::AtomFF> 			atoms;
-			std::unique_ptr<hydrate::Hydration> hydration;
-			std::vector<symmetry::Symmetry> 	symmetries;
+			std::vector<data::AtomFF> 					atoms;
+			std::unique_ptr<hydrate::Hydration> 		hydration;
+			std::unique_ptr<symmetry::SymmetryStorage> 	symmetries;
 
 			int uid;
 			inline static unsigned int uid_counter = 0;

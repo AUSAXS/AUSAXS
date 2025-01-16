@@ -173,7 +173,7 @@ Body& Body::operator=(const Body& rhs) {
     } else if (auto h = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); h) {
         throw std::runtime_error("Body::operator=: Implicit hydration is not implemented.");
     }
-    symmetries = std::move(rhs.symmetries);
+    symmetries = rhs.symmetries->clone();
     signal->internal_change();
     signal->external_change();
     return *this;
@@ -271,8 +271,8 @@ std::size_t Body::size_water() const {
     return 0;
 }
 
-std::size_t Body::size_symmetry() const {return symmetries.size();}
+std::size_t Body::size_symmetry() const {return symmetries->get().size();}
 
 std::size_t Body::size_symmetry_total() const {
-    return std::accumulate(symmetries.begin(), symmetries.end(), 0, [] (int sum, const symmetry::Symmetry& sym) {return sum + sym.repeat;});
+    return std::accumulate(symmetries->get().begin(), symmetries->get().end(), 0, [] (int sum, const symmetry::Symmetry& sym) {return sum + sym.repeat;});
 }

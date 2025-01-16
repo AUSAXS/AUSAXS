@@ -25,7 +25,6 @@ namespace ausaxs::hydrate {
              */
             template<data::WaterVector T>
             static std::unique_ptr<Hydration> create(T&& data);
-
             static std::unique_ptr<Hydration> create(); //< @copydoc create()
     };
 }

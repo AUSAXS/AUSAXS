@@ -7,40 +7,30 @@ namespace ausaxs::rigidbody::parameter {
      * @brief A small structure for storing a single set of parameters. 
      */
     struct Parameter {
-        /**
-         * @brief Default constructor.
-         */
-        Parameter();
+        struct SymmetryParameter {
+            Vector3<double> translation = {0, 0, 0};
+            Vector3<double> rotation_cm = {0, 0, 0};
+        };
+
+        Parameter() = default;
 
         /**
-         * @brief Constructor.
-         * 
-         * @param dr The translation vector.
-         * @param alpha The first Euler angle.
-         * @param beta The second Euler angle.
-         * @param gamma The third Euler angle.
-         */
-        Parameter(const Vector3<double>& dr, double alpha, double beta, double gamma);
-
-        /**
-         * @brief Constructor.
+         * @brief Construct a new parameter.
          * 
          * @param dr The translation vector.
          * @param euler_angles The Euler angles.
+         * @param symmetry_pars The symmetry parameters.
          */
-        Parameter(const Vector3<double>& dr, const Vector3<double>& euler_angles);
+        Parameter(Vector3<double> dr, Vector3<double> euler_angles, const std::vector<SymmetryParameter>& symmetry_pars)
+            : translation(dr), rotation(euler_angles), symmetry_pars(symmetry_pars)
+        {}
 
-        /**
-         * @brief Get a string representation of this Parameter.
-         */
-        std::string to_string() const;
+        Parameter(Vector3<double> dr, Vector3<double> euler_angles, std::vector<SymmetryParameter>&& symmetry_pars)
+            : translation(dr), rotation(euler_angles), symmetry_pars(std::move(symmetry_pars))
+        {} //< @copydoc Parameter(Vector3<double>, Vector3<double>, std::vector<SymmetryParameter>)
 
-        /**
-         * @brief Output the string representation of this Parameter to a stream.
-         */
-        friend std::ostream& operator<<(std::ostream& os, const Parameter& p) {os << p.to_string(); return os;}
-
-        Vector3<double> dr;
-        double alpha, beta, gamma;
+        Vector3<double>                 translation;
+        Vector3<double>                 rotation;
+        std::vector<SymmetryParameter>  symmetry_pars;
     };
 }

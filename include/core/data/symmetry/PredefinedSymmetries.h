@@ -5,7 +5,7 @@
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::symmetry {
-    enum type {
+    enum class type {
         p2,
         p3,
         p4
@@ -14,7 +14,7 @@ namespace ausaxs::symmetry {
     /**
      * @brief Apply a given symmetry to a body.
      */
-    void apply(observer_ptr<data::Body> body, type t);
+    symmetry::Symmetry get(type t);
 
     /**
      * @brief Get a predefined symmetry by name.

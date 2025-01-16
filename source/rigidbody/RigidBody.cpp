@@ -10,7 +10,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/parameters/Parameters.h>
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
 #include <utility/Exceptions.h>
@@ -105,15 +104,12 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = body_selector->next();
     if (iconstraint == -1) {    // transform free body
-        Parameter param = parameter_generator->next();
-        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        transform->apply(R, param.dr, ibody);
+        Parameter param = parameter_generator->next(ibody);
+        transform->apply(matrix::rotation_matrix(param.rotation), param.translation, ibody);
     } else {                    // transform constrained body
         DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
-        Parameter param = parameter_generator->next();
-
-        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        transform->apply(R, param.dr, constraint);
+        Parameter param = parameter_generator->next(ibody);
+        transform->apply(matrix::rotation_matrix(param.rotation), param.translation, constraint);
     }
     generate_new_hydration(); 
 

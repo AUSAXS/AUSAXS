@@ -2,6 +2,7 @@
 
 #include <data/DataFwd.h>
 #include <data/symmetry/Symmetry.h>
+#include <data/symmetry/SymmetryStorage.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
@@ -15,7 +16,6 @@ namespace ausaxs::data::detail {
             /**
              * @brief Add a symmetry to this body.
              */
-            void add(const symmetry::Symmetry& symmetry) requires (!CONST);
             void add(symmetry::Symmetry&& symmetry) requires (!CONST); //< @copydoc add_symmetry()
             void add(symmetry::type symmetry) requires (!CONST); //< @copydoc add_symmetry()
 
@@ -30,6 +30,17 @@ namespace ausaxs::data::detail {
              */
             symmetry::Symmetry& get(unsigned int index) requires (!CONST);
             const symmetry::Symmetry& get(unsigned int index) const; //< @copydoc get_symmetry()
+
+            /**
+             * @brief Get the symmetry storage object.
+             */
+            observer_ptr<symmetry::SymmetryStorage> get_obj() requires (!CONST);
+            observer_ptr<const symmetry::SymmetryStorage> get_obj() const; //< @copydoc get_obj()
+
+            /**
+             * @brief Set the symmetry storage object.
+             */
+            void set_obj(std::unique_ptr<symmetry::SymmetryStorage> obj) requires (!CONST);
 
             /**
              * @brief Write the Body and all its symmetries to a file.

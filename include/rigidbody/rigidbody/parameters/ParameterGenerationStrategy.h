@@ -35,9 +35,9 @@ namespace ausaxs::rigidbody::parameter {
             virtual ~ParameterGenerationStrategy();
 
             /**
-             * @brief Get the next parameter in the sequence. 
+             * @brief Get the next parameter in the sequence for the given body.
              */
-            virtual Parameter next() = 0;
+            virtual Parameter next(int ibody) = 0;
 
             /**
              * @brief Set the decay strategy.

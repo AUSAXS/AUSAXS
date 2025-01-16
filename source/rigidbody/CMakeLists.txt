@@ -16,10 +16,8 @@ add_library(ausaxs_rigidbody OBJECT
 
 	"detail/BestConf.cpp"
 	
-	"parameters/Parameter.cpp"
 	"parameters/ParameterGenerationFactory.cpp"
 	"parameters/ParameterGenerationStrategy.cpp"
-	"parameters/Parameters.cpp"
 	"parameters/decay/DecayFactory.cpp"
 	"parameters/decay/ExponentialDecay.cpp"
 	"parameters/decay/LinearDecay.cpp"

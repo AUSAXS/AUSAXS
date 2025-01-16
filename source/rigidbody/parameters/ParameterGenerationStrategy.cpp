@@ -4,7 +4,6 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/parameters/Parameters.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <math/Vector3.h>
 

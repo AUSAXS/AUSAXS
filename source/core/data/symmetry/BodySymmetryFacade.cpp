@@ -7,44 +7,54 @@
 using namespace ausaxs::data::detail;
 
 template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(const symmetry::Symmetry& symmetry) requires (!CONST) {
-    body->symmetries.emplace_back(symmetry);
-    body->get_signaller()->internal_change();
-    body->get_signaller()->external_change();
-}
-
-template<typename BODY, bool CONST>
 void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::Symmetry&& symmetry) requires (!CONST) {
-    body->symmetries.emplace_back(std::move(symmetry));
     body->get_signaller()->internal_change();
     body->get_signaller()->external_change();
+    body->symmetries->get().emplace_back(std::move(symmetry));
 }
 
 template<typename BODY, bool CONST>
 void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::type symmetry) requires (!CONST) {
-    body->symmetries.emplace_back(get(symmetry));
     body->get_signaller()->internal_change();
     body->get_signaller()->external_change();
+    body->symmetries->get().emplace_back(symmetry::get(symmetry));
 }
 
 template<typename BODY, bool CONST>
 std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() requires (!CONST) {
-    return body->symmetries;
+    return body->symmetries->get();
 }
 
 template<typename BODY, bool CONST>
 const std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() const {
-    return body->symmetries;
+    return body->symmetries->get();
 }
 
 template<typename BODY, bool CONST>
 ausaxs::symmetry::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) requires (!CONST) {
-    return body->symmetries[index];
+    assert(index < body->symmetries->get().size());
+    return body->symmetries->get()[index];
 }
 
 template<typename BODY, bool CONST>
 const ausaxs::symmetry::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) const {
-    return body->symmetries[index];
+    assert(index < body->symmetries->get().size());
+    return body->symmetries->get()[index];
+}
+
+template<typename BODY, bool CONST>
+ausaxs::observer_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_obj() requires (!CONST) {
+    return body->symmetries.get();
+}
+
+template<typename BODY, bool CONST>
+ausaxs::observer_ptr<const ausaxs::symmetry::SymmetryStorage> ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_obj() const {
+    return body->symmetries.get();
+}
+
+template<typename BODY, bool CONST>
+void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::set_obj(std::unique_ptr<ausaxs::symmetry::SymmetryStorage> obj) requires (!CONST) {
+    body->symmetries = std::move(obj);
 }
 
 template<typename BODY, bool CONST>
@@ -54,7 +64,7 @@ ausaxs::data::Body ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_ex
     atoms.reserve(body->size_symmetry_total()*body->size_atom());
     waters.reserve(body->size_symmetry_total()*body->size_water());
 
-    for (const auto& symmetry : body->symmetries) {
+    for (const auto& symmetry : get()) {
         for (int i = 0; i < symmetry.repeat; ++i) {
             auto t = symmetry.template get_transform<double>(i+1);
             for (const auto& a : body->get_atoms()) {
