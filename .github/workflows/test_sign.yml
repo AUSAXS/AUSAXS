@@ -1,0 +1,59 @@
+name: Test MacOS signing
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1,4'
+
+jobs:
+  sign:
+    runs-on: macos-latest
+    steps:
+      - uses: robinraju/release-downloader@v1
+        with:
+          fileName: 'macos-universal-binaries.zip'
+          latest: true
+          extract: true
+
+      - name: Sign the artifact
+        env: 
+          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PWD: ${{ secrets.MACOS_P12_PASSWORD }}
+          KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+        run: |
+          # create vars
+          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/keychain
+
+          # decode the certificate
+          echo -n $CERTIFICATE_BASE64 | base64 --decode -o $CERTIFICATE_PATH
+
+          # create a keychain
+          security create-keychain -p $KEYCHAIN_PWD $KEYCHAIN_PATH
+          security default-keychain -s $KEYCHAIN_PATH
+          security unlock-keychain -p $KEYCHAIN_PWD $KEYCHAIN_PATH
+
+          # import certificate
+          security import $CERTIFICATE_PATH -k $KEYCHAIN_PATH -P $CERTIFICATE_PWD -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PWD $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # sign the artifact
+          codesign --deep --force --verbose --sign "Developer ID Application: AUSAXS" macos-universal-binaries/bin/saxs_fitter
+
+          # verify signature
+          codesign --verify --verbose macos-universal-binaries/bin/saxs_fitter
+      
+    #   - uses: lando/notarize-action@v2
+    #     with: 
+    #       product-path: macos-universal-binaries/bin/saxs_fitter
+    #       primary-bundle-id: "com.ausaxs.saxs_fitter"
+    #       appstore-connect-username: ${{ secrets.APPSTORE_CONNECT_USERNAME }}
+    #       appstore-connect-password: ${{ secrets.APPSTORE_CONNECT_PASSWORD }}
+    #       appstore-connect-team-id: ${{ secrets.APPSTORE_CONNECT_TEAMID }}
+    #       verbose: true
+
+    #   - uses: actions/upload-artifact@v4
+    #     with:
+    #       name: macos-signed-binaries
+    #       path: macos-universal-binaries/bin/saxs_fitter
