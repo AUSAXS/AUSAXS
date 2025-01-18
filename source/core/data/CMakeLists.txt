@@ -3,10 +3,9 @@ target_sources(ausaxs_core PRIVATE
 	"Molecule.cpp"
 
 	"symmetry/BodySymmetryFacade.cpp"
-	"symmetry/SymmetryManager.cpp"
+	"symmetry/SymmetryManagerMT.cpp"
 	"symmetry/PredefinedSymmetries.cpp"
 
 	"state/BoundSignaller.cpp"
 	"state/StateManager.cpp"
-	"state/UnboundSignaller.cpp"
 )

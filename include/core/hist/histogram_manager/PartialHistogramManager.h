@@ -28,7 +28,7 @@ namespace ausaxs::hist {
 	 * @brief A single-threaded smart distance calculator which efficiently calculates the simple distance histogram.
 	 */
     template<bool use_weighted_distribution> 
-	class PartialHistogramManager : public IPartialHistogramManager, public detail::SimpleExvModel {
+	class PartialHistogramManager : public IPartialHistogramManager {
 		public:
 			PartialHistogramManager(observer_ptr<const data::Molecule> protein); 
 			virtual ~PartialHistogramManager() override;

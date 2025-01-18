@@ -18,5 +18,10 @@ namespace ausaxs::signaller {
              * @brief Signal that the internal state (removed or added atoms) of this object has changed.
              */
             virtual void internal_change() const = 0;
+
+            /**
+             * @brief Signal that the symmetry of this object has changed. 
+             */
+            virtual void symmetry_changed() const = 0;
     };
 }

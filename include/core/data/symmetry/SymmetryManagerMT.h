@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace ausaxs::symmetry {
-    class SymmetryManager {
+    class SymmetryManagerMT {
         public:
             template<bool use_weighted_distribution>
             std::unique_ptr<hist::ICompositeDistanceHistogram> calculate(const data::Molecule& protein);

@@ -1,10 +1,11 @@
-#include <data/symmetry/SymmetryManager.h>
+#include <data/symmetry/SymmetryManagerMT.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/detail/SimpleExvModel.h>
 
 #include <cassert>
 
@@ -46,6 +47,7 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
         if (body.size_water() != 0) {
             data_w = CompactCoordinates(body.get_waters());
         } 
+        hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, &protein);
 
         Vector3<float> cm;
         {
@@ -95,15 +97,15 @@ std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
             atomic[1+i_sym_1] = std::move(sym_atomic);
             water [1+i_sym_1] = std::move(sym_water);
         }
-        atomic[0] = {std::move(data_a)};
-        water[0] = {std::move(data_w)};
+        atomic[0]    = {std::move(data_a)};
+        water[0]     = {std::move(data_w)};
         res[i_body1] = {std::move(atomic), std::move(water)};
     }
     return res;
 }
 
 template<bool use_weighted_distribution>
-std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate(const data::Molecule& protein) {
+std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate(const data::Molecule& protein) {
     if (protein.size_water() == 0) {
         return calculate<use_weighted_distribution, false>(protein);
     } else {
@@ -112,7 +114,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::ca
 }
 
 template<bool use_weighted_distribution, bool contains_waters>
-std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate(const data::Molecule& protein) {
+std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate(const data::Molecule& protein) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
 
@@ -529,9 +531,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::ca
     }
 }
 
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<false>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<true, true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<true, false>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<false, true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManager::calculate<false, false>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<true>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<false>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<true,  true>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<true,  false>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<false, true>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<false, false>(const data::Molecule&);

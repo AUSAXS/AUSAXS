@@ -54,25 +54,25 @@ namespace ausaxs::hist {
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_self_correlation(unsigned int index);
+			virtual void calc_self_correlation(unsigned int index);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aa(unsigned int n, unsigned int m);
+			virtual void calc_aa(unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aw(unsigned int index);
+			virtual void calc_aw(unsigned int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_ww();
+			virtual void calc_ww();
 
 			void combine_self_correlation(unsigned int index);
 

@@ -8,15 +8,15 @@ using namespace ausaxs::data::detail;
 
 template<typename BODY, bool CONST>
 void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::Symmetry&& symmetry) requires (!CONST) {
-    body->get_signaller()->internal_change();
-    body->get_signaller()->external_change();
+    assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
+    body->get_signaller()->symmetry_changed();
     body->symmetries->get().emplace_back(std::move(symmetry));
 }
 
 template<typename BODY, bool CONST>
 void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::type symmetry) requires (!CONST) {
-    body->get_signaller()->internal_change();
-    body->get_signaller()->external_change();
+    assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
+    body->get_signaller()->symmetry_changed();
     body->symmetries->add(symmetry);
 }
 

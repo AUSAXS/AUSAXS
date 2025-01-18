@@ -56,7 +56,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
     }
 
     // check if the hydration layer was modified
-    if (this->statemanager->get_modified_hydration()) {
+    if (this->statemanager->is_modified_hydration()) {
         this->coords_w = detail::CompactCoordinates(this->protein->get_waters()); // if so, first update the compact coordinate representation
         calc_ww(); // then update the partial histogram
 

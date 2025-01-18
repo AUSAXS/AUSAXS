@@ -16,7 +16,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/MultiThreading.h>
 #include <container/ThreadLocalWrapper.h>
 
-#include <mutex>
 #include <numeric>
 
 using namespace ausaxs;
@@ -24,7 +23,8 @@ using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution> 
 PartialHistogramManagerMT<use_weighted_distribution>::PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein) 
-    : PartialHistogramManager<use_weighted_distribution>(protein) {}
+    : PartialHistogramManager<use_weighted_distribution>(protein) 
+{}
 
 template<bool use_weighted_distribution> 
 PartialHistogramManagerMT<use_weighted_distribution>::~PartialHistogramManagerMT() = default;
@@ -33,7 +33,7 @@ template<bool use_weighted_distribution>
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate() {
     const auto& externally_modified = this->statemanager->get_externally_modified_bodies();
     const auto& internally_modified = this->statemanager->get_internally_modified_bodies();
-    const bool hydration_modified = this->statemanager->get_modified_hydration();
+    const bool hydration_modified = this->statemanager->is_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
 
     // check if the object has already been initialized
