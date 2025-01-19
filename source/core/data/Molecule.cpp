@@ -361,6 +361,7 @@ void Molecule::bind_body_signallers() {
 
     auto cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
     if (!cast) {return;}
+    assert(cast->body_size == size_body() && "Molecule::bind_body_signallers: body size mismatch.");
     for (unsigned int i = 0; i < bodies.size(); i++) {
         bodies[i].register_probe(cast->get_probe(i));
     }

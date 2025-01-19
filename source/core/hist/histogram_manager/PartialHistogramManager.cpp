@@ -234,21 +234,21 @@ void PartialHistogramManager<use_weighted_distribution>::calc_aw(unsigned int in
     for (unsigned int i = 0; i < coords.size(); i++) {
         unsigned int j = 0;
         for (; j+7 < this->coords_w.size(); j+=8) {
-            evaluate8<use_weighted_distribution, 1>(p_aw, coords, this->coords_w, i, j);
+            evaluate8<use_weighted_distribution, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
         for (; j+3 < this->coords_w.size(); j+=4) {
-            evaluate4<use_weighted_distribution, 1>(p_aw, coords, this->coords_w, i, j);
+            evaluate4<use_weighted_distribution, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
         for (; j < this->coords_w.size(); ++j) {
-            evaluate1<use_weighted_distribution, 1>(p_aw, coords, this->coords_w, i, j);
+            evaluate1<use_weighted_distribution, 2>(p_aw, coords, this->coords_w, i, j);
         }
     }
 
-    this->master -= 2*partials_aw.index(index); // subtract the previous hydration histogram
+    this->master -= partials_aw.index(index); // subtract the previous hydration histogram
     partials_aw.index(index) = std::move(p_aw);
-    this->master += 2*partials_aw.index(index); // add the new hydration histogram
+    this->master += partials_aw.index(index); // add the new hydration histogram
 }
 
 template<bool use_weighted_distribution> 

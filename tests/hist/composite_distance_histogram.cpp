@@ -116,166 +116,166 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
     settings::molecule::implicit_hydrogens = false;
     auto d = SimpleCube::d;
 
-    // SECTION("no water") {
-    //     std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> b5 = {AtomFF({ 0,  0,  0}, form_factor::form_factor_t::C)};
-    //     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
-    //     Molecule protein(a);
+    SECTION("no water") {
+        std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b5 = {AtomFF({ 0,  0,  0}, form_factor::form_factor_t::C)};
+        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
+        Molecule protein(a);
 
-    //     set_unity_charge(protein);
+        set_unity_charge(protein);
 
-    //     auto test_func = [&] (const auto& q_axis) {
-    //         std::vector<double> Iq_exp;
-    //         Iq_exp.resize(q_axis.size(), 0);
-    //         auto ff = [] (double q) {return std::exp(-q*q/2);};
+        auto test_func = [&] (const auto& q_axis) {
+            std::vector<double> Iq_exp;
+            Iq_exp.resize(q_axis.size(), 0);
+            auto ff = [] (double q) {return std::exp(-q*q/2);};
 
-    //         for (unsigned int q = 0; q < q_axis.size(); ++q) {
-    //             double dsum = 
-    //                 9 + 
-    //                 16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
-    //                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-    //                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
-    //                 8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-    //             Iq_exp[q] += dsum*std::pow(ff(q_axis[q]), 2);
-    //         }
-    //         return Iq_exp;
-    //     };
+            for (unsigned int q = 0; q < q_axis.size(); ++q) {
+                double dsum = 
+                    9 + 
+                    16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
+                    24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+                    24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+                    8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+                Iq_exp[q] += dsum*std::pow(ff(q_axis[q]), 2);
+            }
+            return Iq_exp;
+        };
 
-    //     SECTION("default q-axis") {
-    //         auto Iq_exp = test_func(constants::axes::q_vals);
-    //         {
-    //             auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
-    //             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-    //         }
-    //         {
-    //             auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    //             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-    //         }
-    //         {
-    //             auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
-    //             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-    //         }
-    //         {
-    //             auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    //             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-    //         }
-    //     }
+        SECTION("default q-axis") {
+            auto Iq_exp = test_func(constants::axes::q_vals);
+            {
+                auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
+                REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+            }
+            {
+                auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+                REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+            }
+            {
+                auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
+                REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+            }
+            {
+                auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+                REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+            }
+        }
 
-    //     SECTION("custom q-axis") {
-    //         std::vector<double> q_axis(100);
-    //         for (unsigned int i = 0; i < q_axis.size(); ++i) {
-    //             q_axis[i] = (i+1)*0.1;
-    //         }
-    //         auto Iq_exp = test_func(q_axis);
+        SECTION("custom q-axis") {
+            std::vector<double> q_axis(100);
+            for (unsigned int i = 0; i < q_axis.size(); ++i) {
+                q_axis[i] = (i+1)*0.1;
+            }
+            auto Iq_exp = test_func(q_axis);
 
-    //         {
-    //             auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
-    //             REQUIRE(compare_hist(Iq_exp, Iq.y()));
-    //         }
-    //         {
-    //             auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
-    //             REQUIRE(compare_hist(Iq_exp, Iq.y()));
-    //         }
-    //         {
-    //             auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
-    //             REQUIRE(compare_hist(Iq_exp, Iq.y()));
-    //         }
-    //         {
-    //             auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
-    //             REQUIRE(compare_hist(Iq_exp, Iq.y()));
-    //         }
-    //     }
-    // }
+            {
+                auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
+                REQUIRE(compare_hist(Iq_exp, Iq.y()));
+            }
+            {
+                auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
+                REQUIRE(compare_hist(Iq_exp, Iq.y()));
+            }
+            {
+                auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
+                REQUIRE(compare_hist(Iq_exp, Iq.y()));
+            }
+            {
+                auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
+                REQUIRE(compare_hist(Iq_exp, Iq.y()));
+            }
+        }
+    }
 
-    // SECTION("with water") {
-    //     std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
-    //     std::vector<Water> w = {Water({0,  0,  0})};
-    //     std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
-    //     DebugMolecule protein(a);
+    SECTION("with water") {
+        std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<Water> w = {Water({0,  0,  0})};
+        std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
+        DebugMolecule protein(a);
 
-    //     set_unity_charge(protein);
-    //     double Z = protein.get_volume_grid()*constants::charge::density::water/8;
-    //     protein.set_volume_scaling(1./Z);
+        set_unity_charge(protein);
+        double Z = protein.get_volume_grid()*constants::charge::density::water/8;
+        protein.set_volume_scaling(1./Z);
 
-    //     auto test_func = [&] (const auto& q_axis) {
-    //         std::vector<double> Iq_exp;
-    //         Iq_exp.resize(q_axis.size(), 0);
-    //         auto ff = [] (double q) {return std::exp(-q*q/2);};
+        auto test_func = [&] (const auto& q_axis) {
+            std::vector<double> Iq_exp;
+            Iq_exp.resize(q_axis.size(), 0);
+            auto ff = [] (double q) {return std::exp(-q*q/2);};
 
-    //         for (unsigned int q = 0; q < q_axis.size(); ++q) {
-    //             double aasum = 
-    //                 8 + 
-    //                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-    //                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
-    //                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-    //             Iq_exp[q] += aasum*std::pow(ff(q_axis[q]), 2);
+            for (unsigned int q = 0; q < q_axis.size(); ++q) {
+                double aasum = 
+                    8 + 
+                    24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+                    24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+                    8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+                Iq_exp[q] += aasum*std::pow(ff(q_axis[q]), 2);
 
-    //             double awsum = 16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
-    //             Iq_exp[q] += awsum*std::pow(ff(q_axis[q]), 2);
-    //             Iq_exp[q] += 1*std::pow(ff(q_axis[q]), 2);
-    //         }
-    //         return Iq_exp;
-    //     };
+                double awsum = 16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
+                Iq_exp[q] += awsum*std::pow(ff(q_axis[q]), 2);
+                Iq_exp[q] += 1*std::pow(ff(q_axis[q]), 2);
+            }
+            return Iq_exp;
+        };
 
-    //     SECTION("default q-axis") {
-    //         auto Iq_exp = test_func(constants::axes::q_vals);
-    //         {
-    //             auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
-    //             CHECK(compare_hist(Iq_exp, Iq.get_counts()));
-    //         }
-    //         {
-    //             auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    //             CHECK(compare_hist(Iq_exp, Iq.get_counts()));
-    //         }
-    //         {
-    //             auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
-    //             CHECK(compare_hist(Iq_exp, Iq.get_counts()));
-    //         }
-    //         {
-    //             auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    //             CHECK(compare_hist(Iq_exp, Iq.get_counts()));
-    //         }
-    //     }
+        SECTION("default q-axis") {
+            auto Iq_exp = test_func(constants::axes::q_vals);
+            {
+                auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
+                CHECK(compare_hist(Iq_exp, Iq.get_counts()));
+            }
+            {
+                auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+                CHECK(compare_hist(Iq_exp, Iq.get_counts()));
+            }
+            {
+                auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
+                CHECK(compare_hist(Iq_exp, Iq.get_counts()));
+            }
+            {
+                auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+                CHECK(compare_hist(Iq_exp, Iq.get_counts()));
+            }
+        }
 
-    //     SECTION("custom q-axis") {
-    //         std::vector<double> q_axis(100);
-    //         for (unsigned int i = 0; i < q_axis.size(); ++i) {
-    //             q_axis[i] = (i+1)*0.1;
-    //         }
-    //         auto Iq_exp = test_func(q_axis);
+        SECTION("custom q-axis") {
+            std::vector<double> q_axis(100);
+            for (unsigned int i = 0; i < q_axis.size(); ++i) {
+                q_axis[i] = (i+1)*0.1;
+            }
+            auto Iq_exp = test_func(q_axis);
 
-    //         {
-    //             auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
-    //             CHECK(compare_hist(Iq_exp, Iq.y()));
-    //         }
-    //         {
-    //             auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
-    //             CHECK(compare_hist(Iq_exp, Iq.y()));
-    //         }
-    //         {
-    //             auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
-    //             CHECK(compare_hist(Iq_exp, Iq.y()));
-    //         }
-    //         {
-    //             auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
-    //             CHECK(compare_hist(Iq_exp, Iq.y()));
-    //         }
-    //     }
-    // }
+            {
+                auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
+                CHECK(compare_hist(Iq_exp, Iq.y()));
+            }
+            {
+                auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
+                CHECK(compare_hist(Iq_exp, Iq.y()));
+            }
+            {
+                auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
+                CHECK(compare_hist(Iq_exp, Iq.y()));
+            }
+            {
+                auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
+                CHECK(compare_hist(Iq_exp, Iq.y()));
+            }
+        }
+    }
 
     SECTION("analytical") {
         auto data = GENERATE(
-            "2epe"
-            // "6lyz",
-            // "c60",
-            // "diamond",
-            // "LAR1-2"
+            "2epe",
+            "6lyz",
+            "c60",
+            "diamond",
+            "LAR1-2"
         );
 
         SECTION("real data (" + std::string(data) + ")") {
@@ -290,48 +290,48 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
 
             auto exact = exact_aa_carbon(protein);
             auto ff = form_factor::storage::atomic::C;
-            // { // hm
-            //     auto hm = hist::HistogramManager<true>(&protein).calculate_all()->get_profile_aa();
-            //     auto axis = hm.get_axis().as_vector();
-            //     std::transform(hm.get_counts().begin(), hm.get_counts().end(), axis.begin(), hm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
-            //     REQUIRE(compare_hist(exact, hm, 0, 1e-2)); // 1% error allowed
-            // }
-            // { // hm_mt
-            //     auto hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_profile_aa();
-            //     auto axis = hm_mt.get_axis().as_vector();
-            //     std::transform(hm_mt.get_counts().begin(), hm_mt.get_counts().end(), axis.begin(), hm_mt.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
-            //     REQUIRE(compare_hist(exact, hm_mt, 0, 1e-2));
-            // }
-            // { // hm_mt_ff_avg
-            //     auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()->get_profile_aa();
-            //     auto axis = hm_mt_ff_avg.get_axis().as_vector();
-            //     std::transform(hm_mt_ff_avg.get_counts().begin(), hm_mt_ff_avg.get_counts().end(), axis.begin(), hm_mt_ff_avg.get_counts().begin(), 
-            //         [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
-            //     );
-            //     REQUIRE(compare_hist(exact, hm_mt_ff_avg, 0, 1e-2));
-            // }
-            // { // hm_mt_ff_explicit
-            //     auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()->get_profile_aa();
-            //     auto axis = hm_mt_ff_explicit.get_axis().as_vector();
-            //     std::transform(hm_mt_ff_explicit.get_counts().begin(), hm_mt_ff_explicit.get_counts().end(), axis.begin(), hm_mt_ff_explicit.get_counts().begin(), 
-            //         [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
-            //     );
-            //     REQUIRE(compare_hist(exact, hm_mt_ff_explicit, 0, 1e-2));
-            // }
-            // { // hm_mt_ff_grid
-            //     auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all()->get_profile_aa();
-            //     auto axis = hm_mt_ff_grid.get_axis().as_vector();
-            //     std::transform(hm_mt_ff_grid.get_counts().begin(), hm_mt_ff_grid.get_counts().end(), axis.begin(), hm_mt_ff_grid.get_counts().begin(), 
-            //         [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
-            //     );
-            //     REQUIRE(compare_hist(exact, hm_mt_ff_grid, 0, 1e-2));
-            // }
-            // { // phm
-            //     auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->get_profile_aa();
-            //     auto axis = phm.get_axis().as_vector();
-            //     std::transform(phm.get_counts().begin(), phm.get_counts().end(), axis.begin(), phm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
-            //     REQUIRE(compare_hist(exact, phm, 0, 1e-2));
-            // }
+            { // hm
+                auto hm = hist::HistogramManager<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm.get_axis().as_vector();
+                std::transform(hm.get_counts().begin(), hm.get_counts().end(), axis.begin(), hm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, hm, 0, 1e-2)); // 1% error allowed
+            }
+            { // hm_mt
+                auto hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm_mt.get_axis().as_vector();
+                std::transform(hm_mt.get_counts().begin(), hm_mt.get_counts().end(), axis.begin(), hm_mt.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, hm_mt, 0, 1e-2));
+            }
+            { // hm_mt_ff_avg
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm_mt_ff_avg.get_axis().as_vector();
+                std::transform(hm_mt_ff_avg.get_counts().begin(), hm_mt_ff_avg.get_counts().end(), axis.begin(), hm_mt_ff_avg.get_counts().begin(), 
+                    [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
+                );
+                REQUIRE(compare_hist(exact, hm_mt_ff_avg, 0, 1e-2));
+            }
+            { // hm_mt_ff_explicit
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm_mt_ff_explicit.get_axis().as_vector();
+                std::transform(hm_mt_ff_explicit.get_counts().begin(), hm_mt_ff_explicit.get_counts().end(), axis.begin(), hm_mt_ff_explicit.get_counts().begin(), 
+                    [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
+                );
+                REQUIRE(compare_hist(exact, hm_mt_ff_explicit, 0, 1e-2));
+            }
+            { // hm_mt_ff_grid
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all()->get_profile_aa();
+                auto axis = hm_mt_ff_grid.get_axis().as_vector();
+                std::transform(hm_mt_ff_grid.get_counts().begin(), hm_mt_ff_grid.get_counts().end(), axis.begin(), hm_mt_ff_grid.get_counts().begin(), 
+                    [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
+                );
+                REQUIRE(compare_hist(exact, hm_mt_ff_grid, 0, 1e-2));
+            }
+            { // phm
+                auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->get_profile_aa();
+                auto axis = phm.get_axis().as_vector();
+                std::transform(phm.get_counts().begin(), phm.get_counts().end(), axis.begin(), phm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, phm, 0, 1e-2));
+            }
             { // phm_mt
                 settings::general::threads = 1;
                 auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_profile_aa();
