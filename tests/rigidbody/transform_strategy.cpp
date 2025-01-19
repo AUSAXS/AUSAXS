@@ -66,7 +66,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
 
         // translate
         rigidbody::transform::SingleTransform transform(&rigidbody);
-        transform.apply(Matrix<double>::identity(3), Vector3<double>(1, 0, 0), manager->distance_constraints[0]);
+        transform.apply({Matrix<double>::identity(3), Vector3<double>(1, 0, 0)}, manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
         transform.undo();
@@ -74,7 +74,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // rotate
-        transform.apply(matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[0]);
+        transform.apply({matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0)}, manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 1, -3, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1, -3, -1));
         transform.undo();
@@ -98,7 +98,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
 
         // single-body translate
         rigidbody::transform::RigidTransform transform(&rigidbody);
-        transform.apply(Matrix<double>::identity(3), Vector3<double>(1, 0, 0), manager->distance_constraints[0]);
+        transform.apply({Matrix<double>::identity(3), Vector3<double>(1, 0, 0)}, manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
         transform.undo();
@@ -106,7 +106,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // single-body rotate
-        transform.apply(matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[0]);
+        transform.apply({matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0)}, manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 1, -3, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1, -3, -1));
         transform.undo();
@@ -114,7 +114,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // multi-body translate
-        transform.apply(Matrix<double>::identity(3), Vector3<double>(1, 0, 0), manager->distance_constraints[1]);
+        transform.apply({Matrix<double>::identity(3), Vector3<double>(1, 0, 0)}, manager->distance_constraints[1]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
         CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == Vector3<double>(2, -1, -1));
@@ -126,7 +126,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         CHECK(rigidbody.get_body(1).get_atom(1).coordinates() == Vector3<double>( 1,  1, -1));
 
         // multi-body rotate
-        transform.apply(matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0), manager->distance_constraints[1]);
+        transform.apply({matrix::rotation_matrix(Vector3<double>{0, 0, 1}, M_PI/2), Vector3<double>(0, 0, 0)}, manager->distance_constraints[1]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 5, -3, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>( 3, -3, -1));
         CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == Vector3<double>( 5, -1, -1));

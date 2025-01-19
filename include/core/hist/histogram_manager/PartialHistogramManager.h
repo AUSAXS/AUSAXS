@@ -29,6 +29,7 @@ namespace ausaxs::hist {
 	 */
     template<bool use_weighted_distribution> 
 	class PartialHistogramManager : public IPartialHistogramManager {
+	    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
 		public:
 			PartialHistogramManager(observer_ptr<const data::Molecule> protein); 
 			virtual ~PartialHistogramManager() override;

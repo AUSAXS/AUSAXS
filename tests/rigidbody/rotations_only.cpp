@@ -1,30 +1,69 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <rigidbody/parameters/RotationsOnly.h>
+#include <rigidbody/parameters/ParameterGenerationStrategies.h>
 
 using namespace ausaxs;
-using namespace rigidbody;
+using namespace ausaxs::rigidbody;
+using namespace ausaxs::data;
 
 TEST_CASE("RotationsOnly::next") {
-    int iterations = 10;
+    int iterations = 100;
     double length_start = GENERATE(1, 2, 3);
     double rad_start = GENERATE(1, 2, 3);
-    rigidbody::parameter::RotationsOnly ro(iterations, length_start, rad_start);
+    RigidBody rb(std::vector<Body>{Body(std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)})});
 
-    for (int i = 0; i < iterations; i++) {
-        auto p = ro.next();
-        REQUIRE(p.dr.x() == 0);
-        REQUIRE(p.dr.x() == 0);
-        REQUIRE(p.dr.y() == 0);
-        REQUIRE(p.dr.y() == 0);
-        REQUIRE(p.dr.z() == 0);
-        REQUIRE(p.dr.z() == 0);
-        REQUIRE(p.alpha >= -rad_start);
-        REQUIRE(p.alpha <= rad_start);
-        REQUIRE(p.beta >= -rad_start);
-        REQUIRE(p.beta <= rad_start);
-        REQUIRE(p.gamma >= -rad_start);
-        REQUIRE(p.gamma <= rad_start);
+    SECTION("RotationsOnly") {
+        rigidbody::parameter::RotationsOnly ro(&rb, iterations, length_start, rad_start);
+
+        for (int i = 0; i < iterations; i++) {
+            auto p = ro.next(0);
+            REQUIRE(p.translation.x() == 0             );
+            REQUIRE(p.translation.y() == 0             );
+            REQUIRE(p.translation.z() == 0             );
+            REQUIRE(-rad_start        <= p.rotation.x());
+            REQUIRE(p.rotation.x()    <= rad_start     );
+            REQUIRE(-rad_start        <= p.rotation.y());
+            REQUIRE(p.rotation.y()    <= rad_start     );
+            REQUIRE(-rad_start        <= p.rotation.z());
+            REQUIRE(p.rotation.z()    <= rad_start     );
+        }
+    }
+
+    SECTION("TranslationsOnly") {
+        rigidbody::parameter::TranslationsOnly to(&rb, iterations, length_start, rad_start);
+
+        for (int i = 0; i < iterations; i++) {
+            auto p = to.next(0);
+            REQUIRE(-length_start     <= p.translation.x());
+            REQUIRE(p.translation.x() <= length_start     );
+            REQUIRE(-length_start     <= p.translation.y());
+            REQUIRE(p.translation.y() <= length_start     );
+            REQUIRE(-length_start     <= p.translation.z());
+            REQUIRE(p.translation.z() <= length_start     );
+            REQUIRE(p.rotation.x()    == 0                );
+            REQUIRE(p.rotation.y()    == 0                );
+            REQUIRE(p.rotation.z()    == 0                );
+        }
+    }
+
+    SECTION("translations & rotations") {
+        rigidbody::parameter::AllParameters ap(&rb, iterations, length_start, rad_start);
+
+        for (int i = 0; i < iterations; i++) {
+            auto p = ap.next(0);
+            REQUIRE(-length_start     <= p.translation.x());
+            REQUIRE(p.translation.x() <= length_start     );
+            REQUIRE(-length_start     <= p.translation.y());
+            REQUIRE(p.translation.y() <= length_start     );
+            REQUIRE(-length_start     <= p.translation.z());
+            REQUIRE(p.translation.z() <= length_start     );
+            REQUIRE(-rad_start        <= p.rotation.x()   );
+            REQUIRE(p.rotation.x()    <= rad_start        );
+            REQUIRE(-rad_start        <= p.rotation.y()   );
+            REQUIRE(p.rotation.y()    <= rad_start        );
+            REQUIRE(-rad_start        <= p.rotation.z()   );
+            REQUIRE(p.rotation.z()    <= rad_start        );
+        }
     }
 }

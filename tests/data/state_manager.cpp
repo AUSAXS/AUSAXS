@@ -27,7 +27,7 @@ TEST_CASE("StateManager::StateManager") {
         CHECK(manager.get_probes().size() == size);
         CHECK(manager.get_externally_modified_bodies() == std::vector{true, true, true, true, true});
         CHECK(manager.get_internally_modified_bodies() == std::vector{true, true, true, true, true});
-        CHECK(manager.get_modified_hydration() == true);
+        CHECK(manager.is_modified_hydration() == true);
     }
 }
 
@@ -35,21 +35,21 @@ TEST_CASE_METHOD(fixture, "StateManager::externally_modified_all") {
     manager.externally_modified_all();
     CHECK(manager.get_externally_modified_bodies() == std::vector{true, true, true, true, true});
     CHECK(manager.get_internally_modified_bodies() == std::vector{false, false, false, false, false});
-    CHECK(manager.get_modified_hydration() == false);
+    CHECK(manager.is_modified_hydration() == false);
 }
 
 TEST_CASE_METHOD(fixture, "StateManager::internally_modified_all") {
     manager.internally_modified_all();
     CHECK(manager.get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     CHECK(manager.get_internally_modified_bodies() == std::vector{true, true, true, true, true});
-    CHECK(manager.get_modified_hydration() == false);
+    CHECK(manager.is_modified_hydration() == false);
 }
 
 TEST_CASE_METHOD(fixture, "StateManager::externally_modified") {
     manager.externally_modified(2);
     CHECK(manager.get_externally_modified_bodies() == std::vector{false, false, true, false, false});
     CHECK(manager.get_internally_modified_bodies() == std::vector{false, false, false, false, false});
-    CHECK(manager.get_modified_hydration() == false);
+    CHECK(manager.is_modified_hydration() == false);
     CHECK(manager.is_externally_modified(2) == true);
 }
 
@@ -57,7 +57,7 @@ TEST_CASE_METHOD(fixture, "StateManager::internally_modified") {
     manager.internally_modified(2);
     CHECK(manager.get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     CHECK(manager.get_internally_modified_bodies() == std::vector{false, false, true, false, false});
-    CHECK(manager.get_modified_hydration() == false);
+    CHECK(manager.is_modified_hydration() == false);
     CHECK(manager.is_internally_modified(2) == true);
 }
 
@@ -65,7 +65,7 @@ TEST_CASE_METHOD(fixture, "StateManager::modified_hydration_layer") {
     manager.modified_hydration_layer();
     CHECK(manager.get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     CHECK(manager.get_internally_modified_bodies() == std::vector{false, false, false, false, false});
-    CHECK(manager.get_modified_hydration() == true);
+    CHECK(manager.is_modified_hydration() == true);
 }
 
 TEST_CASE("StateManager::reset") {
@@ -74,7 +74,7 @@ TEST_CASE("StateManager::reset") {
     manager.reset_to_false();
     CHECK(manager.get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     CHECK(manager.get_internally_modified_bodies() == std::vector{false, false, false, false, false});
-    CHECK(manager.get_modified_hydration() == false);
+    CHECK(manager.is_modified_hydration() == false);
 }
 
 TEST_CASE("StateManager::get_probe") {

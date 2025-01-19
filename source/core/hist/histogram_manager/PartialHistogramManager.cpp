@@ -32,7 +32,6 @@ PartialHistogramManager<use_weighted_distribution>::~PartialHistogramManager() =
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribution>::calculate() {
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     const std::vector<bool> externally_modified = this->statemanager->get_externally_modified_bodies();
     const std::vector<bool> internally_modified = this->statemanager->get_internally_modified_bodies();
 
@@ -101,8 +100,6 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<use_weighted_distribution>::calculate_all() {
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-
     auto total = calculate();
     int bins = total->get_total_counts().size();
 
@@ -152,7 +149,6 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<use_weighte
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(unsigned int index) {
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     detail::CompactCoordinates current(this->protein->get_body(index).get_atoms());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
 
@@ -188,7 +184,6 @@ void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(u
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_aa(unsigned int n, unsigned int m) {
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     auto& coords_n = this->coords_a[n];
     auto& coords_m = this->coords_a[m];
 
@@ -233,7 +228,6 @@ void PartialHistogramManager<use_weighted_distribution>::initialize() {
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_aw(unsigned int index) {
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     auto& coords = this->coords_a[index];
 
     GenericDistribution1D_t p_aw(this->master.axis.bins);
@@ -259,7 +253,6 @@ void PartialHistogramManager<use_weighted_distribution>::calc_aw(unsigned int in
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_ww() {
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     GenericDistribution1D_t p_ww(this->master.axis.bins);
 
     // calculate internal distances for the hydration layer
@@ -279,7 +272,11 @@ void PartialHistogramManager<use_weighted_distribution>::calc_ww() {
     }
 
     // calculate self-correlation
-    p_ww.add(0, std::accumulate(this->coords_w.get_data().begin(), this->coords_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}));
+    p_ww.add(0, std::accumulate(
+        this->coords_w.get_data().begin(), this->coords_w.get_data().end(), 
+        0.0, 
+        [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}
+    ));
 
     this->master -= partials_ww; // subtract the previous hydration histogram
     partials_ww = std::move(p_ww);

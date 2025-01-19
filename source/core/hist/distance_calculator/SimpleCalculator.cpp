@@ -30,6 +30,8 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
     for (unsigned int idx = 0; idx < self.size(); ++idx) {
         int data_a_size = (int) self[idx].get().size();
         int job_size = settings::general::detail::job_size;
+
+        // calculate upper triangle
         for (int i = 0; i < data_a_size; i+=job_size) {
             pool->detach_task(
                 [this, &results_self, idx, imin = i, imax = std::min(i+job_size, data_a_size)] () {
@@ -53,6 +55,20 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
                 }
             );
         }
+
+        // calculate skipped diagonal
+        pool->detach_task(
+            [this, &results_self, idx] () {
+                auto& p_aa = results_self[idx].get();
+                auto& data_a = self[idx].get();
+                p_aa.add(0, std::accumulate(
+                    data_a.get_data().begin(), 
+                    data_a.get_data().end(), 
+                    0.0, 
+                    [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}
+                ));
+            }
+        );
     }
 
     // calculate cross-correlations
@@ -60,8 +76,8 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
     std::vector<std::function<void(int, int)>> tasks_cross(cross_1.size()); // to avoid unnecessary copies
     for (unsigned int idx = 0; idx < cross_1.size(); ++idx) {
         int data_b_size = (int) cross_2[idx].get().size();
-
         int job_size = settings::general::detail::job_size;
+        
         for (int i = 0; i < data_b_size; i+=job_size) {
             pool->detach_task(
                 [this, &results_cross, idx, imin = i, imax = std::min(i+job_size, data_b_size)] () {
@@ -91,19 +107,14 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
     pool->wait();
     run_result result(self.size(), cross_1.size());
 
-    // merge thread-local results
-    for (unsigned int i = 0; i < self.size(); ++i) {
+    // results_X contains the thread-local histograms. We need to merge them into a single final histogram
+    for (int i = 0; i < static_cast<int>(self.size()); ++i) {
         result.self[i] = results_self[i].merge();
-
-        // self-correlations since we start from j=i+1
-        result.self[i].template add<1>(0, std::accumulate(
-            self[i].get().get_data().begin(), 
-            self[i].get().get_data().end(), 
-            0.0, 
-            [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}
-        ));
     }
-    for (unsigned int i = 0; i < cross_1.size(); ++i) {result.cross[i] = results_cross[i].merge();}
+
+    for (int i = 0; i < static_cast<int>(cross_1.size()); ++i) {
+        result.cross[i] = results_cross[i].merge();
+    }
 
     return result;
 }

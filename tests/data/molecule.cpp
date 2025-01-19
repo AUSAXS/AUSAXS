@@ -674,10 +674,10 @@ TEST_CASE_METHOD(fixture, "Molecule::signal_modified_hydration_layer") {
     Molecule protein(bodies);
     auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
     manager->reset_to_false();
-    REQUIRE(manager->get_modified_hydration() == false);
+    REQUIRE(manager->is_modified_hydration() == false);
 
     protein.signal_modified_hydration_layer();
-    REQUIRE(manager->get_modified_hydration() == true);
+    REQUIRE(manager->is_modified_hydration() == true);
 }
 
 #include <io/pdb/PDBStructure.h>

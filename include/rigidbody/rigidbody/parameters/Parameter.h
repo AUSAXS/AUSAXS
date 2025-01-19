@@ -19,15 +19,19 @@ namespace ausaxs::rigidbody::parameter {
          * 
          * @param dr The translation vector.
          * @param euler_angles The Euler angles.
+         */
+        Parameter(Vector3<double> dr, Vector3<double> euler_angles) : translation(dr), rotation(euler_angles) {}
+
+        /**
+         * @brief Construct a new parameter.
+         * 
+         * @param dr The translation vector.
+         * @param euler_angles The Euler angles.
          * @param symmetry_pars The symmetry parameters.
          */
-        Parameter(Vector3<double> dr, Vector3<double> euler_angles, const std::vector<SymmetryParameter>& symmetry_pars)
-            : translation(dr), rotation(euler_angles), symmetry_pars(symmetry_pars)
-        {}
-
         Parameter(Vector3<double> dr, Vector3<double> euler_angles, std::vector<SymmetryParameter>&& symmetry_pars)
             : translation(dr), rotation(euler_angles), symmetry_pars(std::move(symmetry_pars))
-        {} //< @copydoc Parameter(Vector3<double>, Vector3<double>, std::vector<SymmetryParameter>)
+        {}
 
         Vector3<double>                 translation;
         Vector3<double>                 rotation;

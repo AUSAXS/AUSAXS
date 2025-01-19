@@ -56,6 +56,7 @@ ausaxs::rigidbody::parameter::Parameter ausaxs::rigidbody::parameter::LimitedPar
 }
 
 namespace ausaxs::rigidbody::parameter {
+    using AllParameters    = LimitedParameterGenerator<true,  true,  true>;
     using TranslationsOnly = LimitedParameterGenerator<true,  false, false>;
     using RotationsOnly    = LimitedParameterGenerator<false, true,  false>;
     using SymmetryOnly     = LimitedParameterGenerator<false, false, true>;

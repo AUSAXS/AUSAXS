@@ -51,7 +51,7 @@ void StateManager::reset_to_false() {
 }
 
 void StateManager::set_probe(unsigned int i, std::shared_ptr<signaller::Signaller> probe) {
-    assert(probes.size() < i && "StateManager::set_probe: index out of range");
+    assert(i < probes.size() && "StateManager::set_probe: index out of range");
     probes[i] = std::move(probe);
 }
 

@@ -15,8 +15,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <form_factor/FormFactor.h>
 #include <io/ExistingFile.h>
-#include <settings/MoleculeSettings.h>
-#include <settings/HistogramSettings.h>
+#include <settings/All.h>
 #include <constants/Constants.h>
 #include <utility/Utility.h>
 
@@ -333,5 +332,5 @@ TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
     auto sm = phm.get_state_manager();
     sm->reset_to_false();
     phm.signal_modified_hydration_layer();
-    CHECK(sm->get_modified_hydration());
+    CHECK(sm->is_modified_hydration());
 }

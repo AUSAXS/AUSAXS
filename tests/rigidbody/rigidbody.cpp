@@ -249,11 +249,11 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
 //     }
 // }
 
-class RigidBodyTest : public RigidBody {
-    public: 
-        using RigidBody::RigidBody;
-        using RigidBody::transform;
-};
+// class RigidBodyTest : public RigidBody {
+//     public: 
+//         using RigidBody::RigidBody;
+//         using RigidBody::transform;
+// };
 
 // TEST_CASE("RigidBody: check optimal conformation") {
 //     settings::grid::cubic = true;
