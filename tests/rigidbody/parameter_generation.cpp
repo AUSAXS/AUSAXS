@@ -2,12 +2,16 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <rigidbody/parameters/ParameterGenerationStrategies.h>
+#include <settings/All.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::data;
 
 TEST_CASE("RotationsOnly::next") {
+    settings::general::verbose = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+
     int iterations = 100;
     double length_start = GENERATE(1, 2, 3);
     double rad_start = GENERATE(1, 2, 3);

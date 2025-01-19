@@ -41,50 +41,50 @@ namespace ausaxs::hist {
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
 			 *        They are unaffected by both rotations and translations, and so we precalculate them. 
 			 */
-			[[gnu::noinline]] void initialize(calculator_t calculator);
+			void initialize(calculator_t calculator);
 
 			/**
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			[[gnu::noinline]] virtual void calc_self_correlation(calculator_t calculator, unsigned int index);
+			virtual void calc_self_correlation(calculator_t calculator, unsigned int index);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			[[gnu::noinline]] virtual void calc_aa(calculator_t calculator, unsigned int n, unsigned int m);
+			virtual void calc_aa(calculator_t calculator, unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			[[gnu::noinline]] virtual void calc_aw(calculator_t calculator, unsigned int index);
+			virtual void calc_aw(calculator_t calculator, unsigned int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			[[gnu::noinline]] virtual void calc_ww(calculator_t calculator);
+			virtual void calc_ww(calculator_t calculator);
 
-			[[gnu::noinline]] void combine_self_correlation(int index, GenericDistribution1D_t&&);
+			void combine_self_correlation(int index, GenericDistribution1D_t&&);
 
-			[[gnu::noinline]] void combine_aa(unsigned int n, unsigned int m, GenericDistribution1D_t&&);
+			void combine_aa(unsigned int n, unsigned int m, GenericDistribution1D_t&&);
 
-			[[gnu::noinline]] void combine_aw(unsigned int index, GenericDistribution1D_t&&);
+			void combine_aw(unsigned int index, GenericDistribution1D_t&&);
 
-			[[gnu::noinline]] void combine_ww(GenericDistribution1D_t&&);
+			void combine_ww(GenericDistribution1D_t&&);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.
 			 * 
 			 * @param index The index of the body to update.
 			 */
-			[[gnu::noinline]] void update_compact_representation_body(unsigned int index);
+			void update_compact_representation_body(unsigned int index);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of the hydration layer.
 			 */
-			[[gnu::noinline]] void update_compact_representation_water();
+			void update_compact_representation_water();
 	};
 }

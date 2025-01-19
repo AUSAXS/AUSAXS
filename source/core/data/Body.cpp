@@ -24,7 +24,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-Body::Body() : hydration(hydrate::Hydration::create()), uid(uid_counter++) {initialize();}
+Body::Body() : hydration(hydrate::Hydration::create()), symmetries(std::make_unique<symmetry::SymmetryStorage>()), uid(uid_counter++) {initialize();}
 Body::Body(const Body& body) : atoms(body.atoms), hydration(body.hydration->clone()), symmetries(body.symmetries->clone()), uid(body.uid) {initialize();}
 Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), hydration(std::move(body.hydration)), symmetries(std::move(body.symmetries)), uid(body.uid) {initialize();}
 Body::~Body() = default;

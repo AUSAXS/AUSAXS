@@ -65,7 +65,7 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
                     data_a.get_data().begin(), 
                     data_a.get_data().end(), 
                     0.0, 
-                    [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}
+                    [] (double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}
                 ));
             }
         );
@@ -115,6 +115,11 @@ hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result hist::dis
     for (int i = 0; i < static_cast<int>(cross_1.size()); ++i) {
         result.cross[i] = results_cross[i].merge();
     }
+
+    // cleanup
+    self.clear();
+    cross_1.clear();
+    cross_2.clear();
 
     return result;
 }
