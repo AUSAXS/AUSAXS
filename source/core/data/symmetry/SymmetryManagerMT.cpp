@@ -12,96 +12,98 @@
 using namespace ausaxs;
 using namespace hist::detail;
 
-enum h_type {
-    SELF_AA, SELF_AW, SELF_WW, 
-    SELF_SYM_AA, SELF_SYM_AW, SELF_SYM_WW,
-    CROSS_AA, CROSS_AW, CROSS_WW
-};
+namespace local {
+    enum h_type {
+        SELF_AA, SELF_AW, SELF_WW, 
+        SELF_SYM_AA, SELF_SYM_AW, SELF_SYM_WW,
+        CROSS_AA, CROSS_AW, CROSS_WW
+    };
 
-struct _data {
-    std::vector<std::vector<CompactCoordinates>> atomic;
-    std::vector<std::vector<CompactCoordinates>> waters;
-};
+    struct _data {
+        std::vector<std::vector<CompactCoordinates>> atomic;
+        std::vector<std::vector<CompactCoordinates>> waters;
+    };
 
-struct ScaleResult {
-    ScaleResult() = default;
-    ScaleResult(int index, int scale) : index(index), scale(scale) {}
-    ScaleResult(int index, std::size_t scale) : index(index), scale(static_cast<int>(scale)) {}
-    int index;
-    int scale;
-};
+    struct ScaleResult {
+        ScaleResult() = default;
+        ScaleResult(int index, int scale) : index(index), scale(scale) {}
+        ScaleResult(int index, std::size_t scale) : index(index), scale(static_cast<int>(scale)) {}
+        int index;
+        int scale;
+    };
 
-#define DEBUG_MODE false
-#if DEBUG_MODE
-    #include <iostream>
-    #include <iomanip>
-#endif
-std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
-    std::vector<_data> res(protein.size_body());
+    #define DEBUG_MODE false
+    #if DEBUG_MODE
+        #include <iostream>
+        #include <iomanip>
+    #endif
+    std::vector<_data> generate_transformed_data(const data::Molecule& protein) {
+        std::vector<_data> res(protein.size_body());
 
-    // for every body
-    for (int i_body1 = 0; i_body1 < static_cast<int>(protein.size_body()); ++i_body1) {
-        const auto& body = protein.get_body(i_body1);
-        CompactCoordinates data_a(body.get_atoms());
-        CompactCoordinates data_w;
-        if (body.size_water() != 0) {
-            data_w = CompactCoordinates(body.get_waters());
-        } 
-        hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, &protein);
+        // for every body
+        for (int i_body1 = 0; i_body1 < static_cast<int>(protein.size_body()); ++i_body1) {
+            const auto& body = protein.get_body(i_body1);
+            CompactCoordinates data_a(body.get_atoms());
+            CompactCoordinates data_w;
+            if (body.size_water() != 0) {
+                data_w = CompactCoordinates(body.get_waters());
+            } 
+            hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, &protein);
 
-        Vector3<float> cm;
-        {
-            auto tmp = body.get_cm();
-            cm = {static_cast<float>(tmp[0]), static_cast<float>(tmp[1]), static_cast<float>(tmp[2])};
-        }
-
-        std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
-        std::vector<std::vector<CompactCoordinates>> water(1+body.size_symmetry());
-
-        #if DEBUG_MODE
-            for (int i = 0; i < static_cast<int>(data_a.get_data().size()); ++i) {
-                std::cout << "before: " << data_a.get_data()[i].value.pos << std::endl;
+            Vector3<float> cm;
+            {
+                auto tmp = body.get_cm();
+                cm = {static_cast<float>(tmp[0]), static_cast<float>(tmp[1]), static_cast<float>(tmp[2])};
             }
-        #endif
 
-        // loop over its symmetries
-        for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
-            const auto& symmetry = body.symmetry().get(i_sym_1);
+            std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
+            std::vector<std::vector<CompactCoordinates>> water(1+body.size_symmetry());
 
-            std::vector<CompactCoordinates> sym_atomic(symmetry.repeat, data_a);
-            std::vector<CompactCoordinates> sym_water(symmetry.repeat, data_w);
+            #if DEBUG_MODE
+                for (int i = 0; i < static_cast<int>(data_a.get_data().size()); ++i) {
+                    std::cout << "before: " << data_a.get_data()[i].value.pos << std::endl;
+                }
+            #endif
 
-            // for every symmetry, loop over how many times it should be repeated
-            // it is then repeatedly applied to the same data
-            for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
-                auto t = symmetry.get_transform<double>(i_repeat+1);
-                std::transform(
-                    sym_atomic[i_repeat].get_data().begin(), 
-                    sym_atomic[i_repeat].get_data().end(), 
-                    sym_atomic[i_repeat].get_data().begin(), 
-                    [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
-                );
-                std::transform(
-                    sym_water[i_repeat].get_data().begin(), 
-                    sym_water[i_repeat].get_data().end(), 
-                    sym_water[i_repeat].get_data().begin(), 
-                    [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
-                );
+            // loop over its symmetries
+            for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
+                const auto& symmetry = body.symmetry().get(i_sym_1);
 
-                #if DEBUG_MODE
-                    for (int i = 0; i < static_cast<int>(sym_atomic[i_repeat].get_data().size()); ++i) {
-                        std::cout << "after: " << sym_atomic[i_repeat].get_data()[i].value.pos << std::endl;
-                    }
-                #endif
+                std::vector<CompactCoordinates> sym_atomic(symmetry.repeat, data_a);
+                std::vector<CompactCoordinates> sym_water(symmetry.repeat, data_w);
+
+                // for every symmetry, loop over how many times it should be repeated
+                // it is then repeatedly applied to the same data
+                for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
+                    auto t = symmetry.get_transform<double>(i_repeat+1);
+                    std::transform(
+                        sym_atomic[i_repeat].get_data().begin(), 
+                        sym_atomic[i_repeat].get_data().end(), 
+                        sym_atomic[i_repeat].get_data().begin(), 
+                        [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
+                    );
+                    std::transform(
+                        sym_water[i_repeat].get_data().begin(), 
+                        sym_water[i_repeat].get_data().end(), 
+                        sym_water[i_repeat].get_data().begin(), 
+                        [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
+                    );
+
+                    #if DEBUG_MODE
+                        for (int i = 0; i < static_cast<int>(sym_atomic[i_repeat].get_data().size()); ++i) {
+                            std::cout << "after: " << sym_atomic[i_repeat].get_data()[i].value.pos << std::endl;
+                        }
+                    #endif
+                }
+                atomic[1+i_sym_1] = std::move(sym_atomic);
+                water [1+i_sym_1] = std::move(sym_water);
             }
-            atomic[1+i_sym_1] = std::move(sym_atomic);
-            water [1+i_sym_1] = std::move(sym_water);
+            atomic[0]    = {std::move(data_a)};
+            water[0]     = {std::move(data_w)};
+            res[i_body1] = {std::move(atomic), std::move(water)};
         }
-        atomic[0]    = {std::move(data_a)};
-        water[0]     = {std::move(data_w)};
-        res[i_body1] = {std::move(atomic), std::move(water)};
+        return res;
     }
-    return res;
 }
 
 template<bool use_weighted_distribution>
@@ -120,14 +122,14 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
 
     // start by generating the transformed data
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
-    auto data = generate_transformed_data(protein);
+    auto data = local::generate_transformed_data(protein);
 
     // since the results will be mixed together into a single anonymous vector, we need to keep track of which index corresponds to which type
     // we need this to distinguish between e.g. self and cross histograms
-    std::vector<h_type> self_indices, cross_indices;
+    std::vector<local::h_type> self_indices, cross_indices;
 
     // some of the calculations can be reused multiple times, so we store them in a vector so we can scale them later
-    std::vector<ScaleResult> scale_result;
+    std::vector<local::ScaleResult> scale_result;
     #if DEBUG_MODE
         std::vector<int> cross_scaling_factor;
         std::vector<int> self_scaling_factor;
@@ -143,12 +145,12 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
 
         // all self calculations must be scaled, so we don't need to store them
         calculator.enqueue_calculate_self(body1_atomic);
-        self_indices.emplace_back(SELF_AA);
+        self_indices.emplace_back(local::SELF_AA);
         if constexpr (contains_waters) {
             calculator.enqueue_calculate_self(body1_waters);
             scale_result.emplace_back(calculator.enqueue_calculate_cross(body1_atomic, body1_waters), 1 + body.size_symmetry_total());
-            self_indices.emplace_back(SELF_WW);
-            cross_indices.emplace_back(SELF_AW);
+            self_indices.emplace_back(local::SELF_WW);
+            cross_indices.emplace_back(local::SELF_AW);
         }
 
         #if DEBUG_MODE
@@ -181,16 +183,16 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
                 int scale = sym1.repeat - i_repeat1;
                 if (i_repeat1 == 0 && closed) {scale += 1;}
                 scale_result.emplace_back(calculator.enqueue_calculate_cross(body1_atomic, body1_sym_atomic), scale);
-                cross_indices.emplace_back(SELF_SYM_AA);
+                cross_indices.emplace_back(local::SELF_SYM_AA);
 
                 if constexpr (contains_waters) {
                     scale_result.emplace_back(calculator.enqueue_calculate_cross(body1_atomic, body1_sym_waters), scale);
-                    cross_indices.emplace_back(SELF_SYM_AW);
+                    cross_indices.emplace_back(local::SELF_SYM_AW);
 
                     scale_result.emplace_back(calculator.enqueue_calculate_cross(body1_waters, body1_sym_waters), scale);
                     scale_result.emplace_back(calculator.enqueue_calculate_cross(body1_waters, body1_sym_atomic), scale);
-                    cross_indices.emplace_back(SELF_SYM_WW);
-                    cross_indices.emplace_back(SELF_SYM_AW);
+                    cross_indices.emplace_back(local::SELF_SYM_WW);
+                    cross_indices.emplace_back(local::SELF_SYM_AW);
                 }
 
                 #if DEBUG_MODE
@@ -214,16 +216,16 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
                     const auto& body2_waters = data[j_body1].waters[0][0];
 
                     calculator.enqueue_calculate_cross(body2_atomic, body1_sym_atomic);
-                    cross_indices.emplace_back(CROSS_AA);
+                    cross_indices.emplace_back(local::CROSS_AA);
 
                     if constexpr (contains_waters) {
                         calculator.enqueue_calculate_cross(body2_atomic, body1_sym_waters);
-                        cross_indices.emplace_back(CROSS_AW);
+                        cross_indices.emplace_back(local::CROSS_AW);
 
                         calculator.enqueue_calculate_cross(body2_waters, body1_sym_waters);
                         calculator.enqueue_calculate_cross(body2_waters, body1_sym_atomic);
-                        cross_indices.emplace_back(CROSS_WW);
-                        cross_indices.emplace_back(CROSS_AW);
+                        cross_indices.emplace_back(local::CROSS_WW);
+                        cross_indices.emplace_back(local::CROSS_AW);
                     }
 
                     #if DEBUG_MODE
@@ -248,16 +250,16 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
                             const auto& body2_sym_waters = data[j_body1].waters[1+j_sym1][j_repeat1];
 
                             calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic);
-                            cross_indices.emplace_back(SELF_SYM_AA);
+                            cross_indices.emplace_back(local::SELF_SYM_AA);
 
                             if constexpr (contains_waters) {
                                 calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_waters);
-                                cross_indices.emplace_back(SELF_SYM_AW);
+                                cross_indices.emplace_back(local::SELF_SYM_AW);
 
                                 calculator.enqueue_calculate_cross(body1_sym_waters, body2_sym_waters);
                                 calculator.enqueue_calculate_cross(body1_sym_waters, body2_sym_atomic);
-                                cross_indices.emplace_back(SELF_SYM_WW);
-                                cross_indices.emplace_back(SELF_SYM_AW);
+                                cross_indices.emplace_back(local::SELF_SYM_WW);
+                                cross_indices.emplace_back(local::SELF_SYM_AW);
                             }
 
                             #if DEBUG_MODE
@@ -285,16 +287,16 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
                         const auto& body2_sym_waters = data[i_body1].waters[1+i_sym2][i_repeat2];
 
                         calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic);
-                        cross_indices.emplace_back(SELF_SYM_AA);
+                        cross_indices.emplace_back(local::SELF_SYM_AA);
 
                         if constexpr (contains_waters) {
                             calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_waters);
-                            cross_indices.emplace_back(SELF_SYM_AW);
+                            cross_indices.emplace_back(local::SELF_SYM_AW);
 
                             calculator.enqueue_calculate_cross(body1_sym_waters, body2_sym_waters);
                             calculator.enqueue_calculate_cross(body1_sym_waters, body2_sym_atomic);
-                            cross_indices.emplace_back(SELF_SYM_WW);
-                            cross_indices.emplace_back(SELF_SYM_AW);
+                            cross_indices.emplace_back(local::SELF_SYM_WW);
+                            cross_indices.emplace_back(local::SELF_SYM_AW);
                         }
 
                         #if DEBUG_MODE
@@ -322,16 +324,16 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
             const auto& body2_waters = data[j_body1].waters[0][0];
 
             calculator.enqueue_calculate_cross(body1_atomic, body2_atomic);
-            cross_indices.emplace_back(CROSS_AA);
+            cross_indices.emplace_back(local::CROSS_AA);
 
             if constexpr (contains_waters) {
                 calculator.enqueue_calculate_cross(body1_atomic, body2_waters);
-                cross_indices.emplace_back(CROSS_AW);
+                cross_indices.emplace_back(local::CROSS_AW);
 
                 calculator.enqueue_calculate_cross(body1_waters, body2_waters);
                 calculator.enqueue_calculate_cross(body1_waters, body2_atomic);
-                cross_indices.emplace_back(CROSS_WW);
-                cross_indices.emplace_back(CROSS_AW);
+                cross_indices.emplace_back(local::CROSS_WW);
+                cross_indices.emplace_back(local::CROSS_AW);
             }
 
             #if DEBUG_MODE
@@ -356,16 +358,16 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
                     const auto& body2_sym_waters = data[j_body1].waters[1+j_sym1][j_repeat1];
 
                     calculator.enqueue_calculate_cross(body1_atomic, body2_sym_atomic);
-                    cross_indices.emplace_back(CROSS_AA);
+                    cross_indices.emplace_back(local::CROSS_AA);
 
                     if constexpr (contains_waters) {
                         calculator.enqueue_calculate_cross(body1_atomic, body2_sym_waters);
-                        cross_indices.emplace_back(CROSS_AW);
+                        cross_indices.emplace_back(local::CROSS_AW);
 
                         calculator.enqueue_calculate_cross(body1_waters, body2_sym_waters);
                         calculator.enqueue_calculate_cross(body1_waters, body2_sym_atomic);
-                        cross_indices.emplace_back(CROSS_WW);
-                        cross_indices.emplace_back(CROSS_AW);
+                        cross_indices.emplace_back(local::CROSS_WW);
+                        cross_indices.emplace_back(local::CROSS_AW);
                     }
 
                     #if DEBUG_MODE
@@ -483,17 +485,17 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
     // add cross terms
     for (int i = contains_waters ? 1 : 0; i < static_cast<int>(cross_indices.size()); ++i) {
         switch (cross_indices[i]) {
-            case SELF_AA:
-            case CROSS_AA:
-            case SELF_SYM_AA: p_aa += res.cross[i]; break;
+            case local::SELF_AA:
+            case local::CROSS_AA:
+            case local::SELF_SYM_AA: p_aa += res.cross[i]; break;
 
-            case SELF_WW:
-            case CROSS_WW:
-            case SELF_SYM_WW: p_ww += res.cross[i]; break;
+            case local::SELF_WW:
+            case local::CROSS_WW:
+            case local::SELF_SYM_WW: p_ww += res.cross[i]; break;
 
-            case SELF_AW:
-            case CROSS_AW:
-            case SELF_SYM_AW: p_aw += res.cross[i]; break;
+            case local::SELF_AW:
+            case local::CROSS_AW:
+            case local::SELF_SYM_AW: p_aw += res.cross[i]; break;
         }
     }
 

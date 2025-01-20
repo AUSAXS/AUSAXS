@@ -3,6 +3,7 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <container/ThreadLocalWrapper.h>
 
 #include <vector>
 
@@ -57,8 +58,6 @@ namespace ausaxs::hist::distance_calculator {
             run_result run();
 
         private:
-            std::vector<std::reference_wrapper<const hist::detail::CompactCoordinates>> self;
-            std::vector<std::reference_wrapper<const hist::detail::CompactCoordinates>> cross_1, cross_2;
-            std::vector<int> self_merge_ids, cross_merge_ids;
+            std::vector<std::unique_ptr<container::ThreadLocalWrapper<GenericDistribution1D_t>>> self_results, cross_results;
     };
 }
