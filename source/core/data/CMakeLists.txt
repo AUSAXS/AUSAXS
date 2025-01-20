@@ -5,6 +5,7 @@ target_sources(ausaxs_core PRIVATE
 	"symmetry/BodySymmetryFacade.cpp"
 	"symmetry/SymmetryManagerMT.cpp"
 	"symmetry/PredefinedSymmetries.cpp"
+	"symmetry/detail/SymmetryHelpers.cpp"
 
 	"state/BoundSignaller.cpp"
 	"state/StateManager.cpp"
