@@ -5,8 +5,6 @@ target_sources(ausaxs_core PRIVATE
 	"detail/BodyTracker.cpp"
 	"detail/MasterHistogram.cpp"
 	"detail/SimpleExvModel.cpp"
-
-	"distance_calculator/SimpleCalculator.cpp"
 	
 	"histogram_manager/HistogramManager.cpp"
 	"histogram_manager/HistogramManagerFactory.cpp"
