@@ -42,7 +42,7 @@ namespace ausaxs::hist::detail {
             MasterHistogram& operator-=(const GenericDistribution1D_t& rhs);
 
             // The base part of the histogram which will never change. This contains all internal distances between atoms in each individual body.
-            GenericDistribution1D_t base;
+            GenericDistribution1D_t base; //? remove?
             Axis axis;
     };
 }

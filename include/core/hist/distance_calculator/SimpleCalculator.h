@@ -27,9 +27,11 @@ namespace ausaxs::hist::distance_calculator {
              *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made. 
              *
              * @param a The data to calculate the self-correlation for. The reference must be valid until calculate is called.
+             * @param merge_id The result vector id this calculation can be merged into. Supplying this can save significant memory resources. 
+             *
              * @return The index of the data in the result vector.
              */
-            int enqueue_calculate_self(const hist::detail::CompactCoordinates& a);
+            int enqueue_calculate_self(const hist::detail::CompactCoordinates& a, int merge_id = -1);
 
             /**
              * @brief Queue a cross-correlation calculation. 
@@ -38,7 +40,13 @@ namespace ausaxs::hist::distance_calculator {
              * @param a2 The second set of data to calculate the cross-correlation for. The reference must be valid until calculate is called.
              * @return The index of the data in the result vector.
              */
-            int enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2);
+            int enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2, int merge_id = -1);
+
+            /**
+             * @brief Get the current size of the result vector. 
+             */
+            int size_self_result() const; 
+            int size_cross_result() const; //< @copydoc size_self_result
 
             /**
              * @brief Calculate the queued histograms. 
@@ -51,5 +59,6 @@ namespace ausaxs::hist::distance_calculator {
         private:
             std::vector<std::reference_wrapper<const hist::detail::CompactCoordinates>> self;
             std::vector<std::reference_wrapper<const hist::detail::CompactCoordinates>> cross_1, cross_2;
+            std::vector<int> self_merge_ids, cross_merge_ids;
     };
 }

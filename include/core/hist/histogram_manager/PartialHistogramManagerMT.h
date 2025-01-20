@@ -5,9 +5,6 @@
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <container/ThreadLocalWrapper.h>
-#include <container/Container1D.h>
-#include <container/Container2D.h>
 
 #include <memory>
 #include <mutex>
@@ -47,25 +44,25 @@ namespace ausaxs::hist {
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			virtual void calc_self_correlation(calculator_t calculator, unsigned int index);
+			void calc_self_correlation(calculator_t calculator, unsigned int index);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			virtual void calc_aa(calculator_t calculator, unsigned int n, unsigned int m);
+			void calc_aa(calculator_t calculator, unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			virtual void calc_aw(calculator_t calculator, unsigned int index);
+			void calc_aw(calculator_t calculator, unsigned int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			virtual void calc_ww(calculator_t calculator);
+			void calc_ww(calculator_t calculator);
 
 			void combine_self_correlation(int index, GenericDistribution1D_t&&);
 
