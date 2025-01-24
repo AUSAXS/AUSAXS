@@ -8,8 +8,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-observer_ptr<BS::thread_pool> utility::multi_threading::get_global_pool() {
+observer_ptr<BS::light_thread_pool> utility::multi_threading::get_global_pool() {
     // statics in functions are initialized on first call, so ok to use settings::general::threads here
-    static std::unique_ptr<BS::thread_pool> pool = std::make_unique<BS::thread_pool>(settings::general::threads);
+    static std::unique_ptr<BS::light_thread_pool> pool = std::make_unique<BS::light_thread_pool>(settings::general::threads);
     return pool.get();
 }
