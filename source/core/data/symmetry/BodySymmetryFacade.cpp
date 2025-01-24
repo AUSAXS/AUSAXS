@@ -6,59 +6,59 @@
 
 using namespace ausaxs::data::detail;
 
-template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::Symmetry&& symmetry) requires (!CONST) {
+template<typename BODY, bool NONCONST>
+void ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::Symmetry&& symmetry) requires (NONCONST) {
     assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
     body->get_signaller()->symmetry_changed();
     body->symmetries->get().emplace_back(std::move(symmetry));
 }
 
-template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::add(symmetry::type symmetry) requires (!CONST) {
+template<typename BODY, bool NONCONST>
+void ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::type symmetry) requires (NONCONST) {
     assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
     body->get_signaller()->symmetry_changed();
     body->symmetries->add(symmetry);
 }
 
-template<typename BODY, bool CONST>
-std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() requires (!CONST) {
+template<typename BODY, bool NONCONST>
+std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::get() requires (NONCONST) {
     return body->symmetries->get();
 }
 
-template<typename BODY, bool CONST>
-const std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get() const {
+template<typename BODY, bool NONCONST>
+const std::vector<ausaxs::symmetry::Symmetry>& ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::get() const {
     return body->symmetries->get();
 }
 
-template<typename BODY, bool CONST>
-ausaxs::symmetry::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) requires (!CONST) {
+template<typename BODY, bool NONCONST>
+ausaxs::symmetry::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) requires (NONCONST) {
     assert(index < body->symmetries->get().size());
     return body->symmetries->get()[index];
 }
 
-template<typename BODY, bool CONST>
-const ausaxs::symmetry::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get(unsigned int index) const {
+template<typename BODY, bool NONCONST>
+const ausaxs::symmetry::Symmetry& ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) const {
     assert(index < body->symmetries->get().size());
     return body->symmetries->get()[index];
 }
 
-template<typename BODY, bool CONST>
-ausaxs::observer_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_obj() requires (!CONST) {
+template<typename BODY, bool NONCONST>
+ausaxs::observer_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::get_obj() requires (NONCONST) {
     return body->symmetries.get();
 }
 
-template<typename BODY, bool CONST>
-ausaxs::observer_ptr<const ausaxs::symmetry::SymmetryStorage> ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_obj() const {
+template<typename BODY, bool NONCONST>
+ausaxs::observer_ptr<const ausaxs::symmetry::SymmetryStorage> ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::get_obj() const {
     return body->symmetries.get();
 }
 
-template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::set_obj(std::unique_ptr<ausaxs::symmetry::SymmetryStorage> obj) requires (!CONST) {
+template<typename BODY, bool NONCONST>
+void ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::set_obj(std::unique_ptr<ausaxs::symmetry::SymmetryStorage> obj) requires (NONCONST) {
     body->symmetries = std::move(obj);
 }
 
-template<typename BODY, bool CONST>
-ausaxs::data::Body ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_explicit_structure() const {
+template<typename BODY, bool NONCONST>
+ausaxs::data::Body ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::get_explicit_structure() const {
     std::vector<AtomFF> atoms = body->get_atoms();
     std::vector<Water> waters = body->size_water() == 0 ? std::vector<Water>{} : body->get_waters();
     atoms.reserve(body->size_symmetry_total()*body->size_atom());
@@ -81,8 +81,8 @@ ausaxs::data::Body ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::get_ex
     return Body(atoms, waters);
 }
 
-template<typename BODY, bool CONST>
-void ausaxs::data::detail::BodySymmetryFacade<BODY, CONST>::save(const io::File& path) const {
+template<typename BODY, bool NONCONST>
+void ausaxs::data::detail::BodySymmetryFacade<BODY, NONCONST>::save(const io::File& path) const {
     auto body = get_explicit_structure();
     io::Writer::write(io::pdb::PDBStructure(body), path);
 }
