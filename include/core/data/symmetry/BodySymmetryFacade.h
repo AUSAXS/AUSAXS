@@ -8,7 +8,7 @@
 #include <io/IOFwd.h>
 
 namespace ausaxs::data::detail {
-    template<typename BODY, bool CONST = std::is_const_v<BODY>>
+    template<typename BODY, bool NONCONST = !std::is_const_v<BODY>>
     class BodySymmetryFacade {
         public:
             BodySymmetryFacade(observer_ptr<BODY> body) : body(body) {}
@@ -16,31 +16,31 @@ namespace ausaxs::data::detail {
             /**
              * @brief Add a symmetry to this body.
              */
-            void add(symmetry::Symmetry&& symmetry) requires (!CONST); //< @copydoc add_symmetry()
-            void add(symmetry::type symmetry) requires (!CONST); //< @copydoc add_symmetry()
+            void add(symmetry::Symmetry&& symmetry) requires (NONCONST); //< @copydoc add_symmetry()
+            void add(symmetry::type symmetry) requires (NONCONST); //< @copydoc add_symmetry()
 
             /**
              * @brief Get the symmetries of this body.
              */
-            std::vector<symmetry::Symmetry>& get() requires (!CONST);
+            std::vector<symmetry::Symmetry>& get() requires (NONCONST);
             const std::vector<symmetry::Symmetry>& get() const; //< @copydoc get_symmetries()
 
             /**
              * @brief Get the symmetry at the specified index.
              */
-            symmetry::Symmetry& get(unsigned int index) requires (!CONST);
+            symmetry::Symmetry& get(unsigned int index) requires (NONCONST);
             const symmetry::Symmetry& get(unsigned int index) const; //< @copydoc get_symmetry()
 
             /**
              * @brief Get the symmetry storage object.
              */
-            observer_ptr<symmetry::SymmetryStorage> get_obj() requires (!CONST);
+            observer_ptr<symmetry::SymmetryStorage> get_obj() requires (NONCONST);
             observer_ptr<const symmetry::SymmetryStorage> get_obj() const; //< @copydoc get_obj()
 
             /**
              * @brief Set the symmetry storage object.
              */
-            void set_obj(std::unique_ptr<symmetry::SymmetryStorage> obj) requires (!CONST);
+            void set_obj(std::unique_ptr<symmetry::SymmetryStorage> obj) requires (NONCONST);
 
             /**
              * @brief Write the Body and all its symmetries to a file.
