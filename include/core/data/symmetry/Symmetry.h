@@ -3,6 +3,8 @@
 #include <math/Vector3.h>
 #include <math/MatrixUtils.h>
 
+#include <numbers>
+
 namespace ausaxs::symmetry {
     struct Symmetry {
         Symmetry() = default;
