@@ -189,7 +189,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::s
 }
 
 template<bool weighted_bins>
-inline ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run() {
+inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run() {
     auto pool = utility::multi_threading::get_global_pool();
     pool->wait();
     run_result result(size_self_result(), size_cross_result());

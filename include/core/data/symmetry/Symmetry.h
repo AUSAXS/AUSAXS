@@ -93,7 +93,7 @@ inline bool ausaxs::symmetry::Symmetry::is_closed() const {
     // due to floating point inaccuracies, we multiply by 100 and round to nearest integer
     // we then compare the value modulo 100*2*pi = 628 with 0
     auto angles = 100*(repeat+1)*external_rotate.angle;
-    constexpr int cmp = 100*2*M_PI;
+    constexpr int cmp = 100*2*std::numbers::pi;
     return 
         static_cast<int>(std::round(angles.x())) % cmp == 0 && 
         static_cast<int>(std::round(angles.y())) % cmp == 0 && 

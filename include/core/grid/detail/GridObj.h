@@ -4,6 +4,8 @@
 #include <math/MathFwd.h>
 #include <container/Container3D.h>
 
+#include <cstdint>
+
 namespace ausaxs::grid::detail {
     /**
         * @brief A simple enum to represent the different states of a grid cell. 
