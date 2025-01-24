@@ -382,7 +382,8 @@ TEST_CASE_METHOD(fixture, "Dataset::limit_y") {
 }
 
 TEST_CASE_METHOD(fixture, "Dataset::x") {
-    CHECK(dataset.x() == dataset.col(0));
+    auto x = dataset.x();
+    CHECK(x == dataset.col(0));
 }
 
 TEST_CASE_METHOD(fixture, "Dataset::y") {
