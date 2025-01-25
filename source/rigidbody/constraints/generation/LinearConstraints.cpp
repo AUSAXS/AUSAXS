@@ -11,14 +11,12 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Console.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
 
 #include <limits>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
-using namespace ausaxs::data::record;
 
 std::vector<DistanceConstraint> LinearConstraints::generate() const {
     if (settings::general::verbose) {console::print_info("\tGenerating simple constraints for rigid body optimization.");}
@@ -34,14 +32,18 @@ std::vector<DistanceConstraint> LinearConstraints::generate() const {
         double min_dist = std::numeric_limits<double>::max();
         unsigned int min_atom1 = -1, min_atom2 = -1;
         for (unsigned int iatom1 = 0; iatom1 < body1.size_atom(); iatom1++) {
-            const Atom& atom1 = body1.get_atom(iatom1);
-            if (atom1.element != constants::atom_t::C) {continue;}
+            const AtomFF& atom1 = body1.get_atom(iatom1);
+            if (form_factor::to_atom_type(atom1.form_factor_type()) != constants::atom_t::C) {
+                continue;
+            }
 
             for (unsigned int iatom2 = 0; iatom2 < body2.size_atom(); iatom2++) {
-                const Atom& atom2 = body2.get_atom(iatom2);
-                if (atom2.element != constants::atom_t::C) {continue;}
+                const AtomFF& atom2 = body2.get_atom(iatom2);
+                if (form_factor::to_atom_type(atom2.form_factor_type()) != constants::atom_t::C) {
+                    continue;
+                }
 
-                double dist = atom1.distance(atom2);
+                double dist = atom1.coordinates().distance(atom2.coordinates());
                 if (dist > min_dist) {continue;}
 
                 min_dist = dist;
@@ -55,7 +57,10 @@ std::vector<DistanceConstraint> LinearConstraints::generate() const {
         }
         constraints.emplace_back(manager->protein, ibody1, ibody2, min_atom1, min_atom2);
         if (settings::general::verbose) {
-            std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.get_atom(min_atom1).get_group_name() << " and " << body2.get_atom(min_atom2).get_group_name() << std::endl;
+            std::cout 
+                << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " 
+                << form_factor::to_string(body1.get_atom(min_atom1).form_factor_type()) << " and " << form_factor::to_string(body2.get_atom(min_atom2).form_factor_type()) 
+            << std::endl;
         }
     }
 

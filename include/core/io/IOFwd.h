@@ -6,7 +6,7 @@ namespace ausaxs::io {
     class Folder;
 
     namespace detail {
-        class Reader;
-        class Writer;
+        struct Reader;
+        struct Writer;
     }
 }

@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::selection;
 
-ManualSelect::ManualSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {}
+ManualSelect::ManualSelect(observer_ptr<const RigidBody> rigidbody) : BodySelectStrategy(rigidbody) {}
 
 ManualSelect::~ManualSelect() = default;
 

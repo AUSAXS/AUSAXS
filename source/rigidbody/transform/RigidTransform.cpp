@@ -11,7 +11,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/RigidBody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-#include <data/record/Atom.h>
 #include <data/Body.h>
 
 #include <unordered_set>
@@ -20,25 +19,26 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::transform;
 
-RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
+RigidTransform::RigidTransform(observer_ptr<RigidBody> rigidbody) : TransformStrategy(rigidbody) {}
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) {
+void RigidTransform::apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
 
     // remove the bodies from the grid
     auto grid = rigidbody->get_grid();
     for (auto& body : group.bodies) {
-        grid->remove(body);
+        grid->remove(*body);
     }
 
-    rotate_and_translate(M, t, group);
+    rotate_and_translate(matrix::rotation_matrix(par.rotation), par.translation, group);
+    symmetry(std::move(par.symmetry_pars), *group.bodies.front());
 
     // add them back to the grid
     for (auto& body : group.bodies) {
-        grid->add(body);
+        grid->add(*body);
     }
 }
 
@@ -75,7 +75,7 @@ TransformGroup RigidTransform::get_connected(const constraints::DistanceConstrai
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size() && path1 == path2) {
-        return TransformGroup({&rigidbody->get_body(pivot.ibody1)}, {pivot.ibody1}, pivot, pivot.get_atom1().coords);
+        return TransformGroup({&rigidbody->get_body(pivot.ibody1)}, {pivot.ibody1}, pivot, pivot.get_atom1().coordinates());
     }
 
     // create a vector of pointers to the bodies in the paths
@@ -101,8 +101,8 @@ TransformGroup RigidTransform::get_connected(const constraints::DistanceConstrai
 
     // return the path with the least atoms, since that will be the cheapest to transform
     if (N1 < N2) {
-        return TransformGroup(std::move(bodies1), std::move(path1), pivot, pivot.get_atom2().coords);
+        return TransformGroup(std::move(bodies1), std::move(path1), pivot, pivot.get_atom2().coordinates());
     } else {
-        return TransformGroup(std::move(bodies2), std::move(path2), pivot, pivot.get_atom1().coords);
+        return TransformGroup(std::move(bodies2), std::move(path2), pivot, pivot.get_atom1().coordinates());
     }
 }

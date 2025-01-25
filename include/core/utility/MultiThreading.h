@@ -9,5 +9,5 @@ namespace ausaxs::utility::multi_threading {
      * @brief Get the global thread pool.
      *        This pool is initialized upon first call, so make sure to set the number of threads (settings::general::threads) before calling this function.
      */
-    observer_ptr<BS::thread_pool> get_global_pool();
+    observer_ptr<BS::light_thread_pool> get_global_pool();
 }

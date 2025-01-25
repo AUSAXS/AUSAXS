@@ -6,7 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/detail/GridSurfaceDetection.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-#include <data/record/Atom.h>
 #include <settings/GridSettings.h>
 
 #include <cassert>

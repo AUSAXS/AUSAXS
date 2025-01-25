@@ -2,17 +2,15 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
-#include <hist/distance_calculator/HistogramManagerMTFFGridSurface.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <grid/Grid.h>
 #include <dataset/SimpleDataset.h>
 #include <plots/All.h>
@@ -22,7 +20,7 @@
 #include "grid/grid_debug.h"
 
 using namespace ausaxs;
-using namespace hist;
+using namespace ausaxs::hist;
 
 /*
     This file tests the legacy single-threaded intensity calculations against the new cached multi-threaded implementations, ensuring they are consistent. 
@@ -681,6 +679,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
 // Test the legacy single-threaded implementation of the Debye calculations against the new cached multi-threaded implementation
 TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     std::string test_files = GENERATE("tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb");
     data::Molecule protein(test_files);
@@ -737,6 +736,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
 // Test the legacy single-threaded implementation of the Debye calculations against the new cached multi-threaded implementation
 TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     std::string test_files = GENERATE("tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb");
     data::Molecule protein(test_files);
@@ -793,6 +793,7 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
 // Test the legacy single-threaded implementation of the Debye calculations against the new cached multi-threaded implementation
 TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     std::string test_files = GENERATE("tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb");
     data::Molecule protein(test_files);
@@ -849,6 +850,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
 // Test the legacy single-threaded implementation of the Debye calculations against the new cached multi-threaded implementation
 TEST_CASE("CompositeDistanceHistogramFFGridSurface: legacy comparison") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     std::string test_files = GENERATE("tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb");
     data::Molecule protein(test_files);

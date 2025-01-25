@@ -14,14 +14,18 @@ namespace ausaxs {
      * This class uses a single 1D array to efficiently store the data, and offers a variety of vector operations.
      */
     template<numeric Q>
-    class Matrix {
+    class Matrix final {
         public: 
             Matrix() = default;
             Matrix(const Matrix<Q>& A) = default;
             Matrix(Matrix<Q>&& A) = default;
             Matrix& operator=(const Matrix<Q>& A) = default;
             Matrix& operator=(Matrix<Q>&& A) = default;
-            virtual ~Matrix() = default;
+
+            template<typename T> requires std::is_floating_point_v<T>
+            Matrix(const Matrix<T>& A) : N(A.N), M(A.M), data(N*M) {
+                std::copy(A.begin(), A.end(), data.begin());
+            }
 
             /**
              * @brief Construct a Matrix based on a nested initializer list. The lists must be of the same size. 
@@ -168,9 +172,11 @@ namespace ausaxs {
 
         Vector<Q> w(A.N);
         for (unsigned int row = 0; row < A.N; ++row) {
+            Q sum = Q();
             for (unsigned int col = 0; col < A.M; ++col) {
-                w[row] += v[col]*A[row][col];
+                sum += v[col]*A[row][col];
             }
+            w[row] = sum;
         }
         return w;
     }
@@ -186,9 +192,11 @@ namespace ausaxs {
         Matrix<Q> C(A.N, B.M);
         for (unsigned int row = 0; row < C.N; row++) {
             for (unsigned int col = 0; col < C.M; col++) {
+                Q sum = Q();
                 for (unsigned int inner = 0; inner < A.M; inner++) {
-                    C[row][col] += A[row][inner]*B[inner][col];
+                    sum += A[row][inner]*B[inner][col];
                 }
+                C[row][col] = sum;
             }
         }
         return C;

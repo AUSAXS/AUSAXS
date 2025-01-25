@@ -8,7 +8,7 @@ namespace ausaxs {
     /**
      * @brief A representation of a dataset. The set consists of fixed number of named columns, with a variable number of rows. 
      */
-    class Dataset : public Matrix<double> {
+    class Dataset {
         public: 
             Dataset();
             Dataset(const Dataset& d);
@@ -17,7 +17,7 @@ namespace ausaxs {
             Dataset& operator=(Dataset&& other);
             virtual ~Dataset();
 
-            Dataset(Matrix&& m);
+            Dataset(Matrix<double>&& m);
 
             /**
              * @brief Create a new dataset with the given columns.
@@ -222,6 +222,17 @@ namespace ausaxs {
             void sort_x();
 
             /**
+             * @brief Get the ith value in the dataset.
+             */
+            [[nodiscard]] double index(unsigned int i, unsigned int j) const;
+            [[nodiscard]] double& index(unsigned int i, unsigned int j); //< @copydoc index(unsigned int, unsigned int) const
+
+            /**
+             * @brief Add a new row to the dataset.
+             */
+            void push_back(const std::vector<double>& row);
+
+            /**
              * @brief Get the string representation of this object.
              */
             [[nodiscard]] std::string to_string() const;
@@ -239,10 +250,10 @@ namespace ausaxs {
             [[nodiscard]] MutableColumn<double> x() {return col(0);}
 
             // Get the ith value in the first column.
-            [[nodiscard]] const double& x(unsigned int i) const {return index(i, 0);}
+            [[nodiscard]] const double& x(unsigned int i) const {return data.index(i, 0);}
 
             // Get the ith value in the first column.
-            [[nodiscard]] double& x(unsigned int i) {return index(i, 0);}
+            [[nodiscard]] double& x(unsigned int i) {return data.index(i, 0);}
 
             // Get the ith value in the second column.
             [[nodiscard]] const ConstColumn<double> y() const {return col(1);}
@@ -251,17 +262,18 @@ namespace ausaxs {
             [[nodiscard]] MutableColumn<double> y() {return col(1);}
 
             // Get the ith value in the second column.
-            [[nodiscard]] const double& y(unsigned int i) const {return index(i, 1);}
+            [[nodiscard]] const double& y(unsigned int i) const {return data.index(i, 1);}
 
             // Get the ith value in the second column.
-            [[nodiscard]] double& y(unsigned int i) {return index(i, 1);}
+            [[nodiscard]] double& y(unsigned int i) {return data.index(i, 1);}
 
-            std::vector<std::string> names; // The column names
-        private: 
             /**
              * @brief Define default column names.
              */
             void set_default_names();
+
+            Matrix<double> data;
+            std::vector<std::string> names;
 
         protected:
             /**

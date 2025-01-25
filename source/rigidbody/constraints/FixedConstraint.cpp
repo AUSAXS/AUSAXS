@@ -8,12 +8,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/Constants.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
-using namespace ausaxs::data::record;
 
 FixedConstraint::FixedConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2) 
     : protein(protein), ibody1(ibody1), ibody2(ibody2) {
@@ -21,7 +19,7 @@ FixedConstraint::FixedConstraint(data::Molecule* protein, unsigned int ibody1, u
     const Body& body2 = protein->get_body(ibody2);
 
     // constraints within the same body doesn't make sense
-    if (body1.get_id() == body2.get_id()) {
+    if (body1.get_uid() == body2.get_uid()) {
         throw except::invalid_argument("FixedConstraint::FixedConstraint: Cannot create a constraint between atoms in the same body!");
     }
 }

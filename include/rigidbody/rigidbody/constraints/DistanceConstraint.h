@@ -49,7 +49,7 @@ namespace ausaxs::rigidbody::constraints {
              * @param atom1 The first atom.
              * @param atom2 The second atom.
              */
-            DistanceConstraint(data::Molecule* protein, const data::record::Atom& atom1, const data::record::Atom& atom2);
+            DistanceConstraint(data::Molecule* protein, const data::AtomFF& atom1, const data::AtomFF& atom2);
 
             virtual ~DistanceConstraint() override = default;
 
@@ -63,12 +63,12 @@ namespace ausaxs::rigidbody::constraints {
             /**
              * @brief Get the first atom of this constraint. 
              */
-            const data::record::Atom& get_atom1() const;
+            const data::AtomFF& get_atom1() const;
 
             /**
              * @brief Get the second atom of this constraint. 
              */
-            const data::record::Atom& get_atom2() const;
+            const data::AtomFF& get_atom2() const;
 
             /**
              * @brief Get the first body of this constraint. 
@@ -125,6 +125,6 @@ namespace ausaxs::rigidbody::constraints {
              * @brief Find the bodies containing the argument atoms.
              *        This is linear in the total number of atoms. 
              */
-            std::pair<AtomLoc, AtomLoc> find_host_bodies(const data::record::Atom& atom1, const data::record::Atom& atom2) const;
+            std::pair<AtomLoc, AtomLoc> find_host_bodies(const data::AtomFF& atom1, const data::AtomFF& atom2) const;
     };
 }

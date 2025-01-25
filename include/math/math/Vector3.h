@@ -12,12 +12,23 @@
 
 namespace ausaxs {
 	template<numeric T> 
-	class Vector3 {
+	class Vector3 final {
 		public:
-			Vector3() : Vector3(0, 0, 0) {}
+			Vector3() = default;
+			Vector3(const Vector3<T>& v) = default;
+			Vector3(Vector3<T>&& v) = default;
+			Vector3& operator=(const Vector3<T>& v) = default;
+			Vector3& operator=(Vector3<T>&& v) = default;
 
 			Vector3(const std::initializer_list<T>& l) {
 				*this = l;
+			}
+
+			template<typename Q> requires std::is_floating_point_v<Q>
+			Vector3(const Vector3<Q>& v) {
+				data[0] = static_cast<T>(v[0]);
+				data[1] = static_cast<T>(v[1]);
+				data[2] = static_cast<T>(v[2]);
 			}
 
 			Vector3(const Vector<T>& v) {
@@ -186,13 +197,11 @@ namespace ausaxs {
 			}
 		#endif
 
-		Vector3<Q> w;
-		for (unsigned int row = 0; row < v.size(); ++row) {
-			for (unsigned int col = 0; col < M.M; ++col) {
-				w[row] += M.index(row, col) * v[col];
-			}
-		}
-		return w;
+		return {
+			M[0][0]*v[0] + M[0][1]*v[1] + M[0][2]*v[2],
+			M[1][0]*v[0] + M[1][1]*v[1] + M[1][2]*v[2],
+			M[2][0]*v[0] + M[2][1]*v[1] + M[2][2]*v[2]
+		};
 	}
 
 	template<numeric T, numeric Q>
@@ -262,4 +271,7 @@ namespace ausaxs {
 }
 
 #include <math/Vector3.tpp>
+static_assert(sizeof(ausaxs::Vector3<double>) == 24, "Vector3 size is not 24 bytes");
+static_assert(std::is_trivial_v<ausaxs::Vector3<double>>, "Vector3 is not trivial");
+static_assert(std::is_standard_layout_v<ausaxs::Vector3<double>>, "Vector3 is not standard layout");
 static_assert(supports_nothrow_move_v<ausaxs::Vector3<double>>, "Vector3 should support nothrow move semantics.");

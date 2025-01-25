@@ -5,4 +5,5 @@ namespace ausaxs::hydrate {
     class HydrationStrategy;
     class ImplicitHydration;
     class ExplicitHydration;
+    class NoHydration;
 }

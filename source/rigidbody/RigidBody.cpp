@@ -10,18 +10,17 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/parameters/Parameters.h>
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
-#include <io/XYZWriter.h>
+#include <io/detail/XYZWriter.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/LinearFitter.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
+#include <data/atoms/AtomFF.h>
+#include <data/atoms/Water.h>
 #include <data/Body.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -36,12 +35,8 @@ using namespace ausaxs::rigidbody::parameter;
 
 RigidBody::~RigidBody() = default;
 
-RigidBody::RigidBody(data::Molecule&& protein) : data::Molecule(std::move(protein)) {
-    initialize();
-}
-
 void RigidBody::initialize() {
-    parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3);
+    parameter_generator = factory::create_parameter_strategy(this, settings::rigidbody::iterations, 5, std::numbers::pi/3);
     body_selector = factory::create_selection_strategy(this);
     transform = factory::create_transform_strategy(this);
     constraints = std::make_shared<ConstraintManager>(this);
@@ -81,7 +76,7 @@ std::shared_ptr<fitter::FitResult> RigidBody::optimize(const io::ExistingFile& m
     }
 
     // prepare the trajectory output
-    io::XYZWriter trajectory(settings::general::output + "trajectory.xyz");
+    io::detail::xyz::XYZWriter trajectory(settings::general::output + "trajectory.xyz");
     trajectory.write_frame(this);
 
     for (unsigned int i = 0; i < settings::rigidbody::iterations; i++) {
@@ -109,15 +104,12 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = body_selector->next();
     if (iconstraint == -1) {    // transform free body
-        Parameter param = parameter_generator->next();
-        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        transform->apply(R, param.dr, ibody);
+        Parameter param = parameter_generator->next(ibody);
+        transform->apply(std::move(param), ibody);
     } else {                    // transform constrained body
         DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
-        Parameter param = parameter_generator->next();
-
-        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        transform->apply(R, param.dr, constraint);
+        Parameter param = parameter_generator->next(ibody);
+        transform->apply(std::move(param), constraint);
     }
     generate_new_hydration(); 
 

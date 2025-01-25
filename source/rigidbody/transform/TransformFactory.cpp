@@ -12,17 +12,22 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 
-std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body) {
+std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(observer_ptr<rigidbody::RigidBody> body) {
     return create_transform_strategy(body, settings::rigidbody::transform_strategy);
 }
 
-std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body, const settings::rigidbody::TransformationStrategyChoice& choice) {
+std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(
+    observer_ptr<rigidbody::RigidBody> body, const settings::rigidbody::TransformationStrategyChoice& choice
+) {
     switch (choice) {
         case settings::rigidbody::TransformationStrategyChoice::RigidTransform:
             return std::make_unique<transform::RigidTransform>(body); 
         case settings::rigidbody::TransformationStrategyChoice::SingleTransform:
             return std::make_unique<transform::SingleTransform>(body);
         default: 
-            throw except::unknown_argument("rigidbody::factory::create_transform_strategy: Unkown TransformationStrategy. Did you forget to add it to the switch statement?");
+            throw except::unknown_argument(
+                "rigidbody::factory::create_transform_strategy: Unkown TransformationStrategy. "
+                "Did you forget to add it to the switch statement?"
+            );
     }
 }

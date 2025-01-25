@@ -48,20 +48,6 @@ double ImageStack::get_mass(double cutoff) const {
     return p->get_excluded_volume_mass()/1e3;
 }
 
-// std::unique_ptr<EMFitResult> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
-//     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
-//     mini::Parameter param("cutoff", lim.center(), lim);
-//     return fit(std::move(h), param);
-// }
-
-// std::unique_ptr<EMFitResult> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param) {
-//     if (!param.has_bounds()) {return fit(std::move(h));} // ensure parameter bounds are present
-
-//     SmartFitter fitter(get_data(), std::move(h));
-//     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-//     return fit_helper(std::move(fitter), param);
-// }
-
 std::unique_ptr<EMFitResult> ImageStack::fit(const io::ExistingFile& file) {
     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
@@ -223,7 +209,8 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     if (settings::em::mass_axis) {
         Dataset mass_data(this->evals.size(), 2);
         for (unsigned int i = 0; i < this->evals.size(); ++i) {
-            mass_data[i] = {this->evals[i].cutoff, this->evals[i].mass};
+            mass_data.index(i, 0) = this->evals[i].cutoff;
+            mass_data.index(i, 1) = this->evals[i].mass;
         }
         mass_data.sort_x();
         data_avg_int.col("mass") = mass_data.interpolate(data_avg_int.x()).y();

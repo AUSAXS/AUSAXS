@@ -7,7 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/LoopElement.h>
 #include <rigidbody/RigidBody.h>
 #include <settings/GeneralSettings.h>
-#include <io/XYZWriter.h>
+#include <io/detail/XYZWriter.h>
 
 #include <unordered_map>
 
@@ -18,7 +18,7 @@ SaveElement::~SaveElement() = default;
 
 void SaveElement::run() {
     static int counter = 0;
-    static std::unordered_map<std::string, io::XYZWriter> writers;
+    static std::unordered_map<std::string, io::detail::xyz::XYZWriter> writers;
     if (const auto& ext = path.extension(); ext == ".pdb") {
         owner->_get_rigidbody()->save(path.append(std::to_string(counter++)));
     } else if (ext == ".xyz") {

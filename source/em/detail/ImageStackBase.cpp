@@ -170,7 +170,7 @@ void ImageStackBase::read(std::ifstream& istream) {
     // we want to avoid too much internal structure by expanding a sphere around each voxel in our resampled grid
     // for the radius, we use 1 cell diameter + the radius of a sphere reaching the corners of each map cell
     double r = std::sqrt(3)*minwidth/2 + settings::grid::cell_width;
-    constants::radius::set_dummy_radius(r);
+    settings::grid::min_exv_radius = r;
 }
 
 float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {

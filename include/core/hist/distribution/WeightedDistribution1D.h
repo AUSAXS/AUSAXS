@@ -5,6 +5,8 @@
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <utility/TypeTraits.h>
 
+#include <cmath>
+
 namespace ausaxs::hist {
     class Distribution1D;
 
@@ -36,6 +38,11 @@ namespace ausaxs::hist {
             const constants::axes::d_type& get_content(int i) const; // @copydoc get_content(int i)
 
             /**
+             * @brief Set the value of the ith bin.
+             */
+            void set_content(int i, constants::axes::d_type value);
+
+            /**
              * @brief Extract the weights from this distribution.
              */
             std::vector<double> get_weighted_axis() const;
@@ -50,25 +57,27 @@ namespace ausaxs::hist {
              * 
              * @param distance The distance to add the value to.
              * @param value The value to add.
+             *
+             * @tparam N A multiplicative factor for the value.
              */
-            void add(float distance, constants::axes::d_type value);
-
-            /**
-             * @brief Add twice the value for a given distance.
-             *        This also doubles its weight for the weighted bin calculations. 
-             * 
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             */
-            void add2(float distance, constants::axes::d_type value);
+            template<int N = 1>
+            void add(float distance, constants::axes::d_type value) {
+                int i = std::round(distance*constants::axes::d_inv_width);
+                index(i).add<N>(distance, value);
+            }
 
             /**
              * @brief Add a value for a given index.
              * 
              * @param i The index to add the value to.
              * @param value The value to add.
+             *
+             * @tparam N A multiplicative factor for the value.
              */
-            void add_index(int32_t i, const detail::WeightedEntry& value);
+            template<int N = 1>
+            void add_index(int32_t i, const detail::WeightedEntry& value) {
+                index(i) += N*value;
+            }
 
             /**
              * @brief Clear the value for a given distance.

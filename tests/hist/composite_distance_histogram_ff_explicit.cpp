@@ -1,14 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/ExvFormFactor.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <io/ExistingFile.h>
@@ -21,8 +19,7 @@
 #include "settings/GeneralSettings.h"
 
 using namespace ausaxs;
-using namespace data::record;
-using namespace data;
+using namespace ausaxs::data;
 
 #define DEBYE_DEBUG 0
 unsigned int qcheck = 26;
@@ -37,11 +34,11 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     auto d = SimpleCube::d;
 
     SECTION("no water") {
-        std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
+        std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b5 = {AtomFF({ 0,  0,  0}, form_factor::form_factor_t::C)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
         DebugMolecule protein(a);
 
@@ -84,13 +81,13 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     }
 
     SECTION("with water") {
-        std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 =  {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 =  {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
-        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        DebugMolecule protein(a, w);
+        std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<Water> w = {Water({0,  0,  0})};
+        std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
+        DebugMolecule protein(a);
 
         set_unity_charge(protein);
         double Z = protein.get_volume_grid()*constants::charge::density::water/8;
@@ -142,16 +139,16 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     }
 
     SECTION("real scalings") {
-        std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 =  {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 =  {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
-        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        Molecule protein(a, w);
+        std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<Water> w = {Water({0,  0,  0})};
+        std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
+        Molecule protein(a);
 
-        double ZC = 6; // 6
-        double ZO = 8; // 8
+        double ZC = constants::charge::nuclear::get_charge(form_factor::form_factor_t::C);
+        double ZO = constants::charge::nuclear::get_charge(form_factor::form_factor_t::OH);
 
         for (unsigned int q = 0; q < q_axis.size(); ++q) {
             double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
@@ -197,7 +194,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     //     double ZO = 8;
     //     for (auto& body : protein.get_bodies()) {
     //         for (auto& atom : body.get_atoms()) {
-    //             atom.set_element(constants::atom_t::C);
+    //             atom.set_element(form_factor::form_factor_t::C);
     //             atom.set_effective_charge(ZC);
     //         }
     //     }

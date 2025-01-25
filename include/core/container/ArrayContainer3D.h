@@ -8,10 +8,10 @@
 #endif
 
 namespace ausaxs::container {
-    template <typename T, int size_x, int size_y, int size_z>
+    template <typename T, int N, int M, int L>
     class ArrayContainer3D {
         public:
-            ArrayContainer3D() : N(size_x), M(size_y), L(size_z), data{} {}
+            constexpr ArrayContainer3D() noexcept = default;
 
             /**
              * @brief Get the value at index i, j, k. 
@@ -101,9 +101,7 @@ namespace ausaxs::container {
              */
             typename std::vector<T>::iterator end() {return data.end();}
 
-            std::size_t N, M, L;
-
         protected:
-            std::array<T, size_x*size_y*size_z> data;
+            std::array<T, N*M*L> data;
     };
 }

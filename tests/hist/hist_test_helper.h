@@ -3,8 +3,6 @@
 #include <constants/ConstantsAxes.h>
 #include <utility/Utility.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <utility/Concepts.h>
 
 #include <iostream>
@@ -25,50 +23,80 @@ class DebugMolecule : public data::Molecule {
         double volume_scaling = 1;
 };
 
+/**
+ * @brief Check that the two containers are exactly identical. 
+ */
 template<container_type T1, container_type T2>
 bool compare_hist(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
     int pmin = std::min<int>(p1.size(), p2.size());
-    for (int i = 0; i < pmin; i++) {
+    for (int i = 0; i < pmin; ++i) {
         if (!utility::approx(p1[i], p2[i], abs, rel)) {
             std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
             return false;
         }
     }
+    return true;
+}
 
+/**
+ * @brief Check that the two containers are approximately identical. 
+ *        Variations across bin edges are allowed, meaning if a given bin is off by some amount, the following bin is checked for the difference. 
+ */
+template<container_type T1, container_type T2>
+bool compare_hist_approx(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
+    int pmin = std::min<int>(p1.size(), p2.size());
+    for (int i = 0; i < pmin; ++i) {
+        if (!utility::approx(p1[i], p2[i], abs, rel)) {
+            if (i+1 < pmin) {
+                auto diffi = std::abs(p1[i] - p2[i]);
+                auto diffi1 = std::abs(p1[i+1] - p2[i+1]);
+                if (!utility::approx(diffi, diffi1, abs, rel)) {
+                    std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
+                    std::cout << "Difference to next bin: " << diffi << ", " << diffi1 << std::endl;
+                    return false;
+                } else {
+                    ++i;
+                }
+            } else {
+                std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
+                return false;
+            }
+        }
+    }
     return true;
 }
 
 template<typename T>
 void set_unity_charge(T& protein) {
     // set the weights to 1 so we can analytically determine the result
-    // waters
-    for (auto& atom : protein.get_waters()) {
-        atom.set_effective_charge(1);
-    }
-    // atoms
     for (auto& body : protein.get_bodies()) {
         for (auto& atom : body.get_atoms()) {
-            atom.set_effective_charge(1);
+            atom.weight() = 1;
+        }
+        if (body.size_water() != 0) {
+            for (auto& water : body.get_waters()) {
+                water.weight() = 1;
+            }
         }
     }
 }
 
 struct SimpleCube {
-    inline static std::vector<data::record::Atom> get_atoms() {
+    inline static std::vector<data::AtomFF> get_atoms() {
         return {
-            data::record::Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
-            data::record::Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), data::record::Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)
+            data::AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), data::AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
+            data::AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), data::AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),
+            data::AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), data::AtomFF({-1, 1,  1}, form_factor::form_factor_t::C),
+            data::AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), data::AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
         };
     }
 
-    inline static std::vector<data::record::Water> get_waters() {
+    inline static std::vector<data::Water> get_waters() {
         return {
-            data::record::Water::create_new_water(Vector3<double>(-1, -1, -1)), data::record::Water::create_new_water(Vector3<double>(-1, 1, -1)),
-            data::record::Water::create_new_water(Vector3<double>( 1, -1, -1)), data::record::Water::create_new_water(Vector3<double>( 1, 1, -1)),
-            data::record::Water::create_new_water(Vector3<double>(-1, -1,  1)), data::record::Water::create_new_water(Vector3<double>(-1, 1,  1)),
-            data::record::Water::create_new_water(Vector3<double>( 1, -1,  1)), data::record::Water::create_new_water(Vector3<double>( 1, 1,  1))
+            data::Water({-1, -1, -1}), data::Water({-1, 1, -1}),
+            data::Water({ 1, -1, -1}), data::Water({ 1, 1, -1}),
+            data::Water({-1, -1,  1}), data::Water({-1, 1,  1}),
+            data::Water({ 1, -1,  1}), data::Water({ 1, 1,  1})
         };
     }
 

@@ -9,12 +9,14 @@ namespace ausaxs::hydrate {
     class ExplicitHydration : public Hydration {
         public:
             ExplicitHydration();
-            ExplicitHydration(const std::vector<data::record::Water>& waters);
-            ExplicitHydration(std::vector<data::record::Water>&& waters);
+            ExplicitHydration(const std::vector<data::Water>& waters);
+            ExplicitHydration(std::vector<data::Water>&& waters);
             ~ExplicitHydration() override;
 
-            std::vector<data::record::Water> waters;
+            std::vector<data::Water> waters;
 
             void clear() override;
+
+            std::unique_ptr<Hydration> clone() const final override;
     };
 }

@@ -2,16 +2,11 @@ target_sources(ausaxs_core PRIVATE
 	"Body.cpp"
 	"Molecule.cpp"
 
-	"detail/AtomCollection.cpp"
-
-	"record/Atom.cpp"
-	"record/Footer.cpp"
-	"record/Header.cpp"
-	"record/Record.cpp"
-	"record/Terminate.cpp"
-	"record/Water.cpp"
+	"symmetry/BodySymmetryFacade.cpp"
+	"symmetry/SymmetryManagerMT.cpp"
+	"symmetry/PredefinedSymmetries.cpp"
+	"symmetry/detail/SymmetryHelpers.cpp"
 
 	"state/BoundSignaller.cpp"
 	"state/StateManager.cpp"
-	"state/UnboundSignaller.cpp"
 )

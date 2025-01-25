@@ -11,7 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::selection;
 
-SequentialBodySelect::SequentialBodySelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {}
+SequentialBodySelect::SequentialBodySelect(observer_ptr<const RigidBody> rigidbody) : BodySelectStrategy(rigidbody) {}
 
 SequentialBodySelect::~SequentialBodySelect() = default;
 

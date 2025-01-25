@@ -15,8 +15,8 @@
 #include <data/state/UnboundSignaller.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <hist/distance_calculator/HistogramManager.h>
-#include <hist/distance_calculator/IPartialHistogramManager.h>
+#include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/HistFwd.h>
 #include <settings/All.h>
@@ -62,22 +62,22 @@ TEST_CASE("protein_manager") {
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     Body body;
     body.register_probe(probe0);
-    body.changed_external_state();
+    body.get_signaller()->external_change();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, false, false, false});
 
     manager->reset_to_false();
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     protein.bind_body_signallers();
-    protein.get_body(0).changed_external_state();
-    protein.get_body(2).changed_external_state();
+    protein.get_body(0).get_signaller()->external_change();
+    protein.get_body(2).get_signaller()->external_change();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, true, false, false});
 
     manager->reset_to_false();
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     protein.get_body(0) = Body();
     protein.get_body(4) = Body();
-    protein.get_body(0).changed_external_state();
-    protein.get_body(4).changed_external_state();
+    protein.get_body(0).get_signaller()->external_change();
+    protein.get_body(4).get_signaller()->external_change();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, false, false, true});
 }
 

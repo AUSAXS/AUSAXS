@@ -6,16 +6,16 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
+#include <rigidbody/parameters/Parameter.h>
 #include <rigidbody/RigidBody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-#include <data/record/Atom.h>
 
 #include <vector>
 
 using namespace ausaxs::rigidbody::transform;
 
-TransformStrategy::TransformStrategy(RigidBody* rigidbody) : rigidbody(rigidbody) {}
+TransformStrategy::TransformStrategy(observer_ptr<RigidBody> rigidbody) : rigidbody(rigidbody) {}
 
 TransformStrategy::~TransformStrategy() = default;
 
@@ -35,21 +35,33 @@ void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vect
     std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (data::Body* body) {body->translate(group.pivot+t);});
 }
 
-void TransformStrategy::apply(const Matrix<double>& M, const Vector3<double>& t, unsigned int ibody) {
+void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParameter>&& symmetry_pars, data::Body& body) {
+    assert(symmetry_pars.size() == body.size_symmetry());
+    for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
+        body.symmetry().get(i).translate += symmetry_pars[i].translation;
+        body.symmetry().get(i).external_rotate.center += symmetry_pars[i].rotation_cm;
+    }
+}
+
+void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
     auto& body = rigidbody->get_body(ibody);
 
     bodybackup.clear();
     bodybackup.emplace_back(body, ibody);
 
     auto grid = rigidbody->get_grid();
-    grid->remove(&body);
+    grid->remove(body);
 
+    // translate & rotate
     auto cm = body.get_cm();
     body.translate(-cm);
-    body.rotate(M);
-    body.translate(cm + t);
+    body.rotate(matrix::rotation_matrix(par.rotation));
+    body.translate(cm + par.translation);
 
-    grid->add(&body);
+    // update symmetry parameters
+    symmetry(std::move(par.symmetry_pars), body);
+
+    grid->add(body);
 }
 
 void TransformStrategy::undo() {

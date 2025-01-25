@@ -11,21 +11,28 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-Matrix<double> matrix::rotation_matrix(double alpha, double beta, double gamma) {
-    double cosa = cos(alpha), cosb = cos(beta), cosg = cos(gamma);
-    double sina = sin(alpha), sinb = sin(beta), sing = sin(gamma);
+template<numeric T>
+Matrix<T> matrix::rotation_matrix(T alpha, T beta, T gamma) {
+    double cosa = std::cos(alpha), cosb = std::cos(beta), cosg = std::cos(gamma);
+    double sina = std::sin(alpha), sinb = std::sin(beta), sing = std::sin(gamma);
     double sinasinb = sina*sinb, cosasinb = cosa*sinb;
 
-    return Matrix{{cosb*cosg, sinasinb*cosg - cosa*sing, cosasinb*cosg + sina*sing}, 
-                    {cosb*sing, sinasinb*sing + cosa*cosg, cosasinb*sing - sina*cosg},
-                    {-sinb,     sina*cosb,                 cosa*cosb}};
+    return Matrix{
+        {static_cast<T>(cosb*cosg), static_cast<T>(sinasinb*cosg - cosa*sing), static_cast<T>(cosasinb*cosg + sina*sing)}, 
+        {static_cast<T>(cosb*sing), static_cast<T>(sinasinb*sing + cosa*cosg), static_cast<T>(cosasinb*sing - sina*cosg)},
+        {static_cast<T>(-sinb),     static_cast<T>(sina*cosb),                 static_cast<T>(cosa*cosb)}
+    };
 }
 
-Matrix<double> matrix::rotation_matrix(const Vector3<double>& axis, double angle) {
+template<numeric T>
+Matrix<T> matrix::rotation_matrix(const Vector3<T>& angles) {return rotation_matrix(angles.x(), angles.y(), angles.z());}
+
+template<numeric T>
+Matrix<T> matrix::rotation_matrix(const Vector3<T>& axis, double angle) {
     auto ax = axis; 
     ax.normalize();
-    double a = cos(angle/2);
-    double b = sin(angle/2);
+    double a = std::cos(angle/2);
+    double b = std::sin(angle/2);
     double c = b;
     double d = b;
     b *= ax.x();
@@ -35,11 +42,20 @@ Matrix<double> matrix::rotation_matrix(const Vector3<double>& axis, double angle
     double aa = a*a, bb = b*b, cc = c*c, dd = d*d;
     double bc = b*c, ad = a*d, ac = a*c, ab = a*b, bd = b*d, cd = c*d;
 
-    Matrix R{{aa+bb-cc-dd, 2*(bc-ad),   2*(bd+ac)}, 
-            {2*(bc+ad),   aa+cc-bb-dd, 2*(cd-ab)},
-            {2*(bd-ac),   2*(cd+ab),   aa+dd-bb-cc}};
+    Matrix R{
+        {static_cast<T>(aa+bb-cc-dd), static_cast<T>(2*(bc-ad)),   static_cast<T>(2*(bd+ac))}, 
+        {static_cast<T>(2*(bc+ad)),   static_cast<T>(aa+cc-bb-dd), static_cast<T>(2*(cd-ab))},
+        {static_cast<T>(2*(bd-ac)),   static_cast<T>(2*(cd+ab)),   static_cast<T>(aa+dd-bb-cc)}
+    };
     return R;
 }
+
+template Matrix<double> matrix::rotation_matrix(double alpha, double beta, double gamma);
+template Matrix<double> matrix::rotation_matrix(const Vector3<double>& angles);
+template Matrix<double> matrix::rotation_matrix(const Vector3<double>& axis, double angle);
+template Matrix<float> matrix::rotation_matrix(float alpha, float beta, float gamma);
+template Matrix<float> matrix::rotation_matrix(const Vector3<float>& angles);
+template Matrix<float> matrix::rotation_matrix(const Vector3<float>& axis, double angle);
 
 Matrix<double> matrix::identity(unsigned int dim) {
     Matrix<double> A(dim, dim);

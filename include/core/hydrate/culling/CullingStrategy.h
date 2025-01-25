@@ -5,7 +5,7 @@
 #include <grid/GridFwd.h>
 #include <grid/detail/GridInternalFwd.h>
 
-#include <vector>
+#include <span>
 
 namespace ausaxs::hydrate {    
     /**
@@ -19,9 +19,8 @@ namespace ausaxs::hydrate {
 
             /**
              * @brief Cull the water molecules.
-             * @return A copy of the remaining molecules after the culling. They will also be stored in the grid itself. 
              */
-            virtual std::vector<data::record::Water> cull(std::vector<grid::GridMember<data::record::Water>>& placed_water) const = 0;
+            virtual void cull(std::span<grid::GridMember<data::Water>>& placed_water) const = 0;
 
             /**
              * @brief Set the desired number of water molecules after the culling. 

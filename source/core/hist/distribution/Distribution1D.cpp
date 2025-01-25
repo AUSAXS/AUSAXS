@@ -6,7 +6,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 
-#include <cmath>
 #include <algorithm>
 
 using namespace ausaxs;
@@ -30,16 +29,8 @@ const constants::axes::d_type& Distribution1D::get_content(int i) const {
     return index(i);
 }
 
-void Distribution1D::add(float distance, constants::axes::d_type value) {
-    index(std::round(distance)) += value;
-}
-
-void Distribution1D::add2(float distance, constants::axes::d_type value) {
-    index(std::round(distance)) += 2*value;
-}
-
-void Distribution1D::add_index(int32_t i, constants::axes::d_type value) {
-    index(i) += value;
+void Distribution1D::set_content(int i, constants::axes::d_type value) {
+    index(i) = value;
 }
 
 void Distribution1D::clear(int32_t i) {

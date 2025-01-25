@@ -1,7 +1,6 @@
 #include <CLI/CLI.hpp>
 
 #include <data/Body.h>
-#include <data/record/Water.h>
 #include <data/Molecule.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
@@ -166,11 +165,11 @@ int main(int argc, char const *argv[]) {
                 // if so, silently swap them and proceed
                 std::swap(pdb, mfile);
             } else {
-                throw except::invalid_argument("Unknown PDB extensions: " + pdb + " and " + mfile);
+                throw except::invalid_argument("Unknown PDB extensions: " + pdb.str() + " and " + mfile.str());
             }
         }
         if (!constants::filetypes::saxs_data.check(mfile)) {
-            throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
+            throw except::invalid_argument("Unknown SAXS data extension: " + mfile.str());
         }
 
         settings::general::output += mfile.stem() + "/";
@@ -179,7 +178,7 @@ int main(int argc, char const *argv[]) {
         //### ACTUAL PROGRAM ###//
         //######################//
         data::Molecule protein(pdb);
-        if (settings::molecule::implicit_hydrogens) {protein.add_implicit_hydrogens();}
+        if (settings::molecule::implicit_hydrogens) {std::cout << "NOT IMPLEMENTED" << std::endl;}
         if (!use_existing_hydration || protein.size_water() == 0) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();

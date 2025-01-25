@@ -11,7 +11,6 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Water.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <fitter/SmartFitter.h>
 #include <mini/detail/FittedParameter.h>
@@ -72,6 +71,7 @@ class SmartFitterDebug : public fitter::SmartFitter {
 };
 
 TEST_CASE("SmartFitter::fit") {
+    settings::molecule::implicit_hydrogens = false;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
     Molecule protein("tests/files/2epe.pdb");
 
@@ -152,7 +152,8 @@ TEST_CASE("SmartFitter::fit") {
     }
 }
 
-TEST_CASE("fitter: correct dof") {
+TEST_CASE("fitter: correct dof", "[files]") {
+    settings::general::verbose = false;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
     Molecule protein("tests/files/2epe.pdb");
     SimpleDataset data("tests/files/2epe.dat");

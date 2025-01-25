@@ -4,7 +4,6 @@
 #include <grid/detail/GridSurfaceDetection.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
 #include <settings/All.h>
  
 #include <vector>
@@ -12,13 +11,12 @@
 
 using namespace ausaxs;
 using namespace data;
-using namespace data::record;
 
 class GridDebug : public grid::Grid {
     public: 
         using Grid::Grid;
 
-		double get_atomic_radius(constants::atom_t) const override {return ra;}
+		double get_atomic_radius(form_factor::form_factor_t) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
         void set_hydration_radius(double rh) {this->rh = rh;}
@@ -43,7 +41,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     SECTION("Single with radius") {
         settings::grid::min_exv_radius = std::sqrt(3)+1e-3;
 
-        Molecule protein({Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)});
+        Molecule protein({Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -53,12 +51,12 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("Two atoms with radius") {
         settings::grid::min_exv_radius = std::sqrt(2)+1e-3;
-        std::vector<Atom> atoms = {
-            Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({1, 0, 0}, 1, constants::atom_t::C, "C", 1)
+        std::vector<AtomFF> atoms = {
+            AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
+            AtomFF({1, 0, 0}, form_factor::form_factor_t::C)
         };
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -68,17 +66,17 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("2x2x2 interior simple") {
         settings::grid::min_exv_radius = 2;
-        std::vector<Atom> atoms;
+        std::vector<AtomFF> atoms;
         for (double x = 0; x <= 1; x+=1) {
             for (double y = 0; y <= 1; y+=1) {
                 for (double z = 0; z <= 1; z+=1) {
-                    atoms.push_back(Atom({x, y, z}, 1, constants::atom_t::C, "C", 1));
+                    atoms.emplace_back(AtomFF({x, y, z}, form_factor::form_factor_t::C));
                 }
             }
         }
         REQUIRE(atoms.size() == 8);
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -88,17 +86,17 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("2x2x2 interior advanced") {
         settings::grid::min_exv_radius = std::sqrt(2)+1e-3;
-        std::vector<Atom> atoms;
+        std::vector<AtomFF> atoms;
         for (double x = 0; x <= 1; x+=1) {
             for (double y = 0; y <= 1; y+=1) {
                 for (double z = 0; z <= 1; z+=1) {
-                    atoms.push_back(Atom({x, y, z}, 1, constants::atom_t::C, "C", 1));
+                    atoms.emplace_back(AtomFF({x, y, z}, form_factor::form_factor_t::C));
                 }
             }
         }
         REQUIRE(atoms.size() == 8);
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -108,17 +106,17 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("3x3x3") {
         settings::grid::min_exv_radius = 2;
-        std::vector<Atom> atoms;
+        std::vector<AtomFF> atoms;
         for (double x = -1; x <= 1; x+=1) {
             for (double y = -1; y <= 1; y+=1) {
                 for (double z = -1; z <= 1; z+=1) {
-                    atoms.push_back(Atom({x, y, z}, 1, constants::atom_t::C, "C", 1));
+                    atoms.emplace_back(AtomFF({x, y, z}, form_factor::form_factor_t::C));
                 }
             }
         }
         REQUIRE(atoms.size() == 27);
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -128,9 +126,9 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("larger radius, single") {
         settings::grid::min_exv_radius = 2;
-        std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
+        std::vector<AtomFF> atoms = {AtomFF({0, 0, 0}, form_factor::form_factor_t::C)};
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -140,9 +138,9 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("much larger radius, single") {
         settings::grid::min_exv_radius = 3;
-        std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
+        std::vector<AtomFF> atoms = {AtomFF({0, 0, 0}, form_factor::form_factor_t::C)};
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -152,17 +150,17 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("larger radius, cube") {
         settings::grid::min_exv_radius = 2;
-        std::vector<Atom> atoms;
+        std::vector<AtomFF> atoms;
         for (double x = -1; x <= 1; x+=1) {
             for (double y = -1; y <= 1; y+=1) {
                 for (double z = -1; z <= 1; z+=1) {
-                    atoms.push_back(Atom({x, y, z}, 1, constants::atom_t::C, "C", 1));
+                    atoms.emplace_back(AtomFF({x, y, z}, form_factor::form_factor_t::C));
                 }
             }
         }
         REQUIRE(atoms.size() == 27);
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -172,14 +170,14 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
     SECTION("larger radius, larger cube") {
         settings::grid::min_exv_radius = 2;
-        std::vector<Atom> atoms = {
-            Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({2, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({0, -2, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({0, 2, 0}, 1, constants::atom_t::C, "C", 1)
+        std::vector<AtomFF> atoms = {
+            AtomFF({-2,  0, 0}, form_factor::form_factor_t::C),
+            AtomFF({ 2,  0, 0}, form_factor::form_factor_t::C),
+            AtomFF({ 0, -2, 0}, form_factor::form_factor_t::C),
+            AtomFF({ 0,  2, 0}, form_factor::form_factor_t::C)
         };
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -236,17 +234,17 @@ TEST_CASE("GridSurfaceDetection: thickness") {
 
     SECTION("2x2x2 interior simple") {
         settings::grid::min_exv_radius = 2.5;
-        std::vector<Atom> atoms;
+        std::vector<AtomFF> atoms;
         for (double x = 0; x <= 1; x+=1) {
             for (double y = 0; y <= 1; y+=1) {
                 for (double z = 0; z <= 1; z+=1) {
-                    atoms.push_back(Atom({x, y, z}, 1, constants::atom_t::C, "C", 1));
+                    atoms.emplace_back(AtomFF({x, y, z}, form_factor::form_factor_t::C));
                 }
             }
         }
         REQUIRE(atoms.size() == 8);
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -256,17 +254,17 @@ TEST_CASE("GridSurfaceDetection: thickness") {
 
     SECTION("3x3x3") {
         settings::grid::min_exv_radius = 3;
-        std::vector<Atom> atoms;
+        std::vector<AtomFF> atoms;
         for (double x = -1; x <= 1; x+=1) {
             for (double y = -1; y <= 1; y+=1) {
                 for (double z = -1; z <= 1; z+=1) {
-                    atoms.push_back(Atom({x, y, z}, 1, constants::atom_t::C, "C", 1));
+                    atoms.emplace_back(AtomFF({x, y, z}, form_factor::form_factor_t::C));
                 }
             }
         }
         REQUIRE(atoms.size() == 27);
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -276,9 +274,9 @@ TEST_CASE("GridSurfaceDetection: thickness") {
 
     SECTION("much larger radius, single") {
         settings::grid::min_exv_radius = 4;
-        std::vector<Atom> atoms = {Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1)};
+        std::vector<AtomFF> atoms = {AtomFF({0, 0, 0}, form_factor::form_factor_t::C)};
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 
@@ -288,15 +286,15 @@ TEST_CASE("GridSurfaceDetection: thickness") {
 
     SECTION("larger radius, larger cube") {
         settings::grid::min_exv_radius = 3;
-        std::vector<Atom> atoms = {
-            Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({2, 0, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({0, -2, 0}, 1, constants::atom_t::C, "C", 1),
-            Atom({0, 2, 0}, 1, constants::atom_t::C, "C", 1)
+        std::vector<AtomFF> atoms = {
+            AtomFF({ 0,  0, 0}, form_factor::form_factor_t::C),
+            AtomFF({-2,  0, 0}, form_factor::form_factor_t::C),
+            AtomFF({ 2,  0, 0}, form_factor::form_factor_t::C),
+            AtomFF({ 0, -2, 0}, form_factor::form_factor_t::C),
+            AtomFF({ 0,  2, 0}, form_factor::form_factor_t::C)
         };
 
-        Molecule protein(atoms);
+        Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
         auto vol = protein.get_grid()->generate_excluded_volume(true);
 

@@ -13,7 +13,7 @@ std::string Histogram2D::to_string() const {
     str += "x_axis: " + std::to_string(y_axis.bins) + " " + std::to_string(y_axis.min) + " " + std::to_string(y_axis.max) + "\n";
     for (unsigned int i = 0; i < x_axis.bins; i++) {
         for (unsigned int j = 0; j < y_axis.bins; j++) {
-            str += std::to_string((*this)[i][j]) + " ";
+            str += std::to_string(data[i][j]) + " ";
         }
         str += "\n";
     }

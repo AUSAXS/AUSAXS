@@ -16,13 +16,8 @@ add_library(ausaxs_rigidbody OBJECT
 
 	"detail/BestConf.cpp"
 	
-	"parameters/Parameter.cpp"
 	"parameters/ParameterGenerationFactory.cpp"
 	"parameters/ParameterGenerationStrategy.cpp"
-	"parameters/Parameters.cpp"
-	"parameters/RotationsOnly.cpp"
-	"parameters/SimpleParameterGeneration.cpp"
-	"parameters/TranslationsOnly.cpp"
 	"parameters/decay/DecayFactory.cpp"
 	"parameters/decay/ExponentialDecay.cpp"
 	"parameters/decay/LinearDecay.cpp"
@@ -54,6 +49,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/setup/LoadExistingElement.cpp"
 	"sequencer/setup/RelativeHydrationElement.cpp"
 	"sequencer/setup/SetupElement.cpp"
+	"sequencer/setup/SymmetryElement.cpp"
 	
 	"transform/RigidTransform.cpp"
 	"transform/SingleTransform.cpp"

@@ -45,9 +45,9 @@ Dataset2D::Dataset2D(const SimpleDataset& data) : Dataset2D(data.size()) {
 }
 
 Dataset2D::Dataset2D(std::string_view path) : Dataset2D() {
-    auto data = factory::DatasetFactory::construct(path, 4);
-    this->data = std::move(data->data);
-    this->N = data->N;
+    auto dataset = factory::DatasetFactory::construct(path, 4);
+    this->data = std::move(dataset->data);
+    data.N = dataset->data.N;
 }
 
 void Dataset2D::scale_errors(double factor) {
@@ -57,8 +57,8 @@ void Dataset2D::scale_errors(double factor) {
 }
 
 void Dataset2D::push_back(double x, double y, double xerr, double yerr) {
-    extend(1);
-    row(N-1) = {x, y, yerr, xerr};
+    data.extend(1);
+    row(data.N-1) = {x, y, yerr, xerr};
 }
 
 void Dataset2D::push_back(double x, double y) {

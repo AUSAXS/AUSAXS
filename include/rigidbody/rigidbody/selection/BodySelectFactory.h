@@ -10,11 +10,11 @@ namespace ausaxs::rigidbody {
         /**
          * @brief Prepare a body selection strategy.
          */
-        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(const RigidBody*);
+        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(observer_ptr<const RigidBody> molecule);
 
         /**
          * @brief Prepare a body selection strategy.
          */
-        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(const RigidBody*, settings::rigidbody::BodySelectStrategyChoice choice);
+        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(observer_ptr<const RigidBody> molecule, settings::rigidbody::BodySelectStrategyChoice choice);
     }
 }

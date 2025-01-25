@@ -42,4 +42,12 @@ namespace ausaxs::utility {
      * @brief Remove all occurrences of the characters in 'remove' from the string. 
      */
     std::string remove_all(std::string_view s, std::string_view remove);
+
+    /**
+     * @brief Parse a string as a boolean value.
+     *        The following strings are considered true: "true", "yes", "1".
+     *        The following strings are considered false: "false", "no", "0".
+     *        Other input will throw an exception.
+     */
+    bool parse_bool(std::string_view s);
 }

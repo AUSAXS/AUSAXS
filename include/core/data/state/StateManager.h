@@ -45,6 +45,11 @@ namespace ausaxs::state {
 			void modified_hydration_layer();
 
 			/**
+			 * @brief Mark that the symmetry of the protein was modified.
+			 */
+			void modified_symmetry(unsigned int i);
+
+			/**
 			 * @brief Reset all marks to false.
 			 * ? The awkard name is to avoid accidental collisions with the reset method of smart pointers. 
 			 */
@@ -66,26 +71,39 @@ namespace ausaxs::state {
 			std::vector<std::shared_ptr<signaller::Signaller>> get_probes();
 
 			/**
-			 * @brief Get a boolean vector which denotes if the state of a given body was changed. 
+			 * @brief Get a boolean vector which denotes if the external state of a given body was changed. 
 			 */
 			const std::vector<bool>& get_externally_modified_bodies() const;
 
+			/**
+			 * @brief Get a boolean vector which denotes if the internal state of a given body was changed. 
+			 */
 			const std::vector<bool>& get_internally_modified_bodies() const;
 
 			/**
-			 * @brief Check if a given body has been marked as modified.
+			 * @brief Get a boolean vector which denotes if the symmetry of a given body was changed. 
 			 */
-			[[nodiscard]] bool is_externally_modified(unsigned int i);
+			const std::vector<bool>& get_symmetry_modified_bodies() const;
 
 			/**
 			 * @brief Check if a given body has been marked as modified.
 			 */
-			[[nodiscard]] bool is_internally_modified(unsigned int i);
+			[[nodiscard]] bool is_externally_modified(unsigned int i) const;
+
+			/**
+			 * @brief Check if a given body has been marked as modified.
+			 */
+			[[nodiscard]] bool is_internally_modified(unsigned int i) const;
+
+			/**
+			 * @brief Returns true if the symmetry has been modified, false otherwise. 
+			 */
+			[[nodiscard]] bool is_modified_symmetry(unsigned int) const;
 
 			/**
 			 * @brief Returns true if the hydration layer has been modified, false otherwise. 
 			 */
-			bool get_modified_hydration() const;
+			[[nodiscard]] bool is_modified_hydration() const;
 
 			/**
 			 * @brief Get the number of bodies being managed. 
@@ -96,6 +114,7 @@ namespace ausaxs::state {
 			std::size_t _size;
 			std::vector<bool> _externally_modified;
 			std::vector<bool> _internally_modified;
+			std::vector<bool> _symmetry_modified;
 			bool _modified_hydration;
 			std::vector<std::shared_ptr<signaller::Signaller>> probes;
 	};

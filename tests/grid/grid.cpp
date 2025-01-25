@@ -7,8 +7,6 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <hydrate/generation/RadialHydration.h>
@@ -19,20 +17,19 @@
 #include <math/Vector3.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
- 
-using std::vector;
+#include <rigidbody/BodySplitter.h>
+
 using namespace ausaxs;
-using namespace grid;
-using namespace grid::detail;
-using namespace data;
-using namespace data::record;
+using namespace ausaxs::grid;
+using namespace ausaxs::grid::detail;
+using namespace ausaxs::data;
 
 // Debug class to expose the volume variable
 class GridDebug : public grid::Grid {
     public: 
         GridDebug(Limit3D axes) : Grid(axes) {}
 
-		double get_atomic_radius(constants::atom_t) const override {return ra;}
+		double get_atomic_radius(form_factor::form_factor_t) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
         void set_hydration_radius(double rh) {this->rh = rh;}
@@ -41,8 +38,8 @@ class GridDebug : public grid::Grid {
         auto to_bins(const Vector3<double> v) {return Grid::to_bins(v);}
         auto get_member_atoms() {return a_members;}
         auto get_member_waters() {return w_members;}
-        static auto bounding_box(const vector<Atom>& atoms) {return Grid::bounding_box(atoms);}
-    
+        static auto bounding_box(const std::vector<AtomFF>& atoms) {return Grid::bounding_box(atoms);}
+
     private:
         double ra = 0, rh = 0;
 };
@@ -55,14 +52,18 @@ TEST_CASE("Grid::Grid") {
         Grid grid(axes);
         CHECK(grid.a_members.empty());
         CHECK(grid.w_members.empty());
-        CHECK(grid.get_atoms().empty());
+        CHECK(grid.a_members.empty());
         CHECK(grid.get_volume() == 0);
         CHECK(grid.get_width() == settings::grid::cell_width);
         CHECK(grid.get_axes() == Axis3D(axes, settings::grid::cell_width));
     }
 
     SECTION("vector<Atom>&") {
-        std::vector<Atom> atoms = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0), Atom({1, 1, 1}, 0,  constants::atom_t::C, "", 0), Atom({2, 2, 2}, 0,  constants::atom_t::C, "", 0)};
+        std::vector<AtomFF> atoms = {
+            AtomFF({0, 0, 0}, form_factor::form_factor_t::C), 
+            AtomFF({1, 1, 1}, form_factor::form_factor_t::C), 
+            AtomFF({2, 2, 2}, form_factor::form_factor_t::C)
+        };
         Grid grid(atoms);
         CHECK(grid.a_members.size() == 3);
         CHECK(grid.w_members.empty());
@@ -72,7 +73,11 @@ TEST_CASE("Grid::Grid") {
     }
 
     SECTION("std::vector<Body>&") {
-        std::vector<Body> bodies = {Body({Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0), Atom({1, 1, 1}, 0,  constants::atom_t::C, "", 0), Atom({2, 2, 2}, 0,  constants::atom_t::C, "", 0)})};
+        std::vector<Body> bodies = {Body(std::vector{
+            AtomFF({0, 0, 0}, form_factor::form_factor_t::C), 
+            AtomFF({1, 1, 1}, form_factor::form_factor_t::C), 
+            AtomFF({2, 2, 2}, form_factor::form_factor_t::C)
+        })};
         Grid grid(bodies);
         CHECK(grid.a_members.size() == 3);
         CHECK(grid.w_members.empty());
@@ -82,7 +87,11 @@ TEST_CASE("Grid::Grid") {
     }
 
     SECTION("space_saving_constructor") {
-        vector<Atom> atoms = {Atom({5, 0, -7}, 0,  constants::atom_t::C, "", 1), Atom({0, -5, 0}, 0,  constants::atom_t::C, "", 2), Atom({1, 1, 1}, 0,  constants::atom_t::C, "", 2)};
+        std::vector<AtomFF> atoms = {
+            AtomFF({5,  0, -7}, form_factor::form_factor_t::C), 
+            AtomFF({0, -5,  0}, form_factor::form_factor_t::C), 
+            AtomFF({1,  1,  1}, form_factor::form_factor_t::C)
+        };
 
         SECTION("bounding box") {
             // check that bounding_box works
@@ -123,8 +132,10 @@ TEST_CASE("Grid::Grid") {
         }
 
         SECTION("multiple bodies") {
-            vector<Body> bodies; 
-            for (const auto& a : atoms) {bodies.push_back(Body({a}));}
+            std::vector<Body> bodies; 
+            for (const auto& a : atoms) {
+                bodies.push_back(Body{std::vector{a}});
+            }
 
             Grid grid(bodies);
             func(grid);
@@ -132,25 +143,373 @@ TEST_CASE("Grid::Grid") {
     }
 }
 
-TEST_CASE("generation") {
+TEST_CASE("Grid::add") {
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
+    settings::grid::cell_width = 1;
+    GridDebug grid(axes);
+
+    SECTION("Body") {
+        SECTION("") {
+            Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+            grid.add(body, false);
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == A_CENTER);
+            CHECK(g.index(10, 10, 11) == EMPTY);
+            CHECK(g.index(10, 11, 11) == EMPTY);
+            CHECK(g.index(11, 10, 10) == EMPTY);
+            CHECK(g.index(9, 8, 14) == EMPTY);
+            CHECK(grid.get_volume_without_expanding() == 1);
+        }
+
+        SECTION("") {
+            Body body{std::vector{
+                AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
+                AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
+            }};
+            grid.add(body, false);
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == A_CENTER);
+            CHECK(g.index(10, 10, 11) == EMPTY);
+            CHECK(g.index(10, 11, 11) == EMPTY);
+            CHECK(g.index(11, 10, 10) == EMPTY);
+            CHECK(g.index(9, 8, 14) == EMPTY);
+
+            CHECK(g.index(11, 11, 11) == A_CENTER);
+            CHECK(g.index(11, 11, 12) == EMPTY);
+            CHECK(g.index(11, 12, 12) == EMPTY);
+            CHECK(g.index(12, 11, 11) == EMPTY);
+            CHECK(g.index(10, 9, 15) == EMPTY);
+            CHECK(grid.get_volume_without_expanding() == 2);
+        }
+    }
+
+    SECTION("Water") {
+        SECTION("") {
+            std::vector<Water> w = {Water({0, 0, 0})};
+            for (auto& atom : w) {grid.add(atom, false);}
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == W_CENTER);
+            CHECK(g.index(10, 10, 11) == EMPTY);
+            CHECK(g.index(10, 11, 11) == EMPTY);
+            CHECK(g.index(11, 10, 10) == EMPTY);
+            CHECK(g.index(9, 8, 14) == EMPTY);
+            CHECK(grid.get_volume() == 0);
+        }
+
+        SECTION("") {
+            std::vector<Water> w = {
+                Water({0, 0, 0}),
+                Water({1, 1, 1})
+            };
+            for (auto& atom : w) {grid.add(atom, false);}
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == W_CENTER);
+            CHECK(g.index(10, 10, 11) == EMPTY);
+            CHECK(g.index(10, 11, 11) == EMPTY);
+            CHECK(g.index(11, 10, 10) == EMPTY);
+            CHECK(g.index(9, 8, 14) == EMPTY);
+
+            CHECK(g.index(11, 11, 11) == W_CENTER);
+            CHECK(g.index(11, 11, 12) == EMPTY);
+            CHECK(g.index(11, 12, 12) == EMPTY);
+            CHECK(g.index(12, 11, 11) == EMPTY);
+            CHECK(g.index(10, 9, 15) == EMPTY);
+            CHECK(grid.get_volume() == 0);
+        }
+
+        SECTION("") {
+            std::vector<Water> w = {
+                Water({0, 0, 0}),
+                Water({1, 0, 0}),
+                Water({0, 1, 0}),
+                Water({0, 0, 1})
+            };
+            for (auto& atom : w) {grid.add(atom, false);}
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == W_CENTER);
+            CHECK(g.index(11, 10, 10) == W_CENTER);
+            CHECK(g.index(10, 11, 10) == W_CENTER);
+            CHECK(g.index(10, 10, 11) == W_CENTER);
+            CHECK(grid.get_volume() == 0);
+        }
+    }
+
+    SECTION("std::vector<Water>") {
+        SECTION("") {
+            std::vector<Water> w = {Water({0, 0, 0})};
+            grid.add(w, false);
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == W_CENTER);
+            CHECK(g.index(10, 10, 11) == EMPTY);
+            CHECK(g.index(10, 11, 11) == EMPTY);
+            CHECK(g.index(11, 10, 10) == EMPTY);
+            CHECK(g.index(9, 8, 14) == EMPTY);
+            CHECK(grid.get_volume() == 0);
+        }
+
+        SECTION("") {
+            std::vector<Water> w = {
+                Water({0, 0, 0}),
+                Water({1, 1, 1})
+            };
+            grid.add(w, false);
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == W_CENTER);
+            CHECK(g.index(10, 10, 11) == EMPTY);
+            CHECK(g.index(10, 11, 11) == EMPTY);
+            CHECK(g.index(11, 10, 10) == EMPTY);
+            CHECK(g.index(9, 8, 14) == EMPTY);
+
+            CHECK(g.index(11, 11, 11) == W_CENTER);
+            CHECK(g.index(11, 11, 12) == EMPTY);
+            CHECK(g.index(11, 12, 12) == EMPTY);
+            CHECK(g.index(12, 11, 11) == EMPTY);
+            CHECK(g.index(10, 9, 15) == EMPTY);
+            CHECK(grid.get_volume() == 0);
+        }
+
+        SECTION("") {
+            std::vector<Water> w = {
+                Water({0, 0, 0}),
+                Water({1, 0, 0}),
+                Water({0, 1, 0}),
+                Water({0, 0, 1})
+            };
+            grid.add(w, false);
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == W_CENTER);
+            CHECK(g.index(11, 10, 10) == W_CENTER);
+            CHECK(g.index(10, 11, 10) == W_CENTER);
+            CHECK(g.index(10, 10, 11) == W_CENTER);
+            CHECK(grid.get_volume() == 0);
+        }        
+    }
+}
+
+TEST_CASE("Grid::expand_volume") {
+    Limit3D lims(-10, 10, -10, 10, -10, 10);
+    Grid grid(lims);
+
+    SECTION("verify shape") {
+        settings::grid::min_exv_radius = GENERATE(0.5, 1, 2);
+        SECTION("no exv") {
+            SECTION("") {
+                settings::grid::min_exv_radius = 0;
+
+                Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+                grid.add(body, true);
+
+                auto axes = grid.get_axes();
+                double r = constants::radius::get_vdw_radius(form_factor::form_factor_t::C)/settings::grid::cell_width;
+                for (unsigned int i = 0; i < axes.x.bins; ++i) {
+                    for (unsigned int j = 0; j < axes.y.bins; ++j) {
+                        for (unsigned int k = 0; k < axes.z.bins; ++k) {
+                            if (i == 10 && j == 10 && k == 10) {continue;}
+                            double dist = grid.to_xyz(i, j, k).norm(); // dist from center
+                            if (dist <= r) {
+                                REQUIRE(grid.grid.index(i, j, k) == A_AREA);
+                            } else {
+                                REQUIRE(grid.grid.index(i, j, k) == EMPTY);
+                            }
+                        }
+                    }
+                }
+                CHECK(grid.grid.index(10, 10, 10) == A_CENTER);
+            }
+
+            SECTION("") {
+                settings::grid::min_exv_radius = 0;
+
+                Body body{std::vector{
+                    AtomFF({ 2, 0, 0}, form_factor::form_factor_t::C),
+                    AtomFF({-2, 0, 0}, form_factor::form_factor_t::N)
+                }};
+                grid.add(body, true);
+
+                auto axes = grid.get_axes();
+                double rC = constants::radius::get_vdw_radius(form_factor::form_factor_t::C)/settings::grid::cell_width;
+                double rN = constants::radius::get_vdw_radius(form_factor::form_factor_t::N)/settings::grid::cell_width;
+                for (unsigned int i = 0; i < axes.x.bins; ++i) {
+                    for (unsigned int j = 0; j < axes.y.bins; ++j) {
+                        for (unsigned int k = 0; k < axes.z.bins; ++k) {
+                            double dist1 = grid.to_xyz(i, j, k).distance(body.get_atom(0).coordinates());
+                            double dist2 = grid.to_xyz(i, j, k).distance(body.get_atom(1).coordinates());
+                            if (dist1 == 0 || dist2 == 0) {continue;}
+                            if (dist1 <= rC || dist2 <= rN) {
+                                REQUIRE(grid.grid.index(i, j, k) == A_AREA);
+                            } else {
+                                REQUIRE(grid.grid.index(i, j, k) == EMPTY);
+                            }
+                        }
+                    }
+                }
+                CHECK(grid.grid.index(grid.to_bins(body.get_atom(0).coordinates())) == A_CENTER);
+                CHECK(grid.grid.index(grid.to_bins(body.get_atom(1).coordinates())) == A_CENTER);
+            }
+        }
+
+        SECTION("exv") {
+            settings::grid::min_exv_radius = 3;
+
+            Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+            grid.add(body, true);
+
+            auto axes = grid.get_axes();
+            double r = constants::radius::get_vdw_radius(form_factor::form_factor_t::C)/settings::grid::cell_width;
+            for (unsigned int i = 0; i < axes.x.bins; ++i) {
+                for (unsigned int j = 0; j < axes.y.bins; ++j) {
+                    for (unsigned int k = 0; k < axes.z.bins; ++k) {
+                        if (i == 10 && j == 10 && k == 10) {continue;}
+                        double dist = grid.to_xyz(i, j, k).norm(); // dist from center
+                        if (dist <= r) {
+                            REQUIRE(grid.grid.index(i, j, k) == A_AREA);
+                        } else if (dist <= 3) {
+                            REQUIRE(grid.grid.index(i, j, k) == VOLUME);
+                        } else {
+                            REQUIRE(grid.grid.index(i, j, k) == EMPTY);
+                        }
+                    }
+                }
+            }
+            CHECK(grid.grid.index(10, 10, 10) == A_CENTER);
+        }
+    }
+
+    // these atom counts have been checked by visual inspection
+    SECTION("count tests") {
+        settings::grid::min_bins = 30;
+
+        SECTION("five atoms") {
+            settings::grid::min_exv_radius = 3;
+            Body body{std::vector{
+                AtomFF({ 0,  0,  0}, form_factor::form_factor_t::C),
+                AtomFF({-2,  0,  0}, form_factor::form_factor_t::C),
+                AtomFF({ 2,  0,  0}, form_factor::form_factor_t::C),
+                AtomFF({ 0, -2,  0}, form_factor::form_factor_t::C),
+                AtomFF({ 0,  2,  0}, form_factor::form_factor_t::C)
+            }};
+
+            GridDebug grid({-10, 10, -10, 10, -10, 10});
+            grid.add(body, true);
+            REQUIRE(grid.get_volume() == 323);
+        }
+        settings::grid::min_bins = 0;
+    }
+}
+
+TEST_CASE("Grid::remove") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::cell_width = 1;
     Grid grid(axes);
 
-    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-    grid.add(a);
-    GridObj& g = grid.grid;
+    SECTION("") {
+        Body b{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+        grid.add(b, true);
+        grid.remove(b);
+        GridObj& g = grid.grid;
 
-    // check that it was placed correctly in the grid
-    REQUIRE(g.index(10, 10, 10) == A_CENTER);
-    REQUIRE(g.index(10, 10, 11) == EMPTY);
-    REQUIRE(g.index(10, 11, 11) == EMPTY);
-    REQUIRE(g.index(11, 10, 10) == EMPTY);
-    REQUIRE(g.index(9, 8, 14) == EMPTY);
+        auto axes = grid.get_axes();
+        for (unsigned int i = 0; i < axes.x.bins; i++) {
+            for (unsigned int j = 0; j < axes.y.bins; j++) {
+                for (unsigned int k = 0; k < axes.z.bins; k++) {
+                    CHECK(g.index(i, j, k) == EMPTY);
+                }
+            }
+        }
+        CHECK(grid.get_volume() == 0);
+    }
+
+    SECTION("") {
+        Body b{std::vector{
+            AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
+            AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
+        }};
+        grid.add(b, true);
+        grid.remove(b);
+        GridObj& g = grid.grid;
+
+        auto axes = grid.get_axes();
+        for (unsigned int i = 0; i < axes.x.bins; i++) {
+            for (unsigned int j = 0; j < axes.y.bins; j++) {
+                for (unsigned int k = 0; k < axes.z.bins; k++) {
+                    CHECK(g.index(i, j, k) == EMPTY);
+                }
+            }
+        }
+        CHECK(grid.get_volume() == 0);
+    }
 }
 
-TEST_CASE("GridMember") {
-    grid::GridMember<Atom> a(Atom({0.1, 0.2, 0.3}, 0,  constants::atom_t::C, "", 0), {1, 2, 3});
+TEST_CASE("Grid::remove_waters") {
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
+    settings::grid::cell_width = 1;
+    Grid grid(axes);
+
+    SECTION("") {
+        Water w({0, 0, 0});
+        grid.add(w, true);
+        grid.remove_waters({true});
+        GridObj& g = grid.grid;
+
+        REQUIRE(grid.get_waters().empty());
+        auto axes = grid.get_axes();
+        for (unsigned int i = 0; i < axes.x.bins; i++) {
+            for (unsigned int j = 0; j < axes.y.bins; j++) {
+                for (unsigned int k = 0; k < axes.z.bins; k++) {
+                    CHECK(g.index(i, j, k) == EMPTY);
+                }
+            }
+        }
+    }
+
+    SECTION("") {
+        auto w = {
+            Water({0, 0, 0}),
+            Water({1, 0, 0}),
+            Water({0, 1, 0}),
+            Water({0, 0, 1})
+        };
+        grid.add(w, true);
+        grid.remove_waters({true, true, true, true});
+        GridObj& g = grid.grid;
+
+        REQUIRE(grid.get_waters().empty());
+        auto axes = grid.get_axes();
+        for (unsigned int i = 0; i < axes.x.bins; i++) {
+            for (unsigned int j = 0; j < axes.y.bins; j++) {
+                for (unsigned int k = 0; k < axes.z.bins; k++) {
+                    CHECK(g.index(i, j, k) == EMPTY);
+                }
+            }
+        }
+    }
+
+    SECTION("") {
+        std::vector w = {
+            Water({0, 0, 0}),
+            Water({1, 0, 0}),
+            Water({0, 1, 0}),
+            Water({0, 0, 1})
+        };
+        grid.add(w, true);
+        grid.remove_waters({true, true, true, false});
+
+        auto wg = grid.get_waters();
+        REQUIRE(wg.size() == 1);
+        REQUIRE(wg[0] == w[3]);
+    }
+}
+
+TEST_CASE("Grid: GridMember") {
+    grid::GridMember<AtomFF> a(AtomFF({0.1, 0.2, 0.3}, form_factor::form_factor_t::C), {1, 2, 3});
 
     auto b = a;
     CHECK(b == a);
@@ -165,8 +524,8 @@ TEST_CASE("Grid::bounding_box") {
     GridDebug grid(axes);
 
     SECTION("simple") {
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-        grid.add(a);
+        Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+        grid.add(body, false);
 
         auto[min, max] = grid.bounding_box_index();
         CHECK(min[0] == 10);
@@ -178,8 +537,11 @@ TEST_CASE("Grid::bounding_box") {
     }
 
     SECTION("complex") {
-        vector<Atom> a = {Atom({5, 0, -7}, 0,  constants::atom_t::C, "", 1), Atom({0, -5, 0}, 0,  constants::atom_t::C, "", 2)};
-        grid.add(a);
+        Body body{std::vector{
+            AtomFF({5, 0, -7}, form_factor::form_factor_t::C), 
+            AtomFF({0, -5, 0}, form_factor::form_factor_t::C)
+        }};
+        grid.add(body);
         grid.expand_volume();
 
         auto[min, max] = grid.bounding_box_index();
@@ -198,9 +560,8 @@ TEST_CASE("Grid::get_volume") {
         settings::grid::cell_width = 1e-1;
         Grid grid(lims);
 
-        std::vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-        grid.add(a);
-        grid.expand_volume();
+        Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+        grid.add(body, true);
         GridObj &g = grid.grid;
 
         unsigned int count = 0;
@@ -226,17 +587,20 @@ TEST_CASE("Grid::get_volume") {
         grid.set_atomic_radius(1);
 
         // cout << grid.get_volume() << endl;
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
-        vector<Water> w = {Water({2, 2, 2}, 0,  constants::atom_t::dummy, "", 0), Water({2, 2, 3}, 0,  constants::atom_t::dummy, "", 0)};
-        grid.add(a);
-        grid.add(w);
+        Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+        std::vector<Water> w = {
+            Water({2, 2, 2}), 
+            Water({2, 2, 3})
+        };
+        grid.add(body, false);
+        grid.add(w, false);
         REQUIRE(grid.get_volume_without_expanding() == 1); // atoms are added as point-particles, and only occupy one unit of space.
 
         SECTION("") {
             settings::grid::min_exv_radius = 1;
             REQUIRE(grid.get_volume() == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
 
-            grid.add(Atom({0, 0, -1}, 0,  constants::atom_t::C, "", 0));
+            grid.add(Body{std::vector{{AtomFF({0, 0, -1}, form_factor::form_factor_t::C)}}});
             REQUIRE(grid.get_volume() == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
         }
 
@@ -269,64 +633,13 @@ TEST_CASE("Grid::width") {
     CHECK(grid.to_xyz(center+Vector3<double>{0, 0, 1}) == Vector3<double>{0, 0, settings::grid::cell_width});
 }
 
-TEST_CASE("Grid::expand_volume") {
-    SECTION("shape test") {
-        Limit3D lims(-10, 10, -10, 10, -10, 10);
-        settings::grid::cell_width = 1;
-        settings::grid::min_exv_radius = 2.15;
-        Grid grid(lims);
-        constants::radius::set_dummy_radius(3+1e-6);
-
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
-        grid.add(a);
-        grid.expand_volume();
-
-        auto axes = grid.get_axes();
-        for (unsigned int i = 0; i < axes.x.bins; ++i) {
-            for (unsigned int j = 0; j < axes.y.bins; ++j) {
-                for (unsigned int k = 0; k < axes.z.bins; ++k) {
-                    auto& bin = grid.grid.index(i, j, k);
-                    if (grid.to_xyz(i, j, k).norm() <= 3) {
-                        if (i == 10 && j == 10 && k == 10) {continue;}
-                        CHECK(bin == A_AREA);
-                    } else {
-                        CHECK(bin == EMPTY);
-                    }
-                }
-            }
-        }
-        CHECK(grid.grid.index(10, 10, 10) == A_CENTER);
-    }
-
-    // these atom counts have been checked by visual inspection
-    SECTION("count tests") {
-        settings::grid::min_bins = 30;
-
-        SECTION("five atoms") {
-            settings::grid::min_exv_radius = 3;
-            std::vector<Atom> atoms = {
-                Atom({0, 0, 0}, 1, constants::atom_t::C, "C", 1),
-                Atom({-2, 0, 0}, 1, constants::atom_t::C, "C", 1),
-                Atom({2, 0, 0}, 1, constants::atom_t::C, "C", 1),
-                Atom({0, -2, 0}, 1, constants::atom_t::C, "C", 1),
-                Atom({0, 2, 0}, 1, constants::atom_t::C, "C", 1)
-            };
-
-            GridDebug grid({-10, 10, -10, 10, -10, 10});
-            grid.add(atoms);
-            grid.expand_volume();
-            REQUIRE(grid.get_volume() == 323);
-        }
-    }
-}
-
 TEST_CASE("Grid::hydrate") {
     settings::general::verbose = false;
     settings::molecule::center = false;
     settings::hydrate::shell_correction = 0;
     settings::hydrate::hydration_strategy = GENERATE(
         settings::hydrate::HydrationStrategy::AxesStrategy, 
-        settings::hydrate::HydrationStrategy::RadialStrategy, 
+        settings::hydrate::HydrationStrategy::RadialStrategy,
         settings::hydrate::HydrationStrategy::JanStrategy
     );
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
@@ -341,11 +654,11 @@ TEST_CASE("Grid::hydrate") {
 
         // add a single atom to the grid, and hydrate it
         settings::grid::water_scaling = 0;
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
-        grid->add(a);
+        Body b{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+        grid->add(b);
         REQUIRE(grid->get_atoms().size() == 1); // check atoms
 
-        data::Molecule protein(a);
+        data::Molecule protein({b});
         protein.set_grid(std::move(grid));
         protein.generate_new_hydration();
         auto water = protein.get_waters();
@@ -366,7 +679,7 @@ TEST_CASE("Grid::hydrate") {
     }
 
     // check that a hydration operation is reversible
-    SECTION("reversible") {
+    SECTION("reversible " + std::to_string(static_cast<int>(settings::hydrate::hydration_strategy))) {
         SECTION("LAR1-2") {
             // get the grid before hydrating it
             Molecule protein("tests/files/LAR1-2.pdb");
@@ -424,22 +737,27 @@ TEST_CASE("Grid: using different widths") {
 
     auto test_width_basics = [] (settings::hydrate::HydrationStrategy strategy) {
         settings::hydrate::hydration_strategy = strategy;
-        settings::grid::cell_width = 0.1;
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
-        data::Molecule protein(a);
+        settings::grid::cell_width = GENERATE(
+            0.5,
+            1
+        );
+        settings::grid::min_exv_radius = 0;
+        Body b{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+        data::Molecule protein({b});
         {
             Limit3D axes(-10, 10, -10, 10, -10, 10);
             auto grid = std::make_unique<GridDebug>(axes);
             grid->set_atomic_radius(3);
             grid->set_hydration_radius(3);
 
-            grid->add(a);
+            grid->add(b, false);
             GridObj& g = grid->grid;
 
             // check that it was placed correctly
-            REQUIRE(g.index(100, 100, 100) == A_CENTER);
-            REQUIRE(grid->a_members.back().get_bin_loc() == Vector3(100, 100, 100));
-            REQUIRE(grid->a_members.back().get_atom().get_coordinates() == Vector3(0, 0, 0));
+            double icw = 1./settings::grid::cell_width;
+            REQUIRE(g.index(10*icw, 10*icw, 10*icw) == A_CENTER);
+            REQUIRE(grid->a_members.back().get_bin_loc() == Vector3(10*icw, 10*icw, 10*icw));
+            REQUIRE(grid->a_members.back().get_atom().coordinates() == Vector3(0, 0, 0));
 
             // check water generation
             settings::grid::water_scaling = 0;
@@ -447,10 +765,10 @@ TEST_CASE("Grid: using different widths") {
             protein.set_grid(std::move(grid));
             protein.generate_new_hydration();
         }
-        vector<Water> water = protein.get_waters();
+        std::vector<Water> water = protein.get_waters();
 
         // since this needs to work with different placement strategies, we have to perform a more general check on the positions
-        vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
+        std::vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
         REQUIRE(water.size() == 6);
         for (const auto& l : water) {
             bool found = false;
@@ -469,9 +787,11 @@ TEST_CASE("Grid: using different widths") {
         grid.set_atomic_radius(3);
         grid.set_hydration_radius(3);
 
-        vector<Atom> a = {Atom({5, 0, -7}, 0,  constants::atom_t::C, "", 1), Atom({0, -5, 0}, 0,  constants::atom_t::C, "", 2)};
-        grid.add(a);
-        grid.expand_volume();
+        Body b{std::vector{
+            AtomFF({5, 0, -7}, form_factor::form_factor_t::C), 
+            AtomFF({0, -5, 0}, form_factor::form_factor_t::C)
+        }};
+        grid.add(b, true);
 
         auto[min, max] = grid.bounding_box_index();
         REQUIRE(min[0] == 100);
@@ -516,109 +836,78 @@ TEST_CASE("Grid: add and remove") {
     grid.set_hydration_radius(3);
 
     // atoms
-    Atom a1 = Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1);
-    Atom a2 = Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2);
-    Atom a3 = Atom({0, 0, 3}, 0,  constants::atom_t::C, "", 3);
-    vector<Atom> a = {a1, a2, a3};
+    AtomFF a1({3, 0, 0}, form_factor::form_factor_t::C);
+    AtomFF a2({0, 3, 0}, form_factor::form_factor_t::C);
+    AtomFF a3({0, 0, 3}, form_factor::form_factor_t::C);
 
     // waters
-    Water w1 = Water::create_new_water(Vector3<double>({0, 0, -3}));
-    Water w2 = Water::create_new_water(Vector3<double>({0, -3, 0}));
-    Water w3 = Water::create_new_water(Vector3<double>({-3, 0, 0}));
-    vector<Water> w = {w1, w2, w3};
+    Water w1(Vector3<double>({0, 0, -3}));
+    Water w2(Vector3<double>({0, -3, 0}));
+    Water w3(Vector3<double>({-3, 0, 0}));
+    Body body{std::vector{a1, a2, a3}, std::vector{w1, w2, w3}};
 
     SECTION("add") {
         // add atoms
-        grid.add(a);    
-        vector<Atom> ga = grid.get_atoms();
+        grid.add(body);
+        grid.add(body.get_waters());
+        auto ga = grid.get_atoms();
         REQUIRE(grid.a_members.size() == 3); // check actual data
         REQUIRE(ga.size() >= 3);
+        auto a = body.get_atoms();
         for (int i = 0; i < 3; i++) {
             REQUIRE(ga[i] == a[i]); // check equality with what we added
         }
 
         // add waters
-        grid.add(w);
-        vector<Water> wa = grid.get_waters();
+        std::vector<Water> wa = grid.get_waters();
         REQUIRE(grid.a_members.size() == 3); // check actual data
         REQUIRE(grid.w_members.size() == 3); // check actual data
         REQUIRE(wa.size() >= 3);
+        auto w = body.get_waters();
         for (int i = 0; i < 3; i++) {
             REQUIRE(wa[i] == w[i]); // check equality with what we added
         }
     }
 
     SECTION("remove") {
-        grid.add(a);
-        grid.add(w);
-
-        grid.remove(a2);
-        grid.remove(w3);
-        grid.remove(w1);
-        vector<Atom> ga = grid.get_atoms();
-        vector<Water> wa = grid.get_waters();
+        grid.add(body);
+        grid.add(body.get_waters());
+        grid.remove(body);
+        auto ga = grid.get_atoms();
+        auto wa = grid.get_waters();
 
         // check sizes
-        REQUIRE(ga.size() == 2);
-        REQUIRE(wa.size() == 1);
-
-        // check remaining atoms
-        REQUIRE(ga[0] == a1);
-        REQUIRE(ga[1] == a3);
-        REQUIRE(wa[0] == w2);
+        REQUIRE(ga.size() == 0);
+        REQUIRE(wa.size() != 0);
 
         // check old centers
         GridObj &g = grid.grid;
-        auto loc_a2 = grid.to_bins(a2.coords);
-        auto loc_w1 = grid.to_bins(w1.coords);
-        auto loc_w3 = grid.to_bins(w3.coords);
-        REQUIRE(g.index(loc_a2) == EMPTY);
-        REQUIRE(g.index(loc_w1) == EMPTY);
-        REQUIRE(g.index(loc_w3) == EMPTY);
-    }
-
-    SECTION("remove_vector") {
-        grid.add(a);
-        grid.add(w);
-
-        // remove a list of hetatoms
-        vector<Water> remove_water = {w1, w3};
-        grid.remove(remove_water);
-
-        // check the remaining one
-        vector<Atom> ga = grid.get_atoms();
-        vector<Water> wa = grid.get_waters();
-        REQUIRE(wa.size() == 1);
-        REQUIRE(ga.size() == 3);
-        REQUIRE(wa[0] == w2);
+        for (auto a : body.get_atoms()) {
+            auto loc = grid.to_bins(a.coordinates());
+            REQUIRE(g.index(loc) == EMPTY);
+        }
     }
 
     SECTION("remove index") {
-        Atom a4 = Atom({1, 0, 0}, 0,  constants::atom_t::C, "", 4);
-        Atom a5 = Atom({0, 1, 0}, 0,  constants::atom_t::C, "", 5);
-        Atom a6 = Atom({0, 0, 1}, 0,  constants::atom_t::C, "", 6);
-        Atom a7 = Atom({2, 0, 0}, 0,  constants::atom_t::C, "", 7);
-        Atom a8 = Atom({0, 2, 0}, 0,  constants::atom_t::C, "", 8);
-        Atom a9 = Atom({0, 0, 2}, 0,  constants::atom_t::C, "", 9);
-        a = {a1, a2, a3, a4, a5, a6, a7, a8, a9}; 
+        SECTION("water") {
+            grid.add(body);
+            grid.add(body.get_waters());
 
-        grid.add(a);
-        std::vector<bool> remove = {false, true, false, false, false, false, true, true, true};
-        grid.remove(remove);
+            REQUIRE(grid.w_members.size() == 3);
+            grid.remove_waters({true, true, false});
+            REQUIRE(grid.w_members.size() == 1);
 
-        vector<Atom> ga = grid.get_atoms();
-        REQUIRE(ga.size() == 5);
-        REQUIRE(ga[0] == a1);
-        REQUIRE(ga[1] == a3);
-        REQUIRE(ga[2] == a4);
-        REQUIRE(ga[3] == a5);
-        REQUIRE(ga[4] == a6);        
+            // check the remaining one
+            auto ga = grid.get_atoms();
+            auto wa = grid.get_waters();
+            REQUIRE(wa.size() == 1);
+            REQUIRE(ga.size() == 3);
+            REQUIRE(wa[0] == w3);
+        }
     }
 
     SECTION("clear_waters") {
-        grid.add(a);
-        grid.add(w);
-
+        grid.add(body);
         grid.clear_waters();
         REQUIRE(grid.a_members.size() == 3);
         REQUIRE(grid.w_members.size() == 0);
@@ -633,35 +922,43 @@ TEST_CASE("Grid: correct_volume") {
     grid.set_hydration_radius(10);
 
     // atoms
-    Atom a1 = Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1);
-    Atom a2 = Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2);
-    Atom a3 = Atom({0, 0, 3}, 0,  constants::atom_t::C, "", 3);
-    vector<Atom> a = {a1, a2, a3};
+    AtomFF a1({3, 0, 0}, form_factor::form_factor_t::C);
+    AtomFF a2({0, 3, 0}, form_factor::form_factor_t::C);
+    AtomFF a3({0, 0, 3}, form_factor::form_factor_t::C);
+    std::vector<Body> body{
+        Body{std::vector{{a1}}}, 
+        Body{std::vector{{a2}}}, 
+        Body{std::vector{{a3}}}
+    };
 
     // waters
-    Water w1 = Water::create_new_water(Vector3<double>({0, 0, -3}));
-    Water w2 = Water::create_new_water(Vector3<double>({0, -3, 0}));
-    Water w3 = Water::create_new_water(Vector3<double>({-3, 0, 0}));
-    vector<Water> w = {w1, w2, w3};
+    Water w1({0, 0, -3});
+    Water w2({0, -3, 0});
+    Water w3({-3, 0, 0});
+    std::vector<Body> w = {
+        {{}, std::vector{w1}}, 
+        {{}, std::vector{w2}}, 
+        {{}, std::vector{w3}}
+    };
 
     // single non-overlapping
     REQUIRE(grid.get_volume_without_expanding() == 0);
-    grid.add(a1);
+    grid.add(body[0]);
     REQUIRE(grid.get_volume_without_expanding() != 0);
-    grid.remove(a1);
+    grid.remove(body[0]);
     REQUIRE(grid.get_volume_without_expanding() == 0);
 
-    grid.add(w1);
+    grid.add(w[0]);
     REQUIRE(grid.get_volume_without_expanding() == 0);
-    grid.remove(w1);
+    grid.remove(w[0]);
     REQUIRE(grid.get_volume_without_expanding() == 0);
 
     // multiple overlapping
-    grid.add(a);
-    grid.add(w);
+    for(auto& b : body) {grid.add(b);}
+    for (auto& b : w) {grid.add(b);}
     REQUIRE(grid.get_volume_without_expanding() != 0);
-    grid.remove(a);
-    grid.remove(w);
+    for(auto& b : body) {grid.remove(b);}
+    for (auto& b : w) {grid.remove(b);}
     REQUIRE(grid.get_volume_without_expanding() == 0);
 }
 
@@ -680,23 +977,23 @@ TEST_CASE("Grid::find_free_locs") {
         grid->set_hydration_radius(3);
 
         settings::grid::water_scaling = 0;
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
-        grid->add(a);
+        Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+        grid->add(body);
         grid->expand_volume();
 
-        data::Molecule protein(a);
+        data::Molecule protein({body});
         protein.set_grid(std::move(grid));
         protein.generate_new_hydration();
 
-        std::list<grid::GridMember<Water>> locs = static_cast<GridDebug*>(protein.get_grid())->get_member_waters();
+        std::vector<grid::GridMember<Water>> locs = static_cast<GridDebug*>(protein.get_grid())->get_member_waters();
         REQUIRE(locs.size() == 6);
 
         // since this needs to work with different placement strategies, we have to perform a more general check on the positions
-        vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
+        std::vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
         for (const auto& l : locs) {
             bool found = false;
             for (const auto& p : v) {
-                if (l.get_atom().get_coordinates() == p) {found = true;}
+                if (l.get_atom().coordinates() == p) {found = true;}
             }
             REQUIRE(found);
         }
@@ -724,8 +1021,11 @@ TEST_CASE("Grid::deflate_volume") {
     grid->set_atomic_radius(3);
     grid->set_hydration_radius(3);
 
-    vector<Atom> a = {Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1), Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2)};
-    grid->add(a);
+    Body body{std::vector{
+        AtomFF({3, 0, 0}, form_factor::form_factor_t::C), 
+        AtomFF({0, 3, 0}, form_factor::form_factor_t::C)
+    }};
+    grid->add(body, false);
     REQUIRE(grid->get_volume_without_expanding() == 2);
 
     grid->expand_volume();
@@ -792,7 +1092,7 @@ TEST_CASE("Grid::operator=", "[files]") {
         Grid grid1(axes);
         {
             data::Molecule protein("tests/files/2epe.pdb");
-            grid1.add(protein.get_atoms());
+            grid1.add(protein.get_body(0));
             Grid grid2 = grid1;
             protein.set_grid(std::move(grid2));
             protein.generate_new_hydration();
@@ -812,7 +1112,7 @@ TEST_CASE("Grid::operator=", "[files]") {
         Grid grid1(axes);
         {
             data::Molecule protein("tests/files/2epe.pdb");
-            grid1.add(protein.get_atoms());
+            grid1.add(protein.get_body(0));
             Grid grid2 = grid1;
             protein.set_grid(std::move(grid2));
             protein.generate_new_hydration();
@@ -833,11 +1133,11 @@ TEST_CASE("Grid: hydration") {
     settings::general::verbose = false;
 
     Limit3D lims(-10, 10, -10, 10, -10, 10);
-    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "LYS", 0)};
-    data::Molecule protein(a);
+    Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
+    data::Molecule protein({body});
     {
         Grid grid(lims);
-        grid.add(a);
+        grid.add(body);
         protein.set_grid(std::move(grid));
         protein.generate_new_hydration();
     }
@@ -864,5 +1164,115 @@ TEST_CASE("Grid: hydration") {
                 }
             }
         }
+    }
+}
+
+TEST_CASE("Grid::add:remove") {
+    // SECTION("single") {
+    //     Body b(std::vector<AtomFF>{
+    //         AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), 
+    //         AtomFF({-1,  1, -1}, form_factor::form_factor_t::C)
+    //     });
+    //     grid::Grid g(Limit3D(-2, 2, -2, 2, -2, 2));
+
+    //     g.add(b);
+    //     REQUIRE(g.a_members.size() == 2);
+    //     REQUIRE(g.get_volume() != 0);
+
+    //     g.remove(b);
+    //     REQUIRE(g.a_members.size() == 0);
+    //     REQUIRE(g.get_volume() == 0);
+    // }
+
+    // SECTION("multiple") {
+    //     constants::radius::set_dummy_radius(1);
+    //     std::vector<AtomFF> a1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+    //     std::vector<AtomFF> a2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+    //     std::vector<AtomFF> a3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+    //     std::vector<AtomFF> a4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+    //     Body b1(a1), b2(a2), b3(a3), b4(a4);
+    //     std::vector<Body> bodies = {b1, b2, b3, b4};
+    //     grid::Grid grid(Limit3D(-5, 5, -5, 5, -5, 5));
+
+    //     grid.add(b1);
+    //     grid.add(b2);
+    //     grid.add(b3);
+    //     grid.add(b4);
+    //     REQUIRE(grid.a_members.size() == 8);
+
+    //     unsigned int vol = grid.get_volume();
+    //     grid.remove(b2);
+    //     grid.add(b2);
+    //     REQUIRE(grid.get_volume() == vol);
+    //     grid.remove(b2);
+    //     grid.force_expand_volume();
+    //     REQUIRE(grid.a_members.size() == 6);
+
+    //     vol = grid.get_volume();
+    //     grid.remove(b1);
+    //     grid.add(b1);
+    //     REQUIRE(grid.get_volume() == vol);
+    //     grid.remove(b1);
+    //     grid.force_expand_volume();
+    //     REQUIRE(grid.a_members.size() == 4);
+
+    //     vol = grid.get_volume();
+    //     grid.remove(b3);
+    //     grid.add(b3);
+    //     REQUIRE(grid.get_volume() == vol);
+    //     grid.remove(b3);
+    //     grid.force_expand_volume();
+    //     REQUIRE(grid.a_members.size() == 2);
+
+    //     auto remaining = grid.a_members;
+    //     for (const auto& e : remaining) {
+    //         REQUIRE((e == a4[0] || e == a4[1]));
+    //     }
+
+    //     // check volume
+    //     REQUIRE(grid.get_volume() != 0);
+    //     grid.remove(b4);
+    //     REQUIRE(grid.get_volume() == 0);
+    // }
+
+    SECTION("real data") {
+        settings::general::verbose = false;
+        Molecule protein = rigidbody::BodySplitter::split("tests/files/2epe.pdb", {9, 99});
+        unsigned int N = protein.get_atoms().size();
+        auto grid = protein.get_grid();
+        CHECK(grid->a_members.size() == N);
+        CHECK(grid->get_volume() != 0);
+
+        // body 1
+        int vol = grid->get_volume();
+        grid->remove(protein.get_body(0));
+        grid->add(   protein.get_body(0));
+        CHECK(grid->get_volume() == vol);
+
+        grid->remove(protein.get_body(0));
+        grid->force_expand_volume();
+        CHECK(grid->a_members.size() == N - protein.get_body(0).size_atom());
+        CHECK(grid->get_volume() != 0);
+
+        // body 2
+        vol = grid->get_volume();
+        grid->remove(protein.get_body(1));
+        grid->add(   protein.get_body(1));
+        CHECK(grid->get_volume() == vol);
+
+        grid->remove(protein.get_body(1));        
+        grid->force_expand_volume();
+        CHECK(grid->a_members.size() == N - protein.get_body(0).size_atom() - protein.get_body(1).size_atom());
+        CHECK(grid->get_volume() != 0);
+
+        // body 3
+        vol = grid->get_volume();
+        grid->remove(protein.get_body(2));
+        grid->add(   protein.get_body(2));
+        CHECK(grid->get_volume() == vol);
+
+        grid->remove(protein.get_body(2));
+        CHECK(grid->a_members.size() == 0);
+        CHECK(grid->get_volume() == 0);
     }
 }

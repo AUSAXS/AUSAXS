@@ -64,11 +64,7 @@ namespace ausaxs {
     inline void evaluate8(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
         auto res = detail::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 8; ++k) {
-            if constexpr (factor == 1) {
-                p.add(res.distances[k], res.weights[k]);
-            } else {
-                p.add2(res.distances[k], res.weights[k]);
-            }
+            p.template add<factor>(res.distances[k], res.weights[k]);
         }
     }
 
@@ -87,11 +83,7 @@ namespace ausaxs {
     inline void evaluate4(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
         auto res = detail::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 4; ++k) {
-            if constexpr (factor == 1) {
-                p.add(res.distances[k], res.weights[k]);
-            } else {
-                p.add2(res.distances[k], res.weights[k]);
-            }
+            p.template add<factor>(res.distances[k], res.weights[k]);
         }
     }
 
@@ -109,10 +101,6 @@ namespace ausaxs {
     template<bool use_weighted_distribution, int factor>
     inline void evaluate1(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
         auto res = detail::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
-        if constexpr (factor == 1) {
-            p.add(res.distance, res.weight);
-        } else {
-            p.add2(res.distance, res.weight);
-        }
+        p.template add<factor>(res.distance, res.weight);
     }
 }

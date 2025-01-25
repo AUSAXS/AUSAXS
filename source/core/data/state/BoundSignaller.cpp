@@ -20,6 +20,10 @@ void BoundSignaller::internal_change() const {
     owner->externally_modified(id);
 }
 
+void BoundSignaller::symmetry_changed() const {
+    owner->modified_symmetry(id);
+}
+
 unsigned int BoundSignaller::get_id() const {
     return id;
 }

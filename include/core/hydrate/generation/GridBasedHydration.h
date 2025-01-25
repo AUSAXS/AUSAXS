@@ -6,6 +6,9 @@
 #include <grid/detail/GridInternalFwd.h>
 #include <grid/GridFwd.h>
 
+#include <span>
+#include <memory>
+
 namespace ausaxs::hydrate {
     class GridBasedHydration : public HydrationStrategy {
         public:
@@ -13,14 +16,21 @@ namespace ausaxs::hydrate {
             GridBasedHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
             virtual ~GridBasedHydration();
 
-            std::unique_ptr<Hydration> hydrate() override;
+            void hydrate() override;
 
             void set_culling_strategy(std::unique_ptr<CullingStrategy> culling_strategy);
 
         protected:
             observer_ptr<data::Molecule> protein;
 
-            virtual std::vector<grid::GridMember<data::record::Water>> generate_explicit_hydration() = 0;
+            /**
+             * @brief Generate and add an explicit hydration layer to the grid.
+             * 
+             * @param atoms The member atoms to use as a basis for the hydration layer.
+             *              Not all hydration algorithms will respect this constraint. 
+             * @return std::span<grid::GridMember<data::Water>> The added water molecules.
+             */
+            virtual std::span<grid::GridMember<data::Water>> generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) = 0;
 
             virtual void initialize();
 

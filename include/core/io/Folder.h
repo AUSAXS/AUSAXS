@@ -23,6 +23,7 @@ namespace ausaxs::io {
              * @brief Get the non-'/' terminated path of this folder.
              */
             [[nodiscard]] std::string path() const;
+            [[nodiscard]] std::string str() const; //< @copydoc path
 
             /**
              * @brief Check if this folder exists on disk.
@@ -61,7 +62,3 @@ namespace ausaxs::io {
     };
     static_assert(supports_nothrow_move_v<Folder>, "Folder should support nothrow move semantics.");
 }
-
-// Must return a string since the result can also be a file path 
-[[nodiscard]] std::string operator+(std::string_view str, const ausaxs::io::Folder& folder);
-[[nodiscard]] std::string operator+(const ausaxs::io::Folder& folder, std::string_view str);

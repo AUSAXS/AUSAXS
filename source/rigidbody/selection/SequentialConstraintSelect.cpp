@@ -9,7 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::selection;
 
-SequentialConstraintSelect::SequentialConstraintSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {}
+SequentialConstraintSelect::SequentialConstraintSelect(observer_ptr<const RigidBody> rigidbody) : BodySelectStrategy(rigidbody) {}
 
 SequentialConstraintSelect::~SequentialConstraintSelect() = default;
 

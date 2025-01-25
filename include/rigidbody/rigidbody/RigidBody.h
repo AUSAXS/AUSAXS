@@ -4,6 +4,8 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <fitter/FitterFwd.h>
 #include <grid/GridFwd.h>
+#include <data/DataFwd.h>
+#include <data/symmetry/PredefinedSymmetries.h>
 
 #include <data/Molecule.h>
 
@@ -13,7 +15,8 @@ namespace ausaxs::rigidbody {
 	class RigidBody : public data::Molecule {
 		friend rigidbody::sequencer::Sequencer;
 		public:
-			RigidBody(data::Molecule&& protein);
+			template <typename... Args, typename = decltype(Molecule(std::declval<Args>()...))>
+			RigidBody(Args&&... args) : Molecule(std::forward<Args>(args)...) {initialize();}
 
 			virtual ~RigidBody() override;
 
@@ -57,7 +60,7 @@ namespace ausaxs::rigidbody {
 
 			void set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters);
 
-		protected:
+		private:
 			std::shared_ptr<constraints::ConstraintManager> constraints = nullptr;
 			std::shared_ptr<fitter::FitResult> calibration = nullptr;
 			std::shared_ptr<selection::BodySelectStrategy> body_selector;

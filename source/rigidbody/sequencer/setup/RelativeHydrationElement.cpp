@@ -15,11 +15,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::rigidbody::sequencer;
 
-RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios) : owner(owner), ratios(ratios) {}
-RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<double>& ratios, const std::vector<std::string>& names) : owner(owner), ratios(ratios) {
-    if (names.size() != ratios.size()) {
-        throw std::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The number of names and ratios must be equal.");
-    }
+RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<double>& ratios) : owner(owner), ratios(ratios) {
+    assert(names.size() == ratios.size() && "RelativeHydrationElement::RelativeHydrationElement: The number of names and ratios must be equal.");
 
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (!owner->_get_body_names().contains(names[i])) {
@@ -32,7 +29,7 @@ RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner
 RelativeHydrationElement::~RelativeHydrationElement() = default;
 
 void RelativeHydrationElement::run() {
-    auto culling_strategy = hydrate::factory::construct_culling_strategy(owner->_get_rigidbody(), settings::hydrate::CullingStrategy::RandomBodyCounterStrategy);
+    auto culling_strategy = hydrate::factory::construct_culling_strategy(owner->_get_rigidbody(), settings::hydrate::CullingStrategy::RandomCounterStrategy);
     static_cast<hydrate::BodyCounterCulling*>(culling_strategy.get())->set_body_ratios(ratios);
 
     assert(

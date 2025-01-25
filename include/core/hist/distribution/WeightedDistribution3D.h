@@ -5,6 +5,8 @@
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <utility/TypeTraits.h>
 
+#include <cmath>
+
 namespace ausaxs::hist {
     class Distribution3D;
 
@@ -26,18 +28,14 @@ namespace ausaxs::hist {
              * @param y The second form factor index.
              * @param distance The distance to add the value to.
              * @param value The value to add.
+             *
+             * @tparam N A multiplicative factor for the value.
              */
-            void add(unsigned int x, unsigned int y, float distance, constants::axes::d_type value);
-
-            /**
-             * @brief Add twice the value for a given distance.
-             * 
-             * @param x The first form factor index.
-             * @param y The second form factor index.
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             */
-            void add2(unsigned int x, unsigned int y, float distance, constants::axes::d_type value);
+            template<int N = 1>
+            void add(unsigned int x, unsigned int y, float distance, constants::axes::d_type value) {
+                int i = std::round(distance*constants::axes::d_inv_width);
+                index(x, y, i).add<N>(distance, value);
+            }
 
             /**
              * @brief Extract the weights from this distribution.

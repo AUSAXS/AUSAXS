@@ -177,6 +177,7 @@ namespace ausaxs {
         using data_type = std::vector<T>&;
         public:
             using Slice<T, data_type>::Slice;
+            using Slice<T, data_type>::operator==;
 
             /**
              * @brief Mutable indexer in this Slice.
@@ -272,6 +273,7 @@ namespace ausaxs {
              */
             ConstRow(const std::vector<T>& data, unsigned int, unsigned int M, unsigned int row) : ConstSlice<T>(data, row*M, 1, M) {}
             using ConstSlice<T>::ConstSlice;
+            using ConstSlice<T>::operator==;
     };
 
     template<numeric T>
@@ -287,6 +289,7 @@ namespace ausaxs {
              */
             ConstColumn(const std::vector<T>& data, unsigned int N, unsigned int M, unsigned int col) : ConstSlice<T>(data, col, M, N) {}
             using ConstSlice<T>::ConstSlice;
+            using ConstSlice<T>::operator==;
     };
 
     template<numeric T>
@@ -306,6 +309,7 @@ namespace ausaxs {
             // We have to explicitly define this to avoid ambiguity
             MutableRow& operator=(const MutableRow& rhs) {MutableSlice<T>::operator=(rhs); return *this;}
             using MutableSlice<T>::operator=;
+            using MutableSlice<T>::operator==;
     };
 
     template<numeric T>
@@ -325,6 +329,6 @@ namespace ausaxs {
             // We have to explicitly define this to avoid ambiguity
             MutableColumn& operator=(const MutableColumn& rhs) {MutableSlice<T>::operator=(rhs); return *this;}
             using MutableSlice<T>::operator=;
-
+            using MutableSlice<T>::operator==;
     };
 }

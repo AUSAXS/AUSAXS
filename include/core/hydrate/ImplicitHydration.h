@@ -12,5 +12,7 @@ namespace ausaxs::hydrate {
             ~ImplicitHydration() = default;
 
             void clear() override {};
+
+            std::unique_ptr<Hydration> clone() const final override {return nullptr;}
     };
 }

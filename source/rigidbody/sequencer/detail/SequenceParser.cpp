@@ -14,18 +14,20 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/setup/ConstraintElement.h>
 #include <rigidbody/sequencer/setup/AutoConstraintsElement.h>
 #include <rigidbody/sequencer/setup/RelativeHydrationElement.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/sequencer/setup/SymmetryElement.h>
 
+#include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/transform/TransformFactory.h>
-
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/BodySplitter.h>
+
 #include <utility/observer_ptr.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
+#include <data/symmetry/PredefinedSymmetries.h>
 #include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
 
@@ -38,6 +40,7 @@ using namespace ausaxs::rigidbody::sequencer;
 enum class rigidbody::sequencer::ElementType {
     OverlapStrength,
     LoadElement,
+    SymmetryElement,
     Constraint,
     AutomaticConstraint,
     LoopBegin,
@@ -56,6 +59,7 @@ ElementType get_type(std::string_view line) {
     static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
         {ElementType::OverlapStrength, {"overlap_strength"}},
         {ElementType::LoadElement, {"load", "open"}},
+        {ElementType::SymmetryElement, {"symmetry"}},
         {ElementType::Constraint, {"constraint", "constrain"}},
         {ElementType::AutomaticConstraint, {"generate_constraints", "autoconstraints", "autoconstrain"}},
         {ElementType::LoopBegin, {"loop"}},
@@ -100,6 +104,7 @@ settings::rigidbody::DecayStrategyChoice get_decay_strategy(std::string_view lin
 settings::rigidbody::ParameterGenerationStrategyChoice get_parameter_strategy(std::string_view line) {
     if (line == "rotate_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}
     if (line == "translate_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly;}
+    if (line == "symmetry_only") {return settings::rigidbody::ParameterGenerationStrategyChoice::SymmetryOnly;}
     if (line == "both" || line == "rotate_and_translate") {return settings::rigidbody::ParameterGenerationStrategyChoice::Simple;}
     throw except::invalid_argument("SequenceParser::get_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
@@ -270,6 +275,30 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
 }
 
 template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    auto rigidbody = loop_stack.front()->_get_rigidbody();
+    if (rigidbody->size_body() < args.size()) {
+        throw except::invalid_argument(
+            "SequenceParser::parse_arguments: Too many arguments for \"symmetry\". "
+            "Expected no more than " + std::to_string(rigidbody->size_body()) + "."
+        );
+    }
+
+    // anonymous arg support
+    if (args.size() == 1) {
+        return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{"b1"}, std::vector{symmetry::get(args.begin()->second[0])});
+    }
+
+    std::vector<symmetry::type> symmetries;
+    std::vector<std::string> names;
+    for (const auto& [name, value] : args) {
+        names.push_back(name);
+        symmetries.push_back(symmetry::get(value[0]));
+    }
+    return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), names, symmetries);
+}
+
+template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"loop\". Expected 1, but got " + std::to_string(args.size()) + ".");}
 
@@ -331,6 +360,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     return std::make_unique<ParameterElement>(
         loop_stack.back(),
         rigidbody::factory::create_parameter_strategy(
+            loop_stack.front()->_get_rigidbody(),
             rigidbody::factory::create_decay_strategy(iterations.value, decay_strategy),
             angstroms.value,
             radians.value,
@@ -399,42 +429,18 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Rel
     auto rigidbody = loop_stack.front()->_get_rigidbody();
     if (args.size() != rigidbody->size_body()) {
         throw except::invalid_argument(
-            "SequenceParser::parse_arguments: Invalid number of arguments for \"relative_hydration\". Expected 0, but got " + std::to_string(args.size()) + "."
+            "SequenceParser::parse_arguments: Invalid number of arguments for \"relative_hydration\". "
+            "Expected " + std::to_string(rigidbody->size_body()) + ", but got " + std::to_string(args.size()) + "."
         );
     }
-
-    int N = rigidbody->size_body();
-    std::unordered_map<int, bool> found_generic;
-    for (int i = 1; i <= N; ++i) {found_generic[i] = false;}
 
     std::vector<double> ratios;
     std::vector<std::string> names;
     for (const auto& [name, value] : args) {
-        double val = to_value(options[value[0]]);
-
-        if (name.starts_with("body")) {
-            int body = std::stoi(name.substr(4));
-            if (body < 1 || body > N) {
-                throw except::invalid_argument("SequenceParser::parse_arguments: Invalid body index \"" + name + "\".");
-            }
-            ratios.push_back(val);
-            found_generic[body] = true;
-            continue;
-        }
-
         names.push_back(name);
-        ratios.push_back(val);
+        ratios.push_back(to_value(options[value[0]]));
     }
-
-    if (names.empty()) { // only empty if no custom names were given
-        if (std::any_of(found_generic.begin(), found_generic.end(), [] (const auto& p) {return !p.second;})) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
-        }
-        return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), ratios);
-    } else if (names.size() != ratios.size()) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: \"relative_hydration\": Mixing generic naming with custom naming is not supported.");
-    }
-    return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), ratios, names);
+    return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), names, ratios);
 }
 
 template<>
@@ -593,6 +599,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
             case ElementType::LoadElement:
                 loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::LoadElement>(args));
+                break;
+
+            case ElementType::SymmetryElement:
+                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::SymmetryElement>(args));
                 break;
 
             case ElementType::OverlapStrength:

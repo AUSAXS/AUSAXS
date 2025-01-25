@@ -28,13 +28,13 @@ std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vect
     if (!header.empty() && header.back().find("type") != std::string::npos) {
         std::string type = header.back().substr(6);
         if (mode == 2) {
-            if (type != "xy") {console::print_warning("The column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I].");}
+            if (type != "xy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I].");}
         }
         else if (mode == 3) {
-            if (type != "xydy") {console::print_warning("The column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I | Ierr].");}
+            if (type != "xydy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I | Ierr].");}
         }
         else if (mode == 4) {
-            if (type != "xydxdy") {console::print_warning("The column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I | Ierr | qerr].");}
+            if (type != "xydxdy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I | Ierr | qerr].");}
         }
     }
 

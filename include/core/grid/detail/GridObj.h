@@ -4,19 +4,21 @@
 #include <math/MathFwd.h>
 #include <container/Container3D.h>
 
+#include <cstdint>
+
 namespace ausaxs::grid::detail {
     /**
         * @brief A simple enum to represent the different states of a grid cell. 
         *        We use bit flags to allow more efficient bitwise operations on them. 
         */
     enum State : uint8_t {
-        EMPTY       = (1 << 0),
-        VOLUME      = (1 << 1),
-        VACUUM      = (1 << 2),
-        A_CENTER    = (1 << 3),
-        A_AREA      = (1 << 4),
-        W_CENTER    = (1 << 5),
-        W_AREA      = (1 << 6),
+        EMPTY       = (1 << 0), // empty bin
+        VOLUME      = (1 << 1), // bin is part of atomic volume outside its vdw radius
+        VACUUM      = (1 << 2), 
+        A_CENTER    = (1 << 3), // bin is the center of an atom
+        A_AREA      = (1 << 4), // bin is part of an atomic volume inside its vdw radius
+        W_CENTER    = (1 << 5), // bin is the center of a water molecule
+        W_AREA      = (1 << 6), // bin is part of a water volume inside its vdw radius
         RESERVED_1  = (1 << 7),
     };
 
