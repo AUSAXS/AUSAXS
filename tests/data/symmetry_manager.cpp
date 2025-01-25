@@ -475,6 +475,7 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a1}}});
         set_unity_charge(m);
+        m.get_body(0).symmetry().add({{0, 0, 1}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, 4});
 
         symmetry::SymmetryManagerMT sm;
         auto h = sm.calculate<true>(m)->get_total_counts();

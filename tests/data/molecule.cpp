@@ -262,6 +262,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_total_histogram") {
 
 TEST_CASE("Molecule::save", "[files]") {
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
 
     Molecule protein("tests/files/2epe.pdb");
     protein.save("temp/tests/protein_save_2epe.pdb");

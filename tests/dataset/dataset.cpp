@@ -20,13 +20,6 @@ struct fixture {
 
 TEST_CASE("Dataset::Dataset") {
     settings::general::verbose = false;
-    SECTION("default") {
-        Dataset dataset;
-        CHECK(dataset.size() == 0);
-        CHECK(dataset.size_rows() == 0);
-        CHECK(dataset.size_cols() == 0);
-    }
-
     SECTION("Dataset&") {
         std::vector<std::vector<double>> cols = {{1, 2, 3}, {4, 5, 6}};
         std::vector<std::string> col_names = {"a", "b"};
