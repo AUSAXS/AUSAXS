@@ -7,23 +7,32 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-std::vector<AtomFF> symmetry::detail::MoleculeSymmetryFacade::explicit_structure() const {
-    std::vector<AtomFF> atoms = molecule->get_atoms();
-    int N = std::accumulate(
+data::detail::SimpleBody symmetry::detail::MoleculeSymmetryFacade::explicit_structure() const {
+    std::vector<AtomFF> atoms;
+    std::vector<Water> waters;
+    int Na = std::accumulate(
         molecule->get_bodies().begin(), 
         molecule->get_bodies().end(), 
         0, 
         [] (int sum, const Body& body) {return sum + body.size_atom()*(body.size_symmetry_total()+1);}
     );
-    atoms.reserve(N);
+    int Nw = std::accumulate(
+        molecule->get_bodies().begin(), 
+        molecule->get_bodies().end(), 
+        0, 
+        [] (int sum, const Body& body) {return sum + body.size_water()*(body.size_symmetry_total()+1);}
+    );
+    atoms.reserve(Na);
+    waters.reserve(Nw);
     for (const auto& body : molecule->get_bodies()) {
-        auto body_atoms = body.symmetry().explicit_structure().get_atoms();
-        atoms.insert(atoms.end(), body_atoms.begin(), body_atoms.end());
+        auto body_atoms = body.symmetry().explicit_structure();
+        atoms.insert(atoms.end(), body_atoms.atoms.begin(), body_atoms.atoms.end());
+        waters.insert(waters.end(), body_atoms.waters.begin(), body_atoms.waters.end());
     }
-    return atoms;
+    return {atoms, waters};
 }
 
 void symmetry::detail::MoleculeSymmetryFacade::save(const io::File& path) const {
-    auto atoms = explicit_structure();
-    io::Writer::write(io::pdb::PDBStructure(Body(std::move(atoms))), path);
+    auto body = explicit_structure();
+    io::Writer::write(io::pdb::PDBStructure(Body(std::move(body.atoms), std::move(body.waters))), path);
 }
