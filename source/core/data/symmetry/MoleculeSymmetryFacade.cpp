@@ -14,13 +14,13 @@ data::detail::SimpleBody symmetry::detail::MoleculeSymmetryFacade::explicit_stru
         molecule->get_bodies().begin(), 
         molecule->get_bodies().end(), 
         0, 
-        [] (int sum, const Body& body) {return sum + body.size_atom()*(body.size_symmetry_total()+1);}
+        [] (int sum, const Body& body) {return sum + body.symmetry().size_atom_total();}
     );
     int Nw = std::accumulate(
         molecule->get_bodies().begin(), 
         molecule->get_bodies().end(), 
         0, 
-        [] (int sum, const Body& body) {return sum + body.size_water()*(body.size_symmetry_total()+1);}
+        [] (int sum, const Body& body) {return sum + body.symmetry().size_water_total();}
     );
     atoms.reserve(Na);
     waters.reserve(Nw);

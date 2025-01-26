@@ -60,6 +60,16 @@ void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::set_obj(std::unique_p
 }
 
 template<typename BODY, bool NONCONST>
+std::size_t symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_atom_total() const {
+    return body->size_atom()*(body->size_symmetry_total()+1);
+}
+
+template<typename BODY, bool NONCONST>
+std::size_t symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_water_total() const {
+    return body->size_water()*(body->size_symmetry_total()+1);
+}
+
+template<typename BODY, bool NONCONST>
 data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::explicit_structure() const {
     std::vector<AtomFF> atoms = body->get_atoms();
     std::vector<Water> waters = body->size_water() == 0 ? std::vector<Water>{} : body->get_waters();

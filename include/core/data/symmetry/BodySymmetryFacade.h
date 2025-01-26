@@ -39,6 +39,16 @@ namespace ausaxs::symmetry::detail {
             [[nodiscard]] observer_ptr<const symmetry::SymmetryStorage> get_obj() const; //< @copydoc get_obj()
 
             /**
+             * @brief Get the total number of atoms in the body, including all symmetries.
+             */
+            std::size_t size_atom_total() const; 
+
+            /**
+             * @brief Get the total number of water molecules in the body, including all symmetries.
+             */
+            std::size_t size_water_total() const;
+
+            /**
              * @brief Set the symmetry storage object.
              */
             void set_obj(std::unique_ptr<symmetry::SymmetryStorage> obj) requires (NONCONST);
