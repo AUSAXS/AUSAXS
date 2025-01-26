@@ -1,6 +1,7 @@
 #pragma once
 
 #include <data/DataFwd.h>
+#include <data/detail/SimpleBody.h>
 #include <data/symmetry/Symmetry.h>
 #include <data/symmetry/SymmetryStorage.h>
 #include <data/symmetry/PredefinedSymmetries.h>
@@ -50,7 +51,7 @@ namespace ausaxs::symmetry::detail {
             /**
              * @brief Apply all symmetries to the body, returning a new larger body with all the symmetries applied.
              */
-            [[nodiscard]] data::Body explicit_structure() const;
+            [[nodiscard]] data::detail::SimpleBody explicit_structure() const;
 
         private:
             observer_ptr<BODY> body;
