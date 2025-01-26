@@ -7,7 +7,7 @@
 #include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
 
-namespace ausaxs::data::detail {
+namespace ausaxs::symmetry::detail {
     template<typename BODY, bool NONCONST = !std::is_const_v<BODY>>
     class BodySymmetryFacade {
         public:
@@ -22,20 +22,20 @@ namespace ausaxs::data::detail {
             /**
              * @brief Get the symmetries of this body.
              */
-            std::vector<symmetry::Symmetry>& get() requires (NONCONST);
-            const std::vector<symmetry::Symmetry>& get() const; //< @copydoc get_symmetries()
+            [[nodiscard]] std::vector<symmetry::Symmetry>& get() requires (NONCONST);
+            [[nodiscard]] const std::vector<symmetry::Symmetry>& get() const; //< @copydoc get_symmetries()
 
             /**
              * @brief Get the symmetry at the specified index.
              */
-            symmetry::Symmetry& get(unsigned int index) requires (NONCONST);
-            const symmetry::Symmetry& get(unsigned int index) const; //< @copydoc get_symmetry()
+            [[nodiscard]] symmetry::Symmetry& get(unsigned int index) requires (NONCONST);
+            [[nodiscard]] const symmetry::Symmetry& get(unsigned int index) const; //< @copydoc get_symmetry()
 
             /**
              * @brief Get the symmetry storage object.
              */
-            observer_ptr<symmetry::SymmetryStorage> get_obj() requires (NONCONST);
-            observer_ptr<const symmetry::SymmetryStorage> get_obj() const; //< @copydoc get_obj()
+            [[nodiscard]] observer_ptr<symmetry::SymmetryStorage> get_obj() requires (NONCONST);
+            [[nodiscard]] observer_ptr<const symmetry::SymmetryStorage> get_obj() const; //< @copydoc get_obj()
 
             /**
              * @brief Set the symmetry storage object.
@@ -50,7 +50,7 @@ namespace ausaxs::data::detail {
             /**
              * @brief Apply all symmetries to the body, returning a new larger body with all the symmetries applied.
              */
-            Body get_explicit_structure() const;
+            [[nodiscard]] data::Body explicit_structure() const;
 
         private:
             observer_ptr<BODY> body;

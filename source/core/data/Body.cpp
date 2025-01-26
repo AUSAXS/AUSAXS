@@ -102,9 +102,9 @@ void Body::initialize() {
     signal = std::make_shared<signaller::UnboundSignaller>();
 }
 
-data::detail::BodySymmetryFacade<Body> Body::symmetry() {return data::detail::BodySymmetryFacade<Body>(this);}
+symmetry::detail::BodySymmetryFacade<Body> Body::symmetry() {return symmetry::detail::BodySymmetryFacade<Body>(this);}
 
-data::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return data::detail::BodySymmetryFacade<const Body>(this);}
+symmetry::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return symmetry::detail::BodySymmetryFacade<const Body>(this);}
 
 Vector3<double> Body::get_cm() const {
     Vector3<double> cm{0, 0, 0};
