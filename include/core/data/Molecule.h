@@ -4,6 +4,7 @@
 #include <data/DataFwd.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
+#include <data/symmetry/MoleculeSymmetryFacade.h>
 #include <math/MathFwd.h>
 #include <io/ExistingFile.h>
 #include <utility/observer_ptr.h>
@@ -187,6 +188,12 @@ namespace ausaxs::data {
 			 *        Complexity: O(n)
 			 */
 			[[nodiscard]] std::vector<data::Water> get_waters() const;
+
+			/**
+			 * @brief Get the symmetry facade of this molecule. 
+			 *		  This gives access to various symmetry operations, such as getting the full explicit structure.
+			 */
+			[[nodiscard]] symmetry::detail::MoleculeSymmetryFacade symmetry() const;
 
 			/**
 			 * @brief Create a grid and fill it with the atoms of this molecule. 
