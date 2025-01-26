@@ -356,9 +356,11 @@ void Grid::remove_waters(const std::vector<bool>& to_remove) {
 std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
     int start = a_members.size();
     body_start[body.get_uid()] = start;
-    a_members.resize(a_members.size() + body.size_atom());
+    a_members.resize(a_members.size() + body.symmetry().size_atom_total());
+    auto b_atoms = body.symmetry().explicit_structure().atoms;
+
     for (int i = start; i < static_cast<int>(a_members.size()); i++) {
-        auto& atom = body.get_atoms()[i-start];
+        auto& atom = b_atoms[i-start];
         auto loc = to_bins(atom.coordinates());
         unsigned int x = loc.x(), y = loc.y(), z = loc.z();
 
@@ -434,7 +436,7 @@ void Grid::remove(const Body& body) {
 
     // find start and end indices of the body atoms
     int start = it->second;
-    int end = it->second + body.get_atoms().size();
+    int end = it->second + body.symmetry().size_atom_total();
     assert(end <= static_cast<int>(a_members.size()) && "Grid::remove: Contained bodies have been modified after being added to the grid.");
 
     // deflate and remove all atoms in the body from the grid
