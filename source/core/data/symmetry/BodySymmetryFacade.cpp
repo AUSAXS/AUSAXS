@@ -60,7 +60,7 @@ void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::set_obj(std::unique_p
 }
 
 template<typename BODY, bool NONCONST>
-Body symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::explicit_structure() const {
+data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::explicit_structure() const {
     std::vector<AtomFF> atoms = body->get_atoms();
     std::vector<Water> waters = body->size_water() == 0 ? std::vector<Water>{} : body->get_waters();
     atoms.reserve(body->size_symmetry_total()*body->size_atom());
@@ -80,13 +80,13 @@ Body symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::explicit_structure() 
         }
     }
 
-    return Body(atoms, waters);
+    return data::detail::SimpleBody(atoms, waters);
 }
 
 template<typename BODY, bool NONCONST>
 void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::save(const io::File& path) const {
     auto body = explicit_structure();
-    io::Writer::write(io::pdb::PDBStructure(body), path);
+    io::Writer::write(io::pdb::PDBStructure(Body(std::move(body.atoms), std::move(body.waters))), path);
 }
 
 template class symmetry::detail::BodySymmetryFacade<data::Body>;
