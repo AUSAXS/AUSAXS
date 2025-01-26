@@ -3,6 +3,7 @@ target_sources(ausaxs_core PRIVATE
 	"Molecule.cpp"
 
 	"symmetry/BodySymmetryFacade.cpp"
+	"symmetry/MoleculeSymmetryFacade.cpp"
 	"symmetry/SymmetryManagerMT.cpp"
 	"symmetry/PredefinedSymmetries.cpp"
 	"symmetry/detail/SymmetryHelpers.cpp"
