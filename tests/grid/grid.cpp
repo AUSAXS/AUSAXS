@@ -186,6 +186,48 @@ TEST_CASE("Grid::add") {
         }
     }
 
+    // check that the grid is symmetry-aware
+    SECTION("Body symmetries") {
+        SECTION("") {
+            Body body{std::vector{
+                AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
+            }};
+            body.symmetry().add({{1, 1, 1}});
+            grid.add(body, false);
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == A_CENTER);
+            CHECK(g.index(10, 10, 11) == EMPTY);
+            CHECK(g.index(10, 11, 11) == EMPTY);
+            CHECK(g.index(11, 10, 10) == EMPTY);
+            CHECK(g.index(9, 8, 14) == EMPTY);
+
+            CHECK(g.index(11, 11, 11) == A_CENTER);
+            CHECK(g.index(11, 11, 12) == EMPTY);
+            CHECK(g.index(11, 12, 12) == EMPTY);
+            CHECK(g.index(12, 11, 11) == EMPTY);
+            CHECK(g.index(10, 9, 15) == EMPTY);
+            CHECK(grid.get_volume_without_expanding() == 2);
+        }
+
+        SECTION("") {
+            Body body{std::vector{
+                AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
+            }};
+            body.symmetry().add({{1, 1, 1}, {0, 0, 0}, {0, 0, 0}, 5});
+            grid.add(body, false);
+            GridObj& g = grid.grid;
+
+            CHECK(g.index(10, 10, 10) == A_CENTER);
+            CHECK(g.index(11, 11, 11) == A_CENTER);
+            CHECK(g.index(12, 12, 12) == A_CENTER);
+            CHECK(g.index(13, 13, 13) == A_CENTER);
+            CHECK(g.index(14, 14, 14) == A_CENTER);
+            CHECK(g.index(15, 15, 15) == A_CENTER);
+            CHECK(grid.get_volume_without_expanding() == 6);
+        }
+    }
+
     SECTION("Water") {
         SECTION("") {
             std::vector<Water> w = {Water({0, 0, 0})};
@@ -433,6 +475,26 @@ TEST_CASE("Grid::remove") {
             AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
             AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
         }};
+        grid.add(b, true);
+        grid.remove(b);
+        GridObj& g = grid.grid;
+
+        auto axes = grid.get_axes();
+        for (unsigned int i = 0; i < axes.x.bins; i++) {
+            for (unsigned int j = 0; j < axes.y.bins; j++) {
+                for (unsigned int k = 0; k < axes.z.bins; k++) {
+                    CHECK(g.index(i, j, k) == EMPTY);
+                }
+            }
+        }
+        CHECK(grid.get_volume() == 0);
+    }
+
+    SECTION("symmetry-aware") {
+        Body b{std::vector{
+            AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
+        }};
+        b.symmetry().add({{1, 1, 1}});
         grid.add(b, true);
         grid.remove(b);
         GridObj& g = grid.grid;
