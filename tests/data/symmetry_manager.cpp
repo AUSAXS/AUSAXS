@@ -12,6 +12,8 @@
 
 #include "hist/hist_test_helper.h"
 
+#include <random>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 
@@ -491,7 +493,6 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
     }
 }
 
-#include <random>
 TEST_CASE("SymmetryManager: random tests") {
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -525,7 +526,8 @@ TEST_CASE("SymmetryManager: random tests") {
             symmetry::SymmetryManagerMT sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
 
-            auto m2 = Molecule({m.get_body(0).symmetry().get_explicit_structure()});
+            auto b = m.get_body(0).symmetry().explicit_structure();
+            auto m2 = Molecule({Body{std::move(b.atoms), std::move(b.waters)}});
             set_unity_charge(m2);
             auto h2 = m2.get_histogram()->get_total_counts();
 
@@ -560,7 +562,8 @@ TEST_CASE("SymmetryManager: random tests") {
             symmetry::SymmetryManagerMT sm;
             auto h = sm.calculate<true>(m)->get_total_counts();
 
-            auto m2 = Molecule({m.get_body(0).symmetry().get_explicit_structure()});
+            auto b = m.get_body(0).symmetry().explicit_structure();
+            auto m2 = Molecule({Body{std::move(b.atoms), std::move(b.waters)}});
             set_unity_charge(m2);
             auto h2 = m2.get_histogram()->get_total_counts();
 

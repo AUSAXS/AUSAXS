@@ -32,8 +32,8 @@ void XYZWriter::write_frame(const data::Molecule* protein) {
     std::vector<data::AtomFF> atoms;
     atoms.reserve(protein->size_atom());
     for (const auto& body : protein->get_bodies()) {
-        auto bsym = body.symmetry().get_explicit_structure();
-        atoms.insert(atoms.end(), bsym.get_atoms().begin(), bsym.get_atoms().end());
+        auto bsym = body.symmetry().explicit_structure();
+        atoms.insert(atoms.end(), bsym.atoms.begin(), bsym.atoms.end());
     }
     file << " " << atoms.size() << std::endl;
     file << " Frame " << frame++ << std::endl;
