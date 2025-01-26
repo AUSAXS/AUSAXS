@@ -2,6 +2,7 @@
 
 #include <utility/observer_ptr.h>
 #include <data/atoms/AtomFF.h>
+#include <data/detail/SimpleBody.h>
 #include <data/DataFwd.h>
 
 namespace ausaxs::symmetry::detail {
@@ -12,7 +13,7 @@ namespace ausaxs::symmetry::detail {
             /**
              * @brief Apply all symmetries to the molecule and get all atoms in the resulting explicit structure.
              */
-            std::vector<data::AtomFF> explicit_structure() const;
+            data::detail::SimpleBody explicit_structure() const;
 
             /**
              * @brief Save the explicit structure to a file.
