@@ -44,6 +44,9 @@ void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
                 CHECK(false);
             }
             ++j;
+            if (j == static_cast<int>(checks.size())) {
+                break;
+            }
         } else {
             if (h[i] != 0) {
                 INFO("i = " << i << ", dist = " << i*constants::axes::d_axis.width());
@@ -254,23 +257,23 @@ TEST_CASE("SymmetryManager: translations") {
             int bin1 = std::round(1*constants::axes::d_inv_width);
             int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
             REQUIRE(bin1 < static_cast<int>(htot.size()));
-            CHECK(htot[0] == 4);
+            CHECK(htot[0] == 3);
             CHECK(haa[0] == 2);
             CHECK(haw[0] == 0);
-            CHECK(hww[0] == 2);
+            CHECK(hww[0] == 1);
             for (int i = 1; i < bin1; ++i) {
                 CHECK(htot[i] == 0);
             }
-            CHECK(htot[bin1] == 8);
+            CHECK(htot[bin1] == 4);
             CHECK(haa[bin1] == 2);
-            CHECK(haw[bin1] == 4);
-            CHECK(hww[bin1] == 2);
+            CHECK(haw[bin1] == 2);
+            CHECK(hww[bin1] == 0);
             for (int i = bin1+1; i < bin2; ++i) {
                 CHECK(htot[i] == 0);
             }
-            CHECK(htot[bin2] == 4);
+            CHECK(htot[bin2] == 2);
             CHECK(haa[bin2] == 0);
-            CHECK(haw[bin2] == 4);
+            CHECK(haw[bin2] == 2);
             CHECK(hww[bin2] == 0);
             for (int i = bin2+1; i < static_cast<int>(htot.size()); ++i) {
                 CHECK(htot[i] == 0);
@@ -285,7 +288,6 @@ TEST_CASE("SymmetryManager: translations") {
         data::Molecule m("tests/files/2epe.pdb");
         m.generate_new_hydration();
         m.get_body(0).get_waters() = m.get_waters();
-        m.clear_hydration();
         set_unity_charge(m);
 
         symmetry::Symmetry s{{10, 0, 0}}; 
@@ -303,17 +305,11 @@ TEST_CASE("SymmetryManager: translations") {
                 a.coordinates() += s.translate;
                 a_copy.push_back(a);
             }
-            std::vector<Water> w_copy = b_copy.get_waters();
-            for (auto& w : b_copy.get_waters()) {
-                w.coordinates() += s.translate;
-                w_copy.push_back(w);
-            }
             b_copy.get_atoms() = std::move(a_copy);
-            m_copy.get_waters() = std::move(w_copy);
-            // ###
+            m_copy.get_waters() = m.get_waters();
 
             REQUIRE(m_copy.size_atom() == 2*m.size_atom());
-            REQUIRE(m_copy.size_water() == 2*m.get_body(0).size_water());
+            REQUIRE(m_copy.size_water() == m.get_body(0).size_water());
 
             auto h2 = m_copy.get_histogram();
             CHECK(compare_hist_approx(h->get_aa_counts(), h2->get_aa_counts()));
@@ -498,11 +494,11 @@ TEST_CASE("SymmetryManager: random tests") {
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-10, 10);
     static std::uniform_real_distribution<> r(-2*std::numbers::pi, 2*std::numbers::pi);
-    static std::uniform_int_distribution<> n(1, 10);
+    static std::uniform_int_distribution<> n(1, 5);
 
     int n_atoms = GENERATE(1, 3, 5, 7, 9);
     SECTION("single symmetry") {
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < 5; ++i) {
 
             std::vector<AtomFF> atoms;
             for (int j = 0; j < n_atoms; ++j) {

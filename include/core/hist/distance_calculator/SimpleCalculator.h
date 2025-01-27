@@ -8,6 +8,7 @@
 #include <utility/MultiThreading.h>
 
 #include <vector>
+#include <unordered_map>
 
 namespace ausaxs::hist::distance_calculator {
     /**
@@ -19,9 +20,8 @@ namespace ausaxs::hist::distance_calculator {
     class SimpleCalculator {
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
         struct run_result {
-            run_result(int size_self, int size_cross) : self(size_self), cross(size_cross) {}
-            std::vector<GenericDistribution1D_t> self;
-            std::vector<GenericDistribution1D_t> cross;
+            std::unordered_map<int, GenericDistribution1D_t> self;
+            std::unordered_map<int, GenericDistribution1D_t> cross;
         };
 
         public:
@@ -64,6 +64,7 @@ namespace ausaxs::hist::distance_calculator {
 
         private:
             std::vector<std::unique_ptr<container::ThreadLocalWrapper<GenericDistribution1D_t>>> self_results, cross_results;
+            std::unordered_map<int, int> self_merge_ids, cross_merge_ids;
 
             template<int scaling>
             int enqueue_calculate_self(const hist::detail::CompactCoordinates& data, int merge_id);
@@ -81,13 +82,13 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
     auto pool = utility::multi_threading::get_global_pool();
 
     int res_idx;
-    if (merge_id == -1 || merge_id == static_cast<int>(self_results.size())) {
-        // second condition is to enable using size_self_result() to get the next merge_id
+    if (!self_merge_ids.contains(merge_id)) {
+        res_idx = self_results.size();
+        merge_id = merge_id == -1 ? res_idx : merge_id;
+        self_merge_ids[merge_id] = res_idx;
         self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(constants::axes::d_axis.bins));
-        res_idx = self_results.size()-1;
     } else {
-        assert(merge_id < static_cast<int>(self_results.size()));
-        res_idx = merge_id;
+        res_idx = self_merge_ids[merge_id];
     }
 
     auto res_ptr = self_results[res_idx].get();
@@ -121,7 +122,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
     pool->detach_task(
         [&data, res_ptr] () {
             auto& p_aa = res_ptr->get();
-            p_aa.add(0, std::accumulate(
+            p_aa.add(0, scaling*std::accumulate(
                 data.get_data().begin(), 
                 data.get_data().end(), 
                 0.0, 
@@ -140,12 +141,15 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_
     int merge_id
 ) {
     auto pool = utility::multi_threading::get_global_pool();
+
     int res_idx;
-    if (merge_id == -1) {
+    if (!cross_merge_ids.contains(merge_id)) {
+        res_idx = cross_results.size();
+        merge_id = merge_id == -1 ? res_idx : merge_id;
+        cross_merge_ids[merge_id] = res_idx;
         cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(constants::axes::d_axis.bins));
-        res_idx = cross_results.size()-1;
     } else {
-        res_idx = merge_id;
+        res_idx = cross_merge_ids[merge_id];
     }
 
     auto res_ptr = cross_results[res_idx].get();
@@ -192,20 +196,21 @@ template<bool weighted_bins>
 inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run() {
     auto pool = utility::multi_threading::get_global_pool();
     pool->wait();
-    run_result result(size_self_result(), size_cross_result());
+    run_result result;
 
-    // results_X contains the thread-local histograms. We need to merge them into a single final histogram
-    for (int i = 0; i < static_cast<int>(result.self.size()); ++i) {
-        result.self[i] = self_results[i]->merge();
+    for (auto[i, j] : self_merge_ids) {
+        result.self[i] = self_results[j]->merge();
     }
 
-    for (int i = 0; i < static_cast<int>(result.cross.size()); ++i) {
-        result.cross[i] = cross_results[i]->merge();
+    for (auto[i, j] : cross_merge_ids) {
+        result.cross[i] = cross_results[j]->merge();
     }
 
     // cleanup
     self_results.clear();
     cross_results.clear();
+    self_merge_ids.clear();
+    cross_merge_ids.clear();
 
     return result;
 }
@@ -220,17 +225,27 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
     int merge_id
 ) {
     switch (scaling) {
-        case 1: return enqueue_calculate_self<1>(data, merge_id);
-        case 2: return enqueue_calculate_self<2>(data, merge_id);
-        case 3: return enqueue_calculate_self<3>(data, merge_id);
-        case 4: return enqueue_calculate_self<4>(data, merge_id);
-        case 5: return enqueue_calculate_self<5>(data, merge_id);
-        case 6: return enqueue_calculate_self<6>(data, merge_id);
-        case 7: return enqueue_calculate_self<7>(data, merge_id);
-        case 8: return enqueue_calculate_self<8>(data, merge_id);
-        case 9: return enqueue_calculate_self<9>(data, merge_id);
+        case 1:  return enqueue_calculate_self<1>(data, merge_id);
+        case 2:  return enqueue_calculate_self<2>(data, merge_id);
+        case 3:  return enqueue_calculate_self<3>(data, merge_id);
+        case 4:  return enqueue_calculate_self<4>(data, merge_id);
+        case 5:  return enqueue_calculate_self<5>(data, merge_id);
+        case 6:  return enqueue_calculate_self<6>(data, merge_id);
+        case 7:  return enqueue_calculate_self<7>(data, merge_id);
+        case 8:  return enqueue_calculate_self<8>(data, merge_id);
+        case 9:  return enqueue_calculate_self<9>(data, merge_id);
         case 10: return enqueue_calculate_self<10>(data, merge_id);
-        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_self: too large scaling factor");
+        case 11: return enqueue_calculate_self<11>(data, merge_id);
+        case 12: return enqueue_calculate_self<12>(data, merge_id);
+        case 13: return enqueue_calculate_self<13>(data, merge_id);
+        case 14: return enqueue_calculate_self<14>(data, merge_id);
+        case 15: return enqueue_calculate_self<15>(data, merge_id);
+        case 16: return enqueue_calculate_self<16>(data, merge_id);
+        case 17: return enqueue_calculate_self<16>(data, merge_id);
+        case 18: return enqueue_calculate_self<16>(data, merge_id);
+        case 19: return enqueue_calculate_self<16>(data, merge_id);
+        case 20: return enqueue_calculate_self<16>(data, merge_id);
+        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_self: too large scaling factor (" + std::to_string(scaling) + ")");
     }
 }
 
@@ -245,16 +260,26 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
     int merge_id
 ) {
     switch (scaling) {
-        case 1: return enqueue_calculate_cross<1>(data_1, data_2, merge_id);
-        case 2: return enqueue_calculate_cross<2>(data_1, data_2, merge_id);
-        case 3: return enqueue_calculate_cross<3>(data_1, data_2, merge_id);
-        case 4: return enqueue_calculate_cross<4>(data_1, data_2, merge_id);
-        case 5: return enqueue_calculate_cross<5>(data_1, data_2, merge_id);
-        case 6: return enqueue_calculate_cross<6>(data_1, data_2, merge_id);
-        case 7: return enqueue_calculate_cross<7>(data_1, data_2, merge_id);
-        case 8: return enqueue_calculate_cross<8>(data_1, data_2, merge_id);
-        case 9: return enqueue_calculate_cross<9>(data_1, data_2, merge_id);
+        case 1:  return enqueue_calculate_cross<1>(data_1, data_2, merge_id);
+        case 2:  return enqueue_calculate_cross<2>(data_1, data_2, merge_id);
+        case 3:  return enqueue_calculate_cross<3>(data_1, data_2, merge_id);
+        case 4:  return enqueue_calculate_cross<4>(data_1, data_2, merge_id);
+        case 5:  return enqueue_calculate_cross<5>(data_1, data_2, merge_id);
+        case 6:  return enqueue_calculate_cross<6>(data_1, data_2, merge_id);
+        case 7:  return enqueue_calculate_cross<7>(data_1, data_2, merge_id);
+        case 8:  return enqueue_calculate_cross<8>(data_1, data_2, merge_id);
+        case 9:  return enqueue_calculate_cross<9>(data_1, data_2, merge_id);
         case 10: return enqueue_calculate_cross<10>(data_1, data_2, merge_id);
-        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_cross: too large scaling factor");
+        case 11: return enqueue_calculate_cross<11>(data_1, data_2, merge_id);
+        case 12: return enqueue_calculate_cross<12>(data_1, data_2, merge_id);
+        case 13: return enqueue_calculate_cross<13>(data_1, data_2, merge_id);
+        case 14: return enqueue_calculate_cross<14>(data_1, data_2, merge_id);
+        case 15: return enqueue_calculate_cross<15>(data_1, data_2, merge_id);
+        case 16: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
+        case 17: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
+        case 18: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
+        case 19: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
+        case 20: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
+        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_cross: too large scaling factor (" + std::to_string(scaling) + ")");
     }
 }
