@@ -3,8 +3,8 @@
 namespace ausaxs::residue {
     class ResidueStorage;
     namespace detail {
-        class Atom;
-        class Bond;
+        struct Atom;
+        struct Bond;
         class Residue;
     }
 }

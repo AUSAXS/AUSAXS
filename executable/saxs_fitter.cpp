@@ -38,8 +38,12 @@ int main(int argc, char const *argv[]) {
 
     // advanced options
     app.add_flag("!--ignore-unknown-atom", settings::molecule::throw_on_unknown_atom, 
-        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of issues."
-    )->default_val(settings::molecule::throw_on_unknown_atom)->group("Advanced options");
+        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of issues.")
+        ->default_val(settings::molecule::throw_on_unknown_atom)
+        ->group("Advanced options");
+    app.add_flag("--offline", settings::general::offline, "Run the program in offline mode. This will prevent any network requests.")
+        ->default_val(settings::general::offline)
+        ->group("Advanced options");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
     app.add_flag("--save-settings", save_settings, "Save the settings to a file.")->default_val(save_settings)->group("Advanced options");
     app.add_flag_callback("--log", [] () {logging::start("saxs_fitter");}, "Enable logging to a file.")->group("Advanced options");
@@ -178,7 +182,6 @@ int main(int argc, char const *argv[]) {
         //### ACTUAL PROGRAM ###//
         //######################//
         data::Molecule protein(pdb);
-        if (settings::molecule::implicit_hydrogens) {std::cout << "NOT IMPLEMENTED" << std::endl;}
         if (!use_existing_hydration || protein.size_water() == 0) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();

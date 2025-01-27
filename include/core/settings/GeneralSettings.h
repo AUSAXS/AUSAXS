@@ -4,6 +4,7 @@
 
 namespace ausaxs::settings::general {
     extern std::string residue_folder;  // Download location for all ligand files.
+    extern bool offline;                // Whether to use the offline mode. This will prevent any network requests, but may result in less accurate results.
     extern bool verbose;                // Whether to print out extra information.
     extern bool warnings;               // Whether to print out warnings.
     extern unsigned int threads;        // The number of threads to use for parallelization.
