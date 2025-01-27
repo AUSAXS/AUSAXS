@@ -4,8 +4,9 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <residue/ResidueStorage.h>
-#include <residue/ResidueMap.h>
-#include <residue/InvalidResidueMap.h>
+#include <residue/detail/ResidueMap.h>
+#include <residue/detail/InvalidResidueMap.h>
+#include <residue/detail/ResidueStorageBasis.h>
 #include <io/ExistingFile.h>
 #include <utility/Curl.h>
 #include <utility/Console.h>
@@ -22,7 +23,7 @@ using namespace ausaxs;
 using namespace ausaxs::residue;
 using namespace ausaxs::residue::detail;
 
-ResidueStorage::ResidueStorage() {}
+ResidueStorage::ResidueStorage() = default;
 
 ResidueStorage::~ResidueStorage() = default;
 
@@ -66,7 +67,9 @@ void ResidueStorage::initialize() {
     io::Folder(path).create();
     std::ifstream file(path + "master.dat");
     if (!file.is_open()) {
-        return;
+        write_master_basis();
+        file.open(path + "master.dat");
+        if (!file.is_open()) {throw except::io_error("ResidueStorage::initialize: Could not open file: " + path + "master" + ".dat");}
     }
 
     std::string line;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <residue/ResidueMap.h>
+#include <residue/detail/ResidueMap.h>
 
 namespace ausaxs::residue::detail {
     class InvalidResidueMap : public ResidueMap {

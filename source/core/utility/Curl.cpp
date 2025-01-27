@@ -21,7 +21,7 @@ using namespace ausaxs;
 // based on the example from https://curl.se/libcurl/c/url2file.html
 bool curl::download(const std::string& url, const io::File& path) {
     if (settings::general::offline) {
-        console::print_warning("curl::download: Offline mode is enabled. Skipping download of " + url);
+        console::print_warning("curl::download: Offline mode is enabled. Skipping download of \"" + url + "\".");
         return false;
     }
 
@@ -31,10 +31,10 @@ bool curl::download(const std::string& url, const io::File& path) {
     if (curl) {
         FILE* fp = fopen(path.path().c_str(), "wb");
         res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set URL: " + url);}
+        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set URL: \"" + url + "\".");}
 
         res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set write data: " + path.path());}
+        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set write data: \"" + path.path() + "\".");}
 
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
@@ -47,6 +47,6 @@ bool curl::download(const std::string& url, const io::File& path) {
         return true;
     }
 
-    console::print_warning("curl::download: Failed to download " + url);
+    console::print_warning("curl::download: Failed to download \"" + url + "\".");
     return false;
 }

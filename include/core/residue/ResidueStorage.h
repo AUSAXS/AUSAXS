@@ -1,6 +1,6 @@
 #pragma once
 
-#include <residue/Residue.h>
+#include <residue/detail/Residue.h>
 
 namespace ausaxs::residue {
     /**
