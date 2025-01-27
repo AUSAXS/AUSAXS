@@ -1,10 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <constants/Constants.h>
+#include <utility/Curl.h>
+
 #include <map>
 #include <string>
-
-#include <constants/Constants.h>
 
 using namespace ausaxs;
 
@@ -321,10 +322,11 @@ TEST_CASE("ResidueParser: parse_all") {
 #include <io/detail/CIFReader.h>
 #include <settings/GeneralSettings.h>
 TEST_CASE("ResidueParser: cif_reader_single") {
-    // check that 
-    constants::hydrogen_atoms::residues.get("GLY");
-    auto residue = io::detail::cif::read_residue(settings::general::cache + "residues/GLY.cif").front().to_map();
-
+    io::File gly("temp/residues/GLY.cif");
+    if (!gly.exists()) {
+        REQUIRE(ausaxs::curl::download("files.rcsb.org/ligands/view/GLY.cif", "temp/residues/GLY.cif"));
+    }
+    auto residue = io::detail::cif::read_residue(gly).front().to_map();
     for (const auto& [atom, num] : hydrogen_atoms::glycine::get) {
         REQUIRE(num == residue.get(atom, constants::symbols::parse_element_string(std::string(1, atom[0]))));
     }
@@ -332,7 +334,12 @@ TEST_CASE("ResidueParser: cif_reader_single") {
 
 TEST_CASE("ResidueParser: cif_reader_all") {
     for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
-        auto residue = io::detail::cif::read_residue(settings::general::cache + "residues/" + acid + ".cif").front().to_map();
+        io::File res("temp/residues/" + acid + ".cif");
+        if (!res.exists()) {
+            REQUIRE(ausaxs::curl::download("files.rcsb.org/ligands/view/" + acid + ".cif", res.str()));
+        }
+
+        auto residue = io::detail::cif::read_residue(res).front().to_map();
         for (const auto& [atom, num_hydrogens] : atom_map) {
             SECTION(acid + " " + atom) {
                 CHECK(hydrogen_atoms::get.at(acid).at(atom) == residue.get(atom, constants::symbols::parse_element_string(std::string(1, atom[0]))));
