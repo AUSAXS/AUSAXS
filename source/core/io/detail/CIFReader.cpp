@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 #include <utility/Console.h>
-#include <residue/ResidueParser.h>
+#include <residue/Residue.h>
 #include <constants/Constants.h>
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>

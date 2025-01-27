@@ -70,7 +70,7 @@ void ResidueMap::calculate_average() {
     }
 }
 
-const std::unordered_map<AtomKey, int>& ResidueMap::get_map() const {return map;}
+std::unordered_map<AtomKey, int>& ResidueMap::get_backing_map() {return map;}
 
 constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_name, constants::atom_t atom_type) {
     auto key = AtomKey(atom_name, atom_type);

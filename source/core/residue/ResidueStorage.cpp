@@ -5,6 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <residue/ResidueStorage.h>
 #include <residue/ResidueMap.h>
+#include <residue/InvalidResidueMap.h>
 #include <io/ExistingFile.h>
 #include <utility/Curl.h>
 #include <utility/Console.h>
@@ -37,8 +38,24 @@ bool ResidueStorage::contains(const std::string& name) {
 ResidueMap& ResidueStorage::get(const std::string& name) {
     if (!initialized) {initialize();}
     if (data.find(name) == data.end()) {
-        console::print_info("Unknown residue: \"" + name + "\". Attempting to download specification.");
-        download_residue(name);
+        bool downloaded = false;
+
+        // small cache to avoid spamming the console with the same download
+        static std::unordered_map<std::string, bool> seen_before;
+        if (!seen_before.contains(name)) {
+            console::indent(2);
+            console::print_text("Unknown residue: \"" + name + "\". Attempting to download specification.");
+            console::indent();
+            seen_before[name] = true;
+            downloaded = update_or_download_residue(name);
+            console::unindent(3);
+        }
+
+        if (!downloaded) {
+            // singleton for all unknown residues which will return 0 hydrogens for all atoms
+            static InvalidResidueMap invalid_residue;
+            return invalid_residue;
+        }
     }
     return data.at(name);
 }
@@ -86,16 +103,23 @@ void ResidueStorage::initialize() {
     }
 }
 
-void ResidueStorage::download_residue(const std::string& name) {
+bool ResidueStorage::update_or_download_residue(const std::string& name) {
     std::string path = settings::general::residue_folder;
     std::regex regex("[A-Z0-9]{2,3}");
 
     if (std::regex_match(name, regex)) {
         // check if the file already exists. if not, download it.
         if (!std::filesystem::exists(path + name + ".cif")) {
-            curl::download("files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif"); // download the cif file
+            if (settings::general::offline) {
+                console::print_warning("ResidueStorage::download_residue: \"" + name + "\" specification cannot be downloaded as offline mode is enabled!");
+                return false;
+            }
+
+            bool downloaded = curl::download("files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif"); // download the cif file
+            if (!downloaded) {return false;}
         } else {
-            std::cout << "\tResidue " << name << " is already downloaded, but not present in the master list. \n\tThe file will now be parsed and re-added to the master file." << std::endl;
+            console::print_text_minor("Residue " + name + " is already downloaded, but not present in the master list.");
+            console::print_text_minor("The file will now be parsed and re-added to the master file.");
         }
 
         // parse the cif file & add it to storage
@@ -105,7 +129,7 @@ void ResidueStorage::download_residue(const std::string& name) {
         } catch (const std::exception& e) {
             // if the residue could not be parsed, try to redownload it and parse it again
             console::print_warning("ResidueStorage::download_residue: Could not parse residue: " + name + ". \nError: " + e.what());
-            console::print_text("\tAttempting to redownload the residue definition.");
+            console::print_text("Attempting to redownload the residue definition.");
             curl::download("files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif");
             map = Residue::parse(path + name + ".cif").to_map();
         }
@@ -116,6 +140,7 @@ void ResidueStorage::download_residue(const std::string& name) {
     } else {
         throw except::io_error("ResidueStorage::download_residue: Invalid residue name: \"" + name + "\"; expected a 2-3 letter code.");
     }
+    return true;
 }
 
 void ResidueStorage::write_residue(const std::string& name) {
@@ -127,7 +152,7 @@ void ResidueStorage::write_residue(const std::string& name) {
     // write the map to the master file
     auto map = get(name);
     file << "#" << "\n" << name << "\n"; // residue header
-    for (const auto& [key, val] : map) {
+    for (const auto& [key, val] : map.get_backing_map()) {
         file << constants::symbols::to_string(key.atom) << " " << key.name << " " << val << "\n";
     }
     file << std::endl;

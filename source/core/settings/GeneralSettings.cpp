@@ -13,6 +13,7 @@ using namespace ausaxs;
 
 bool settings::general::verbose = true;
 bool settings::general::warnings = true;
+bool settings::general::offline = false;
 unsigned int settings::general::threads = std::thread::hardware_concurrency()-1;
 std::string settings::general::output = "output/";
 bool settings::general::keep_hydrogens = false;
