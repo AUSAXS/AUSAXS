@@ -9,7 +9,7 @@ namespace ausaxs::symmetry::detail {
     // Helper struct to store the compact coordinates for a body
     // Indexing is as follows: [symmetry #][replication #]
     // The first index, [0][0], is reserved for the original coordinates
-     struct BodySymmetryData {
+    struct BodySymmetryData {
         template<typename T>
         using symmetry_t = std::vector<T>;
 

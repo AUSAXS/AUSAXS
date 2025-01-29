@@ -5,7 +5,7 @@
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <data/symmetry/detail/SymmetryHelpers.h>
+#include <data/symmetry/detail/SymmetryDetailFwd.h>
 
 #include <memory>
 #include <mutex>
@@ -35,11 +35,12 @@ namespace ausaxs::hist {
 		private:
 			observer_ptr<const data::Molecule> protein;													// the molecule we are calculating the histogram for
             detail::MasterHistogram<use_weighted_distribution> master;									// the current total histogram
-			std::vector<symmetry::detail::CompactCoordinateSymmetries> coords;							// a compact representation of the relevant data from the managed bodies
+			std::vector<symmetry::detail::BodySymmetryData> coords;										// a compact representation of the relevant data from the managed bodies
 			container::Container2D<detail::PartialHistogram<use_weighted_distribution>> partials_aa; 	// the partial histograms
 			container::Container1D<detail::HydrationHistogram<use_weighted_distribution>> partials_aw;	// the partial hydration-atom histograms
 			detail::HydrationHistogram<use_weighted_distribution> partials_ww;               			// the partial histogram for the hydration layer
-
+			std::unordered_map<int, int> res_self_index_map;											// a map to keep track of result indexes in the self-correlation results
+			std::unordered_map<int, int> res_cross_index_map;											// a map to keep track of result indexes in the cross-correlation results
 			std::mutex master_hist_mutex;
 
 			/**
@@ -58,7 +59,7 @@ namespace ausaxs::hist {
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_ww_self(calculator_t calculator);
+			void calc_ww(calculator_t calculator);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
@@ -67,10 +68,16 @@ namespace ausaxs::hist {
 			void calc_aa(calculator_t calculator, int n, int m);
 
 			/**
-			 * @brief Calculate the atom-atom distances between the symmetric duplicate @a i and @a j of bodies @a n and @a m. 
+			 * @brief Calculate the atom-atom distances between the symmetric duplicates of body @a n.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_ss(calculator_t calculator, int n, int m);
+			void calc_ss(calculator_t calculator, int n);
+
+			/**
+			 * @brief Calculate the atom-atom distances between body @a n and symmetric duplicate @a j of body @a m. 
+			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
+			 */
+			void calc_as(calculator_t calculator, int n, int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
@@ -78,7 +85,7 @@ namespace ausaxs::hist {
 			 */
 			void calc_aw(calculator_t calculator, int index);
 
-			void combine_self_correlation(int index, GenericDistribution1D_t&&);
+			void combine_aa_self(int index, GenericDistribution1D_t&&);
 
 			void combine_aa(int n, int m, GenericDistribution1D_t&&);
 
