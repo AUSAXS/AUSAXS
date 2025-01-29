@@ -1,4 +1,5 @@
 #include <data/symmetry/SymmetryManagerMT.h>
+#include <data/symmetry/detail/SymmetryHelpers.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
@@ -10,74 +11,8 @@
 #include <cassert>
 
 using namespace ausaxs;
-using namespace hist::detail;
-
-namespace local {
-    enum h_type {
-        SELF_AA, SELF_AW, SELF_WW, 
-        SELF_SYM_AA, SELF_SYM_AW, SELF_SYM_WW,
-        CROSS_AA, CROSS_AW, CROSS_WW
-    };
-
-    struct BodySymmetryData {
-        template<typename T>
-        using symmetry_t = std::vector<T>;
-
-        template<typename T>
-        using repetition_t = std::vector<T>;
-
-        // the outer loop is over the symmetries, the inner loop is over the repetitions
-        // index [0][0] is the original data
-        symmetry_t<repetition_t<CompactCoordinates>> atomic;
-        CompactCoordinates waters;
-    };
-
-    struct ScaleResult {
-        ScaleResult() = default;
-        ScaleResult(int index, int scale) : index(index), scale(scale) {}
-        ScaleResult(int index, std::size_t scale) : index(index), scale(static_cast<int>(scale)) {}
-        int index;
-        int scale;
-    };
-
-    std::vector<BodySymmetryData> generate_transformed_data(const data::Molecule& protein) {
-        std::vector<BodySymmetryData> res(protein.size_body());
-
-        // for every body
-        for (int i_body1 = 0; i_body1 < static_cast<int>(protein.size_body()); ++i_body1) {
-            const auto& body = protein.get_body(i_body1);
-            CompactCoordinates data_a(body.get_atoms());
-            CompactCoordinates data_w;
-            if (0 < protein.size_water()) {
-                data_w = CompactCoordinates(body.get_waters());
-            }
-            hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, &protein);
-
-            // loop over its symmetries
-            std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
-            for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
-                const auto& symmetry = body.symmetry().get(i_sym_1);
-                std::vector<CompactCoordinates> sym_atomic(symmetry.repeat, data_a);
-
-                // for every symmetry, loop over how many times it should be repeated
-                // it is then repeatedly applied to the same data
-                for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
-                    auto t = symmetry.get_transform<double>(i_repeat+1);
-                    std::transform(
-                        sym_atomic[i_repeat].get_data().begin(), 
-                        sym_atomic[i_repeat].get_data().end(), 
-                        sym_atomic[i_repeat].get_data().begin(), 
-                        [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
-                    );
-                }
-                atomic[1+i_sym_1] = std::move(sym_atomic);
-            }
-            atomic[0]    = {std::move(data_a)};
-            res[i_body1] = {std::move(atomic), std::move(data_w)};
-        }
-        return res;
-    }
-}
+using namespace ausaxs::hist::detail;
+using namespace ausaxs::symmetry::detail;
 
 template<bool use_weighted_distribution>
 std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate(const data::Molecule& protein) {
@@ -95,7 +30,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
 
     // start by generating the transformed data
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
-    auto data = local::generate_transformed_data(protein);
+    auto data = generate_transformed_data(protein);
 
     int self_merge_id_aa = 0, self_merge_id_ww = 1;
     int cross_merge_id_aa = 0, cross_merge_id_aw = 1, cross_merge_id_ww = 2;
