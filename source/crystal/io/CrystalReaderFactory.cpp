@@ -23,7 +23,7 @@ namespace ausaxs::crystal::factory {
         } else if (constants::filetypes::structure.check(filename)) {
             return std::make_unique<crystal::io::PDBReader>();
         } else {
-            throw except::io_error("crystal::io::CrystalReaderFactory::create: Unknown file extension for file \"" + filename + "\"");
+            throw except::io_error("crystal::io::CrystalReaderFactory::create: Unknown file extension for file \"" + filename.str() + "\"");
         }
     }
 }

@@ -41,14 +41,14 @@ int main(int argc, char const *argv[]) {
     };
 
     if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
-    gmx::gmx::set_logfile(sele.output + "output.log", sele.output + "cmd.log");
+    gmx::gmx::set_logfile(sele.output.str() + "output.log", sele.output.str() + "cmd.log");
     PDBFile pdb(s_pdb);
 
-    GROFile conf(sele.output + "setup/conf.gro");
+    GROFile conf(sele.output.str() + "setup/conf.gro");
         if (!conf.exists()) {
         // prepare the pdb file for gromacs
         auto[conf, _, posre] = pdb2gmx(pdb)
-            .output({sele.output + "setup/"})
+            .output({sele.output.str() + "setup/"})
             .ignore_hydrogens()
             .water_model(sele.watermodel)
             .forcefield(sele.forcefield)
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[]) {
 
     // create a box around the protein
     auto[uc] = editconf(conf)
-        .output(sele.output + "setup/uc.gro")
+        .output(sele.output.str() + "setup/uc.gro")
         .box_type(sele.boxtype)
         .extend(1)
     .run();

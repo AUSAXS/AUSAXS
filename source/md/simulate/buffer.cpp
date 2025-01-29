@@ -16,11 +16,11 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder mdp_folder = options.output + "mdp/";
-    io::Folder setup_path = options.output + "buffer/setup/";
-    io::Folder em_path = options.output + "buffer/em/";
-    io::Folder eq_path = options.output + "buffer/eq/";
-    io::Folder prod_path = options.output + "buffer/prod/";
+    io::Folder mdp_folder = options.output.str() + "mdp/";
+    io::Folder setup_path = options.output.str() + "buffer/setup/";
+    io::Folder em_path = options.output.str() + "buffer/em/";
+    io::Folder eq_path = options.output.str() + "buffer/eq/";
+    io::Folder prod_path = options.output.str() + "buffer/prod/";
     mdp_folder.create(); setup_path.create(); em_path.create(); eq_path.create(); prod_path.create();
 
     if (!options.refgro.exists()) {
@@ -30,8 +30,8 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //##################################//
     //###           SETUP            ###//
     //##################################//
-    GROFile gro(setup_path + "buffer.gro");
-    TOPFile top(setup_path + "topol.top");
+    GROFile gro(setup_path.str() + "buffer.gro");
+    TOPFile top(setup_path.str() + "topol.top");
     if (!gro.exists() || !top.exists()) {
         {
             std::cout << "\tCopying unit cell from molecule..." << std::flush;
@@ -64,7 +64,7 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
         }
 
         auto[ucgro] = editconf(options.refgro)
-            .output(setup_path + "uc.gro")
+            .output(setup_path.str() + "uc.gro")
             .box_type(options.boxtype)
             .extend(2)
         .run();
@@ -94,14 +94,14 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //##################################//
     //###     ENERGY MINIMIZATION    ###//
     //##################################//
-    GROFile emgro(em_path + "em.gro");
+    GROFile emgro(em_path.str() + "em.gro");
     if (!emgro.exists()) {
         std::cout << "\tRunning energy minimization..." << std::flush;
 
         // prepare energy minimization sim
-        MDPFile mdp = EMMDPCreator().write(mdp_folder + "emsol.mdp");
+        MDPFile mdp = EMMDPCreator().write(mdp_folder.str() + "emsol.mdp");
         auto[emtpr] = grompp(mdp, top, gro)
-            .output(em_path + "em.tpr")
+            .output(em_path.str() + "em.tpr")
             .restraints(gro)
             .warnings(1)
         .run();
@@ -119,14 +119,14 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //##################################//
     //###       EQUILIBRATION        ###//
     //##################################//
-    GROFile eqgro(eq_path + "eq.gro");
+    GROFile eqgro(eq_path.str() + "eq.gro");
     if (!eqgro.exists()) {
         std::cout << "\tRunning thermalization..." << std::flush;
 
         // prepare equilibration sim
-        MDPFile mdp = EQMDPCreatorSol().write(mdp_folder + "eqsol.mdp");
+        MDPFile mdp = EQMDPCreatorSol().write(mdp_folder.str() + "eqsol.mdp");
         auto[eqtpr] = grompp(mdp, top, emgro)
-            .output(eq_path + "eq.tpr")
+            .output(eq_path.str() + "eq.tpr")
             .restraints(emgro)
             .warnings(1)
         .run();
@@ -144,14 +144,14 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //##################################//
     //###       PRODUCTION          ###//
     //##################################//
-    GROFile prodgro(prod_path + "confout.gro");
+    GROFile prodgro(prod_path.str() + "confout.gro");
     if (!prodgro.exists()) {
         std::cout << "\tRunning production..." << std::flush;
 
         // prepare production sim
-        MDPFile mdp = options.bufmdp->write(mdp_folder + "prbuf.mdp");
+        MDPFile mdp = options.bufmdp->write(mdp_folder.str() + "prbuf.mdp");
         auto[prodtpr] = grompp(mdp, top, eqgro)
-            .output(prod_path + "prod.tpr")
+            .output(prod_path.str() + "prod.tpr")
             .warnings(1)
         .run();
 

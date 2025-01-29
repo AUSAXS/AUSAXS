@@ -31,14 +31,14 @@ std::vector<md::SAXSOutput> md::frameanalysis(SAXSOptions& options) {
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder output = options.output + "saxs/";
-    io::Folder protein_path = output + "protein/";
-    io::Folder buffer_path = output + "buffer/";
-    io::Folder mdp_folder = output + "mdp/";
-    io::Folder prod_folder = output + "prod/";
+    io::Folder output = options.output.str() + "saxs/";
+    io::Folder protein_path = output.str() + "protein/";
+    io::Folder buffer_path = output.str() + "buffer/";
+    io::Folder mdp_folder = output.str() + "mdp/";
+    io::Folder prod_folder = output.str() + "prod/";
 
-    TOPFile moltop(protein_path + "topol.top");
-    TOPFile buftop(buffer_path + "topol.top");
+    TOPFile moltop(protein_path.str() + "topol.top");
+    TOPFile buftop(buffer_path.str() + "topol.top");
     if (!moltop.exists() || !buftop.exists()) {
         options.molecule.top.copy(moltop.directory());
         options.buffer.top.copy(buftop.directory());
@@ -49,8 +49,8 @@ std::vector<md::SAXSOutput> md::frameanalysis(SAXSOptions& options) {
     //##################################//
     // we want to always have the group Water_and_ions, but it is only generated automatically if there are actual ions present in the system. 
     // since this is not guaranteed, we have to generate it manually
-    NDXFile molindex(protein_path + "index.ndx");
-    NDXFile bufindex(buffer_path + "index.ndx");
+    NDXFile molindex(protein_path.str() + "index.ndx");
+    NDXFile bufindex(buffer_path.str() + "index.ndx");
 
     if (!molindex.exists()) {
         make_ndx(molgro)
@@ -85,21 +85,21 @@ std::vector<md::SAXSOutput> md::frameanalysis(SAXSOptions& options) {
     //##################################//
     //###         ENVELOPE           ###//
     //##################################//
-    GROFile envgro(protein_path + "envelope-ref.gro");
-    PYFile envpy(protein_path + "envelope.py");
-    DATFile envdat(protein_path + "envelope.dat");
-    MDPFile molmdp(mdp_folder + "rerun_mol.mdp");
+    GROFile envgro(protein_path.str() + "envelope-ref.gro");
+    PYFile envpy(protein_path.str() + "envelope.py");
+    DATFile envdat(protein_path.str() + "envelope.dat");
+    MDPFile molmdp(mdp_folder.str() + "rerun_mol.mdp");
 
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
-        MDPFile dummymdp = MDPFile(output + "empty.mdp"); dummymdp.create();
+        MDPFile dummymdp = MDPFile(output.str() + "empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
-            .output(output + "saxs.tpr")
+            .output(output.str() + "saxs.tpr")
             .warnings(1)
         .run();
         dummymdp.remove();
 
         auto[itps] = genscatt(dummytpr, molindex)
-            .output(protein_path + "scatt.itp")
+            .output(protein_path.str() + "scatt.itp")
             .group("Protein")
         .run();
 
@@ -107,13 +107,13 @@ std::vector<md::SAXSOutput> md::frameanalysis(SAXSOptions& options) {
 
         // dump the first 50 frames
         auto[traj] = trjconv(molxtc)
-            .output(protein_path + "protein.xtc")
+            .output(protein_path.str() + "protein.xtc")
             .startframe(50)
         .run();
 
         // center the trajectories
         auto[cluster] = trjconv(traj)
-            .output(protein_path + "cluster.xtc")
+            .output(protein_path.str() + "cluster.xtc")
             .group("Protein")
             .pbc("cluster")
             .ur("tric")
@@ -122,7 +122,7 @@ std::vector<md::SAXSOutput> md::frameanalysis(SAXSOptions& options) {
         .run();
 
         auto[centered] = trjconv(cluster)
-            .output(protein_path + "centered.xtc")
+            .output(protein_path.str() + "centered.xtc")
             .group("Protein")
             .center()
             .boxcenter("tric")
@@ -154,20 +154,20 @@ std::vector<md::SAXSOutput> md::frameanalysis(SAXSOptions& options) {
         }
     }
 
-    MDPFile bufmdp(mdp_folder + "rerun_buf.mdp");
+    MDPFile bufmdp(mdp_folder.str() + "rerun_buf.mdp");
     if (!bufmdp.exists()) {
         SAXSMDPCreatorSol().write(bufmdp);
     }
 
     // generate run files - they can be reused for all parts
     auto[moltpr] = grompp(molmdp, moltop, molgro)
-        .output(prod_folder + "mol.tpr")
+        .output(prod_folder.str() + "mol.tpr")
         .index(molindex)
         .warnings(1)
     .run();
 
     auto[buftpr] = grompp(bufmdp, buftop, bufgro)
-        .output(prod_folder + "buf.tpr")
+        .output(prod_folder.str() + "buf.tpr")
         .index(bufindex)
         .warnings(2)
     .run();
@@ -175,15 +175,15 @@ std::vector<md::SAXSOutput> md::frameanalysis(SAXSOptions& options) {
     // chop the trajectory into separate parts
     std::vector<SAXSOutput> jobs;
     for (unsigned int i = 0; i < 10; ++i) {
-        io::Folder part_folder = prod_folder + "part_" + std::to_string(i) + "/";
+        io::Folder part_folder = prod_folder.str() + "part_" + std::to_string(i) + "/";
 
         auto [molxtc_i] = trjconv(molxtc)
-            .output(part_folder + "mol.xtc")
+            .output(part_folder.str() + "mol.xtc")
             .skip_every_n_frame(i+1)
         .run();
 
         auto [bufxtc_i] = trjconv(bufxtc)
-            .output(part_folder + "buf.xtc")
+            .output(part_folder.str() + "buf.xtc")
             .skip_every_n_frame(i+1)
         .run();
 

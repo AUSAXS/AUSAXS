@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]) {
     };
 
     if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
-    gmx::gmx::set_logfile(sele.output + "output.log", sele.output + "cmd.log");
+    gmx::gmx::set_logfile(sele.output.str() + "output.log", sele.output.str() + "cmd.log");
     PDBFile pdb(s_pdb);
 
     // prepare sims
@@ -59,7 +59,7 @@ int main(int argc, char const *argv[]) {
     for (unsigned int i = saxs.size(); i > 0; i--) { // reverse wait order since last job is the shortest one
         saxs[i].job->wait();
         auto res = saxs[i].job->result();
-        res.xvg.rename("saxs_" + std::to_string(i) + ".xvg").copy({sele.output + "output"});
+        res.xvg.rename("saxs_" + std::to_string(i) + ".xvg").copy({sele.output.str() + "output"});
     }
 
     return 0;
