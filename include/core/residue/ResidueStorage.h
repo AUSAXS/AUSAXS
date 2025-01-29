@@ -1,6 +1,6 @@
 #pragma once
 
-#include <residue/ResidueParser.h>
+#include <residue/detail/Residue.h>
 
 namespace ausaxs::residue {
     /**
@@ -47,9 +47,11 @@ namespace ausaxs::residue {
             bool initialized = false;
 
             /**
-             * @brief Download and load a residue from the web. 
+             * @brief Update a residue from disk, or attempt to download it from the web if it does not exist.
+             * 
+             * @return True if the residue was downloaded, false otherwise.
              */
-            void download_residue(const std::string& name);
+            bool update_or_download_residue(const std::string& name);
 
             /**
              * @brief Write a residue to the master file. 

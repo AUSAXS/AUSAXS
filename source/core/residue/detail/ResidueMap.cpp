@@ -3,7 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <residue/ResidueMap.h>
+#include <residue/detail/ResidueMap.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 #include <constants/Constants.h>
@@ -70,7 +70,7 @@ void ResidueMap::calculate_average() {
     }
 }
 
-const std::unordered_map<AtomKey, int>& ResidueMap::get_map() const {return map;}
+std::unordered_map<AtomKey, int>& ResidueMap::get_backing_map() {return map;}
 
 constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_name, constants::atom_t atom_type) {
     auto key = AtomKey(atom_name, atom_type);

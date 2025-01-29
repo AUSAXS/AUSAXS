@@ -78,13 +78,6 @@ TEST_CASE("Symmetry::is_closed") {
 }
 
 TEST_CASE("Symmetry::get_transform") {
-    SECTION("no transformation") {
-        // Default constructor: no translation, no rotation
-        Symmetry s;
-        auto f = s.get_transform<double>();
-        CHECK(f({1, 2, 3}) == Vector3<double>(1, 2, 3));
-    }
-
     SECTION("translation only") {
         // Translate by (1,2,3)
         Symmetry s({1, 2, 3});

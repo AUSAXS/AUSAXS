@@ -1,6 +1,6 @@
 #pragma once
 
-#include <residue/ResidueMap.h>
+#include <residue/detail/ResidueMap.h>
 #include <constants/ConstantsFwd.h>
 #include <io/IOFwd.h>
 

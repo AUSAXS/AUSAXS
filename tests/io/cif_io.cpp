@@ -7,7 +7,7 @@
 #include <settings/All.h>
 #include <io/detail/CIFReader.h>
 #include <io/detail/PDBReader.h>
-#include <residue/ResidueParser.h>
+#include <residue/detail/Residue.h>
 #include <constants/Constants.h>
 
 #include <vector>
@@ -114,7 +114,7 @@ TEST_CASE("CIFReader: uses file residues") {
     for (const auto& residue : residues) {
         auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
         auto expected = residue.to_map();
-        for (const auto& [atom, num] : expected) {
+        for (const auto& [atom, num] : expected.get_backing_map()) {
             REQUIRE(loaded.get(atom) == num);
         }
     }
@@ -130,7 +130,7 @@ TEST_CASE("CIFReader: file residues agrees with PDB") {
     for (const auto& residue : residues) {
         auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
         auto expected = residue.to_map();
-        for (const auto& [atom, num] : expected) {
+        for (const auto& [atom, num] : expected.get_backing_map()) {
             if (loaded.get(atom) != num) {
                 std::cout << "Residue: " << residue.get_name() << " Atom: " << constants::symbols::to_string(atom.atom) << " Expected: " << num << " Loaded: " << loaded.get(atom) << std::endl;
             }

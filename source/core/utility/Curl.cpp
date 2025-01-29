@@ -19,17 +19,22 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 
 // based on the example from https://curl.se/libcurl/c/url2file.html
-void curl::download(const std::string& url, const io::File& path) {
+bool curl::download(const std::string& url, const io::File& path) {
+    if (settings::general::offline) {
+        console::print_warning("curl::download: Offline mode is enabled. Skipping download of \"" + url + "\".");
+        return false;
+    }
+
     CURL *curl;
     CURLcode res = CURLE_FAILED_INIT;
     curl = curl_easy_init();
     if (curl) {
         FILE* fp = fopen(path.path().c_str(), "wb");
         res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set URL: " + url);}
+        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set URL: \"" + url + "\".");}
 
         res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set write data: " + path.path());}
+        if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set write data: \"" + path.path() + "\".");}
 
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
@@ -38,9 +43,10 @@ void curl::download(const std::string& url, const io::File& path) {
     }
 
     if (res == CURLE_OK) {
-        if (settings::general::verbose) {console::print_success("\tSuccessfully downloaded " + url + " to " + path.str());}
-        return;
+        if (settings::general::verbose) {console::print_success("Successfully downloaded " + url + " to " + path.str());}
+        return true;
     }
-    console::print_warning("\tcurl::download: Failed to download " + url);
-    throw std::runtime_error("Failed to download " + url);
+
+    console::print_warning("curl::download: Failed to download \"" + url + "\".");
+    return false;
 }

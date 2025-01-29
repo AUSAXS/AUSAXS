@@ -17,7 +17,7 @@ namespace ausaxs::console {
 
     /**
      * @brief Print a warning message. The text will be red in the terminal. 
-     *        This will only be printed if verbose output is enabled. 
+     *        This will only be printed if warnings are enabled. 
      */
     void print_warning(std::string_view text);
 
@@ -26,6 +26,12 @@ namespace ausaxs::console {
      *        This will only be printed if verbose output is enabled.
      */
     void print_success(std::string_view text);
+
+    /**
+     * @brief Print a failure message. The text will be red in the terminal. 
+     *        This will only be printed if verbose output is enabled.
+     */
+    void print_failure(std::string_view text);
 
     /**
      * @brief Print a info message. The text will be blue in the terminal. 
@@ -50,10 +56,10 @@ namespace ausaxs::console {
     /**
      * @brief Add another indentation to print_text output.
      */
-    void indent();
+    void indent(int level = 1);
 
     /**
      * @brief Remove an indentation from print_text output.
      */
-    void unindent();
+    void unindent(int level = 1);
 }
