@@ -1,3 +1,5 @@
+#pragma once
+
 #include <data/DataFwd.h>
 #include <hist/detail/CompactCoordinates.h>
 
@@ -7,12 +9,19 @@ namespace ausaxs::symmetry::detail {
     // Helper struct to store the compact coordinates for a body
     // Indexing is as follows: [symmetry #][replication #]
     // The first index, [0][0], is reserved for the original coordinates
-    struct CompactCoordinateSymmetries {
-        std::vector<std::vector<hist::detail::CompactCoordinates>> atomic;
-        std::vector<std::vector<hist::detail::CompactCoordinates>> waters;
+     struct BodySymmetryData {
+        template<typename T>
+        using symmetry_t = std::vector<T>;
+
+        template<typename T>
+        using repetition_t = std::vector<T>;
+
+        // the outer loop is over the symmetries, the inner loop is over the repetitions
+        // index [0][0] is the original data
+        symmetry_t<repetition_t<hist::detail::CompactCoordinates>> atomic;
+        hist::detail::CompactCoordinates waters;
     };
 
-    std::vector<CompactCoordinateSymmetries> generate_transformed_data(const data::Molecule& protein);
-    CompactCoordinateSymmetries generate_transformed_data(const data::Body& body);
-    std::vector<std::vector<hist::detail::CompactCoordinates>> generate_transformed_waters(const data::Body& body);
+    std::vector<BodySymmetryData> generate_transformed_data(const data::Molecule& protein);
+    BodySymmetryData generate_transformed_data(const data::Body& body);
 }
