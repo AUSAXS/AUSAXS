@@ -3,8 +3,8 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <data/symmetry/PartialSymmetryManagerMT.h>
-#include <data/symmetry/detail/SymmetryHelpers.h>
+#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/distribution/GenericDistribution1D.h>
