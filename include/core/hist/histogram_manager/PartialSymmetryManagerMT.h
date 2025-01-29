@@ -5,7 +5,7 @@
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <data/symmetry/detail/SymmetryDetailFwd.h>
+#include <hist/histogram_manager/detail/SymmetryDetailFwd.h>
 
 #include <memory>
 #include <mutex>

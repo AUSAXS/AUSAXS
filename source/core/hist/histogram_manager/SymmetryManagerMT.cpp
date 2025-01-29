@@ -1,5 +1,5 @@
-#include <data/symmetry/SymmetryManagerMT.h>
-#include <data/symmetry/detail/SymmetryHelpers.h>
+#include <hist/histogram_manager/SymmetryManagerMT.h>
+#include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
@@ -15,27 +15,35 @@ using namespace ausaxs::hist::detail;
 using namespace ausaxs::symmetry::detail;
 
 template<bool use_weighted_distribution>
-std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate(const data::Molecule& protein) {
-    if (protein.size_water() == 0) {
-        return calculate<use_weighted_distribution, false>(protein);
+hist::SymmetryManagerMT<use_weighted_distribution>::SymmetryManagerMT(observer_ptr<const data::Molecule> protein) : protein(protein) {}
+
+template<bool use_weighted_distribution>
+std::unique_ptr<hist::DistanceHistogram> hist::SymmetryManagerMT<use_weighted_distribution>::calculate() {
+    return calculate_all();
+}
+
+template<bool use_weighted_distribution>
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_weighted_distribution>::calculate_all() {
+    if (protein->size_water() == 0) {
+        return calculate<false>();
     } else {
-        return calculate<use_weighted_distribution, true>(protein);
+        return calculate<true>();
     }
 }
 
-template<bool use_weighted_distribution, bool contains_waters>
-std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate(const data::Molecule& protein) {
+template<bool use_weighted_distribution> template <bool contains_waters>
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_weighted_distribution>::calculate() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
 
     // start by generating the transformed data
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
-    auto data = generate_transformed_data(protein);
+    auto data = generate_transformed_data(*protein);
 
     int self_merge_id_aa = 0, self_merge_id_ww = 1;
     int cross_merge_id_aa = 0, cross_merge_id_aw = 1, cross_merge_id_ww = 2;
-    for (int i_body1 = 0; i_body1 < static_cast<int>(protein.size_body()); ++i_body1) {
-        const auto& body = protein.get_body(i_body1);
+    for (int i_body1 = 0; i_body1 < static_cast<int>(protein->size_body()); ++i_body1) {
+        const auto& body = protein->get_body(i_body1);
         const auto& body1_atomic = data[i_body1].atomic[0][0];
         const auto& body1_waters = data[i_body1].waters;
         calculator.enqueue_calculate_self(body1_atomic, 1 + body.size_symmetry_total(), self_merge_id_aa);
@@ -65,8 +73,8 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
                 }
 
                 // external histograms with other bodies
-                for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein.size_body()); ++j_body1) {
-                    const auto& body2 = protein.get_body(j_body1);
+                for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
+                    const auto& body2 = protein->get_body(j_body1);
                     const auto& body2_atomic = data[j_body1].atomic[0][0];
                     const auto& body2_waters = data[j_body1].waters;
                     calculator.enqueue_calculate_cross(body2_atomic, body1_sym_atomic, 1, cross_merge_id_aa);
@@ -96,8 +104,8 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
         }
 
         // external histograms with other bodies
-        for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein.size_body()); ++j_body1) {
-            const auto& body2 = protein.get_body(j_body1);
+        for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
+            const auto& body2 = protein->get_body(j_body1);
             const auto& body2_atomic = data[j_body1].atomic[0][0];
             const auto& body2_waters = data[j_body1].waters;
 
@@ -183,9 +191,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::
     }
 }
 
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<false>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<true,  true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<true,  false>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<false, true>(const data::Molecule&);
-template std::unique_ptr<hist::ICompositeDistanceHistogram> symmetry::SymmetryManagerMT::calculate<false, false>(const data::Molecule&);
+template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<true>::calculate<true>();
+template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<true>::calculate<false>();
+template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<false>::calculate<true>();
+template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<false>::calculate<false>();
+template class hist::SymmetryManagerMT<true>;
+template class hist::SymmetryManagerMT<false>;
