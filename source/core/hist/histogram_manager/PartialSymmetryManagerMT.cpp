@@ -22,7 +22,13 @@ using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
 template<bool use_weighted_distribution> 
-PartialSymmetryManagerMT<use_weighted_distribution>::PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein) : IPartialHistogramManager(protein), protein(protein) {}
+PartialSymmetryManagerMT<use_weighted_distribution>::PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein) 
+    : IPartialHistogramManager(protein), 
+      protein(protein),
+      coords(this->body_size), 
+      partials_aa(this->body_size, this->body_size), 
+      partials_aw(this->body_size)
+{}
 
 template<bool use_weighted_distribution> 
 PartialSymmetryManagerMT<use_weighted_distribution>::~PartialSymmetryManagerMT() = default;
