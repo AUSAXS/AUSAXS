@@ -5,14 +5,12 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <crystal/io/PDBReader.h>
 #include <data/Molecule.h>
+#include <data/Body.h>
 #include <utility/Axis3D.h>
 #include <utility/Basis3D.h>
 #include <settings/CrystalSettings.h>
 #include <settings/HistogramSettings.h>
 #include <io/ExistingFile.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
-#include <data/Body.h>
 #include <constants/Constants.h>
 
 using namespace ausaxs;
@@ -23,10 +21,10 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(co
 
     auto prot_atoms = protein.get_atoms();
     if (prot_atoms.empty()) {throw except::invalid_argument("PDBReader::read: No atoms were found in file \"" + input.str() + "\".");}
-    auto position = prot_atoms[0].get_coordinates();
+    auto position = prot_atoms[0].coordinates();
     Axis3D axis({position.x(), position.x(), position.y(), position.y(), position.z(), position.z()});
     for (const auto& atom : prot_atoms) {
-        auto position = atom.get_coordinates();
+        auto position = atom.coordinates();
         if (position.x() < axis.x.min) {axis.x.min = position.x();}
         if (position.x() > axis.x.max) {axis.x.max = position.x();}
         if (position.y() < axis.y.min) {axis.y.min = position.y();}
@@ -46,7 +44,7 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(co
     protein.translate({-axis.x.min + factor*axis.x.span(), -axis.y.min + factor*axis.y.span(), -axis.z.min + factor*axis.z.span()});
     std::vector<Vector3<double>> atoms;
     for (const auto& atom : prot_atoms) {
-        atoms.push_back(atom.get_coordinates());
+        atoms.push_back(atom.coordinates());
     }
 
     // expand the box by 2 times

@@ -43,7 +43,7 @@ std::string gmx::execute() {
         // this will crash if using a shell script, so run everything in bash and encapsulate entire cmd with ''
         cmd.set(escape_single_quotes(cmd.get()));
         cmd.prepend("exec bash -c 'set -o pipefail; ");
-        cmd.append("2>&1 | tee -a " + outputlog + "'");
+        cmd.append("2>&1 | tee -a " + outputlog.str() + "'");
     }
 
     auto result = cmd.execute();

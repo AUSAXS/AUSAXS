@@ -23,9 +23,9 @@ namespace ausaxs::md {
 
             pdb2gmx& output(const io::Folder& path) {
                 folder = path;
-                options.push_back(std::make_shared<shell::Argument>("-o", path + "conf.gro"));
-                options.push_back(std::make_shared<shell::Argument>("-p", path + "topol.top"));
-                options.push_back(std::make_shared<shell::Argument>("-i", path + "posre.itp"));
+                options.push_back(std::make_shared<shell::Argument>("-o", path.str() + "conf.gro"));
+                options.push_back(std::make_shared<shell::Argument>("-p", path.str() + "topol.top"));
+                options.push_back(std::make_shared<shell::Argument>("-i", path.str() + "posre.itp"));
                 return *this;
             }
 
@@ -57,10 +57,10 @@ namespace ausaxs::md {
 
             std::tuple<GROFile, TOPFile, ITPFile> run() {
                 execute();
-                TOPFile top(folder + "topol.top");
+                TOPFile top(folder.str() + "topol.top");
                 top.extract_single_chain();
                 top.fix_relative_includes();
-                return std::make_tuple(GROFile(folder + "conf.gro"), top, ITPFile(folder + "posre.itp"));
+                return std::make_tuple(GROFile(folder.str() + "conf.gro"), top, ITPFile(folder.str() + "posre.itp"));
             }
 
         private: 

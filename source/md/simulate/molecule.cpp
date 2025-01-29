@@ -26,21 +26,21 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder mdp_folder = options.output + "mdp/";
-    io::Folder setup_path = options.output + "protein/setup/";
-    io::Folder em_path = options.output + "protein/em/";
-    io::Folder eq_path = options.output + "protein/eq/";
-    io::Folder prod_path = options.output + "protein/prod/";
+    io::Folder mdp_folder = options.output.str() + "mdp/";
+    io::Folder setup_path = options.output.str() + "protein/setup/";
+    io::Folder em_path = options.output.str() + "protein/em/";
+    io::Folder eq_path = options.output.str() + "protein/eq/";
+    io::Folder prod_path = options.output.str() + "protein/prod/";
     mdp_folder.create(); setup_path.create(); em_path.create(); eq_path.create(); prod_path.create();
 
     // gmx::gmx::set_outputlog(output + "gmx.log");
     //##################################//
     //###           SETUP            ###//
     //##################################//
-    GROFile solv_ion(setup_path + "solv_ion.gro");
-    TOPFile top(setup_path + "topol.top");
+    GROFile solv_ion(setup_path.str() + "solv_ion.gro");
+    TOPFile top(setup_path.str() + "topol.top");
     if (!solv_ion.exists() || !top.exists()) {
-        GROFile conf(setup_path + "conf.gro");
+        GROFile conf(setup_path.str() + "conf.gro");
         if (!conf.exists()) {
             console::print_text("Converting structure to GROMACS format...");
 
@@ -59,7 +59,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         // create a box around the protein
         console::print_text("Generating unit cell...");
         auto[uc] = editconf(conf)
-            .output(setup_path + "uc.gro")
+            .output(setup_path.str() + "uc.gro")
             .box_type(options.boxtype)
             .extend(1.5)
         .run();
@@ -67,16 +67,16 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         // add water to the box
         console::print_text("Solvating unit cell...");
         auto[solv] = solvate(uc)
-            .output(setup_path + "solv.gro")
+            .output(setup_path.str() + "solv.gro")
             .solvent(options.forcefield, options.watermodel)
             .radius(0.2)
             .topology(top)
         .run();
 
         // generate an empty tpr file 
-        MDPFile mdp = MDPFile(setup_path + "empty.mdp"); mdp.create();
+        MDPFile mdp = MDPFile(setup_path.str() + "empty.mdp"); mdp.create();
         auto[ions] = grompp(mdp, top, solv)
-            .output(setup_path + "ions.tpr")
+            .output(setup_path.str() + "ions.tpr")
             .warnings(1)
         .run();
         mdp.remove();
@@ -98,14 +98,14 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     //##################################//
     //###     ENERGY MINIMIZATION    ###//
     //##################################//
-    GROFile emgro(em_path + "em.gro");
+    GROFile emgro(em_path.str() + "em.gro");
     if (!emgro.exists()) {
         console::print_text("Running energy minimization...");
 
         // prepare energy minimization sim
-        MDPFile mdp = EMMDPCreator().write(mdp_folder + "emmol.mdp");
+        MDPFile mdp = EMMDPCreator().write(mdp_folder.str() + "emmol.mdp");
         auto[emtpr] = grompp(mdp, top, solv_ion)
-            .output(em_path + "em.tpr")
+            .output(em_path.str() + "em.tpr")
             .restraints(solv_ion)
         .run();
 
@@ -121,8 +121,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     //##################################//
     //###       EQUILIBRATION        ###//
     //##################################//
-    GROFile eqgro(eq_path + "eq.gro");
-    NDXFile index(eq_path + "index.ndx");
+    GROFile eqgro(eq_path.str() + "eq.gro");
+    NDXFile index(eq_path.str() + "index.ndx");
     if (!eqgro.exists()) {
         console::print_text("Running thermalization...");
 
@@ -163,9 +163,9 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         // }
 
         // prepare equilibration sim
-        MDPFile mdp = EQMDPCreatorMol().write(mdp_folder + "eqmol.mdp");
+        MDPFile mdp = EQMDPCreatorMol().write(mdp_folder.str() + "eqmol.mdp");
         auto[eqtpr] = grompp(mdp, top, emgro)
-            .output(eq_path + "eq.tpr")
+            .output(eq_path.str() + "eq.tpr")
             .index(index)
             .restraints(emgro)
             .warnings(1)
@@ -183,11 +183,11 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     //##################################//
     //###       PRODUCTION           ###//
     //##################################//
-    GROFile prodgro(prod_path + "prod.gro");
+    GROFile prodgro(prod_path.str() + "prod.gro");
     if (!prodgro.exists()) {
         console::print_text("Generating backbone restraints...");
-        auto[backbone] = genrestr(eq_path + "eq.gro")
-            .output(setup_path + "backbone.itp")
+        auto[backbone] = genrestr(eq_path.str() + "eq.gro")
+            .output(setup_path.str() + "backbone.itp")
             .index(index)
             .force(2000, 2000, 2000)
         .run();
@@ -197,9 +197,9 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
 
         // prepare production sim
         console::print_text("Running production...");
-        MDPFile mdp = options.molmdp->write(mdp_folder + "prmol.mdp");
+        MDPFile mdp = options.molmdp->write(mdp_folder.str() + "prmol.mdp");
         auto[prodtpr] = grompp(mdp, top, eqgro)
-            .output(prod_path + "prod.tpr")
+            .output(prod_path.str() + "prod.tpr")
             .index(index)
             .restraints(eqgro)
             .warnings(1)

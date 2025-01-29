@@ -8,7 +8,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <crystal/miller/ReducedMillers.h>
 #include <crystal/miller/FibonacciMillers.h>
 #include <settings/CrystalSettings.h>
-#include <residue/ResidueMap.h>
 
 using namespace ausaxs;
 

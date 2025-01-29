@@ -36,15 +36,15 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder output = options.output + "saxs/";
-    io::Folder protein_path = output + "protein/";
-    io::Folder buffer_path = output + "buffer/";
-    io::Folder mdp_folder = output + "mdp/";
-    io::Folder prod_folder = output + "prod/";
+    io::Folder output = options.output.str() + "saxs/";
+    io::Folder protein_path = output.str() + "protein/";
+    io::Folder buffer_path = output.str() + "buffer/";
+    io::Folder mdp_folder = output.str() + "mdp/";
+    io::Folder prod_folder = output.str() + "prod/";
     mdp_folder.create(); prod_folder.create();
 
-    TOPFile moltop(protein_path + "topol.top");
-    TOPFile buftop(buffer_path + "topol.top");
+    TOPFile moltop(protein_path.str() + "topol.top");
+    TOPFile buftop(buffer_path.str() + "topol.top");
     if (!moltop.exists() || !buftop.exists()) {
         options.molecule.top.copy(moltop.directory());
         options.buffer.top.copy(buftop.directory());
@@ -66,7 +66,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     //##################################//
     // we want to always have the group Water_and_ions, but it is only generated automatically if there are actual ions present in the system. 
     // since this is not guaranteed, we have to generate it manually
-    NDXFile molindex(protein_path + "index.ndx");
+    NDXFile molindex(protein_path.str() + "index.ndx");
     if (!molindex.exists()) {
         console::print_text("Creating index file for molecule...");
         make_ndx(molgro)
@@ -108,7 +108,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         console::print_text("Reusing index file for molecule.");
     }
 
-    NDXFile bufindex(buffer_path + "index.ndx");
+    NDXFile bufindex(buffer_path.str() + "index.ndx");
     if (!bufindex.exists()) {
         console::print_text("Creating index file for buffer...");
         make_ndx(bufgro)
@@ -130,24 +130,24 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     //##################################//
     //###         ENVELOPE           ###//
     //##################################//
-    GROFile envgro(protein_path + "envelope-ref.gro");
-    PYFile envpy(protein_path + "envelope.py");
-    DATFile envdat(protein_path + "envelope.dat");
-    MDPFile molmdp(mdp_folder + "rerun_mol.mdp");
+    GROFile envgro(protein_path.str() + "envelope-ref.gro");
+    PYFile envpy(protein_path.str() + "envelope.py");
+    DATFile envdat(protein_path.str() + "envelope.dat");
+    MDPFile molmdp(mdp_folder.str() + "rerun_mol.mdp");
 
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
         console::print_text("Preparing SAXS rerun...");
         console::indent();
-        MDPFile dummymdp = MDPFile(output + "empty.mdp"); dummymdp.create();
+        MDPFile dummymdp = MDPFile(output.str() + "empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
-            .output(output + "saxs.tpr")
+            .output(output.str() + "saxs.tpr")
             .warnings(1)
         .run();
         dummymdp.remove();
 
         console::print_text("Generating scattering parameters...");
         auto[itps] = genscatt(dummytpr, molindex)
-            .output(protein_path + "scatt.itp")
+            .output(protein_path.str() + "scatt.itp")
             .group("Protein_and_Ions")
         .run();
 
@@ -165,14 +165,14 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         // dump the first 50 frames
         console::print_text("Dumping first 50 frames...");
         auto[traj] = trjconv(molxtc)
-            .output(protein_path + "protein.xtc")
+            .output(protein_path.str() + "protein.xtc")
             .startframe(50)
         .run();
 
         // center the trajectories
         console::print_text("Centering trajectories...");
         auto[cluster] = trjconv(traj)
-            .output(protein_path + "cluster.xtc")
+            .output(protein_path.str() + "cluster.xtc")
             .group("Protein")
             .pbc("cluster")
             .ur("tric")
@@ -181,7 +181,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         .run();
 
         auto[centered] = trjconv(cluster)
-            .output(protein_path + "centered.xtc")
+            .output(protein_path.str() + "centered.xtc")
             .group("Protein")
             .center()
             .boxcenter("tric")
@@ -218,21 +218,21 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         console::print_text("Reusing previously generated envelope.");
     }
 
-    MDPFile bufmdp(mdp_folder + "rerun_buf.mdp");
+    MDPFile bufmdp(mdp_folder.str() + "rerun_buf.mdp");
     if (!bufmdp.exists()) {
         SAXSMDPCreatorSol().write(bufmdp);
     }
 
-    GROFile gro(prod_folder + "prod.gro");
+    GROFile gro(prod_folder.str() + "prod.gro");
     if (!gro.exists()) {
         auto[moltpr] = grompp(molmdp, moltop, molgro)
-            .output(prod_folder + "rerun_mol.tpr")
+            .output(prod_folder.str() + "rerun_mol.tpr")
             .index(molindex)
             .warnings(1)
         .run();
 
         auto[buftpr] = grompp(bufmdp, buftop, bufgro)
-            .output(prod_folder + "rerun_buf.tpr")
+            .output(prod_folder.str() + "rerun_buf.tpr")
             .index(bufindex)
             .warnings(2)
         .run();

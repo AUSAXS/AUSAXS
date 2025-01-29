@@ -6,7 +6,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <crystal/Fval.h>
 #include <utility/Basis3D.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
+#include <data/Body.h>
+#include <data/atoms/AtomFF.h>
 #include <constants/Constants.h>
 
 using namespace ausaxs;
@@ -24,9 +25,9 @@ void Fval::set_points(std::vector<Vector3<double>>&& points) {
 }
 
 void Fval::set_basis(const Basis3D& basis) {
-    ap = {2*constants::pi/basis.x.x(), 0, 0};
-    bp = {0, 2*constants::pi/basis.y.y(), 0};
-    cp = {0, 0, 2*constants::pi/basis.z.z()};
+    ap = {2*std::numbers::pi/basis.x.x(), 0, 0};
+    bp = {0, 2*std::numbers::pi/basis.y.y(), 0};
+    cp = {0, 0, 2*std::numbers::pi/basis.z.z()};
 }
 
 std::vector<Vector3<double>>& Fval::get_points() {
@@ -42,11 +43,11 @@ double Fval::I() const {
 }
 
 data::Molecule Fval::as_protein() {
-    std::vector<data::record::Atom> atoms(points.size());
+    std::vector<data::Atom> atoms(points.size());
     for (unsigned int i = 0; i < points.size(); i++) {
-        atoms[i] = data::record::Atom(points[i], 1, constants::atom_t::H, "LYS", i);
+        atoms[i] = data::Atom(points[i], 1);
     } 
-    return data::Molecule(atoms);
+    return data::Molecule(std::vector{data::Body(atoms)});
 }
 
 // #include <settings/CrystalSettings.h>
@@ -60,9 +61,9 @@ data::Molecule Fval::as_protein() {
 //     z_factors.reserve(points.size());
 
 //     for (const Vector3<double>& point : points) {
-//         std::complex<double> x_factor = std::polar(1.0, -2*constants::pi*ap.x()*point.x());
-//         std::complex<double> y_factor = std::polar(1.0, -2*constants::pi*bp.y()*point.y());
-//         std::complex<double> z_factor = std::polar(1.0, -2*constants::pi*cp.z()*point.z());
+//         std::complex<double> x_factor = std::polar(1.0, -2*std::numbers::pi*ap.x()*point.x());
+//         std::complex<double> y_factor = std::polar(1.0, -2*std::numbers::pi*bp.y()*point.y());
+//         std::complex<double> z_factor = std::polar(1.0, -2*std::numbers::pi*cp.z()*point.z());
 
 //         x_factors.push_back(x_factor);
 //         y_factors.push_back(y_factor);

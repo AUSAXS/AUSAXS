@@ -7,7 +7,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <crystal/miller/Miller.h>
 #include <crystal/Fval.h>
 #include <settings/CrystalSettings.h>
-#include <constants/ConstantsMath.h>
 
 #include <math.h>
 #include <iostream>
@@ -129,7 +128,7 @@ std::vector<ausaxs::Vector3<double>> FibonacciMillers::generate_fibonacci_sphere
     std::vector<Vector3<double>> points(n);
 
     for (int i = 0; i < n; i++) {
-        double theta = 2*constants::pi*i/phi;
+        double theta = 2*std::numbers::pi*i/phi;
         double z = 1 - 2*(i + 0.5)/n;
         double r = sqrt(1 - z*z);
         points[i] = Vector3<double>(r*cos(theta), r*sin(theta), z);

@@ -26,7 +26,7 @@ mdrun& mdrun::input(const TPRFile& tpr) {
 
 mdrun& mdrun::output(const io::Folder& folder, const std::string& prefix) {
     this->folder = folder;
-    options.push_back(std::make_shared<shell::Argument>("-deffnm", folder + prefix));
+    options.push_back(std::make_shared<shell::Argument>("-deffnm", folder.str() + prefix));
     return *this;
 }
 

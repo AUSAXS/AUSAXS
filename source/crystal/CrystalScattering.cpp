@@ -48,8 +48,8 @@ void CrystalScattering::random_rotation() {
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0, 1);
     double theta = std::acos(2*dis(gen) - 1);
-    double phi = 2*constants::pi*dis(gen);
-    double psi = 2*constants::pi*dis(gen);
+    double phi = 2*std::numbers::pi*dis(gen);
+    double psi = 2*std::numbers::pi*dis(gen);
     auto v = Vector3<double>(std::cos(theta)*std::cos(phi), std::sin(theta)*std::cos(phi), std::sin(phi));
     rotate(v, psi);
 }

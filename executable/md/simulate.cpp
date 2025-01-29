@@ -52,7 +52,7 @@ int main(int argc, char const *argv[]) {
     };
 
     if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
-    gmx::gmx::set_logfile(sele.output + "output.log", sele.output + "cmd.log");
+    gmx::gmx::set_logfile(sele.output.str() + "output.log", sele.output.str() + "cmd.log");
     PDBFile pdb(s_pdb);
 
     // prepare sims

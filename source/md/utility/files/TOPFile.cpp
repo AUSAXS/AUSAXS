@@ -250,8 +250,8 @@ void TOPFile::fix_relative_includes() {
 }
 
 void TOPFile::fix_relative_includes(const io::File& path) {
-    if (!path.exists()) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" does not exist.");}
-    console::print_text_minor("Fixing relative includes in \"" + path + "\".");
+    if (!path.exists()) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path.str() + "\" does not exist.");}
+    console::print_text_minor("Fixing relative includes in \"" + path.str() + "\".");
     console::indent();
     std::ifstream in(path);
 
@@ -261,10 +261,10 @@ void TOPFile::fix_relative_includes(const io::File& path) {
     while (std::getline(in, line)) {
         if (line.find("#include") != std::string::npos) {
             auto index = line.find("\"");
-            if (index == std::string::npos) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" contains an include that is not in quotes.");}
+            if (index == std::string::npos) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path.str() + "\" contains an include that is not in quotes.");}
             std::string include = line.substr(index + 1);
             index = include.find("\"");
-            if (index == std::string::npos) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path + "\" contains an include quote which is not terminated.");}
+            if (index == std::string::npos) {throw except::io_error("TOPFile::fix_relative_includes: \"" + path.str() + "\" contains an include quote which is not terminated.");}
             include = include.substr(0, index);
 
             // non-existing files are likely relative to the GROMACS directory and shouldn't be touched
@@ -336,11 +336,11 @@ void TOPFile::extract_single_chain() {
 
     std::string itp;
     for (const auto& line : chain_contents) {itp += line + "\n";}
-    std::ofstream out2(directory() + "/" + newfile);
+    std::ofstream out2(directory().str() + "/" + newfile);
     out2 << itp;
 
     // update includes
-    includes.push_back(ITPFile(directory() + "/" + newfile));
+    includes.push_back(ITPFile(directory().str() + "/" + newfile));
 }
 
 std::string TOPFile::copy(const io::Folder& folder) const {

@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]) {
     };
 
     if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
-    gmx::gmx::set_logfile(sele.output + "output.log", sele.output + "cmd.log");
+    gmx::gmx::set_logfile(sele.output.str() + "output.log", sele.output.str() + "cmd.log");
     PDBFile pdb(s_pdb);
 
     // prepare sims
@@ -55,11 +55,11 @@ int main(int argc, char const *argv[]) {
     SAXSOptions so(saxs_sele, std::move(molecule), std::move(buffer), pdb);
     auto saxs = timeanalysis(so, 500);
 
-    for (unsigned int i = 0; i < saxs.size(); i++) {saxs[i].job->submit();}
-    for (unsigned int i = saxs.size()-1; i >= 0; i--) { // reverse wait order since the last job is the shortest run
+    for (int i = 0; i < static_cast<int>(saxs.size()); i++) {saxs[i].job->submit();}
+    for (int i = static_cast<int>(saxs.size())-1; i >= 0; i--) { // reverse wait order since the last job is the shortest run
         saxs[i].job->wait();
         auto res = saxs[i].job->result();
-        res.xvg.rename(std::to_string(i+1) + ".xvg").copy({sele.output + "output"});
+        res.xvg.rename(std::to_string(i+1) + ".xvg").copy({sele.output.str() + "output"});
     }
     return 0;
 } 
