@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <data/symmetry/PartialSymmetryManagerMT.h>
+#include <data/symmetry/detail/SymmetryHelpers.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/distribution/GenericDistribution1D.h>
@@ -25,6 +26,15 @@ PartialSymmetryManagerMT<use_weighted_distribution>::PartialSymmetryManagerMT(ob
 
 template<bool use_weighted_distribution> 
 PartialSymmetryManagerMT<use_weighted_distribution>::~PartialSymmetryManagerMT() = default;
+
+int water_res_index = 1.31e8;
+int to_res_index(int body, int symmetry) {
+    return body*100 + symmetry;
+}
+
+int to_res_index(int body1, int symmetry1, int body2, int symmetry2) {
+    return to_res_index(body1, symmetry1)*100 + to_res_index(body2, symmetry2);
+}
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::calculate() {
@@ -72,7 +82,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
     // check if the hydration layer was modified
     if (hydration_modified) {
-        calc_ww_self(calculator.get());
+        calc_ww(calculator.get());
     }
 
     // iterate through the lower triangle and check if either of each pair of bodies was modified
@@ -94,38 +104,35 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     // for this process, we first have to wait for all threads to finish
     // then we extract the results in the same order they were submitted to ensure correctness
     auto res = calculator->run();
-    int self_index = 0, cross_index = 0;
     {
         if (hydration_modified) {
             pool->detach_task(
-                [this, r = std::move(res.self[self_index++])] () mutable {combine_ww(std::move(r));}
+                [this, r = std::move(res.self[water_res_index])] () mutable {combine_ww(std::move(r));}
             );
         }
 
         for (unsigned int i = 0; i < this->body_size; ++i) {
             if (internally_modified[i]) {
                 pool->detach_task(
-                    [this, i, r = std::move(res.self[self_index++])] () mutable {combine_self_correlation(i, std::move(r));}
+                    [this, i, r = std::move(res.self[to_res_index(i, 0)])] () mutable {combine_aa_self(i, std::move(r));}
                 );
             }
 
             for (unsigned int j = 0; j < i; ++j) {
                 if (externally_modified[i] || externally_modified[j]) {
                     pool->detach_task(
-                        [this, i, j, r = std::move(res.cross[cross_index++])] () mutable {combine_aa(i, j, std::move(r));}
+                        [this, i, j, r = std::move(res.cross[to_res_index(i, 0, j, 0)])] () mutable {combine_aa(i, j, std::move(r));}
                     );
                 }
             }
 
             if (externally_modified[i] || hydration_modified) {
                 pool->detach_task(
-                    [this, i, r = std::move(res.cross[cross_index++])] () mutable {combine_aw(i, std::move(r));}
+                    [this, i, r = std::move(res.cross[to_res_index(i, 0) + water_res_index])] () mutable {combine_aw(i, std::move(r));}
                 );
             }
         }
     }
-    assert(self_index == static_cast<int>(res.self.size()) && "self_index is not equal to the size of the self vector");
-    assert(cross_index == static_cast<int>(res.cross.size()) && "cross_index is not equal to the size of the cross vector");
 
     this->statemanager->reset_to_false();
     pool->wait();
@@ -156,7 +163,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_represe
 
 template<bool use_weighted_distribution>
 void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_representation_water(int index) {
-    coords[index].waters = symmetry::detail::generate_transformed_waters(this->protein->get_body(index));
+    coords[index].waters = CompactCoordinates(this->protein->get_body(index).get_waters());
 }
 
 template<bool use_weighted_distribution>
@@ -228,8 +235,9 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::initialize(calculator_
     auto res = calculator->run();
     assert(res.self.size() == this->body_size && "The number of self-correlation results does not match the number of bodies.");
     for (int i = 0; i < static_cast<int>(body_size); ++i) {
+        assert(res.self.contains(to_res_index(i, 0)) && "The self-correlation result does not contain the expected index.");
         pool->detach_task(
-            [this, i, r = std::move(res.self[i])] () mutable {combine_self_correlation(i, std::move(r));}
+            [this, i, r = std::move(res.self[to_res_index(i, 0)])] () mutable {combine_aa_self(i, std::move(r));}
         );
     }
 }
@@ -238,100 +246,14 @@ template<bool use_weighted_distribution>
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculator_t calculator, int index) {
     update_compact_representation_body(index);
     const auto& body = protein->get_body(index);
-    calculator->enqueue_calculate_self(coords[index].atomic[0][0], 1 + body.size_symmetry_total());
+    calculator->enqueue_calculate_self(coords[index].atomic[0][0], 1 + body.size_symmetry_total(), to_res_index(index, 0));
 }
 
 template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::calc_ww_self(calculator_t calculator) {
-    // goal is to calculate the self-correlation of the total hydration shell
-    // e.g. the self-correlation within each body replicate, and the cross-correlations between them
-
-    // we can safely merge all calculations into a single result
-    int self_merge_id = calculator->size_self_result();
-    int cross_merge_id = calculator->size_cross_result();
-
-    // for every body i_body1
+void PartialSymmetryManagerMT<use_weighted_distribution>::calc_ww(calculator_t calculator) {
     for (int i_body1 = 0; i_body1 < static_cast<int>(body_size); ++i_body1) {
-        const auto& body = protein->get_body(i_body1);
-        const auto& body1_waters = coords[i_body1].waters[0][0];
-
-        // calculate the self-correlation of its hydration shell, and scale it by the number of symmetric duplicates
-        calculator->enqueue_calculate_self(body1_waters, 1 + body.size_symmetry_total(), self_merge_id);
-
-        // for every symmetry i_sym1 of body 1
-        for (int i_sym1 = 0; i_sym1 < static_cast<int>(body.size_symmetry()); ++i_sym1) {
-            const auto& sym1 = body.symmetry().get(i_sym1);
-            bool closed = sym1.is_closed();
-
-            // for every replicate i_repeat1 in i_sym1
-            for (int i_repeat1 = 0; i_repeat1 < (sym1.repeat - closed); ++i_repeat1) {
-                const auto& body1_sym_waters = coords[i_body1].waters[1+i_sym1][i_repeat1];
-
-                int scale = sym1.repeat - i_repeat1;
-                if (i_repeat1 == 0 && closed) {scale += 1;}
-
-                // calculate the cross-correlation between the original body and this replicate, 
-                // and scale it by the number of times this specific correlation is repeated
-                calculator->enqueue_calculate_cross(body1_waters, body1_sym_waters, scale, cross_merge_id);
-
-                // for every other body j_body1
-                for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
-                    const auto& body2 = protein->get_body(j_body1);
-                    const auto& body2_waters = coords[j_body1].waters[0][0];
-
-                    // calculate the cross-correlation between the second body and this replicate
-                    calculator->enqueue_calculate_cross(body2_waters, body1_sym_waters, cross_merge_id);
-
-                    // for every symmetry j_sym1 of body 2
-                    for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
-                        const auto& sym2 = body2.symmetry().get(j_sym1);
-
-                        // for every replicate j_repeat1 in j_sym1
-                        for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
-                            const auto& body2_sym_waters = coords[j_body1].waters[1+j_sym1][j_repeat1];
-
-                            // calculate the cross-correlation between the two replicates
-                            calculator->enqueue_calculate_cross(body1_sym_waters, body2_sym_waters, cross_merge_id);
-                        }
-                    }
-                }
-
-                // for every other symmetry j_sym1 of body 1
-                for (int i_sym2 = i_sym1+1; i_sym2 < static_cast<int>(body.size_symmetry()); ++i_sym2) {
-                    const auto& sym2 = body.symmetry().get(i_sym2);
-
-                    // for every replicate j_repeat2 in j_sym2
-                    for (int i_repeat2 = 0; i_repeat2 < sym2.repeat; ++i_repeat2) {
-                        const auto& body2_sym_waters = coords[i_body1].waters[1+i_sym2][i_repeat2];
-
-                        // calculate the cross-correlation between the two replicates
-                        calculator->enqueue_calculate_cross(body1_sym_waters, body2_sym_waters, cross_merge_id);
-                    }
-                }
-            }
-        }
-
-        // for every other body j_body1
-        for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
-            const auto& body2 = protein->get_body(j_body1);
-            const auto& body2_waters = coords[j_body1].waters[0][0];
-
-            // calculate the cross-correlation between the two original bodies
-            calculator->enqueue_calculate_cross(body1_waters, body2_waters, cross_merge_id);
-
-            // for every symmetry j_sym1 of body 2
-            for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
-                const auto& sym2 = body2.symmetry().get(j_sym1);
-
-                // for every replicate j_repeat1 in j_sym1
-                for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
-                    const auto& body2_sym_waters = coords[j_body1].waters[1+j_sym1][j_repeat1];
-
-                    // calculate the cross-correlation between the original body and this replicate
-                    calculator->enqueue_calculate_cross(body1_waters, body2_sym_waters, cross_merge_id);
-                }
-            }
-        }
+        const auto& body1_waters = coords[i_body1].waters;
+        calculator->enqueue_calculate_self(body1_waters, 1, water_res_index);
     }
 }
 
@@ -339,7 +261,7 @@ template<bool use_weighted_distribution>
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t calculator, int n, int m) {
     const auto& body1 = protein->get_body(n);
     const auto& body2 = protein->get_body(m);
-    int res_index = calculator->size_cross_result();
+    int res_index = to_res_index(n, 0, m, 0);
 
     // for every symmetry i_sym1 of body 1
     for (int i_sym1 = 0; i_sym1 < 1 + static_cast<int>(body1.size_symmetry()); ++i_sym1) {
@@ -369,84 +291,21 @@ template<bool use_weighted_distribution>
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aw(calculator_t calculator, int index) {
     const auto& body = protein->get_body(index);
     const auto& body1_atomic = coords[index].atomic[0][0];
-    const auto& body1_waters = coords[index].waters[0][0];
+    const auto& waters = coords[index].waters;
+    int res_index = to_res_index(index, 0) + water_res_index;
 
-    calculator->enqueue_calculate_cross(body1_atomic, body1_waters, 1 + body.size_symmetry_total());
-
+    calculator->enqueue_calculate_cross(body1_atomic, waters, 1, res_index);
     for (int i_sym1 = 0; i_sym1 < static_cast<int>(body.size_symmetry()); ++i_sym1) {
         const auto& sym1 = body.symmetry().get(i_sym1);
-        bool closed = sym1.is_closed();
-        for (int i_repeat1 = 0; i_repeat1 < (sym1.repeat - closed); ++i_repeat1) {
+        for (int i_repeat1 = 0; i_repeat1 < sym1.repeat; ++i_repeat1) {
             const auto& body1_sym_atomic = coords[index].atomic[1+i_sym1][i_repeat1];
-            const auto& body1_sym_waters = coords[index].waters[1+i_sym1][i_repeat1];
-
-            int scale = sym1.repeat - i_repeat1;
-            if (i_repeat1 == 0 && closed) {scale += 1;}
-
-            calculator->enqueue_calculate_cross(body1_atomic, body1_sym_waters, scale);
-            calculator->enqueue_calculate_cross(body1_waters, body1_sym_atomic, scale);
-
-            // external histograms with other bodies
-            for (int j_body1 = index+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
-                const auto& body2 = protein->get_body(j_body1);
-                const auto& body2_atomic = coords[j_body1].atomic[0][0];
-                const auto& body2_waters = coords[j_body1].waters[0][0];
-
-                calculator->enqueue_calculate_cross(body2_atomic, body1_sym_waters);
-                calculator->enqueue_calculate_cross(body2_waters, body1_sym_atomic);
-
-                // external histograms with other symmetries in same body
-                for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
-                    const auto& sym2 = body2.symmetry().get(j_sym1);
-                    for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
-                        const auto& body2_sym_atomic = coords[j_body1].atomic[1+j_sym1][j_repeat1];
-                        const auto& body2_sym_waters = coords[j_body1].waters[1+j_sym1][j_repeat1];
-
-                        calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_waters);
-                        calculator->enqueue_calculate_cross(body1_sym_waters, body2_sym_atomic);
-                    }
-                }
-            }
-
-            // internal histogram with other symmetries in same body
-            for (int i_sym2 = i_sym1+1; i_sym2 < static_cast<int>(body.size_symmetry()); ++i_sym2) {
-                const auto& sym2 = body.symmetry().get(i_sym2);
-                for (int i_repeat2 = 0; i_repeat2 < sym2.repeat; ++i_repeat2) {
-                    const auto& body2_sym_atomic = coords[index].atomic[1+i_sym2][i_repeat2];
-                    const auto& body2_sym_waters = coords[index].waters[1+i_sym2][i_repeat2];
-
-                    calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_waters);
-                    calculator->enqueue_calculate_cross(body1_sym_waters, body2_sym_atomic);
-                }
-            }
-        }
-    }
-
-    // external histograms with other bodies
-    for (int j_body1 = index+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
-        const auto& body2 = protein->get_body(j_body1);
-        const auto& body2_atomic = coords[j_body1].atomic[0][0];
-        const auto& body2_waters = coords[j_body1].waters[0][0];
-
-        calculator->enqueue_calculate_cross(body1_atomic, body2_waters);
-        calculator->enqueue_calculate_cross(body1_waters, body2_atomic);
-
-        // external histograms with other symmetries in same body
-        for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
-            const auto& sym2 = body2.symmetry().get(j_sym1);
-            for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
-                const auto& body2_sym_atomic = coords[j_body1].atomic[1+j_sym1][j_repeat1];
-                const auto& body2_sym_waters = coords[j_body1].waters[1+j_sym1][j_repeat1];
-
-                calculator->enqueue_calculate_cross(body1_atomic, body2_sym_waters);
-                calculator->enqueue_calculate_cross(body1_waters, body2_sym_atomic);
-            }
+            calculator->enqueue_calculate_cross(body1_sym_atomic, waters, 1, res_index);
         }
     }
 }
 
 template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::combine_self_correlation(int index, GenericDistribution1D_t&& res) {
+void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int index, GenericDistribution1D_t&& res) {
     master_hist_mutex.lock();
     this->master -= this->partials_aa.index(index, index);
     this->partials_aa.index(index, index) = std::move(res);
