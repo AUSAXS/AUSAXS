@@ -1,4 +1,4 @@
-#include <data/symmetry/detail/SymmetryHelpers.h>
+#include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
