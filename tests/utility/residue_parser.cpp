@@ -322,6 +322,10 @@ TEST_CASE("ResidueParser: parse_all") {
 #include <io/detail/CIFReader.h>
 #include <settings/GeneralSettings.h>
 TEST_CASE("ResidueParser: cif_reader_single") {
+    if (auto folder = io::Folder("temp/residues"); !folder.exists()) {
+        folder.create();
+    }
+
     io::File gly("temp/residues/GLY.cif");
     if (!gly.exists()) {
         REQUIRE(ausaxs::curl::download("files.rcsb.org/ligands/view/GLY.cif", "temp/residues/GLY.cif"));
@@ -333,6 +337,10 @@ TEST_CASE("ResidueParser: cif_reader_single") {
 }
 
 TEST_CASE("ResidueParser: cif_reader_all") {
+    if (auto folder = io::Folder("temp/residues"); !folder.exists()) {
+        folder.create();
+    }
+
     for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
         io::File res("temp/residues/" + acid + ".cif");
         if (!res.exists()) {
