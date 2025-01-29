@@ -53,7 +53,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 return std::make_unique<PartialHistogramManager<true>>(protein);
             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
                 return std::make_unique<PartialHistogramManagerMT<true>>(protein);
-            case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg:
+            case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
                 return std::make_unique<PartialSymmetryManagerMT<true>>(protein);
             // case settings::hist::HistogramManagerChoice::DebugManager:
             //     return std::make_unique<DebugManager<true>>(protein);
@@ -89,7 +89,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 return std::make_unique<PartialHistogramManager<false>>(protein);
             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
                 return std::make_unique<PartialHistogramManagerMT<false>>(protein);
-            case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg:
+            case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
                 return std::make_unique<PartialSymmetryManagerMT<false>>(protein);
             case settings::hist::HistogramManagerChoice::FoXSManager:
             case settings::hist::HistogramManagerChoice::PepsiManager:

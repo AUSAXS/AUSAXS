@@ -45,7 +45,7 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Histogra
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg: return "phmmtff";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit: return "phmmtffx";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid: return "phmmtffg";
-        case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT: return "phmsmt";
+        case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT: return "phsmt";
         case settings::hist::HistogramManagerChoice::FoXSManager: return "foxs";
         case settings::hist::HistogramManagerChoice::PepsiManager: return "pepsi";
         case settings::hist::HistogramManagerChoice::CrysolManager: return "crysol";
@@ -69,7 +69,7 @@ template<> void settings::io::detail::SettingRef<settings::hist::HistogramManage
     else if (str == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg;}
     else if (str == "phmmtffx") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit;}
     else if (str == "phmmtffg") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid;}
-    else if (str == "phmsmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;}
+    else if (str == "phsmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;}
     // else if (str == "debug") {settingref = settings::hist::HistogramManagerChoice::DebugManager;}
     else if (str == "foxs") {settingref = settings::hist::HistogramManagerChoice::FoXSManager;}
     else if (str == "pepsi") {settingref = settings::hist::HistogramManagerChoice::PepsiManager;}
