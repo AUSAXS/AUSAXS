@@ -15,11 +15,13 @@ namespace ausaxs::signaller {
 
             BoundSignaller(unsigned int id, state::StateManager* const owner);
 
-            virtual void external_change() const override;
+            virtual void modified_external() const override;
 
-            virtual void internal_change() const override;
+            virtual void modified_internal() const override;
 
-            virtual void symmetry_changed() const override;
+            virtual void modified_symmetry(int i) const override;
+
+            virtual void set_symmetry_size(std::size_t size) const override;
 
             /**
              * @brief Get the id of this signaller. 
