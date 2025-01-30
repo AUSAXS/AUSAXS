@@ -36,6 +36,7 @@ namespace ausaxs::hist {
 			observer_ptr<const data::Molecule> protein;													// the molecule we are calculating the histogram for
             detail::MasterHistogram<use_weighted_distribution> master;									// the current total histogram
 			std::vector<symmetry::detail::BodySymmetryData> coords;										// a compact representation of the relevant data from the managed bodies
+			hist::detail::CompactCoordinates coords_w;													// a compact representation of the relevant data from the hydration layer
 			container::Container2D<detail::PartialHistogram<use_weighted_distribution>> partials_aa; 	// the partial histograms
 			container::Container1D<detail::HydrationHistogram<use_weighted_distribution>> partials_aw;	// the partial hydration-atom histograms
 			detail::HydrationHistogram<use_weighted_distribution> partials_ww;               			// the partial histogram for the hydration layer
@@ -103,6 +104,6 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Update the compact representation of the coordinates of the hydration layer.
 			 */
-			void update_compact_representation_water(int index);
+			void update_compact_representation_water();
 	};
 }

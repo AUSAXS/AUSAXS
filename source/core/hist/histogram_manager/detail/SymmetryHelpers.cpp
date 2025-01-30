@@ -6,25 +6,19 @@ using namespace ausaxs;
 using namespace ausaxs::symmetry::detail;
 using namespace ausaxs::hist::detail;
 
-std::vector<BodySymmetryData> ausaxs::symmetry::detail::generate_transformed_data(const data::Molecule& protein) {
+std::pair<std::vector<BodySymmetryData>, hist::detail::CompactCoordinates> ausaxs::symmetry::detail::generate_transformed_data(const data::Molecule& protein) {
     std::vector<BodySymmetryData> res(protein.size_body());
     for (int i_body1 = 0; i_body1 < static_cast<int>(protein.size_body()); ++i_body1) {
         res[i_body1] = generate_transformed_data(protein.get_body(i_body1));
     }
-    return res;
+    return {std::move(res), protein.get_waters()};
 }
 
 BodySymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body) {
     CompactCoordinates data_a(body.get_atoms());
-    CompactCoordinates data_w;
-    if (body.size_water() != 0) {
-        data_w = CompactCoordinates(body.get_waters());
-    } 
-
-    std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
-    std::vector<std::vector<CompactCoordinates>> water(1+body.size_symmetry());
 
     // loop over its symmetries
+    std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
     for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
         const auto& symmetry = body.symmetry().get(i_sym_1);
 
@@ -44,5 +38,5 @@ BodySymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data:
     }
 
     atomic[0] = {std::move(data_a)};
-    return {std::move(atomic), std::move(data_w)};
+    return {std::move(atomic)};
 }
