@@ -78,11 +78,9 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
     // small efficiency improvement: if the hydration layer was modified, we can update the compact representations in parallel with the self-correlation
     if (hydration_modified) {
-        for (unsigned int i = 0; i < this->body_size; ++i) {
-            pool->detach_task(
-                [this, i] () {update_compact_representation_water(i);}
-            );
-        }
+        pool->detach_task(
+            [this] () {update_compact_representation_water();}
+        );
     }
     pool->wait(); // ensure the compact representations have been updated before continuing
 
@@ -112,7 +110,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     auto res = calculator->run();
     {
         if (hydration_modified) {
-            std::cout << "searching for water result at index " << water_res_index << std::endl;
             assert(res.self.contains(water_res_index) && "SymmetryManager::calculate: water result not found");
             pool->detach_task(
                 [this, r = std::move(res.self[water_res_index])] () mutable {combine_ww(std::move(r));}
@@ -121,7 +118,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
         for (unsigned int i = 0; i < this->body_size; ++i) {
             if (internally_modified[i]) {
-                std::cout << "searching for aa self " << i << " result at index " << to_res_index(i, 0) << std::endl;
                 assert(res.self.contains(to_res_index(i, 0)) && "SymmetryManager::calculate: aa self result not found");
                 pool->detach_task(
                     [this, i, r = std::move(res.self[to_res_index(i, 0)])] () mutable {combine_aa_self(i, std::move(r));}
@@ -130,7 +126,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
             for (unsigned int j = 0; j < i; ++j) {
                 if (externally_modified[i] || externally_modified[j]) {
-                    std::cout << "searching for aa cross " << i << ", " << j << " result at index " << to_res_index(i, 0, j, 0) << std::endl;
                     assert(res.cross.contains(to_res_index(i, 0, j, 0)) && "SymmetryManager::calculate: aa cross result not found");
                     pool->detach_task(
                         [this, i, j, r = std::move(res.cross[to_res_index(i, 0, j, 0)])] () mutable {combine_aa(i, j, std::move(r));}
@@ -139,7 +134,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
             }
 
             if (externally_modified[i] || hydration_modified) {
-                std::cout << "searching for aw cross " << i << " result at index " << to_res_index(i, 0) + water_res_index << std::endl;
                 assert(res.cross.contains(to_res_index(i, 0) + water_res_index) && "SymmetryManager::calculate: aw cross result not found");
                 pool->detach_task(
                     [this, i, r = std::move(res.cross[to_res_index(i, 0) + water_res_index])] () mutable {combine_aw(i, std::move(r));}
@@ -176,9 +170,8 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_represe
 }
 
 template<bool use_weighted_distribution>
-void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_representation_water(int index) {
-    if (this->protein->get_body(index).size_water() == 0) {return;}
-    coords[index].waters = CompactCoordinates(this->protein->get_body(index).get_waters());
+void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_representation_water() {
+    coords_w = CompactCoordinates(this->protein->get_waters());
 }
 
 template<bool use_weighted_distribution>
@@ -259,7 +252,6 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::initialize(calculator_
 
 template<bool use_weighted_distribution>
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculator_t calculator, int index) {
-    std::cout << "storing aa self " << index << " at index " << to_res_index(index, 0) << std::endl;
     update_compact_representation_body(index);
     const auto& body = protein->get_body(index);
     calculator->enqueue_calculate_self(coords[index].atomic[0][0], 1 + body.size_symmetry_total(), to_res_index(index, 0));
@@ -267,11 +259,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculato
 
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_ww(calculator_t calculator) {
-    std::cout << "storing ww at index " << water_res_index << std::endl;
-    for (int i_body1 = 0; i_body1 < static_cast<int>(body_size); ++i_body1) {
-        const auto& body1_waters = coords[i_body1].waters;
-        calculator->enqueue_calculate_self(body1_waters, 1, water_res_index);
-    }
+    calculator->enqueue_calculate_self(coords_w, 1, water_res_index);
 }
 
 template<bool use_weighted_distribution> 
@@ -279,7 +267,6 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
     const auto& body1 = protein->get_body(n);
     const auto& body2 = protein->get_body(m);
     int res_index = to_res_index(n, 0, m, 0);
-    std::cout << "storing aa cross " << n << ", " << m << " at index " << res_index << std::endl;
 
     // for every symmetry i_sym1 of body 1
     for (int i_sym1 = 0; i_sym1 < static_cast<int>(body1.size_symmetry()); ++i_sym1) {
@@ -303,14 +290,35 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
             }
         }
     }
+
+    // base body n
+    const auto& body1_atomic = coords[n].atomic[0][0];
+    for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
+        const auto& sym2 = body2.symmetry().get(j_sym1);
+        for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
+            const auto& body2_sym_atomic = coords[m].atomic[1+j_sym1][j_repeat1];
+            calculator->enqueue_calculate_cross(body1_atomic, body2_sym_atomic, 1, res_index);
+        }
+    }
+
+    // base body m
+    const auto& body2_atomic = coords[m].atomic[0][0];
+    for (int i_sym1 = 0; i_sym1 < static_cast<int>(body1.size_symmetry()); ++i_sym1) {
+        const auto& sym1 = body1.symmetry().get(i_sym1);
+        for (int i_repeat1 = 0; i_repeat1 < sym1.repeat; ++i_repeat1) {
+            const auto& body1_sym_atomic = coords[n].atomic[1+i_sym1][i_repeat1];
+            calculator->enqueue_calculate_cross(body1_sym_atomic, body2_atomic, 1, res_index);
+        }
+    }
+
+    calculator->enqueue_calculate_cross(body1_atomic, body2_atomic, 1, res_index);
 }
 
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aw(calculator_t calculator, int index) {
-    std::cout << "storing aw " << index << " at index " << to_res_index(index, 0) + water_res_index << std::endl;
     const auto& body = protein->get_body(index);
     const auto& body1_atomic = coords[index].atomic[0][0];
-    const auto& waters = coords[index].waters;
+    const auto& waters = coords_w;
     int res_index = to_res_index(index, 0) + water_res_index;
 
     calculator->enqueue_calculate_cross(body1_atomic, waters, 1, res_index);

@@ -19,9 +19,8 @@ namespace ausaxs::symmetry::detail {
         // the outer loop is over the symmetries, the inner loop is over the repetitions
         // index [0][0] is the original data
         symmetry_t<repetition_t<hist::detail::CompactCoordinates>> atomic;
-        hist::detail::CompactCoordinates waters;
     };
 
-    std::vector<BodySymmetryData> generate_transformed_data(const data::Molecule& protein);
+    std::pair<std::vector<BodySymmetryData>, hist::detail::CompactCoordinates> generate_transformed_data(const data::Molecule& protein);
     BodySymmetryData generate_transformed_data(const data::Body& body);
 }
