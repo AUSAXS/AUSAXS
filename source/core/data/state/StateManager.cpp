@@ -11,7 +11,10 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::state;
 
-StateManager::StateManager(unsigned int size) : _size(size), _externally_modified(size, true), _internally_modified(size, true), _symmetry_modified(size, true), _modified_hydration(true) {
+StateManager::StateManager(std::size_t size) 
+    : _size(size), _externally_modified(size, true), _internally_modified(size, true), 
+      _symmetry_modified(size, std::vector<bool>()), _modified_hydration(true) 
+{
     for (unsigned int i = 0; i < size; ++i) {
         probes.emplace_back(std::make_shared<signaller::BoundSignaller>(i, this));
     }
@@ -25,13 +28,13 @@ void StateManager::internally_modified_all() {
     _internally_modified = std::vector<bool>(size(), true);
 }
 
-void StateManager::externally_modified(unsigned int i) {
-    assert(i < size() && "StateManager::externally_modified: index out of range");
+void StateManager::externally_modified(int i) {
+    assert(i < static_cast<int>(size()) && "StateManager::externally_modified: index out of range");
     _externally_modified[i] = true;
 }
 
-void StateManager::internally_modified(unsigned int i) {
-    assert(i < size() && "StateManager::internally_modified: index out of range");
+void StateManager::internally_modified(int i) {
+    assert(i < static_cast<int>(size()) && "StateManager::internally_modified: index out of range");
     _internally_modified[i] = true;
 }
 
@@ -39,38 +42,45 @@ void StateManager::modified_hydration_layer() {
     _modified_hydration = true;
 }
 
-void StateManager::modified_symmetry(unsigned int i) {
-    _symmetry_modified[i] = true;
+void StateManager::modified_symmetry(int i, int j) {
+    assert(i < static_cast<int>(size()) && "StateManager::modified_symmetry: index out of range");
+    assert(j < static_cast<int>(_symmetry_modified[i].size()) && "StateManager::modified_symmetry: index out of range");
+    _symmetry_modified[i][j] = true;
 }
 
 void StateManager::reset_to_false() {
     _internally_modified = std::vector<bool>(size(), false);
     _externally_modified = std::vector<bool>(size(), false);
-    _symmetry_modified = std::vector<bool>(size(), false);
     _modified_hydration = false;
+    for (auto& v : _symmetry_modified) {v = std::vector<bool>(v.size(), false);}
 }
 
-void StateManager::set_probe(unsigned int i, std::shared_ptr<signaller::Signaller> probe) {
-    assert(i < probes.size() && "StateManager::set_probe: index out of range");
+void StateManager::set_probe(int i, std::shared_ptr<signaller::Signaller> probe) {
+    assert(i < static_cast<int>(probes.size()) && "StateManager::set_probe: index out of range");
     probes[i] = std::move(probe);
 }
 
-std::shared_ptr<signaller::Signaller> StateManager::get_probe(unsigned int i) {
-    assert(i < probes.size() && "StateManager::get_probe: index out of range");
+std::shared_ptr<signaller::Signaller> StateManager::get_probe(int i) {
+    assert(i < static_cast<int>(probes.size()) && "StateManager::get_probe: index out of range");
     return probes[i];
 }
 
 std::vector<std::shared_ptr<signaller::Signaller>> StateManager::get_probes() {return probes;}
 
 const std::vector<bool>& StateManager::get_externally_modified_bodies() const {return _externally_modified;}
+std::vector<bool>& StateManager::get_externally_modified_bodies() {return _externally_modified;}
 
 const std::vector<bool>& StateManager::get_internally_modified_bodies() const {return _internally_modified;}
+std::vector<bool>& StateManager::get_internally_modified_bodies() {return _internally_modified;}
 
-bool StateManager::is_externally_modified(unsigned int i) const {return _externally_modified[i];}
+const std::vector<std::vector<bool>>& StateManager::get_symmetry_modified_bodies() const {return _symmetry_modified;}
+std::vector<std::vector<bool>>& StateManager::get_symmetry_modified_bodies() {return _symmetry_modified;}
 
-bool StateManager::is_internally_modified(unsigned int i) const {return _internally_modified[i];}
+bool StateManager::is_externally_modified(int i) const {return _externally_modified[i];}
 
-bool StateManager::is_modified_symmetry(unsigned int i) const {return _symmetry_modified[i];}
+bool StateManager::is_internally_modified(int i) const {return _internally_modified[i];}
+
+bool StateManager::is_modified_symmetry(int i, int j) const {return _symmetry_modified[i][j];}
 
 bool StateManager::is_modified_hydration() const {return _modified_hydration;}
 
