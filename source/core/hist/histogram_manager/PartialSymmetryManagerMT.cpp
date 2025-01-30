@@ -44,8 +44,9 @@ int to_res_index(int body1, int symmetry1, int body2, int symmetry2) {
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::calculate() {
-    std::vector<bool> externally_modified = this->statemanager->get_externally_modified_bodies();
-    std::vector<bool> internally_modified = this->statemanager->get_internally_modified_bodies();
+    auto& externally_modified = this->statemanager->get_externally_modified_bodies();
+    auto& internally_modified = this->statemanager->get_internally_modified_bodies();
+    auto& symmetry_modified = this->statemanager->get_symmetry_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
     auto calculator = std::make_unique<distance_calculator::SimpleCalculator<use_weighted_distribution>>();
@@ -91,6 +92,9 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
     // iterate through the lower triangle and check if either of each pair of bodies was modified
     for (unsigned int i = 0; i < this->body_size; ++i) {
+        // externally_modified i also updates its symmetries, so mark it as false here to avoid duplicate work
+        if (externally_modified[i]) {symmetry_modified[i] = std::vector<bool>(symmetry_modified[i].size(), false);}
+
         for (unsigned int j = 0; j < i; ++j) {
             if (externally_modified[i] || externally_modified[j]) {
                 // one of the bodies was modified, so we recalculate its partial histogram
@@ -101,6 +105,22 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
         // we also have to remember to update the partial histograms with the hydration layer
         if (externally_modified[i] || hydration_modified) {
             calc_aw(calculator.get(), i);
+        }
+    }
+
+    // check symmetries
+    for (unsigned int i = 0; i < this->body_size; ++i) {
+        assert(symmetry_modified[i].size() == this->protein->get_body(i).size_symmetry() && "SymmetryManager::calculate: symmetry size mismatch");
+        for (unsigned int j = 0; j < this->protein->get_body(i).size_symmetry(); ++j) {
+            if (symmetry_modified[i][j]) {
+                calc_ss(calculator.get(), i);
+            }
+
+            for (unsigned int j = 0; j < i; ++j) {
+                if (symmetry_modified[i] || symmetry_modified[j]) {
+                    calc_as(calculator.get(), i, j);
+                }
+            }
         }
     }
 
