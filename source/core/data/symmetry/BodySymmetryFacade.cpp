@@ -11,19 +11,20 @@ using namespace ausaxs::data::detail;
 template<typename BODY, bool NONCONST>
 void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::Symmetry&& symmetry) requires (NONCONST) {
     assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
-    body->get_signaller()->symmetry_changed();
+    body->get_signaller()->set_symmetry_size(body->size_symmetry_total());
     body->symmetries->get().emplace_back(std::move(symmetry));
 }
 
 template<typename BODY, bool NONCONST>
 void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::type symmetry) requires (NONCONST) {
     assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
-    body->get_signaller()->symmetry_changed();
+    body->get_signaller()->set_symmetry_size(body->size_symmetry_total());
     body->symmetries->add(symmetry);
 }
 
 template<typename BODY, bool NONCONST>
 std::vector<symmetry::Symmetry>& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get() requires (NONCONST) {
+    for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
     return body->symmetries->get();
 }
 
@@ -35,6 +36,7 @@ const std::vector<symmetry::Symmetry>& symmetry::detail::BodySymmetryFacade<BODY
 template<typename BODY, bool NONCONST>
 symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) requires (NONCONST) {
     assert(index < body->symmetries->get().size());
+    body->get_signaller()->modified_symmetry(index);
     return body->symmetries->get()[index];
 }
 
@@ -46,6 +48,7 @@ const symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::
 
 template<typename BODY, bool NONCONST>
 observer_ptr<symmetry::SymmetryStorage> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get_obj() requires (NONCONST) {
+    for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
     return body->symmetries.get();
 }
 

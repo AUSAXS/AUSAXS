@@ -29,6 +29,7 @@ void BoundSignaller::modified_symmetry(int i) const {
 void BoundSignaller::set_symmetry_size(std::size_t size) const {
     assert(owner->get_symmetry_modified_bodies()[id].size() < size && "BoundSignaller::set_symmetry_size: size is smaller than the current size");
     owner->get_symmetry_modified_bodies()[id].resize(size);
+    modified_symmetry(size-1);
 }
 
 unsigned int BoundSignaller::get_id() const {

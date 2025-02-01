@@ -22,21 +22,36 @@ namespace ausaxs::symmetry::detail {
 
             /**
              * @brief Get the symmetries of this body.
+             *        This will also mark all symmetries as modified. Use the const version to avoid this signal. 
              */
             [[nodiscard]] std::vector<symmetry::Symmetry>& get() requires (NONCONST);
-            [[nodiscard]] const std::vector<symmetry::Symmetry>& get() const; //< @copydoc get_symmetries()
+
+            /**
+             * @brief Get the symmetries of this body.
+             */
+            [[nodiscard]] const std::vector<symmetry::Symmetry>& get() const;
+
+            /**
+             * @brief Get the symmetry at the specified index.
+             *        This will also mark the symmetry as modified. Use the const version to avoid this signal. 
+             */
+            [[nodiscard]] symmetry::Symmetry& get(unsigned int index) requires (NONCONST);
 
             /**
              * @brief Get the symmetry at the specified index.
              */
-            [[nodiscard]] symmetry::Symmetry& get(unsigned int index) requires (NONCONST);
-            [[nodiscard]] const symmetry::Symmetry& get(unsigned int index) const; //< @copydoc get_symmetry()
+            [[nodiscard]] const symmetry::Symmetry& get(unsigned int index) const;
+
+            /**
+             * @brief Get the symmetry storage object.
+             *        This will also mark all symmetries as modified. Use the const version to avoid this signal.
+             */
+            [[nodiscard]] observer_ptr<symmetry::SymmetryStorage> get_obj() requires (NONCONST);
 
             /**
              * @brief Get the symmetry storage object.
              */
-            [[nodiscard]] observer_ptr<symmetry::SymmetryStorage> get_obj() requires (NONCONST);
-            [[nodiscard]] observer_ptr<const symmetry::SymmetryStorage> get_obj() const; //< @copydoc get_obj()
+            [[nodiscard]] observer_ptr<const symmetry::SymmetryStorage> get_obj() const;
 
             /**
              * @brief Get the total number of atoms in the body, including all symmetries.

@@ -18,6 +18,24 @@ namespace ausaxs::hist {
 	class PartialSymmetryManagerMT : public IPartialHistogramManager {
 		using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
 		using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<use_weighted_distribution>>;
+
+		template<typename T> using BodyIndexer2D = typename container::Container2D<T>;
+		template<typename T> using BodyIndexer1D = typename container::Container1D<T>;
+
+		// 2D symmetry indexer to be stored within a BodyIndexer2D
+		template<typename T> struct SymmetryIndexer2D {
+			template<typename ...Arg> SymmetryIndexer2D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
+			T& index(int isym1, int isym2) {return data[isym1][isym2];}
+			std::vector<std::vector<T>> data;
+		}; 
+
+		// 1D symmetry indexer to be stored within a BodyIndexer1D
+		template<typename T> struct SymmetryIndexer1D {
+			template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
+			T& index(int isym) {return data[isym];}
+			std::vector<T> data;
+		};
+
 		public:
 			PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein);
 			virtual ~PartialSymmetryManagerMT() override;
@@ -33,15 +51,17 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		private:
-			observer_ptr<const data::Molecule> protein;													// the molecule we are calculating the histogram for
-            detail::MasterHistogram<use_weighted_distribution> master;									// the current total histogram
-			std::vector<symmetry::detail::BodySymmetryData> coords;										// a compact representation of the relevant data from the managed bodies
-			hist::detail::CompactCoordinates coords_w;													// a compact representation of the relevant data from the hydration layer
-			container::Container2D<detail::PartialHistogram<use_weighted_distribution>> partials_aa; 	// the partial histograms
-			container::Container1D<detail::HydrationHistogram<use_weighted_distribution>> partials_aw;	// the partial hydration-atom histograms
-			detail::HydrationHistogram<use_weighted_distribution> partials_ww;               			// the partial histogram for the hydration layer
-			std::unordered_map<int, int> res_self_index_map;											// a map to keep track of result indexes in the self-correlation results
-			std::unordered_map<int, int> res_cross_index_map;											// a map to keep track of result indexes in the cross-correlation results
+			observer_ptr<const data::Molecule> protein;					// the molecule we are calculating the histogram for
+            detail::MasterHistogram<use_weighted_distribution> master;	// the current total histogram
+			std::vector<symmetry::detail::BodySymmetryData> coords;		// a compact representation of the relevant data from the managed bodies
+			hist::detail::CompactCoordinates coords_w;					// a compact representation of the relevant data from the hydration layer
+			std::unordered_map<int, int> res_self_index_map;			// a map to keep track of result indexes in the self-correlation results
+			std::unordered_map<int, int> res_cross_index_map;			// a map to keep track of result indexes in the cross-correlation results
+
+			// partial histograms - the types are quite complex since we must track both bodies and symmetries
+			BodyIndexer2D<SymmetryIndexer2D<detail::PartialHistogram<use_weighted_distribution>>> partials_aa;
+			BodyIndexer1D<SymmetryIndexer1D<detail::HydrationHistogram<use_weighted_distribution>>> partials_aw;
+			detail::HydrationHistogram<use_weighted_distribution> partials_ww;
 			std::mutex master_hist_mutex;
 
 			/**
@@ -54,7 +74,9 @@ namespace ausaxs::hist {
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aa_self(calculator_t calculator, int index);
+			void calc_aa_self(calculator_t calculator, int ibody);
+
+			void calc_aa_self(calculator_t calculator, int ibody, int isym);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
@@ -66,31 +88,19 @@ namespace ausaxs::hist {
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aa(calculator_t calculator, int n, int m);
-
-			/**
-			 * @brief Calculate the atom-atom distances between the symmetric duplicates of body @a n.
-			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
-			 */
-			void calc_ss(calculator_t calculator, int n);
-
-			/**
-			 * @brief Calculate the atom-atom distances between body @a n and symmetric duplicate @a j of body @a m. 
-			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
-			 */
-			void calc_as(calculator_t calculator, int n, int m);
+			void calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aw(calculator_t calculator, int index);
+			void calc_aw(calculator_t calculator, int ibody, int isym1);
 
 			void combine_aa_self(int index, GenericDistribution1D_t&&);
 
-			void combine_aa(int n, int m, GenericDistribution1D_t&&);
+			void combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&&);
 
-			void combine_aw(int index, GenericDistribution1D_t&&);
+			void combine_aw(int ibody, int isym, GenericDistribution1D_t&&);
 
 			void combine_ww(GenericDistribution1D_t&&);
 
