@@ -131,7 +131,7 @@ double Body::get_volume_vdw() const {
 }
 
 void Body::translate(Vector3<double> v) {
-    signal->external_change();
+    signal->modified_external();
     std::for_each(atoms.begin(), atoms.end(), [v] (data::AtomFF& atom) {atom.coordinates() += v;});
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         std::for_each(h->waters.begin(), h->waters.end(), [v] (data::Water& atom) {atom.coordinates() += v;});
@@ -139,7 +139,7 @@ void Body::translate(Vector3<double> v) {
 }
 
 void Body::rotate(const Matrix<double>& R) {
-    signal->external_change();
+    signal->modified_external();
     for (auto& atom : atoms) {
         atom.coordinates().rotate(R);
     }
@@ -173,8 +173,8 @@ Body& Body::operator=(Body&& rhs) noexcept {
     hydration = std::move(rhs.hydration);
     symmetries = std::move(rhs.symmetries);
     uid = rhs.uid;
-    signal->internal_change();
-    signal->external_change();
+    signal->modified_internal();
+    signal->modified_external();
     return *this;
 }
 
@@ -186,8 +186,8 @@ Body& Body::operator=(const Body& rhs) {
         throw std::runtime_error("Body::operator=: Implicit hydration is not implemented.");
     }
     symmetries = rhs.symmetries->clone();
-    signal->internal_change();
-    signal->external_change();
+    signal->modified_internal();
+    signal->modified_external();
     return *this;
 }
 
@@ -259,12 +259,12 @@ std::vector<data::Water>& Body::get_waters() {
 
 void Body::set_hydration(std::unique_ptr<hydrate::Hydration> hydration) {
     this->hydration = std::move(hydration);
-    signal->external_change();
+    signal->modified_external();
 }
 
 void Body::clear_hydration() {
     hydration->clear();
-    signal->external_change();
+    signal->modified_external();
 }
 
 const std::vector<data::AtomFF>& Body::get_atoms() const {return atoms;}
