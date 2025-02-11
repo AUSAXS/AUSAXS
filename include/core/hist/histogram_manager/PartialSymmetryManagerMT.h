@@ -24,13 +24,16 @@ namespace ausaxs::hist {
 
 		// 2D symmetry indexer to be stored within a BodyIndexer2D
 		template<typename T> struct SymmetryIndexer2D {
-			template<typename ...Arg> SymmetryIndexer2D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
+			SymmetryIndexer2D() = default;
+			SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::forward<T>(value))) {}
 			T& index(int isym1, int isym2) {return data[isym1][isym2];}
 			std::vector<std::vector<T>> data;
 		}; 
 
 		// 1D symmetry indexer to be stored within a BodyIndexer1D
 		template<typename T> struct SymmetryIndexer1D {
+			SymmetryIndexer1D() = default;
+			SymmetryIndexer1D(int size, T&& value) : data(size, std::forward<T>(value)) {}
 			template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
 			T& index(int isym) {return data[isym];}
 			std::vector<T> data;

@@ -81,6 +81,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;
+    settings::general::threads = 1;
 
     SECTION("analytical") {
         SECTION("atoms only") {
@@ -404,7 +405,7 @@ TEST_CASE("PartialHistogramManager::get_probe") {
 
     // check that it links to the state manager
     sm->reset_to_false();
-    phm.get_probe(0)->external_change();
+    phm.get_probe(0)->modified_external();
     CHECK(sm->is_externally_modified(0));
 }
 
