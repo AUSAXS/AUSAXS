@@ -51,7 +51,8 @@ namespace ausaxs::settings::rigidbody {
 namespace ausaxs::settings::rigidbody {
     enum class DecayStrategyChoice {
         Linear,
-        Exponential
+        Exponential,
+        None
     };
     extern DecayStrategyChoice decay_strategy;
 }
