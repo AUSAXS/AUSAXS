@@ -65,6 +65,32 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
     }
 }
 
+auto test = [] (data::Molecule& protein, auto&& phm) {
+    // no changes
+    auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    auto phm_res = phm(protein)->debye_transform();
+    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+
+    // change hydration
+    protein.generate_new_hydration();
+    p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    phm_res = phm(protein)->debye_transform();
+    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+
+    // external change
+    protein.get_body(1).translate({1, 1, 1});
+    p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    phm_res = phm(protein)->debye_transform();
+    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+
+    // internal change
+    protein.get_body(1).get_atom(0).weight() = 100;
+    protein.get_body(1).get_signaller()->modified_internal();
+    p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    phm_res = phm(protein)->debye_transform();
+    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+};
+
 // Test that subsequent calculations are correct
 TEST_CASE("PartialHistogramManager: subsequent calculations") {
     settings::general::verbose = false;
@@ -75,55 +101,7 @@ TEST_CASE("PartialHistogramManager: subsequent calculations") {
     });
 
     protein.generate_new_hydration();
-    {   // no changes
-        auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-        {   // phm
-            auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(p_exp, phm, 0, 1e-2));
-        }
-        {   // phm_mt
-            auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
-        }
-    }
-
-    {   // change hydration
-        protein.generate_new_hydration();
-        auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-        {   // phm
-            auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(p_exp, phm, 0, 1e-2));
-        }
-        {   // phm_mt
-            auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
-        }
-    }
-
-    {   // external change
-        protein.get_body(1).translate({1, 1, 1});
-        auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-        {   // phm
-            auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(p_exp, phm, 0, 1e-2));
-        }
-        {   // phm_mt
-            auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
-        }
-    }
-
-    {   // internal change
-        protein.get_body(1).get_atom(0).weight() = 100;
-        protein.get_body(1).get_signaller()->modified_internal();
-        auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-        {   // phm
-            auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(p_exp, phm, 0, 1e-2));
-        }
-        {   // phm_mt
-            auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
-        }
-    }
+    test(protein, [](const Molecule& protein) {return hist::PartialHistogramManager<true>(&protein).calculate_all();});
+    test(protein, [](const Molecule& protein) {return hist::PartialHistogramManagerMT<true>(&protein).calculate_all();});
+    test(protein, [](const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});
 }
