@@ -5,6 +5,7 @@
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
+#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <data/state/Signaller.h>
 #include <settings/All.h>
 
@@ -38,6 +39,10 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
                 auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
                 REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
             }
+            {   // pshm_mt
+                auto pshm_mt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all()->debye_transform();
+                REQUIRE(compare_hist(p_exp, pshm_mt, 0, 1e-2));
+            }
         }
 
         {   // with hydration
@@ -51,6 +56,10 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
             {   // phm_mt
                 auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
                 REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
+            }
+            {   // pshm_mt
+                auto pshm_mt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all()->debye_transform();
+                REQUIRE(compare_hist(p_exp, pshm_mt, 0, 1e-2));
             }
         }
     }
@@ -106,7 +115,7 @@ TEST_CASE("PartialHistogramManager: subsequent calculations") {
 
     {   // internal change
         protein.get_body(1).get_atom(0).weight() = 100;
-        protein.get_body(1).get_signaller()->external_change();
+        protein.get_body(1).get_signaller()->modified_internal();
         auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
         {   // phm
             auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->debye_transform();
