@@ -42,6 +42,7 @@ namespace ausaxs::settings {
         static ParameterGenerationStrategyChoice parameter_generation_strategy;
 
         enum class DecayStrategyChoice {
+            None,
             Linear,
             Exponential
         };

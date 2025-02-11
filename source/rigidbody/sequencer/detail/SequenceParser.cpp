@@ -98,6 +98,7 @@ settings::rigidbody::BodySelectStrategyChoice get_body_select_strategy(std::stri
 settings::rigidbody::DecayStrategyChoice get_decay_strategy(std::string_view line) {
     if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
     if (line == "exponential") {return settings::rigidbody::DecayStrategyChoice::Exponential;}
+    if (line == "none") {return settings::rigidbody::DecayStrategyChoice::None;}
     throw except::invalid_argument("SequenceParser::get_decay_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
