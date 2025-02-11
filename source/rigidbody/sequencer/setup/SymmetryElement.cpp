@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
+#include <settings/HistogramSettings.h>
 #include <data/Body.h>
 
 #include <cassert>
@@ -18,6 +19,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 {
     assert(names.size() == symmetry.size() && "SymmetryElement::SymmetryElement: The number of names and symmetries must be equal.");
 
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (!owner->_get_body_names().contains(names[i])) {
             std::cout << "Body names:" << std::endl;
