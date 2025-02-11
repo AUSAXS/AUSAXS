@@ -8,8 +8,8 @@ namespace ausaxs::rigidbody::parameter::decay {
      */
     class NoDecay : public DecayStrategy {
         public:
-            NoDecay();
-            ~NoDecay();
+            NoDecay() = default;
+            ~NoDecay() = default;
 
             double next() override {return 1;}
 

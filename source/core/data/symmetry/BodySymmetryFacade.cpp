@@ -11,7 +11,7 @@ using namespace ausaxs::data::detail;
 template<typename BODY, bool NONCONST>
 void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::Symmetry&& symmetry) requires (NONCONST) {
     assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
-    body->get_signaller()->set_symmetry_size(body->size_symmetry_total());
+    body->get_signaller()->set_symmetry_size(body->size_symmetry_total()+1);
     body->symmetries->get().emplace_back(std::move(symmetry));
 }
 
