@@ -192,19 +192,31 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::s
     return cross_results.size();
 }
 
+#include <iostream>
 template<bool weighted_bins>
 inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run() {
     auto pool = utility::multi_threading::get_global_pool();
     pool->wait();
     run_result result;
 
+    std::cout << "self results:" << std::endl;
     for (auto[i, j] : self_merge_ids) {
         result.self[i] = self_results[j]->merge();
+        for (int k = 0; k < 20; ++k) {
+            std::cout << result.self[i].get_content(k) << " ";
+        }
+        std::cout << std::endl;
     }
 
+    std::cout << "cross results:" << std::endl;
     for (auto[i, j] : cross_merge_ids) {
         result.cross[i] = cross_results[j]->merge();
+        for (int k = 0; k < 20; ++k) {
+            std::cout << result.cross[i].get_content(k) << " ";
+        }
+        std::cout << std::endl;
     }
+    std::cout << std::endl;
 
     // cleanup
     self_results.clear();

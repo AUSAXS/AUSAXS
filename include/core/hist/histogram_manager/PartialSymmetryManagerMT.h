@@ -26,6 +26,7 @@ namespace ausaxs::hist {
 		template<typename T> struct SymmetryIndexer2D {
 			SymmetryIndexer2D() = default;
 			SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::forward<T>(value))) {}
+			SymmetryIndexer2D(int size_x, int size_y, T&& value) : data(size_x, std::vector<T>(size_y, std::forward<T>(value))) {}
 			T& index(int isym1, int isym2) {return data[isym1][isym2];}
 			std::vector<std::vector<T>> data;
 		}; 
@@ -99,7 +100,9 @@ namespace ausaxs::hist {
 			 */
 			void calc_aw(calculator_t calculator, int ibody, int isym1);
 
-			void combine_aa_self(int index, GenericDistribution1D_t&&);
+			void combine_aa_self(int ibody, GenericDistribution1D_t&&);
+
+			void combine_aa_self(int ibody, int isym, GenericDistribution1D_t&&);
 
 			void combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&&);
 
