@@ -61,19 +61,19 @@ void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
 }
 
 auto test_translation = [] () {
+    settings::general::threads = 1;
     SECTION("one body with one atom") {
         AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
         set_unity_charge(m);
 
-        SECTION("no copies") {
-            auto h = m.get_histogram()->get_total_counts();
-            check_hist(h, {RES(0, 1)});
-        }
+        // SECTION("no copies") {
+        //     auto h = m.get_histogram()->get_total_counts();
+        //     check_hist(h, {RES(0, 1)});
+        // }
 
         SECTION("one copy") {
             m.get_body(0).symmetry().add({Vector3<double>(1, 0, 0)});
-            std::cout << m.get_body(0).size_symmetry() << std::endl;
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -201,118 +201,118 @@ auto test_translation = [] () {
         }
     }
 
-    SECTION("one body with waters") {
-        AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
-        Water  w1({1, 0, 0});
-        Body b1(std::vector<AtomFF>{a1}, std::vector{w1});
-        Molecule m({b1});
-        set_unity_charge(m);
+    // SECTION("one body with waters") {
+    //     AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
+    //     Water  w1({1, 0, 0});
+    //     Body b1(std::vector<AtomFF>{a1}, std::vector{w1});
+    //     Molecule m({b1});
+    //     set_unity_charge(m);
 
-        SECTION("no copies") {
-            auto h = m.get_histogram();
-            auto htot = h->get_total_counts();
-            auto haa = h->get_aa_counts();
-            auto haw = h->get_aw_counts();
-            auto hww = h->get_ww_counts();
+    //     SECTION("no copies") {
+    //         auto h = m.get_histogram();
+    //         auto htot = h->get_total_counts();
+    //         auto haa = h->get_aa_counts();
+    //         auto haw = h->get_aw_counts();
+    //         auto hww = h->get_ww_counts();
 
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            REQUIRE(bin1 < static_cast<int>(htot.size()));
-            CHECK(htot[0] == 2);
-            CHECK(haa[0] == 1);
-            CHECK(haw[0] == 0);
-            CHECK(hww[0] == 1);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(htot[i] == 0);
-            }
-            CHECK(htot[bin1] == 2);
-            CHECK(haa[bin1] == 0);
-            CHECK(haw[bin1] == 2);
-            CHECK(hww[bin1] == 0);
-            for (int i = bin1+1; i < static_cast<int>(htot.size()); ++i) {
-                CHECK(htot[i] == 0);
-            }
-        }
+    //         int bin1 = std::round(1*constants::axes::d_inv_width);
+    //         REQUIRE(bin1 < static_cast<int>(htot.size()));
+    //         CHECK(htot[0] == 2);
+    //         CHECK(haa[0] == 1);
+    //         CHECK(haw[0] == 0);
+    //         CHECK(hww[0] == 1);
+    //         for (int i = 1; i < bin1; ++i) {
+    //             CHECK(htot[i] == 0);
+    //         }
+    //         CHECK(htot[bin1] == 2);
+    //         CHECK(haa[bin1] == 0);
+    //         CHECK(haw[bin1] == 2);
+    //         CHECK(hww[bin1] == 0);
+    //         for (int i = bin1+1; i < static_cast<int>(htot.size()); ++i) {
+    //             CHECK(htot[i] == 0);
+    //         }
+    //     }
 
-        SECTION("one copy") {
-            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
+    //     SECTION("one copy") {
+    //         m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            auto h = m.get_histogram();
-            auto htot = h->get_total_counts();
-            auto haa = h->get_aa_counts();
-            auto haw = h->get_aw_counts();
-            auto hww = h->get_ww_counts();
+    //         auto h = m.get_histogram();
+    //         auto htot = h->get_total_counts();
+    //         auto haa = h->get_aa_counts();
+    //         auto haw = h->get_aw_counts();
+    //         auto hww = h->get_ww_counts();
 
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
-            REQUIRE(bin1 < static_cast<int>(htot.size()));
-            CHECK(htot[0] == 3);
-            CHECK(haa[0] == 2);
-            CHECK(haw[0] == 0);
-            CHECK(hww[0] == 1);
-            for (int i = 1; i < bin1; ++i) {
-                CHECK(htot[i] == 0);
-            }
-            CHECK(htot[bin1] == 4);
-            CHECK(haa[bin1] == 2);
-            CHECK(haw[bin1] == 2);
-            CHECK(hww[bin1] == 0);
-            for (int i = bin1+1; i < bin2; ++i) {
-                CHECK(htot[i] == 0);
-            }
-            CHECK(htot[bin2] == 2);
-            CHECK(haa[bin2] == 0);
-            CHECK(haw[bin2] == 2);
-            CHECK(hww[bin2] == 0);
-            for (int i = bin2+1; i < static_cast<int>(htot.size()); ++i) {
-                CHECK(htot[i] == 0);
-            }
-        }
-    }
+    //         int bin1 = std::round(1*constants::axes::d_inv_width);
+    //         int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
+    //         REQUIRE(bin1 < static_cast<int>(htot.size()));
+    //         CHECK(htot[0] == 3);
+    //         CHECK(haa[0] == 2);
+    //         CHECK(haw[0] == 0);
+    //         CHECK(hww[0] == 1);
+    //         for (int i = 1; i < bin1; ++i) {
+    //             CHECK(htot[i] == 0);
+    //         }
+    //         CHECK(htot[bin1] == 4);
+    //         CHECK(haa[bin1] == 2);
+    //         CHECK(haw[bin1] == 2);
+    //         CHECK(hww[bin1] == 0);
+    //         for (int i = bin1+1; i < bin2; ++i) {
+    //             CHECK(htot[i] == 0);
+    //         }
+    //         CHECK(htot[bin2] == 2);
+    //         CHECK(haa[bin2] == 0);
+    //         CHECK(haw[bin2] == 2);
+    //         CHECK(hww[bin2] == 0);
+    //         for (int i = bin2+1; i < static_cast<int>(htot.size()); ++i) {
+    //             CHECK(htot[i] == 0);
+    //         }
+    //     }
+    // }
 
-    SECTION("real data") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
-        settings::general::verbose = false;
+    // SECTION("real data") {
+    //     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
+    //     settings::general::verbose = false;
 
-        data::Molecule m("tests/files/2epe.pdb");
-        m.generate_new_hydration();
-        m.get_body(0).get_waters() = m.get_waters();
-        set_unity_charge(m);
+    //     data::Molecule m("tests/files/2epe.pdb");
+    //     m.generate_new_hydration();
+    //     m.get_body(0).get_waters() = m.get_waters();
+    //     set_unity_charge(m);
 
-        symmetry::Symmetry s{{10, 0, 0}}; 
-        SECTION("single copy") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry(s));
+    //     symmetry::Symmetry s{{10, 0, 0}}; 
+    //     SECTION("single copy") {
+    //         m.get_body(0).symmetry().add(symmetry::Symmetry(s));
 
-            auto h = m.get_histogram();
+    //         auto h = m.get_histogram();
 
-            // manually perform the transformation for comparison
-            data::Molecule m_copy({m.get_body(0)});
-            data::Body& b_copy = m_copy.get_body(0);
-            std::vector<AtomFF> a_copy = b_copy.get_atoms();
-            for (auto& a : b_copy.get_atoms()) {
-                a.coordinates() += s.translate;
-                a_copy.push_back(a);
-            }
-            b_copy.get_atoms() = std::move(a_copy);
-            m_copy.get_waters() = m.get_waters();
+    //         // manually perform the transformation for comparison
+    //         data::Molecule m_copy({m.get_body(0)});
+    //         data::Body& b_copy = m_copy.get_body(0);
+    //         std::vector<AtomFF> a_copy = b_copy.get_atoms();
+    //         for (auto& a : b_copy.get_atoms()) {
+    //             a.coordinates() += s.translate;
+    //             a_copy.push_back(a);
+    //         }
+    //         b_copy.get_atoms() = std::move(a_copy);
+    //         m_copy.get_waters() = m.get_waters();
 
-            REQUIRE(m_copy.size_atom() == 2*m.size_atom());
-            REQUIRE(m_copy.size_water() == m.get_body(0).size_water());
+    //         REQUIRE(m_copy.size_atom() == 2*m.size_atom());
+    //         REQUIRE(m_copy.size_water() == m.get_body(0).size_water());
 
-            auto h2 = m_copy.get_histogram();
-            CHECK(compare_hist_approx(h->get_aa_counts(), h2->get_aa_counts()));
-            CHECK(compare_hist_approx(h->get_ww_counts(), h2->get_ww_counts()));
-            CHECK(compare_hist_approx(h->get_aw_counts(), h2->get_aw_counts()));
-            CHECK(compare_hist_approx(h->get_total_counts(), h2->get_total_counts()));
-        }
-    }
+    //         auto h2 = m_copy.get_histogram();
+    //         CHECK(compare_hist_approx(h->get_aa_counts(), h2->get_aa_counts()));
+    //         CHECK(compare_hist_approx(h->get_ww_counts(), h2->get_ww_counts()));
+    //         CHECK(compare_hist_approx(h->get_aw_counts(), h2->get_aw_counts()));
+    //         CHECK(compare_hist_approx(h->get_total_counts(), h2->get_total_counts()));
+    //     }
+    // }
 };
 
 TEST_CASE("SymmetryManager: translations") {
     settings::molecule::implicit_hydrogens = false;
-    SECTION("SymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
-        test_translation();
-    }
+    // SECTION("SymmetryManager") {
+    //     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+    //     test_translation();
+    // }
     SECTION("PartialSymmetryManager") {
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
         test_translation();

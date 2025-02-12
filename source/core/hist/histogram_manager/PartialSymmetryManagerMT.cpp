@@ -17,6 +17,13 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <utility/MultiThreading.h>
 
+/**
+The indexing in this file is a bit tricky. 
+The body symmetries (body.symmetry.get) contains the first actual symmetry at index 0
+The coordinates are indexed such that the main body is at index 0, with the symmetries starting from index 1
+Thus, we have a lot of +1s and -1s in the indexing to account for this.
+**/
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
@@ -50,6 +57,12 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
     auto calculator = std::make_unique<distance_calculator::SimpleCalculator<use_weighted_distribution>>();
+
+    for (int i = 0; i < symmetry_modified.size(); ++i) {
+        for (int j = 0; j < symmetry_modified[i].size(); ++j) {
+            std::cout << "symmetry_modified[" << i << "][" << j << "] = " << (symmetry_modified[i][j] ? "true" : "false") << std::endl;
+        }
+    }
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -117,11 +130,10 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
     // check symmetries
     for (int ibody1 = 0; ibody1 < static_cast<int>(this->body_size); ++ibody1) {
-        std::cout << "Symmetry size: " << this->protein->get_body(ibody1).size_symmetry() << std::endl;
-        std::cout << "Symmetry modified size: " << symmetry_modified[ibody1].size() << std::endl;
         assert(symmetry_modified[ibody1].size() == this->protein->get_body(ibody1).size_symmetry() && "SymmetryManager::calculate: symmetry size mismatch");
         for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
             // calculate self correlation between main body & this symmetry if it was modified
+
             if (symmetry_modified[ibody1][isym1]) {
                 calc_aa_self(calculator.get(), ibody1, isym1);
             }
@@ -130,7 +142,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
             for (int ibody2 = ibody1; ibody2 < static_cast<int>(this->body_size); ++ibody2) {
                 for (int isym2 = 0; isym2 < static_cast<int>(this->protein->get_body(ibody2).size_symmetry())+1; ++isym2) {
                     if (symmetry_modified[ibody1][isym1] || symmetry_modified[ibody2][isym2]) {
-                        calc_aa(calculator.get(), ibody1, isym1, ibody2, isym2);
+                        calc_aa(calculator.get(), ibody1, isym1+1, ibody2, isym2+1);
                     }
                 }
             }
@@ -285,39 +297,70 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::initialize(calculator_
             body.size_symmetry()+1,
             detail::PartialHistogram<use_weighted_distribution>(axis.bins)
         );
-        this->partials_aa.index(i, i) = SymmetryIndexer2D<detail::PartialHistogram<use_weighted_distribution>>(body.size_symmetry()+1, axis.bins);
-        calc_aa_self(calculator, i);
 
+        // initialize body diagonal
+        this->partials_aa.index(i, i) = 
+            SymmetryIndexer2D<detail::PartialHistogram<use_weighted_distribution>>(
+                body.size_symmetry()+1, 
+                axis.bins
+            )
+        ;
+        
+        // initialize body cross indexes
         for (int j = 0; j < i; ++j) {
-            this->partials_aa.index(i, j) = SymmetryIndexer2D<detail::PartialHistogram<use_weighted_distribution>>(body.size_symmetry()+1, axis.bins);
+            auto& body2 = this->protein->get_body(j);
+            this->partials_aa.index(i, j) = 
+                SymmetryIndexer2D<detail::PartialHistogram<use_weighted_distribution>>(
+                    body.size_symmetry()+1, 
+                    body2.size_symmetry()+1, 
+                    axis.bins
+                )
+            ;
         }
+
+        calc_aa_self(calculator, i);
     }
 
     auto res = calculator->run();
-    assert(res.self.size() == this->body_size && "The number of self-correlation results does not match the number of bodies.");
     for (int i = 0; i < static_cast<int>(body_size); ++i) {
+        std::cout << "accessing index " << to_res_index(i, 0) << std::endl;
         assert(res.self.contains(to_res_index(i, 0)) && "The self-correlation result does not contain the expected index.");
         pool->detach_task(
             [this, i, r = std::move(res.self[to_res_index(i, 0)])] () mutable {combine_aa_self(i, std::move(r));}
         );
+
+        // start loop from 1 to skip the main body
+        auto& body = this->protein->get_body(i);
+        for (int j = 1; j < static_cast<int>(body.size_symmetry())+1; ++j) {
+            std::cout << "accessing index " << to_res_index(i, j) << std::endl;
+            assert(res.cross.contains(to_res_index(i, j)) && "The self-correlation result does not contain the expected index.");
+            pool->detach_task(
+                [this, i, j, r = std::move(res.cross[to_res_index(i, j)])] () mutable {combine_aa_self(i, j, std::move(r));}
+            );
+        }
     }
 }
 
 template<bool use_weighted_distribution>
-void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculator_t calculator, int ibody, int isym) {
-    update_compact_representation_body(ibody);
+void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculator_t calculator, int ibody, int isym1) {
+    assert(isym1 != 0 && "isym cannot be 0");
+
+    // update_compact_representation_body(ibody);
     const auto& body = protein->get_body(ibody);
-    int res_index = to_res_index(ibody, isym);
+    int res_index = to_res_index(ibody, isym1);
 
-    if (isym == 0) {
-        calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], 1, res_index);
-        return;
-    }
-
-    const auto& sym = body.symmetry().get(isym-1);
-    for (int irepeat = 0; irepeat < sym.repeat; ++irepeat) {
-        const auto& body_sym_atomic = coords[ibody].atomic[1+isym][irepeat];
-        calculator->enqueue_calculate_self(body_sym_atomic, 1, res_index);
+    const auto& sym = body.symmetry().get(isym1-1);
+    for (int irepeat1 = 0; irepeat1 < sym.repeat; ++irepeat1) {
+        const auto& body_sym_atomic1 = coords[ibody].atomic[isym1][irepeat1];
+        for (int isym2 = 0; isym2 < isym1; ++isym2) {
+            const auto& sym2 = body.symmetry().get(isym2);
+            for (int irepeat2 = 0; irepeat2 < sym2.repeat; ++irepeat2) {
+                const auto& body_sym_atomic2 = coords[ibody].atomic[isym2][irepeat2];
+                std::cout << "calc_aa_self[" << ibody << "][" << isym1 << irepeat1 << ", " << isym2 << irepeat2 << "]" << std::endl;
+                std::cout << "\tstored at index " << res_index << std::endl;
+                calculator->enqueue_calculate_cross(body_sym_atomic1, body_sym_atomic2, 1, res_index);
+            }
+        }
     }
 }
 
@@ -325,13 +368,13 @@ template<bool use_weighted_distribution>
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculator_t calculator, int ibody) {
     update_compact_representation_body(ibody);
     const auto& body = protein->get_body(ibody);
+    std::cout << "calc_aa_self[" << ibody << "][0]" << std::endl;
+    std::cout << "\tstored at index " << to_res_index(ibody, 0) << std::endl;
     calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], 1 + body.size_symmetry_total(), to_res_index(ibody, 0));
+
+    // calculate the cross symmetry terms
     for (int isym = 0; isym < static_cast<int>(body.size_symmetry()); ++isym) {
-        const auto& sym = body.symmetry().get(isym);
-        for (int irepeat = 0; irepeat < sym.repeat; ++irepeat) {
-            const auto& body_sym_atomic = coords[ibody].atomic[1+isym][irepeat];
-            calculator->enqueue_calculate_self(body_sym_atomic, 1, to_res_index(ibody, isym));
-        }
+        calc_aa_self(calculator, ibody, isym+1);
     }
 
     //? Space for optimizations with repeating symmetries; here's the code from the SymmetryManagerMT
@@ -353,6 +396,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculato
 
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_ww(calculator_t calculator) {
+    std::cout << "calc_ww" << std::endl;
     calculator->enqueue_calculate_self(coords_w, 1, water_res_index);
 }
 
@@ -364,6 +408,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
 
     // symmetry 0 is the main body, so we have to treat it separately
     if (isym1 == 0 && isym2 == 0) {
+        std::cout << "calc_aa[" << ibody1 << "0, " << ibody2 << "0]" << std::endl;
         calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], coords[ibody2].atomic[0][0], 1, res_index);
         return;
     } else if (isym1 == 0) {
@@ -371,6 +416,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
         const auto& sym2 = body2.symmetry().get(isym2-1);
         for (int irepeat2 = 0; irepeat2 < sym2.repeat; ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[1+isym2][irepeat2];
+            std::cout << "calc_aa[" << ibody1 << "0, " << ibody2 << isym2 << irepeat2 << "]" << std::endl;
             calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, 1, res_index);
         }
     } else if (isym2 == 0) {
@@ -378,6 +424,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
         const auto& sym1 = body1.symmetry().get(isym1-1);
         for (int irepeat1 = 0; irepeat1 < sym1.repeat; ++irepeat1) {
             const auto& body1_sym_atomic = coords[ibody1].atomic[1+isym1][irepeat1];
+            std::cout << "calc_aa[" << ibody1 << isym1 << irepeat1 << ", " << ibody2 << "0]" << std::endl;
             calculator->enqueue_calculate_cross(body1_sym_atomic, coords[ibody2].atomic[0][0], 1, res_index);
         }
     }
@@ -389,6 +436,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
         const auto& body1_sym_atomic = coords[ibody1].atomic[1+isym1][irepeat1];
         for (int irepeat2 = 0; irepeat2 < sym2.repeat; ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[1+isym2][irepeat2];
+            std::cout << "calc_aa[" << ibody1 << isym1 << irepeat1 << ", " << ibody2 << isym2 << irepeat2 << "]" << std::endl;
             calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, res_index);
         }
     }
@@ -402,6 +450,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aw(calculator_t c
 
     // symmetry 0 is the main body, so we have to treat it separately
     if (isym == 0) {
+        std::cout << "calc_aw[" << ibody << "0]" << std::endl;
         calculator->enqueue_calculate_cross(coords[ibody].atomic[0][0], waters, body.size_symmetry_total()+1, res_index);
         return;
     }
@@ -410,12 +459,24 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aw(calculator_t c
     const auto& sym = body.symmetry().get(isym-1);
     for (int irepeat = 0; irepeat < sym.repeat; ++irepeat) {
         const auto& body1_sym_atomic = coords[ibody].atomic[isym][irepeat];
+        std::cout << "calc_aw[" << ibody << isym << irepeat << "]" << std::endl;
         calculator->enqueue_calculate_cross(body1_sym_atomic, waters, 1, res_index);
     }
 }
 
 template<bool use_weighted_distribution> 
+void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int ibody, int isym, GenericDistribution1D_t&& res) {
+    std::cout << "combine_aa_self[" << ibody << isym << "]" << std::endl;
+    master_hist_mutex.lock();
+    this->master -= this->partials_aa.index(ibody, ibody).index(isym, isym);
+    this->partials_aa.index(ibody, ibody).index(isym, isym) = std::move(res);
+    this->master += this->partials_aa.index(ibody, ibody).index(isym, isym);
+    master_hist_mutex.unlock();
+}
+
+template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int index, GenericDistribution1D_t&& res) {
+    std::cout << "combine_aa_self[" << index << "]" << std::endl;
     master_hist_mutex.lock();
     this->master -= this->partials_aa.index(index, index).index(0, 0);
     this->partials_aa.index(index, index).index(0, 0) = std::move(res);
@@ -425,6 +486,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int in
 
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res) {
+    std::cout << "combine_aa[" << ibody1 << isym1 << ", " << ibody2 << isym2 << "]" << std::endl;
     master_hist_mutex.lock();
     this->master -= this->partials_aa.index(ibody1, ibody2).index(isym1, isym2);
     this->partials_aa.index(ibody1, ibody2).index(isym1, isym2) = std::move(res);
@@ -434,6 +496,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa(int ibody1,
 
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aw(int ibody, int isym, GenericDistribution1D_t&& res) {
+    std::cout << "combine_aw[" << ibody << isym << "]" << std::endl;
     master_hist_mutex.lock();
     this->master -= this->partials_aw.index(ibody).index(isym);
     this->partials_aw.index(ibody).index(isym) = std::move(res);
@@ -443,6 +506,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aw(int ibody, 
 
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_ww(GenericDistribution1D_t&& res) {
+    std::cout << "combine_ww" << std::endl;
     master_hist_mutex.lock();
     this->master -= this->partials_ww;
     this->partials_ww = std::move(res);
