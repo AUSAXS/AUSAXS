@@ -3,6 +3,7 @@
 #include <data/state/DataStateFwd.h>
 #include <data/state/Signaller.h>
 
+#include <iostream>
 namespace ausaxs::signaller {
     /**
      * @brief Dummy version of a Signaller object. This can be used to initialize an instance of Signaller. 
@@ -22,6 +23,8 @@ namespace ausaxs::signaller {
 
             void modified_symmetry(int) const override {}
 
-            void set_symmetry_size(std::size_t) const override {}
+            void set_symmetry_size(std::size_t) const override {
+                std::cout << "UnboundSignaller::set_symmetry_size: called on an unbound signaller." << std::endl;
+            }
     };
 }

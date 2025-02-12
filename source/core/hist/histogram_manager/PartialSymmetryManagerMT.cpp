@@ -117,6 +117,8 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
     // check symmetries
     for (int ibody1 = 0; ibody1 < static_cast<int>(this->body_size); ++ibody1) {
+        std::cout << "Symmetry size: " << this->protein->get_body(ibody1).size_symmetry() << std::endl;
+        std::cout << "Symmetry modified size: " << symmetry_modified[ibody1].size() << std::endl;
         assert(symmetry_modified[ibody1].size() == this->protein->get_body(ibody1).size_symmetry() && "SymmetryManager::calculate: symmetry size mismatch");
         for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
             // calculate self correlation between main body & this symmetry if it was modified
@@ -305,9 +307,14 @@ template<bool use_weighted_distribution>
 void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculator_t calculator, int ibody, int isym) {
     update_compact_representation_body(ibody);
     const auto& body = protein->get_body(ibody);
-    const auto& sym = body.symmetry().get(isym);
     int res_index = to_res_index(ibody, isym);
 
+    if (isym == 0) {
+        calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], 1, res_index);
+        return;
+    }
+
+    const auto& sym = body.symmetry().get(isym-1);
     for (int irepeat = 0; irepeat < sym.repeat; ++irepeat) {
         const auto& body_sym_atomic = coords[ibody].atomic[1+isym][irepeat];
         calculator->enqueue_calculate_self(body_sym_atomic, 1, res_index);
@@ -361,14 +368,14 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
         return;
     } else if (isym1 == 0) {
         // iterate only over the replications of the second symmetry
-        const auto& sym2 = body2.symmetry().get(isym2);
+        const auto& sym2 = body2.symmetry().get(isym2-1);
         for (int irepeat2 = 0; irepeat2 < sym2.repeat; ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[1+isym2][irepeat2];
             calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, 1, res_index);
         }
     } else if (isym2 == 0) {
         // iterate only over the replications of the first symmetry
-        const auto& sym1 = body1.symmetry().get(isym1);
+        const auto& sym1 = body1.symmetry().get(isym1-1);
         for (int irepeat1 = 0; irepeat1 < sym1.repeat; ++irepeat1) {
             const auto& body1_sym_atomic = coords[ibody1].atomic[1+isym1][irepeat1];
             calculator->enqueue_calculate_cross(body1_sym_atomic, coords[ibody2].atomic[0][0], 1, res_index);
@@ -376,8 +383,8 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
     }
 
     // else iterate over the replications of both symmetries
-    const auto& sym1 = body1.symmetry().get(isym1);
-    const auto& sym2 = body2.symmetry().get(isym2);
+    const auto& sym1 = body1.symmetry().get(isym1-1);
+    const auto& sym2 = body2.symmetry().get(isym2-1);
     for (int irepeat1 = 0; irepeat1 < sym1.repeat; ++irepeat1) {
         const auto& body1_sym_atomic = coords[ibody1].atomic[1+isym1][irepeat1];
         for (int irepeat2 = 0; irepeat2 < sym2.repeat; ++irepeat2) {
@@ -400,9 +407,9 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aw(calculator_t c
     }
 
     // else iterate over its repititions
-    const auto& sym = body.symmetry().get(isym);
+    const auto& sym = body.symmetry().get(isym-1);
     for (int irepeat = 0; irepeat < sym.repeat; ++irepeat) {
-        const auto& body1_sym_atomic = coords[ibody].atomic[1+isym][irepeat];
+        const auto& body1_sym_atomic = coords[ibody].atomic[isym][irepeat];
         calculator->enqueue_calculate_cross(body1_sym_atomic, waters, 1, res_index);
     }
 }

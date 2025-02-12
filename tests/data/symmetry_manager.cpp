@@ -2,15 +2,17 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/symmetry/SymmetryManagerMT.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/symmetry/Symmetry.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/distribution/Distribution1D.h>
+#include <hist/histogram_manager/SymmetryManagerMT.h>
+#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/All.h>
 
 #include "hist/hist_test_helper.h"
+#include "settings/HistogramSettings.h"
 
 #include <random>
 
@@ -58,25 +60,22 @@ void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
     SUCCEED();
 }
 
-TEST_CASE("SymmetryManager: translations") {
-    settings::molecule::implicit_hydrogens = false;
-
+auto test_translation = [] () {
     SECTION("one body with one atom") {
         AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
         set_unity_charge(m);
 
         SECTION("no copies") {
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {RES(0, 1)});
         }
 
         SECTION("one copy") {
             m.get_body(0).symmetry().add({Vector3<double>(1, 0, 0)});
+            std::cout << m.get_body(0).size_symmetry() << std::endl;
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 2), 
                 RES(1, 2)
@@ -87,8 +86,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
             m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 3), 
                 RES(1, 4), 
@@ -102,8 +100,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>( 0,-1, 0)});
             m.get_body(0).symmetry().add({Vector3<double>( 0, 1, 0)});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 5), 
                 RES(1, 8), 
@@ -120,8 +117,7 @@ TEST_CASE("SymmetryManager: translations") {
         set_unity_charge(m);
 
         SECTION("no copies") {
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 2), 
                 RES(1, 2)
@@ -131,8 +127,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("one copy") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
                 RES(1, 8), 
@@ -144,8 +139,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
             m.get_body(0).symmetry().add({Vector3<double>(0, 2, 0)});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 6), 
                 RES(1, 14), 
@@ -163,8 +157,7 @@ TEST_CASE("SymmetryManager: translations") {
         set_unity_charge(m);
 
         SECTION("no copies") {
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 2), 
                 RES(1, 2)
@@ -174,8 +167,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("one copy of body1") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 3), 
                 RES(1, 4), 
@@ -187,8 +179,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
             m.get_body(1).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
                 RES(1, 8), 
@@ -200,8 +191,7 @@ TEST_CASE("SymmetryManager: translations") {
             m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
             m.get_body(1).symmetry().add({Vector3<double>(-1, 0, 0)});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
                 RES(1, 6),
@@ -219,8 +209,7 @@ TEST_CASE("SymmetryManager: translations") {
         set_unity_charge(m);
 
         SECTION("no copies") {
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<true>(m);
+            auto h = m.get_histogram();
             auto htot = h->get_total_counts();
             auto haa = h->get_aa_counts();
             auto haw = h->get_aw_counts();
@@ -247,8 +236,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("one copy") {
             m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<true>(m);
+            auto h = m.get_histogram();
             auto htot = h->get_total_counts();
             auto haa = h->get_aa_counts();
             auto haw = h->get_aw_counts();
@@ -294,8 +282,7 @@ TEST_CASE("SymmetryManager: translations") {
         SECTION("single copy") {
             m.get_body(0).symmetry().add(symmetry::Symmetry(s));
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<true>(m);
+            auto h = m.get_histogram();
 
             // manually perform the transformation for comparison
             data::Molecule m_copy({m.get_body(0)});
@@ -318,11 +305,21 @@ TEST_CASE("SymmetryManager: translations") {
             CHECK(compare_hist_approx(h->get_total_counts(), h2->get_total_counts()));
         }
     }
+};
+
+TEST_CASE("SymmetryManager: translations") {
+    settings::molecule::implicit_hydrogens = false;
+    SECTION("SymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+        test_translation();
+    }
+    SECTION("PartialSymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
+        test_translation();
+    }
 }
 
-TEST_CASE("SymmetryManager: repeating symmetries") {
-    settings::molecule::implicit_hydrogens = false;
-
+auto test_repeating_symmetries = [] () {
     SECTION("one body with one atom") {
         AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
@@ -331,8 +328,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         SECTION("two repeats") {
             m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 3), 
                 RES(1, 4),
@@ -343,8 +339,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         SECTION("three repeats") {
             m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, 3});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
                 RES(1, 6),
@@ -364,8 +359,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
             m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
             m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 6), 
                 RES(1, 14),
@@ -379,8 +373,7 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
             m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 1});
             m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<false>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 5), 
                 RES(1, 10),
@@ -390,12 +383,21 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
             });
         }
     }
+};
+
+TEST_CASE("SymmetryManager: repeating symmetries") {
+    settings::molecule::implicit_hydrogens = false;
+    SECTION("SymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+        test_repeating_symmetries();
+    }
+    SECTION("PartialSymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
+        test_repeating_symmetries();
+    }
 }
 
-TEST_CASE("SymmetryManager: rotations") {
-    settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
-
+auto test_rotations = [] () {
     SECTION("one body with one atom") {
         AtomFF a({1, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
@@ -404,8 +406,7 @@ TEST_CASE("SymmetryManager: rotations") {
         SECTION("one copy") {
             m.get_body(0).symmetry().add({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<true>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 2), 
                 RES(std::sqrt(2), 2)
@@ -415,8 +416,7 @@ TEST_CASE("SymmetryManager: rotations") {
         SECTION("three copies") {
             m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, 3});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<true>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
                 RES(0, 4), 
                 RES(std::sqrt(2), 8),
@@ -424,12 +424,22 @@ TEST_CASE("SymmetryManager: rotations") {
             });
         }
     }
-}
+};
 
-TEST_CASE("SymmetryManager: multi-atom systems") {
+TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
+    SECTION("SymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+        test_rotations();
+    }
+    SECTION("PartialSymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
+        test_rotations();
+    }
+}
 
+auto test_multi_atom = [] () {
     SECTION("cross") {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         AtomFF a2({2, 0, 0}, form_factor::form_factor_t::C);
@@ -450,8 +460,7 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
         //
         m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, 3});
 
-        symmetry::SymmetryManagerMT sm;
-        auto h = sm.calculate<true>(m)->get_total_counts();
+        auto h = m.get_histogram()->get_total_counts();
         check_hist(h, {
             {0, 12},
             {1, 16},
@@ -475,8 +484,7 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
         set_unity_charge(m);
         m.get_body(0).symmetry().add({{0, 0, 1}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, 4});
 
-        symmetry::SymmetryManagerMT sm;
-        auto h = sm.calculate<true>(m)->get_total_counts();
+        auto h = m.get_histogram()->get_total_counts();
 
         std::vector<RES> checks = {
             {0, 5},
@@ -487,9 +495,22 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
         };
         check_hist(h, checks);
     }
+};
+TEST_CASE("SymmetryManager: multi-atom systems") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+
+    SECTION("SymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+        test_multi_atom();
+    }
+    SECTION("PartialSymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
+        test_multi_atom();
+    }
 }
 
-TEST_CASE("SymmetryManager: random tests") {
+auto test_random = [] () {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-10, 10);
@@ -519,8 +540,7 @@ TEST_CASE("SymmetryManager: random tests") {
             set_unity_charge(m);
             m.get_body(0).symmetry().add({translate, axis, angles, repeats});
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<true>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
 
             auto b = m.get_body(0).symmetry().explicit_structure();
             auto m2 = Molecule({Body{std::move(b.atoms), std::move(b.waters)}});
@@ -555,8 +575,7 @@ TEST_CASE("SymmetryManager: random tests") {
                 m.get_body(0).symmetry().add({translate, axis, angles, repeats});
             }
 
-            symmetry::SymmetryManagerMT sm;
-            auto h = sm.calculate<true>(m)->get_total_counts();
+            auto h = m.get_histogram()->get_total_counts();
 
             auto b = m.get_body(0).symmetry().explicit_structure();
             auto m2 = Molecule({Body{std::move(b.atoms), std::move(b.waters)}});
@@ -565,5 +584,16 @@ TEST_CASE("SymmetryManager: random tests") {
 
             compare_hist_approx(h, h2);
         }
+    }
+};
+
+TEST_CASE("SymmetryManager: random tests") {
+    SECTION("SymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+        test_random();
+    }
+    SECTION("PartialSymmetryManager") {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
+        test_random();
     }
 }

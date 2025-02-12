@@ -29,17 +29,17 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::data;
 
-Molecule::Molecule() : bodies(), grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr) {}
+Molecule::Molecule() : bodies(), grid(nullptr), phm(nullptr), hydration_strategy(nullptr) {}
 
 Molecule::Molecule(Molecule&& other) {*this = std::move(other);}
 
 Molecule::~Molecule() = default;
 
-Molecule::Molecule(std::vector<Body>&& bodies) : bodies(std::move(bodies)), grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr) {
+Molecule::Molecule(std::vector<Body>&& bodies) : bodies(std::move(bodies)), grid(nullptr), phm(nullptr), hydration_strategy(nullptr) {
     initialize();
 }
 
-Molecule::Molecule(const std::vector<Body>& bodies) : bodies(bodies), grid(nullptr), phm(nullptr), histogram(nullptr), hydration_strategy(nullptr) {
+Molecule::Molecule(const std::vector<Body>& bodies) : bodies(bodies), grid(nullptr), phm(nullptr), hydration_strategy(nullptr) {
     initialize();
 }
 
