@@ -158,41 +158,25 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_
     int job_size = settings::general::detail::job_size;
 
     for (int i = 0; i < data_2_size; i+=job_size) {
-        auto& p_ab = res_ptr->get();
-        for (int k = i; k < std::min(i+job_size, data_2_size); ++k) { // b
-            int j = 0;                      // a
-            for (; j+7 < data_1_size; j+=8) {
-                evaluate8<weighted_bins, 2*scaling>(p_ab, data_2, data_1, k, j);
+        pool->detach_task(
+            [&data_1, &data_2, res_ptr, data_1_size, imin = i, imax = std::min(i+job_size, data_2_size)] () {
+                auto& p_ab = res_ptr->get();
+                for (int i = imin; i < imax; ++i) { // b
+                    int j = 0;                      // a
+                    for (; j+7 < data_1_size; j+=8) {
+                        evaluate8<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
+                    }
+
+                    for (; j+3 < data_1_size; j+=4) {
+                        evaluate4<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
+                    }
+
+                    for (; j < data_1_size; ++j) {
+                        evaluate1<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
+                    }
+                }
             }
-
-            for (; j+3 < data_1_size; j+=4) {
-                evaluate4<weighted_bins, 2*scaling>(p_ab, data_2, data_1, k, j);
-            }
-
-            for (; j < data_1_size; ++j) {
-                evaluate1<weighted_bins, 2*scaling>(p_ab, data_2, data_1, k, j);
-            }
-        }
-
-        // pool->detach_task(
-        //     [&data_1, &data_2, res_ptr, data_1_size, imin = i, imax = std::min(i+job_size, data_2_size)] () {
-        //         auto& p_ab = res_ptr->get();
-        //         for (int i = imin; i < imax; ++i) { // b
-        //             int j = 0;                      // a
-        //             for (; j+7 < data_1_size; j+=8) {
-        //                 evaluate8<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
-        //             }
-
-        //             for (; j+3 < data_1_size; j+=4) {
-        //                 evaluate4<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
-        //             }
-
-        //             for (; j < data_1_size; ++j) {
-        //                 evaluate1<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
-        //             }
-        //         }
-        //     }
-        // );
+        );
     }
 
     return res_idx;
@@ -208,31 +192,19 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::s
     return cross_results.size();
 }
 
-#include <iostream>
 template<bool weighted_bins>
 inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run() {
     auto pool = utility::multi_threading::get_global_pool();
     pool->wait();
     run_result result;
 
-    // std::cout << "self results:" << std::endl;
     for (auto[i, j] : self_merge_ids) {
         result.self[i] = self_results[j]->merge();
-        // for (int k = 0; k < 20; ++k) {
-        //     std::cout << result.self[i].get_content(k) << " ";
-        // }
-        // std::cout << std::endl;
     }
 
-    // std::cout << "cross results:" << std::endl;
     for (auto[i, j] : cross_merge_ids) {
         result.cross[i] = cross_results[j]->merge();
-        // for (int k = 0; k < 20; ++k) {
-        //     std::cout << result.cross[i].get_content(k) << " ";
-        // }
-        // std::cout << std::endl;
     }
-    // std::cout << std::endl;
 
     // cleanup
     self_results.clear();
