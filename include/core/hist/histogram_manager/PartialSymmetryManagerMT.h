@@ -77,9 +77,18 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
+			 *
+			 * @param ibody The index of the body to calculate the self-correlation for.
 			 */
 			void calc_aa_self(calculator_t calculator, int ibody);
 
+			/**
+			 * @brief Calculate the self-correlation of a body symmetry.
+			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
+			 *
+			 * @param ibody The index of the body to calculate the self-correlation for.
+			 * @param isym The index of the symmetry to calculate the self-correlation for. Index 0 is the main body.
+			 */
 			void calc_aa_self(calculator_t calculator, int ibody, int isym);
 
 			/**
@@ -97,18 +106,49 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
+			 *
+			 * @param ibody The index of the body to calculate the self-correlation for.
+			 * @param isym The index of the symmetry to calculate the self-correlation for. Index 0 is the main body.
 			 */
-			void calc_aw(calculator_t calculator, int ibody, int isym1);
+			void calc_aw(calculator_t calculator, int ibody, int isym);
 
-			void combine_aa_self(int ibody, GenericDistribution1D_t&&);
+			/**
+			 * @brief Combine the self-correlation of a body symmetry into the master histogram.
+			 *
+			 * @param ibody The index of the body to combine the self-correlation for.
+			 */
+			void combine_aa_self(int ibody, GenericDistribution1D_t&& res);
 
-			void combine_aa_self(int ibody, int isym, GenericDistribution1D_t&&);
+			/**
+			 * @brief Combine the self-correlation of a body symmetry into the master histogram.
+			 *
+			 * @param ibody The index of the body to combine the self-correlation for.
+			 * @param isym The index of the symmetry to combine the self-correlation for. Index 0 is the main body.
+			 */
+			void combine_aa_self(int ibody, int isym, GenericDistribution1D_t&& res);
 
-			void combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&&);
+			/**
+			 * @brief Combine the atom-atom correlation of two bodies into the master histogram.
+			 *
+			 * @param ibody1 The index of the first body to combine the correlation for.
+			 * @param isym1 The index of the symmetry of the first body to combine the correlation for. Index 0 is the main body.
+			 * @param ibody2 The index of the second body to combine the correlation for.
+			 * @param isym2 The index of the symmetry of the second body to combine the correlation for. Index 0 is the main body.
+			 */
+			void combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res);
 
-			void combine_aw(int ibody, int isym, GenericDistribution1D_t&&);
+			/**
+			 * @brief Combine the atom-hydration correlation of a body symmetry into the master histogram.
+			 *
+			 * @param ibody The index of the body to combine the correlation for.
+			 * @param isym The index of the symmetry to combine the correlation for. Index 0 is the main body.
+			 */
+			void combine_aw(int ibody, int isym, GenericDistribution1D_t&& res);
 
-			void combine_ww(GenericDistribution1D_t&&);
+			/**
+			 * @brief Combine the hydration-hydration correlation into the master histogram.
+			 */
+			void combine_ww(GenericDistribution1D_t&& res);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.
