@@ -69,6 +69,12 @@ namespace ausaxs::hist {
 			std::mutex master_hist_mutex;
 
 			/**
+			 * @brief Calculate only the total scattering histogram. 
+			 */
+			template<bool hydration_enabled>
+			std::unique_ptr<DistanceHistogram> _calculate();
+
+			/**
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
 			 *        They are unaffected by both rotations and translations, and so we precalculate them. 
 			 */

@@ -49,8 +49,17 @@ int to_res_index(int body1, int symmetry1, int body2, int symmetry2) {
     return to_res_index(body1, symmetry1)*100 + to_res_index(body2, symmetry2);
 }
 
-template<bool use_weighted_distribution> 
+template<bool use_weighted_distribution>
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::calculate() {
+    if (protein->size_water() == 0) {
+        return _calculate<false>();
+    } else {
+        return _calculate<true>();
+    }
+}
+
+template<bool use_weighted_distribution> template<bool hydration_enabled>
+std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::_calculate() {
     auto& externally_modified = this->statemanager->get_externally_modified_bodies();
     auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     auto& symmetry_modified = this->statemanager->get_symmetry_modified_bodies();
@@ -90,17 +99,22 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
         }
     }
 
-    // small efficiency improvement: if the hydration layer was modified, we can update the compact representations in parallel with the self-correlation
+    if constexpr (hydration_enabled) {
+    // small efficiency improvement: if the hydration layer was modified, 
+    // we can update the compact representations in parallel with the self-correlation
     if (hydration_modified) {
-        pool->detach_task(
-            [this] () {update_compact_representation_water();}
-        );
+            pool->detach_task(
+                [this] () {update_compact_representation_water();}
+            );
+        }
     }
     pool->wait(); // ensure the compact representations have been updated before continuing
 
-    // check if the hydration layer was modified
-    if (hydration_modified) {
-        calc_ww(calculator.get());
+    if constexpr (hydration_enabled) {
+        // check if the hydration layer was modified
+        if (hydration_modified) {
+            calc_ww(calculator.get());
+        }
     }
 
     // iterate through the lower triangle and check if either of each pair of bodies was modified
@@ -121,10 +135,12 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
             }
         }
 
-        // we also have to remember to update the partial histograms with the hydration layer
-        if (externally_modified[ibody1] || hydration_modified) {
-            for (int isym1 = 0; isym1 < 1+static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
-                calc_aw(calculator.get(), ibody1, isym1);
+        if constexpr (hydration_enabled) {
+            // we also have to remember to update the partial histograms with the hydration layer
+            if (externally_modified[ibody1] || hydration_modified) {
+                for (int isym1 = 0; isym1 < 1+static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
+                    calc_aw(calculator.get(), ibody1, isym1);
+                }
             }
         }
     }
@@ -154,12 +170,14 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     // for this process, we first have to wait for all threads to finish
     auto res = calculator->run();
     {
-        if (hydration_modified) {
-            std::cout << "accessing index " << water_res_index << std::endl;
-            assert(res.self.contains(water_res_index) && "SymmetryManager::calculate: water result not found");
-            pool->detach_task(
-                [this, r = std::move(res.self[water_res_index])] () mutable {combine_ww(std::move(r));}
-            );
+        if constexpr (hydration_enabled) {
+            if (hydration_modified) {
+                std::cout << "accessing index " << water_res_index << std::endl;
+                assert(res.self.contains(water_res_index) && "SymmetryManager::calculate: water result not found");
+                pool->detach_task(
+                    [this, r = std::move(res.self[water_res_index])] () mutable {combine_ww(std::move(r));}
+                );
+            }
         }
 
         for (int ibody1 = 0; ibody1 < static_cast<int>(this->body_size); ++ibody1) {
@@ -188,13 +206,15 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
                 }
             }
 
-            if (externally_modified[ibody1] || hydration_modified) {
-                for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry())+1; ++isym1) {
-                    std::cout << "accessing index " << to_res_index(ibody1, isym1) + water_res_index << std::endl;
-                    assert(res.cross.contains(to_res_index(ibody1, 0) + water_res_index) && "SymmetryManager::calculate: aw cross result not found");
-                    pool->detach_task(
-                        [this, ibody1, isym1, r = std::move(res.cross[to_res_index(ibody1, isym1) + water_res_index])] () mutable {combine_aw(ibody1, isym1, std::move(r));}
-                    );
+            if constexpr (hydration_enabled) {
+                if (externally_modified[ibody1] || hydration_modified) {
+                    for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry())+1; ++isym1) {
+                        std::cout << "accessing index " << to_res_index(ibody1, isym1) + water_res_index << std::endl;
+                        assert(res.cross.contains(to_res_index(ibody1, 0) + water_res_index) && "SymmetryManager::calculate: aw cross result not found");
+                        pool->detach_task(
+                            [this, ibody1, isym1, r = std::move(res.cross[to_res_index(ibody1, isym1) + water_res_index])] () mutable {combine_aw(ibody1, isym1, std::move(r));}
+                        );
+                    }
                 }
             }
         }
@@ -600,5 +620,9 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_ww(GenericDist
     std::cout << std::endl;
 }
 
+template std::unique_ptr<hist::DistanceHistogram> hist::PartialSymmetryManagerMT<true>::_calculate<true>();
+template std::unique_ptr<hist::DistanceHistogram> hist::PartialSymmetryManagerMT<true>::_calculate<false>();
+template std::unique_ptr<hist::DistanceHistogram> hist::PartialSymmetryManagerMT<false>::_calculate<true>();
+template std::unique_ptr<hist::DistanceHistogram> hist::PartialSymmetryManagerMT<false>::_calculate<false>();
 template class hist::PartialSymmetryManagerMT<true>;
 template class hist::PartialSymmetryManagerMT<false>;
