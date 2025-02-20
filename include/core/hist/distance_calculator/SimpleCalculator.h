@@ -198,13 +198,40 @@ inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bin
     pool->wait();
     run_result result;
 
+    if (!self_merge_ids.empty()) {
+        std::cout << "self results:" << std::endl;
+        std::cout << "\t" << std::flush;
+        for (int i = 0; i < 20; ++i) {
+            std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+        }
+        std::cout << std::endl;
+    }
     for (auto[i, j] : self_merge_ids) {
         result.self[i] = self_results[j]->merge();
+        std::cout << "\t";
+        for (int k = 0; k < 20; ++k) {
+            std::cout << std::setw(4) <<result.self[i].get_content(k) << " ";
+        }
+        std::cout << std::endl;
     }
 
+    if (!cross_merge_ids.empty()) {
+        std::cout << "cross results:" << std::endl;
+        std::cout << "\t" << std::flush;
+        for (int i = 0; i < 20; ++i) {
+            std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+        }
+        std::cout << std::endl;
+    }
     for (auto[i, j] : cross_merge_ids) {
         result.cross[i] = cross_results[j]->merge();
+        std::cout << "\t";
+        for (int k = 0; k < 20; ++k) {
+            std::cout << std::setw(4) <<result.cross[i].get_content(k) << " ";
+        }
+        std::cout << std::endl;
     }
+    std::cout << std::endl;
 
     // cleanup
     self_results.clear();
