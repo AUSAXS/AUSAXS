@@ -95,7 +95,7 @@ namespace ausaxs::hist {
 			 * @param ibody The index of the body to calculate the self-correlation for.
 			 * @param isym The index of the symmetry to calculate the self-correlation for. Index 0 is the main body.
 			 */
-			void calc_aa_self(calculator_t calculator, int ibody, int isym);
+			void calc_aa_self_sym(calculator_t calculator, int ibody, int isym);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 

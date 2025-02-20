@@ -3,6 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
+#include "constants/ConstantsAxes.h"
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
@@ -152,7 +153,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
             // calculate self correlation between main body & this symmetry if it was modified
 
             if (symmetry_modified[ibody1][isym1]) {
-                calc_aa_self(calculator.get(), ibody1, isym1);
+                calc_aa_self_sym(calculator.get(), ibody1, isym1);
             }
 
             // recalculate cross terms with other bodies and their symmetries
@@ -369,8 +370,14 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::initialize(calculator_
 }
 
 template<bool use_weighted_distribution>
-void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculator_t calculator, int ibody, int isym) {
+void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self_sym(calculator_t calculator, int ibody, int isym) {
     assert(isym != 0 && "isym cannot be 0");
+
+    // this method is called once for every symmetry of the given body (i.e. isym = 1, 2, 3, ...)
+    // we thus have 3 different terms to calculate here:
+    // 1. the correlation with the given symmetry (and its replications) with the main body
+    // 2. the correlation within the given symmetry (and its replications)
+    // 3. the correlation with the given symmetry (and its replications) with the other symmetries (and their replications) of the same body
 
     // update_compact_representation_body(ibody);
     const auto& body = protein->get_body(ibody);
@@ -381,13 +388,16 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculato
     for (int irepeat1 = 0; irepeat1 < sym.repeat; ++irepeat1) {
         const auto& body_sym_atomic1 = coords[ibody].atomic[isym][irepeat1];
 
-        // calculate the self symmetry - main body term
-        std::cout << "calc_aa_self[" << ibody << "][" << isym << irepeat1 << "]" << std::endl;
-        std::cout << "\tstored at index " << res_index << std::endl;
-        calculator->enqueue_calculate_cross(coords[ibody].atomic[0][0], body_sym_atomic1, 1, res_index);
+        // calculate the 1. self symmetry replication - main body term
+        // std::cout << "calc_aa_self[" << ibody << "][" << isym << irepeat1 << "]" << std::endl;
+        // std::cout << "\tstored at index " << res_index << std::endl;
+        // calculator->enqueue_calculate_cross(coords[ibody].atomic[0][0], body_sym_atomic1, 1, res_index);
 
-        // calculate the self symmetry - symmetry terms
+        // calculate 3., the cross symmetry terms within this body
+        // we do this by iterating over the other symmetries and their replications
+        // and explicitly calculating each cross term
         for (int isym2 = 1; isym2 < isym; ++isym2) {
+            if (isym == isym2) {continue;}
             assert(isym2 < 1+static_cast<int>(body.size_symmetry()) && "symmetry index out of bounds");
             const auto& sym2 = body.symmetry().get(isym2-1);
             for (int irepeat2 = 0; irepeat2 < sym2.repeat; ++irepeat2) {
@@ -398,6 +408,25 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculato
             }
         }
     }
+
+    // calculate 1. and 2.
+    // here we can use properties of the symmetry to reduce the number of calculations
+    bool closed = sym.is_closed();
+    for (int irepeat = 0; irepeat < (sym.repeat - closed); ++irepeat) {
+        const auto& body_sym_atomic = coords[ibody].atomic[isym][irepeat];
+
+        // assume we have 3 repeats of symmetry B, so we have the bodies: A B1 B2 B3. Then
+        // AB1 == AB2 == AB3, (scale AB1 by 3)
+        // AB2 == B1B3        (scale B1B3 by 2)
+        // AB3                (scale AB3 by 1)
+        //
+        // if the symmetry is closed, AB3 == AB1
+        int scale = sym.repeat - irepeat;
+        if (irepeat == 0 && closed) {scale += 1;}
+        std::cout << "calc_aa_self[" << ibody << "][" << isym << irepeat << "] x" << scale << std::endl;
+        std::cout << "\tstored at index " << res_index << std::endl;
+        calculator->enqueue_calculate_cross(coords[ibody].atomic[0][0], body_sym_atomic, scale, res_index);
+    }
 }
 
 template<bool use_weighted_distribution>
@@ -406,28 +435,13 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculato
     const auto& body = protein->get_body(ibody);
     std::cout << "calc_aa_self[" << ibody << "][0]" << std::endl;
     std::cout << "\tstored at index " << to_res_index(ibody, 0) << std::endl;
-    calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], 1 + body.size_symmetry_total(), to_res_index(ibody, 0));
+    // calculate the self correlation within each body and symmetry, equal to (N_sym+1) * (main body self corr)
+    calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], 1+body.size_symmetry_total(), to_res_index(ibody, 0));
 
-    // calculate the cross symmetry terms
+    // calculate the symmetry term contributions
     for (int isym = 1; isym < 1+static_cast<int>(body.size_symmetry()); ++isym) {
-        calc_aa_self(calculator, ibody, isym);
+        calc_aa_self_sym(calculator, ibody, isym);
     }
-
-    //? Space for optimizations with repeating symmetries; here's the code from the SymmetryManagerMT
-    // bool closed = sym1.is_closed();
-    // for (int i_repeat1 = 0; i_repeat1 < (sym1.repeat - closed); ++i_repeat1) {
-    //     const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
-
-    //     // assume we have 3 repeats of symmetry B, so we have the bodies: A B1 B2 B3. Then
-    //     // AB1 == AB2 == AB3, (scale AB1 by 3)
-    //     // AB2 == B1B3        (scale B1B3 by 2)
-    //     // AB3                (scale AB3 by 1)
-    //     //
-    //     // if the symmetry is closed, AB3 == AB1
-    //     int scale = sym1.repeat - i_repeat1;
-    //     if (i_repeat1 == 0 && closed) {scale += 1;}
-    //     calculator.enqueue_calculate_cross(body1_atomic, body1_sym_atomic, scale, cross_merge_id_aa);
-    // }
 }
 
 template<bool use_weighted_distribution> 
@@ -510,12 +524,17 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aw(calculator_t c
     }
 }
 
+#include <iomanip>
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int ibody, int isym, GenericDistribution1D_t&& res) {
     std::cout << "combine_aa_self[" << ibody << isym << "]" << std::endl;
-    std::cout << "\tremoving " << std::endl;
+    std::cout << "\tremoving " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_aa.index(ibody, ibody).index(isym, isym).get_content(i) << " ";
+        std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+    }
+    std::cout << "\n\t\t" << std::flush;
+    for (int i = 0; i < 20; ++i) {
+        std::cout << std::setw(4) << this->partials_aa.index(ibody, ibody).index(isym, isym).get_content(i) << " ";
     }
     std::cout << std::endl;
 
@@ -525,9 +544,9 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int ib
     this->master += this->partials_aa.index(ibody, ibody).index(isym, isym);
     master_hist_mutex.unlock();
 
-    std::cout << "\tadding " << std::endl;
+    std::cout << "\tadding " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_aa.index(ibody, ibody).index(isym, isym).get_content(i) << " ";
+        std::cout << std::setw(4) << this->partials_aa.index(ibody, ibody).index(isym, isym).get_content(i) << " ";
     }
     std::cout << std::endl;
 }
@@ -535,9 +554,13 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int ib
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int index, GenericDistribution1D_t&& res) {
     std::cout << "combine_aa_self[" << index << "]" << std::endl;
-    std::cout << "\tremoving " << std::endl;
+    std::cout << "\tremoving " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_aa.index(index, index).index(0, 0).get_content(i) << " ";
+        std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+    }
+    std::cout << "\n\t\t" << std::flush;
+    for (int i = 0; i < 20; ++i) {
+        std::cout << std::setw(4)<< this->partials_aa.index(index, index).index(0, 0).get_content(i) << " ";
     }
     std::cout << std::endl;
 
@@ -547,9 +570,9 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int in
     this->master += this->partials_aa.index(index, index).index(0, 0);
     master_hist_mutex.unlock();
 
-    std::cout << "\tadding " << std::endl;
+    std::cout << "\tadding " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_aa.index(index, index).index(0, 0).get_content(i) << " ";
+        std::cout << std::setw(4)<< this->partials_aa.index(index, index).index(0, 0).get_content(i) << " ";
     }
     std::cout << std::endl;
 }
@@ -557,9 +580,13 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa_self(int in
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res) {
     std::cout << "combine_aa[" << ibody1 << isym1 << ", " << ibody2 << isym2 << "]" << std::endl;
-    std::cout << "\tremoving " << std::endl;
+    std::cout << "\tremoving " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_aa.index(ibody1, ibody2).index(isym1, isym2).get_content(i) << " ";
+        std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+    }
+    std::cout << "\n\t\t" << std::flush;
+    for (int i = 0; i < 20; ++i) {
+        std::cout << std::setw(4)<< this->partials_aa.index(ibody1, ibody2).index(isym1, isym2).get_content(i) << " ";
     }
     std::cout << std::endl;
 
@@ -569,9 +596,9 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa(int ibody1,
     this->master += this->partials_aa.index(ibody1, ibody2).index(isym1, isym2);
     master_hist_mutex.unlock();
 
-    std::cout << "\tadding " << std::endl;
+    std::cout << "\tadding " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_aa.index(ibody1, ibody2).index(isym1, isym2).get_content(i) << " ";
+        std::cout << std::setw(4)<< this->partials_aa.index(ibody1, ibody2).index(isym1, isym2).get_content(i) << " ";
     }
     std::cout << std::endl;
 }
@@ -579,9 +606,13 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa(int ibody1,
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aw(int ibody, int isym, GenericDistribution1D_t&& res) {
     std::cout << "combine_aw[" << ibody << isym << "]" << std::endl;
-    std::cout << "\tremoving " << std::endl;
+    std::cout << "\tremoving " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_aw.index(ibody).index(isym).get_content(i) << " ";
+        std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+    }
+    std::cout << "\n\t\t" << std::flush;
+    for (int i = 0; i < 20; ++i) {
+        std::cout << std::setw(4)<< this->partials_aw.index(ibody).index(isym).get_content(i) << " ";
     }
     std::cout << std::endl;
 
@@ -591,9 +622,9 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aw(int ibody, 
     this->master += this->partials_aw.index(ibody).index(isym);
     master_hist_mutex.unlock();
 
-    std::cout << "\tadding " << std::endl;
+    std::cout << "\tadding " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_aw.index(ibody).index(isym).get_content(i) << " ";
+        std::cout << std::setw(4)<< this->partials_aw.index(ibody).index(isym).get_content(i) << " ";
     }
     std::cout << std::endl;
 }
@@ -601,9 +632,13 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aw(int ibody, 
 template<bool use_weighted_distribution> 
 void PartialSymmetryManagerMT<use_weighted_distribution>::combine_ww(GenericDistribution1D_t&& res) {
     std::cout << "combine_ww" << std::endl;
-    std::cout << "\tremoving " << std::endl;
+    std::cout << "\tremoving " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_ww.get_content(i) << " ";
+        std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+    }
+    std::cout << "\n\t\t" << std::flush;
+    for (int i = 0; i < 20; ++i) {
+        std::cout << std::setw(4)<< this->partials_ww.get_content(i) << " ";
     }
     std::cout << std::endl;
 
@@ -613,9 +648,9 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_ww(GenericDist
     this->master += this->partials_ww;
     master_hist_mutex.unlock();
 
-    std::cout << "\tadding " << std::endl;
+    std::cout << "\tadding " << std::endl << "\t\t";
     for (int i = 0; i < 20; ++i) {
-        std::cout << this->partials_ww.get_content(i) << " ";
+        std::cout << std::setw(4)<< this->partials_ww.get_content(i) << " ";
     }
     std::cout << std::endl;
 }

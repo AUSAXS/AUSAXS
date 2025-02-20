@@ -406,15 +406,15 @@ auto test_rotations = [] () {
         Molecule m({Body{std::vector{a}}});
         set_unity_charge(m);
 
-        // SECTION("one copy") {
-        //     m.get_body(0).symmetry().add({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
+        SECTION("one copy") {
+            m.get_body(0).symmetry().add({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
 
-        //     auto h = m.get_histogram()->get_total_counts();
-        //     check_hist(h, {
-        //         RES(0, 2), 
-        //         RES(std::sqrt(2), 2)
-        //     });
-        // }
+            auto h = m.get_histogram()->get_total_counts();
+            check_hist(h, {
+                RES(0, 2), 
+                RES(std::sqrt(2), 2)
+            });
+        }
 
         SECTION("three copies") {
             m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, 3});
