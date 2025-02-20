@@ -61,7 +61,6 @@ void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
 }
 
 auto test_translation = [] () {
-    settings::general::threads = 1;
     SECTION("one body with one atom") {
         AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
@@ -400,7 +399,6 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
 }
 
 auto test_rotations = [] () {
-    settings::general::threads = 1;
     SECTION("one body with one atom") {
         AtomFF a({1, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
