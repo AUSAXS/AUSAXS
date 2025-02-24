@@ -21,6 +21,15 @@ namespace ausaxs::symmetry::detail {
         symmetry_t<repetition_t<hist::detail::CompactCoordinates>> atomic;
     };
 
+    struct SymmetryData {
+        template<typename T>
+        using repetition_t = std::vector<T>;
+
+        // the outer loop is over the repetitions
+        repetition_t<hist::detail::CompactCoordinates> data;
+    };
+
     std::pair<std::vector<BodySymmetryData>, hist::detail::CompactCoordinates> generate_transformed_data(const data::Molecule& protein);
     BodySymmetryData generate_transformed_data(const data::Body& body);
+    SymmetryData generate_transformed_data(const data::Body& body, int isym);
 }

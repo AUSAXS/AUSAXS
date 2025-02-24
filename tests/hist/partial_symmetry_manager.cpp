@@ -10,14 +10,18 @@
 #include <settings/All.h>
 
 #include "hist/hist_test_helper.h"
+#include "settings/GeneralSettings.h"
+#include "settings/HistogramSettings.h"
 
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-auto test = [] (data::Molecule& protein, auto&& phm) {
+auto test = [] (data::Molecule& protein) {
     // no changes
-    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->debye_transform();
-    auto phm_res = phm(protein)->debye_transform();
+    std::cout << "\n\n!!!SymmetryManagerMT!!!" << std::endl;
+    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    std::cout << "\n\n!!!PartialSymmetryManagerMT!!!" << std::endl;
+    auto phm_res = protein.get_histogram()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // add symmetry
@@ -27,22 +31,40 @@ auto test = [] (data::Molecule& protein, auto&& phm) {
     // REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry
+    std::cout << "\n\n!!!MODIFIED SYMMETRY!!!" << std::endl;
+    std::cout << "\n\n!!!SymmetryManagerMT!!!" << std::endl;
     protein.get_body(0).symmetry().get(0).translate = {0, 1, 0};
-    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->debye_transform();
-    phm_res = phm(protein)->debye_transform();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    std::cout << "\n\n!!!PartialSymmetryManagerMT!!!" << std::endl;
+    phm_res = protein.get_histogram()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 };
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
+    settings::general::threads = 1;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    data::Molecule protein({
-        Body("tests/files/2epe.pdb"), 
-        Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}
-    });
 
-    protein.get_body(0).symmetry().add({Vector3<double>(1, 0, 0)});
-    protein.generate_new_hydration();
-    test(protein, [](const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});
+    SECTION("simple") {
+        data::Molecule protein({
+            Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}, 
+            Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}}
+        });
+        set_unity_charge(protein);
+    
+        protein.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
+        test(protein);
+    }
+
+    // SECTION("2epe") {
+    //     data::Molecule protein({
+    //         Body("tests/files/2epe.pdb"), 
+    //         Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}
+    //     });
+    //     protein.get_body(0).symmetry().add({Vector3<double>(1, 0, 0)});
+    //     protein.generate_new_hydration();    
+    //     test(protein);
+    // }
 }

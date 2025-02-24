@@ -81,33 +81,28 @@ namespace ausaxs::hist {
 			void initialize(calculator_t calculator);
 
 			/**
-			 * @brief Calculate the self-correlation of a body.
+			 * @brief Calculate the self-correlation of a body. 
+			 *		  This includes: 
+			 *		      1. The self-correlation of the main body.
+			 *		      2. The self-correlation of each symmetry of the body.
+			 *		  No internal cross terms are calculated here.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 *
 			 * @param ibody The index of the body to calculate the self-correlation for.
 			 */
-			void calc_aa_self(calculator_t calculator, int ibody);
-
-			/**
-			 * @brief Calculate the self-correlation of a body symmetry.
-			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
-			 *
-			 * @param ibody The index of the body to calculate the self-correlation for.
-			 * @param isym The index of the symmetry to calculate the self-correlation for. Index 0 is the main body.
-			 */
-			void calc_aa_self_sym(calculator_t calculator, int ibody, int isym);
+			void calc_aa_self(calculator_t calculator, int ibody) const;
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_ww(calculator_t calculator);
+			void calc_ww(calculator_t calculator) const;
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2);
+			void calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) const;
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
@@ -116,7 +111,7 @@ namespace ausaxs::hist {
 			 * @param ibody The index of the body to calculate the self-correlation for.
 			 * @param isym The index of the symmetry to calculate the self-correlation for. Index 0 is the main body.
 			 */
-			void calc_aw(calculator_t calculator, int ibody, int isym);
+			void calc_aw(calculator_t calculator, int ibody, int isym) const;
 
 			/**
 			 * @brief Combine the self-correlation of a body symmetry into the master histogram.
@@ -161,7 +156,15 @@ namespace ausaxs::hist {
 			 * 
 			 * @param index The index of the body to update.
 			 */
-			void update_compact_representation_body(int index);
+			void update_compact_representation_body(int ibody);
+
+			/**
+			 * @brief Update the compact representation of the coordinates of body @a index.
+			 * 
+			 * @param ibody The index of the body to update.
+			 * @param isym The index of the symmetry to update. Index 0 is the main body.
+			 */
+			void update_compact_representation_symmetry(int ibody, int isym);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of the hydration layer.

@@ -91,6 +91,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
         self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(constants::axes::d_axis.bins));
     } else {
         res_idx = self_merge_ids[merge_id];
+        assert(self_results[res_idx]->get().size() == constants::axes::d_axis.bins && "The result vector has the wrong size.");
     }
 
     auto res_ptr = self_results[res_idx].get();
@@ -152,6 +153,7 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_
         cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(constants::axes::d_axis.bins));
     } else {
         res_idx = cross_merge_ids[merge_id];
+        assert(cross_results[res_idx]->get().size() == constants::axes::d_axis.bins && "The result vector has the wrong size.");
     }
 
     auto res_ptr = cross_results[res_idx].get();
@@ -210,9 +212,10 @@ inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bin
             std::cout << std::endl;
         }
         for (auto[i, j] : self_merge_ids) {
+            result.self[i] = self_results[j]->merge();
             std::cout << "\t";
             for (int k = 0; k < 20; ++k) {
-                std::cout << std::setw(4) <<result.self[i].get_content(k) << " ";
+                std::cout << std::setw(4) << result.self[i].get_content(k) << " ";
             }
             std::cout << std::endl;
         }
@@ -225,9 +228,10 @@ inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bin
             std::cout << std::endl;
         }
         for (auto[i, j] : cross_merge_ids) {
+            result.cross[i] = cross_results[j]->merge();
             std::cout << "\t";
             for (int k = 0; k < 20; ++k) {
-                std::cout << std::setw(4) <<result.cross[i].get_content(k) << " ";
+                std::cout << std::setw(4) << result.cross[i].get_content(k) << " ";
             }
             std::cout << std::endl;
         }

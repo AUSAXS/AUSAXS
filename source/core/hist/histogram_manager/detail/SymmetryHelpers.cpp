@@ -40,3 +40,20 @@ BodySymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data:
     atomic[0] = {std::move(data_a)};
     return {std::move(atomic)};
 }
+
+SymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body, int isym) {
+    CompactCoordinates data_a(body.get_atoms());
+    const auto& symmetry = body.symmetry().get(isym);
+
+    std::vector<CompactCoordinates> sym_atomic(symmetry.repeat, data_a);
+    for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
+        auto t = symmetry.get_transform<double>(i_repeat+1);
+        std::transform(
+            sym_atomic[i_repeat].get_data().begin(), 
+            sym_atomic[i_repeat].get_data().end(), 
+            sym_atomic[i_repeat].get_data().begin(), 
+            [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
+        );
+    }
+    return {std::move(sym_atomic)};
+}
