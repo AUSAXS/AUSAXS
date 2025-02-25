@@ -21,12 +21,12 @@ namespace ausaxs::hist::distance_calculator {
     template<bool weighted_bins>
     class SimpleCalculator {
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-        struct run_result {
-            std::unordered_map<int, GenericDistribution1D_t> self;
-            std::unordered_map<int, GenericDistribution1D_t> cross;
-        };
-
         public:
+            struct run_result {
+                std::unordered_map<int, GenericDistribution1D_t> self;
+                std::unordered_map<int, GenericDistribution1D_t> cross;
+            };
+
             /**
              * @brief Queue a self-correlation calculation. 
              *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made. 
