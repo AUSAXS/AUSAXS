@@ -18,6 +18,9 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <utility/MultiThreading.h>
 
+#include <list>
+#include <functional>
+
 /**
 The indexing in this file is a bit tricky. 
 The body symmetries (body.symmetry.get) contains the first actual symmetry at index 0
@@ -25,7 +28,7 @@ The coordinates are indexed such that the main body is at index 0, with the symm
 Thus, we have a lot of +1s and -1s in the indexing to account for this.
 **/
 
-#define DEBUG_INFO_PSMMT false
+#define DEBUG_INFO_PSMMT true
 #define DEBUG_INFO_PSMMT_EXTENDED false
 
 using namespace ausaxs;
@@ -67,8 +70,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     }
 }
 
-#include <list>
-#include <functional>
 template<bool use_weighted_distribution> template<bool hydration_enabled>
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::_calculate() {
     auto externally_modified = this->statemanager->get_externally_modified_bodies();
@@ -231,10 +232,10 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
             // correlations between this main body and symmetries of other main bodies
             for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
-                for (int isym2 = 0; isym2 < 1+static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
+                for (int isym2 = 0; isym2 < static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
                     if (symmetry_modified[ibody2][isym2]) {
-                        calc_aa(calculator.get(), ibody1, 0, ibody2, isym2);
-                        enqueue_combine_aa(ibody1, 0, ibody2, isym2);
+                        calc_aa(calculator.get(), ibody1, 0, ibody2, isym2+1);
+                        enqueue_combine_aa(ibody1, 0, ibody2, isym2+1);
                     }
                 }
             }
