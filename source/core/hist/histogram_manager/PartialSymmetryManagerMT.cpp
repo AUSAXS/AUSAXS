@@ -215,7 +215,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
         for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
             if (externally_modified[ibody1] || externally_modified[ibody2]) {
 
-                std::cout << "external modified: [" << ibody1 << "][" << ibody2 << "]" << std::endl;
                 // external modification requires recalculation of all affected symmetries
                 for (int isym1 = 0; isym1 < 1+static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
                     for (int isym2 = 0; isym2 < 1+static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
@@ -226,12 +225,11 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
             }
         }
 
-        std::cout << "checking body: " << ibody1 << std::endl;
         if (!externally_modified[ibody1]) {
-            std::cout << "not externally modified: [" << ibody1 << "]" << std::endl;
 
             // correlations between this main body and symmetries of other main bodies
             for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
+                if (externally_modified[ibody2]) {continue;}
                 for (int isym2 = 0; isym2 < static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
                     if (symmetry_modified[ibody2][isym2]) {
                         calc_aa(calculator.get(), ibody1, 0, ibody2, isym2+1);
@@ -244,7 +242,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
             for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
                 // cross-correlations with other bodies
                 for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
-                    std::cout << "checking body: " << ibody2 << std::endl;
 
                     // cross-correlation with other main body
                     if (symmetry_modified[ibody1][isym1]) {
@@ -254,7 +251,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
                     
                     // cross-correlations with symmetries in other main body
                     for (int isym2 = 0; isym2 < static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
-                        std::cout << "comparing [" << ibody1 << isym1 << "][" << ibody2 << isym2 << "]" << std::endl;
                         if (!(symmetry_modified[ibody1][isym1] || symmetry_modified[ibody2][isym2])) {continue;}
                         calc_aa(calculator.get(), ibody1, isym1+1, ibody2, isym2+1);
                         enqueue_combine_aa(ibody1, isym1+1, ibody2, isym2+1);
@@ -288,6 +284,15 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
                 for (int isym1 = 0; isym1 < 1+static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
                     calc_aw(calculator.get(), ibody1, isym1);
                     enqueue_combine_aw(ibody1, isym1);
+                }
+            } else {
+
+                // hydration layer not modified, check for symmetry modifications
+                for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
+                    if (symmetry_modified[ibody1][isym1]) {
+                        calc_aw(calculator.get(), ibody1, isym1+1);
+                        enqueue_combine_aw(ibody1, isym1+1);
+                    }
                 }
             }
         }
@@ -439,20 +444,6 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::initialize(calculator_
         pool->detach_task(
             [this, ibody, r = std::move(res.self[to_res_index_self(ibody, 0)])] () mutable {combine_aa_self(ibody, std::move(r));}
         );
-
-        // // start loop from 1 to skip the main body
-        // auto& body = this->protein->get_body(ibody);
-        // for (int isym = 1; isym < 1+static_cast<int>(body.size_symmetry()); ++isym) {
-        //     #if DEBUG_INFO_PSMMT
-        //         std::cout << "accessing index " << to_res_index(ibody, isym) << std::endl;
-        //     #endif
-        //     assert(res.cross.contains(to_res_index(ibody, isym)) && "The self-correlation result does not contain the expected index.");
-        //     pool->detach_task(
-        //         [this, ibody, isym, r = std::move(res.cross[to_res_index(ibody, isym)])] () mutable {
-        //             combine_aa_self(ibody, isym, std::move(r));
-        //         }
-        //     );
-        // }
     }
 }
 
@@ -505,7 +496,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
                 int scale = sym1.repeat - irepeat1;
                 if (irepeat1 == 0 && closed) {scale += 1;}
                 calculator->enqueue_calculate_cross(coords[ibody2].atomic[0][0], body1_sym_atomic, scale, res_index);
-    
+
                 #if DEBUG_INFO_PSMMT
                     std::cout << "\t[" << ibody1 << isym1 << irepeat1 << "][" << ibody2 << isym2 << "0] x" << scale << std::endl;
                     std::cout << "\t\tstored at cross index " << res_index << std::endl;
@@ -514,31 +505,6 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
             return;
         }
         assert(isym1 != 0 && "Attempting to calculate cross-correlations outside the lower triangle");
-
-        // else if (isym1 == 0) {
-        //     assert(isym2 < 1+static_cast<int>(body2.size_symmetry()) && "symmetry index out of bounds");
-        //     const auto& sym2 = body2.symmetry().get(isym2-1);
-        //     bool closed = sym2.is_closed();
-        //     for (int irepeat2 = 0; irepeat2 < (sym2.repeat - closed); ++irepeat2) {
-        //         const auto& body2_sym_atomic = coords[ibody2].atomic[isym2][irepeat2];
-    
-        //         // assume we have 3 repeats of symmetry B, so we have the bodies: A B1 B2 B3. Then
-        //         // AB1 == AB2 == AB3, (scale AB1 by 3)
-        //         // AB2 == B1B3        (scale B1B3 by 2)
-        //         // AB3                (scale AB3 by 1)
-        //         //
-        //         // if the symmetry is closed, AB3 == AB1
-        //         int scale = sym2.repeat - irepeat2;
-        //         if (irepeat2 == 0 && closed) {scale += 1;}
-        //         calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, scale, res_index);
-    
-        //         #if DEBUG_INFO_PSMMT
-        //             std::cout << "\t[" << ibody1 << isym1 << "0][" << ibody2 << isym2 << irepeat2 << "] x" << scale << std::endl;
-        //             std::cout << "\t\tstored at cross index " << res_index << std::endl;
-        //         #endif
-        //     }
-        //     return;
-        // } 
     }
 
     // symmetry 0 is the main body, so we have to treat it separately
