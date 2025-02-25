@@ -18,9 +18,7 @@ using namespace ausaxs::data;
 
 auto test = [] (data::Molecule& protein) {
     // no changes
-    std::cout << "\n\n!!!SymmetryManagerMT!!!" << std::endl;
     auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
-    std::cout << "\n\n!!!PartialSymmetryManagerMT!!!" << std::endl;
     auto phm_res = protein.get_histogram()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
@@ -31,21 +29,18 @@ auto test = [] (data::Molecule& protein) {
     // REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry
-    std::cout << "\n\n!!!MODIFIED SYMMETRY!!!" << std::endl;
-    std::cout << "\n\n!!!SymmetryManagerMT!!!" << std::endl;
     protein.get_body(0).symmetry().get(0).translate = {0, 1, 0};
-    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
-    std::cout << "\n\n!!!PartialSymmetryManagerMT!!!" << std::endl;
     phm_res = protein.get_histogram()->get_total_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 };
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
     settings::general::threads = 1;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
 
     SECTION("simple") {
         data::Molecule protein({
@@ -53,8 +48,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}}
         });
         set_unity_charge(protein);
-    
-        protein.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
+        protein.get_body(0).symmetry().add({{-1, 0, 0}});
         test(protein);
     }
 
