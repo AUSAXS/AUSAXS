@@ -161,27 +161,45 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
         for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
             if (externally_modified[ibody1] || externally_modified[ibody2]) {
 
+                std::cout << "external modified: [" << ibody1 << "][" << ibody2 << "]" << std::endl;
                 // external modification requires recalculation of all affected symmetries
                 for (int isym1 = 0; isym1 < 1+static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
                     for (int isym2 = 0; isym2 < 1+static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
                         calc_aa(calculator.get(), ibody1, isym1, ibody2, isym2);
                     }
                 }
-            } else {
+            }
+        }
 
-                // if the bodies were not externally modified, we have to check the symmetries
-                for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
-                    
-                    // cross-correlation with main body
-                    if (symmetry_modified[ibody1][isym1]) {
-                        calc_aa(calculator.get(), ibody1, isym1, ibody1, 0);
+        std::cout << "checking body: " << ibody1 << std::endl;
+        if (!externally_modified[ibody1]) {
+            std::cout << "not externally modified: [" << ibody1 << "]" << std::endl;
+
+            // correlations between this main body and symmetries of other main bodies
+            for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
+                for (int isym2 = 0; isym2 < 1+static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
+                    if (symmetry_modified[ibody2][isym2]) {
+                        calc_aa(calculator.get(), ibody1, 0, ibody2, isym2);
                     }
+                }
+            }
 
-                    // cross-correlations with other symmetries
+            // correlations between symmetries of this body and other bodies
+            for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
+                // cross-correlations with other bodies
+                for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
+                    std::cout << "checking body: " << ibody2 << std::endl;
+
+                    // cross-correlation with other main body
+                    if (symmetry_modified[ibody1][isym1]) {
+                        calc_aa(calculator.get(), ibody1, isym1+1, ibody2, 0);
+                    }
+                    
+                    // cross-correlations with symmetries in other main body
                     for (int isym2 = 0; isym2 < static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
-                        if (symmetry_modified[ibody1][isym1] || symmetry_modified[ibody2][isym2]) {
-                            calc_aa(calculator.get(), ibody1, isym1+1, ibody2, isym2+1);
-                        }
+                        std::cout << "comparing [" << ibody1 << isym1 << "][" << ibody2 << isym2 << "]" << std::endl;
+                        if (!(symmetry_modified[ibody1][isym1] || symmetry_modified[ibody2][isym2])) {continue;}
+                        calc_aa(calculator.get(), ibody1, isym1+1, ibody2, isym2+1);
                     }
                 }
             }
@@ -258,35 +276,51 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
                             );
                         }
                     }    
-                } else {
-                    for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
-                        // cross-correlation with other main body
-                        if (symmetry_modified[ibody1][isym1]) {
-                            std::cout << "cross-correlation with other main bodies" << std::endl;
-                            #if DEBUG_INFO_PSMMT
-                                std::cout << "accessing cross index " << to_res_index(ibody1, isym1+1, ibody2, 0) << std::endl;
-                            #endif
-                            assert(res.cross.contains(to_res_index(ibody1, isym1+1, ibody2, 0)) && "SymmetryManager::calculate: aa cross result not found");
+                } 
+            }
 
+            if (!externally_modified[ibody1]) {
+                for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
+                    for (int isym2 = 0; isym2 < 1+static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
+                        if (symmetry_modified[ibody2][isym2]) {
+                            #if DEBUG_INFO_PSMMT
+                                std::cout << "accessing cross index " << to_res_index(ibody1, 0, ibody2, isym2) << std::endl;
+                            #endif
+                            assert(res.cross.contains(to_res_index(ibody1, 0, ibody2, isym2)) && "SymmetryManager::calculate: aa cross result not found");
                             pool->detach_task(
-                                [this, ibody1, isym1, ibody2, r = std::move(res.cross[to_res_index(ibody1, isym1+1, ibody2, 0)])] 
-                                () mutable {combine_aa(ibody1, isym1+1, ibody2, 0, std::move(r));}
+                                [this, ibody1, ibody2, isym2, r = std::move(res.cross[to_res_index(ibody1, 0, ibody2, isym2)])] 
+                                () mutable {combine_aa(ibody1, 0, ibody2, isym2, std::move(r));}
                             );
                         }
+                    }
+                }
 
-                        // cross-correlations with symmetries in other bodies
+                // correlations between symmetries of this body and other bodies
+                for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
+                    for (int ibody2 = 0; ibody2 < ibody1; ++ibody2) {
+                        if (symmetry_modified[ibody1][isym1]) {
+                            for (int isym2 = 0; isym2 < 1+static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
+                                #if DEBUG_INFO_PSMMT
+                                    std::cout << "accessing cross index " << to_res_index(ibody1, isym1+1, ibody2, isym2) << std::endl;
+                                #endif
+                                assert(res.cross.contains(to_res_index(ibody1, isym1+1, ibody2, isym2)) && "SymmetryManager::calculate: aa cross result not found");
+                                pool->detach_task(
+                                    [this, ibody1, isym1, ibody2, isym2, r = std::move(res.cross[to_res_index(ibody1, isym1+1, ibody2, isym2)])] 
+                                    () mutable {combine_aa(ibody1, isym1+1, ibody2, isym2, std::move(r));}
+                                );
+                            }
+                        }
+                        
+                        // cross-correlations with symmetries in other main body
                         for (int isym2 = 0; isym2 < static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
-                            if (!symmetry_modified[ibody1][isym1] && !symmetry_modified[ibody2][isym2]) {continue;}
-                            
-                            std::cout << "cross-correlations with symmetries in other bodies" << std::endl;
+                            if (!(symmetry_modified[ibody1][isym1] || symmetry_modified[ibody2][isym2])) {continue;}
                             #if DEBUG_INFO_PSMMT
-                                std::cout << "accessing cross index " << to_res_index(ibody1, isym1, ibody2, isym2) << std::endl;
+                                std::cout << "accessing cross index " << to_res_index(ibody1, isym1+1, ibody2, isym2+1) << std::endl;
                             #endif
-    
-                            assert(res.cross.contains(to_res_index(ibody1, isym1, ibody2, isym2)) && "SymmetryManager::calculate: aa cross result not found");
+                            assert(res.cross.contains(to_res_index(ibody1, isym1+1, ibody2, isym2+1)) && "SymmetryManager::calculate: aa cross result not found");
                             pool->detach_task(
-                                [this, ibody1, isym1, ibody2, isym2, r = std::move(res.cross[to_res_index(ibody1, isym1, ibody2, isym2)])] 
-                                () mutable {combine_aa(ibody1, isym1, ibody2, isym2, std::move(r));}
+                                [this, ibody1, isym1, ibody2, isym2, r = std::move(res.cross[to_res_index(ibody1, isym1+1, ibody2, isym2+1)])] 
+                                () mutable {combine_aa(ibody1, isym1+1, ibody2, isym2+1, std::move(r));}
                             );
                         }
                     }
@@ -301,7 +335,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
                 #if DEBUG_INFO_PSMMT
                     std::cout << "accessing cross index " << to_res_index(ibody1, isym1+1, ibody1, 0) << std::endl;
                 #endif
-                assert(res.cross.contains(to_res_index(ibody1, isym1+1, ibody1, 0)) && "SymmetryManager::calculate: aa self result not found");
+                assert(res.cross.contains(to_res_index(ibody1, isym1+1, ibody1, 0)) && "SymmetryManager::calculate: aa result not found");
                 pool->detach_task(
                     [this, ibody1, isym1, r = std::move(res.cross[to_res_index(ibody1, isym1+1, ibody1, 0)])] 
                     () mutable {combine_aa(ibody1, isym1+1, ibody1, 0, std::move(r));}
@@ -313,7 +347,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
                         std::cout << "accessing cross index " << to_res_index(ibody1, isym1+1, ibody1, isym2+1) << std::endl;
                     #endif
 
-                    assert(res.cross.contains(to_res_index(ibody1, isym1+1, ibody1, isym2+1)) && "SymmetryManager::calculate: aa self result not found");
+                    assert(res.cross.contains(to_res_index(ibody1, isym1+1, ibody1, isym2+1)) && "SymmetryManager::calculate: aa result not found");
                     pool->detach_task(
                         [this, ibody1, isym1, isym2, r = std::move(res.cross[to_res_index(ibody1, isym1+1, ibody1, isym2+1)])] 
                         () mutable {combine_aa(ibody1, isym1+1, ibody1, isym2+1, std::move(r));}

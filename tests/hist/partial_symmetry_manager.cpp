@@ -29,6 +29,7 @@ auto test = [] (data::Molecule& protein) {
     // REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry
+    std::cout << "\n\n!!!MODIFIED!!!" << std::endl;
     protein.get_body(0).symmetry().get(0).translate = {0, 1, 0};
     phm_res = protein.get_histogram()->get_total_counts();
     p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
