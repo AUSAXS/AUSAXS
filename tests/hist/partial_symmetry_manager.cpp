@@ -29,8 +29,25 @@ auto test = [] (data::Molecule& protein) {
     // REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry
-    std::cout << "\n\n!!!MODIFIED!!!" << std::endl;
+    std::cout << "\n\nMODIFY SYMMETRY" << std::endl;
     protein.get_body(0).symmetry().get(0).translate = {0, 1, 0};
+    phm_res = protein.get_histogram()->get_total_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+
+    // modify symmetry & hydration simultanously
+    std::cout << "\n\nMODIFY SYMMETRY & HYDRATION" << std::endl;
+    protein.get_body(0).symmetry().get(0).translate = {0, -1, 0};
+    protein.get_waters().clear();
+    protein.signal_modified_hydration_layer();
+    phm_res = protein.get_histogram()->get_total_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+
+    // modify symmetry & external simultanously
+    std::cout << "\n\nMODIFY SYMMETRY & EXTERNAL" << std::endl;
+    protein.get_body(0).symmetry().get(0).translate = {0, 1, 0};
+    protein.get_body(0).translate({2, 0, 0});
     phm_res = protein.get_histogram()->get_total_counts();
     p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
@@ -48,17 +65,25 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}, 
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}}
         });
-        set_unity_charge(protein);
         protein.get_body(0).symmetry().add({{-1, 0, 0}});
         test(protein);
     }
+
+    // SECTION("simple with waters") {
+    //     data::Molecule protein({
+    //         Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({0, 0, 1})}}, 
+    //         Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}}
+    //     });
+    //     protein.get_body(0).symmetry().add({{-1, 0, 0}});
+    //     test(protein);
+    // }
 
     // SECTION("2epe") {
     //     data::Molecule protein({
     //         Body("tests/files/2epe.pdb"), 
     //         Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}
     //     });
-    //     protein.get_body(0).symmetry().add({Vector3<double>(1, 0, 0)});
+    //     protein.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
     //     protein.generate_new_hydration();    
     //     test(protein);
     // }
