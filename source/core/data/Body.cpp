@@ -134,6 +134,7 @@ void Body::translate(Vector3<double> v) {
     signal->modified_external();
     std::for_each(atoms.begin(), atoms.end(), [v] (data::AtomFF& atom) {atom.coordinates() += v;});
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+        signal->modified_hydration();
         std::for_each(h->waters.begin(), h->waters.end(), [v] (data::Water& atom) {atom.coordinates() += v;});
     }
 }
@@ -145,6 +146,7 @@ void Body::rotate(const Matrix<double>& R) {
     }
 
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+        signal->modified_hydration();
         for (auto& atom : h->waters) {
             atom.coordinates().rotate(R);
         }
@@ -175,6 +177,7 @@ Body& Body::operator=(Body&& rhs) noexcept {
     uid = rhs.uid;
     signal->modified_internal();
     signal->modified_external();
+    signal->modified_hydration();
     return *this;
 }
 
@@ -188,6 +191,7 @@ Body& Body::operator=(const Body& rhs) {
     symmetries = rhs.symmetries->clone();
     signal->modified_internal();
     signal->modified_external();
+    signal->modified_hydration();
     return *this;
 }
 
@@ -195,23 +199,11 @@ bool Body::operator==(const Body& rhs) const {
     return uid == rhs.uid;
 }
 
-#define FAILURE_MSG true
-#if FAILURE_MSG
-    #include <iostream>
-#endif
 bool Body::equals_content(const Body& rhs) const {
-    if (atoms != rhs.atoms) {
-        #if FAILURE_MSG
-            std::cout << "atoms != rhs.atoms" << std::endl;
-        #endif
-        return false;
-    }
+    if (atoms != rhs.atoms) {return false;}
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         if (auto r = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); r) {
             if (h->waters != r->waters) {
-                #if FAILURE_MSG
-                    std::cout << "lhs waters is explicit; rhs is not" << std::endl;
-                #endif
                 return false;
             }
         } else {
@@ -221,18 +213,10 @@ bool Body::equals_content(const Body& rhs) const {
         if (auto r = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); r) {
             throw std::runtime_error("Body::equals_content: Implicit hydration is not implemented.");
         } else {
-            #if FAILURE_MSG
-                std::cout << "lhs waters is implicit; rhs is not" << std::endl;
-            #endif
             return false;
         }
     }
-    if (symmetries->get() != rhs.symmetries->get()) {
-        #if FAILURE_MSG
-            std::cout << "symmetries->get() != rhs.symmetries->get()" << std::endl;
-        #endif
-        return false;
-    }
+    if (symmetries->get() != rhs.symmetries->get()) {return false;}
     return true;
 }
 

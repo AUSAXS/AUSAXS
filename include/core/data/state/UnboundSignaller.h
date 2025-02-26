@@ -17,11 +17,9 @@ namespace ausaxs::signaller {
 			~UnboundSignaller() override = default;
 
             void modified_internal() const override {}
-
             void modified_external() const override {}
-
             void modified_symmetry(int) const override {}
-
+            void modified_hydration() const override {}
             void set_symmetry_size(std::size_t) const override {}
     };
 }

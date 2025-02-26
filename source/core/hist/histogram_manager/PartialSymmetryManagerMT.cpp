@@ -417,7 +417,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::initialize(calculator_
                 axis.bins
             )
         ;
-        
+
         // initialize body cross indexes
         for (int ibody2 = 0; ibody2 < ibody; ++ibody2) {
             auto& body2 = this->protein->get_body(ibody2);
