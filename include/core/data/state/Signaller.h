@@ -27,6 +27,11 @@ namespace ausaxs::signaller {
             virtual void modified_symmetry(int i) const = 0;
 
             /**
+             * @brief Signal that the hydration layer of this object has changed. 
+             */
+            virtual void modified_hydration() const = 0;
+
+            /**
              * @brief Set the number of symmetries to track. 
              */
             virtual void set_symmetry_size(std::size_t size) const = 0;
