@@ -75,10 +75,9 @@ namespace ausaxs::hist {
 			std::unique_ptr<DistanceHistogram> _calculate();
 
 			/**
-			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
-			 *        They are unaffected by both rotations and translations, and so we precalculate them. 
+			 * @brief Initialize the storage spaces of this object. 
 			 */
-			void initialize(calculator_t calculator);
+			void initialize();
 
 			/**
 			 * @brief Calculate the self-correlation of a body. 
@@ -112,21 +111,6 @@ namespace ausaxs::hist {
 			 * @param isym The index of the symmetry to calculate the self-correlation for. Index 0 is the main body.
 			 */
 			void calc_aw(calculator_t calculator, int ibody, int isym) const;
-
-			/**
-			 * @brief Combine the self-correlation of a body symmetry into the master histogram.
-			 *
-			 * @param ibody The index of the body to combine the self-correlation for.
-			 */
-			void combine_aa_self(int ibody, GenericDistribution1D_t&& res);
-
-			/**
-			 * @brief Combine the self-correlation of a body symmetry into the master histogram.
-			 *
-			 * @param ibody The index of the body to combine the self-correlation for.
-			 * @param isym The index of the symmetry to combine the self-correlation for. Index 0 is the main body.
-			 */
-			void combine_aa_self(int ibody, int isym, GenericDistribution1D_t&& res);
 
 			/**
 			 * @brief Combine the atom-atom correlation of two bodies into the master histogram.
