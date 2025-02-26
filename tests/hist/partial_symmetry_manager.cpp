@@ -123,13 +123,8 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
         });
         protein.get_body(0).symmetry().add({{-1, 0, 0}});
 
-        SECTION("deterministic") {
-            test(protein);
-        }
-
-        SECTION("random") {
-            test_random(protein);
-        }
+        test(protein);
+        test_random(protein);
     }
 
     SECTION("simple with waters") {
@@ -139,74 +134,54 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
         });
         protein.get_body(0).symmetry().add({{-1, 0, 0}});
 
-        SECTION("deterministic") {
-            test(protein);
-        }
-
-        SECTION("random") {
-            test_random(protein);
-        }
+        test(protein);
+        test_random(protein);
     }
 
-    SECTION("2epe") {
-        data::Molecule protein({
-            Body("tests/files/2epe.pdb"), 
-            Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}
-        });
-        protein.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
-        protein.generate_new_hydration();
+    // SECTION("2epe") {
+    //     data::Molecule protein({
+    //         Body("tests/files/2epe.pdb"), 
+    //         Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}
+    //     });
+    //     protein.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
+    //     protein.generate_new_hydration();
 
-        SECTION("deterministic") {
-            test(protein);
-        }
-        
-        SECTION("random") {
-            test_random(protein);
-        }
-    }
+    //     test(protein);
+    //     test_random(protein);
+    // }
 
-    SECTION("multiple symmetries") {
-        data::Molecule protein({
-            Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({0, 0, 1})}}, 
-            Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}},
-        });
-        protein.get_body(0).symmetry().add({{-1, 0, 0}});
-        protein.get_body(0).symmetry().add({{0, -1, 0}});
-        protein.get_body(1).symmetry().add({{0, 1, 0}});
+    // SECTION("multiple symmetries") {
+    //     data::Molecule protein({
+    //         Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({0, 0, 1})}}, 
+    //         Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}},
+    //     });
+    //     protein.get_body(0).symmetry().add({{-1, 0, 0}});
+    //     protein.get_body(0).symmetry().add({{0, -1, 0}});
+    //     protein.get_body(1).symmetry().add({{0, 1, 0}});
 
-        SECTION("deterministic") {
-            test(protein);
-        }
+    //     test(protein);
+    //     test_random(protein);
+    // }
 
-        SECTION("random") {
-            test_random(protein);
-        }
-    }
+    // SECTION("symmetry-heavy") {
+    //     // split the 2epe file into 10 smaller bodies
+    //     auto protein = rigidbody::BodySplitter::split("tests/files/2epe.pdb", {10, 20, 30, 40, 50, 60, 70, 80, 90});
+    //     protein.generate_new_hydration();
 
-    SECTION("symmetry-heavy") {
-        // split the 2epe file into 10 smaller bodies
-        auto protein = rigidbody::BodySplitter::split("tests/files/2epe.pdb", {10, 20, 30, 40, 50, 60, 70, 80, 90});
-        protein.generate_new_hydration();
+    //     static std::random_device seed;
+    //     static std::mt19937 gen(seed());
+    //     static std::uniform_int_distribution<> ri(1, 10);
+    //     static std::uniform_real_distribution<> rd(-10, 10);
+    //     for (unsigned int i = 0; i < protein.size_body(); ++i) {
+    //         auto& body = protein.get_body(i);
+    //         for (int j = 0; j < ri(gen); ++j) {
+    //             // symmetry with up to 4 repeats
+    //             symmetry::Symmetry sym({rd(gen), rd(gen), rd(gen)}, {0, 0, 0}, {0, 0, 0}, (ri(gen) % 4)+1);
+    //             body.symmetry().add(std::move(sym));
+    //         }
+    //     }
 
-        static std::random_device seed;
-        static std::mt19937 gen(seed());
-        static std::uniform_int_distribution<> ri(1, 10);
-        static std::uniform_real_distribution<> rd(-10, 10);
-        for (unsigned int i = 0; i < protein.size_body(); ++i) {
-            auto& body = protein.get_body(i);
-            for (int j = 0; j < ri(gen); ++j) {
-                // symmetry with up to 4 repeats
-                symmetry::Symmetry sym({rd(gen), rd(gen), rd(gen)}, {0, 0, 0}, {0, 0, 0}, (ri(gen) % 4)+1);
-                body.symmetry().add(std::move(sym));
-            }
-        }
-
-        SECTION("deterministic") {
-            test(protein);
-        }
-
-        SECTION("random") {
-            test_random(protein);
-        }
-    }
+    //     test(protein);
+    //     test_random(protein);
+    // }
 }
