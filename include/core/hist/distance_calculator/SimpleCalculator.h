@@ -281,10 +281,20 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
         case 14: return enqueue_calculate_self<14>(data, merge_id);
         case 15: return enqueue_calculate_self<15>(data, merge_id);
         case 16: return enqueue_calculate_self<16>(data, merge_id);
-        case 17: return enqueue_calculate_self<16>(data, merge_id);
-        case 18: return enqueue_calculate_self<16>(data, merge_id);
-        case 19: return enqueue_calculate_self<16>(data, merge_id);
-        case 20: return enqueue_calculate_self<16>(data, merge_id);
+        case 17: return enqueue_calculate_self<17>(data, merge_id);
+        case 18: return enqueue_calculate_self<18>(data, merge_id);
+        case 19: return enqueue_calculate_self<19>(data, merge_id);
+        case 20: return enqueue_calculate_self<20>(data, merge_id);
+        case 21: return enqueue_calculate_self<21>(data, merge_id);
+        case 22: return enqueue_calculate_self<22>(data, merge_id);
+        case 23: return enqueue_calculate_self<23>(data, merge_id);
+        case 24: return enqueue_calculate_self<24>(data, merge_id);
+        case 25: return enqueue_calculate_self<25>(data, merge_id);
+        case 26: return enqueue_calculate_self<26>(data, merge_id);
+        case 27: return enqueue_calculate_self<27>(data, merge_id);
+        case 28: return enqueue_calculate_self<28>(data, merge_id);
+        case 29: return enqueue_calculate_self<29>(data, merge_id);
+        case 30: return enqueue_calculate_self<30>(data, merge_id);
         default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_self: too large scaling factor (" + std::to_string(scaling) + ")");
     }
 }
@@ -316,10 +326,20 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
         case 14: return enqueue_calculate_cross<14>(data_1, data_2, merge_id);
         case 15: return enqueue_calculate_cross<15>(data_1, data_2, merge_id);
         case 16: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
-        case 17: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
-        case 18: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
-        case 19: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
-        case 20: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
+        case 17: return enqueue_calculate_cross<17>(data_1, data_2, merge_id);
+        case 18: return enqueue_calculate_cross<18>(data_1, data_2, merge_id);
+        case 19: return enqueue_calculate_cross<19>(data_1, data_2, merge_id);
+        case 20: return enqueue_calculate_cross<20>(data_1, data_2, merge_id);
+        case 21: return enqueue_calculate_cross<21>(data_1, data_2, merge_id);
+        case 22: return enqueue_calculate_cross<22>(data_1, data_2, merge_id);
+        case 23: return enqueue_calculate_cross<23>(data_1, data_2, merge_id);
+        case 24: return enqueue_calculate_cross<24>(data_1, data_2, merge_id);
+        case 25: return enqueue_calculate_cross<25>(data_1, data_2, merge_id);
+        case 26: return enqueue_calculate_cross<26>(data_1, data_2, merge_id);
+        case 27: return enqueue_calculate_cross<27>(data_1, data_2, merge_id);
+        case 28: return enqueue_calculate_cross<28>(data_1, data_2, merge_id);
+        case 29: return enqueue_calculate_cross<29>(data_1, data_2, merge_id);
+        case 30: return enqueue_calculate_cross<30>(data_1, data_2, merge_id);
         default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_cross: too large scaling factor (" + std::to_string(scaling) + ")");
     }
 }
