@@ -19,7 +19,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 {
     assert(names.size() == symmetry.size() && "SymmetryElement::SymmetryElement: The number of names and symmetries must be equal.");
 
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (!owner->_get_body_names().contains(names[i])) {
             std::cout << "Body names:" << std::endl;
@@ -37,6 +37,11 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
             owner->_get_rigidbody()->get_body(ibody).symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>());
         }
         owner->_get_rigidbody()->get_body(ibody).symmetry().add(symmetry[i]);
+        
+        // place the symmetry body at a sane distance from the original
+        double Rg = owner->_get_rigidbody()->get_Rg();
+        owner->_get_rigidbody()->get_body(ibody).symmetry().get(0).external_rotate.center = {Rg/2, 0, 0};
+
         std::cout << "SymmetryElement::SymmetryElement: Added symmetry to body " << names[i] << std::endl;
         std::cout << "\tIt now has " << owner->_get_rigidbody()->get_body(ibody).size_symmetry() << " symmetries." << std::endl;
     }
