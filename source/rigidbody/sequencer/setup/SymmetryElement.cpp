@@ -19,7 +19,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 {
     assert(names.size() == symmetry.size() && "SymmetryElement::SymmetryElement: The number of names and symmetries must be equal.");
 
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (!owner->_get_body_names().contains(names[i])) {
             std::cout << "Body names:" << std::endl;

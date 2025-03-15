@@ -8,8 +8,9 @@ namespace ausaxs::rigidbody::parameter {
      */
     struct Parameter {
         struct SymmetryParameter {
-            Vector3<double> translation = {0, 0, 0};
-            Vector3<double> rotation_cm = {0, 0, 0};
+            Vector3<double> translation    = {0, 0, 0};
+            Vector3<double> rotation_cm    = {0, 0, 0};
+            Vector3<double> rotation_angle = {0, 0, 0};
         };
 
         Parameter() = default;
