@@ -36,6 +36,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/EveryNStepElement.cpp"
 	"sequencer/LoopElement.cpp"
 	"sequencer/LoopElementCallback.cpp"
+	"sequencer/OnImprovementElement.cpp"
 	"sequencer/OptimizeStepElement.cpp"
 	"sequencer/ParameterElement.cpp"
 	"sequencer/ParameterElementCallback.cpp"

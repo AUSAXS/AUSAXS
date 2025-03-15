@@ -136,6 +136,7 @@ namespace ausaxs::rigidbody::sequencer {
 
             /**
              * @brief Set the location of the configuration folder.
+             *        This is used to resolve relative paths in the configuration file.
              */
             void _set_config_folder(const io::Folder& folder);
 
