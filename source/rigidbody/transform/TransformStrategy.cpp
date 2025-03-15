@@ -40,6 +40,7 @@ void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParam
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
         body.symmetry().get(i).translate += symmetry_pars[i].translation;
         body.symmetry().get(i).external_rotate.center += symmetry_pars[i].rotation_cm;
+        body.symmetry().get(i).external_rotate.angle += symmetry_pars[i].rotation_angle;
     }
 }
 

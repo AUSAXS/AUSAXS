@@ -44,10 +44,14 @@ ausaxs::rigidbody::parameter::Parameter ausaxs::rigidbody::parameter::LimitedPar
                 symmetry_pars[i].translation.z() = symmetry_dist(generator)*scaling;
             }
 
-            if (symmetries->optimize_rotate_cm) {
+            if (symmetries->optimize_rotate) {
                 symmetry_pars[i].rotation_cm.x() = symmetry_dist(generator)*scaling;
                 symmetry_pars[i].rotation_cm.y() = symmetry_dist(generator)*scaling;
                 symmetry_pars[i].rotation_cm.z() = symmetry_dist(generator)*scaling;
+
+                symmetry_pars[i].rotation_angle.x() = symmetry_dist(generator)*scaling;
+                symmetry_pars[i].rotation_angle.y() = symmetry_dist(generator)*scaling;
+                symmetry_pars[i].rotation_angle.z() = symmetry_dist(generator)*scaling;
             }
         }
     }
