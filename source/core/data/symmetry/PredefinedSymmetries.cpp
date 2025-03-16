@@ -5,25 +5,40 @@ ausaxs::symmetry::Symmetry ausaxs::symmetry::get(type t) {
     switch (t) {
         case type::p2:
             return {
-                {0, 0, 0},
-                {0, 0, 0},
-                {0, 0, std::numbers::pi/2}
+                {
+                    {0, 0, 0},
+                    {0, 0, 0}
+                },
+                {
+                    {0, 0, 0},
+                    {0, 0, std::numbers::pi/2}
+                }
             };
             break;
 
         case type::p3:
             return {
-                {0, 0, 0},
-                {0, 0, 0},
-                {0, 0, std::numbers::pi/3}
+                {
+                    {0, 0, 0},
+                    {0, 0, 0}
+                },
+                {
+                    {0, 0, 0},
+                    {0, 0, std::numbers::pi/3}
+                }
             };
             break;
 
         case type::p4:
             return {
-                {0, 0, 0},
-                {0, 0, 0},
-                {0, 0, std::numbers::pi/4}
+                {
+                    {0, 0, 0},
+                    {0, 0, 0}
+                },
+                {
+                    {0, 0, 0},
+                    {0, 0, std::numbers::pi/4}
+                }
             };
             break;
 

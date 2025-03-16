@@ -37,10 +37,10 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
             owner->_get_rigidbody()->get_body(ibody).symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>());
         }
         owner->_get_rigidbody()->get_body(ibody).symmetry().add(symmetry[i]);
-        
+
         // place the symmetry body at a sane distance from the original
         double Rg = owner->_get_rigidbody()->get_Rg();
-        owner->_get_rigidbody()->get_body(ibody).symmetry().get(0).external_rotate.center = {Rg/2, 0, 0};
+        owner->_get_rigidbody()->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
 
         std::cout << "SymmetryElement::SymmetryElement: Added symmetry to body " << names[i] << std::endl;
         std::cout << "\tIt now has " << owner->_get_rigidbody()->get_body(ibody).size_symmetry() << " symmetries." << std::endl;

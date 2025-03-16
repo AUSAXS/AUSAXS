@@ -16,6 +16,7 @@ std::pair<std::vector<BodySymmetryData>, hist::detail::CompactCoordinates> ausax
 
 BodySymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body) {
     CompactCoordinates data_a(body.get_atoms());
+    auto cm = body.get_cm();
 
     // loop over its symmetries
     std::vector<std::vector<CompactCoordinates>> atomic(1+body.size_symmetry());
@@ -24,9 +25,9 @@ BodySymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data:
 
         // for every symmetry, loop over how many times it should be repeated
         // it is then repeatedly applied to the same data
-        std::vector<CompactCoordinates> sym_atomic(symmetry.repeat, data_a);
-        for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
-            auto t = symmetry.get_transform<double>(i_repeat+1);
+        std::vector<CompactCoordinates> sym_atomic(symmetry.repetitions, data_a);
+        for (int i_repeat = 0; i_repeat < symmetry.repetitions; ++i_repeat) {
+            auto t = symmetry.get_transform<double>(cm, i_repeat+1);
             std::transform(
                 sym_atomic[i_repeat].get_data().begin(), 
                 sym_atomic[i_repeat].get_data().end(), 
@@ -43,11 +44,12 @@ BodySymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data:
 
 SymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body, int isym) {
     CompactCoordinates data_a(body.get_atoms());
+    auto cm = body.get_cm();
     const auto& symmetry = body.symmetry().get(isym);
 
-    std::vector<CompactCoordinates> sym_atomic(symmetry.repeat, data_a);
-    for (int i_repeat = 0; i_repeat < symmetry.repeat; ++i_repeat) {
-        auto t = symmetry.get_transform<double>(i_repeat+1);
+    std::vector<CompactCoordinates> sym_atomic(symmetry.repetitions, data_a);
+    for (int i_repeat = 0; i_repeat < symmetry.repetitions; ++i_repeat) {
+        auto t = symmetry.get_transform<double>(cm, i_repeat+1);
         std::transform(
             sym_atomic[i_repeat].get_data().begin(), 
             sym_atomic[i_repeat].get_data().end(), 

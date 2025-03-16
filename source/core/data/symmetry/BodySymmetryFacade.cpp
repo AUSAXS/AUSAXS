@@ -78,10 +78,11 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
     std::vector<Water> waters = body->size_water() == 0 ? std::vector<Water>{} : body->get_waters();
     atoms.reserve(body->size_symmetry_total()*body->size_atom());
     waters.reserve(body->size_symmetry_total()*body->size_water());
+    auto cm = body->get_cm();
 
     for (const auto& symmetry : get()) {
-        for (int i = 0; i < symmetry.repeat; ++i) {
-            auto t = symmetry.template get_transform<double>(i+1);
+        for (int i = 0; i < symmetry.repetitions; ++i) {
+            auto t = symmetry.template get_transform<double>(cm, i+1);
             for (const auto& a : body->get_atoms()) {
                 atoms.emplace_back(t(a.coordinates()), a.form_factor_type());
             }
