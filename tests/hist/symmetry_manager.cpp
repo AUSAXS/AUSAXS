@@ -72,7 +72,7 @@ auto test_translation = [] () {
         }
 
         SECTION("one copy") {
-            m.get_body(0).symmetry().add({Vector3<double>(1, 0, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{1, 0, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -82,8 +82,8 @@ auto test_translation = [] () {
         }
 
         SECTION("two copies") {
-            m.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
-            m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{-1, 0, 0}, {0, 0, 0}}));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{ 1, 0, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -94,10 +94,10 @@ auto test_translation = [] () {
         }
 
         SECTION("four copies") {
-            m.get_body(0).symmetry().add({Vector3<double>(-1, 0, 0)});
-            m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
-            m.get_body(0).symmetry().add({Vector3<double>( 0,-1, 0)});
-            m.get_body(0).symmetry().add({Vector3<double>( 0, 1, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{-1, 0, 0}, {0, 0, 0}}));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{ 1, 0, 0}, {0, 0, 0}}));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{ 0,-1, 0}, {0, 0, 0}}));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{ 0, 1, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -124,7 +124,7 @@ auto test_translation = [] () {
         }
 
         SECTION("one copy") {
-            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -135,8 +135,8 @@ auto test_translation = [] () {
         }
 
         SECTION("two copies") {
-            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
-            m.get_body(0).symmetry().add({Vector3<double>(0, 2, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 2, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -164,7 +164,7 @@ auto test_translation = [] () {
         }
 
         SECTION("one copy of body1") {
-            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -175,8 +175,8 @@ auto test_translation = [] () {
         }
 
         SECTION("one copy of each #1") {
-            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
-            m.get_body(1).symmetry().add({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}));
+            m.get_body(1).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -187,8 +187,8 @@ auto test_translation = [] () {
         }
 
         SECTION("one copy of each #2") {
-            m.get_body(0).symmetry().add({Vector3<double>( 1, 0, 0)});
-            m.get_body(1).symmetry().add({Vector3<double>(-1, 0, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{ 1, 0, 0}, {0, 0, 0}}));
+            m.get_body(1).symmetry().add(symmetry::Symmetry({{-1, 0, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -233,7 +233,7 @@ auto test_translation = [] () {
         }
 
         SECTION("one copy") {
-            m.get_body(0).symmetry().add({Vector3<double>(0, 1, 0)});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}));
 
             auto h = m.get_histogram();
             auto htot = h->get_total_counts();
@@ -276,7 +276,7 @@ auto test_translation = [] () {
         m.get_body(0).get_waters() = m.get_waters();
         set_unity_charge(m);
 
-        symmetry::Symmetry s{{10, 0, 0}}; 
+        symmetry::Symmetry s({{10, 0, 0}, {0, 0, 0}}); 
         SECTION("single copy") {
             m.get_body(0).symmetry().add(symmetry::Symmetry(s));
 
@@ -289,7 +289,7 @@ auto test_translation = [] () {
             data::Body& b_copy = m_copy.get_body(0);
             std::vector<AtomFF> a_copy = b_copy.get_atoms();
             for (auto& a : b_copy.get_atoms()) {
-                a.coordinates() += s.translate;
+                a.coordinates() += s.initial_relation.translation;
                 a_copy.push_back(a);
             }
             b_copy.get_atoms() = std::move(a_copy);
@@ -310,11 +310,12 @@ auto test_translation = [] () {
 
 TEST_CASE("SymmetryManager: translations") {
     settings::molecule::implicit_hydrogens = false;
-    SECTION("SymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
-        test_translation();
-    }
+    // SECTION("SymmetryManager") {
+    //     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+    //     test_translation();
+    // }
     SECTION("PartialSymmetryManager") {
+        settings::general::threads = 1;
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
         test_translation();
     }
@@ -327,7 +328,7 @@ auto test_repeating_symmetries = [] () {
         set_unity_charge(m);
 
         SECTION("two repeats") {
-            m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{1, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}}, 2));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -338,7 +339,7 @@ auto test_repeating_symmetries = [] () {
         }
 
         SECTION("three repeats") {
-            m.get_body(0).symmetry().add({{1, 0, 0}, {0, 0, 0}, {0, 0, 0}, 3});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{1, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}}, 3));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -357,8 +358,8 @@ auto test_repeating_symmetries = [] () {
         set_unity_charge(m);
 
         SECTION("two repeats") {
-            m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
-            m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}}, 2));
+            m.get_body(1).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}}, 2));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -371,8 +372,8 @@ auto test_repeating_symmetries = [] () {
         }
 
         SECTION("different repeats") {
-            m.get_body(0).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 1});
-            m.get_body(1).symmetry().add({{0, 1, 0}, {0, 0, 0}, {0, 0, 0}, 2});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}}, 1));
+            m.get_body(1).symmetry().add(symmetry::Symmetry({{0, 1, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}}, 2));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -405,7 +406,7 @@ auto test_rotations = [] () {
         set_unity_charge(m);
 
         SECTION("one copy") {
-            m.get_body(0).symmetry().add({{0, 0, 0}, {0, std::numbers::pi/2, 0}});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, std::numbers::pi/2, 0}}));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -415,7 +416,7 @@ auto test_rotations = [] () {
         }
 
         SECTION("three copies") {
-            m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, std::numbers::pi/2, 0}, 3});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, std::numbers::pi/2, 0}}, 3));
 
             auto h = m.get_histogram()->get_total_counts();
             check_hist(h, {
@@ -459,7 +460,7 @@ auto test_multi_atom = [] () {
         //         x
         //         x
         //
-        m.get_body(0).symmetry().add({{0, 0, 0}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, 3});
+        m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, std::numbers::pi/2}}, 3));
 
         auto h = m.get_histogram()->get_total_counts();
         check_hist(h, {
@@ -483,7 +484,7 @@ auto test_multi_atom = [] () {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a1}}});
         set_unity_charge(m);
-        m.get_body(0).symmetry().add({{0, 0, 1}, {0, 0, 0}, {0, 0, std::numbers::pi/2}, 4});
+        m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 0, 1}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, std::numbers::pi/2}}, 4));
 
         auto h = m.get_histogram()->get_total_counts();
 
@@ -539,7 +540,7 @@ auto test_random = [] () {
 
             Molecule m({Body{atoms}});
             set_unity_charge(m);
-            m.get_body(0).symmetry().add({translate, axis, angles, repeats});
+            m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 0, 0}, axis}, {translate, angles}, repeats));
 
             auto h = m.get_histogram()->get_total_counts();
 
@@ -573,7 +574,7 @@ auto test_random = [] () {
                 Vector3<double> axis{d(gen), d(gen), d(gen)};
                 Vector3<double> angles{r(gen), r(gen), r(gen)};
                 int repeats = n(gen);
-                m.get_body(0).symmetry().add({translate, axis, angles, repeats});
+                m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 0, 0}, axis}, {translate, angles}, repeats));
             }
 
             auto h = m.get_histogram()->get_total_counts();

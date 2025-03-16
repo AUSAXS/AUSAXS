@@ -54,7 +54,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
         for (int i_sym1 = 0; i_sym1 < static_cast<int>(body.size_symmetry()); ++i_sym1) {
             const auto& sym1 = body.symmetry().get(i_sym1);
             bool closed = sym1.is_closed();
-            for (int i_repeat1 = 0; i_repeat1 < (sym1.repeat - closed); ++i_repeat1) {
+            for (int i_repeat1 = 0; i_repeat1 < (sym1.repetitions - closed); ++i_repeat1) {
                 const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
 
                 // assume we have 3 repeats of symmetry B, so we have the bodies: A B1 B2 B3. Then
@@ -63,12 +63,12 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
                 // AB3                (scale AB3 by 1)
                 //
                 // if the symmetry is closed, AB3 == AB1
-                int scale = sym1.repeat - i_repeat1;
+                int scale = sym1.repetitions - i_repeat1;
                 if (i_repeat1 == 0 && closed) {scale += 1;}
                 calculator.enqueue_calculate_cross(body1_atomic, body1_sym_atomic, scale, cross_merge_id_aa);
             }
 
-            for (int i_repeat1 = 0; i_repeat1 < sym1.repeat; ++i_repeat1) {
+            for (int i_repeat1 = 0; i_repeat1 < sym1.repetitions; ++i_repeat1) {
                 const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
                 if constexpr (contains_waters) {
                     calculator.enqueue_calculate_cross(waters, body1_sym_atomic, 1, cross_merge_id_aw);
@@ -83,7 +83,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
                     // external histograms with other symmetries in same body
                     for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
                         const auto& sym2 = body2.symmetry().get(j_sym1);
-                        for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
+                        for (int j_repeat1 = 0; j_repeat1 < sym2.repetitions; ++j_repeat1) {
                             const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
                             calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                         }
@@ -93,7 +93,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
                 // internal histogram with other symmetries in same body
                 for (int i_sym2 = i_sym1+1; i_sym2 < static_cast<int>(body.size_symmetry()); ++i_sym2) {
                     const auto& sym2 = body.symmetry().get(i_sym2);
-                    for (int i_repeat2 = 0; i_repeat2 < sym2.repeat; ++i_repeat2) {
+                    for (int i_repeat2 = 0; i_repeat2 < sym2.repetitions; ++i_repeat2) {
                         const auto& body2_sym_atomic = data[i_body1].atomic[1+i_sym2][i_repeat2];
                         calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                     }
@@ -110,7 +110,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
             // external histograms with other symmetries in same body
             for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
                 const auto& sym2 = body2.symmetry().get(j_sym1);
-                for (int j_repeat1 = 0; j_repeat1 < sym2.repeat; ++j_repeat1) {
+                for (int j_repeat1 = 0; j_repeat1 < sym2.repetitions; ++j_repeat1) {
                     const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
                     calculator.enqueue_calculate_cross(body1_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                 }

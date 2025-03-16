@@ -270,5 +270,5 @@ std::size_t Body::size_water() const {
 std::size_t Body::size_symmetry() const {return symmetries->get().size();}
 
 std::size_t Body::size_symmetry_total() const {
-    return std::accumulate(symmetries->get().begin(), symmetries->get().end(), 0, [] (int sum, const symmetry::Symmetry& sym) {return sum + sym.repeat;});
+    return std::accumulate(symmetries->get().begin(), symmetries->get().end(), 0, [] (int sum, const symmetry::Symmetry& sym) {return sum + sym.repetitions;});
 }
