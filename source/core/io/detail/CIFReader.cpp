@@ -346,17 +346,21 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
     while(input.peek() != '_' && getline(input, line) && !line.starts_with("loop_")) {
         if (line.starts_with('#')) {continue;}
         auto values = utility::split(line, " ");
-
+        
         int concatenated = 0;
         for (size_t i = 0; i < values.size(); i++) {
-            if (values[i].starts_with('"') && !values[i].ends_with('"')) {
-                if (i < values.size() && values[i+1].ends_with('"')) {
-                    values[i] = values[i].substr(1) + " " + values[i+1].substr(0, values[i+1].size()-1);
+            if (values[i].starts_with('"')) {
+                if (values[i].ends_with('"')) {
+                    values[i] = values[i].substr(1, values[i].size()-2);
                 } else {
-                    throw except::io_error("CIFReader::read: Unterminated quote in data section: \n\"" + line + "\"");
+                    if (i < values.size() && values[i+1].ends_with('"')) {
+                        values[i] = values[i].substr(1) + " " + values[i+1].substr(0, values[i+1].size()-1);
+                    } else {
+                        throw except::io_error("CIFReader::read: Unterminated quote in data section: \n\"" + line + "\"");
+                    }
+                    ++concatenated;
+                    continue;
                 }
-                ++concatenated;
-                continue;
             }
             values[i-concatenated] = values[i];
         }
