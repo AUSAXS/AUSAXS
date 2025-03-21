@@ -108,7 +108,7 @@ void ResidueStorage::initialize() {
 
 bool ResidueStorage::update_or_download_residue(const std::string& name) {
     std::string path = settings::general::residue_folder;
-    std::regex regex("[A-Z0-9]{2,3}");
+    std::regex regex("[A-Z0-9]{1,3}");
 
     if (std::regex_match(name, regex)) {
         // check if the file already exists. if not, download it.
