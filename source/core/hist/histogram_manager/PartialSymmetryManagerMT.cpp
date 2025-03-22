@@ -28,8 +28,8 @@ The coordinates are indexed such that the main body is at index 0, with the symm
 Thus, we have a lot of +1s and -1s in the indexing to account for this.
 **/
 
-#define DEBUG_INFO_PSMMT true
-#define DEBUG_INFO_PSMMT_EXTENDED true
+#define DEBUG_INFO_PSMMT false
+#define DEBUG_INFO_PSMMT_EXTENDED false
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

@@ -31,11 +31,11 @@ TEST_CASE_METHOD(fixture, "BoundSignaller::external_change") {
         sm.set_probe(2, bs2);
 
         CHECK(sm.is_externally_modified(0) == false);
-        bs0->external_change();
+        bs0->modified_external();
         CHECK(sm.is_externally_modified(0) == true);
 
         CHECK(sm.is_externally_modified(2) == false);
-        bs2->external_change();
+        bs2->modified_external();
         CHECK(sm.is_externally_modified(2) == true);
     }
 }
@@ -48,11 +48,11 @@ TEST_CASE_METHOD(fixture, "BoundSignaller::internal_change") {
         sm.set_probe(2, bs2);
 
         CHECK(sm.is_internally_modified(0) == false);
-        bs0->internal_change();
+        bs0->modified_internal();
         CHECK(sm.is_internally_modified(0) == true);
 
         CHECK(sm.is_internally_modified(2) == false);
-        bs2->internal_change();
+        bs2->modified_internal();
         CHECK(sm.is_internally_modified(2) == true);
     }
 }
