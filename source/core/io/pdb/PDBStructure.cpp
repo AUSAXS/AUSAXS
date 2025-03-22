@@ -26,9 +26,9 @@ PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<
     : header(header), footer(footer), terminate(terminate), atoms(atoms), waters(waters) {}
 
 auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, char& chain) {
-    auto b = body.symmetry().get_explicit_structure();
+    auto b = body.symmetry().explicit_structure();
     auto asize = body.size_atom();
-    auto batoms = b.get_atoms();
+    auto batoms = b.atoms;
     for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
         if (i % asize == 0) {++chain;}
         const auto& a = batoms[i];
@@ -37,8 +37,8 @@ auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& w
         );
     }
 
-    if (b.size_water() == 0) {return;}
-    for (const auto& w : b.get_waters()) {
+    if (b.waters.size() == 0) {return;}
+    for (const auto& w : b.waters) {
         waters.emplace_back(
             ++serial, "O", "", "HOH", chain, ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
         );

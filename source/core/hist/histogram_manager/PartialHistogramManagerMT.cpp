@@ -30,8 +30,8 @@ PartialHistogramManagerMT<use_weighted_distribution>::~PartialHistogramManagerMT
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate() {
-    std::vector<bool> externally_modified = this->statemanager->get_externally_modified_bodies();
-    std::vector<bool> internally_modified = this->statemanager->get_internally_modified_bodies();
+    auto& externally_modified = this->statemanager->get_externally_modified_bodies();
+    auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
     auto calculator = std::make_unique<distance_calculator::SimpleCalculator<use_weighted_distribution>>();

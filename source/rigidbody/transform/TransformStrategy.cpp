@@ -38,8 +38,9 @@ void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vect
 void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParameter>&& symmetry_pars, data::Body& body) {
     assert(symmetry_pars.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
-        body.symmetry().get(i).translate += symmetry_pars[i].translation;
-        body.symmetry().get(i).external_rotate.center += symmetry_pars[i].rotation_cm;
+        body.symmetry().get(i).initial_relation.translation += symmetry_pars[i].rotation_cm;
+        body.symmetry().get(i).initial_relation.orientation += symmetry_pars[i].rotation_angle;
+        body.symmetry().get(i).repeat_relation.translate += symmetry_pars[i].translation;
     }
 }
 

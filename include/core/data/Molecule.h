@@ -4,6 +4,7 @@
 #include <data/DataFwd.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
+#include <data/symmetry/MoleculeSymmetryFacade.h>
 #include <math/MathFwd.h>
 #include <io/ExistingFile.h>
 #include <utility/observer_ptr.h>
@@ -189,6 +190,12 @@ namespace ausaxs::data {
 			[[nodiscard]] std::vector<data::Water> get_waters() const;
 
 			/**
+			 * @brief Get the symmetry facade of this molecule. 
+			 *		  This gives access to various symmetry operations, such as getting the full explicit structure.
+			 */
+			[[nodiscard]] symmetry::detail::MoleculeSymmetryFacade symmetry() const;
+
+			/**
 			 * @brief Create a grid and fill it with the atoms of this molecule. 
 			 */
 			observer_ptr<grid::Grid> create_grid() const;
@@ -257,7 +264,6 @@ namespace ausaxs::data {
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 			mutable std::unique_ptr<grid::Grid> grid; 						// The grid representation of this body
 			std::unique_ptr<hist::IHistogramManager> phm;					// The histogram manager of this molecule
-			std::unique_ptr<hist::ICompositeDistanceHistogram> histogram; 	// An object representing the distances between atoms
 			std::unique_ptr<hydrate::HydrationStrategy> hydration_strategy; // The strategy used to generate the hydration layer
 
 			void initialize();

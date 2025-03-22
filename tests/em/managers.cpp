@@ -37,8 +37,8 @@ TEST_CASE("partial_histogram_manager_works") {
     auto manager = phm_cast->get_state_manager();
 
     manager->reset_to_false();
-    phm_cast->get_probe(0)->external_change();
-    phm_cast->get_probe(2)->external_change();
+    phm_cast->get_probe(0)->modified_external();
+    phm_cast->get_probe(2)->modified_external();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, true, false, false});
 }
 
@@ -54,30 +54,30 @@ TEST_CASE("protein_manager") {
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     std::shared_ptr<signaller::Signaller> probe0 = phm_cast->get_probe(0);
     std::shared_ptr<signaller::Signaller> probe2 = phm_cast->get_probe(2);
-    probe0->external_change();
-    probe2->external_change();
+    probe0->modified_external();
+    probe2->modified_external();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, true, false, false});
 
     manager->reset_to_false();
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     Body body;
     body.register_probe(probe0);
-    body.get_signaller()->external_change();
+    body.get_signaller()->modified_external();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, false, false, false});
 
     manager->reset_to_false();
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     protein.bind_body_signallers();
-    protein.get_body(0).get_signaller()->external_change();
-    protein.get_body(2).get_signaller()->external_change();
+    protein.get_body(0).get_signaller()->modified_external();
+    protein.get_body(2).get_signaller()->modified_external();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, true, false, false});
 
     manager->reset_to_false();
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     protein.get_body(0) = Body();
     protein.get_body(4) = Body();
-    protein.get_body(0).get_signaller()->external_change();
-    protein.get_body(4).get_signaller()->external_change();
+    protein.get_body(0).get_signaller()->modified_external();
+    protein.get_body(4).get_signaller()->modified_external();
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, false, false, true});
 }
 

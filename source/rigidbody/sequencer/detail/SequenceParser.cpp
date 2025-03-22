@@ -9,6 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/TransformElement.h>
 #include <rigidbody/sequencer/OptimizeStepElement.h>
 #include <rigidbody/sequencer/EveryNStepElement.h>
+#include <rigidbody/sequencer/OnImprovementElement.h>
 #include <rigidbody/sequencer/SaveElement.h>
 #include <rigidbody/sequencer/setup/LoadElement.h>
 #include <rigidbody/sequencer/setup/ConstraintElement.h>
@@ -50,8 +51,8 @@ enum class rigidbody::sequencer::ElementType {
     Transform,
     OptimizeStep,
     EveryNStep,
+    OnImprovement,
     Save,
-    SaveOnImprove,
     RelativeHydration
 };
 
@@ -69,8 +70,8 @@ ElementType get_type(std::string_view line) {
         {ElementType::Transform, {"transform"}},
         {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
         {ElementType::EveryNStep, {"every", "for_every"}},
+        {ElementType::OnImprovement, {"on_improvement"}},
         {ElementType::Save, {"save", "write"}},
-        {ElementType::SaveOnImprove, {"save_on_improve", "write_on_improve"}},
         {ElementType::RelativeHydration, {"relative_hydration"}}
     };
     for (const auto& [type, prefixes] : type_map) {
@@ -98,6 +99,7 @@ settings::rigidbody::BodySelectStrategyChoice get_body_select_strategy(std::stri
 settings::rigidbody::DecayStrategyChoice get_decay_strategy(std::string_view line) {
     if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
     if (line == "exponential") {return settings::rigidbody::DecayStrategyChoice::Exponential;}
+    if (line == "none") {return settings::rigidbody::DecayStrategyChoice::None;}
     throw except::invalid_argument("SequenceParser::get_decay_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
@@ -456,6 +458,12 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Eve
 }
 
 template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OnImprovement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    if (!args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"on_improvement\". Expected 0, but got " + std::to_string(args.size()) + ".");}
+    return std::make_unique<OnImprovementElement>(loop_stack.back());
+}
+
+template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Save>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     return std::make_unique<SaveElement>(loop_stack.back(), args.begin()->second[0]);
@@ -479,22 +487,16 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Ove
     return nullptr;
 }
 
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SaveOnImprove>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save_on_improve\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    auto last_element_cast = dynamic_cast<OptimizeStepElement*>(loop_stack.back()->_get_elements().back().get());
-    if (last_element_cast == nullptr) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: \"save_on_improve\" must be called after an \"optimize_step\" element.");
-    }
-    last_element_cast->save_on_improvement(args.begin()->second[0]);
-    return nullptr;
-}
-
 std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config) {
     std::ifstream in(config.path());
     if (!in.is_open()) {throw except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}
 
+    // the main sequencer object
     std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>();
+
+    // the loop stack
+    // the top element of this stack is the current loop element which new elements will be added to
+    // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
     sequencer->_set_config_folder(config.directory());
     
@@ -566,6 +568,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
             case ElementType::LoopEnd:
                 parse_arguments<ElementType::LoopEnd>(args);
+                if (loop_stack.size() == 1) {throw except::invalid_argument("SequenceParser::constructor: Unmatched \"end\" statement.");}
                 loop_stack.pop_back();
                 break;
 
@@ -584,17 +587,19 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
             case ElementType::OptimizeStep:
                 loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::OptimizeStep>(args));
                 break;
-            
+
             case ElementType::EveryNStep:
                 loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::EveryNStep>(args));
+                loop_stack.push_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
+                break;
+
+            case ElementType::OnImprovement:
+                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::OnImprovement>(args));
+                loop_stack.push_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
                 break;
 
             case ElementType::Save:
                 loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::Save>(args));
-                break;
-
-            case ElementType::SaveOnImprove:
-                parse_arguments<ElementType::SaveOnImprove>(args);
                 break;
 
             case ElementType::LoadElement:

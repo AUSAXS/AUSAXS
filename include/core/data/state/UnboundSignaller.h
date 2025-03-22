@@ -16,10 +16,10 @@ namespace ausaxs::signaller {
 			UnboundSignaller &operator=(UnboundSignaller&& rhs) noexcept = default;
 			~UnboundSignaller() override = default;
 
-            void internal_change() const override {}
-
-            void external_change() const override {}
-
-            void symmetry_changed() const override {}
+            void modified_internal() const override {}
+            void modified_external() const override {}
+            void modified_symmetry(int) const override {}
+            void modified_hydration() const override {}
+            void set_symmetry_size(std::size_t) const override {}
     };
 }
