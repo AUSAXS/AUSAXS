@@ -61,6 +61,10 @@ namespace ausaxs::symmetry {
 
         // The relationship between the original body and the first repeat of this symmetry
         struct _Relation {
+            _Relation() = default;
+            _Relation(Vector3<double>&& t, Vector3<double>&& o) : translation(std::move(t)), orientation(std::move(o)) {}
+            _Relation(const Vector3<double>& t, const Vector3<double>& o) : translation(t), orientation(o) {}
+
             Vector3<double> translation;
             Vector3<double> orientation;
             bool operator==(const _Relation& rhs) const = default;
@@ -68,6 +72,10 @@ namespace ausaxs::symmetry {
 
         // The relationship between the N-th repeat and the (N+1)-th repeat
         struct _Repeat {
+            _Repeat() = default;
+            _Repeat(Vector3<double>&& t, Vector3<double>&& r) : translate(std::move(t)), rotate(std::move(r)) {}
+            _Repeat(const Vector3<double>& t, const Vector3<double>& r) : translate(t), rotate(r) {}
+
             Vector3<double> translate;
             Vector3<double> rotate;
             bool operator==(const _Repeat& rhs) const = default;
