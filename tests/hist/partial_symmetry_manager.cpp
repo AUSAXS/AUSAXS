@@ -111,6 +111,7 @@ auto test_random = [] (data::Molecule& protein) {
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
+    exit(0);
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;

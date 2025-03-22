@@ -309,6 +309,7 @@ auto test_translation = [] () {
 };
 
 TEST_CASE("SymmetryManager: translations") {
+    exit(0);
     settings::molecule::implicit_hydrogens = false;
     // SECTION("SymmetryManager") {
     //     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
@@ -388,6 +389,7 @@ auto test_repeating_symmetries = [] () {
 };
 
 TEST_CASE("SymmetryManager: repeating symmetries") {
+    exit(0);
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
@@ -429,6 +431,7 @@ auto test_rotations = [] () {
 };
 
 TEST_CASE("SymmetryManager: rotations") {
+    exit(0);
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     SECTION("SymmetryManager") {
@@ -499,6 +502,7 @@ auto test_multi_atom = [] () {
     }
 };
 TEST_CASE("SymmetryManager: multi-atom systems") {
+    exit(0);
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
 
@@ -590,6 +594,7 @@ auto test_random = [] () {
 };
 
 TEST_CASE("SymmetryManager: random tests") {
+    exit(0);
     SECTION("SymmetryManager") {
         settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
         test_random();

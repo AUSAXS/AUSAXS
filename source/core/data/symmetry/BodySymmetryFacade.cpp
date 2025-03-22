@@ -76,6 +76,11 @@ template<typename BODY, bool NONCONST>
 data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::explicit_structure() const {
     std::vector<AtomFF> atoms = body->get_atoms();
     std::vector<Water> waters = body->size_water() == 0 ? std::vector<Water>{} : body->get_waters();
+
+    if (body->size_symmetry() == 0) {
+        return data::detail::SimpleBody(std::move(atoms), std::move(waters));
+    }
+
     atoms.reserve(body->size_symmetry_total()*body->size_atom());
     waters.reserve(body->size_symmetry_total()*body->size_water());
     auto cm = body->get_cm();

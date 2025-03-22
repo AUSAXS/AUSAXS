@@ -191,7 +191,7 @@ TEST_CASE("Grid::add") {
             Body body{std::vector{
                 AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
             }};
-            body.symmetry().add({{1, 1, 1}});
+            body.symmetry().add(symmetry::Symmetry({{1, 1, 1}, {0, 0, 0}}));
             grid.add(body, false);
             GridObj& g = grid.grid;
 
@@ -213,7 +213,7 @@ TEST_CASE("Grid::add") {
             Body body{std::vector{
                 AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
             }};
-            body.symmetry().add({{1, 1, 1}, {0, 0, 0}, {0, 0, 0}, 5});
+            body.symmetry().add(symmetry::Symmetry({{0, 0, 0}, {0, 0, 0}}, {{1, 1, 1}, {0, 0, 0}}, 5));
             grid.add(body, false);
             GridObj& g = grid.grid;
 
@@ -493,7 +493,7 @@ TEST_CASE("Grid::remove") {
         Body b{std::vector{
             AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
         }};
-        b.symmetry().add({{1, 1, 1}});
+        b.symmetry().add(symmetry::Symmetry({{1, 1, 1}, {0, 0, 0}}));
         grid.add(b, true);
         grid.remove(b);
         GridObj& g = grid.grid;
