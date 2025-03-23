@@ -1,6 +1,6 @@
 #!/bin/bash
 
-index=13;
+index=14;
 iterations=10;
 warmup=3
 #	Index	Name		Count
@@ -74,15 +74,19 @@ pathnames=(
 	A2M_native
 )
 
-generate_stripped() {
+pdb=${pdbs[index]}
+dat=${dats[index]}
+pathname=${pathnames[index]}
+
+generate_stripped_all() {
 	for ((i=0; i<14; i++)); do
 		eval "grep -v ' H ' $(dirname "${pdbs[i]}")/${pathnames[i]}.pdb | grep -v 'H$' | grep -v 'OW' | grep 'ATOM  ' > $(dirname "${pdbs[i]}")/${pathnames[i]}_stripped.pdb"
 	done
 }
 
-pdb=${pdbs[index]}
-dat=${dats[index]}
-pathname=${pathnames[index]}
+generate_stripped() {
+	eval "grep -v ' H ' $(dirname "${pdbs[i]}")/${pathname}.pdb | grep -v 'H$' | grep -v 'OW' | grep 'ATOM  ' > $(dirname "${pdb}")/${pathname}_stripped.pdb"
+}
 
 hyperfine_cmd="hyperfine --warmup $warmup --time-unit second"
 
@@ -153,48 +157,48 @@ foxs_bench() {
 ausaxs_bench_simple_all() {
 	for ((i=0;i<14;i++)) do
 		mkdir -p tests/benchmarks/${pathnames[i]}
-	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_simple.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --no-exit-on-unknown-atom'"
+	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_simple.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --ignore-unknown-atom'"
 	done
 }
 
 ausaxs_bench_simple() {
     mkdir -p tests/benchmarks/$pathname
-    eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-simple --export-json tests/benchmarks/$pathname/ausaxs_simple.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ --no-exit-on-unknown-atom'"
+    eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-simple --export-json tests/benchmarks/$pathname/ausaxs_simple.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ --ignore-unknown-atom'"
 }
 
 ausaxs_bench_fraser_all() {
 	for ((i=0;i<14;i++)) do
 		mkdir -p tests/benchmarks/${pathnames[i]}
-	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_fraser.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --hm hmmtffx --fit-excluded-volume --no-exit-on-unknown-atom'"
+	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_fraser.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ exv --model fraser --fit --ignore-unknown-atom'"
 	done
 }
 
 ausaxs_bench_fraser() {
     mkdir -p tests/benchmarks/$pathname
-    eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-fraser --export-json tests/benchmarks/$pathname/ausaxs_fraser.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ --hm hmmtffx --fit-excluded-volume --no-exit-on-unknown-atom'"
+    eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-fraser --export-json tests/benchmarks/$pathname/ausaxs_fraser.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ exv --model fraser --fit --ignore-unknown-atom'"
 }
 
 ausaxs_bench_grid_all() {
 	for ((i=0;i<14;i++)) do
 		mkdir -p tests/benchmarks/${pathnames[i]}
-	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_grid.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ --hm hmmtffgs --fit-excluded-volume --no-exit-on-unknown-atom'"
+	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_grid.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} --output temp/ausaxs/ exv --model grid --fit --ignore-unknown-atom'"
 	done
 }
 
 ausaxs_bench_grid() {
     mkdir -p tests/benchmarks/$pathname
-    eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-grid --export-json tests/benchmarks/$pathname/ausaxs_grid.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ --hm hmmtffgs --fit-excluded-volume --no-exit-on-unknown-atom'"
+    eval "$hyperfine_cmd --runs $iterations --show-output --command-name ausaxs-grid --export-json tests/benchmarks/$pathname/ausaxs_grid.json 'build/bin/saxs_fitter $pdb $dat --output temp/ausaxs/ exv --model grid --fit --ignore-unknown-atom'"
 }
 
 ausaxs_bench_st_all() {
 	for ((i=0;i<14;i++)) do
 		mkdir -p tests/benchmarks/${pathnames[i]}
-	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_st.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} -t 1 --output temp/ausaxs/ --no-exit-on-unknown-atom'"
+	    eval "$hyperfine_cmd --command-name ausaxs-${pathnames[i]} --export-json tests/benchmarks/${pathnames[i]}/ausaxs_st.json 'build/bin/saxs_fitter ${pdbs[i]} ${dats[i]} -t 1 --output temp/ausaxs/ --ignore-unknown-atom'"
 	done
 }
 
 ausaxs_bench_st() {
-    eval "$hyperfine_cmd --runs $iterations --command-name ausaxs-st --export-json tests/benchmarks/$pathname/ausaxs_st.json 'build/bin/saxs_fitter $pdb $dat -t 1 --output temp/ausaxs/ --no-exit-on-unknown-atom'"
+    eval "$hyperfine_cmd --runs $iterations --command-name ausaxs-st --export-json tests/benchmarks/$pathname/ausaxs_st.json 'build/bin/saxs_fitter $pdb $dat -t 1 --output temp/ausaxs/ --ignore-unknown-atom'"
 }
 
 hyperfine_serial_cmd="hyperfine --warmup 0 --time-unit second"

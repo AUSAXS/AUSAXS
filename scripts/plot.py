@@ -59,13 +59,14 @@ def main():
                 }
             elif sys.argv[2] == "--medium":
                 params = {
-                    'legend.fontsize': 24,
+                    'legend.fontsize': 20,
                     'figure.figsize': (10, 8),
-                    'axes.labelsize': 24,
-                    'axes.titlesize': 24,
+                    'axes.labelsize': 20,
+                    'axes.titlesize': 20,
                     'xtick.labelsize': 18,
                     'ytick.labelsize': 18,
                     'lines.markersize': 10,
+                    'lines.linewidth': 3,
                     'backend': 'Agg'
                 }
 
