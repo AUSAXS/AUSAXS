@@ -10,7 +10,7 @@ params = {
     'legend.fontsize': 16,
     'figure.figsize': (10, 8),
     'axes.labelsize': 20,
-    'axes.titlesize': 16,
+    'axes.titlesize': 20,
     'xtick.labelsize': 18,
     'ytick.labelsize': 18,
     'lines.markersize': 10,
@@ -52,7 +52,7 @@ for d in data:
         plot_dataset(d)
 plt.xscale("linear")
 plt.yscale("log")
-plt.xlabel("q [$\AA^{-1}$]")
+plt.xlabel("$q$ (Å$^{-1}$)")
 plt.ylabel("Relative deviation")
 plt.yticks([0.5, 1, 2], ["0.5", "1", "2"])
 plt.minorticks_off()
@@ -65,7 +65,7 @@ for d in data:
         plot_dataset(d)
 plt.xscale("linear")
 plt.yscale("log")
-plt.xlabel("q [$\AA^{-1}$]")
+plt.xlabel("$q$ (Å$^{-1}$)")
 plt.ylabel("")
 plt.yticks([0.5, 1, 2], ["0.5", "1", "2"])
 plt.minorticks_off()

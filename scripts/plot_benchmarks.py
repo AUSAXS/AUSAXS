@@ -3,6 +3,19 @@ import numpy as np
 import os
 import json
 
+params = {
+    'legend.fontsize': 20,
+    'figure.figsize': (10, 8),
+    'axes.labelsize': 24,
+    'axes.titlesize': 24,
+    'xtick.labelsize': 20,
+    'ytick.labelsize': 20,
+    'lines.markersize': 12,
+    'lines.linewidth': 3,
+    'backend': 'Agg'
+}
+plt.rcParams.update(params)
+
 data = {
     "pepsi": [],
     "foxs": [],
@@ -84,10 +97,11 @@ if data["ausaxs_simple_st"]:plt.plot(ausaxs_simple_st[:, 0],    ausaxs_simple_st
 if data["ausaxs_fraser"]:   plt.plot(ausaxs_fraser[:, 0],       ausaxs_fraser[:, 1],    '--', color='green')
 if data["ausaxs_grid"]:     plt.plot(ausaxs_grid[:, 0],         ausaxs_grid[:, 1],      '--', color='red')
 if data["ausaxs_serial"]:   plt.plot(atom_mean,                 ausaxs_ser[:, 1],       '--', color='brown')
-plt.legend()
+plt.legend(ncol=2)
 plt.xlabel("Number of atoms")
 plt.ylabel("Execution time (ms)")
 plt.semilogy()
-plt.axis([0, 20000, 1, 100000])
+plt.semilogx()
+plt.axis([0, 50000, 10, 300000])
 plt.grid()
 plt.savefig("benchmark.png", dpi=600)
