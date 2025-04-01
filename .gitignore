@@ -3,12 +3,11 @@
 /output
 /data
 /data_old
+/tests/benchmarks
 temp
-tests/benchmarks
 
 # developer stuff
 **/__pycache__
-tests/benchmarks
 resources
 .clangd
 .cache
