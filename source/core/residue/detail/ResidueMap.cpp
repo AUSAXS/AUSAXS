@@ -4,6 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <residue/detail/ResidueMap.h>
+#include <utility/Console.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 #include <constants/Constants.h>
@@ -44,7 +45,19 @@ double ResidueMap::get(const AtomKey& key) {
     if (average.contains(key.atom)) {
         return average.at(key.atom);
     } else {
-        throw except::map_error("SimpleResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available.");
+        if (settings::molecule::throw_on_unknown_atom) {
+            throw except::map_error("ResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available.");
+        } else {
+            static bool warned = false;
+            if (!warned) {
+                console::print_warning(
+                    "ResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available."
+                    "Further warnings of this type will be suppressed."
+                );
+                warned = true;
+            }
+            return 0;
+        }
     }
 }
 

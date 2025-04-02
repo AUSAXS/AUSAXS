@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Exceptions.h>
 
 #include <algorithm>
+#include <cmath>
 
 using namespace ausaxs;
 
@@ -21,6 +22,15 @@ std::string utility::remove_spaces(std::string s) {
     std::string::iterator end_pos = std::remove(s.begin(), s.end(), ' ');
     s.erase(end_pos, s.end());
     return s;
+}
+
+std::string utility::round_double(double d, int decimals) {
+    std::string s = std::to_string(std::round(d*std::pow(10, decimals))/std::pow(10, decimals));
+    auto dot = s.find('.');
+    if (dot == std::string::npos) {
+        return s;
+    }
+    return s.substr(0, dot + 1 + decimals);
 }
 
 std::vector<std::string> utility::split(std::string_view str, char delimiter) {
