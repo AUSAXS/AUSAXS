@@ -92,6 +92,14 @@ constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_n
         if (settings::molecule::throw_on_unknown_atom) {
             throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
         } else {
+            static bool warned = false;
+            if (!warned) {
+                console::print_warning(
+                    "ResidueMap::get_atomic_group: Key " + atom_name + " not found in map."
+                    "Further warnings of this type will be suppressed."
+                );
+                warned = true;
+            }
             return constants::atomic_group_t::unknown;
         }
     }
