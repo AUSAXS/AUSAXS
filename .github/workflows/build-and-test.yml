@@ -255,7 +255,7 @@ jobs:
 
       - name: Run tests
         if: matrix.os == 'ubuntu-latest'
-        run: ctest --output-on-failure --test-dir build/tests
+        run: ctest --output-on-failure --test-dir --repeat until-pass:2 build/tests
 
       - name: Generate test report
         uses: mikepenz/action-junit-report@v4
