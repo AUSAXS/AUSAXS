@@ -27,7 +27,12 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Install dependencies (windows)
+      - name: Update vcpkg
+        run: |
+          vcpkg update
+          vcpkg upgrade --no-dry-run
+
+      - name: Install dependencies
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           choco install ninja
