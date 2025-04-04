@@ -106,7 +106,7 @@ int main(int argc, char const *argv[]) {
     auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
     sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
         "The radius of the excluded volume sphere around each atom."
-    )->default_val(settings::grid::min_exv_radius)->group("");
+    )->default_val(settings::grid::min_exv_radius);
     auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);
@@ -186,7 +186,6 @@ int main(int argc, char const *argv[]) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();
         }
-        protein.save(settings::general::output + "model.pdb");
         std::string msg_exv_vol, msg_solv_dens;
 
         // simulation mode
@@ -198,7 +197,7 @@ int main(int argc, char const *argv[]) {
 
             plots::PlotDistance::quick_plot(hist.get(), settings::general::output + "p(r)." + settings::plots::format);
             plots::PlotProfiles::quick_plot(hist.get(), settings::general::output + "profiles." + settings::plots::format);
-        } 
+        }
 
         // fitting mode
         else {
@@ -217,10 +216,22 @@ int main(int argc, char const *argv[]) {
                 settings::general::output + "ausaxs.fit", 
                 "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
             );
-
-            msg_exv_vol   = "\tExcluded:        " + std::to_string((int) std::round(protein.get_volume_exv(settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::Parameters::SCALING_EXV) : 1)))  + " A^3";
-            msg_solv_dens = "\tSolvent density: " + std::to_string(constants::charge::density::water*result->get_parameter(constants::fit::Parameters::SCALING_RHO)) + " e/A^3";
+            if (settings::fit::fit_excluded_volume) {
+                msg_exv_vol = 
+                    "\tExcluded:        " 
+                    + std::to_string((int) std::round(protein.get_volume_exv(settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::Parameters::SCALING_EXV) : 1))) 
+                    + " A^3"
+                ;
+            }
+            if (settings::fit::fit_solvent_density) {
+                msg_solv_dens = 
+                    "\tSolvent density: " 
+                    + std::to_string(constants::charge::density::water*result->get_parameter(constants::fit::Parameters::SCALING_RHO)) 
+                    + " e/A^3"
+                ;
+            }
         }
+        protein.save(settings::general::output + "model.pdb");
 
         // calculate extra stuff
         console::print_info("\nExtra informaton");
