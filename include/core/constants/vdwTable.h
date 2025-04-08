@@ -36,6 +36,10 @@ namespace ausaxs::constants::radius::vdw {
     constexpr double Ni = 2.23;
     constexpr double Cu = 2.27;
     constexpr double Zn = 2.24;
+    constexpr double Ga = 2.41;
+    constexpr double Ge = 2.32;
+    constexpr double As = 2.25;
+    constexpr double Se = 2.18;
     constexpr double I = 2.22;
     constexpr double W = 2.36;
 }

@@ -116,7 +116,11 @@ namespace ausaxs::constants {
      * @brief Valence atoms
      */
     namespace valence {
-        // get the valence of an atom
+        /**
+         * @brief Get the valence of an atom.
+         *        Note that this is *not* the number of valence electrons, but the typical number of bonds the atom can form.
+         *        This information is primarily used to determine the number of hydrogens attached to an atom, as these are often not present in the PDB file.
+         */
         unsigned int get_valence(atom_t atom);
     }
 
