@@ -37,16 +37,21 @@ namespace ausaxs::constants {
     }
 
     std::string symbols::hydrogen = "H";
-    std::string symbols::carbon = "C";
+    std::string symbols::carbon   = "C";
     std::string symbols::nitrogen = "N";
-    std::string symbols::oxygen = "O";
+    std::string symbols::oxygen   = "O";
 
     const saxs::detail::SimpleMap<constants::atom_t> symbols::detail::string_to_atomt_map = std::unordered_map<std::string, constants::atom_t>{
-        {"H", atom_t::H},   {"He", atom_t::He}, {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B},   {"C", atom_t::C},   {"N", atom_t::N}, {"O", atom_t::O}, 
-        {"F", atom_t::F},   {"Ne", atom_t::Ne}, {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P}, {"S", atom_t::S}, 
-        {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, {"K", atom_t::K},   {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V}, {"Cr", atom_t::Cr}, 
-        {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"Ga", atom_t::Ga}, {"Ge", atom_t::Ge}, 
-        {"As", atom_t::As}, {"Se", atom_t::Se}, {"I", atom_t::I},   {"W", atom_t::W},   {"M", atom_t::M}
+        {"H", atom_t::H},   {"He", atom_t::He}, 
+        {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B},   {"C", atom_t::C},   {"N", atom_t::N}, {"O", atom_t::O}, {"F", atom_t::F},   {"Ne", atom_t::Ne}, 
+        {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P}, {"S", atom_t::S}, {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, 
+        {"K",  atom_t::K},  {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V}, {"Cr", atom_t::Cr}, {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, 
+        {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"Ga", atom_t::Ga}, {"Ge", atom_t::Ge}, {"As", atom_t::As}, {"Se", atom_t::Se}, 
+        {"Br", atom_t::Br}, {"Kr", atom_t::Kr}, 
+        {"Rb", atom_t::Rb}, {"Sr", atom_t::Sr}, {"Y",  atom_t::Y},  {"Zr", atom_t::Zr}, {"Nb", atom_t::Nb}, {"Mo", atom_t::Mo}, {"Tc", atom_t::Tc}, {"Ru", atom_t::Ru}, 
+        {"Rh", atom_t::Rh}, {"Pd", atom_t::Pd}, {"Ag", atom_t::Ag}, {"Cd", atom_t::Cd}, {"In", atom_t::In}, {"Sn", atom_t::Sn}, {"Sb", atom_t::Sb}, {"Te", atom_t::Te},
+        {"I",  atom_t::I},  {"Xe", atom_t::Xe}, 
+        {"W",  atom_t::W},  {"M", atom_t::M}
     };
 
     residue::ResidueStorage hydrogen_atoms::residues;
@@ -100,6 +105,7 @@ unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return 1;
         case atom_t::He: return 2;
+
         case atom_t::Li: return 3;
         case atom_t::Be: return 4;
         case atom_t::B:  return 5;
@@ -108,6 +114,7 @@ unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
         case atom_t::O:  return 8;
         case atom_t::F:  return 9;
         case atom_t::Ne: return 10;
+
         case atom_t::Na: return 11;
         case atom_t::Mg: return 12;
         case atom_t::Al: return 13;
@@ -116,6 +123,7 @@ unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
         case atom_t::S:  return 16;
         case atom_t::Cl: return 17;
         case atom_t::Ar: return 18;
+
         case atom_t::K:  return 19;
         case atom_t::Ca: return 20;
         case atom_t::Sc: return 21;
@@ -132,7 +140,28 @@ unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
         case atom_t::Ge: return 32;
         case atom_t::As: return 33;
         case atom_t::Se: return 34;
+        case atom_t::Br: return 35;
+        case atom_t::Kr: return 36;
+
+        case atom_t::Rb: return 37;
+        case atom_t::Sr: return 38;
+        case atom_t::Y:  return 39;
+        case atom_t::Zr: return 40;
+        case atom_t::Nb: return 41;
+        case atom_t::Mo: return 42;
+        case atom_t::Tc: return 43;
+        case atom_t::Ru: return 44;
+        case atom_t::Rh: return 45;
+        case atom_t::Pd: return 46;
+        case atom_t::Ag: return 47;
+        case atom_t::Cd: return 48;
+        case atom_t::In: return 49;
+        case atom_t::Sn: return 50;
+        case atom_t::Sb: return 51;
+        case atom_t::Te: return 52;
         case atom_t::I:  return 53;
+        case atom_t::Xe: return 54;
+
         case atom_t::W:  return 74;
         case atom_t::M:  return 0;
         case atom_t::dummy: return 1;
@@ -173,6 +202,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::He: return vdw::He;
         case atom_t::Ne: return vdw::Ne;
         case atom_t::Ar: return vdw::Ar;
+
         case atom_t::Li: return vdw::Li;
         case atom_t::Be: return vdw::Be;
         case atom_t::B:  return vdw::B;
@@ -180,6 +210,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::N:  return vdw::N;
         case atom_t::O:  return vdw::O;
         case atom_t::F:  return vdw::F;
+
         case atom_t::Na: return vdw::Na;
         case atom_t::Mg: return vdw::Mg;
         case atom_t::Al: return vdw::Al;
@@ -187,6 +218,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::P:  return vdw::P;
         case atom_t::S:  return vdw::S;
         case atom_t::Cl: return vdw::Cl;
+
         case atom_t::K:  return vdw::K;
         case atom_t::Ca: return vdw::Ca;
         case atom_t::Sc: return vdw::Sc;
@@ -203,7 +235,26 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::Ge: return vdw::Ge;
         case atom_t::As: return vdw::As;
         case atom_t::Se: return vdw::Se;
+        case atom_t::Br: return vdw::Br;
+
+        case atom_t::Rb: return vdw::Rb;
+        case atom_t::Sr: return vdw::Sr;
+        case atom_t::Y:  return vdw::Y;
+        case atom_t::Zr: return vdw::Zr;
+        case atom_t::Nb: return vdw::Nb;
+        case atom_t::Mo: return vdw::Mo;
+        case atom_t::Tc: return vdw::Tc;
+        case atom_t::Ru: return vdw::Ru;
+        case atom_t::Rh: return vdw::Rh;
+        case atom_t::Pd: return vdw::Pd;
+        case atom_t::Ag: return vdw::Ag;
+        case atom_t::Cd: return vdw::Cd;
+        case atom_t::In: return vdw::In;
+        case atom_t::Sn: return vdw::Sn;
+        case atom_t::Sb: return vdw::Sb;
+        case atom_t::Te: return vdw::Te;
         case atom_t::I:  return vdw::I;
+
         case atom_t::W:  return vdw::W;
 
         // fake elements
@@ -217,6 +268,7 @@ std::string ausaxs::constants::symbols::to_string(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return "H";
         case atom_t::He: return "He";
+
         case atom_t::Li: return "Li";
         case atom_t::Be: return "Be";
         case atom_t::B:  return "B";
@@ -225,6 +277,7 @@ std::string ausaxs::constants::symbols::to_string(atom_t atom) {
         case atom_t::O:  return "O";
         case atom_t::F:  return "F";
         case atom_t::Ne: return "Ne";
+
         case atom_t::Na: return "Na";
         case atom_t::Mg: return "Mg";
         case atom_t::Al: return "Al";
@@ -233,6 +286,7 @@ std::string ausaxs::constants::symbols::to_string(atom_t atom) {
         case atom_t::S:  return "S";
         case atom_t::Cl: return "Cl";
         case atom_t::Ar: return "Ar";
+
         case atom_t::K:  return "K";
         case atom_t::Ca: return "Ca";
         case atom_t::Sc: return "Sc";
@@ -249,7 +303,27 @@ std::string ausaxs::constants::symbols::to_string(atom_t atom) {
         case atom_t::Ge: return "Ge";
         case atom_t::As: return "As";
         case atom_t::Se: return "Se";
+        case atom_t::Br: return "Br";
+
+        case atom_t::Rb: return "Rb";
+        case atom_t::Sr: return "Sr";
+        case atom_t::Y:  return "Y";
+        case atom_t::Zr: return "Zr";
+        case atom_t::Nb: return "Nb";
+        case atom_t::Mo: return "Mo";
+        case atom_t::Tc: return "Tc";
+        case atom_t::Ru: return "Ru";
+        case atom_t::Rh: return "Rh";
+        case atom_t::Pd: return "Pd";
+        case atom_t::Ag: return "Ag";
+        case atom_t::Cd: return "Cd";
+        case atom_t::In: return "In";
+        case atom_t::Sn: return "Sn";
+        case atom_t::Sb: return "Sb";
+        case atom_t::Te: return "Te";
         case atom_t::I:  return "I";
+        case atom_t::Xe: return "Xe";
+
         case atom_t::W:  return "W";
         case atom_t::M:  return "M";
         case atom_t::dummy: return "#";
