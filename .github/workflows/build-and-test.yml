@@ -63,7 +63,7 @@ jobs:
 
       - name: Generate test report
         uses: mikepenz/action-junit-report@v4
-        if: matrix.os == 'ubuntu-latest' && (success() || failure())
+        if: (success() || failure())
         with:
           report_paths: build/tests/reports/*.xml
 
@@ -100,7 +100,7 @@ jobs:
 
       - name: Generate test report
         uses: mikepenz/action-junit-report@v4
-        if: matrix.os == 'ubuntu-latest' && (success() || failure())
+        if: (success() || failure())
         with:
           report_paths: build/tests/reports/*.xml
 
