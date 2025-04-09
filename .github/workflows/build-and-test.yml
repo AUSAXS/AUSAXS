@@ -153,6 +153,11 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" \
             -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+        
+      - name: Clean up GUI binary folders for upload
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Contents of current folder: $(ls -la)"
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
           find build/bin/scripts * ! -name "plot*" -exec rm -rf {} +
 

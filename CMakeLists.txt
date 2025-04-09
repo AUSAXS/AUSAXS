@@ -102,7 +102,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
 	gcem
-	GIT_REPOSITORY https://github.com/kthohr/gcem
+	GIT_REPOSITORY https://github.com/klytje/gcem
 )
 
 FetchContent_MakeAvailable(thread_pool GCEM backward)
