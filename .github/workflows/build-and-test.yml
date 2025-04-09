@@ -117,7 +117,6 @@ jobs:
       - name: Install dependencies
         run: |
           brew install cmake curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
-          brew reinstall --build-from-source --static cairo fontconfig bzip2 expat zlib libpng webp
 
       - name: Build the library
         run: |
