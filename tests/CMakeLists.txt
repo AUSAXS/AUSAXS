@@ -1,7 +1,7 @@
 set(CMAKE_CXX_FLAGS "")
 if (MSVC)
 	set(CMAKE_CXX_FLAGS_TEST "/O2 /W4 /WX /permissive- /EHsc")
-else 
+else()
 	set(CMAKE_CXX_FLAGS_TEST
 		"-Os -Wpedantic -Wall -Wextra"
 		CACHE STRING "Flags used by the C++ compiler during test builds."
