@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]) {
 
     GMXOptions sele {
         .forcefield = option::Forcefield::AMBER99SB_ILDN,
-        .watermodel = option::WaterModel::TIP4P2005,
+        .watermodel = option::WaterModel::TIP4P,
         .boxtype = option::BoxType::DODECAHEDRON,
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
@@ -52,7 +52,7 @@ int main(int argc, char const *argv[]) {
     };
 
     if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
-    gmx::gmx::set_logfile(sele.output.str() + "output.log", sele.output.str() + "cmd.log");
+    gmx::gmx::set_logfile(sele.output.str() + "/output.log", sele.output.str() + "/cmd.log");
     PDBFile pdb(s_pdb);
 
     // prepare sims

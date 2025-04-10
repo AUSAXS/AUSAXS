@@ -3,6 +3,7 @@
 /output
 /data
 temp
+config.txt
 
 # developer stuff
 **/__pycache__
