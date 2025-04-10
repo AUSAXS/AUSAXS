@@ -3,6 +3,7 @@
 /output
 /data
 temp
+config.txt
 
 # CodeQL artifacts
 _codeql_build_dir/

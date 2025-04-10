@@ -5,7 +5,7 @@
 #include <md/utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
-namespace md {
+namespace ausaxs::md {
     class insert_molecules : private gmx {
         public: 
             insert_molecules() {

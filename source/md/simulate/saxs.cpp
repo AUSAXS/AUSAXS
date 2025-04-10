@@ -52,14 +52,14 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         console::print_text("Reusing topology files for molecule and buffer.");
     }
 
-    // std::cout << "\tChecking if trajectories are compatible..." << std::flush;
-    // {
-    //     auto[molframes, molduration] = check(molxtc).run();
-    //     auto[bufframes, bufduration] = check(bufxtc).run();
-    //     if (molframes != bufframes) {throw except::unexpected("simulate_saxs: The number of frames in the buffer and molecule trajectories are not equal.");}
-    //     if (molduration != bufduration) {throw except::unexpected("simulate_saxs: The duration of the buffer and molecule trajectories are not equal.");}
-    // }
-    // std::cout << " OK" << std::endl;
+    std::cout << "\tChecking if trajectories are compatible..." << std::flush;
+    {
+        auto[molframes, molduration] = check(molxtc).run();
+        auto[bufframes, bufduration] = check(bufxtc).run();
+        if (molframes != bufframes) {throw except::unexpected("simulate_saxs: The number of frames in the buffer and molecule trajectories are not equal.");}
+        if (molduration != bufduration) {throw except::unexpected("simulate_saxs: The duration of the buffer and molecule trajectories are not equal.");}
+    }
+    std::cout << " OK" << std::endl;
 
     //##################################//
     //###        INDEX FILES         ###//
@@ -213,7 +213,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
             _mdp.add(MDPOptions::waxs_nsphere = int(0.2*std::pow((dmax*qmax), 2)));
             molmdp = _mdp.write(molmdp);
         }
-        console::dedent();
+        console::unindent();
     } else {
         console::print_text("Reusing previously generated envelope.");
     }
@@ -245,12 +245,12 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
             .jobname(options.name + "_saxs")
         .run(options.mainsim, options.jobscript);
 
-        console::dedent();
+        console::unindent();
         return SAXSOutput{std::move(job)};
     } else {
         console::print_text("Reusing previously generated final simulation.");
     }
-    console::dedent();
+    console::unindent();
     auto job = std::make_unique<NoExecution<SAXSRunResult>>(prod_folder);
     return SAXSOutput{std::move(job)};
 }

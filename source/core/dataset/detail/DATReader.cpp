@@ -200,6 +200,6 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     }
 
     console::print_text("Successfully read " + std::to_string(dataset->size_rows()) + " data points");
-    console::dedent();
+    console::unindent();
     return dataset;
 }
