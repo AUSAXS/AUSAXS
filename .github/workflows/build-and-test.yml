@@ -65,6 +65,7 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         if: (success() || failure())
         with:
+          check_name: "Windows test report"
           report_paths: build/tests/reports/*.xml
 
   build-mac:
@@ -102,6 +103,7 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         if: (success() || failure())
         with:
+          check_name: "MacOS test report"
           report_paths: build/tests/reports/*.xml
 
   build-mac-gui:
@@ -156,8 +158,16 @@ jobs:
         
       - name: Clean up GUI binary folders for upload
         run: |
+          cd build
           echo "Current directory: $(pwd)"
           echo "Contents of current folder: $(ls -la)"
+          cd bin
+          echo "Current directory: $(pwd)"
+          echo "Contents of current folder: $(ls -la)"
+          cd scripts
+          echo "Current directory: $(pwd)"
+          echo "Contents of current folder: $(ls -la)"
+          cd ../../..
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
           find build/bin/scripts * ! -name "plot*" -exec rm -rf {} +
 
@@ -242,4 +252,5 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         if: matrix.os == 'ubuntu-latest' && (success() || failure())
         with:
+          check_name: "Ubuntu test report"
           report_paths: build/tests/reports/*.xml
