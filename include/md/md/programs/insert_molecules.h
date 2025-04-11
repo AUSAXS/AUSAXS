@@ -3,6 +3,7 @@
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
 #include <md/utility/Exceptions.h>
+#include <md/programs/options/water_models/IWaterModel.h>
 #include <utility/StringUtils.h>
 
 namespace ausaxs::md {
@@ -21,8 +22,9 @@ namespace ausaxs::md {
                 return *this;
             }
 
-            insert_molecules& solvent(const option::WaterModel& solv) {
-                options.push_back(std::make_shared<shell::Argument>("-ci", "share/" + option::to_string(solv) + "_single.gro"));
+            insert_molecules& solvent(option::WaterModel solv) {
+                auto wm_obj = option::IWaterModel::construct(solv);
+                options.push_back(std::make_shared<shell::Argument>("-ci", "share/" + wm_obj->filename() + "_single.gro"));
                 return *this;
             }
 

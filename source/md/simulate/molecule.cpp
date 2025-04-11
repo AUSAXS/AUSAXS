@@ -39,6 +39,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     //##################################//
     GROFile solv_ion(setup_path.str() + "/solv_ion.gro");
     TOPFile top(setup_path.str() + "/topol.top");
+    auto ff = option::IForcefield::construct(options.forcefield);
+    auto wm = option::IWaterModel::construct(options.watermodel);
     if (!solv_ion.exists() || !top.exists()) {
         GROFile conf(setup_path.str() + "/conf.gro");
         if (!conf.exists()) {
@@ -49,8 +51,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
                 .output(setup_path)
                 .ignore_hydrogens()
                 // .virtual_sites()
-                .water_model(options.watermodel)
-                .forcefield(options.forcefield)
+                .water_model(wm.get())
+                .forcefield(ff.get())
             .run();
         } else {
             console::print_text("Reusing previously generated GROMACS structure.");
@@ -68,7 +70,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         console::print_text("Solvating unit cell...");
         auto[solv] = solvate(uc)
             .output(setup_path.str() + "/solv.gro")
-            .solvent(options.forcefield, options.watermodel)
+            .solvent(ff.get(), wm.get())
             .radius(0.2)
             .topology(top)
         .run();
@@ -111,7 +113,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
 
         // run energy minimization
         mdrun(emtpr)
-            .output(em_path, "em")
+            .output(em_path, "/em")
             .jobname(options.name + "_mol")
         .run(options.setupsim, options.jobscript)->submit();
     } else {
@@ -173,7 +175,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
 
         // run equilibration
         mdrun(eqtpr)
-            .output(eq_path, "eq")
+            .output(eq_path, "/eq")
             .jobname(options.name + "_mol")
         .run(options.setupsim, options.jobscript)->submit();
     } else {

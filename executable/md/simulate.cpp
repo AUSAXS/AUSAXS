@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]) {
 
     GMXOptions sele {
         .forcefield = option::Forcefield::AMBER99SB_ILDN,
-        .watermodel = option::WaterModel::TIP4P,
+        .watermodel = option::WaterModel::TIP4P2005,
         .boxtype = option::BoxType::DODECAHEDRON,
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
