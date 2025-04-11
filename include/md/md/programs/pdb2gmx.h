@@ -2,6 +2,8 @@
 
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
+#include <md/programs/options/water_models/IWaterModel.h>
+#include <md/programs/options/forcefields/IForcefield.h>
 
 #include <tuple>
 
@@ -39,14 +41,14 @@ namespace ausaxs::md {
                 return *this;
             }
 
-            pdb2gmx& water_model(option::WaterModel) {
-                // options.push_back(std::make_shared<shell::Argument>("-water", option::to_string(model)));
-                cmd.prepend("echo 2 |");
+            pdb2gmx& water_model(observer_ptr<option::IWaterModel> wm) {
+                this->wm = wm;
                 return *this;
             }
 
-            pdb2gmx& forcefield(option::Forcefield ff) {
-                options.push_back(std::make_shared<shell::Argument>("-ff", option::to_string(ff)));
+            pdb2gmx& forcefield(observer_ptr<option::IForcefield> ff) {
+                this->ff = ff;
+                options.push_back(std::make_shared<shell::Argument>("-ff", ff->filename()));
                 return *this;
             }
 
@@ -56,6 +58,44 @@ namespace ausaxs::md {
             }
 
             std::tuple<GROFile, TOPFile, ITPFile> run() {
+                // prepend water selection
+                {
+                    auto res = shell::Command("cat " + settings::md::gmx_top_path() + ff->filename() + ".ff/watermodels.dat").execute();
+                    if (res.exit_code != 0) {
+                        throw except::io_error("pdb2gmx: Error executing command: \"" + res.out + "\".");
+                    }
+                    std::string wm_s = wm->filename();
+    
+                    std::vector<std::string> lines;
+                    int line_start = 0, line_end = 0;
+                    for (auto& c : res.out) {
+                        if (c == '\n') {
+                            lines.push_back(res.out.substr(line_start, line_end - line_start));
+                            ++line_end;
+                            line_start = line_end;
+                        } else {
+                            ++line_end;
+                        }
+                    }
+                    lines.push_back(res.out.substr(line_start, line_end - line_start));
+                    int c = 1;
+                    bool found = false;
+                    for (auto& line : lines) {
+                        if (line.starts_with(wm_s)) {
+                            cmd.prepend("echo " + std::to_string(c) + " |");
+                            found = true;
+                            break;
+                        }
+                        ++c;
+                    }
+                    if (!found) {
+                        throw except::io_error(
+                            "pdb2gmx: Could not find water model index \"" + wm_s + "\" in file \"" 
+                            + settings::md::gmx_top_path() + ff->filename() + ".ff/watermodels.dat\"."
+                        );
+                    }
+                }
+
                 execute();
                 TOPFile top(folder.str() + "/topol.top");
                 top.extract_single_chain();
@@ -63,8 +103,10 @@ namespace ausaxs::md {
                 return std::make_tuple(GROFile(folder.str() + "/conf.gro"), top, ITPFile(folder.str() + "/posre.itp"));
             }
 
-        private: 
+        private:
             io::Folder folder;
+            observer_ptr<option::IForcefield> ff;
+            observer_ptr<option::IWaterModel> wm;
 
             void validate() const override {}
     };
