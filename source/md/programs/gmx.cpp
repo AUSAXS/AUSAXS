@@ -21,7 +21,7 @@ shell::Command& gmx::command() {
     return cmd;
 }
 
-// to encasuplate the entire command with '', we need to escape all ' characters in the command itself
+// to encapsulate the entire command with '', we need to escape all ' characters in the command itself
 auto escape_single_quotes = [] (std::string_view cmd) {
     std::string escaped_str;
     for (auto c : cmd) {
@@ -96,30 +96,6 @@ void gmx::write_log(std::string_view entry) {
     if (outputlog.path().empty()) {return;}
     std::ofstream log(outputlog, std::ios_base::app);
     log << entry << std::endl;
-}
-
-std::string option::to_string(Forcefield opt) {
-    switch (opt) {
-        case Forcefield::AMBER99SB:
-            return "amber99sb";
-        case Forcefield::AMBER99SB_ILDN:
-            return "amber99sb-ildn";
-        default:
-            throw except::unknown_type("gmx::to_string: Unknown forcefield. (Did you forget to add it to the enum?)");
-    }
-}
-
-std::string option::to_string(WaterModel opt) {
-    switch (opt) {
-        case WaterModel::TIP3P:
-            return "tip3p";
-        case WaterModel::TIP4P:
-            return "tip4p";
-        case WaterModel::TIP4P2005:
-            return "tip4p2005";
-        default:
-            throw except::unknown_type("gmx::to_string: Unknown water model. (Did you forget to add it to the enum?)");
-    }
 }
 
 std::string option::to_string(BoxType opt) {

@@ -32,18 +32,20 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //##################################//
     GROFile gro(setup_path.str() + "buffer.gro");
     TOPFile top(setup_path.str() + "topol.top");
+    auto ff = option::IForcefield::construct(options.forcefield);
+    auto wm = option::IWaterModel::construct(options.watermodel);
     if (!gro.exists() || !top.exists()) {
         {
             std::cout << "\tCopying unit cell from molecule..." << std::flush;
-            std::string ff = option::to_string(options.forcefield) + ".ff";
-            std::string wm = option::to_string(options.watermodel) + ".itp";
+            std::string ff_s = ff->filename() + ".ff";
+            std::string wm_s = wm->filename() + ".itp";
             top.create(
                 "; Topology file for the buffer simulation.     \n"
                 "; Include forcefield parameters                \n"
-                "#include \"" + ff + "/forcefield.itp\"         \n"
+                "#include \"" + ff_s + "/forcefield.itp\"       \n"
                 "                                               \n"
                 "; Include water topology                       \n"
-                "#include \"" + ff + "/" + wm + "\"             \n"
+                "#include \"" + ff_s + "/" + wm_s + "\"         \n"
                 "#ifdef POSRES_WATER                            \n"
                 "; Position restraint for each water oxygen     \n"
                 "[ position_restraints ]                        \n"
@@ -52,7 +54,7 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
                 "#endif                                         \n"
                 "                                               \n"
                 "; Include topology for ions                    \n"
-                "#include \"" + ff + "/ions.itp\"               \n"
+                "#include \"" + ff_s + "/ions.itp\"             \n"
                 "                                               \n"
                 "[ system ]                                     \n"
                 "; Name                                         \n"
@@ -83,7 +85,7 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
         std::cout << "\tSolvating unit cell..." << std::flush;
         auto[solvatedgro] = solvate(ucgro)
             .output(gro)
-            .solvent(options.forcefield, options.watermodel)
+            .solvent(ff.get(), wm.get())
             .topology(top)
         .run();
         std::cout << " done" << std::endl;

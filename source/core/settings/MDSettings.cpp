@@ -9,6 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 
 std::string settings::md::gmx_path = "gmx";
+std::string settings::md::gmx_source_path = "";
 std::string settings::md::buffer_path = "";
 std::string settings::md::water_model = "tip4p2005";
 std::string settings::md::force_field = "amber99sb-ildn";
@@ -19,9 +20,14 @@ std::string settings::md::minimization_sim_location = "lucy";
 std::string settings::md::thermalization_sim_location = "smaug";
 std::string settings::md::production_sim_location = "smaug";
 
+std::string settings::md::gmx_top_path() {
+    return gmx_source_path + "/share/top/";
+}
+
 namespace ausaxs::settings::md::io {
     settings::io::SettingSection md_section("MD", {
         settings::io::create(gmx_path, {"gmx_exe", "gmx_executable", "gmx"}),
+        settings::io::create(gmx_source_path, {"gmx_source", "gmx_source_path"}),
         settings::io::create(buffer_path, {"buffer_path", "buffer"}),
         settings::io::create(water_model, {"water_model", "water"}),
         settings::io::create(force_field, {"force_field", "forcefield", "ff"}),

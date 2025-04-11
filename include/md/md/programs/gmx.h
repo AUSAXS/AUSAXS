@@ -35,17 +35,6 @@ namespace ausaxs::md {
     };
 
     namespace option {
-        enum class Forcefield {
-            AMBER99SB,
-            AMBER99SB_ILDN
-        };
-
-        enum class WaterModel {
-            TIP3P,
-            TIP4P,
-            TIP4P2005
-        };
-
         enum class BoxType {
             CUBIC,
             TRICLINIC,
@@ -61,8 +50,6 @@ namespace ausaxs::md {
             CL
         };
 
-        std::string to_string(Forcefield opt);
-        std::string to_string(WaterModel opt);
         std::string to_string(BoxType opt);
         std::string to_string(Cation opt);
         std::string to_string(Anion opt);

@@ -2,6 +2,9 @@ add_library(ausaxs_md OBJECT
 	"programs/gmx.cpp"
 	"programs/mdrun.cpp"
 	"programs/saxsmdrun.cpp"
+
+	"programs/options/forcefields/IForcefield.cpp"
+	"programs/options/water_models/IWaterModel.cpp"
 	
 	"simulate/buffer.cpp"
 	"simulate/frameanalysis.cpp"

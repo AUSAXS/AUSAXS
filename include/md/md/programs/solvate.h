@@ -4,9 +4,10 @@
 #include <md/shell/Command.h>
 #include <md/utility/files/all.h>
 #include <md/utility/Exceptions.h>
+#include <md/programs/options/forcefields/IForcefield.h>
+#include <md/programs/options/water_models/IWaterModel.h>
 
 #include <vector>
-#include <algorithm>
 
 namespace ausaxs::md {
     class solvate : private gmx {
@@ -40,8 +41,11 @@ namespace ausaxs::md {
                 return *this;
             }
 
-            solvate& solvent(option::Forcefield ff, option::WaterModel solv) {
-                options.push_back(std::make_shared<shell::Argument>("-cs", option::to_string(ff) + ".ff/" + option::to_string(solv) + ".gro"));
+            solvate& solvent(observer_ptr<option::IForcefield> ff, observer_ptr<option::IWaterModel> wm) {
+                if (!wm->exists(ff)) {
+                    wm->create(ff);
+                }
+                options.push_back(std::make_shared<shell::Argument>("-cs", ff->filename() + ".ff/" + wm->filename() + ".gro")); // should be gro file?
                 // options.push_back(std::make_shared<shell::Argument>("-cs", "spc216.gro"));
                 return *this;
             }
