@@ -42,10 +42,8 @@ namespace ausaxs::md {
             }
 
             solvate& solvent(observer_ptr<option::IForcefield> ff, observer_ptr<option::IWaterModel> wm) {
-                if (!wm->exists(ff)) {
-                    wm->create(ff);
-                }
-                options.push_back(std::make_shared<shell::Argument>("-cs", ff->filename() + ".ff/" + wm->filename() + ".gro")); // should be gro file?
+                wm->ensure_exists(ff);
+                options.push_back(std::make_shared<shell::Argument>("-cs", wm->filename() + ".gro"));
                 // options.push_back(std::make_shared<shell::Argument>("-cs", "spc216.gro"));
                 return *this;
             }

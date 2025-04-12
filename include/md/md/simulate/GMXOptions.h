@@ -10,6 +10,14 @@
 #include <memory>
 
 namespace ausaxs::md {
+    struct SystemSettings {
+        option::Forcefield forcefield;
+        option::WaterModel watermodel;
+        option::BoxType boxtype;
+        option::Cation cation;
+        option::Anion anion;
+    };
+
     struct GMXOptions {
         option::Forcefield forcefield;
         option::WaterModel watermodel;
@@ -20,8 +28,8 @@ namespace ausaxs::md {
         std::string name;
         io::Folder output;
         SHFile jobscript;
-        location setupsim;
-        location mainsim;
+        RunLocation setupsim;
+        RunLocation mainsim;
         std::shared_ptr<MDPCreator> bufmdp; // mdp file for the production simulation
         std::shared_ptr<MDPCreator> molmdp; // mdp file for the production simulation
     };

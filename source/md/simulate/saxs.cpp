@@ -13,12 +13,13 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 #include <utility/Console.h>
 #include <io/Folder.h>
+#include <settings/GeneralSettings.h>
 
 #include <cmath>
 
 using namespace ausaxs;
 
-md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
+md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
     if (!options.molecule.top.exists()) {throw except::io_error("simulate_saxs: The topology file does not exist.");}
 
     // get data from sims
@@ -36,11 +37,10 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder output = options.output.str() + "saxs/";
-    io::Folder protein_path = output.str() + "protein/";
-    io::Folder buffer_path = output.str() + "buffer/";
-    io::Folder mdp_folder = output.str() + "mdp/";
-    io::Folder prod_folder = output.str() + "prod/";
+    io::Folder protein_path = settings::general::output + "protein/";
+    io::Folder buffer_path  = settings::general::output + "buffer/";
+    io::Folder mdp_folder   = settings::general::output + "mdp/";
+    io::Folder prod_folder  = settings::general::output + "prod/";
     mdp_folder.create(); prod_folder.create();
 
     TOPFile moltop(protein_path.str() + "topol.top");
@@ -138,9 +138,9 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
         console::print_text("Preparing SAXS rerun...");
         console::indent();
-        MDPFile dummymdp = MDPFile(output.str() + "empty.mdp"); dummymdp.create();
+        MDPFile dummymdp = MDPFile(settings::general::output + "empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
-            .output(output.str() + "saxs.tpr")
+            .output(settings::general::output + "saxs.tpr")
             .warnings(1)
         .run();
         dummymdp.remove();
@@ -205,7 +205,7 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
         {
             auto _mdp = SAXSMDPCreatorMol();
 
-            Protein protein(options.pdb);
+            Protein protein(options.pdbfile);
             double qmax = std::stod(_mdp.get(MDPOptions::waxs_endq))/10; // convert to nm^-1
             double dmax = protein.maximum_distance();
 
@@ -242,8 +242,8 @@ md::SAXSOutput md::simulate_saxs(md::SAXSOptions& options) {
             .rerun(molxtc, bufxtc)
             .env_var("GMX_WAXS_FIT_REFFILE", envgro.absolute_path())
             .env_var("GMX_ENVELOPE_FILE", envdat.absolute_path())
-            .jobname(options.name + "_saxs")
-        .run(options.mainsim, options.jobscript);
+            .jobname(options.jobname)
+        .run(options.runner, options.jobscript);
 
         console::unindent();
         return SAXSOutput{std::move(job)};

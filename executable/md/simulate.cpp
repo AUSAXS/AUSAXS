@@ -3,6 +3,7 @@
 #include <md/simulate/molecule.h>
 #include <md/simulate/saxs.h>
 #include <settings/MDSettings.h>
+#include <settings/GeneralSettings.h>
 #include <settings/SettingsIO.h>
 #include <io/ExistingFile.h>
 #include <constants/Version.h>
@@ -34,36 +35,43 @@ int main(int argc, char const *argv[]) {
     if (!gmx().valid_executable()) {
         throw except::io_error("Invalid GROMACS path \"" + settings::md::gmx_path + "\"");
     }
+    settings::general::output += "md/" + s_pdb.stem() + "/";
 
-    GMXOptions sele {
+    if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
+    gmx::gmx::set_logfile(settings::general::output + "output.log", settings::general::output + "cmd.log");
+    PDBFile pdb(s_pdb);
+
+    SystemSettings ss {
         .forcefield = option::Forcefield::AMBER99SB_ILDN,
-        .watermodel = option::WaterModel::TIP4P2005,
+        .watermodel = option::WaterModel::TIP4P,
         .boxtype = option::BoxType::DODECAHEDRON,
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
-
-        .name = s_pdb.stem(),
-        .output = {"output/md/" + s_pdb.stem() + "/"},
-        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
-        .setupsim = location::local,
-        .mainsim = location::local,
-        .bufmdp = std::make_shared<PRMDPCreatorSol>(),
-        .molmdp = std::make_shared<PRMDPCreatorMol>(),
     };
 
-    if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
-    gmx::gmx::set_logfile(sele.output.str() + "/output.log", sele.output.str() + "/cmd.log");
-    PDBFile pdb(s_pdb);
-
     // prepare sims
-    MoleculeOptions mo(sele, pdb);
-    auto molecule = simulate_molecule(mo);
+    auto molecule = simulate_molecule({
+        .system = ss,
+        .jobname = pdb.stem() + "_mol",
+        .pdbfile = pdb,
+        .mdp = PRMDPCreatorMol().write(settings::general::output + "mdp/mol.mdp"),
+        .setup_runner = RunLocation::local,
+        .main_runner = RunLocation::local,
+        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+    });
 
     SimulateBufferOutput buffer;
     console::print_info("\nPreparing buffer simulation");
     if (settings::md::buffer_path.empty()) {
-        BufferOptions bo(sele, molecule.gro);
-        buffer = simulate_buffer(bo);
+        buffer = simulate_buffer({
+            .system = ss,
+            .jobname = pdb.stem() + "_buf",
+            .refgro = molecule.gro,
+            .mdp = PRMDPCreatorSol().write(settings::general::output + "mdp/buf.mdp"),
+            .setup_runner = RunLocation::local,
+            .main_runner = RunLocation::local,
+            .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+        });
     } else {
         // find production gro
         io::Folder prod_folder(settings::md::buffer_path + "/prod");
@@ -97,11 +105,13 @@ int main(int argc, char const *argv[]) {
     }
 
     // prepare saxs
-    GMXOptions saxs_sele = sele;
-    saxs_sele.jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path();
-    
-    SAXSOptions so(saxs_sele, std::move(molecule), std::move(buffer), pdb);
-    auto saxs = simulate_saxs(so);
+    auto saxs = simulate_saxs({
+        .pdbfile = pdb,
+        .molecule = std::move(molecule),
+        .buffer = std::move(buffer),
+        .runner = RunLocation::local,
+        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+    });
     saxs.job->submit();
 
     return 0;

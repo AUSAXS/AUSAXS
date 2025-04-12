@@ -19,7 +19,7 @@ int main(int argc, char const *argv[]) {
     if (!gmx().valid_executable()) {
         throw except::io_error("Gromacs executable not found. Please install Gromacs and add it to your PATH.");
     }
-
+    
     GMXOptions sele {
         .forcefield = option::Forcefield::AMBER99SB_ILDN,
         .watermodel = option::WaterModel::TIP4P,
@@ -30,8 +30,8 @@ int main(int argc, char const *argv[]) {
         .name = s_pdb.stem(),
         .output = {"output/frame_analysis/" + s_pdb.stem() + "/"},
         .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
-        .setupsim = location::lusi,
-        .mainsim = location::smaug,
+        .setupsim = RunLocation::lusi,
+        .mainsim = RunLocation::smaug,
         .bufmdp = std::make_shared<FrameAnalysisMDPCreatorSol>(),
         .molmdp = std::make_shared<FrameAnalysisMDPCreatorMol>(),
     };

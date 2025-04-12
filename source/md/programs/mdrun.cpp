@@ -41,16 +41,16 @@ mdrun& mdrun::jobname(const std::string& name) {
     return *this;
 }
 
-std::unique_ptr<shell::Jobscript<MDRunResult>> mdrun::run(location where, std::string jobscript) {
+std::unique_ptr<shell::Jobscript<MDRunResult>> mdrun::run(RunLocation where, std::string jobscript) {
     switch (where) {
-        case location::local: {
+        case RunLocation::local: {
             return std::make_unique<LocalExecution<MDRunResult>>([*this]() {auto tmp = *this; return tmp.execute();}, folder);
         }
-        case location::lusi: {
+        case RunLocation::lusi: {
             cmd.append("-nt 12 -nice 19 -pin on -pinstride 1 -pinoffset 0 -gpu_id 0");
             return std::make_unique<LocalExecution<MDRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
         }
-        case location::smaug: {
+        case RunLocation::smaug: {
             cmd.append("-ntmpi 1 -nt $cpupergpu -cpi -stepout 5000");
             return std::make_unique<SmaugExecution<MDRunResult>>(tpr, folder, name, jobscript);
         }

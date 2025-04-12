@@ -25,11 +25,17 @@ std::unique_ptr<option::IWaterModel> option::IWaterModel::construct(WaterModel w
     }
 }
 
-void option::IWaterModel::create(observer_ptr<option::IForcefield> ff) const {
+void option::IWaterModel::create_gro() const {
+    io::File gro(settings::md::gmx_top_path() + filename() + ".gro");
+    assert(!gro.exists() && "gmx::create: File already exists: " + gro.path());
+    gro.create(get_gro_file_content());
+}
+
+void option::IWaterModel::create_itp(observer_ptr<option::IForcefield> ff) const {
     // create itp file
     io::File f(settings::md::gmx_top_path() + ff->filename() + ".ff/" + filename() + ".itp");
     assert(!f.exists() && "gmx::create: File already exists: " + f.path());
-    f.create(get_file_content());
+    f.create(get_itp_file_content());
 
     // update watermodels.dat
     io::File dat(settings::md::gmx_top_path() + ff->filename() + ".ff/watermodels.dat");
@@ -56,7 +62,21 @@ void option::IWaterModel::create(observer_ptr<option::IForcefield> ff) const {
     }
 }
 
-bool option::IWaterModel::exists(observer_ptr<option::IForcefield> ff) const {
+bool option::IWaterModel::itp_exists(observer_ptr<option::IForcefield> ff) const {
     io::File f(settings::md::gmx_top_path() + ff->filename() + ".ff/" + filename() + ".itp");
     return f.exists();
+}
+
+bool option::IWaterModel::gro_exists() const {
+    io::File f(settings::md::gmx_top_path() + filename() + ".gro");
+    return f.exists();
+}
+
+void option::IWaterModel::ensure_exists(observer_ptr<option::IForcefield> ff) {
+    if (!itp_exists(ff)) {
+        create_itp(ff);
+    }
+    if (!gro_exists()) {
+        create_gro();
+    }
 }
