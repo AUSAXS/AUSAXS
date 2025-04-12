@@ -3,7 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <md/simulate/frameanalysis.h>
+#include <md/simulate/TimeAnalysis.h>
 #include <md/programs/all.h>
 #include <md/programs/saxsmdrun.h>
 #include <md/programs/mdrun/MDRunResult.h>
@@ -16,7 +16,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs;
 
-std::vector<md::SAXSOutput> md::frameanalysis(SimulateSAXSOptions&& options) {
+std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& options, double timestep) {
     if (!options.molecule.top.exists()) {throw except::io_error("simulate_saxs: The topology file does not exist.");}
 
     // get data from sims
@@ -159,7 +159,6 @@ std::vector<md::SAXSOutput> md::frameanalysis(SimulateSAXSOptions&& options) {
         SAXSMDPCreatorSol().write(bufmdp);
     }
 
-    // generate run files - they can be reused for all parts
     auto[moltpr] = grompp(molmdp, moltop, molgro)
         .output(prod_folder.str() + "mol.tpr")
         .index(molindex)
@@ -173,23 +172,30 @@ std::vector<md::SAXSOutput> md::frameanalysis(SimulateSAXSOptions&& options) {
     .run();
 
     // chop the trajectory into separate parts
-    std::vector<SAXSOutput> jobs;
-    for (unsigned int i = 0; i < 10; ++i) {
-        io::Folder part_folder = prod_folder.str() + "part_" + std::to_string(i) + "/";
+    auto[frames, duration] = check(molxtc).run();
+    unsigned int framestep = frames/duration*timestep;
+
+    std::vector<SimulateSAXSOutput> jobs;
+    std::cout << "\tChopping trajectory into " << frames/framestep << " parts." << std::endl;
+    unsigned int part = 0;
+    for (unsigned int i = 0; i < frames; i+=framestep) {
+        io::Folder part_folder = prod_folder.str() + "part_" + std::to_string(++part) + "/";
 
         auto [molxtc_i] = trjconv(molxtc)
             .output(part_folder.str() + "mol.xtc")
-            .skip_every_n_frame(i+1)
+            .startframe(i)
+            .endframe(i+framestep)
         .run();
 
         auto [bufxtc_i] = trjconv(bufxtc)
             .output(part_folder.str() + "buf.xtc")
-            .skip_every_n_frame(i+1)
+            .startframe(i)
+            .endframe(i+framestep)
         .run();
 
         auto job = saxsmdrun(moltpr, buftpr)
             .output(part_folder, "prod")
-            .jobname(options.jobname + "_" + std::to_string(i+1))
+            .jobname(options.jobname + "_" + std::to_string(part))
             .rerun(molxtc_i, bufxtc_i)
             .env_var("GMX_WAXS_FIT_REFFILE", envgro.absolute_path())
             .env_var("GMX_ENVELOPE_FILE", envdat.absolute_path())

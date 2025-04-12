@@ -3,23 +3,20 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <md/simulate/saxs.h>
+#include <md/simulate/FrameAnalysis.h>
 #include <md/programs/all.h>
 #include <md/programs/saxsmdrun.h>
 #include <md/programs/mdrun/MDRunResult.h>
 #include <md/utility/Exceptions.h>
 #include <md/utility/Protein.h>
 #include <md/utility/files/MDPCreator.h>
-#include <utility/StringUtils.h>
-#include <utility/Console.h>
-#include <io/Folder.h>
 #include <settings/GeneralSettings.h>
 
 #include <cmath>
 
 using namespace ausaxs;
 
-md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
+std::vector<md::SimulateSAXSOutput> md::frameanalysis(SimulateSAXSOptions&& options) {
     if (!options.molecule.top.exists()) {throw except::io_error("simulate_saxs: The topology file does not exist.");}
 
     // get data from sims
@@ -32,34 +29,20 @@ md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
     auto[molgro, moledr, molxtc] = options.molecule.job->result();
     auto[bufgro, bufedr, bufxtc] = options.buffer.job->result();
 
-    console::print_info("\nPreparing calculation of SAXS profile");
-    console::indent();
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder protein_path = settings::general::output + "protein/";
-    io::Folder buffer_path  = settings::general::output + "buffer/";
-    io::Folder mdp_folder   = settings::general::output + "mdp/";
-    io::Folder prod_folder  = settings::general::output + "prod/";
-    mdp_folder.create(); prod_folder.create();
+    io::Folder protein_path = settings::general::output + "saxs/protein/";
+    io::Folder buffer_path  = settings::general::output + "saxs/buffer/";
+    io::Folder mdp_folder   = settings::general::output + "saxs/mdp/";
+    io::Folder prod_folder  = settings::general::output + "saxs/prod/";
 
     TOPFile moltop(protein_path.str() + "topol.top");
     TOPFile buftop(buffer_path.str() + "topol.top");
     if (!moltop.exists() || !buftop.exists()) {
         options.molecule.top.copy(moltop.directory());
         options.buffer.top.copy(buftop.directory());
-    } else {
-        console::print_text("Reusing topology files for molecule and buffer.");
     }
-
-    std::cout << "\tChecking if trajectories are compatible..." << std::flush;
-    {
-        auto[molframes, molduration] = check(molxtc).run();
-        auto[bufframes, bufduration] = check(bufxtc).run();
-        if (molframes != bufframes) {throw except::unexpected("simulate_saxs: The number of frames in the buffer and molecule trajectories are not equal.");}
-        if (molduration != bufduration) {throw except::unexpected("simulate_saxs: The duration of the buffer and molecule trajectories are not equal.");}
-    }
-    std::cout << " OK" << std::endl;
 
     //##################################//
     //###        INDEX FILES         ###//
@@ -67,50 +50,24 @@ md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
     // we want to always have the group Water_and_ions, but it is only generated automatically if there are actual ions present in the system. 
     // since this is not guaranteed, we have to generate it manually
     NDXFile molindex(protein_path.str() + "index.ndx");
+    NDXFile bufindex(buffer_path.str() + "index.ndx");
+
     if (!molindex.exists()) {
-        console::print_text("Creating index file for molecule...");
         make_ndx(molgro)
             .output(molindex)
         .run();
-
-        std::string ion_placeholder = molindex.contains("Ion") ? " or group \"Ion\"" : "";
         if (!molindex.contains("RealWater_and_Ions")) {
-            // if there are no Ion group, adding "or group \"Ion\" will cause an error
             auto[tmp] = select(options.molecule.gro)
-                .output("temp/md/tmp1.ndx")
-                .define("\"RealWater_and_Ions\" name \"OW\" or name \"HW1\" or name \"HW2\" or name \"HW3\"" + ion_placeholder)
+                .output("tmp.ndx")
+                .define("\"RealWater_and_Ions\" name \"OW\" or name \"HW1\" or name \"HW2\" or name \"HW3\" or group \"Ion\"")
             .run();
 
             molindex.append_file(tmp);
-            // tmp.remove();
+            tmp.remove();
         }
-
-        if (!molindex.contains("Water_and_Ions")) {
-            auto[tmp] = select(options.molecule.gro)
-                .output("temp/md/tmp2.ndx")
-                .define("\"Water_and_Ions\" name \"OW\" or name \"HW1\" or name \"HW2\" or name \"HW3\"" + ion_placeholder)
-            .run();
-
-            molindex.append_file(tmp);
-            // tmp.remove();
-        }
-
-        if (!molindex.contains("Protein_and_Ions")) {
-            auto[tmp] = select(options.molecule.gro)
-                .output("temp/md/tmp3.ndx")
-                .define("\"Protein_and_Ions\" group \"Protein\"" + ion_placeholder)
-            .run();
-
-            molindex.append_file(tmp);
-            // tmp.remove();
-        }
-    } else {
-        console::print_text("Reusing index file for molecule.");
     }
 
-    NDXFile bufindex(buffer_path.str() + "index.ndx");
     if (!bufindex.exists()) {
-        console::print_text("Creating index file for buffer...");
         make_ndx(bufgro)
             .output(bufindex)
         .run();
@@ -123,8 +80,6 @@ md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
             bufindex.append_file(tmp);
             tmp.remove();
         }
-    } else {
-        console::print_text("Reusing index file for buffer.");
     }
 
     //##################################//
@@ -136,41 +91,27 @@ md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
     MDPFile molmdp(mdp_folder.str() + "rerun_mol.mdp");
 
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
-        console::print_text("Preparing SAXS rerun...");
-        console::indent();
-        MDPFile dummymdp = MDPFile(settings::general::output + "empty.mdp"); dummymdp.create();
+        MDPFile dummymdp = MDPFile(settings::general::output + "saxs/empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
-            .output(settings::general::output + "saxs.tpr")
+            .output(settings::general::output + "saxs/saxs.tpr")
             .warnings(1)
         .run();
         dummymdp.remove();
 
-        console::print_text("Generating scattering parameters...");
         auto[itps] = genscatt(dummytpr, molindex)
             .output(protein_path.str() + "scatt.itp")
-            .group("Protein_and_Ions")
+            .group("Protein")
         .run();
-
-        // remove NA and CL scattering parameters
-        for (unsigned int i = 0; i < itps.size(); i++) {
-            auto itp = itps[i].stem().substr(0, 8);
-            if (itp == "scatt_NA" || itp == "scatt_CL") {
-                itps[i].remove();
-                itps.erase(itps.begin() + i);
-            }
-        }
 
         moltop.include_new_type(itps);
 
         // dump the first 50 frames
-        console::print_text("Dumping first 50 frames...");
         auto[traj] = trjconv(molxtc)
             .output(protein_path.str() + "protein.xtc")
             .startframe(50)
         .run();
 
         // center the trajectories
-        console::print_text("Centering trajectories...");
         auto[cluster] = trjconv(traj)
             .output(protein_path.str() + "cluster.xtc")
             .group("Protein")
@@ -192,14 +133,12 @@ md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
         .run();
 
         // generate the envelope
-        console::print_text("Generating envelope...");
         auto[goodpbc, envgro, envpy, envdat] = genenv(centered, molindex)
             .output(protein_path)
             .structure(molgro)
             .distance(0.5)
             .group("Protein")
         .run();
-        dummytpr.remove();
 
         // generate molecule mdp file (depends on envelope output)
         {
@@ -211,11 +150,8 @@ md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
 
             _mdp.add(MDPOptions::waxs_pbcatom = goodpbc);
             _mdp.add(MDPOptions::waxs_nsphere = int(0.2*std::pow((dmax*qmax), 2)));
-            molmdp = _mdp.write(molmdp);
+            _mdp.write(molmdp);
         }
-        console::unindent();
-    } else {
-        console::print_text("Reusing previously generated envelope.");
     }
 
     MDPFile bufmdp(mdp_folder.str() + "rerun_buf.mdp");
@@ -223,34 +159,44 @@ md::SAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
         SAXSMDPCreatorSol().write(bufmdp);
     }
 
-    GROFile gro(prod_folder.str() + "prod.gro");
-    if (!gro.exists()) {
-        auto[moltpr] = grompp(molmdp, moltop, molgro)
-            .output(prod_folder.str() + "rerun_mol.tpr")
-            .index(molindex)
-            .warnings(1)
+    // generate run files - they can be reused for all parts
+    auto[moltpr] = grompp(molmdp, moltop, molgro)
+        .output(prod_folder.str() + "mol.tpr")
+        .index(molindex)
+        .warnings(1)
+    .run();
+
+    auto[buftpr] = grompp(bufmdp, buftop, bufgro)
+        .output(prod_folder.str() + "buf.tpr")
+        .index(bufindex)
+        .warnings(2)
+    .run();
+
+    // chop the trajectory into separate parts
+    std::vector<SimulateSAXSOutput> jobs;
+    for (unsigned int i = 0; i < 10; ++i) {
+        io::Folder part_folder = prod_folder.str() + "part_" + std::to_string(i) + "/";
+
+        auto [molxtc_i] = trjconv(molxtc)
+            .output(part_folder.str() + "mol.xtc")
+            .skip_every_n_frame(i+1)
         .run();
 
-        auto[buftpr] = grompp(bufmdp, buftop, bufgro)
-            .output(prod_folder.str() + "rerun_buf.tpr")
-            .index(bufindex)
-            .warnings(2)
+        auto [bufxtc_i] = trjconv(bufxtc)
+            .output(part_folder.str() + "buf.xtc")
+            .skip_every_n_frame(i+1)
         .run();
 
         auto job = saxsmdrun(moltpr, buftpr)
-            .output(prod_folder, "prod")
-            .rerun(molxtc, bufxtc)
+            .output(part_folder, "prod")
+            .jobname(options.jobname + "_" + std::to_string(i+1))
+            .rerun(molxtc_i, bufxtc_i)
             .env_var("GMX_WAXS_FIT_REFFILE", envgro.absolute_path())
             .env_var("GMX_ENVELOPE_FILE", envdat.absolute_path())
-            .jobname(options.jobname)
         .run(options.runner, options.jobscript);
 
-        console::unindent();
-        return SAXSOutput{std::move(job)};
-    } else {
-        console::print_text("Reusing previously generated final simulation.");
+        jobs.push_back({std::move(job)});
     }
-    console::unindent();
-    auto job = std::make_unique<NoExecution<SAXSRunResult>>(prod_folder);
-    return SAXSOutput{std::move(job)};
+
+    return jobs;
 }
