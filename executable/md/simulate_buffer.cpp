@@ -3,6 +3,7 @@
 #include <md/simulate/molecule.h>
 #include <md/simulate/saxs.h>
 #include <io/ExistingFile.h>
+#include <settings/GeneralSettings.h>
 
 #include <CLI/CLI.hpp>
 
@@ -19,52 +20,49 @@ int main(int argc, char const *argv[]) {
     if (!gmx().valid_executable()) {
         throw except::io_error("Gromacs executable not found. Please install Gromacs and add it to your PATH.");
     }
+    settings::general::output += "md/" + s_pdb.stem() + "/";
 
-    GMXOptions sele {
+    SystemSettings ss {
         .forcefield = option::Forcefield::AMBER99SB_ILDN,
         .watermodel = option::WaterModel::TIP4P2005,
         .boxtype = option::BoxType::DODECAHEDRON,
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
-
-        .name = s_pdb.stem(),
-        .output = {"output/buffer/" + option::to_string(option::WaterModel::TIP4P2005) + "/"},
-        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
-        .setupsim = location::lusi,
-        .mainsim = location::smaug,
-        // .bufmdp = std::make_shared<PRMDPCreatorSol>(),
-        // .molmdp = std::make_shared<PRMDPCreatorMol>(),
-        // .bufmdp = std::make_shared<FrameAnalysisMDPCreatorSol>(),
-        // .molmdp = std::make_shared<FrameAnalysisMDPCreatorMol>(),
-        .bufmdp = std::make_shared<TimeAnalysisMDPCreatorSol>(),
-        .molmdp = std::make_shared<TimeAnalysisMDPCreatorMol>(),
     };
 
+    auto wm = option::IWaterModel::construct(ss.watermodel);
+    auto ff = option::IForcefield::construct(ss.forcefield);
+
     if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
-    gmx::gmx::set_logfile(sele.output.str() + "output.log", sele.output.str() + "cmd.log");
+    gmx::gmx::set_logfile(settings::general::output + "output.log", settings::general::output + "cmd.log");
     PDBFile pdb(s_pdb);
 
-    GROFile conf(sele.output.str() + "setup/conf.gro");
+    GROFile conf(settings::general::output + "setup/conf.gro");
         if (!conf.exists()) {
         // prepare the pdb file for gromacs
         auto[conf, _, posre] = pdb2gmx(pdb)
-            .output({sele.output.str() + "setup/"})
+            .output({settings::general::output + "setup/"})
             .ignore_hydrogens()
-            .water_model(sele.watermodel)
-            .forcefield(sele.forcefield)
+            .water_model(wm.get())
+            .forcefield(ff.get())
         .run();
     }
 
     // create a box around the protein
     auto[uc] = editconf(conf)
-        .output(sele.output.str() + "setup/uc.gro")
-        .box_type(sele.boxtype)
+        .output(settings::general::output + "setup/uc.gro")
+        .box_type(ss.boxtype)
         .extend(1)
     .run();
 
-    SimulateBufferOutput buffer;
-    BufferOptions bo(sele, conf);
-    buffer = simulate_buffer(bo);
+    auto buffer = simulate_buffer({
+        .system = ss,
+        .jobname = s_pdb.stem() + "_buf",
+        .mdp = PRMDPCreatorSol().write(settings::general::output + "mdp/buf.mdp"),
+        .setup_runner = RunLocation::local,
+        .main_runner = RunLocation::local,
+        .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
+    });
     buffer.job->submit();
 
     return 0;

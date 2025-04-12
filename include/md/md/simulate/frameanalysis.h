@@ -1,7 +1,7 @@
 #pragma once
 
-#include <md/simulate/GMXOptions.h>
+#include <md/simulate/saxs.h>
 
 namespace ausaxs::md {
-    std::vector<SAXSOutput> frameanalysis(SAXSOptions& options);
+    std::vector<SAXSOutput> frameanalysis(SimulateSAXSOptions&& options);
 }

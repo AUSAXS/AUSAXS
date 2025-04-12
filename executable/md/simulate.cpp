@@ -43,13 +43,12 @@ int main(int argc, char const *argv[]) {
 
     SystemSettings ss {
         .forcefield = option::Forcefield::AMBER99SB_ILDN,
-        .watermodel = option::WaterModel::TIP4P,
+        .watermodel = option::WaterModel::TIP4P2005,
         .boxtype = option::BoxType::DODECAHEDRON,
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
     };
 
-    // prepare sims
     auto molecule = simulate_molecule({
         .system = ss,
         .jobname = pdb.stem() + "_mol",
@@ -104,13 +103,12 @@ int main(int argc, char const *argv[]) {
         buffer.job = std::make_unique<NoExecution<MDRunResult>>(settings::md::buffer_path + "/prod/");
     }
 
-    // prepare saxs
     auto saxs = simulate_saxs({
         .pdbfile = pdb,
         .molecule = std::move(molecule),
         .buffer = std::move(buffer),
         .runner = RunLocation::local,
-        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+        .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
     });
     saxs.job->submit();
 

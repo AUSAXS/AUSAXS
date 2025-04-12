@@ -1,6 +1,6 @@
 #pragma once
 
-#include <md/simulate/GMXOptions.h>
+#include <md/simulate/saxs.h>
 
 namespace ausaxs::md {
     /**
@@ -9,5 +9,5 @@ namespace ausaxs::md {
      * @param options The run settings. 
      * @param timestep The additional duration for each run in picoseconds.
      */
-    std::vector<SAXSOutput> timeanalysis(SAXSOptions& options, double timestep);
+    std::vector<SAXSOutput> timeanalysis(SimulateSAXSOptions&& options, double timestep);
 }
