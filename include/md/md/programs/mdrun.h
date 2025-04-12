@@ -14,7 +14,7 @@ namespace ausaxs::md {
             mdrun& output(const io::Folder& folder, const std::string& prefix);
             mdrun& output(const io::Folder& folder);
             mdrun& jobname(const std::string& name);
-            std::unique_ptr<shell::Jobscript<MDRunResult>> run(location where, std::string jobscript = "");
+            std::unique_ptr<shell::Jobscript<MDRunResult>> run(RunLocation where, std::string jobscript = "");
 
         private: 
             TPRFile tpr;

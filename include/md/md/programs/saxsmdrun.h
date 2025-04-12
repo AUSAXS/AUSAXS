@@ -14,7 +14,7 @@ namespace ausaxs::md {
             saxsmdrun& output(const io::Folder& folder, const std::string& prefix);
             saxsmdrun& rerun(const XTCFile& mol, const XTCFile& buf);
             saxsmdrun& env_var(const std::string& var, const std::string& value);
-            std::unique_ptr<shell::Jobscript<SAXSRunResult>> run(location where, std::string jobscript = "");
+            std::unique_ptr<shell::Jobscript<SAXSRunResult>> run(RunLocation where, std::string jobscript = "");
             saxsmdrun& jobname(const std::string& name);
 
         private: 

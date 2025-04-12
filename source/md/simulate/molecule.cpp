@@ -5,32 +5,23 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <md/simulate/molecule.h>
 #include <utility/Console.h>
+#include <settings/GeneralSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::md;
 
-md::simulate::Molecule::Molecule(MoleculeOptions& options) : options(options) {}
-
-md::SimulateMoleculeOutput md::simulate::Molecule::simulate() {return SimulateMoleculeOutput();}
-
-std::tuple<GROFile, TOPFile> md::simulate::Molecule::setup() {return std::make_tuple(GROFile(), TOPFile());}
-
-GROFile md::simulate::Molecule::minimize() {return GROFile();}
-
-std::tuple<GROFile, NDXFile> md::simulate::Molecule::thermalize() {return std::make_tuple(GROFile(), NDXFile());}
-
-SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
+SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) {
     console::print_info("\nPreparing simulation for " + options.pdbfile.filename());
     console::indent();
 
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder mdp_folder = options.output.str() + "/mdp/";
-    io::Folder setup_path = options.output.str() + "/protein/setup/";
-    io::Folder em_path = options.output.str() + "/protein/em/";
-    io::Folder eq_path = options.output.str() + "/protein/eq/";
-    io::Folder prod_path = options.output.str() + "/protein/prod/";
+    io::Folder mdp_folder = settings::general::output + "/mdp/";
+    io::Folder setup_path = settings::general::output + "/protein/setup/";
+    io::Folder em_path    = settings::general::output + "/protein/em/";
+    io::Folder eq_path    = settings::general::output + "/protein/eq/";
+    io::Folder prod_path  = settings::general::output + "/protein/prod/";
     mdp_folder.create(); setup_path.create(); em_path.create(); eq_path.create(); prod_path.create();
 
     // gmx::gmx::set_outputlog(output + "gmx.log");
@@ -39,8 +30,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
     //##################################//
     GROFile solv_ion(setup_path.str() + "/solv_ion.gro");
     TOPFile top(setup_path.str() + "/topol.top");
-    auto ff = option::IForcefield::construct(options.forcefield);
-    auto wm = option::IWaterModel::construct(options.watermodel);
+    auto ff = option::IForcefield::construct(options.system.forcefield);
+    auto wm = option::IWaterModel::construct(options.system.watermodel);
     if (!solv_ion.exists() || !top.exists()) {
         GROFile conf(setup_path.str() + "/conf.gro");
         if (!conf.exists()) {
@@ -62,7 +53,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         console::print_text("Generating unit cell...");
         auto[uc] = editconf(conf)
             .output(setup_path.str() + "/uc.gro")
-            .box_type(options.boxtype)
+            .box_type(options.system.boxtype)
             .extend(1.5)
         .run();
 
@@ -89,8 +80,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
             .output(solv_ion)
             .topology(top)
             .neutralize()
-            .cation(options.cation)
-            .anion(options.anion)
+            .cation(options.system.cation)
+            .anion(options.system.anion)
             .ion_group("SOL")
         .run();
     } else {
@@ -114,8 +105,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         // run energy minimization
         mdrun(emtpr)
             .output(em_path, "/em")
-            .jobname(options.name + "_mol")
-        .run(options.setupsim, options.jobscript)->submit();
+            .jobname(options.jobname)
+        .run(options.setup_runner, options.jobscript)->submit();
     } else {
         console::print_text("Reusing previously generated energy minimization.");
     }
@@ -176,8 +167,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         // run equilibration
         mdrun(eqtpr)
             .output(eq_path, "/eq")
-            .jobname(options.name + "_mol")
-        .run(options.setupsim, options.jobscript)->submit();
+            .jobname(options.jobname)
+        .run(options.setup_runner, options.jobscript)->submit();
     } else {
         console::print_text("Reusing previously generated thermalization.");
     }
@@ -199,8 +190,7 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
 
         // prepare production sim
         console::print_text("Running production...");
-        MDPFile mdp = options.molmdp->write(mdp_folder.str() + "/prmol.mdp");
-        auto[prodtpr] = grompp(mdp, top, eqgro)
+        auto[prodtpr] = grompp(options.mdp, top, eqgro)
             .output(prod_path.str() + "/prod.tpr")
             .index(index)
             .restraints(eqgro)
@@ -210,8 +200,8 @@ SimulateMoleculeOutput md::simulate_molecule(MoleculeOptions& options) {
         // run production
         auto job = mdrun(prodtpr)
             .output(prod_path, "/prod")
-            .jobname(options.name + "_mol")
-        .run(options.mainsim, options.jobscript);
+            .jobname(options.jobname)
+        .run(options.main_runner, options.jobscript);
 
         console::unindent();
         return {std::move(job), top, solv_ion};

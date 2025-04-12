@@ -3,5 +3,15 @@
 #include <md/simulate/GMXOptions.h>
 
 namespace ausaxs::md {
-    SimulateBufferOutput simulate_buffer(const BufferOptions& options);
+    struct SimulateBufferOptions {
+        SystemSettings system;
+        std::string jobname;
+        GROFile refgro;
+        MDPFile mdp;
+        RunLocation setup_runner = RunLocation::local;
+        RunLocation main_runner = RunLocation::local;
+        std::string jobscript;
+    };
+
+    SimulateBufferOutput simulate_buffer(SimulateBufferOptions&& options);
 }

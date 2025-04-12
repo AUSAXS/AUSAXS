@@ -18,14 +18,20 @@ namespace ausaxs::md::option {
         SPCE,
     };
 
-    struct IWaterModel {
-        static std::unique_ptr<IWaterModel> construct(WaterModel wm);
+    class IWaterModel {
+        public:
+            static std::unique_ptr<IWaterModel> construct(WaterModel wm);
+            virtual std::string filename() const = 0;
+            virtual std::string name() const = 0;
+            virtual std::string info() const = 0;
+            void ensure_exists(observer_ptr<option::IForcefield> ff); 
 
-        virtual std::string filename() const = 0;
-        virtual std::string name() const = 0;
-        virtual std::string info() const = 0;
-        virtual std::string get_file_content() const = 0;
-        bool exists(observer_ptr<option::IForcefield> ff) const;
-        void create(observer_ptr<option::IForcefield> ff) const;
+        private:
+            virtual std::string get_itp_file_content() const = 0;
+            virtual std::string get_gro_file_content() const = 0;
+            bool itp_exists(observer_ptr<option::IForcefield> ff) const;
+            bool gro_exists() const;
+            void create_itp(observer_ptr<option::IForcefield> ff) const;
+            void create_gro() const;
     };
 }

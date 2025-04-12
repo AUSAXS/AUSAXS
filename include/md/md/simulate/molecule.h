@@ -7,20 +7,15 @@
 #include <utility/StringUtils.h>
 
 namespace ausaxs::md {
-    namespace simulate {
-        class Molecule {
-            public:
-                Molecule(MoleculeOptions& options);
-                SimulateMoleculeOutput simulate();
-            
-            private:
-                MoleculeOptions options;
-                std::tuple<GROFile, TOPFile> setup();
-                GROFile minimize();
-                std::tuple<GROFile, NDXFile> thermalize();
-                SimulateMoleculeOutput prod();
-        };
-    }
+    struct SimulateMoleculeOptions {
+        SystemSettings system;
+        std::string jobname;
+        PDBFile pdbfile;
+        MDPFile mdp;
+        RunLocation setup_runner = RunLocation::local;
+        RunLocation main_runner = RunLocation::local;
+        std::string jobscript;
+    };
 
-    SimulateMoleculeOutput simulate_molecule(MoleculeOptions& options);
+    SimulateMoleculeOutput simulate_molecule(SimulateMoleculeOptions&& options);
 }
