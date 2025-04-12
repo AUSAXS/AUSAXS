@@ -7,7 +7,13 @@ namespace ausaxs::md::option::water_model {
         std::string filename() const override { return "tip4p2005"; }
         std::string name() const override { return "TIP4P2005"; }
         std::string info() const override { return "TIP 4-point optimized in 2005"; }
-        std::string get_file_content() const override {
+        std::string get_gro_file_content() const override {
+            const char* gro_content = 
+                #include "md/programs/options/water_models/tip4p2005.gro"
+            ;
+            return std::string(gro_content);
+        }
+        std::string get_itp_file_content() const override {
             return 
 R"(
 [ moleculetype ]

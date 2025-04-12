@@ -7,7 +7,7 @@
 #include <functional>
 
 namespace ausaxs::md {
-    enum class location {
+    enum class RunLocation {
         local,
         lusi,
         smaug

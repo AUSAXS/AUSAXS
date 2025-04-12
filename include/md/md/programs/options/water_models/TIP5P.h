@@ -7,7 +7,13 @@ namespace ausaxs::md::option::water_model {
         std::string filename() const override { return "tip5p"; }
         std::string name() const override { return "TIP5P"; }
         std::string info() const override { return "TIP 5-point (see https://gitlab.com/gromacs/gromacs/-/issues/1348 for issues)"; }
-        std::string get_file_content() const override {
+        std::string get_gro_file_content() const override {
+            const char* gro_content = 
+                #include "md/programs/options/water_models/tip5p.gro"
+            ;
+            return std::string(gro_content);
+        }
+        std::string get_itp_file_content() const override {
             return 
 R"(
 [ moleculetype ]

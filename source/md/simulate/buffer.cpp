@@ -9,18 +9,19 @@ For more information, please refer to the LICENSE file in the project root.
 #include <md/utility/files/MDPCreator.h>
 #include <utility/StringUtils.h>
 #include <utility/Console.h>
+#include <settings/GeneralSettings.h>
 
 using namespace ausaxs;
 
-md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
+md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder mdp_folder = options.output.str() + "mdp/";
-    io::Folder setup_path = options.output.str() + "buffer/setup/";
-    io::Folder em_path = options.output.str() + "buffer/em/";
-    io::Folder eq_path = options.output.str() + "buffer/eq/";
-    io::Folder prod_path = options.output.str() + "buffer/prod/";
+    io::Folder mdp_folder = settings::general::output + "mdp/";
+    io::Folder setup_path = settings::general::output + "buffer/setup/";
+    io::Folder em_path    = settings::general::output + "buffer/em/";
+    io::Folder eq_path    = settings::general::output + "buffer/eq/";
+    io::Folder prod_path  = settings::general::output + "buffer/prod/";
     mdp_folder.create(); setup_path.create(); em_path.create(); eq_path.create(); prod_path.create();
 
     if (!options.refgro.exists()) {
@@ -32,8 +33,8 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
     //##################################//
     GROFile gro(setup_path.str() + "buffer.gro");
     TOPFile top(setup_path.str() + "topol.top");
-    auto ff = option::IForcefield::construct(options.forcefield);
-    auto wm = option::IWaterModel::construct(options.watermodel);
+    auto ff = option::IForcefield::construct(options.system.forcefield);
+    auto wm = option::IWaterModel::construct(options.system.watermodel);
     if (!gro.exists() || !top.exists()) {
         {
             std::cout << "\tCopying unit cell from molecule..." << std::flush;
@@ -67,7 +68,7 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
 
         auto[ucgro] = editconf(options.refgro)
             .output(setup_path.str() + "uc.gro")
-            .box_type(options.boxtype)
+            .box_type(options.system.boxtype)
             .extend(2)
         .run();
 
@@ -111,8 +112,8 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
         // run energy minimization
         mdrun(emtpr)
             .output(em_path, "em")
-            .jobname(options.name + "_buf")
-        .run(options.setupsim, options.jobscript)->wait();
+            .jobname(options.jobname)
+        .run(options.setup_runner, options.jobscript)->wait();
         std::cout << " done" << std::endl;
     } else {
         std::cout << "\tReusing previously generated energy minimization." << std::endl;
@@ -136,8 +137,8 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
         // run equilibration
         mdrun(eqtpr)
             .output(eq_path, "eq")
-            .jobname(options.name + "_buf")
-        .run(options.mainsim, options.jobscript)->wait();
+            .jobname(options.jobname)
+        .run(options.main_runner, options.jobscript)->wait();
         std::cout << " done" << std::endl;
     } else {
         std::cout << "\tReusing previously generated thermalization." << std::endl;
@@ -151,8 +152,7 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
         std::cout << "\tRunning production..." << std::flush;
 
         // prepare production sim
-        MDPFile mdp = options.bufmdp->write(mdp_folder.str() + "prbuf.mdp");
-        auto[prodtpr] = grompp(mdp, top, eqgro)
+        auto[prodtpr] = grompp(options.mdp, top, eqgro)
             .output(prod_path.str() + "prod.tpr")
             .warnings(1)
         .run();
@@ -160,8 +160,8 @@ md::SimulateBufferOutput md::simulate_buffer(const BufferOptions& options) {
         // run production
         auto job = mdrun(prodtpr)
             .output(prod_path, "prod")
-            .jobname(options.name + "_buf")
-        .run(options.mainsim, options.jobscript);
+            .jobname(options.jobname)
+        .run(options.main_runner, options.jobscript);
         std::cout << " done." << std::endl;
 
         return {std::move(job), top, prodgro};
