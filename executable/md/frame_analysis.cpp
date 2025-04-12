@@ -1,7 +1,7 @@
 #include <md/programs/all.h>
-#include <md/simulate/buffer.h>
-#include <md/simulate/molecule.h>
-#include <md/simulate/frameanalysis.h>
+#include <md/simulate/SimulateBuffer.h>
+#include <md/simulate/SimulateMolecule.h>
+#include <md/simulate/FrameAnalysis.h>
 #include <io/ExistingFile.h>
 #include <settings/GeneralSettings.h>
 

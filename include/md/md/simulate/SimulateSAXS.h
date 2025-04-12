@@ -1,6 +1,7 @@
 #pragma once
 
-#include <md/simulate/GMXOptions.h>
+#include <md/simulate/SimulateMolecule.h>
+#include <md/simulate/SimulateBuffer.h>
 
 namespace ausaxs::md {
     struct SimulateSAXSOptions {
@@ -12,5 +13,9 @@ namespace ausaxs::md {
         std::string jobscript;
     };
 
-    SAXSOutput simulate_saxs(SimulateSAXSOptions&& options);
+    struct SimulateSAXSOutput {
+        std::unique_ptr<shell::Jobscript<SAXSRunResult>> job;
+    };
+
+    SimulateSAXSOutput simulate_saxs(SimulateSAXSOptions&& options);
 }
