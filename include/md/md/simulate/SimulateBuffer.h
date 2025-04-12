@@ -13,5 +13,11 @@ namespace ausaxs::md {
         std::string jobscript;
     };
 
+    struct SimulateBufferOutput {
+        std::unique_ptr<shell::Jobscript<MDRunResult>> job;
+        TOPFile top;    // topology file
+        GROFile gro;    // production structure
+    };
+
     SimulateBufferOutput simulate_buffer(SimulateBufferOptions&& options);
 }

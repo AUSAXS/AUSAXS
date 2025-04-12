@@ -1,7 +1,7 @@
 #include <md/programs/all.h>
-#include <md/simulate/buffer.h>
-#include <md/simulate/molecule.h>
-#include <md/simulate/saxs.h>
+#include <md/simulate/SimulateBuffer.h>
+#include <md/simulate/SimulateMolecule.h>
+#include <md/simulate/SimulateSAXS.h>
 #include <settings/MDSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/SettingsIO.h>

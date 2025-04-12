@@ -3,7 +3,7 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include <md/simulate/buffer.h>
+#include <md/simulate/SimulateBuffer.h>
 #include <md/programs/all.h>
 #include <md/programs/mdrun/Execution.h>
 #include <md/utility/files/MDPCreator.h>

@@ -6,11 +6,11 @@ add_library(ausaxs_md OBJECT
 	"programs/options/forcefields/IForcefield.cpp"
 	"programs/options/water_models/IWaterModel.cpp"
 	
-	"simulate/buffer.cpp"
-	"simulate/frameanalysis.cpp"
-	"simulate/molecule.cpp"
-	"simulate/saxs.cpp"
-	"simulate/timeanalysis.cpp"
+	"simulate/FrameAnalysis.cpp"
+	"simulate/SimulateBuffer.cpp"
+	"simulate/SimulateMolecule.cpp"
+	"simulate/SimulateSAXS.cpp"
+	"simulate/TimeAnalysis.cpp"
 	
 	"utility/Protein.cpp"
 	"utility/files/GROFile.cpp"
