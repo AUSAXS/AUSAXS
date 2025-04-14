@@ -142,7 +142,7 @@ std::vector<md::SimulateSAXSOutput> md::frameanalysis(SimulateSAXSOptions&& opti
 
         // generate molecule mdp file (depends on envelope output)
         {
-            auto _mdp = SAXSMDPCreatorMol();
+            auto _mdp = mdp::templates::saxs::mol();
 
             Protein protein(options.pdbfile);
             double qmax = std::stod(_mdp.get(MDPOptions::waxs_endq))/10; // convert to nm^-1
@@ -156,7 +156,7 @@ std::vector<md::SimulateSAXSOutput> md::frameanalysis(SimulateSAXSOptions&& opti
 
     MDPFile bufmdp(mdp_folder.str() + "rerun_buf.mdp");
     if (!bufmdp.exists()) {
-        SAXSMDPCreatorSol().write(bufmdp);
+        mdp::templates::saxs::solv().write(bufmdp);
     }
 
     // generate run files - they can be reused for all parts

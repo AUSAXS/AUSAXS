@@ -13,7 +13,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/StringUtils.h>
 #include <utility/Console.h>
 #include <io/Folder.h>
-#include <settings/GeneralSettings.h>
 
 #include <cmath>
 
@@ -37,10 +36,10 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
     //##################################//
     //###           GLOBALS          ###//
     //##################################//
-    io::Folder protein_path = settings::general::output + "protein/";
-    io::Folder buffer_path  = settings::general::output + "buffer/";
-    io::Folder mdp_folder   = settings::general::output + "mdp/";
-    io::Folder prod_folder  = settings::general::output + "prod/";
+    io::Folder protein_path = options.output + "protein/";
+    io::Folder buffer_path  = options.output + "buffer/";
+    io::Folder mdp_folder   = options.output + "mdp/";
+    io::Folder prod_folder  = options.output + "prod/";
     mdp_folder.create(); prod_folder.create();
 
     TOPFile moltop(protein_path.str() + "topol.top");
@@ -82,7 +81,7 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
             .run();
 
             molindex.append_file(tmp);
-            // tmp.remove();
+            tmp.remove();
         }
 
         if (!molindex.contains("Water_and_Ions")) {
@@ -92,7 +91,7 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
             .run();
 
             molindex.append_file(tmp);
-            // tmp.remove();
+            tmp.remove();
         }
 
         if (!molindex.contains("Protein_and_Ions")) {
@@ -102,7 +101,7 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
             .run();
 
             molindex.append_file(tmp);
-            // tmp.remove();
+            tmp.remove();
         }
     } else {
         console::print_text("Reusing index file for molecule.");
@@ -138,9 +137,9 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
         console::print_text("Preparing SAXS rerun...");
         console::indent();
-        MDPFile dummymdp = MDPFile(settings::general::output + "empty.mdp"); dummymdp.create();
+        MDPFile dummymdp = MDPFile(options.output + "empty.mdp"); dummymdp.create();
         auto[dummytpr] = grompp(dummymdp, moltop, molgro)
-            .output(settings::general::output + "saxs.tpr")
+            .output(options.output + "saxs.tpr")
             .warnings(1)
         .run();
         dummymdp.remove();
@@ -203,7 +202,7 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
 
         // generate molecule mdp file (depends on envelope output)
         {
-            auto _mdp = SAXSMDPCreatorMol();
+            auto _mdp = options.mol_mdp.value_or(mdp::templates::saxs::mol());
 
             Protein protein(options.pdbfile);
             double qmax = std::stod(_mdp.get(MDPOptions::waxs_endq))/10; // convert to nm^-1
@@ -220,7 +219,7 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
 
     MDPFile bufmdp(mdp_folder.str() + "rerun_buf.mdp");
     if (!bufmdp.exists()) {
-        SAXSMDPCreatorSol().write(bufmdp);
+        options.buf_mdp.value_or(mdp::templates::saxs::solv()).write(bufmdp);
     }
 
     GROFile gro(prod_folder.str() + "prod.gro");

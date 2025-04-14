@@ -34,7 +34,7 @@ saxsmdrun& saxsmdrun::rerun(const XTCFile& mol, const XTCFile& buf) {
 
 saxsmdrun& saxsmdrun::output(const io::Folder& folder, const std::string&) {
     this->folder = folder;
-    options.push_back(std::make_shared<shell::Argument>("-multidir", folder));
+    // options.push_back(std::make_shared<shell::Argument>("-multidir", folder));
     options.push_back(std::make_shared<shell::Argument>("-ow", folder));
     return *this;
 }

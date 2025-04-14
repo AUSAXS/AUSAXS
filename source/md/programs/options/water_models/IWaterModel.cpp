@@ -27,14 +27,14 @@ std::unique_ptr<option::IWaterModel> option::IWaterModel::construct(WaterModel w
 
 void option::IWaterModel::create_gro() const {
     io::File gro(settings::md::gmx_top_path() + filename() + ".gro");
-    assert(!gro.exists() && "gmx::create: File already exists: " + gro.path());
+    assert(!gro.exists() && "gmx::create: File already exists!");
     gro.create(get_gro_file_content());
 }
 
 void option::IWaterModel::create_itp(observer_ptr<option::IForcefield> ff) const {
     // create itp file
     io::File f(settings::md::gmx_top_path() + ff->filename() + ".ff/" + filename() + ".itp");
-    assert(!f.exists() && "gmx::create: File already exists: " + f.path());
+    assert(!f.exists() && "gmx::create: File already exists!");
     f.create(get_itp_file_content());
 
     // update watermodels.dat
