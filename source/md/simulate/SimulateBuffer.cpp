@@ -102,7 +102,7 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
         std::cout << "\tRunning energy minimization..." << std::flush;
 
         // prepare energy minimization sim
-        MDPFile mdp = EMMDPCreator().write(mdp_folder.str() + "emsol.mdp");
+        MDPFile mdp = mdp::templates::minimize::base().write(mdp_folder.str() + "emsol.mdp");
         auto[emtpr] = grompp(mdp, top, gro)
             .output(em_path.str() + "em.tpr")
             .restraints(gro)
@@ -127,7 +127,7 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
         std::cout << "\tRunning thermalization..." << std::flush;
 
         // prepare equilibration sim
-        MDPFile mdp = EQMDPCreatorSol().write(mdp_folder.str() + "eqsol.mdp");
+        MDPFile mdp = mdp::templates::equilibrate::solv().write(mdp_folder.str() + "eqsol.mdp");
         auto[eqtpr] = grompp(mdp, top, emgro)
             .output(eq_path.str() + "eq.tpr")
             .restraints(emgro)

@@ -13,6 +13,14 @@ using namespace ausaxs;
 using namespace ausaxs::md;
 
 MDPCreator& MDPCreator::add(const MDPOptions::detail::OptionVal& option) {
+    // Check if the option already exists
+    for (auto& opt : options) {
+        if (opt.name == option.name) {
+            opt.value = option.value;
+        }
+    }
+
+    // If the option does not exist, add it
     options.push_back(option);
     return *this;
 }
@@ -27,7 +35,11 @@ MDPFile MDPCreator::write(const std::string& name) const {
     return file;
 }
 
-std::string MDPCreator::get(const MDPOptions::detail::Option& option) const {
+std::string& MDPCreator::get(const MDPOptions::detail::Option& option) {
+    return const_cast<std::string&>(static_cast<const MDPCreator*>(this)->get(option));
+}
+
+const std::string& MDPCreator::get(const MDPOptions::detail::Option& option) const {
     for (const auto& o : options) {
         if (o.name == option.name) {
             return o.value;
@@ -36,7 +48,8 @@ std::string MDPCreator::get(const MDPOptions::detail::Option& option) const {
     throw except::io_error("MDPCreator::get: option \"" + option.name + "\" not found.");
 }
 
-EMMDPCreator::EMMDPCreator() {
+using namespace ausaxs::md::mdp::templates;
+minimize::base::base() {
     add(MDPOptions::define = "-DFLEXIBLE");
     add(MDPOptions::integrator = "steep");
     add(MDPOptions::dt = 0.002);
@@ -47,7 +60,7 @@ EMMDPCreator::EMMDPCreator() {
     add(MDPOptions::lincs_iter = 2);
 }
 
-EQMDPCreator::EQMDPCreator() {
+equilibrate::base::base() {
     add(MDPOptions::integrator = "md");
     add(MDPOptions::dt = 0.002);
     add(MDPOptions::nsteps = 50000);
@@ -70,20 +83,20 @@ EQMDPCreator::EQMDPCreator() {
     add(MDPOptions::constraints = "h-bonds");
 }
 
-EQMDPCreatorMol::EQMDPCreatorMol() : EQMDPCreator() {
+equilibrate::mol::mol() {
     add(MDPOptions::define = "-DPOSRES");
     add(MDPOptions::tc_grps = "Protein Water_and_ions");
     add(MDPOptions::tau_t = "0.1 0.1");
     add(MDPOptions::ref_t = "298.15 298.15");
 }
 
-EQMDPCreatorSol::EQMDPCreatorSol() : EQMDPCreator() {
+equilibrate::solv::solv() {
     add(MDPOptions::tc_grps = "Water");
     add(MDPOptions::tau_t = "0.1");
     add(MDPOptions::ref_t = "298.15");
 }
 
-PRMDPCreator::PRMDPCreator() {
+production::base::base() {
     add(MDPOptions::integrator = "md");
     add(MDPOptions::dt = 0.002);
     add(MDPOptions::nsteps = 500000);
@@ -106,49 +119,21 @@ PRMDPCreator::PRMDPCreator() {
     add(MDPOptions::constraints = "h-bonds");
 }
 
-PRMDPCreatorMol::PRMDPCreatorMol() : PRMDPCreator() {
+production::mol::mol() {
     add(MDPOptions::define = "-DPOSRESBACKBONE");
     add(MDPOptions::tc_grps = "Protein Water_and_ions");
     add(MDPOptions::tau_t = "0.1 0.1");
     add(MDPOptions::ref_t = "298.15 298.15");
 }
 
-PRMDPCreatorSol::PRMDPCreatorSol() : PRMDPCreator() {
+production::solv::solv() {
     add(MDPOptions::tc_grps = "Water");
     add(MDPOptions::tau_t = "0.1");
     add(MDPOptions::ref_t = "298.15");
 }
 
-SAXSMDPCreator::SAXSMDPCreator() {
+saxs::base::base() {
     add(MDPOptions::define = "-DSCATTER");
-    // add(MDPOptions::integrator = "md");
-    // add(MDPOptions::dt = 0.002);
-    // add(MDPOptions::nsteps = 500000);
-    // add(MDPOptions::nstlog = 5000);
-    // add(MDPOptions::nstenergy = 5000);
-    // add(MDPOptions::nstcomm = 1);
-    // add(MDPOptions::nstxout_compressed = 5000);
-
-    // add(MDPOptions::cutoff_scheme = "Verlet");
-    // add(MDPOptions::nstlist = 20);
-
-    // add(MDPOptions::coulombtype = "PME");
-    // add(MDPOptions::coulomb_modifier = "Potential-shift-Verlet");
-    // add(MDPOptions::vdw_type = "Cut-off");
-    // add(MDPOptions::vdw_modifier = "Potential-shift-Verlet");
-    // add(MDPOptions::dispcorr = "EnerPres");
-
-    // add(MDPOptions::tcoupl = "v-rescale");
-    // add(MDPOptions::pcoupl = "Berendsen");
-    // add(MDPOptions::pcoupltype = "isotropic");
-    // add(MDPOptions::ref_p = 1.0);
-    // add(MDPOptions::tau_p = 1.0);
-    // add(MDPOptions::compressibility = 4.5e-5);
-    // add(MDPOptions::refcoord_scaling = "com");
-
-    // add(MDPOptions::constraints = "h-bonds");
-    // add(MDPOptions::constraint_algorithm = "Lincs");
-
     add(MDPOptions::scatt_coupl = "xray");
     add(MDPOptions::waxs_solvdens = 334);
     add(MDPOptions::waxs_fc = 0);
@@ -161,7 +146,7 @@ SAXSMDPCreator::SAXSMDPCreator() {
     add(MDPOptions::waxs_solvdens_uncert = 0.005);
 }
 
-SAXSMDPCreatorMol::SAXSMDPCreatorMol() : SAXSMDPCreator() {
+saxs::mol::mol() {
     add(MDPOptions::tc_grps = "Protein Water_and_Ions");
     add(MDPOptions::ref_t = "298.15 298.15");
     add(MDPOptions::tau_t = "0.1 0.1");
@@ -170,7 +155,7 @@ SAXSMDPCreatorMol::SAXSMDPCreatorMol() : SAXSMDPCreator() {
     add(MDPOptions::waxs_rotfit = "Prot-Masses");
 }
 
-SAXSMDPCreatorSol::SAXSMDPCreatorSol() : SAXSMDPCreator() {
+saxs::solv::solv() {
     add(MDPOptions::tc_grps = "Water");
     add(MDPOptions::tau_t = "0.1");
     add(MDPOptions::ref_t = "298.15");
@@ -179,10 +164,9 @@ SAXSMDPCreatorSol::SAXSMDPCreatorSol() : SAXSMDPCreator() {
     add(MDPOptions::waxs_rotfit = "");
     add(MDPOptions::waxs_pbcatom = 0);
     add(MDPOptions::waxs_nsphere = 1200);
-    add(MDPOptions::waxs_correct_buffer = "yes");
 }
 
-TimeAnalysisMDPCreator::TimeAnalysisMDPCreator() {
+time_analysis::base::base() {
     add(MDPOptions::integrator = "md");
     add(MDPOptions::dt = 0.002);
     add(MDPOptions::nsteps = 5000000);
@@ -205,20 +189,20 @@ TimeAnalysisMDPCreator::TimeAnalysisMDPCreator() {
     add(MDPOptions::constraints = "h-bonds");
 }
 
-TimeAnalysisMDPCreatorMol::TimeAnalysisMDPCreatorMol() {
+time_analysis::mol::mol() {
     add(MDPOptions::define = "-DPOSRESBACKBONE");
     add(MDPOptions::tc_grps = "Protein Water_and_Ions");
     add(MDPOptions::tau_t = "0.1 0.1");
     add(MDPOptions::ref_t = "298.15 298.15");
 }
 
-TimeAnalysisMDPCreatorSol::TimeAnalysisMDPCreatorSol() {
+time_analysis::solv::solv() {
     add(MDPOptions::tc_grps = "Water");
     add(MDPOptions::tau_t = "0.1");
     add(MDPOptions::ref_t = "298.15");
 }
 
-FrameAnalysisMDPCreator::FrameAnalysisMDPCreator() {
+frame_analysis::base::base() {
     add(MDPOptions::integrator = "md");
     add(MDPOptions::dt = 0.002);
     add(MDPOptions::nsteps = 500000);
@@ -241,14 +225,14 @@ FrameAnalysisMDPCreator::FrameAnalysisMDPCreator() {
     add(MDPOptions::constraints = "h-bonds");    
 }
 
-FrameAnalysisMDPCreatorMol::FrameAnalysisMDPCreatorMol() {
+frame_analysis::mol::mol() {
     add(MDPOptions::define = "-DPOSRESBACKBONE");
     add(MDPOptions::tc_grps = "Protein Water_and_ions");
     add(MDPOptions::tau_t = "0.1 0.1");
     add(MDPOptions::ref_t = "298.15 298.15");
 }
 
-FrameAnalysisMDPCreatorSol::FrameAnalysisMDPCreatorSol() {
+frame_analysis::solv::solv() {
     add(MDPOptions::tc_grps = "Water");
     add(MDPOptions::tau_t = "0.1");
     add(MDPOptions::ref_t = "298.15");

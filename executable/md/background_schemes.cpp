@@ -1,8 +1,13 @@
 #include <md/programs/all.h>
-#include <md/simulate/buffer.h>
-#include <md/simulate/molecule.h>
-#include <md/simulate/frameanalysis.h>
+#include <md/simulate/SimulateBuffer.h>
+#include <md/simulate/SimulateMolecule.h>
+#include <md/simulate/SimulateSAXS.h>
+#include <settings/MDSettings.h>
+#include <settings/GeneralSettings.h>
+#include <settings/SettingsIO.h>
 #include <io/ExistingFile.h>
+#include <constants/Version.h>
+#include <utility/Console.h>
 
 #include <CLI/CLI.hpp>
 
@@ -10,57 +15,133 @@ using namespace ausaxs;
 using namespace ausaxs::md;
 
 int main(int argc, char const *argv[]) {
-    io::ExistingFile s_pdb;
-    CLI::App app{"Calculate two scattering curves using both background subtraction schemes for a single MD simulation."};
-    app.add_option("input", s_pdb, "PDB structure file.")->required();
+    io::ExistingFile s_pdb, s_settings;
+    CLI::App app{"Comparison of the two background subtraction schemes."};
+    app.add_option("input", s_pdb, "PDB structure file.")->required()->check(CLI::ExistingFile);
+    app.add_option("--buffer", settings::md::buffer_path, "Pre-simulated buffer. Set this to the base output folder.");
+    auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
+    app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     CLI11_PARSE(app, argc, argv);
 
-    // test executable
-    if (!gmx().valid_executable()) {
-        throw except::io_error("Gromacs executable not found. Please install Gromacs and add it to your PATH.");
+    // if a settings file was provided
+    if (p_settings->count() != 0) {
+        settings::read(s_settings);     // read it
+        CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
+    } else {                            // otherwise check if there is a settings file in the same directory
+        if (settings::discover({"."})) {
+            CLI11_PARSE(app, argc, argv);
+        }
     }
-    
-    GMXOptions sele {
+    if (!gmx().valid_executable()) {
+        throw except::io_error("Invalid GROMACS path \"" + settings::md::gmx_path + "\"");
+    }
+    settings::general::output += "md/" + s_pdb.stem() + "/";
+
+    if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
+    gmx::gmx::set_logfile(settings::general::output + "output.log", settings::general::output + "cmd.log");
+    PDBFile pdb(s_pdb);
+
+    SystemSettings ss {
         .forcefield = option::Forcefield::AMBER99SB_ILDN,
-        .watermodel = option::WaterModel::TIP4P,
+        .watermodel = option::WaterModel::TIP4P2005,
         .boxtype = option::BoxType::DODECAHEDRON,
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
-
-        .name = s_pdb.stem(),
-        .output = {"output/frame_analysis/" + s_pdb.stem() + "/"},
-        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
-        .setupsim = RunLocation::lusi,
-        .mainsim = RunLocation::smaug,
-        .bufmdp = std::make_shared<FrameAnalysisMDPCreatorSol>(),
-        .molmdp = std::make_shared<FrameAnalysisMDPCreatorMol>(),
     };
 
-    if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
-    gmx::gmx::set_logfile(sele.output.str() + "output.log", sele.output.str() + "cmd.log");
-    PDBFile pdb(s_pdb);
-
-    // prepare sims
-    MoleculeOptions mo(sele, pdb);
-    auto molecule = simulate_molecule(mo);
+    auto molecule = simulate_molecule({
+        .system = ss,
+        .jobname = pdb.stem() + "_mol",
+        .pdbfile = pdb,
+        .mdp = mdp::templates::production::mol().write(settings::general::output + "mdp/mol.mdp"),
+        .setup_runner = RunLocation::local,
+        .main_runner = RunLocation::smaug,
+        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+    });
 
     SimulateBufferOutput buffer;
-    BufferOptions bo(sele, molecule.gro);
-    buffer = simulate_buffer(bo);
+    console::print_info("\nPreparing buffer simulation");
+    if (settings::md::buffer_path.empty()) {
+        buffer = simulate_buffer({
+            .system = ss,
+            .jobname = pdb.stem() + "_buf",
+            .refgro = molecule.gro,
+            .mdp = mdp::templates::production::solv().write(settings::general::output + "mdp/buf.mdp"),
+            .setup_runner = RunLocation::local,
+            .main_runner = RunLocation::smaug,
+            .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+        });
+    } else {
+        // find production gro
+        io::Folder prod_folder(settings::md::buffer_path + "/prod");
+        if (!prod_folder.exists()) {
+            throw except::io_error("Could not find nested production folder (\"prod\") in supplied buffer folder \"" + settings::md::buffer_path + "\".");
+        }
+        for (auto& p : prod_folder.files()) {
+            if (p.extension() == ".gro") {
+                buffer.gro = GROFile(p.path());
+                console::print_text("\tFound production gro file: " + buffer.gro.path());
+            }
+        }
+        if (!buffer.gro.exists()) {
+            throw except::io_error("Could not find production gro file in supplied buffer folder \"" + settings::md::buffer_path + "/prod/\".");
+        }
 
-    // prepare saxs
-    GMXOptions saxs_sele = sele;
-    saxs_sele.jobscript = SHFile("temp/scripts/jobscript_slurm_swaxs.sh").absolute_path();
-    
-    SAXSOptions so(saxs_sele, std::move(molecule), std::move(buffer), pdb);
-    auto saxs = frameanalysis(so);
+        // find topology file
+        io::Folder setup_folder(settings::md::buffer_path + "/setup");
+        for (auto& p : setup_folder.files()) {
+            if (p.extension() == ".top") {
+                buffer.top = TOPFile(p.path());
+                console::print_text("\tFound topology file: " + buffer.top.path());
+            }
+        }
+        if (!buffer.top.exists()) {
+            throw except::io_error("Could not find topology file in supplied buffer folder \"" + settings::md::buffer_path + "/setup/\".");
+        }
 
-    for (unsigned int i = 0; i < saxs.size(); i++) {saxs[i].job->submit();}
-    for (unsigned int i = saxs.size(); i > 0; i--) { // reverse wait order since last job is the shortest one
-        saxs[i].job->wait();
-        auto res = saxs[i].job->result();
-        res.xvg.rename("saxs_" + std::to_string(i) + ".xvg").copy({sele.output.str() + "output"});
+        // create dummy job
+        buffer.job = std::make_unique<NoExecution<MDRunResult>>(settings::md::buffer_path + "/prod/");
+    }
+
+    {   // scheme 1: IA - IB
+        auto mol_mdp = mdp::templates::saxs::mol();
+        auto buf_mdp = mdp::templates::saxs::solv();
+        mol_mdp.add(MDPOptions::waxs_correct_buffer = "no");
+        buf_mdp.add(MDPOptions::waxs_correct_buffer = "no");
+
+        auto saxs = simulate_saxs({
+            .jobname = "" + pdb.stem() + "_saxs1",
+            .pdbfile = pdb,
+            .molecule = std::move(molecule),
+            .buffer = std::move(buffer),
+            .runner = RunLocation::local,
+            .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
+            .output = settings::general::output + "saxs_uncorrected/",
+            .mol_mdp = mol_mdp,
+            .buf_mdp = buf_mdp,
+        });
+        saxs.job->submit();
+    }
+    {
+        // scheme 2: IA - IB + IB
+        auto mol_mdp = mdp::templates::saxs::mol();
+        auto buf_mdp = mdp::templates::saxs::solv();
+        mol_mdp.add(MDPOptions::waxs_correct_buffer = "yes");
+        buf_mdp.add(MDPOptions::waxs_correct_buffer = "yes");
+
+        auto saxs = simulate_saxs({
+            .jobname = "" + pdb.stem() + "_saxs2",
+            .pdbfile = pdb,
+            .molecule = std::move(molecule),
+            .buffer = std::move(buffer),
+            .runner = RunLocation::local,
+            .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
+            .output = settings::general::output + "saxs_corrected/",
+            .mol_mdp = mol_mdp,
+            .buf_mdp = buf_mdp,
+        });
+        saxs.job->submit();
     }
 
     return 0;
-}
+} 
