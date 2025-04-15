@@ -7,6 +7,13 @@ namespace ausaxs::md::option::water_model {
         std::string filename() const override { return "tip4p"; }
         std::string name() const override { return "TIP4P"; }
         std::string info() const override { return "TIP 4-point"; }
+
+        std::string get_defined_atomtypes() const override {
+            return 
+R"(HW_tip4p     1       1.008   0.0000  A   0.00000e+00  0.00000e+00
+OW_tip4p     8      16.00    0.0000  A   3.15365e-01  6.48520e-01)";
+        }
+
         std::string get_gro_file_content() const override {
             const char* gro_content = 
                 #include "md/programs/options/water_models/tip4p.gro"
