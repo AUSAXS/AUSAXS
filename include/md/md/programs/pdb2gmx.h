@@ -59,6 +59,7 @@ namespace ausaxs::md {
 
             std::tuple<GROFile, TOPFile, ITPFile> run() {
                 // prepend water selection
+                wm->ensure_exists(ff);
                 {
                     auto res = shell::Command("cat " + settings::md::gmx_top_path() + ff->filename() + ".ff/watermodels.dat").execute();
                     if (res.exit_code != 0) {
