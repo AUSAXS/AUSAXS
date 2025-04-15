@@ -19,6 +19,6 @@ std::unique_ptr<IForcefield> IForcefield::construct(Forcefield ff) {
 }
 
 bool IForcefield::exists() const {
-    io::Folder f(settings::md::gmx_top_path() + filename() + ".ff");
+    io::Folder f(settings::md::gmx_top_path + filename() + ".ff");
     return f.exists();
 }
