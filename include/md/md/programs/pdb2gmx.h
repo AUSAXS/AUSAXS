@@ -61,7 +61,7 @@ namespace ausaxs::md {
                 // prepend water selection
                 wm->ensure_exists(ff);
                 {
-                    auto res = shell::Command("cat " + settings::md::gmx_top_path() + ff->filename() + ".ff/watermodels.dat").execute();
+                    auto res = shell::Command("cat " + settings::md::gmx_top_path + ff->filename() + ".ff/watermodels.dat").execute();
                     if (res.exit_code != 0) {
                         throw except::io_error("pdb2gmx: Error executing command: \"" + res.out + "\".");
                     }
@@ -92,7 +92,7 @@ namespace ausaxs::md {
                     if (!found) {
                         throw except::io_error(
                             "pdb2gmx: Could not find water model index \"" + wm_s + "\" in file \"" 
-                            + settings::md::gmx_top_path() + ff->filename() + ".ff/watermodels.dat\"."
+                            + settings::md::gmx_top_path + ff->filename() + ".ff/watermodels.dat\"."
                         );
                     }
                 }

@@ -28,7 +28,7 @@ std::unique_ptr<option::IWaterModel> option::IWaterModel::construct(WaterModel w
 
 void option::IWaterModel::create_gro() const {
     console::print_text("Creating gro file for water model " + filename() + "...");
-    io::File gro(settings::md::gmx_top_path() + filename() + ".gro");
+    io::File gro(settings::md::gmx_top_path + filename() + ".gro");
     assert(!gro.exists() && "gmx::create: File already exists!");
     gro.create(get_gro_file_content());
 }
@@ -37,12 +37,12 @@ void option::IWaterModel::create_itp(observer_ptr<option::IForcefield> ff) const
     console::print_text("Creating itp file for water model " + filename() + "...");
 
     // create itp file
-    io::File f(settings::md::gmx_top_path() + ff->filename() + ".ff/" + filename() + ".itp");
+    io::File f(settings::md::gmx_top_path + ff->filename() + ".ff/" + filename() + ".itp");
     assert(!f.exists() && "gmx::create: File already exists!");
     f.create(get_itp_file_content());
 
     // update watermodels.dat
-    io::File dat(settings::md::gmx_top_path() + ff->filename() + ".ff/watermodels.dat");
+    io::File dat(settings::md::gmx_top_path + ff->filename() + ".ff/watermodels.dat");
     if (!dat.exists()) {
         throw except::io_error("gmx::create: File does not exist: " + dat.path());
     }
@@ -67,17 +67,17 @@ void option::IWaterModel::create_itp(observer_ptr<option::IForcefield> ff) const
 }
 
 bool option::IWaterModel::itp_exists(observer_ptr<option::IForcefield> ff) const {
-    io::File f(settings::md::gmx_top_path() + ff->filename() + ".ff/" + filename() + ".itp");
+    io::File f(settings::md::gmx_top_path + ff->filename() + ".ff/" + filename() + ".itp");
     return f.exists();
 }
 
 bool option::IWaterModel::gro_exists() const {
-    io::File f(settings::md::gmx_top_path() + filename() + ".gro");
+    io::File f(settings::md::gmx_top_path + filename() + ".gro");
     return f.exists();
 }
 
 bool option::IWaterModel::atomtypes_defined(observer_ptr<option::IForcefield> ff) const {
-    io::File f(settings::md::gmx_top_path() + ff->filename() + ".ff/ffnonbonded.itp");
+    io::File f(settings::md::gmx_top_path + ff->filename() + ".ff/ffnonbonded.itp");
     assert(f.exists() && "gmx::atomtypes_defined: File does not exist!");
 
     std::ifstream in(f.path());
@@ -94,7 +94,7 @@ bool option::IWaterModel::atomtypes_defined(observer_ptr<option::IForcefield> ff
 void option::IWaterModel::define_atomtypes(observer_ptr<option::IForcefield> ff) const {
     console::print_text("Defining atomtypes for water model " + filename() + "...");
 
-    io::File f(settings::md::gmx_top_path() + ff->filename() + ".ff/ffnonbonded.itp");
+    io::File f(settings::md::gmx_top_path + ff->filename() + ".ff/ffnonbonded.itp");
     assert(f.exists() && "gmx::define_atomtypes: File does not exist!");
 
     std::ofstream out(f.path(), std::ios_base::app);
