@@ -29,9 +29,12 @@ namespace ausaxs::md::option {
         private:
             virtual std::string get_itp_file_content() const = 0;
             virtual std::string get_gro_file_content() const = 0;
+            virtual std::string get_defined_atomtypes() const = 0;
             bool itp_exists(observer_ptr<option::IForcefield> ff) const;
             bool gro_exists() const;
+            bool atomtypes_defined(observer_ptr<option::IForcefield> ff) const;
             void create_itp(observer_ptr<option::IForcefield> ff) const;
             void create_gro() const;
+            void define_atomtypes(observer_ptr<option::IForcefield> ff) const;
     };
 }

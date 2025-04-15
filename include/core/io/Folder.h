@@ -37,6 +37,7 @@ namespace ausaxs::io {
             void operator=(const T& path) {*this = std::string_view(path);}
             void operator=(std::string_view path);
             bool operator==(const Folder& other) const noexcept = default;
+            std::string operator+(std::string_view path) const {return this->path() + "/" + std::string(path);}
 
             [[nodiscard]] operator std::string() const;
 

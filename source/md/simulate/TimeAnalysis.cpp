@@ -37,8 +37,8 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
     io::Folder mdp_folder   = settings::general::output + "saxs/mdp/";
     io::Folder prod_folder  = settings::general::output + "saxs/prod/";
 
-    TOPFile moltop(protein_path.str() + "topol.top");
-    TOPFile buftop(buffer_path.str() + "topol.top");
+    TOPFile moltop(protein_path + "topol.top");
+    TOPFile buftop(buffer_path + "topol.top");
     if (!moltop.exists() || !buftop.exists()) {
         options.molecule.top.copy(moltop.directory());
         options.buffer.top.copy(buftop.directory());
@@ -49,8 +49,8 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
     //##################################//
     // we want to always have the group Water_and_ions, but it is only generated automatically if there are actual ions present in the system. 
     // since this is not guaranteed, we have to generate it manually
-    NDXFile molindex(protein_path.str() + "index.ndx");
-    NDXFile bufindex(buffer_path.str() + "index.ndx");
+    NDXFile molindex(protein_path + "index.ndx");
+    NDXFile bufindex(buffer_path + "index.ndx");
 
     if (!molindex.exists()) {
         make_ndx(molgro)
@@ -85,10 +85,10 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
     //##################################//
     //###         ENVELOPE           ###//
     //##################################//
-    GROFile envgro(protein_path.str() + "envelope-ref.gro");
-    PYFile envpy(protein_path.str() + "envelope.py");
-    DATFile envdat(protein_path.str() + "envelope.dat");
-    MDPFile molmdp(mdp_folder.str() + "rerun_mol.mdp");
+    GROFile envgro(protein_path + "envelope-ref.gro");
+    PYFile envpy(protein_path + "envelope.py");
+    DATFile envdat(protein_path + "envelope.dat");
+    MDPFile molmdp(mdp_folder + "rerun_mol.mdp");
 
     if (!envgro.exists() || !envpy.exists() || !envdat.exists() || !molmdp.exists()) {
         MDPFile dummymdp = MDPFile(settings::general::output + "saxs/empty.mdp"); dummymdp.create();
@@ -99,7 +99,7 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
         dummymdp.remove();
 
         auto[itps] = genscatt(dummytpr, molindex)
-            .output(protein_path.str() + "scatt.itp")
+            .output(protein_path + "scatt.itp")
             .group("Protein")
         .run();
 
@@ -107,13 +107,13 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
 
         // dump the first 50 frames
         auto[traj] = trjconv(molxtc)
-            .output(protein_path.str() + "protein.xtc")
+            .output(protein_path + "protein.xtc")
             .startframe(50)
         .run();
 
         // center the trajectories
         auto[cluster] = trjconv(traj)
-            .output(protein_path.str() + "cluster.xtc")
+            .output(protein_path + "cluster.xtc")
             .group("Protein")
             .pbc("cluster")
             .ur("tric")
@@ -122,7 +122,7 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
         .run();
 
         auto[centered] = trjconv(cluster)
-            .output(protein_path.str() + "centered.xtc")
+            .output(protein_path + "centered.xtc")
             .group("Protein")
             .center()
             .boxcenter("tric")
@@ -154,19 +154,19 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
         }
     }
 
-    MDPFile bufmdp(mdp_folder.str() + "rerun_buf.mdp");
+    MDPFile bufmdp(mdp_folder + "rerun_buf.mdp");
     if (!bufmdp.exists()) {
         mdp::templates::saxs::solv().write(bufmdp);
     }
 
     auto[moltpr] = grompp(molmdp, moltop, molgro)
-        .output(prod_folder.str() + "mol.tpr")
+        .output(prod_folder + "mol.tpr")
         .index(molindex)
         .warnings(1)
     .run();
 
     auto[buftpr] = grompp(bufmdp, buftop, bufgro)
-        .output(prod_folder.str() + "buf.tpr")
+        .output(prod_folder + "buf.tpr")
         .index(bufindex)
         .warnings(2)
     .run();
@@ -179,16 +179,16 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
     std::cout << "\tChopping trajectory into " << frames/framestep << " parts." << std::endl;
     unsigned int part = 0;
     for (unsigned int i = 0; i < frames; i+=framestep) {
-        io::Folder part_folder = prod_folder.str() + "part_" + std::to_string(++part) + "/";
+        io::Folder part_folder = prod_folder + "part_" + std::to_string(++part) + "/";
 
         auto [molxtc_i] = trjconv(molxtc)
-            .output(part_folder.str() + "mol.xtc")
+            .output(part_folder + "mol.xtc")
             .startframe(i)
             .endframe(i+framestep)
         .run();
 
         auto [bufxtc_i] = trjconv(bufxtc)
-            .output(part_folder.str() + "buf.xtc")
+            .output(part_folder + "buf.xtc")
             .startframe(i)
             .endframe(i+framestep)
         .run();

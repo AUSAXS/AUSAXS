@@ -31,8 +31,8 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
     //##################################//
     //###           SETUP            ###//
     //##################################//
-    GROFile gro(setup_path.str() + "buffer.gro");
-    TOPFile top(setup_path.str() + "topol.top");
+    GROFile gro(setup_path + "buffer.gro");
+    TOPFile top(setup_path + "topol.top");
     auto ff = option::IForcefield::construct(options.system.forcefield);
     auto wm = option::IWaterModel::construct(options.system.watermodel);
     if (!gro.exists() || !top.exists()) {
@@ -67,7 +67,7 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
         }
 
         auto[ucgro] = editconf(options.refgro)
-            .output(setup_path.str() + "uc.gro")
+            .output(setup_path + "uc.gro")
             .box_type(options.system.boxtype)
             .extend(2)
         .run();
@@ -97,21 +97,21 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
     //##################################//
     //###     ENERGY MINIMIZATION    ###//
     //##################################//
-    GROFile emgro(em_path.str() + "em.gro");
+    GROFile emgro(em_path + "em.gro");
     if (!emgro.exists()) {
         std::cout << "\tRunning energy minimization..." << std::flush;
 
         // prepare energy minimization sim
-        MDPFile mdp = mdp::templates::minimize::base().write(mdp_folder.str() + "emsol.mdp");
+        MDPFile mdp = mdp::templates::minimize::base().write(mdp_folder + "emsol.mdp");
         auto[emtpr] = grompp(mdp, top, gro)
-            .output(em_path.str() + "em.tpr")
+            .output(em_path + "em.tpr")
             .restraints(gro)
             .warnings(1)
         .run();
 
         // run energy minimization
         mdrun(emtpr)
-            .output(em_path, "em")
+            .output(em_path, "/em")
             .jobname(options.jobname)
         .run(options.setup_runner, options.jobscript)->wait();
         std::cout << " done" << std::endl;
@@ -122,21 +122,21 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
     //##################################//
     //###       EQUILIBRATION        ###//
     //##################################//
-    GROFile eqgro(eq_path.str() + "eq.gro");
+    GROFile eqgro(eq_path + "eq.gro");
     if (!eqgro.exists()) {
         std::cout << "\tRunning thermalization..." << std::flush;
 
         // prepare equilibration sim
-        MDPFile mdp = mdp::templates::equilibrate::solv().write(mdp_folder.str() + "eqsol.mdp");
+        MDPFile mdp = mdp::templates::equilibrate::solv().write(mdp_folder + "eqsol.mdp");
         auto[eqtpr] = grompp(mdp, top, emgro)
-            .output(eq_path.str() + "eq.tpr")
+            .output(eq_path + "eq.tpr")
             .restraints(emgro)
             .warnings(1)
         .run();
 
         // run equilibration
         mdrun(eqtpr)
-            .output(eq_path, "eq")
+            .output(eq_path, "/eq")
             .jobname(options.jobname)
         .run(options.main_runner, options.jobscript)->wait();
         std::cout << " done" << std::endl;
@@ -147,19 +147,19 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
     //##################################//
     //###       PRODUCTION          ###//
     //##################################//
-    GROFile prodgro(prod_path.str() + "confout.gro");
+    GROFile prodgro(prod_path + "confout.gro");
     if (!prodgro.exists()) {
         std::cout << "\tRunning production..." << std::flush;
 
         // prepare production sim
         auto[prodtpr] = grompp(options.mdp, top, eqgro)
-            .output(prod_path.str() + "prod.tpr")
+            .output(prod_path + "prod.tpr")
             .warnings(1)
         .run();
 
         // run production
         auto job = mdrun(prodtpr)
-            .output(prod_path, "prod")
+            .output(prod_path, "/prod")
             .jobname(options.jobname)
         .run(options.main_runner, options.jobscript);
         std::cout << " done." << std::endl;
