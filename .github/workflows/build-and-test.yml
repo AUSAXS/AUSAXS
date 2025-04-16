@@ -119,8 +119,8 @@ jobs:
             vcpkg_triplet: x64-osx
             CC: clang
             CXX: clang++
-#            CC: $(brew --prefix llvm@15)/bin/clang
-#            CXX: $(brew --prefix llvm@15)/bin/clang++
+            # CC: $(brew --prefix llvm@15)/bin/clang
+            # CXX: $(brew --prefix llvm@15)/bin/clang++
             XCODE_VER: 14.2
 
           - runner: macos-15
