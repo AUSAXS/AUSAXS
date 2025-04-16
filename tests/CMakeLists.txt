@@ -1,6 +1,7 @@
 set(CMAKE_CXX_FLAGS "")
 if (MSVC)
 	set(CMAKE_CXX_FLAGS_TEST "/O2 /W4 /permissive- /EHsc")
+	set(CMAKE_CXX_FLAGS "/EHsc")
 else()
 	set(CMAKE_CXX_FLAGS_TEST
 		"-Os -Wpedantic -Wall -Wextra"

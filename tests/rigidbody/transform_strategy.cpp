@@ -1,4 +1,3 @@
-#include "settings/MoleculeSettings.h"
 #include <catch2/catch_test_macros.hpp>
 
 #include <rigidbody/constraints/DistanceConstraint.h>
@@ -11,7 +10,9 @@
 #include <rigidbody/RigidBody.h>
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
+
 #include <unordered_set>
+#include <numbers>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

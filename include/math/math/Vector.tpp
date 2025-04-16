@@ -133,7 +133,7 @@ namespace ausaxs {
     bool Vector<T>::empty() const {return data.empty();}
 
     template<numeric T> template<numeric Q>
-    void Vector<T>::compatibility_check(const Vector<Q>& v) const {
+    void Vector<T>::compatibility_check([[maybe_unused]] const Vector<Q>& v) const {
         #if (SAFE_MATH)
             if (size() != v.size()) [[unlikely]] {
                 throw std::invalid_argument("Vector::compatibility_check: Vector dimensions do not match (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(size()) + ").");

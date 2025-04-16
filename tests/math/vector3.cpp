@@ -5,6 +5,7 @@
 #include <math/Vector3.h>
 
 #include <string>
+#include <numbers>
 
 using namespace ausaxs;
 

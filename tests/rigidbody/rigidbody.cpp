@@ -20,6 +20,8 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 
+#include <numbers>
+
 using namespace ausaxs;
 using namespace data;
 using namespace rigidbody;

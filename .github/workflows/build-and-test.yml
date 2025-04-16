@@ -117,9 +117,9 @@ jobs:
             name: "MacOS x86"
             arch: x86_64
             vcpkg_triplet: x64-osx
-            CC: $(brew --prefix llvm@15)/bin/clang
-            CXX: $(brew --prefix llvm@15)/bin/clang++
-            XCODE_VER: 15.2
+            CC: $(brew --prefix llvm@14)/bin/clang
+            CXX: $(brew --prefix llvm@14)/bin/clang++
+            XCODE_VER: 14.2
 
           - runner: macos-15
             name: "MacOS arm64"

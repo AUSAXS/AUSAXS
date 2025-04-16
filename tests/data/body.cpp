@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <string>
+#include <numbers>
 
 using namespace ausaxs;
 using namespace data;
