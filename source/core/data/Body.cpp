@@ -12,7 +12,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <math/Vector3.h>
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/ImplicitHydration.h>
-#include <hydrate/NoHydration.h>
 #include <io/Reader.h>
 #include <settings/MoleculeSettings.h>
 
@@ -180,7 +179,7 @@ Body& Body::operator=(Body&& rhs) noexcept {
 }
 
 Body& Body::operator=(const Body& rhs) {
-    atoms = std::move(rhs.atoms);
+    atoms = rhs.atoms;
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); h) {
         hydration = std::make_unique<hydrate::ExplicitHydration>(h->waters);
     } else if (auto h = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); h) {

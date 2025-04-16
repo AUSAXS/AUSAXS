@@ -1,7 +1,7 @@
 #include <hydrate/Hydration.h>
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/ImplicitHydration.h>
-#include <hydrate/NoHydration.h>
+#include <hydrate/EmptyHydration.h>
 
 namespace ausaxs::hydrate {
     template<data::WaterVector T>
@@ -14,7 +14,7 @@ namespace ausaxs::hydrate {
     }
 
     std::unique_ptr<Hydration> Hydration::create() {
-        return std::make_unique<NoHydration>();
+        return std::make_unique<EmptyHydration>();
     }
 }
 

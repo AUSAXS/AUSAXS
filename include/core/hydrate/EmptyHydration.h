@@ -3,11 +3,11 @@
 #include <hydrate/Hydration.h>
 
 namespace ausaxs::hydrate {
-    class ImplicitHydration final : public Hydration {
+    class EmptyHydration final : public Hydration {
         public:
-            ImplicitHydration();
+            EmptyHydration();
 
-            ~ImplicitHydration();
+            ~EmptyHydration() override;
 
             void clear() override;
 

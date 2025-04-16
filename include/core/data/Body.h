@@ -176,4 +176,5 @@ namespace ausaxs::data {
 		friend class detail::BodySymmetryFacade<Body>;
 		friend class detail::BodySymmetryFacade<const Body>;
 	};
+	static_assert(std::is_move_constructible_v<Body>);
 }

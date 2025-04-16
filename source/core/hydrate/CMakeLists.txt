@@ -1,6 +1,8 @@
 target_sources(ausaxs_core PRIVATE 
+	"EmptyHydration.cpp"
 	"ExplicitHydration.cpp"
 	"Hydration.cpp"
+	"ImplicitHydration.cpp"
 
 	"culling/BodyCounterCulling.cpp"
 	"culling/CounterCulling.cpp"
