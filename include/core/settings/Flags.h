@@ -1,6 +1,6 @@
 #pragma once
 
-// Namespace for internal boolean flags to signal state. 
+// Internal boolean flags for signalling state. 
 // This is primarily used to communicate between different parts of the program.
 namespace ausaxs::settings {
     struct flags {

@@ -17,7 +17,7 @@ unsigned int settings::axes::skip = 0;
 bool settings::hist::weighted_bins = true;
 
 namespace ausaxs::settings::io {
-    settings::io::SettingSection axes_settings("Axes", {
+    settings::io::SettingSection axes_section("Axes", {
         settings::io::create(axes::skip, "skip"),
         settings::io::create(axes::qmin, "qmin"),
         settings::io::create(axes::qmax, "qmax"),

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <settings/ExportMacro.h>
+
 #include <string>
 
 namespace ausaxs::settings {
-    struct general {
+    struct EXPORT general {
         static std::string residue_folder;  // Download location for all ligand files.
         static bool offline;                // Whether to use the offline mode. This will prevent any network requests, but may result in less accurate results.
         static bool verbose;                // Whether to print out extra information.

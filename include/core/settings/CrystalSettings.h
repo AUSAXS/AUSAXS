@@ -1,7 +1,9 @@
 #pragma once
 
+#include <settings/ExportMacro.h>
+
 namespace ausaxs::settings {
-    struct crystal {
+    struct EXPORT crystal {
         static unsigned int h;        // The maximum Miller index along the x direction.
         static unsigned int k;        // The maximum Miller index along the y direction.
         static unsigned int l;        // The maximum Miller index along the z direction.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <settings/ExportMacro.h>
+
 namespace ausaxs::settings {
     struct fit {
         static bool verbose;                 // Decides if the fitting process will be verbose.

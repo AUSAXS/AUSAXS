@@ -31,7 +31,7 @@ namespace ausaxs::settings::io {
         settings::io::create(molecule::displaced_volume_set, "exv_volume")
     });
 
-    settings::io::SettingSection hydrate_settings("Hydrate", {
+    settings::io::SettingSection hydrate_section("Hydrate", {
         settings::io::create(hydrate::hydration_strategy, "hydration_strategy"),
         settings::io::create(hydrate::culling_strategy, "culling_strategy")
     });

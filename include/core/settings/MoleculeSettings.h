@@ -1,7 +1,9 @@
 #pragma once
 
+#include <settings/ExportMacro.h>
+
 namespace ausaxs::settings {
-    struct molecule {
+    struct EXPORT molecule {
         static bool center;                 // Decides if the structure will be centered at origo.
         static bool throw_on_unknown_atom;  // Decides whether an exception will be thrown if an unknown atom is encountered.
         static bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
@@ -24,7 +26,7 @@ namespace ausaxs::settings {
         static DisplacedVolumeSet displaced_volume_set;
     };
 
-    struct hydrate {
+    struct EXPORT hydrate {
         enum class HydrationStrategy {
             // This strategy attempts to place water molecules along each axis of every atom
             AxesStrategy, 

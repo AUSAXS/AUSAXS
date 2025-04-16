@@ -1,13 +1,15 @@
 #pragma once
 
+#include <settings/ExportMacro.h>
+
 namespace ausaxs::settings {
-    struct axes {
+    struct EXPORT axes {
         static unsigned int skip;   // The number of points to skip from the top of the scattering curve.
         static double qmin;         // Lower limit on the used q-values
         static double qmax;         // Upper limit on the used q-values
     };
 
-    struct hist {
+    struct EXPORT hist {
         enum class HistogramManagerChoice {
             None,                                // No histogram manager. This is only used to avoid performing an expensive constructor when the manager is not needed.
             HistogramManager,                    // A simple manager that recalculates the entire histogram every time.

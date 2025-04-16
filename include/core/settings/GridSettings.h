@@ -1,9 +1,10 @@
 #pragma once
 
+#include <settings/ExportMacro.h>
 #include <utility/Limit3D.h>
 
 namespace ausaxs::settings {
-    struct grid {
+    struct EXPORT grid {
         // The number of generated water molecules as a percent of the number of atoms.
         static double water_scaling;
 

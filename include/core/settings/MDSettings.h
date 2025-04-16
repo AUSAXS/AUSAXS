@@ -1,9 +1,11 @@
 #pragma once
 
+#include <settings/ExportMacro.h>
+
 #include <string>
 
 namespace ausaxs::settings {
-    struct md {
+    struct EXPORT md {
         static std::string gmx_path;                    // The path to the GROMACS installation.
         static std::string buffer_path;                 // The path to the buffer directory.
         static std::string water_model;                 // The water model to use.
