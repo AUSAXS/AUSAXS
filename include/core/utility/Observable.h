@@ -53,8 +53,8 @@ namespace ausaxs::utility {
              */
             std::unique_ptr<Observer> make_observer() {
                 auto o = std::make_unique<Observer>();
-                o->on_delete = [this, &o] () {
-                    this->detach_observer(o.get());
+                o->on_delete = [this, ptr=o.get()] () {
+                    this->detach_observer(ptr);
                 };
                 this->attach_observer(o.get());
                 return o;

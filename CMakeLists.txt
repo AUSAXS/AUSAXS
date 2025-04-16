@@ -16,7 +16,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 add_compile_definitions("CONSTEXPR_TABLES=${CONSTEXPR_TABLES};$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
 if (WIN32)
 	if (MSVC)
-		add_compile_definitions("NOMINMAX")
+		add_compile_definitions("NOMINMAX;BUILD_EXPORT_DLL")
 		add_compile_options(
 			/fp:fast /constexpr:steps10000000000 /Zm500 
 			/wd4267 # disable size_t --> int, unsigned int conversions

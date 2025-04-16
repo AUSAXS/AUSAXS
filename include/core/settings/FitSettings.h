@@ -3,7 +3,7 @@
 #include <settings/ExportMacro.h>
 
 namespace ausaxs::settings {
-    struct fit {
+    struct EXPORT fit {
         static bool verbose;                 // Decides if the fitting process will be verbose.
         static unsigned int N;               // Number of points sampled when discretizing a model scattering curve
         static unsigned int max_iterations;  // Maximum number of iterations in the fitting process

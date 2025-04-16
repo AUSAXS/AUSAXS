@@ -121,7 +121,7 @@ jobs:
             CXX: clang++
             # CC: $(brew --prefix llvm@15)/bin/clang
             # CXX: $(brew --prefix llvm@15)/bin/clang++
-            XCODE_VER: 14.2
+            XCODE_VER: 15.0.1
 
           - runner: macos-15
             name: "MacOS arm64"
