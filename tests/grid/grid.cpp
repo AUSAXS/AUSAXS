@@ -2,9 +2,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <vector>
-#include <string>
-
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
@@ -19,6 +16,9 @@
 #include <constants/Constants.h>
 #include <rigidbody/BodySplitter.h>
 
+#include <vector>
+#include <string>
+
 using namespace ausaxs;
 using namespace ausaxs::grid;
 using namespace ausaxs::grid::detail;
@@ -27,6 +27,7 @@ using namespace ausaxs::data;
 // Debug class to expose the volume variable
 class GridDebug : public grid::Grid {
     public: 
+        ~GridDebug() override = default;
         GridDebug(Limit3D axes) : Grid(axes) {}
 
 		double get_atomic_radius(form_factor::form_factor_t) const override {return ra;}

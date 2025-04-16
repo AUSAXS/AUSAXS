@@ -216,7 +216,7 @@ TEST_CASE("Dataset::interpolate") {
 
     SECTION("multiple columns") {
         std::vector<double> x1, y1, x2, y2;
-        for (double x = 0; x < 2*M_PI; x += 0.05) {
+        for (double x = 0; x < 2*std::numbers::pi; x += 0.05) {
             x1.push_back(x);
             x2.push_back(x + 0.025);
             y1.push_back(std::sin(x));
@@ -376,8 +376,8 @@ TEST_CASE_METHOD(fixture, "Dataset::limit_y") {
 }
 
 TEST_CASE_METHOD(fixture, "Dataset::x") {
-    auto x = dataset.x();
-    CHECK(x == dataset.col(0));
+    auto _x = dataset.x();
+    CHECK(_x == dataset.col(0));
 }
 
 TEST_CASE_METHOD(fixture, "Dataset::y") {
@@ -436,9 +436,9 @@ TEST_CASE("Dataset::find_minima") {
             data = data.rolling_average(7);
             std::vector<unsigned int> minima = data.find_minima(1, 0.05);
             REQUIRE(minima.size() < 5);
-            for (unsigned int i = 0; i < minima.size()-1; i++) {
-                CHECK(-2 < x[minima[i]]);
-                CHECK(x[minima[i]] < 2);
+            for (unsigned int j = 0; j < minima.size()-1; j++) {
+                CHECK(-2 < x[minima[j]]);
+                CHECK(x[minima[j]] < 2);
             }
         }
     }

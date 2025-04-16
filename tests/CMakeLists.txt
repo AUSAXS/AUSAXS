@@ -4,7 +4,7 @@ if (MSVC)
 	set(CMAKE_CXX_FLAGS "/EHsc")
 else()
 	set(CMAKE_CXX_FLAGS_TEST
-		"-Os -Wpedantic -Wall -Wextra"
+		"-Os -Wpedantic -Wall -Wextra -Wno-nested-anon-types"
 		CACHE STRING "Flags used by the C++ compiler during test builds."
 	)
 endif()

@@ -154,10 +154,10 @@ namespace ausaxs {
             unsigned int step;      // step size between each index in linear data array
             unsigned int length;    // total number of elements in this Slice
 
-            void validate_sizes([[maybe_unused]] unsigned int length) const {
+            void validate_sizes([[maybe_unused]] unsigned int other) const {
                 #if SAFE_MATH
-                    if (size() != length) {
-                        throw std::invalid_argument("Slice::validate_sizes: Slice of size \"" + std::to_string(length) + "\" does not fit in slice of size \"" + std::to_string(size()) + "\".");
+                    if (size() != other) {
+                        throw std::invalid_argument("Slice::validate_sizes: Slice of size \"" + std::to_string(other) + "\" does not fit in slice of size \"" + std::to_string(size()) + "\".");
                     }
                 #endif
             }
