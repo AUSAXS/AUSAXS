@@ -3,10 +3,10 @@
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 #include <hist/HistFwd.h>
+#include <settings/HistogramSettings.h>
 
 #include <memory>
 
-namespace ausaxs::settings::hist {enum class HistogramManagerChoice;}
 namespace ausaxs::hist {
     namespace factory {
         /**

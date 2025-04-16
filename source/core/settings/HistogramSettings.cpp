@@ -16,16 +16,16 @@ double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;
 bool settings::hist::weighted_bins = true;
 
-namespace ausaxs::settings::axes::io {
+namespace ausaxs::settings::io {
     settings::io::SettingSection axes_settings("Axes", {
-        settings::io::create(skip, "skip"),
-        settings::io::create(qmin, "qmin"),
-        settings::io::create(qmax, "qmax"),
+        settings::io::create(axes::skip, "skip"),
+        settings::io::create(axes::qmin, "qmin"),
+        settings::io::create(axes::qmax, "qmax"),
     });
 }
 
 settings::hist::HistogramManagerChoice settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
-settings::io::SettingSection hist_settings("Histogram", {
+settings::io::SettingSection hist_section("Histogram", {
     settings::io::create(settings::hist::histogram_manager, "histogram_manager"),
     settings::io::create(settings::hist::weighted_bins, "weighted_bins")
 });

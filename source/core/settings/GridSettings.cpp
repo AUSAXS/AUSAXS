@@ -22,17 +22,17 @@ bool settings::grid::exv::save = false;
 
 double settings::grid::detail::min_score = 0.25;
 
-namespace ausaxs::settings::grid::io {
-    settings::io::SettingSection grid_settings("Grid", {
-        settings::io::create(water_scaling, "water_scaling"),
-        settings::io::create(cell_width, "width"),
-        settings::io::create(scaling, "scaling"),
-        settings::io::create(cubic, "cubic"),
-        settings::io::create(min_exv_radius, "rvol"),
-        settings::io::create(exv::width, "exv_width"),
-        settings::io::create(exv::save, "save_exv"),
-        settings::io::create(exv::surface_thickness, "surface_thickness"),
-        settings::io::create(detail::min_score, "detail.min_score"),
+namespace ausaxs::settings::io {
+    settings::io::SettingSection grid_section("Grid", {
+        settings::io::create(grid::water_scaling, "water_scaling"),
+        settings::io::create(grid::cell_width, "width"),
+        settings::io::create(grid::scaling, "scaling"),
+        settings::io::create(grid::cubic, "cubic"),
+        settings::io::create(grid::min_exv_radius, "rvol"),
+        settings::io::create(grid::exv::width, "exv_width"),
+        settings::io::create(grid::exv::save, "save_exv"),
+        settings::io::create(grid::exv::surface_thickness, "surface_thickness"),
+        settings::io::create(grid::detail::min_score, "detail.min_score"),
     });
 }
 

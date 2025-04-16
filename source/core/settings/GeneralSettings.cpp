@@ -51,15 +51,15 @@ std::string settings::general::residue_folder = cache + "residues/";
 
 unsigned int ausaxs::settings::general::detail::job_size = 800; // The number of atoms to process in each job.
 
-namespace ausaxs::settings::general::io {
-    settings::io::SettingSection general_settings("General", {
-        settings::io::create(verbose, {"verbose", "v"}),
-        settings::io::create(warnings, {"warnings", "w"}),
-        settings::io::create(threads, {"threads", "t"}),
-        settings::io::create(output, {"output", "o"}),
-        settings::io::create(keep_hydrogens, {"keep_hydrogens"}),
-        settings::io::create(supplementary_plots, {"supplementary_plots"}),
-        settings::io::create(input_q_unit, {"unit"}),
+namespace ausaxs::settings::io {
+    settings::io::SettingSection general_section("General", {
+        settings::io::create(general::verbose, {"verbose", "v"}),
+        settings::io::create(general::warnings, {"warnings", "w"}),
+        settings::io::create(general::threads, {"threads", "t"}),
+        settings::io::create(general::output, {"output", "o"}),
+        settings::io::create(general::keep_hydrogens, {"keep_hydrogens"}),
+        settings::io::create(general::supplementary_plots, {"supplementary_plots"}),
+        settings::io::create(general::input_q_unit, {"unit"}),
     });
 }
 

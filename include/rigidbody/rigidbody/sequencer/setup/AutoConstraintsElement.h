@@ -3,8 +3,7 @@
 #include <rigidbody/sequencer/GenericElement.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <utility/observer_ptr.h>
-
-namespace ausaxs::settings::rigidbody {enum class ConstraintGenerationStrategyChoice;}
+#include <settings/RigidBodySettings.h>
 
 namespace ausaxs::rigidbody::sequencer {
     class AutoConstraintsElement : public GenericElement {
