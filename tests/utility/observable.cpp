@@ -1,8 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <utility/Observable.h>
 
-#include <iostream>
-
 using namespace ausaxs;
 
 TEST_CASE("Observables & Observers") {

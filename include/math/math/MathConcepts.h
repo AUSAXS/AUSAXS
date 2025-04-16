@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <cstddef>
 
 namespace ausaxs {
     template<typename C>

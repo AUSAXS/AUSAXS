@@ -169,7 +169,9 @@ jobs:
           echo "Contents of current folder: $(ls -la)"
           cd ../../..
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
-          find build/bin/scripts * ! -name "plot*" -exec rm -rf {} +
+          echo "OK"
+          find build/bin/scripts ! -name "plot*" -exec rm -rf {} +
+          echo "OK"
 
       - uses: actions/upload-artifact@v4
         with:
