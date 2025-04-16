@@ -173,7 +173,7 @@ TEST_CASE("Dataset::interpolate") {
 
     SECTION("sine") {
         std::vector<double> x, y;
-        for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
+        for (double xx = 0; xx < 2*std::numbers::pi; xx += 0.05) {
             x.push_back(xx);
             y.push_back(std::sin(xx));
         }
@@ -187,7 +187,7 @@ TEST_CASE("Dataset::interpolate") {
 
     SECTION("vector interpolation") {
         std::vector<double> x1, y1, x2;
-        for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
+        for (double xx = 0; xx < 2*std::numbers::pi; xx += 0.05) {
             x1.push_back(xx);
             y1.push_back(std::sin(xx));
             x2.push_back(xx + 0.025);
@@ -202,7 +202,7 @@ TEST_CASE("Dataset::interpolate") {
 
     SECTION("single values") {
         std::vector<double> x1, y1;
-        for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
+        for (double xx = 0; xx < 2*std::numbers::pi; xx += 0.05) {
             x1.push_back(xx);
             y1.push_back(std::sin(xx));
         }

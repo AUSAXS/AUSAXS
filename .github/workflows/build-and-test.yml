@@ -220,8 +220,8 @@ jobs:
             -DARCH=${{ matrix.arch }}
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
-      - name: Build the library (ubuntu 20.04)
-        if: matrix.os == 'ubuntu-20.04'
+      - name: Build the GUI executables (${{ matrix.os }})
+        if: matrix.os != 'ubuntu-latest'
         shell: bash
         run: |
           mkdir build

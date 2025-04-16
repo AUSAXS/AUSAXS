@@ -262,9 +262,9 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
 //     RigidBodyTest body = BodySplitter::split("tests/files/LAR1-2.pdb", {2, 9, 99, 194});
 
 //     SECTION("test 1") {
-//         body.transform->apply(matrix::rotation_matrix({0, 1, 0}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
-//         body.transform->apply(matrix::rotation_matrix({0, 0, 1}, M_PI),   {0, 0, 0}, body.get_constraint_manager()->distance_constraints[1]);
-//         body.transform->apply(matrix::rotation_matrix({1, 0, 0}, M_PI_4), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[2]);
+//         body.transform->apply(matrix::rotation_matrix({0, 1, 0}, std::numbers::pi/2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
+//         body.transform->apply(matrix::rotation_matrix({0, 0, 1}, std::numbers::pi),   {0, 0, 0}, body.get_constraint_manager()->distance_constraints[1]);
+//         body.transform->apply(matrix::rotation_matrix({1, 0, 0}, std::numbers::pi/4), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[2]);
 //         auto hist = body.get_histogram()->debye_transform().as_dataset();
 //         hist.reduce(100);
 //         hist.simulate_errors();
@@ -278,9 +278,9 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
 //     }
 
 //     SECTION("test 2") {
-//         body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
-//         body.transform->apply(matrix::rotation_matrix({1, 0, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[1]);
-//         body.transform->apply(matrix::rotation_matrix({0, 1, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[2]);
+//         body.transform->apply(matrix::rotation_matrix({1, 1, 1}, std::numbers::pi/2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
+//         body.transform->apply(matrix::rotation_matrix({1, 0, 1}, std::numbers::pi/2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[1]);
+//         body.transform->apply(matrix::rotation_matrix({0, 1, 1}, std::numbers::pi/2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[2]);
 //         auto hist = body.get_histogram()->debye_transform().as_dataset();
 //         hist.reduce(100);
 //         hist.simulate_errors();
@@ -294,7 +294,7 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
 //     }
 
 //     SECTION("test 3") {
-//         body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {10, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
+//         body.transform->apply(matrix::rotation_matrix({1, 1, 1}, std::numbers::pi/2), {10, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
 //         body.transform->apply(matrix::rotation_matrix({1, 0, 1}, 0), {0, 10, 0},      body.get_constraint_manager()->distance_constraints[1]);
 //         body.transform->apply(matrix::rotation_matrix({0, 1, 1}, 0), {0, 0, 10},      body.get_constraint_manager()->distance_constraints[2]);
 //         auto hist = body.get_histogram()->debye_transform().as_dataset();
