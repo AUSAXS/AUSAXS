@@ -60,7 +60,7 @@ namespace ausaxs::md {
         private:
             bool submitted = false;
             std::function<std::string()> func;
-            std::string folder; 
+            io::Folder folder; 
     };
 
     /**
@@ -71,14 +71,25 @@ namespace ausaxs::md {
         public: 
             ~SmaugExecution() override = default;
 
-            SmaugExecution(const TPRFile& tpr, const std::string& folder, const std::string& name, const SHFile& jobscript) : folder(folder) {
-                this->filename = tpr.directory().str() + "/job.sh";
-                this->cmd.set("cd " + tpr.directory().str() + "; " + jobscript.path() + " -j " + name + " -version release-2021.swaxs -gpu-gener any+ampere -tpr " + tpr.absolute_path());
-            }
-
-            SmaugExecution(const std::string& args, const std::string& _export, const std::string& folder, const std::string& name, const SHFile& jobscript) : folder(folder) {
+            SmaugExecution(std::string_view run_cmd, const io::Folder& folder) : folder(folder) {
                 this->filename = folder + "/job.sh";
-                this->cmd.set(_export + "cd " + folder + "; " + jobscript.path() + " -j " + name + " -version release-2021.swaxs -gpu-gener any+ampere " + args);
+                std::string out = 
+                    "#!/bin/bash\n"
+                    "#SBATCH -o " + folder.absolute_path() + "/job.out\n"
+                    "#SBATCH -e " + folder.absolute_path() + "/job.err\n"
+                    "#SBATCH --time 24:00:00\n"
+                    "#SBATCH --nodes 1\n"
+                    "#SBATCH --gres gpu:1\n"
+                    "#SBATCH --ntasks-per-node 12\n"
+                    "#SBATCH --exclude fang[51,53]\n\n"
+                    "cpu_count=$(grep -c ^processor /proc/cpuinfo)\n"
+                    "gpu_count=$(nvidia-smi -L | wc -l)\n"
+                    "export OMP_NUM_THREADS=$[cpu_count/gpu_count]\n\n"
+                    "module use /data/shared/spack/0.21.1+240303/modules\n"
+                    "module add gromacs-swaxs\n\n"
+                    "cd " + folder.absolute_path() + "\n"
+                    "" + std::string(run_cmd) + "\n";
+                io::File(folder + "job.sh").create(out);
             }
 
             T result() override {return T(folder);}
