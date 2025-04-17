@@ -20,13 +20,13 @@ mdrun::mdrun(const TPRFile& tpr) : mdrun() {
 
 mdrun& mdrun::input(const TPRFile& tpr) {
     this->tpr = tpr;
-    options.push_back(std::make_shared<shell::Argument>("-s", tpr));
+    options.push_back(std::make_shared<shell::Argument>("-s", tpr.absolute_path()));
     return *this;
 }
 
 mdrun& mdrun::output(const io::Folder& folder, const std::string& prefix) {
     this->folder = folder;
-    options.push_back(std::make_shared<shell::Argument>("-deffnm", folder.str() + prefix));
+    options.push_back(std::make_shared<shell::Argument>("-deffnm", folder.absolute_path() + prefix));
     return *this;
 }
 
@@ -51,7 +51,7 @@ std::unique_ptr<shell::Jobscript<MDRunResult>> mdrun::run(RunLocation where, std
             return std::make_unique<LocalExecution<MDRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
         }
         case RunLocation::smaug: {
-            cmd.append("-ntmpi 1 -nt $cpupergpu -cpi -stepout 5000 -maxh 48 >& md.lis");
+            cmd.append("-stepout 5000 -maxh 48 >& md.lis");
             return std::make_unique<SmaugExecution<MDRunResult>>(command().get(), folder);
         }
         default: 
