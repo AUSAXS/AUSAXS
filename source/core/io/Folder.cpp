@@ -21,6 +21,11 @@ void Folder::operator=(std::string_view path) {
     }
 }
 
+std::string Folder::absolute_path() const {
+    if (dir.empty()) {return ".";}
+    return std::filesystem::absolute(dir).string();
+}
+
 Folder::operator std::string() const {return dir;}
 
 std::string Folder::path() const {return dir;}

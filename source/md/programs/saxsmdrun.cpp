@@ -73,8 +73,9 @@ std::unique_ptr<shell::Jobscript<SAXSRunResult>> saxsmdrun::run(RunLocation wher
                     args.append(option->get() + " ");
                 }
             }
-            cmd.append("-ntmpi 1 -nt $cpupergpu -cpi -stepout 5000");
-            return std::make_unique<SmaugExecution<SAXSRunResult>>(args, _export, folder, name, jobscript);
+            cmd.append("-ntmpi 1 -nt $cpupergpu -cpi -stepout 5000 -maxh 48 >& md.lis");
+            cmd.prepend(_export);
+            return std::make_unique<SmaugExecution<SAXSRunResult>>(command().get(), folder);
         }
         default: 
             throw except::invalid_argument("saxsmdrun: Unknown location.");
