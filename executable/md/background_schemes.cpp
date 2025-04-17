@@ -54,8 +54,8 @@ int main(int argc, char const *argv[]) {
         .jobname = pdb.stem() + "_mol",
         .pdbfile = pdb,
         .mdp = mdp::templates::production::mol().write(settings::general::output + "mdp/mol.mdp"),
-        .setup_runner = RunLocation::local,
-        .main_runner = RunLocation::local,
+        .setup_runner = RunLocation::smaug,
+        .main_runner = RunLocation::smaug,
         .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
     });
 
@@ -68,7 +68,7 @@ int main(int argc, char const *argv[]) {
             .refgro = molecule.gro,
             .mdp = mdp::templates::production::solv().write(settings::general::output + "mdp/buf.mdp"),
             .setup_runner = RunLocation::local,
-            .main_runner = RunLocation::local,
+            .main_runner = RunLocation::smaug,
             .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
         });
     } else {
