@@ -119,8 +119,6 @@ jobs:
             vcpkg_triplet: x64-osx
             CC: clang
             CXX: clang++
-            # CC: $(brew --prefix llvm@15)/bin/clang
-            # CXX: $(brew --prefix llvm@15)/bin/clang++
             XCODE_VER: 15.0.1
 
           - runner: macos-15
@@ -160,20 +158,8 @@ jobs:
         
       - name: Clean up GUI binary folders for upload
         run: |
-          cd build
-          echo "Current directory: $(pwd)"
-          echo "Contents of current folder: $(ls -la)"
-          cd bin
-          echo "Current directory: $(pwd)"
-          echo "Contents of current folder: $(ls -la)"
-          cd scripts
-          echo "Current directory: $(pwd)"
-          echo "Contents of current folder: $(ls -la)"
-          cd ../../..
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
-          echo "OK"
           find build/bin/scripts ! -name "plot*" -exec rm -rf {} +
-          echo "OK"
 
       - uses: actions/upload-artifact@v4
         with:
