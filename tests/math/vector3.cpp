@@ -5,6 +5,7 @@
 #include <math/Vector3.h>
 
 #include <string>
+#include <numbers>
 
 using namespace ausaxs;
 
@@ -106,7 +107,7 @@ TEST_CASE("constructors") {
         auto y = Vector3(x);
         REQUIRE(y == Vector3{1, 2, 3});
 
-        auto z = Vector3(std::move(x.T()));
+        auto z = Vector3(x.T());
         REQUIRE(z == Vector3{1, 2, 3});
     }
 }
@@ -200,17 +201,17 @@ TEST_CASE("rotation") {
     z = {0, 0, 1};
 
     Vector3<double> axis = {0, 1, 0};
-    x.rotate(axis, M_PI_2);
-    y.rotate(axis, M_PI_2);
-    z.rotate(axis, M_PI_2);
+    x.rotate(axis, std::numbers::pi/2);
+    y.rotate(axis, std::numbers::pi/2);
+    z.rotate(axis, std::numbers::pi/2);
     REQUIRE(x == Vector3<double>{0, 0, -1}); 
     REQUIRE(y == Vector3<double>{0, 1, 0}); 
     REQUIRE(z == Vector3<double>{1, 0, 0}); 
 
     axis = {1, 1, 1};
-    x.rotate(axis, M_PI/4);
-    y.rotate(axis, M_PI/4);
-    z.rotate(axis, M_PI/4);
+    x.rotate(axis, std::numbers::pi/4);
+    y.rotate(axis, std::numbers::pi/4);
+    z.rotate(axis, std::numbers::pi/4);
     REQUIRE(x == Vector3<double>{-0.5058793634, 0.3106172175, -0.8047378541}); 
     REQUIRE(y == Vector3<double>{-0.3106172175, 0.8047378541, 0.5058793634}); 
     REQUIRE(z == Vector3<double>{0.8047378541, 0.5058793634, -0.3106172175}); 

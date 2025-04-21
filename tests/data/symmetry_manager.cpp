@@ -504,7 +504,7 @@ TEST_CASE("SymmetryManager: random tests") {
         for (int i = 0; i < 10; ++i) {
 
             std::vector<AtomFF> atoms;
-            for (int i = 0; i < n_atoms; ++i) {
+            for (int j = 0; j < n_atoms; ++j) {
                 atoms.push_back(
                     AtomFF(
                         {d(gen), d(gen), d(gen)},
@@ -538,7 +538,7 @@ TEST_CASE("SymmetryManager: random tests") {
         for (int i = 0; i < 10; ++i) {
 
             std::vector<AtomFF> atoms;
-            for (int i = 0; i < n_atoms; ++i) {
+            for (int j = 0; j < n_atoms; ++j) {
                 atoms.push_back(
                     AtomFF(
                         {d(gen), d(gen), d(gen)},
@@ -549,7 +549,7 @@ TEST_CASE("SymmetryManager: random tests") {
 
             Molecule m({Body{atoms}});
             set_unity_charge(m);
-            for (int i = 0; i < n(gen); ++i) {
+            for (int j = 0; j < n(gen); ++j) {
                 Vector3<double> translate{d(gen), d(gen), d(gen)};
                 Vector3<double> axis{d(gen), d(gen), d(gen)};
                 Vector3<double> angles{r(gen), r(gen), r(gen)};

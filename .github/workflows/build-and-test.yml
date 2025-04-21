@@ -55,6 +55,19 @@ jobs:
             build/lib/*
             build/bin/*
 
+      # - name: Build tests
+      #   run: cmake --build build --target tests -j12
+
+      # - name: Run tests
+      #   run: ctest --output-on-failure --test-dir build/tests
+
+      # - name: Generate test report
+      #   uses: mikepenz/action-junit-report@v4
+      #   if: (success() || failure())
+      #   with:
+      #     check_name: "Windows test report"
+      #     report_paths: build/tests/reports/*.xml
+
   build-mac:
     name: "MacOS universal"
     runs-on: macos-latest
@@ -79,7 +92,20 @@ jobs:
           path: |
             build/lib/*
             build/bin/*
-  
+
+      - name: Build tests
+        run: cmake --build build --target tests -j12
+
+      - name: Run tests
+        run: ctest --output-on-failure --test-dir build/tests
+
+      - name: Generate test report
+        uses: mikepenz/action-junit-report@v4
+        if: (success() || failure())
+        with:
+          check_name: "MacOS test report"
+          report_paths: build/tests/reports/*.xml
+
   build-mac-gui:
     name: "${{ matrix.name }}"
     runs-on: ${{ matrix.runner }}
@@ -91,9 +117,11 @@ jobs:
             name: "MacOS x86"
             arch: x86_64
             vcpkg_triplet: x64-osx
-            CC: $(brew --prefix llvm@15)/bin/clang
-            CXX: $(brew --prefix llvm@15)/bin/clang++
-            XCODE_VER: 15.2
+            CC: clang
+            CXX: clang++
+            # CC: $(brew --prefix llvm@15)/bin/clang
+            # CXX: $(brew --prefix llvm@15)/bin/clang++
+            XCODE_VER: 15.0.1
 
           - runner: macos-15
             name: "MacOS arm64"
@@ -114,15 +142,9 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
-      - uses: lukka/get-cmake@latest            
-      - uses: lukka/run-vcpkg@v11
-        id: runvcpkg
-        with:
-          vcpkgGitCommitId: c82f74667287d3dc386bce81e44964370c91a289
-
       - name: Install dependencies
         run: |
-          vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
+          brew install cmake curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
 
       - name: Build the library
         run: |
@@ -132,10 +154,26 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.CC }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.CXX }} \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_TOOLCHAIN_FILE="${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}" \
-            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
+            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" \
+            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+        
+      - name: Clean up GUI binary folders for upload
+        run: |
+          cd build
+          echo "Current directory: $(pwd)"
+          echo "Contents of current folder: $(ls -la)"
+          cd bin
+          echo "Current directory: $(pwd)"
+          echo "Contents of current folder: $(ls -la)"
+          cd scripts
+          echo "Current directory: $(pwd)"
+          echo "Contents of current folder: $(ls -la)"
+          cd ../../..
+          find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
+          echo "OK"
+          find build/bin/scripts ! -name "plot*" -exec rm -rf {} +
+          echo "OK"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -157,8 +195,8 @@ jobs:
             cpp_compiler: g++
             arch: x86-64
 
-          - os: ubuntu-20.04
-            name: "Ubuntu 20.04 with GCC"
+          - os: ubuntu-22.04
+            name: "Ubuntu 22.04 with GCC"
             c_compiler: gcc-10
             cpp_compiler: g++-10
             arch: x86-64
@@ -186,8 +224,8 @@ jobs:
             -DARCH=${{ matrix.arch }}
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
-      - name: Build the library (ubuntu 20.04)
-        if: matrix.os == 'ubuntu-20.04'
+      - name: Build the GUI executables (${{ matrix.os }})
+        if: matrix.os != 'ubuntu-latest'
         shell: bash
         run: |
           mkdir build
@@ -210,12 +248,13 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: cmake --build build --target tests -j12
 
-      - name: Run tests (ubuntu)
+      - name: Run tests
         if: matrix.os == 'ubuntu-latest'
         run: ctest --output-on-failure --test-dir build/tests
 
-      - name: Generate test report (ubuntu)
+      - name: Generate test report
         uses: mikepenz/action-junit-report@v4
         if: matrix.os == 'ubuntu-latest' && (success() || failure())
         with:
+          check_name: "Ubuntu test report"
           report_paths: build/tests/reports/*.xml

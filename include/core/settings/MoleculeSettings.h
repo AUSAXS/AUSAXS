@@ -1,11 +1,13 @@
 #pragma once
 
+#include <settings/ExportMacro.h>
+
 namespace ausaxs::settings {
-    namespace molecule {
-        extern bool center;                 // Decides if the structure will be centered at origo.
-        extern bool throw_on_unknown_atom;  // Decides whether an exception will be thrown if an unknown atom is encountered.
-        extern bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
-        extern bool use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
+    struct EXPORT molecule {
+        static bool center;                 // Decides if the structure will be centered at origo.
+        static bool throw_on_unknown_atom;  // Decides whether an exception will be thrown if an unknown atom is encountered.
+        static bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
+        static bool use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
 
         enum class DisplacedVolumeSet {
             Traube,                         // Traube 1895 as used by CRYSOL, Pepsi-SAXS & FoXS
@@ -21,10 +23,10 @@ namespace ausaxs::settings {
             //! Remember to update constants::displaced_volume::standard if this is changed
             Default = MinimumFluctutation_implicit_H // Default displaced volume set
         };
-        extern DisplacedVolumeSet displaced_volume_set;
-    }
+        static DisplacedVolumeSet displaced_volume_set;
+    };
 
-    namespace hydrate {
+    struct EXPORT hydrate {
         enum class HydrationStrategy {
             // This strategy attempts to place water molecules along each axis of every atom
             AxesStrategy, 
@@ -41,7 +43,7 @@ namespace ausaxs::settings {
             // No hydration molecules will be placed with this strategy
             NoStrategy
         };
-        extern HydrationStrategy hydration_strategy;
+        static HydrationStrategy hydration_strategy;
 
         enum class CullingStrategy {
             // Every N molecule is removed from the list of possible waters to achieve the target number of molecules
@@ -59,10 +61,10 @@ namespace ausaxs::settings {
             // No molecules will be removed with this strategy
             NoStrategy
         };
-        extern CullingStrategy culling_strategy;
+        static CullingStrategy culling_strategy;
 
         // Correction added to the sum of van der Waals radii when calculating the distance to the placed water molecules.
         // By default this is tuned to roughly match MD density profiles. 
-        extern double shell_correction;
-    }
+        static double shell_correction;
+    };
 }

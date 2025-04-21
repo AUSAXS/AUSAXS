@@ -1,4 +1,3 @@
-#include "settings/MoleculeSettings.h"
 #include <catch2/catch_test_macros.hpp>
 
 #include <rigidbody/constraints/DistanceConstraint.h>
@@ -11,7 +10,9 @@
 #include <rigidbody/RigidBody.h>
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
+
 #include <unordered_set>
+#include <numbers>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -74,7 +75,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // rotate
-        transform.apply({{0, 0, 0}, {0, 0, M_PI/2}}, manager->distance_constraints[0]);
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 1, -3, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1, -3, -1));
         transform.undo();
@@ -106,7 +107,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // single-body rotate
-        transform.apply({{0, 0, 0}, {0, 0, M_PI/2}}, manager->distance_constraints[0]);
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 1, -3, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1, -3, -1));
         transform.undo();
@@ -126,7 +127,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         CHECK(rigidbody.get_body(1).get_atom(1).coordinates() == Vector3<double>( 1,  1, -1));
 
         // multi-body rotate
-        transform.apply({{0, 0, 0}, {0, 0, M_PI/2}}, manager->distance_constraints[1]);
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->distance_constraints[1]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>( 5, -3, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>( 3, -3, -1));
         CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == Vector3<double>( 5, -1, -1));

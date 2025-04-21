@@ -22,16 +22,16 @@ settings::molecule::DisplacedVolumeSet settings::molecule::displaced_volume_set 
     bool settings::molecule::throw_on_unknown_atom = false;
 #endif
 
-namespace ausaxs::settings::molecule::io {
-    settings::io::SettingSection molecule_settings("Molecule", {
-        settings::io::create(center, "center"),
-        settings::io::create(throw_on_unknown_atom, "throw_on_unknown_atom"),
-        settings::io::create(implicit_hydrogens, "implicit_hydrogens"),
-        settings::io::create(use_occupancy, "use_occupancy"),
-        settings::io::create(displaced_volume_set, "exv_volume")
+namespace ausaxs::settings::io {
+    settings::io::SettingSection molecule_section("Molecule", {
+        settings::io::create(molecule::center, "center"),
+        settings::io::create(molecule::throw_on_unknown_atom, "throw_on_unknown_atom"),
+        settings::io::create(molecule::implicit_hydrogens, "implicit_hydrogens"),
+        settings::io::create(molecule::use_occupancy, "use_occupancy"),
+        settings::io::create(molecule::displaced_volume_set, "exv_volume")
     });
 
-    settings::io::SettingSection hydrate_settings("Hydrate", {
+    settings::io::SettingSection hydrate_section("Hydrate", {
         settings::io::create(hydrate::hydration_strategy, "hydration_strategy"),
         settings::io::create(hydrate::culling_strategy, "culling_strategy")
     });

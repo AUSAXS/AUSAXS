@@ -2,12 +2,13 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include <vector>
-#include <string>
-
 #include <math/Matrix.h>
 #include <math/Vector.h>
 #include <math/Vector3.h>
+
+#include <vector>
+#include <string>
+#include <numbers>
 
 using namespace ausaxs;
 
@@ -192,12 +193,12 @@ TEST_CASE("rotations", "[math]") {
     Matrix<double> C({{2, 3}, {3, 4}});
 
     // check basic rotations
-    Matrix R = matrix::rotation_matrix(M_PI/2, 0., 0.);
+    Matrix R = matrix::rotation_matrix(std::numbers::pi/2, 0., 0.);
     REQUIRE(R == Matrix{{1, 0, 0}, {0, 0, -1}, {0, 1, 0}});
 
-    R = matrix::rotation_matrix(0., M_PI/2, 0.);
+    R = matrix::rotation_matrix(0., std::numbers::pi/2, 0.);
     REQUIRE(R == Matrix{{0, 0, 1}, {0, 1, 0}, {-1, 0, 0}});
 
-    R = matrix::rotation_matrix(0., 0., M_PI/2);
+    R = matrix::rotation_matrix(0., 0., std::numbers::pi/2);
     REQUIRE(R == Matrix{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}});
 }

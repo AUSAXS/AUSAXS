@@ -20,12 +20,12 @@ settings::rigidbody::DecayStrategyChoice settings::rigidbody::decay_strategy = D
 std::vector<int> ausaxs::settings::rigidbody::detail::constraints;
 std::string ausaxs::settings::rigidbody::detail::calibration_file;
 
-namespace ausaxs::settings::rigidbody::io {
-    settings::io::SettingSection rigidbody_settings("RigidBody", {
-        settings::io::create(iterations, "iterations"),
-        settings::io::create(bond_distance, "bond_distance"),
-        settings::io::create(detail::constraints, "constraints"),
-        settings::io::create(detail::calibration_file, "calibration_file")
+namespace ausaxs::settings::io {
+    settings::io::SettingSection rigidbody_section("RigidBody", {
+        settings::io::create(rigidbody::iterations, "iterations"),
+        settings::io::create(rigidbody::bond_distance, "bond_distance"),
+        settings::io::create(rigidbody::detail::constraints, "constraints"),
+        settings::io::create(rigidbody::detail::calibration_file, "calibration_file")
     });
 }
 

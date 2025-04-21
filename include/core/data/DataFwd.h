@@ -4,7 +4,7 @@
 namespace ausaxs::data {
     class Body;
     class Molecule;
-    class Atom;
+    struct Atom;
     class AtomFF;
-    class Water;
+    struct Water;
 }

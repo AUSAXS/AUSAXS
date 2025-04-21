@@ -44,7 +44,7 @@ namespace ausaxs::grid {
 
 			Grid(const Grid& grid);
 			Grid(Grid&& grid) noexcept;
-			~Grid();
+			virtual ~Grid();
 
 			/**
 			 * @brief Get the atomic radius of an atom in Å.

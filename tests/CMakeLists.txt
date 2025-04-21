@@ -1,8 +1,14 @@
 set(CMAKE_CXX_FLAGS "")
-set(CMAKE_CXX_FLAGS_TEST
-    "-Os -Wpedantic -Wall -Wextra"
-    CACHE STRING "Flags used by the C++ compiler during test builds."
-)
+if (MSVC)
+	set(CMAKE_CXX_FLAGS_TEST "/O2 /W4 /permissive- /EHsc")
+	set(CMAKE_CXX_FLAGS "/EHsc")
+else()
+	set(CMAKE_CXX_FLAGS_TEST
+		"-Os -Wpedantic -Wall -Wextra -Wno-nested-anon-types"
+		CACHE STRING "Flags used by the C++ compiler during test builds."
+	)
+endif()
+
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 include(FetchContent)

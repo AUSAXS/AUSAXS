@@ -16,7 +16,7 @@ namespace ausaxs {
     template<numeric Q>
     class Matrix final {
         public: 
-            Matrix() = default;
+            Matrix() : N(0), M(0) {}
             Matrix(const Matrix<Q>& A) = default;
             Matrix(Matrix<Q>&& A) = default;
             Matrix& operator=(const Matrix<Q>& A) = default;

@@ -194,7 +194,7 @@ namespace ausaxs {
     }
 
     template<numeric Q> template<numeric R>
-    void Matrix<Q>::compatibility_check(const Matrix<R>& A) const {
+    void Matrix<Q>::compatibility_check([[maybe_unused]] const Matrix<R>& A) const {
         #if (SAFE_MATH)
             if (N != A.N || M != A.M) [[unlikely]] {
                 throw std::invalid_argument("Matrix::compatibility_check: Matrix dimensions do not match (got: [" + std::to_string(N) + ", " + std::to_string(M) + "] and [" + 
@@ -204,7 +204,7 @@ namespace ausaxs {
     }
 
     template<numeric Q>
-    void Matrix<Q>::compatibility_check_N(unsigned int N) const {
+    void Matrix<Q>::compatibility_check_N([[maybe_unused]] unsigned int N) const {
         #if (SAFE_MATH)
             if (this->N != N) [[unlikely]] {
                 throw std::invalid_argument("Matrix::compatibility_check: Matrix dimensions do not match (got: N = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");
@@ -213,7 +213,7 @@ namespace ausaxs {
     }
 
     template<numeric Q>
-    void Matrix<Q>::compatibility_check_M(unsigned int M) const {
+    void Matrix<Q>::compatibility_check_M([[maybe_unused]] unsigned int M) const {
         #if (SAFE_MATH)
             if (this->M != M) [[unlikely]] {
                 throw std::invalid_argument("Matrix::compatibility_check: Matrix dimensions do not match (got: M = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");

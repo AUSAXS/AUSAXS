@@ -19,17 +19,17 @@ bool settings::em::plot_landscapes = false;
 bool settings::em::simulation::noise = true;
 bool settings::em::mass_axis = true;
 
-namespace ausaxs::settings::em::io {
-    settings::io::SettingSection general_settings("EM", {
-        settings::io::create(sample_frequency, "sample_frequency"),
-        settings::io::create(concentration, "concentration"),
-        settings::io::create(charge_levels, "charge_levels"),
-        settings::io::create(hydrate, "hydrate"),
-        settings::io::create(mass_axis, "mass_axis"),
-        settings::io::create(save_pdb, "save_pdb"),
-        settings::io::create(alpha_levels, "alpha_levels"),
-        settings::io::create(fixed_weights, "fixed_weights"),
-        settings::io::create(plot_landscapes, "plot_landscapes"),
-        settings::io::create(simulation::noise, "simulation.noise")
+namespace ausaxs::settings::io {
+    settings::io::SettingSection em_section("EM", {
+        settings::io::create(em::sample_frequency, "sample_frequency"),
+        settings::io::create(em::concentration, "concentration"),
+        settings::io::create(em::charge_levels, "charge_levels"),
+        settings::io::create(em::hydrate, "hydrate"),
+        settings::io::create(em::mass_axis, "mass_axis"),
+        settings::io::create(em::save_pdb, "save_pdb"),
+        settings::io::create(em::alpha_levels, "alpha_levels"),
+        settings::io::create(em::fixed_weights, "fixed_weights"),
+        settings::io::create(em::plot_landscapes, "plot_landscapes"),
+        settings::io::create(em::simulation::noise, "simulation.noise")
     });
 }

@@ -251,7 +251,7 @@ TEST_CASE("Histogram::normalize") {
     CHECK(hist.get_counts() == data);
 
     hist.normalize(10);
-    std::transform(data.begin(), data.end(), data.begin(), [sum] (double x) {return x*10;});
+    std::transform(data.begin(), data.end(), data.begin(), [] (double x) {return x*10;});
     CHECK(hist.get_counts() == data);
 }
 
@@ -265,7 +265,7 @@ TEST_CASE("Histogram::normalize_max") {
     CHECK(hist.get_counts() == data);
 
     hist.normalize_max(10);
-    std::transform(data.begin(), data.end(), data.begin(), [max] (double x) {return x*10;});
+    std::transform(data.begin(), data.end(), data.begin(), [] (double x) {return x*10;});
     CHECK(hist.get_counts() == data);
 }
 
