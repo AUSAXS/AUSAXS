@@ -45,9 +45,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=cl \
             -DARCH=x86-64 \
             -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="x64-windows-static" \
-            -DCMAKE_GENERATOR_PLATFORM=x64 \
-            -DCMAKE_GENERATOR="Ninja"
+            -DVCPKG_TARGET_TRIPLET="x64-windows-static"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
   
       - uses: actions/upload-artifact@v4
