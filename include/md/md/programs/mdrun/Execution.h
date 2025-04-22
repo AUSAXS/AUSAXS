@@ -84,11 +84,11 @@ namespace ausaxs::md {
                     "#SBATCH --exclude fang[51,53]\n\n"
                     "cpu_count=$(grep -c ^processor /proc/cpuinfo)\n"
                     "gpu_count=$(nvidia-smi -L | wc -l)\n"
-                    "export OMP_NUM_THREADS=$[cpu_count/gpu_count]\n\n"
+                    "threads=$[cpu_count/gpu_count]\n\n"
                     "module use /data/shared/spack/0.21.1+240303/modules\n"
                     "module add gromacs-swaxs\n\n"
                     "cd " + folder.absolute_path() + "\n"
-                    "" + std::string(run_cmd) + "\n";
+                    "" + std::string(run_cmd) + " -ntmpi 1 -ntomp $threads -maxh 48\n";
                 io::File(folder + "job.sh").create(out);
             }
 
