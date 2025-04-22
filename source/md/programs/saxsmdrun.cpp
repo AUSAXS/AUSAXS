@@ -73,7 +73,7 @@ std::unique_ptr<shell::Jobscript<SAXSRunResult>> saxsmdrun::run(RunLocation wher
                     args.append(option->get() + " ");
                 }
             }
-            cmd.append("-ntmpi 1 -nt $cpupergpu -cpi -stepout 5000 -maxh 48 >& md.lis");
+            cmd.append("-stepout 5000 -cpi >& md.lis");
             cmd.prepend(_export);
             return std::make_unique<SmaugExecution<SAXSRunResult>>(command().get(), folder);
         }
