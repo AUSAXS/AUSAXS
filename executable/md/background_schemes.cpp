@@ -112,8 +112,8 @@ int main(int argc, char const *argv[]) {
         auto saxs = simulate_saxs({
             .jobname = "" + pdb.stem() + "_saxs1",
             .pdbfile = pdb,
-            .molecule = std::move(molecule),
-            .buffer = std::move(buffer),
+            .molecule = molecule,
+            .buffer = buffer,
             .runner = RunLocation::local,
             .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
             .output = settings::general::output + "saxs_uncorrected/",
@@ -132,8 +132,8 @@ int main(int argc, char const *argv[]) {
         auto saxs = simulate_saxs({
             .jobname = "" + pdb.stem() + "_saxs2",
             .pdbfile = pdb,
-            .molecule = std::move(molecule),
-            .buffer = std::move(buffer),
+            .molecule = molecule,
+            .buffer = buffer,
             .runner = RunLocation::local,
             .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
             .output = settings::general::output + "saxs_corrected/",
