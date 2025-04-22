@@ -49,15 +49,6 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
         console::print_text("Reusing topology files for molecule and buffer.");
     }
 
-    std::cout << "\tChecking if trajectories are compatible..." << std::flush;
-    {
-        auto[molframes, molduration] = check(molxtc).run();
-        auto[bufframes, bufduration] = check(bufxtc).run();
-        if (molframes != bufframes) {throw except::unexpected("simulate_saxs: The number of frames in the buffer and molecule trajectories are not equal.");}
-        if (molduration != bufduration) {throw except::unexpected("simulate_saxs: The duration of the buffer and molecule trajectories are not equal.");}
-    }
-    std::cout << " OK" << std::endl;
-
     //##################################//
     //###        INDEX FILES         ###//
     //##################################//
@@ -65,6 +56,15 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
     // since this is not guaranteed, we have to generate it manually
     NDXFile molindex(protein_path + "index.ndx");
     if (!molindex.exists()) {
+        std::cout << "\tChecking if trajectories are compatible..." << std::flush;
+        {
+            auto[molframes, molduration] = check(molxtc).run();
+            auto[bufframes, bufduration] = check(bufxtc).run();
+            if (molframes != bufframes) {throw except::unexpected("simulate_saxs: The number of frames in the buffer and molecule trajectories are not equal.");}
+            if (molduration != bufduration) {throw except::unexpected("simulate_saxs: The duration of the buffer and molecule trajectories are not equal.");}
+        }
+        std::cout << " OK" << std::endl;
+    
         console::print_text("Creating index file for molecule...");
         make_ndx(molgro)
             .output(molindex)
@@ -220,8 +220,8 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
         options.buf_mdp.value_or(mdp::templates::saxs::solv()).write(bufmdp);
     }
 
-    GROFile gro(prod_folder + "prod.gro");
-    if (!gro.exists()) {
+    XVGFile xvg(prod_folder + "waxs_final.xvg");
+    if (!xvg.exists()) {
         console::print_text("Rerunning production simulation...");
         auto[moltpr] = grompp(molmdp, moltop, molgro)
             .output(prod_folder + "rerun_mol.tpr")
@@ -236,7 +236,7 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
         .run();
 
         auto job = saxsmdrun(moltpr, buftpr)
-            .output(prod_folder, "prod")
+            .output(prod_folder, "/prod")
             .rerun(molxtc, bufxtc)
             .env_var("GMX_WAXS_FIT_REFFILE", envgro.absolute_path())
             .env_var("GMX_ENVELOPE_FILE", envdat.absolute_path())
@@ -245,9 +245,8 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
 
         console::unindent();
         return SimulateSAXSOutput{std::move(job)};
-    } else {
-        console::print_text("Reusing previously generated final simulation.");
     }
+    console::print_text("Reusing previously generated final simulation.");
     console::unindent();
     auto job = std::make_unique<NoExecution<SAXSRunResult>>(prod_folder);
     return SimulateSAXSOutput{std::move(job)};

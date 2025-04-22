@@ -58,7 +58,7 @@ int main(int argc, char const *argv[]) {
     auto buffer = simulate_buffer({
         .system = ss,
         .jobname = s_pdb.stem() + "_buf",
-        .mdp = PRMDPCreatorSol().write(settings::general::output + "mdp/buf.mdp"),
+        .mdp = mdp::templates::production::solv().write(settings::general::output + "mdp/buf.mdp"),
         .setup_runner = RunLocation::local,
         .main_runner = RunLocation::local,
         .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
