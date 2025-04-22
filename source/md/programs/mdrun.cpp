@@ -51,7 +51,6 @@ std::unique_ptr<shell::Jobscript<MDRunResult>> mdrun::run(RunLocation where, std
             return std::make_unique<LocalExecution<MDRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
         }
         case RunLocation::smaug: {
-            cmd.append("-stepout 5000 >& md.lis");
             return std::make_unique<SmaugExecution<MDRunResult>>(command().get(), folder);
         }
         default: 

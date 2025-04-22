@@ -88,7 +88,7 @@ namespace ausaxs::md {
                     "module use /data/shared/spack/0.21.1+240303/modules\n"
                     "module add gromacs-swaxs\n\n"
                     "cd " + folder.absolute_path() + "\n"
-                    "" + std::string(run_cmd) + " -ntmpi 1 -ntomp $threads -maxh 48\n";
+                    "" + std::string(run_cmd) + " -ntmpi 1 -ntomp $threads -maxh 48 -stepout 5000 >& md.lis\n";
                 io::File(folder + "job.sh").create(out);
             }
 
