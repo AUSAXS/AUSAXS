@@ -117,7 +117,7 @@ void TOPFile::include_new_type(const std::vector<ITPFile>& itps, const std::stri
             }
             if (type.empty()) {
                 type = fname.substr(0, begin);
-                console::print_text_minor("Adding \"" + type + "\" includes to topology file.");
+                console::print_text_minor("Adding \"" + type + "\" includes to topology file...");
             }
             else if (type != fname.substr(0, begin)) {
                 throw except::io_error("TOPFile::include: Type mismatch. All itp files must have the same type. Detected \"" + type + "\" and \"" + fname.substr(0, begin) + "\".");

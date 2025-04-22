@@ -14,7 +14,7 @@ namespace ausaxs::md {
     };
 
     struct SimulateBufferOutput {
-        std::unique_ptr<shell::Jobscript<MDRunResult>> job;
+        std::shared_ptr<shell::Jobscript<MDRunResult>> job;
         TOPFile top;    // topology file
         GROFile gro;    // production structure
     };

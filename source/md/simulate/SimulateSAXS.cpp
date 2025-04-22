@@ -24,8 +24,6 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
     // get data from sims
     if (options.molecule.job == nullptr) {throw except::unexpected("gmx::simulate: No molecule simulation was created.");}
     if (options.buffer.job == nullptr) {throw except::unexpected("gmx::simulate: No buffer was created.");}
-    options.molecule.job->submit();
-    options.buffer.job->submit();
     options.molecule.job->wait();
     options.buffer.job->wait();
     auto[molgro, moledr, molxtc] = options.molecule.job->result();
@@ -224,6 +222,7 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
 
     GROFile gro(prod_folder + "prod.gro");
     if (!gro.exists()) {
+        console::print_text("Rerunning production simulation...");
         auto[moltpr] = grompp(molmdp, moltop, molgro)
             .output(prod_folder + "rerun_mol.tpr")
             .index(molindex)

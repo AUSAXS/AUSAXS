@@ -147,7 +147,7 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
     //##################################//
     //###       PRODUCTION          ###//
     //##################################//
-    GROFile prodgro(prod_path + "confout.gro");
+    GROFile prodgro(prod_path + "prod.gro");
     if (!prodgro.exists()) {
         std::cout << "\tRunning production..." << std::flush;
 
