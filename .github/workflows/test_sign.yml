@@ -37,7 +37,7 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
 
           # sign the artifact
-          codesign --deep --force --verbose --sign "Developer ID Application: AUSAXS" macos-universal-binaries/bin/saxs_fitter
+          codesign --deep --force --verbose --sign ${{ secrets.MACOS_DEV_ID }} macos-universal-binaries/bin/saxs_fitter
 
           # verify signature
           codesign --verify --verbose macos-universal-binaries/bin/saxs_fitter
