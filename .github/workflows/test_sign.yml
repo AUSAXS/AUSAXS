@@ -2,8 +2,6 @@ name: Test MacOS signing
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * 1,4'
 
 jobs:
   sign:
@@ -43,17 +41,32 @@ jobs:
 
           # verify signature
           codesign --verify --verbose macos-universal-binaries/bin/saxs_fitter
-      
-    #   - uses: lando/notarize-action@v2
-    #     with: 
-    #       product-path: macos-universal-binaries/bin/saxs_fitter
-    #       primary-bundle-id: "com.ausaxs.saxs_fitter"
-    #       appstore-connect-username: ${{ secrets.APPSTORE_CONNECT_USERNAME }}
-    #       appstore-connect-password: ${{ secrets.APPSTORE_CONNECT_PASSWORD }}
-    #       appstore-connect-team-id: ${{ secrets.APPSTORE_CONNECT_TEAMID }}
-    #       verbose: true
 
-    #   - uses: actions/upload-artifact@v4
-    #     with:
-    #       name: macos-signed-binaries
-    #       path: macos-universal-binaries/bin/saxs_fitter
+      - uses: lando/notarize-action@v2
+        with: 
+          product-path: macos-universal-binaries/bin/saxs_fitter
+          primary-bundle-id: "com.ausaxs.saxs_fitter"
+          appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
+          appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
+          appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
+          verbose: true
+
+      - name: Staple the notarization ticket
+        run: |
+          # staple the notarization ticket
+          xcrun stapler staple macos-universal-binaries/bin/saxs_fitter
+          # verify the stapling
+          codesign -dv --verbose=4 macos-universal-binaries/bin/saxs_fitter
+          spctl -a -vv macos-universal-binaries/bin/saxs_fitter
+          # check if stapling was successful
+          if spctl -a -vv macos-universal-binaries/bin/saxs_fitter | grep -q "accepted"; then
+            echo "Stapling was successful"
+          else
+            echo "Stapling failed"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-signed-binaries
+          path: macos-universal-binaries/bin/saxs_fitter
