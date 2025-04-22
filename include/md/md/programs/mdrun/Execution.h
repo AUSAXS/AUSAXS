@@ -71,10 +71,12 @@ namespace ausaxs::md {
         public: 
             ~SmaugExecution() override = default;
 
-            SmaugExecution(std::string_view run_cmd, const io::Folder& folder) : folder(folder) {
+            SmaugExecution(std::string_view run_cmd, const io::Folder& folder, std::string_view jobname) : folder(folder) {
                 this->filename = folder + "/job.sh";
                 std::string out = 
                     "#!/bin/bash\n"
+                    "#SBATCH --job-name=" + std::string(jobname) + "\n"
+                    "#SBATCH --partition=deflt\n"
                     "#SBATCH -o " + folder.absolute_path() + "/job.out\n"
                     "#SBATCH -e " + folder.absolute_path() + "/job.err\n"
                     "#SBATCH --time 24:00:00\n"
