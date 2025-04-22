@@ -18,6 +18,7 @@ jobs:
           CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
           CERTIFICATE_PWD: ${{ secrets.MACOS_P12_PASSWORD }}
           KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          DEV_ID: ${{ secrets.MACOS_DEV_ID }}
         run: |
           # create vars
           CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
@@ -37,7 +38,7 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
 
           # sign the artifact
-          codesign --deep --force --verbose --sign ${{ secrets.MACOS_DEV_ID }} macos-universal-binaries/bin/saxs_fitter
+          codesign --deep --force --verbose --sign $DEV_ID macos-universal-binaries/bin/saxs_fitter
 
           # verify signature
           codesign --verify --verbose macos-universal-binaries/bin/saxs_fitter
