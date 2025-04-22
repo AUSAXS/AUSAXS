@@ -74,7 +74,7 @@ std::unique_ptr<shell::Jobscript<SAXSRunResult>> saxsmdrun::run(RunLocation wher
                 }
             }
             cmd.prepend(_export);
-            return std::make_unique<SmaugExecution<SAXSRunResult>>(command().get(), folder);
+            return std::make_unique<SmaugExecution<SAXSRunResult>>(command().get(), folder, name);
         }
         default: 
             throw except::invalid_argument("saxsmdrun: Unknown location.");

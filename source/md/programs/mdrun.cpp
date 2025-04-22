@@ -51,7 +51,7 @@ std::unique_ptr<shell::Jobscript<MDRunResult>> mdrun::run(RunLocation where, std
             return std::make_unique<LocalExecution<MDRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
         }
         case RunLocation::smaug: {
-            return std::make_unique<SmaugExecution<MDRunResult>>(command().get(), folder);
+            return std::make_unique<SmaugExecution<MDRunResult>>(command().get(), folder, name);
         }
         default: 
             throw except::invalid_argument("mdrun: Unknown location.");

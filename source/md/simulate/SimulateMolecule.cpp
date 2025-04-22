@@ -106,7 +106,7 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
         mdrun(emtpr)
             .output(em_path, "/em")
             .jobname(options.jobname)
-        .run(options.setup_runner, options.jobscript)->submit();
+        .run(options.setup_runner, options.jobscript)->wait();
     } else {
         console::print_text("Reusing previously generated energy minimization.");
     }
@@ -168,7 +168,7 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
         mdrun(eqtpr)
             .output(eq_path, "/eq")
             .jobname(options.jobname)
-        .run(options.setup_runner, options.jobscript)->submit();
+        .run(options.setup_runner, options.jobscript)->wait();
     } else {
         console::print_text("Reusing previously generated thermalization.");
     }
