@@ -8,6 +8,8 @@
 #include <io/ExistingFile.h>
 #include <constants/Version.h>
 #include <utility/Console.h>
+#include <dataset/SimpleDataset.h>
+#include <plots/All.h>
 
 #include <CLI/CLI.hpp>
 
@@ -54,7 +56,7 @@ int main(int argc, char const *argv[]) {
         .jobname = pdb.stem() + "_mol",
         .pdbfile = pdb,
         .mdp = mdp::templates::production::mol().write(settings::general::output + "mdp/mol.mdp"),
-        .setup_runner = RunLocation::smaug,
+        .setup_runner = RunLocation::lusi,
         .main_runner = RunLocation::smaug,
         .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
     });
@@ -67,7 +69,7 @@ int main(int argc, char const *argv[]) {
             .jobname = pdb.stem() + "_buf",
             .refgro = molecule.gro,
             .mdp = mdp::templates::production::solv().write(settings::general::output + "mdp/buf.mdp"),
-            .setup_runner = RunLocation::local,
+            .setup_runner = RunLocation::smaug,
             .main_runner = RunLocation::smaug,
             .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
         });
@@ -103,45 +105,53 @@ int main(int argc, char const *argv[]) {
         buffer.job = std::make_unique<NoExecution<MDRunResult>>(settings::md::buffer_path + "/prod/");
     }
 
-    {   // scheme 1: IA - IB
+    SimulateSAXSOutput saxs1, saxs2;
+    {   // scheme 1: uncorrected
         auto mol_mdp = mdp::templates::saxs::mol();
         auto buf_mdp = mdp::templates::saxs::solv();
         mol_mdp.add(MDPOptions::waxs_correct_buffer = "no");
         buf_mdp.add(MDPOptions::waxs_correct_buffer = "no");
 
-        auto saxs = simulate_saxs({
+        saxs1 = simulate_saxs({
             .jobname = "" + pdb.stem() + "_saxs1",
             .pdbfile = pdb,
             .molecule = molecule,
             .buffer = buffer,
-            .runner = RunLocation::local,
+            .runner = RunLocation::smaug,
             .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
             .output = settings::general::output + "saxs_uncorrected/",
             .mol_mdp = mol_mdp,
             .buf_mdp = buf_mdp,
         });
-        saxs.job->submit();
+        saxs1.job->submit();
     }
-    {
-        // scheme 2: IA - IB + IB
+    {   // scheme 2: corrected
         auto mol_mdp = mdp::templates::saxs::mol();
         auto buf_mdp = mdp::templates::saxs::solv();
         mol_mdp.add(MDPOptions::waxs_correct_buffer = "yes");
         buf_mdp.add(MDPOptions::waxs_correct_buffer = "yes");
 
-        auto saxs = simulate_saxs({
+        saxs2 = simulate_saxs({
             .jobname = "" + pdb.stem() + "_saxs2",
             .pdbfile = pdb,
             .molecule = molecule,
             .buffer = buffer,
-            .runner = RunLocation::local,
+            .runner = RunLocation::smaug,
             .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
             .output = settings::general::output + "saxs_corrected/",
             .mol_mdp = mol_mdp,
             .buf_mdp = buf_mdp,
         });
-        saxs.job->submit();
+        saxs2.job->submit();
     }
 
+    SimpleDataset data1(saxs1.job->result().xvg);
+    SimpleDataset data2(saxs2.job->result().xvg);
+    plots::PlotDataset()
+        .plot(data1, {style::draw::line, {{"legend", "uncorrected"}, {"logx", true}, {"logy", true}, {"color", style::color::orange}}})
+        .plot(data2, {style::draw::line, {{"legend", "corrected"}, {"color", style::color::blue}}})
+    .save(settings::general::output + "out/saxs_comparison.png");
+    saxs1.job->result().xvg.copy(settings::general::output + "out/saxs_uncorrected.xvg");
+    saxs2.job->result().xvg.copy(settings::general::output + "out/saxs_corrected.xvg");
     return 0;
-} 
+}

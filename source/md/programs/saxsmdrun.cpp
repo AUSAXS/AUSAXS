@@ -32,10 +32,10 @@ saxsmdrun& saxsmdrun::rerun(const XTCFile& mol, const XTCFile& buf) {
     return *this;
 }
 
-saxsmdrun& saxsmdrun::output(const io::Folder& folder, const std::string&) {
+saxsmdrun& saxsmdrun::output(const io::Folder& folder, const std::string& prefix) {
     this->folder = folder;
     // options.push_back(std::make_shared<shell::Argument>("-multidir", folder));
-    options.push_back(std::make_shared<shell::Argument>("-ow", folder));
+    options.push_back(std::make_shared<shell::Argument>("-deffnm", folder.absolute_path() + prefix));
     return *this;
 }
 
@@ -52,7 +52,7 @@ saxsmdrun& saxsmdrun::env_var(const std::string& var, const std::string& value) 
 std::unique_ptr<shell::Jobscript<SAXSRunResult>> saxsmdrun::run(RunLocation where, std::string jobscript) {
     switch (where) {
         case RunLocation::local: {
-            cmd.prepend(_export);
+            cmd.prepend(_export + "cd " + folder + ";");
             return std::make_unique<LocalExecution<SAXSRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
         }
         case RunLocation::lusi: {
