@@ -47,12 +47,13 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
 
           # sign the artifact
-          codesign --deep --force --verbose --sign "$DEV_ID" macos-universal-binaries/bin/saxs_fitter
+          codesign --deep --force --verbose --options runtime --timestamp --sign "$DEV_ID" macos-universal-binaries/bin/saxs_fitter
 
           # verify signature
           codesign --verify --verbose macos-universal-binaries/bin/saxs_fitter
-
+      
       - uses: lando/notarize-action@v2
+        id: notarize
         with: 
           product-path: macos-universal-binaries/bin/saxs_fitter
           primary-bundle-id: "com.ausaxs.saxs_fitter"
@@ -60,7 +61,7 @@ jobs:
           appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
           appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
           verbose: true
-
+      
       - name: Staple the notarization ticket
         run: |
           # staple the notarization ticket
