@@ -105,8 +105,7 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
         // run energy minimization
         mdrun(emtpr)
             .output(em_path, "/em")
-            .jobname(options.jobname)
-        .run(options.setup_runner, options.jobscript)->wait();
+        .run(std::move(options.minimize_runner))->wait();
     } else {
         console::print_text("Reusing previously generated energy minimization.");
     }
@@ -167,8 +166,7 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
         // run equilibration
         mdrun(eqtpr)
             .output(eq_path, "/eq")
-            .jobname(options.jobname)
-        .run(options.setup_runner, options.jobscript)->wait();
+        .run(std::move(options.equilibrate_runner))->wait();
     } else {
         console::print_text("Reusing previously generated thermalization.");
     }
@@ -200,8 +198,7 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
         // run production
         auto job = mdrun(prodtpr)
             .output(prod_path, "/prod")
-            .jobname(options.jobname)
-        .run(options.main_runner, options.jobscript);
+        .run(std::move(options.production_runner));
 
         console::unindent();
         return {std::move(job), top, solv_ion};
@@ -209,6 +206,6 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
         console::print_text("Reusing previous position-restrained simulation.");
     }
     console::unindent();
-    auto job = std::make_unique<NoExecution<MDRunResult>>(prod_path);
+    auto job = std::make_unique<NoExecutor<MDRunResult>>(prod_path);
     return {std::move(job), top, solv_ion};
 }

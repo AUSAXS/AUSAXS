@@ -18,9 +18,9 @@ namespace ausaxs::shell {
     class Command {
         public: 
             Command() = default;
-            Command(const std::string& cmd) : cmd(cmd) {}
+            Command(std::string_view cmd) : cmd(cmd) {}
 
-            void set(const std::string& cmd) {
+            void set(std::string_view cmd) {
                 this->cmd = cmd;
             }
 

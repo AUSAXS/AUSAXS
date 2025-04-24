@@ -195,11 +195,10 @@ std::vector<md::SimulateSAXSOutput> md::timeanalysis(SimulateSAXSOptions&& optio
 
         auto job = saxsmdrun(moltpr, buftpr)
             .output(part_folder, "/prod")
-            .jobname(options.jobname + "_" + std::to_string(part))
             .rerun(molxtc_i, bufxtc_i)
             .env_var("GMX_WAXS_FIT_REFFILE", envgro.absolute_path())
             .env_var("GMX_ENVELOPE_FILE", envdat.absolute_path())
-        .run(options.runner, options.jobscript);
+        .run(std::move(options.runner));
 
         jobs.push_back({std::move(job)});
     }
