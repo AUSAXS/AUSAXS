@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <md/programs/saxsmdrun.h>
-#include <md/programs/mdrun/Execution.h>
+#include <md/programs/mdrun/MDExecutor.h>
 #include <md/utility/Exceptions.h>
 
 using namespace ausaxs;
@@ -49,36 +49,8 @@ saxsmdrun& saxsmdrun::env_var(const std::string& var, const std::string& value) 
     return *this;
 }
 
-std::unique_ptr<shell::Jobscript<SAXSRunResult>> saxsmdrun::run(RunLocation where, std::string jobscript) {
-    switch (where) {
-        case RunLocation::local: {
-            cmd.prepend(_export + "cd " + folder + ";");
-            return std::make_unique<LocalExecution<SAXSRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
-        }
-        case RunLocation::lusi: {
-            cmd.append("-nt 12 -nice 19 -pin on -pinstride 1 -pinoffset 0 -gpu_id 0");
-            cmd.prepend(_export + "cd " + folder + ";");
-            return std::make_unique<LocalExecution<SAXSRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
-        }
-        case RunLocation::smaug: {
-            std::string args = "";
-            for (auto& option : options) {
-                if (option->name == "-s") {
-                    args.append("-tpr " + option->value + " ");
-                } else if (option->name == "-rerun") {
-                    args.append("-xtc " + option->value + " ");
-                } else if (option->name == "-sw") {
-                    args.append(option->get() + " ");
-                } else if (option->name == "-fw") {
-                    args.append(option->get() + " ");
-                }
-            }
-            cmd.prepend(_export);
-            return std::make_unique<SmaugExecution<SAXSRunResult>>(command().get(), folder, name);
-        }
-        default: 
-            throw except::invalid_argument("saxsmdrun: Unknown location.");
-    }
+std::unique_ptr<Executor<SAXSRunResult>> saxsmdrun::run(std::unique_ptr<executor::type> executor) {
+    return executor->saxs_runner(folder, command().get());
 }
 
 void saxsmdrun::validate() const {

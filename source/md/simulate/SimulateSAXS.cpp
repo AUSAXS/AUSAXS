@@ -240,14 +240,13 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
             .rerun(molxtc, bufxtc)
             .env_var("GMX_WAXS_FIT_REFFILE", envgro.absolute_path())
             .env_var("GMX_ENVELOPE_FILE", envdat.absolute_path())
-            .jobname(options.jobname)
-        .run(options.runner, options.jobscript);
+        .run(std::move(options.runner));
 
         console::unindent();
         return SimulateSAXSOutput{std::move(job)};
     }
     console::print_text("Reusing previously generated final simulation.");
     console::unindent();
-    auto job = std::make_unique<NoExecution<SAXSRunResult>>(prod_folder);
+    auto job = std::make_unique<NoExecutor<SAXSRunResult>>(prod_folder);
     return SimulateSAXSOutput{std::move(job)};
 }

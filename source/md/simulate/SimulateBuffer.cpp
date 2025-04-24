@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <md/simulate/SimulateBuffer.h>
 #include <md/programs/all.h>
-#include <md/programs/mdrun/Execution.h>
+#include <md/programs/mdrun/MDExecutor.h>
 #include <md/utility/files/MDPCreator.h>
 #include <utility/StringUtils.h>
 #include <utility/Console.h>
@@ -112,8 +112,7 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
         // run energy minimization
         mdrun(emtpr)
             .output(em_path, "/em")
-            .jobname(options.jobname)
-        .run(options.setup_runner, options.jobscript)->wait();
+        .run(std::move(options.minimize_runner))->wait();
         std::cout << " done" << std::endl;
     } else {
         std::cout << "\tReusing previously generated energy minimization." << std::endl;
@@ -137,8 +136,7 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
         // run equilibration
         mdrun(eqtpr)
             .output(eq_path, "/eq")
-            .jobname(options.jobname)
-        .run(options.main_runner, options.jobscript)->wait();
+        .run(std::move(options.equilibrate_runner))->wait();
         std::cout << " done" << std::endl;
     } else {
         std::cout << "\tReusing previously generated thermalization." << std::endl;
@@ -160,14 +158,13 @@ md::SimulateBufferOutput md::simulate_buffer(SimulateBufferOptions&& options) {
         // run production
         auto job = mdrun(prodtpr)
             .output(prod_path, "/prod")
-            .jobname(options.jobname)
-        .run(options.main_runner, options.jobscript);
+        .run(std::move(options.production_runner));
         std::cout << " done." << std::endl;
 
         return {std::move(job), top, prodgro};
     } else {
         std::cout << "\tReusing previous free simulation." << std::endl;
     }
-    auto job = std::make_unique<NoExecution<MDRunResult>>(prod_path);
+    auto job = std::make_unique<NoExecutor<MDRunResult>>(prod_path);
     return {std::move(job), top, prodgro};
 }
