@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <md/programs/mdrun.h>
-#include <md/programs/mdrun/Execution.h>
+#include <md/programs/mdrun/MDExecutor.h>
 #include <md/utility/Exceptions.h>
 
 using namespace ausaxs;
@@ -41,21 +41,8 @@ mdrun& mdrun::jobname(const std::string& name) {
     return *this;
 }
 
-std::unique_ptr<shell::Jobscript<MDRunResult>> mdrun::run(RunLocation where, std::string jobscript) {
-    switch (where) {
-        case RunLocation::local: {
-            return std::make_unique<LocalExecution<MDRunResult>>([*this]() {auto tmp = *this; return tmp.execute();}, folder);
-        }
-        case RunLocation::lusi: {
-            cmd.append("-nt 12 -nice 19 -pin on -pinstride 1 -pinoffset 0 -gpu_id 0");
-            return std::make_unique<LocalExecution<MDRunResult>>([*this](){auto tmp = *this; return tmp.execute();}, folder);
-        }
-        case RunLocation::smaug: {
-            return std::make_unique<SmaugExecution<MDRunResult>>(command().get(), folder, name);
-        }
-        default: 
-            throw except::invalid_argument("mdrun: Unknown location.");
-    }
+std::unique_ptr<Executor<MDRunResult>> mdrun::run(std::unique_ptr<executor::type> executor) {
+    return executor->md_runner(folder, command().get());
 }
 
 void mdrun::validate() const {

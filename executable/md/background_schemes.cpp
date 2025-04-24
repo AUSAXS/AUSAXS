@@ -53,12 +53,11 @@ int main(int argc, char const *argv[]) {
 
     auto molecule = simulate_molecule({
         .system = ss,
-        .jobname = pdb.stem() + "_mol",
         .pdbfile = pdb,
         .mdp = mdp::templates::production::mol().write(settings::general::output + "mdp/mol.mdp"),
-        .setup_runner = RunLocation::lusi,
-        .main_runner = RunLocation::smaug,
-        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+        .minimize_runner = executor::local::construct(),
+        .equilibrate_runner = executor::local::construct(),
+        .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
     });
 
     SimulateBufferOutput buffer;
@@ -66,12 +65,11 @@ int main(int argc, char const *argv[]) {
     if (settings::md::buffer_path.empty()) {
         buffer = simulate_buffer({
             .system = ss,
-            .jobname = pdb.stem() + "_buf",
             .refgro = molecule.gro,
             .mdp = mdp::templates::production::solv().write(settings::general::output + "mdp/buf.mdp"),
-            .setup_runner = RunLocation::smaug,
-            .main_runner = RunLocation::smaug,
-            .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+            .minimize_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
+            .equilibrate_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
+            .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
         });
     } else {
         // find production gro
@@ -102,7 +100,7 @@ int main(int argc, char const *argv[]) {
         }
 
         // create dummy job
-        buffer.job = std::make_unique<NoExecution<MDRunResult>>(settings::md::buffer_path + "/prod/");
+        buffer.job = std::make_unique<NoExecutor<MDRunResult>>(settings::md::buffer_path + "/prod/");
     }
 
     SimulateSAXSOutput saxs1, saxs2;
@@ -113,13 +111,11 @@ int main(int argc, char const *argv[]) {
         buf_mdp.add(MDPOptions::waxs_correct_buffer = "no");
 
         saxs1 = simulate_saxs({
-            .jobname = "" + pdb.stem() + "_saxs1",
             .pdbfile = pdb,
             .molecule = molecule,
             .buffer = buffer,
-            .runner = RunLocation::smaug,
-            .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
             .output = settings::general::output + "saxs_uncorrected/",
+            .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_uncorr"),
             .mol_mdp = mol_mdp,
             .buf_mdp = buf_mdp,
         });
@@ -132,13 +128,11 @@ int main(int argc, char const *argv[]) {
         buf_mdp.add(MDPOptions::waxs_correct_buffer = "yes");
 
         saxs2 = simulate_saxs({
-            .jobname = "" + pdb.stem() + "_saxs2",
             .pdbfile = pdb,
             .molecule = molecule,
             .buffer = buffer,
-            .runner = RunLocation::smaug,
-            .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
             .output = settings::general::output + "saxs_corrected/",
+            .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_corr"),
             .mol_mdp = mol_mdp,
             .buf_mdp = buf_mdp,
         });

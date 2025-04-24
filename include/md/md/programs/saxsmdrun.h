@@ -2,7 +2,7 @@
 
 #include <md/programs/gmx.h>
 #include <md/programs/mdrun/MDRunResult.h>
-#include <md/programs/mdrun/Execution.h>
+#include <md/programs/mdrun/MDExecutor.h>
 #include <md/utility/files/all.h>
 
 namespace ausaxs::md {
@@ -14,7 +14,7 @@ namespace ausaxs::md {
             saxsmdrun& output(const io::Folder& folder, const std::string& prefix);
             saxsmdrun& rerun(const XTCFile& mol, const XTCFile& buf);
             saxsmdrun& env_var(const std::string& var, const std::string& value);
-            std::unique_ptr<shell::Jobscript<SAXSRunResult>> run(RunLocation where, std::string jobscript = "");
+            std::unique_ptr<Executor<SAXSRunResult>> run(std::unique_ptr<executor::type> executor);
             saxsmdrun& jobname(const std::string& name);
 
         private: 
