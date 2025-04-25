@@ -34,7 +34,6 @@ saxsmdrun& saxsmdrun::rerun(const XTCFile& mol, const XTCFile& buf) {
 
 saxsmdrun& saxsmdrun::output(const io::Folder& folder, const std::string& prefix) {
     this->folder = folder;
-    // options.push_back(std::make_shared<shell::Argument>("-multidir", folder));
     options.push_back(std::make_shared<shell::Argument>("-deffnm", folder.absolute_path() + prefix));
     return *this;
 }
@@ -45,7 +44,7 @@ saxsmdrun& saxsmdrun::jobname(const std::string& name) {
 }
 
 saxsmdrun& saxsmdrun::env_var(const std::string& var, const std::string& value) {
-    _export += "export " + var + "=" + value + "; ";
+    cmd.prepend("export " + var + "=" + value + "; ");
     return *this;
 }
 

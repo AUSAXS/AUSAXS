@@ -19,7 +19,7 @@ namespace ausaxs::md {
 
         private: 
             TPRFile moltpr, buftpr;
-            std::string folder, _export;
+            io::Folder folder;
             std::string name = "saxsrun";
 
             void validate() const override;

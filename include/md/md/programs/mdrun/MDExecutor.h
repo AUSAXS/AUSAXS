@@ -30,7 +30,7 @@ namespace ausaxs::md {
             return T(output);
         }
 
-        const io::Folder& output;
+        io::Folder output;
     };
 
     template<MDResult T>
