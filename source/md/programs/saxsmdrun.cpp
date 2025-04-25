@@ -44,7 +44,7 @@ saxsmdrun& saxsmdrun::jobname(const std::string& name) {
 }
 
 saxsmdrun& saxsmdrun::env_var(const std::string& var, const std::string& value) {
-    cmd.prepend("export " + var + "=" + value + "; ");
+    cmd.prepend("export " + var + "=" + value + ";");
     return *this;
 }
 

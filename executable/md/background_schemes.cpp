@@ -18,9 +18,10 @@ using namespace ausaxs;
 using namespace ausaxs::md;
 
 int main(int argc, char const *argv[]) {
-    io::ExistingFile s_pdb, s_settings;
+    io::ExistingFile s_pdb, s_dat, s_settings;
     CLI::App app{"Comparison of the two background subtraction schemes."};
-    app.add_option("input", s_pdb, "PDB structure file.")->required()->check(CLI::ExistingFile);
+    app.add_option("pdb", s_pdb, "PDB structure file.")->required()->check(CLI::ExistingFile);
+    app.add_option("dat", s_dat, "SAXS data file.")->required()->check(CLI::ExistingFile);
     app.add_option("--buffer", settings::md::buffer_path, "Pre-simulated buffer. Set this to the base output folder.");
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
@@ -142,11 +143,16 @@ int main(int argc, char const *argv[]) {
     }
 
     settings::axes::qmax = 1;
+    SimpleDataset data(s_dat);
     SimpleDataset data1(saxs1.job->result().xvg);
     SimpleDataset data2(saxs2.job->result().xvg);
+    data.normalize();
+    data1.normalize();
+    data2.normalize();
     plots::PlotDataset()
-        .plot(data1, {style::draw::line, {{"legend", "uncorrected"}, {"logx", true}, {"logy", true}, {"color", style::color::orange}}})
-        .plot(data2, {style::draw::line, {{"legend", "corrected"}, {"color", style::color::blue}}})
+        .plot(data, {style::draw::errors, {{"legend", "SAXS data"}, {"logx", true}, {"logy", true}, {"color", style::color::black}}})
+        .plot(data1, {style::draw::errors, {{"legend", "uncorrected"}, {"color", style::color::orange}}})
+        .plot(data2, {style::draw::errors, {{"legend", "corrected"}, {"color", style::color::blue}}})
     .save(settings::general::output + "out/saxs_comparison.png");
     saxs1.job->result().xvg.copy(settings::general::output + "out", "saxs_uncorrected.xvg");
     saxs2.job->result().xvg.copy(settings::general::output + "out", "saxs_corrected.xvg");
