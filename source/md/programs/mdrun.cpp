@@ -30,12 +30,6 @@ mdrun& mdrun::output(const io::Folder& folder, const std::string& prefix) {
     return *this;
 }
 
-mdrun& mdrun::output(const io::Folder& folder) {
-    this->folder = folder;
-    options.push_back(std::make_shared<shell::Argument>("-multidir", folder));
-    return *this;
-}
-
 mdrun& mdrun::jobname(const std::string& name) {
     this->name = name;
     return *this;

@@ -142,7 +142,7 @@ saxs::base::base() {
     add(MDPOptions::waxs_nstlog = 5000);
     add(MDPOptions::waxs_nq = 101);
     add(MDPOptions::waxs_startq = 0);
-    add(MDPOptions::waxs_endq = 5);
+    add(MDPOptions::waxs_endq = 10);
     add(MDPOptions::waxs_solvdens_uncert = 0.005);
 }
 

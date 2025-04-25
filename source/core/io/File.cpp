@@ -84,13 +84,17 @@ io::File File::move(const io::Folder& folder) const {
     return new_file;
 }
 
-io::File File::copy(const io::Folder& folder) const {
+io::File File::copy(const io::Folder& folder, std::string_view name) const {
     if (folder == dir) {return *this;}
     if (!folder.exists()) {folder.create();}
-    io::File new_file(folder, name, ext);
+    io::File new_file(folder + name);
     if (new_file.exists()) {new_file.remove();}
     std::filesystem::copy(path(), new_file.path());
     return new_file;
+}
+
+io::File File::copy(const io::Folder& folder) const {
+    return File::copy(folder, filename());
 }
 
 void File::remove() const {

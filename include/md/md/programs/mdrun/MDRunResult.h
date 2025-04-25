@@ -23,8 +23,8 @@ namespace ausaxs::md {
 
     struct SAXSRunResult {
         SAXSRunResult(const io::Folder& folder) {
-            dat = DATFile(folder + "saxs.dat");
-            xvg = XVGFile(folder + "waxs_final.xvg");
+            // dat = DATFile(folder + "saxs.dat");
+            xvg = XVGFile(folder + "prod_final.xvg");
         }
 
         operator std::tuple<DATFile, XVGFile>() const {

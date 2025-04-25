@@ -220,7 +220,7 @@ md::SimulateSAXSOutput md::simulate_saxs(md::SimulateSAXSOptions&& options) {
         options.buf_mdp.value_or(mdp::templates::saxs::solv()).write(bufmdp);
     }
 
-    XVGFile xvg(prod_folder + "waxs_final.xvg");
+    XVGFile xvg(prod_folder + "prod_final.xvg");
     if (!xvg.exists()) {
         console::print_text("Rerunning production simulation...");
         auto[moltpr] = grompp(molmdp, moltop, molgro)

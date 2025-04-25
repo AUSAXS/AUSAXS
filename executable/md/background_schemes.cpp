@@ -9,6 +9,7 @@
 #include <constants/Version.h>
 #include <utility/Console.h>
 #include <dataset/SimpleDataset.h>
+#include <settings/All.h>
 #include <plots/All.h>
 
 #include <CLI/CLI.hpp>
@@ -115,7 +116,8 @@ int main(int argc, char const *argv[]) {
             .molecule = molecule,
             .buffer = buffer,
             .output = settings::general::output + "saxs_uncorrected/",
-            .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_uncorr"),
+            // .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_uncorr"),
+            .runner = executor::local::construct(),
             .mol_mdp = mol_mdp,
             .buf_mdp = buf_mdp,
         });
@@ -132,20 +134,21 @@ int main(int argc, char const *argv[]) {
             .molecule = molecule,
             .buffer = buffer,
             .output = settings::general::output + "saxs_corrected/",
-            .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_corr"),
+            .runner = executor::local::construct(),
             .mol_mdp = mol_mdp,
             .buf_mdp = buf_mdp,
         });
         saxs2.job->submit();
     }
 
+    settings::axes::qmax = 1;
     SimpleDataset data1(saxs1.job->result().xvg);
     SimpleDataset data2(saxs2.job->result().xvg);
     plots::PlotDataset()
         .plot(data1, {style::draw::line, {{"legend", "uncorrected"}, {"logx", true}, {"logy", true}, {"color", style::color::orange}}})
         .plot(data2, {style::draw::line, {{"legend", "corrected"}, {"color", style::color::blue}}})
     .save(settings::general::output + "out/saxs_comparison.png");
-    saxs1.job->result().xvg.copy(settings::general::output + "out/saxs_uncorrected.xvg");
-    saxs2.job->result().xvg.copy(settings::general::output + "out/saxs_corrected.xvg");
+    saxs1.job->result().xvg.copy(settings::general::output + "out", "saxs_uncorrected.xvg");
+    saxs2.job->result().xvg.copy(settings::general::output + "out", "saxs_corrected.xvg");
     return 0;
 }

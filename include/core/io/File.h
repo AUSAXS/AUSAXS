@@ -111,6 +111,7 @@ namespace ausaxs::io {
              * @returns The path to the new file.
              */
             io::File copy(const io::Folder& folder) const;
+            io::File copy(const io::Folder& folder, std::string_view name) const;
 
             /**
              * @brief Rename this file on disk.
