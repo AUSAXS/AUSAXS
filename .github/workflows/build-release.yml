@@ -196,12 +196,12 @@ jobs:
             security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PWD $KEYCHAIN_PATH
             security list-keychain -d user -s $KEYCHAIN_PATH
 
-            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/saxs_fitter build/bin/em_fitter build/bin/saxs_fitter_gui build/bin/em_fitter_gui
+            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/saxs_fitter build/bin/em_fitter build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
 
       - name: Notarize saxs_fitter_gui
         uses: lando/notarize-action@v2
         with: 
-          product-path: build/bin/saxs_fitter_gui
+          product-path: build/bin/saxs_fitter_gui.app
           primary-bundle-id: "com.ausaxs.saxs_fitter_gui"
           appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
           appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
@@ -211,7 +211,7 @@ jobs:
       - name: Notarize em_fitter_gui
         uses: lando/notarize-action@v2
         with: 
-          product-path: build/bin/em_fitter_gui
+          product-path: build/bin/em_fitter_gui.app
           primary-bundle-id: "com.ausaxs.em_fitter_gui"
           appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
           appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
@@ -220,11 +220,11 @@ jobs:
 
       - name: Staple the notarization ticket
         run: |
-          xcrun stapler staple build/bin/saxs_fitter_gui
-          xcrun stapler staple build/bin/em_fitter_gui
-          codesign -dv --verbose=4 build/bin/saxs_fitter_gui build/bin/em_fitter_gui
-          spctl -a -vv build/bin/saxs_fitter_gui
-          spctl -a -vv build/bin/em_fitter_gui
+          xcrun stapler staple build/bin/saxs_fitter_gui.app
+          xcrun stapler staple build/bin/em_fitter_gui.app
+          codesign -dv --verbose=4 build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
+          spctl -a -vv build/bin/saxs_fitter_gui.app
+          spctl -a -vv build/bin/em_fitter_gui.app
 
       - uses: actions/upload-artifact@v4
         with:
