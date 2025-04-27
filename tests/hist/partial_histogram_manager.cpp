@@ -146,10 +146,10 @@ TEST_CASE("PartialHistogramManager: subsequent calculations") {
     // deterministic
     test(protein, [] (const Molecule& protein) {return hist::PartialHistogramManager<true>(&protein).calculate_all();});
     test(protein, [] (const Molecule& protein) {return hist::PartialHistogramManagerMT<true>(&protein).calculate_all();});
-    // test(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});    
+    test(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});    
 
     // random
     test_random(protein, [] (const Molecule& protein) {return hist::PartialHistogramManager<true>(&protein).calculate_all();});
     test_random(protein, [] (const Molecule& protein) {return hist::PartialHistogramManagerMT<true>(&protein).calculate_all();});
-    // test_random(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});    
+    test_random(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});    
 }

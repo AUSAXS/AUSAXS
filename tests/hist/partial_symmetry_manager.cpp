@@ -116,8 +116,6 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
     settings::grid::min_bins = 100;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
 
-    // settings::general::threads = 1;
-
     SECTION("simple") {
         data::Molecule protein({
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}, 
