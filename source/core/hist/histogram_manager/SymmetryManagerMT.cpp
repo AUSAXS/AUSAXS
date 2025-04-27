@@ -53,7 +53,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
 
         for (int i_sym1 = 0; i_sym1 < static_cast<int>(body.size_symmetry()); ++i_sym1) {
             const auto& sym1 = body.symmetry().get(i_sym1);
-            bool closed = sym1.is_closed();
+            bool closed = sym1.is_closed() && sym1.repeat_relation.rotate.magnitude() != 0;
             for (int i_repeat1 = 0; i_repeat1 < (sym1.repetitions - closed); ++i_repeat1) {
                 const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
 

@@ -111,7 +111,6 @@ auto test_random = [] (data::Molecule& protein) {
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
-    exit(0);
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -124,7 +123,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}, 
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}}
         });
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{-1, 0, 0}, {0, 0, 0}}));
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
 
         test(protein);
         test_random(protein);
@@ -135,7 +134,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({0, 0, 1})}}, 
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}}
         });
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{-1, 0, 0}, {0, 0, 0}}));
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
 
         test(protein);
         test_random(protein);
@@ -146,7 +145,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body("tests/files/2epe.pdb"), 
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}
         });
-        protein.get_body(0).symmetry().add({symmetry::Symmetry({{-1, 0, 0}, {0, 0, 0}})});
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
         protein.generate_new_hydration();
 
         test(protein);
@@ -158,9 +157,9 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({0, 0, 1})}}, 
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}},
         });
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{-1,  0, 0}, {0, 0, 0}}));
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{ 0, -1, 0}, {0, 0, 0}}));
-        protein.get_body(1).symmetry().add(symmetry::Symmetry({{ 0,  1, 0}, {0, 0, 0}}));
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{0, -1, 0}, {0, 0, 0}}, 1}));
+        protein.get_body(1).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{0,  1, 0}, {0, 0, 0}}, 1}));
 
         test(protein);
         test_random(protein);
@@ -179,7 +178,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             auto& body = protein.get_body(i);
             for (int j = 0; j < ri(gen); ++j) {
                 // symmetry with up to 4 repeats
-                symmetry::Symmetry sym({{rd(gen), rd(gen), rd(gen)}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}}, (ri(gen) % 4)+1);
+                symmetry::Symmetry sym({{0, 0, 0}, {0, 0, 0}}, {{rd(gen), rd(gen), rd(gen)}, {0, 0, 0}}, (ri(gen) % 4)+1);
                 body.symmetry().add(std::move(sym));
             }
         }
