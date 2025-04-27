@@ -110,8 +110,8 @@ TEST_CASE("StateManager::set_probe") {
 }
 
 TEST_CASE_METHOD(fixture, "StateManager probe signalling") {
-    manager.get_probe(2)->external_change();
-    manager.get_probe(4)->external_change();
+    manager.get_probe(2)->modified_external();
+    manager.get_probe(4)->modified_external();
     CHECK(manager.get_externally_modified_bodies() == std::vector{false, false, true, false, true});
     CHECK(!manager.is_externally_modified(0));
     CHECK(!manager.is_externally_modified(1));

@@ -1,13 +1,14 @@
 #pragma once
 
 #include <data/DataFwd.h>
+#include <data/detail/SimpleBody.h>
 #include <data/symmetry/Symmetry.h>
 #include <data/symmetry/SymmetryStorage.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
 
-namespace ausaxs::data::detail {
+namespace ausaxs::symmetry::detail {
     template<typename BODY, bool NONCONST = !std::is_const_v<BODY>>
     class BodySymmetryFacade {
         public:
@@ -21,21 +22,46 @@ namespace ausaxs::data::detail {
 
             /**
              * @brief Get the symmetries of this body.
+             *        This will also mark all symmetries as modified. Use the const version to avoid this signal. 
              */
-            std::vector<symmetry::Symmetry>& get() requires (NONCONST);
-            const std::vector<symmetry::Symmetry>& get() const; //< @copydoc get_symmetries()
+            [[nodiscard]] std::vector<symmetry::Symmetry>& get() requires (NONCONST);
+
+            /**
+             * @brief Get the symmetries of this body.
+             */
+            [[nodiscard]] const std::vector<symmetry::Symmetry>& get() const;
+
+            /**
+             * @brief Get the symmetry at the specified index.
+             *        This will also mark the symmetry as modified. Use the const version to avoid this signal. 
+             */
+            [[nodiscard]] symmetry::Symmetry& get(unsigned int index) requires (NONCONST);
 
             /**
              * @brief Get the symmetry at the specified index.
              */
-            symmetry::Symmetry& get(unsigned int index) requires (NONCONST);
-            const symmetry::Symmetry& get(unsigned int index) const; //< @copydoc get_symmetry()
+            [[nodiscard]] const symmetry::Symmetry& get(unsigned int index) const;
+
+            /**
+             * @brief Get the symmetry storage object.
+             *        This will also mark all symmetries as modified. Use the const version to avoid this signal.
+             */
+            [[nodiscard]] observer_ptr<symmetry::SymmetryStorage> get_obj() requires (NONCONST);
 
             /**
              * @brief Get the symmetry storage object.
              */
-            observer_ptr<symmetry::SymmetryStorage> get_obj() requires (NONCONST);
-            observer_ptr<const symmetry::SymmetryStorage> get_obj() const; //< @copydoc get_obj()
+            [[nodiscard]] observer_ptr<const symmetry::SymmetryStorage> get_obj() const;
+
+            /**
+             * @brief Get the total number of atoms in the body, including all symmetries.
+             */
+            std::size_t size_atom_total() const; 
+
+            /**
+             * @brief Get the total number of water molecules in the body, including all symmetries.
+             */
+            std::size_t size_water_total() const;
 
             /**
              * @brief Set the symmetry storage object.
@@ -50,7 +76,7 @@ namespace ausaxs::data::detail {
             /**
              * @brief Apply all symmetries to the body, returning a new larger body with all the symmetries applied.
              */
-            Body get_explicit_structure() const;
+            [[nodiscard]] data::detail::SimpleBody explicit_structure() const;
 
         private:
             observer_ptr<BODY> body;

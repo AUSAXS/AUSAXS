@@ -102,9 +102,9 @@ void Body::initialize() {
     signal = std::make_shared<signaller::UnboundSignaller>();
 }
 
-data::detail::BodySymmetryFacade<Body> Body::symmetry() {return data::detail::BodySymmetryFacade<Body>(this);}
+symmetry::detail::BodySymmetryFacade<Body> Body::symmetry() {return symmetry::detail::BodySymmetryFacade<Body>(this);}
 
-data::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return data::detail::BodySymmetryFacade<const Body>(this);}
+symmetry::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return symmetry::detail::BodySymmetryFacade<const Body>(this);}
 
 Vector3<double> Body::get_cm() const {
     Vector3<double> cm{0, 0, 0};
@@ -131,20 +131,22 @@ double Body::get_volume_vdw() const {
 }
 
 void Body::translate(Vector3<double> v) {
-    signal->external_change();
+    signal->modified_external();
     std::for_each(atoms.begin(), atoms.end(), [v] (data::AtomFF& atom) {atom.coordinates() += v;});
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+        signal->modified_hydration();
         std::for_each(h->waters.begin(), h->waters.end(), [v] (data::Water& atom) {atom.coordinates() += v;});
     }
 }
 
 void Body::rotate(const Matrix<double>& R) {
-    signal->external_change();
+    signal->modified_external();
     for (auto& atom : atoms) {
         atom.coordinates().rotate(R);
     }
 
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+        signal->modified_hydration();
         for (auto& atom : h->waters) {
             atom.coordinates().rotate(R);
         }
@@ -173,8 +175,9 @@ Body& Body::operator=(Body&& rhs) noexcept {
     hydration = std::move(rhs.hydration);
     symmetries = std::move(rhs.symmetries);
     uid = rhs.uid;
-    signal->internal_change();
-    signal->external_change();
+    signal->modified_internal();
+    signal->modified_external();
+    signal->modified_hydration();
     return *this;
 }
 
@@ -186,8 +189,9 @@ Body& Body::operator=(const Body& rhs) {
         throw std::runtime_error("Body::operator=: Implicit hydration is not implemented.");
     }
     symmetries = rhs.symmetries->clone();
-    signal->internal_change();
-    signal->external_change();
+    signal->modified_internal();
+    signal->modified_external();
+    signal->modified_hydration();
     return *this;
 }
 
@@ -195,23 +199,11 @@ bool Body::operator==(const Body& rhs) const {
     return uid == rhs.uid;
 }
 
-#define FAILURE_MSG true
-#if FAILURE_MSG
-    #include <iostream>
-#endif
 bool Body::equals_content(const Body& rhs) const {
-    if (atoms != rhs.atoms) {
-        #if FAILURE_MSG
-            std::cout << "atoms != rhs.atoms" << std::endl;
-        #endif
-        return false;
-    }
+    if (atoms != rhs.atoms) {return false;}
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         if (auto r = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); r) {
             if (h->waters != r->waters) {
-                #if FAILURE_MSG
-                    std::cout << "lhs waters is explicit; rhs is not" << std::endl;
-                #endif
                 return false;
             }
         } else {
@@ -221,18 +213,10 @@ bool Body::equals_content(const Body& rhs) const {
         if (auto r = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); r) {
             throw std::runtime_error("Body::equals_content: Implicit hydration is not implemented.");
         } else {
-            #if FAILURE_MSG
-                std::cout << "lhs waters is implicit; rhs is not" << std::endl;
-            #endif
             return false;
         }
     }
-    if (symmetries->get() != rhs.symmetries->get()) {
-        #if FAILURE_MSG
-            std::cout << "symmetries->get() != rhs.symmetries->get()" << std::endl;
-        #endif
-        return false;
-    }
+    if (symmetries->get() != rhs.symmetries->get()) {return false;}
     return true;
 }
 
@@ -259,12 +243,12 @@ std::vector<data::Water>& Body::get_waters() {
 
 void Body::set_hydration(std::unique_ptr<hydrate::Hydration> hydration) {
     this->hydration = std::move(hydration);
-    signal->external_change();
+    signal->modified_external();
 }
 
 void Body::clear_hydration() {
     hydration->clear();
-    signal->external_change();
+    signal->modified_external();
 }
 
 const std::vector<data::AtomFF>& Body::get_atoms() const {return atoms;}
@@ -286,5 +270,5 @@ std::size_t Body::size_water() const {
 std::size_t Body::size_symmetry() const {return symmetries->get().size();}
 
 std::size_t Body::size_symmetry_total() const {
-    return std::accumulate(symmetries->get().begin(), symmetries->get().end(), 0, [] (int sum, const symmetry::Symmetry& sym) {return sum + sym.repeat;});
+    return std::accumulate(symmetries->get().begin(), symmetries->get().end(), 0, [] (int sum, const symmetry::Symmetry& sym) {return sum + sym.repetitions;});
 }

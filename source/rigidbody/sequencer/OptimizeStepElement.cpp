@@ -31,9 +31,4 @@ namespace ausaxs::rigidbody::sequencer {
             }
         }
     }
-
-    OptimizeStepElement& OptimizeStepElement::save_on_improvement(const io::File& path) {
-        elements.push_back(std::make_unique<SaveElement>(owner, path));
-        return *this;
-    }
 }

@@ -307,12 +307,12 @@ TEST_CASE_METHOD(fixture, "Body::state") {
     manager->reset_to_false();
 
     SECTION("Body::changed_external_state") {
-        protein.get_body(0).get_signaller()->external_change();
+        protein.get_body(0).get_signaller()->modified_external();
         CHECK(manager->get_externally_modified_bodies()[0] == true);
     }
 
     SECTION("Body::changed_internal_state") {
-        protein.get_body(0).get_signaller()->internal_change();
+        protein.get_body(0).get_signaller()->modified_internal();
         CHECK(manager->get_internally_modified_bodies()[0] == true);
     }
 }

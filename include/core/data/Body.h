@@ -147,8 +147,8 @@ namespace ausaxs::data {
 			/**
 			 * @brief Access the symmetry operations of this body.
 			 */
-			[[nodiscard]] detail::BodySymmetryFacade<Body> symmetry();
-			[[nodiscard]] detail::BodySymmetryFacade<const Body> symmetry() const; //< @copydoc symmetry()
+			[[nodiscard]] symmetry::detail::BodySymmetryFacade<Body> symmetry();
+			[[nodiscard]] symmetry::detail::BodySymmetryFacade<const Body> symmetry() const; //< @copydoc symmetry()
 
 			/**
 			 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
@@ -173,8 +173,8 @@ namespace ausaxs::data {
 
 			void initialize();
 
-		friend class detail::BodySymmetryFacade<Body>;
-		friend class detail::BodySymmetryFacade<const Body>;
+		friend class symmetry::detail::BodySymmetryFacade<Body>;
+		friend class symmetry::detail::BodySymmetryFacade<const Body>;
 	};
 	static_assert(std::is_move_constructible_v<Body>);
 }

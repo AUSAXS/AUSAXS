@@ -1,87 +1,64 @@
 from multiprocessing import freeze_support
 import matplotlib.pyplot as plt
 import concurrent.futures
+import argparse
 import sys
 import os
 
 from plot_helper import *
 
-max_depth = 4
-max_files = 30
+def parse_args():
+    parser = argparse.ArgumentParser(prog="plot", description="AUSAXS plotting utility.")
+    parser.add_argument("--folder", type=str, default=".", help="Folder to search for .plot files.")
+    parser.add_argument("--max_depth", type=int, default=4, help="Maximum depth to search for .plot files.")
+    parser.add_argument("--max_files", type=int, default=30, help="Maximum number of files to process.")
+    parser.add_argument("--big", action="store_true", help="Use big font size.")
+    parser.add_argument("--medium", action="store_true", help="Use medium font size.")
+    parser.add_argument("--title", type=str, help="Title for the plot.")
+    parser.format_help
+    return parser.parse_args()
 
 def main():
-    help_msg = "Usage: plot <folder>\nPlots all .plot files in the given folder and subfolders."
-    params = {
-        'legend.fontsize': 14,
-        'figure.figsize': (10, 8),
-        'axes.labelsize': 14,
-        'axes.titlesize':14,
-        'xtick.labelsize':11,
-        'ytick.labelsize':11,
-        'lines.markersize': 5,
-        'backend': 'Agg'
-    }
-
-    title=""
-    match len(sys.argv):
-        case 1:
-            if os.path.exists("output"):
-                folder = "output"
-            else:
-                folder = "."
-
-        case 2:
-            if (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
-                print("Plotting tool for the .plot files from AUSAXS.")
-                print(help_msg)
-                exit(0)
-            else:
-                folder = sys.argv[1]
-                if not os.path.exists(folder):
-                    print(f"Folder {sys.argv[1]} does not exist.")
-                    exit(1)
-
-        case 3: # secret option to change matplotlib parameters
-            folder = sys.argv[1]
-            if not os.path.exists(folder):
-                print(f"Folder {sys.argv[1]} does not exist.")
-                exit(1)
-            if sys.argv[2] == "--big":
-                params = {
-                    'legend.fontsize': 28,
-                    'figure.figsize': (10, 8),
-                    'axes.labelsize': 28,
-                    'axes.titlesize': 28,
-                    'xtick.labelsize': 20,
-                    'ytick.labelsize': 20,
-                    'lines.markersize': 12,
-                    'backend': 'Agg'
-                }
-            elif sys.argv[2] == "--medium":
-                params = {
-                    'legend.fontsize': 24,
-                    'figure.figsize': (10, 8),
-                    'axes.labelsize': 24,
-                    'axes.titlesize': 24,
-                    'xtick.labelsize': 18,
-                    'ytick.labelsize': 18,
-                    'lines.markersize': 10,
-                    'backend': 'Agg'
-                }
-
-        case 4:
-            folder = sys.argv[1]
-            if sys.argv[2] == "--logtitle":
-                title=sys.argv[3]
-                
-        case _:
-            print(help_msg)
-            exit(0)
+    args = parse_args()
+    folder = args.folder
+    max_depth = args.max_depth
+    max_files = args.max_files
+    if args.big:
+        params = {
+            'legend.fontsize': 28,
+            'figure.figsize': (10, 8),
+            'axes.labelsize': 28,
+            'axes.titlesize': 28,
+            'xtick.labelsize': 20,
+            'ytick.labelsize': 20,
+            'lines.markersize': 12,
+            'backend': 'Agg'
+        }
+    elif args.medium:
+        params = {
+            'legend.fontsize': 24,
+            'figure.figsize': (10, 8),
+            'axes.labelsize': 24,
+            'axes.titlesize': 24,
+            'xtick.labelsize': 18,
+            'ytick.labelsize': 18,
+            'lines.markersize': 10,
+            'backend': 'Agg'
+        }
+    else:
+        params = {
+            'legend.fontsize': 14,
+            'figure.figsize': (10, 8),
+            'axes.labelsize': 14,
+            'axes.titlesize': 14,
+            'xtick.labelsize': 11,
+            'ytick.labelsize': 11,
+            'lines.markersize': 5,
+            'backend': 'Agg'
+        }
+    title = args.title
 
     plt.rcParams.update(params)
-
-    if folder == "":
-        folder = sys.argv[1]
 
     def get_depth(path):
         return path.count(os.sep)

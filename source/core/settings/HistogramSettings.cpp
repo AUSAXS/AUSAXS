@@ -39,10 +39,13 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Histogra
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: return "hmmtffg";
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: return "hmmtffgs";
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: return "hmmtffgse";
+        case settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT: return "hmsmt";
         case settings::hist::HistogramManagerChoice::PartialHistogramManager: return "phm";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT: return "phmmt";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg: return "phmmtff";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit: return "phmmtffx";
+        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid: return "phmmtffg";
+        case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT: return "phsmt";
         case settings::hist::HistogramManagerChoice::FoXSManager: return "foxs";
         case settings::hist::HistogramManagerChoice::PepsiManager: return "pepsi";
         case settings::hist::HistogramManagerChoice::CrysolManager: return "crysol";
@@ -60,10 +63,13 @@ template<> void settings::io::detail::SettingRef<settings::hist::HistogramManage
     else if (str == "hmmtffg") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
     else if (str == "hmmtffgs" || str == "grid") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;}
     else if (str == "hmmtffgse" || str == "scalable") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;}
+    else if (str == "hmsmt") {settingref = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;}
     else if (str == "phm") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManager;}
     else if (str == "phmmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
     else if (str == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg;}
     else if (str == "phmmtffx") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit;}
+    else if (str == "phmmtffg") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid;}
+    else if (str == "phsmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;}
     // else if (str == "debug") {settingref = settings::hist::HistogramManagerChoice::DebugManager;}
     else if (str == "foxs") {settingref = settings::hist::HistogramManagerChoice::FoXSManager;}
     else if (str == "pepsi") {settingref = settings::hist::HistogramManagerChoice::PepsiManager;}

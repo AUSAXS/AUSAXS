@@ -651,7 +651,7 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
 
         manager->reset_to_false();
         for (unsigned int i = 0; i < bodies.size(); ++i) {
-            bodies[i].get_signaller()->external_change();
+            bodies[i].get_signaller()->modified_external();
             CHECK(manager->is_externally_modified(i));
         }
     }

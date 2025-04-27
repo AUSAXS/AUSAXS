@@ -11,7 +11,7 @@ namespace ausaxs::symmetry  {
         std::unique_ptr<SymmetryStorage> clone() override;
 
         bool optimize_translate = false;
-        bool optimize_rotate_cm = false;
+        bool optimize_rotate = false;
     };
 }
 
@@ -25,7 +25,7 @@ inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type sym
         case symmetry::type::p2:
         case symmetry::type::p3:
         case symmetry::type::p4:
-            optimize_rotate_cm = true;
+            optimize_rotate = true;
             break;
 
         default:
