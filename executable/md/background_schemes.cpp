@@ -1,3 +1,4 @@
+#include "md/programs/options/water_models/IWaterModel.h"
 #include <md/programs/all.h>
 #include <md/simulate/SimulateBuffer.h>
 #include <md/simulate/SimulateMolecule.h>
@@ -57,17 +58,22 @@ int main(int argc, char const *argv[]) {
         .system = ss,
         .pdbfile = pdb,
         .mdp = mdp::templates::production::mol().write(settings::general::output + "mdp/mol.mdp"),
-        .minimize_runner = executor::local::construct(),
-        .equilibrate_runner = executor::local::construct(),
+        .minimize_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
+        .equilibrate_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
         .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
     });
 
     SimulateBufferOutput buffer;
     console::print_info("\nPreparing buffer simulation");
-    if (settings::md::buffer_path.empty()) {
-        settings::md::buffer_path = settings::general::output + "buffer/" + option::IWaterModel::construct(ss.watermodel)->name() + "/";
+    if (settings::md::buffer_path.empty() || !io::Folder(settings::md::buffer_path).exists()) {
+        settings::md::buffer_path = "output/md/buffer/" + option::IWaterModel::construct(ss.watermodel)->filename();
+        if (io::Folder(settings::md::buffer_path).exists()) {
+            console::print_text("No buffer path provided, but found existing buffer folder at default location \"" + settings::md::buffer_path + "\".");
+        } else {
+            settings::md::buffer_path.clear();
+        }
     }
-    if (io::Folder(settings::md::buffer_path).exists()) {
+    if (!settings::md::buffer_path.empty() && io::Folder(settings::md::buffer_path).exists()) {
         console::print_warning("Discovered existing buffer simulation at \"" + settings::md::buffer_path + "\".");
         io::Folder prod_folder(settings::md::buffer_path + "/prod");
         if (!prod_folder.exists()) {
