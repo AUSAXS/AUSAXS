@@ -101,6 +101,7 @@ namespace ausaxs::md {
                 TOPFile top(folder.str() + "/topol.top");
                 top.extract_single_chain();
                 top.fix_relative_includes();
+                top.standardize_itp_names();
                 return std::make_tuple(GROFile(folder.str() + "/conf.gro"), top, ITPFile(folder.str() + "/posre.itp"));
             }
 

@@ -24,7 +24,6 @@ namespace ausaxs::md {
         TOPFile(const T& path) : TOPFile(std::string_view(path)) {}
         TOPFile(std::string_view name) : IValidatedFile(name) {
             includes = discover_includes();
-            standardize_itp_names();
         }
 
         /**
