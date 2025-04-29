@@ -32,7 +32,9 @@ namespace ausaxs::md {
          * @brief Standardize the name of this and all nested ITP files.
          * 
          * The name will be changed to e.g. "topol_prefix" or "backbone_prefix".
+         *
+         * @return The new name of this file
          */
-        void standardize_name(std::string_view postfix);
+        std::string standardize_name(std::string_view postfix);
     };
 }
