@@ -65,16 +65,10 @@ int main(int argc, char const *argv[]) {
     SimulateBufferOutput buffer;
     console::print_info("\nPreparing buffer simulation");
     if (settings::md::buffer_path.empty()) {
-        buffer = simulate_buffer({
-            .system = ss,
-            .refgro = molecule.gro,
-            .mdp = mdp::templates::production::solv().write(settings::general::output + "mdp/buf.mdp"),
-            .minimize_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
-            .equilibrate_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
-            .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
-        });
-    } else {
-        // find production gro
+        settings::md::buffer_path = settings::general::output + "buffer/" + option::IWaterModel::construct(ss.watermodel)->name() + "/";
+    }
+    if (io::Folder(settings::md::buffer_path).exists()) {
+        console::print_warning("Discovered existing buffer simulation at \"" + settings::md::buffer_path + "\".");
         io::Folder prod_folder(settings::md::buffer_path + "/prod");
         if (!prod_folder.exists()) {
             throw except::io_error("Could not find nested production folder (\"prod\") in supplied buffer folder \"" + settings::md::buffer_path + "\".");
@@ -103,6 +97,15 @@ int main(int argc, char const *argv[]) {
 
         // create dummy job
         buffer.job = std::make_unique<NoExecutor<MDRunResult>>(settings::md::buffer_path + "/prod/");
+    } else {
+        buffer = simulate_buffer({
+            .system = ss,
+            .refgro = molecule.gro,
+            .mdp = mdp::templates::production::solv().write(settings::general::output + "mdp/buf.mdp"),
+            .minimize_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
+            .equilibrate_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
+            .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
+        });
     }
 
     SimulateSAXSOutput saxs1, saxs2;
