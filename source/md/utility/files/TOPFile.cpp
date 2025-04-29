@@ -138,11 +138,8 @@ void TOPFile::include_new_type(const std::vector<ITPFile>& itps, const std::stri
     std::transform(itps.begin(), itps.end(), relative_paths.begin(), [this] (const ITPFile& itp) {return relative_path(itp.path());});
     while (std::getline(in, line)) {
         contents.push_back(line);
-        console::print_text_minor(line);
         for (unsigned int i = 0; i < name.size(); i++) {
-            console::print_text_minor("searching for \"topol_" + name[i] + "\"...");
             if (line.find("topol_" + name[i]) != std::string::npos) {
-                console::print_text_minor("found.");
                 // check if itp file was already inserted
                 if (line.find(relative_paths[i]) != std::string::npos) {
                     already_present[i] = true;
@@ -151,14 +148,10 @@ void TOPFile::include_new_type(const std::vector<ITPFile>& itps, const std::stri
 
                 if (symbol.empty()) {
                     contents.push_back("#include \"" + relative_paths[i] + "\"");
-                    console::print_text_minor("\"#include " + relative_paths[i] + "\" added to topology file.");
                 } else {
                     contents.push_back("#ifdef " + symbol);
                     contents.push_back("\t#include \"" + relative_paths[i] + "\"");
                     contents.push_back("#endif");
-                    console::print_text_minor("\"#ifdef " + symbol + "\"");
-                    console::print_text_minor("\"\t#include " + relative_paths[i] + "\"");
-                    console::print_text_minor("\"#endif\" added to topology file.");
                 }
                 inserted[i]++;
             }
@@ -333,7 +326,7 @@ void TOPFile::standardize_itp_names() {
     std::ofstream out(path());
     for (const auto& line : contents) {out << line + "\n";}
     out.close();
-    discover_includes();
+    includes = discover_includes();
 }
 
 void TOPFile::extract_single_chain() {
