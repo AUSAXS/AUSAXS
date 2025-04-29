@@ -27,5 +27,12 @@ namespace ausaxs::md {
          * This is primarily intended to be used with the output from gmx::genrestr. 
          */
         std::vector<ITPFile> split_restraints(const std::vector<ITPFile>& topologies) const;
+
+        /**
+         * @brief Standardize the name of this and all nested ITP files.
+         * 
+         * The name will be changed to e.g. "topol_prefix" or "backbone_prefix".
+         */
+        void standardize_name(std::string_view postfix);
     };
 }

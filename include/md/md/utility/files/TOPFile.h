@@ -24,6 +24,7 @@ namespace ausaxs::md {
         TOPFile(const T& path) : TOPFile(std::string_view(path)) {}
         TOPFile(std::string_view name) : IValidatedFile(name) {
             includes = discover_includes();
+            standardize_itp_names();
         }
 
         /**
@@ -88,6 +89,11 @@ namespace ausaxs::md {
          *        Though this is not strictly necessary, it makes the topology file much easier to read.
          */
         void extract_single_chain();
+
+        /**
+         * @brief Standardize the names of the included ITP files in the topology file.
+         */
+        void standardize_itp_names();
 
         std::string copy(const io::Folder& folder) const;
 

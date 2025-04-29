@@ -9,6 +9,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <utility/Console.h>
 
 #include <fstream>
+#include <cassert>
 
 using namespace ausaxs;
 using namespace ausaxs::md;
@@ -123,4 +124,42 @@ std::vector<ITPFile> ITPFile::split_restraints(const std::vector<ITPFile>& topol
     }
 
     return files;
+}
+
+void ITPFile::standardize_name(std::string_view postfix) {
+    if (!exists()) {throw except::io_error("ITPFile::standardize_name: file \"" + path() + "\" does not exist.");}
+    std::string prefix = filename();
+    assert(prefix.find_first_of('_') != std::string::npos && "ITPFile::standardize_name: could not identify filename prefix.");
+    prefix = prefix.substr(0, prefix.find_first_of('_'));
+    std::string new_name = prefix + "_" + std::string(postfix);
+    if (filename() == new_name) {return;}
+    console::print_text("Standardizing name of ITP file \"" + path() + "\" to \"" + new_name + "\".");
+    this->move(directory(), new_name + ".itp");
+    *this = ITPFile(directory() + new_name + ".itp");
+
+    // discover and rename all nested ITP files
+    std::ifstream in(path());
+    std::string line;
+    std::vector<std::string> contents;
+    while (std::getline(in, line)) {
+        if (line.find("#include") != std::string::npos) {
+            auto index = line.find("\"");
+            if (index == std::string::npos) {throw except::io_error("ITPFile::standardize_name: \"" + path() + "\" contains an include that is not in quotes.");}
+            std::string include = line.substr(index + 1);
+            index = include.find("\"");
+            if (index == std::string::npos) {throw except::io_error("ITPFile::standardize_name: \"" + path() + "\" contains an include quote which is not terminated.");}
+            include = include.substr(0, index);
+            console::indent();
+            ITPFile itp(this->directory() + include);
+            itp.standardize_name(postfix);
+            console::unindent();
+        }
+        contents.push_back(line);
+    }
+    in.close();
+    std::ofstream out(path());
+    for (const auto& line : contents) {
+        out << line << "\n";
+    }
+    out.close();
 }
