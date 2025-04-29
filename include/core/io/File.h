@@ -103,6 +103,7 @@ namespace ausaxs::io {
              * @returns The path to the new file.
              */
             io::File move(const io::Folder& folder) const;
+            io::File move(const io::Folder& folder, std::string_view name) const;
 
             /**
              * @brief Copy this file to the given folder.
