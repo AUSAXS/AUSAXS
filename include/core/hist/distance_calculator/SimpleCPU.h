@@ -22,7 +22,7 @@ namespace ausaxs::hist::distance_calculator {
      *        The caller must guarantee the lifetime of all submitted data.
      */
     template<bool weighted_bins>
-    class SimpleCalculator {
+    class SimpleCPU {
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
         public:
             struct run_result {
@@ -80,7 +80,7 @@ namespace ausaxs::hist::distance_calculator {
 }
 
 template<bool weighted_bins> template<int scaling>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_self(
+inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::enqueue_calculate_self(
     const hist::detail::CompactCoordinates& data, 
     int merge_id
 ) {
@@ -141,7 +141,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
 }
 
 template<bool weighted_bins> template<int scaling>
-int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_cross(
+int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::enqueue_calculate_cross(
     const hist::detail::CompactCoordinates& data_1, 
     const hist::detail::CompactCoordinates& data_2, 
     int merge_id
@@ -190,17 +190,17 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_
 }
 
 template<bool weighted_bins>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::size_self_result() const {
+inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::size_self_result() const {
     return self_results.size();
 }
 
 template<bool weighted_bins>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::size_cross_result() const {
+inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::size_cross_result() const {
     return cross_results.size();
 }
 
 template<bool weighted_bins>
-inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run() {
+inline typename ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::run() {
     auto pool = utility::multi_threading::get_global_pool();
     pool->wait();
     run_result result;
@@ -262,7 +262,7 @@ inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bin
 // should higher scaling factors be needed, new add1, add4, and add8 functions should be created which accepts the scaling factor as a parameter
 // for now, this is primarily meant for rigidbody optimizations, where larger symmetries are not expected
 template<bool weighted_bins>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_self(
+inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::enqueue_calculate_self(
     const hist::detail::CompactCoordinates& data, 
     int scaling,
     int merge_id
@@ -306,7 +306,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
 // should higher scaling factors be needed, new add1, add4, and add8 functions should be created which accepts the scaling factor as a parameter
 // for now, this is primarily meant for rigidbody optimizations, where larger symmetries are not expected
 template<bool weighted_bins>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_cross(
+inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::enqueue_calculate_cross(
     const hist::detail::CompactCoordinates& data_1, 
     const hist::detail::CompactCoordinates& data_2, 
     int scaling,
