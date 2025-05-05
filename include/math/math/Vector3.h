@@ -178,6 +178,9 @@ namespace ausaxs {
 
 			Vector3<T> copy() const;
 
+			template<size_t i> T& get();
+			template<size_t i> const T& get() const;
+
 			typename std::array<T, 3>::iterator begin();
 			typename std::array<T, 3>::iterator end();
 			const typename std::array<T, 3>::const_iterator begin() const;
@@ -268,6 +271,21 @@ namespace ausaxs {
 
 	template<numeric T>
 	std::ostream& operator<<(std::ostream& os, const Vector3<T>& v) {os << v.to_string(); return os;}
+}
+
+namespace std {
+	template<> struct tuple_size<ausaxs::Vector3<double>> : std::integral_constant<size_t, 3> {};
+	template<> struct tuple_size<ausaxs::Vector3<float>> : std::integral_constant<size_t, 3> {};
+	template<> struct tuple_size<ausaxs::Vector3<int>> : std::integral_constant<size_t, 3> {};
+	template<> struct tuple_element<0, ausaxs::Vector3<double>> {using type = double;};	
+	template<> struct tuple_element<1, ausaxs::Vector3<double>> {using type = double;};
+	template<> struct tuple_element<2, ausaxs::Vector3<double>> {using type = double;};
+	template<> struct tuple_element<0, ausaxs::Vector3<float>> {using type = float;};
+	template<> struct tuple_element<1, ausaxs::Vector3<float>> {using type = float;};
+	template<> struct tuple_element<2, ausaxs::Vector3<float>> {using type = float;};
+	template<> struct tuple_element<0, ausaxs::Vector3<int>> {using type = int;};
+	template<> struct tuple_element<1, ausaxs::Vector3<int>> {using type = int;};
+	template<> struct tuple_element<2, ausaxs::Vector3<int>> {using type = int;};
 }
 
 #include <math/Vector3.tpp>

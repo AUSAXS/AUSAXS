@@ -159,6 +159,18 @@ namespace ausaxs {
         return Vector3<T>(x(), y(), z());
     }
 
+    template<numeric T> template<size_t i> T& Vector3<T>::get() {
+        if constexpr (i == 0) {return x();}
+        else if constexpr (i == 1) {return y();}
+        else if constexpr (i == 2) {return z();}
+    }
+
+    template<numeric T> template<size_t i> const T& Vector3<T>::get() const {
+        if constexpr (i == 0) {return x();}
+        else if constexpr (i == 1) {return y();}
+        else if constexpr (i == 2) {return z();}
+    }
+
     template<numeric T> typename std::array<T, 3>::iterator Vector3<T>::begin() {return data.begin();}
     template<numeric T> typename std::array<T, 3>::iterator Vector3<T>::end() {return data.end();}
     template<numeric T> const typename std::array<T, 3>::const_iterator Vector3<T>::begin() const {return data.begin();}

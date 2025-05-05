@@ -170,7 +170,7 @@ namespace ausaxs::grid {
 				return to_xyz(v.x(), v.y(), v.z());
 			}
 
-			Vector3<double> to_xyz(int i, int j, int k) const;
+			Vector3<double> to_xyz(int i, int j, int k) const; //< @copydoc to_xyz(const Vector3<T>& v)
 
 			/**
 			 * @brief Set this Grid equal to another.
@@ -240,6 +240,24 @@ namespace ausaxs::grid {
 
 		protected: // only protected since they are important for testing
 			int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
+
+			/**
+			 * @brief Convert a x bin index to a real x coordinate.
+			 * 		  Complexity: O(1).
+			 */
+			double to_x(int i) const;
+
+			 /**
+			  * @brief Convert a y bin index to a real y coordinate.
+			  * 		  Complexity: O(1).
+			  */
+			double to_y(int j) const;
+ 
+			 /**
+			  * @brief Convert a z bin index to a real z coordinate.
+			  * 		  Complexity: O(1).
+			  */
+			double to_z(int k) const;
 
 			/** 
 			 * @brief Expand a single member atom into an actual sphere.

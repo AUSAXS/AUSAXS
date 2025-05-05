@@ -231,7 +231,6 @@ int main(int argc, char const *argv[]) {
                 ;
             }
         }
-        protein.save(settings::general::output + "model.pdb");
 
         // calculate extra stuff
         console::print_info("\nExtra informaton");
