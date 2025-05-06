@@ -19,6 +19,7 @@ unsigned int settings::grid::min_bins = 0;
 double settings::grid::exv::surface_thickness = 1;
 double settings::grid::exv::width = 1;
 bool settings::grid::exv::save = false;
+settings::grid::exv::Expansion settings::grid::exv::expansion_strategy = settings::grid::exv::Expansion::Minimal;
 
 double settings::grid::detail::min_score = 0.25;
 
