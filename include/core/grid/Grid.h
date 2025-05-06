@@ -3,6 +3,7 @@
 #include <grid/detail/GridObj.h>
 #include <grid/detail/GridInternalFwd.h>
 #include <grid/detail/GridExcludedVolume.h>
+#include <grid/expansion/GridExpander.h>
 #include <utility/Axis3D.h>
 #include <utility/TypeTraits.h>
 #include <data/DataFwd.h>
@@ -259,34 +260,6 @@ namespace ausaxs::grid {
 			  */
 			double to_z(int k) const;
 
-			/** 
-			 * @brief Expand a single member atom into an actual sphere.
-			 * 		  Only expands atoms if they have not already been expanded. 
-			 * 		  Complexity: O(1).
-			 */
-			void expand_volume(GridMember<data::AtomFF>& atom);
-
-			/** 
-			 * @brief Expand a single member water molecule into an actual sphere.
-			 * 		  Only expands molecules if they have not already been expanded.
-			 * 		  Complexity: O(1).
-			 */
-			void expand_volume(GridMember<data::Water>& atom);
-
-			/** 
-			 * @brief Deflate a single member atom into an actual sphere.
-			 * 		  Only deflates atoms if they have been expanded.
-			 * 		  Complexity: O(1).
-			 */
-			void deflate_volume(GridMember<data::AtomFF>& atom);
-
-			/** 
-			 * @brief Deflate a single member atom into an actual sphere.
-			 * 		  Only deflates atoms if they have been expanded.
-			 * 		  Complexity: O(1).
-			 */
-			void deflate_volume(GridMember<data::Water>& atom);
-
 			/**
 			 * @brief Create the smallest possible box containing all atoms.
 			 * 		  Complexity: O(n) in the number of atoms.
@@ -296,6 +269,7 @@ namespace ausaxs::grid {
 			static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<data::AtomFF>& atoms);
 
 		private:
+			std::unique_ptr<expander::GridExpander> expander; // The expander used to expand the grid.
 			Axis3D axes;
 
 			/** 
@@ -331,6 +305,8 @@ namespace ausaxs::grid {
 			void remove(const std::vector<bool>& to_remove);
 
 			void setup();
+
+			friend class expander::GridExpander;
 	};
 	static_assert(supports_nothrow_move_v<Grid>, "Grid should be nothrow move constructible");
 }
