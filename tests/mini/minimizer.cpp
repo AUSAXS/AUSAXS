@@ -63,12 +63,7 @@ TEST_CASE("1d_landscape", "[manual]") {
     plot.save("figures/tests/minimizer/golden_test.pdf");
 }
 
-// TEST_CASE("2d_landscape", "[minimizer],[manual]") {
-//     mini::ROOT mini(Decanomial.function, {"x1", "x2"}, Decanomial.bounds);
-//     auto res = mini.minimize();
-// }
-
-TEST_CASE("golden_minimizer") {
+TEST_CASE("Minimizer: golden") {
     auto GoldenTest = [] (const TestFunction& test) {
         mini::Golden mini(test.function, {"a", test.bounds[0]});
         auto res = mini.minimize();
@@ -80,7 +75,7 @@ TEST_CASE("golden_minimizer") {
     SECTION("problem18") {GoldenTest(problem18);}
 }
 
-TEST_CASE("scan_minimizer") {
+TEST_CASE("Minimizer: scan") {
     auto ScanTest1D = [] (const TestFunction& test) {
         mini::Scan mini(test.function, {"a", test.bounds[0]});
         mini.set_max_evals(1000);
@@ -106,7 +101,7 @@ TEST_CASE("scan_minimizer") {
     SECTION("problem18 rough") {ScanTest1DRough(problem18);}
 }
 
-// TEST_CASE("minimum_explorer", "[manual]") {
+// TEST_CASE("Minimizer: minimum_explorer") {
 //     auto ExplorerTest1D = [] (const TestFunction& test) {
 //         mini::dlibMinimizer<mini::algorithm::BFGS> mini1(test.function, {{"a", test.bounds[0]}});
 //         auto res = mini1.minimize();
@@ -114,37 +109,19 @@ TEST_CASE("scan_minimizer") {
 //         mini::Parameter p = res.get_parameter("a");
 //         mini::MinimumExplorer mini2(test.function, p, 100);
 //         res = mini2.minimize();
-
-//         SimpleDataset data1 = mini1.get_evaluated_points().as_dataset();
-//         data1.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::blue}});
-//         plots::PlotDataset plot(data1);
-
-//         SimpleDataset data2 = mini2.get_evaluated_points().as_dataset();
-//         data2.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::orange}});
-//         plots::PlotDataset::quick_plot(data2, "figures/tests/minimizer/explorer_test_single.pdf");
-//         plot.plot(data2);
-
 //         mini::Golden mini3(test.function, {"a", test.bounds[0]});
 //         SimpleDataset line = mini3.landscape(1000).as_dataset();
-//         plot.plot(line);
-
-//         plot.save("figures/tests/minimizer/explorer_test.pdf");
-
 //         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini1.tol));
 //     };
 
 //     // test with a fine grid
-//     // SECTION("problem04") {ExplorerTest1D(problem04);}
-//     // SECTION("problem13") {ExplorerTest1D(problem13);}
-//     // SECTION("problem18") {ExplorerTest1D(problem18);}
+//     SECTION("problem04") {ExplorerTest1D(problem04);}
+//     SECTION("problem13") {ExplorerTest1D(problem13);}
+//     SECTION("problem18") {ExplorerTest1D(problem18);}
 // }
 
 #ifdef DLIB_AVAILABLE
-#include <dlib/optimization.h>
-#include <dlib/global_optimization.h>
-
-typedef dlib::matrix<double,0,1> column_vector;
-TEST_CASE("dlib") {
+TEST_CASE("Minimizer: dlib") {
     auto dlibTest1D = [] (const TestFunction& test, mini::algorithm type) {
         if (type == mini::algorithm::BFGS) {
             auto mini = mini::dlibMinimizer<mini::algorithm::BFGS>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
@@ -193,7 +170,7 @@ TEST_CASE("dlib") {
 }
 #endif
 
-TEST_CASE("create_minimizer") {
+TEST_CASE("Minimizer: create_minimizer") {
     #ifdef DLIB_AVAILABLE
         SECTION("dlib") {
             auto dlib = mini::create_minimizer(mini::algorithm::BFGS, problem04.function, {"a", problem04.bounds[0]});

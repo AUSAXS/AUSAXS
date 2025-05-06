@@ -12,7 +12,7 @@ using namespace ausaxs;
 auto& q = constants::axes::q_vals;
 auto& d = constants::axes::d_vals;
 
-TEST_CASE("VectorDebyeTable::correct_zero_values") {
+TEST_CASE("VectorDebyeTable: correct zero values") {
     table::VectorDebyeTable debye_table(std::vector<double>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
     SECTION("d = 0") {
         for (unsigned int i = 0; i < q.size(); ++i) {
@@ -21,7 +21,7 @@ TEST_CASE("VectorDebyeTable::correct_zero_values") {
     }
 }
 
-TEST_CASE("VectorDebyeTable::correct_values") {
+TEST_CASE("VectorDebyeTable: correct values") {
     table::VectorDebyeTable debye_table(constants::axes::d_vals);
     SECTION("default_table") {
         REQUIRE(debye_table.size_d() == d.size());
@@ -39,7 +39,7 @@ TEST_CASE("VectorDebyeTable::correct_values") {
     }
 }
 
-TEST_CASE("VectorDebyeTable::iterators") {
+TEST_CASE("VectorDebyeTable: iterators") {
     table::VectorDebyeTable debye_table(std::vector<double>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
     for (unsigned int i = 0; i < 10; ++i) {
         unsigned int j = 0;
