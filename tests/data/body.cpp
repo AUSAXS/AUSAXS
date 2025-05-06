@@ -174,70 +174,64 @@ TEST_CASE_METHOD(fixture, "Body::translate") {
         manager->reset_to_false();
         protein.get_body(0).translate(Vector3<double>(10, 0, 0));
         CHECK(protein.get_body(0).get_atom(0).coordinates() == Vector3<double>(9, -1, -1));
-        CHECK(protein.get_body(0).get_atom(1).coordinates() == Vector3<double>(9, 1, -1));
+        CHECK(protein.get_body(0).get_atom(1).coordinates() == Vector3<double>(9,  1, -1));
         CHECK(manager->get_externally_modified_bodies()[0] == true);
     }
 }
 
 TEST_CASE("Body::rotate") {
-    SECTION("Matrix<double>&") {}
+    SECTION("simple") {
+        std::vector<AtomFF> a = {
+            AtomFF({1, 0, 0}, form_factor::form_factor_t::C), 
+            AtomFF({0, 1, 0}, form_factor::form_factor_t::C), 
+            AtomFF({0, 0, 1}, form_factor::form_factor_t::C)};
+        Body body(a);
 
-    SECTION("Vector3<double>&, double") {
-        SECTION("simple") {
-            std::vector<AtomFF> a = {
-                AtomFF({1, 0, 0}, form_factor::form_factor_t::C), 
-                AtomFF({0, 1, 0}, form_factor::form_factor_t::C), 
-                AtomFF({0, 0, 1}, form_factor::form_factor_t::C)};
-            Body body(a);
+        Vector3<double> axis = {0, 1, 0};
+        body.rotate(matrix::rotation_matrix(axis, std::numbers::pi/2));
+        CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coordinates()); 
+        CHECK(Vector3<double>({0, 1,  0}) == body.get_atom(1).coordinates()); 
+        CHECK(Vector3<double>({1, 0,  0}) == body.get_atom(2).coordinates()); 
 
-            Vector3<double> axis = {0, 1, 0};
-            body.rotate(matrix::rotation_matrix(axis, std::numbers::pi/2));
-            CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coordinates()); 
-            CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coordinates()); 
-            CHECK(Vector3<double>({1, 0, 0}) == body.get_atom(2).coordinates()); 
-
-            axis = {1, 1, 1};
-            body.rotate(matrix::rotation_matrix(axis, std::numbers::pi/4));
-            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}) == body.get_atom(0).coordinates()); 
-            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}) == body.get_atom(1).coordinates()); 
-            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}) == body.get_atom(2).coordinates()); 
-        }
-
-        SECTION("complex") {
-            std::vector<AtomFF> a = {
-                AtomFF({0, 2, 1}, form_factor::form_factor_t::C), 
-                AtomFF({5, 1, 3}, form_factor::form_factor_t::C), 
-                AtomFF({6, 1, 4}, form_factor::form_factor_t::C),
-                AtomFF({3, 7, 2}, form_factor::form_factor_t::C)};
-            Body body(a);
-
-            Vector3<double> axis = {0.5, 2, 1};
-            body.rotate(matrix::rotation_matrix(axis, 1.8));
-            REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559}) == body.get_atom(0).coordinates()); 
-            REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.get_atom(1).coordinates()); 
-            REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794}) == body.get_atom(2).coordinates()); 
-            REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825}) == body.get_atom(3).coordinates()); 
-        }
+        axis = {1, 1, 1};
+        body.rotate(matrix::rotation_matrix(axis, std::numbers::pi/4));
+        CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}) == body.get_atom(0).coordinates()); 
+        CHECK(Vector3<double>({-0.3106172175, 0.8047378541,  0.5058793634}) == body.get_atom(1).coordinates()); 
+        CHECK(Vector3<double>({ 0.8047378541, 0.5058793634, -0.3106172175}) == body.get_atom(2).coordinates()); 
     }
 
-    SECTION("double, double, double, ") {
-        SECTION("simple") {
-            std::vector<AtomFF> a = {
-                AtomFF({1, 0, 0}, form_factor::form_factor_t::C), 
-                AtomFF({0, 1, 0}, form_factor::form_factor_t::C), 
-                AtomFF({0, 0, 1}, form_factor::form_factor_t::C)};
-            Body body(a);
+    SECTION("simple 2") {
+        std::vector<AtomFF> a = {
+            AtomFF({1, 0, 0}, form_factor::form_factor_t::C), 
+            AtomFF({0, 1, 0}, form_factor::form_factor_t::C), 
+            AtomFF({0, 0, 1}, form_factor::form_factor_t::C)};
+        Body body(a);
 
-            body.rotate(matrix::rotation_matrix(0., std::numbers::pi/2, 0.));
-            CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coordinates()); 
-            CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coordinates()); 
-            CHECK(Vector3<double>({1, 0, 0}) == body.get_atom(2).coordinates()); 
+        body.rotate(matrix::rotation_matrix(0., std::numbers::pi/2, 0.));
+        CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coordinates()); 
+        CHECK(Vector3<double>({0, 1,  0}) == body.get_atom(1).coordinates()); 
+        CHECK(Vector3<double>({1, 0,  0}) == body.get_atom(2).coordinates()); 
 
-            body.rotate(matrix::rotation_matrix(0.5612026, 0.3158423, 0.5612026));
-            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}).equals(body.get_atom(0).coordinates(), 1e-3));
-            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}).equals(body.get_atom(1).coordinates(), 1e-3));
-            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}).equals(body.get_atom(2).coordinates(), 1e-3));
-        }
+        body.rotate(matrix::rotation_matrix(0.5612026, 0.3158423, 0.5612026));
+        CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}).equals(body.get_atom(0).coordinates(), 1e-3));
+        CHECK(Vector3<double>({-0.3106172175, 0.8047378541,  0.5058793634}).equals(body.get_atom(1).coordinates(), 1e-3));
+        CHECK(Vector3<double>({ 0.8047378541, 0.5058793634, -0.3106172175}).equals(body.get_atom(2).coordinates(), 1e-3));
+    }
+
+    SECTION("complex") {
+        std::vector<AtomFF> a = {
+            AtomFF({0, 2, 1}, form_factor::form_factor_t::C), 
+            AtomFF({5, 1, 3}, form_factor::form_factor_t::C), 
+            AtomFF({6, 1, 4}, form_factor::form_factor_t::C),
+            AtomFF({3, 7, 2}, form_factor::form_factor_t::C)};
+        Body body(a);
+
+        Vector3<double> axis = {0.5, 2, 1};
+        body.rotate(matrix::rotation_matrix(axis, 1.8));
+        REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559})  == body.get_atom(0).coordinates()); 
+        REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.get_atom(1).coordinates()); 
+        REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794})  == body.get_atom(2).coordinates()); 
+        REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825})  == body.get_atom(3).coordinates()); 
     }
 }
 
