@@ -5,7 +5,7 @@
 
 using namespace ausaxs;
 
-TEST_CASE("Dataset2D_scaling_methods") {
+TEST_CASE("Dataset2D: scaling_methods") {
     std::vector<double> x = {1, 2, 3, 4, 5};
     std::vector<double> y = {10, 20, 30, 40, 50};
     std::vector<double> yerr = {1, 2, 3, 4, 5};
@@ -49,7 +49,7 @@ TEST_CASE("Dataset2D_scaling_methods") {
     }
 }
 
-TEST_CASE("stats") {
+TEST_CASE("Dataset2D: stats") {
     Dataset2D data1(
         std::vector<double>{1, 1, 1, 1}, 
         std::vector<double>{10, 3, 5, 6}, 
@@ -68,13 +68,13 @@ TEST_CASE("stats") {
         std::vector<double>{1, 0.2, 2, 0.5, 0.9, 4, 1, 0.1, 0.4}
     );
 
-    SECTION("weighted_mean_error") {
+    SECTION("weighted mean error") {
         CHECK_THAT(data1.weighted_mean_error(), Catch::Matchers::WithinAbs(0.838116, 1e-6));
         CHECK_THAT(data2.weighted_mean_error(), Catch::Matchers::WithinAbs(0.0968561, 1e-6));
         CHECK_THAT(data3.weighted_mean_error(), Catch::Matchers::WithinAbs(0.0848808, 1e-6));
     }
 
-    SECTION("weighted_mean") {
+    SECTION("weighted mean") {
         CHECK_THAT(data1.weighted_mean(), Catch::Matchers::WithinAbs(8.204903, 1e-3));
         CHECK_THAT(data2.weighted_mean(), Catch::Matchers::WithinAbs(14.924834, 1e-3));
         CHECK_THAT(data3.weighted_mean(), Catch::Matchers::WithinAbs(85.125966, 1e-3));       
@@ -93,7 +93,7 @@ TEST_CASE("stats") {
     }
 }
 
-TEST_CASE("basics") {
+TEST_CASE("Dataset2D: basics") {
     std::vector<double> xd = {   1,   2,   3,   4,   5,   6,   7,   8,   9};
     std::vector<double> yd = {  -6,  -4,  -1,   2,   1,   3,   6,   7,   9};
     std::vector<double> xed = {0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5};
@@ -214,7 +214,6 @@ TEST_CASE("basics") {
         CHECK(data6.size_cols() == 3);
     }
 }
-
 
 TEST_CASE("Dataset2D::pushback") {
     SECTION("various") {

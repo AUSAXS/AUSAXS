@@ -107,7 +107,7 @@ TEST_CASE("DATReader::construct") {
     }
 }
 
-TEST_CASE("Dataset: different unit") {
+TEST_CASE("DATReader: different unit") {
     settings::general::verbose = false;
 
     Dataset dataset({
