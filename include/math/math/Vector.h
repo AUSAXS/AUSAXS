@@ -9,7 +9,10 @@
 #include <iostream>
 
 namespace ausaxs {
-    // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
+    /**
+     * @brief A simple vector class.
+     *        The vector operations are _not_ optimized for speed! If efficiency is a concern, consider using e.g. Eigen.
+     */
     template<numeric T>
     class Vector final {
         public:

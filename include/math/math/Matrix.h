@@ -9,9 +9,9 @@
 
 namespace ausaxs {
     /**
-     * @brief Representation of a matrix. 
-     * 
-     * This class uses a single 1D array to efficiently store the data, and offers a variety of vector operations.
+     * @brief A simple matrix class. 
+     *        This uses a single 1D array to efficiently store the data, and offers a variety of vector operations.
+     *        Note that this class is _not_ optimized for speed! If efficiency is a concern, consider using e.g. Eigen. 
      */
     template<numeric Q>
     class Matrix final {
