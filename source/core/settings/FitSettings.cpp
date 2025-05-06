@@ -18,12 +18,12 @@ bool settings::fit::fit_atomic_debye_waller = false;
 bool settings::fit::fit_exv_debye_waller = false;
 
 namespace ausaxs::settings::io {
-    settings::io::SettingSection fit_section("General", {
+    settings::io::SettingSection fit_section("Fit", {
         settings::io::create(fit::verbose, "fit-verbose"),
         settings::io::create(fit::N, "N"),
         settings::io::create(fit::max_iterations, "max_iterations"),
-        settings::io::create(fit::fit_excluded_volume, "fit_excluded_volume"),
-        settings::io::create(fit::fit_solvent_density, "fit_solvent_density"),
-        settings::io::create(fit::fit_hydration, "fit_hydration")
+        settings::io::create(fit::fit_excluded_volume, "excluded_volume"),
+        settings::io::create(fit::fit_solvent_density, "solvent_density"),
+        settings::io::create(fit::fit_hydration, "hydration")
     });
 }

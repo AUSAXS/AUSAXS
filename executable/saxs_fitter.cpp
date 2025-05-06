@@ -32,21 +32,21 @@ int main(int argc, char const *argv[]) {
     auto input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
     app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
-    auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
+    // auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {std::cout << constants::version << std::endl; exit(0);}, "Print the AUSAXS version.");
-
-    // advanced options
     app.add_flag("!--ignore-unknown-atom", settings::molecule::throw_on_unknown_atom, 
-        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of issues.")
-        ->default_val(settings::molecule::throw_on_unknown_atom)
-        ->group("Advanced options");
+        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of potential issues.")
+        ->default_val(settings::molecule::throw_on_unknown_atom);
     app.add_flag("--offline", settings::general::offline, "Run the program in offline mode. This will prevent any network requests.")
-        ->default_val(settings::general::offline)
-        ->group("Advanced options");
-    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
-    app.add_flag("--save-settings", save_settings, "Save the settings to a file.")->default_val(save_settings)->group("Advanced options");
-    app.add_flag_callback("--log", [] () {logging::start("saxs_fitter");}, "Enable logging to a file.")->group("Advanced options");
+        ->default_val(settings::general::offline);
+    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
+
+    // config subcommands
+    auto sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
+    auto p_settings = sub_config->add_option("--file,-f", settings, "The configuration file to use.")->check(CLI::ExistingFile);
+    sub_config->add_flag("--save", save_settings, "Save the settings to a file.");
+    sub_config->add_flag_callback("--log", [] () {logging::start("saxs_fitter");}, "Enable logging to a file.");
 
     // data subcommands
     auto sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
@@ -126,6 +126,15 @@ int main(int argc, char const *argv[]) {
     )->default_val(settings::hist::weighted_bins)->group("");
 
     app.final_callback([&] () {
+        // save settings if requested
+        if (save_settings) {
+            settings::write("settings.txt");
+            console::print_info("Settings saved to settings.txt in current directory.");
+            if (!input_s->count() || !input_m->count()) { // gracefully exit if no input files are provided
+                exit(0);
+            }
+        }
+
         // required args (not marked ->required() since that interferes with the help flag for subcommands)
         if (!input_s->count()) {
             std::cout << "Error: input_structure is required." << std::endl;
