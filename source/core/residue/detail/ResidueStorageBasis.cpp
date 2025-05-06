@@ -313,6 +313,14 @@ C c 0
 C ca 1
 C cb 2
 N n 1
+
+# fake residue to denote Cl ions, used by YASARA (and by extension, WAXSiS)
+CIM
+cl cl 0
+
+# same as above, but for Na ions
+CIP
+na na 0
 )";
 
     std::string path = settings::general::residue_folder;

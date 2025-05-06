@@ -30,7 +30,7 @@ int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.fallthrough();
     auto input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
-    auto input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
+    app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
@@ -106,7 +106,7 @@ int main(int argc, char const *argv[]) {
     auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
     sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
         "The radius of the excluded volume sphere around each atom."
-    )->default_val(settings::grid::min_exv_radius)->group("");
+    )->default_val(settings::grid::min_exv_radius);
     auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);
@@ -127,8 +127,8 @@ int main(int argc, char const *argv[]) {
 
     app.final_callback([&] () {
         // required args (not marked ->required() since that interferes with the help flag for subcommands)
-        if (!input_s->count() || !input_m->count()) {
-            std::cout << "Error: Both input_structure and input_measurement are required." << std::endl;
+        if (!input_s->count()) {
+            std::cout << "Error: input_structure is required." << std::endl;
             exit(1);
         }
 
@@ -172,49 +172,82 @@ int main(int argc, char const *argv[]) {
                 throw except::invalid_argument("Unknown PDB extensions: " + pdb.str() + " and " + mfile.str());
             }
         }
-        if (!constants::filetypes::saxs_data.check(mfile)) {
+
+        if (!mfile.empty() && !constants::filetypes::saxs_data.check(mfile)) {
             throw except::invalid_argument("Unknown SAXS data extension: " + mfile.str());
         }
-
-        settings::general::output += mfile.stem() + "/";
 
         //######################//
         //### ACTUAL PROGRAM ###//
         //######################//
+
         data::Molecule protein(pdb);
         if (!use_existing_hydration || protein.size_water() == 0) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();
         }
+        std::string msg_exv_vol, msg_solv_dens;
 
-        SimpleDataset saxs_data(mfile);
-        if (settings::flags::data_rebin) {console::indent(); saxs_data.rebin(); console::unindent();}
+        // simulation mode
+        if (mfile.empty()) {
+            console::print_info("\nSimulation mode enabled.");
+            console::print_text("Please note that the evaluated hydration shell contribution will be quite poor for most molecules in this mode. For more information, refer to the documentation.");
+            settings::general::output += "simulated/" + pdb.stem() + "/";
+            auto hist = protein.get_histogram();
 
-        fitter::SmartFitter fitter(std::move(saxs_data), protein.get_histogram());
-        auto result = fitter.fit();
-        fitter::FitReporter::report(result.get());
-        fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);
+            plots::PlotDistance::quick_plot(hist.get(), settings::general::output + "p(r)." + settings::plots::format);
+            plots::PlotProfiles::quick_plot(hist.get(), settings::general::output + "profiles." + settings::plots::format);
+        }
 
-        plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
-        plots::PlotProfiles::quick_plot(fitter.get_model(), settings::general::output + "profiles." + settings::plots::format);
-        result->curves.select_columns({0, 1, 2, 3}).save(
-            settings::general::output + "ausaxs.fit", 
-            "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
-        );
+        // fitting mode
+        else {
+            settings::general::output += mfile.stem() + "/";
+            SimpleDataset saxs_data(mfile);
+            if (settings::flags::data_rebin) {console::indent(); saxs_data.rebin(); console::unindent();}
+    
+            fitter::SmartFitter fitter(std::move(saxs_data), protein.get_histogram());
+            auto result = fitter.fit();
+            fitter::FitReporter::report(result.get());
+            fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);
+                
+            plots::PlotDistance::quick_plot(fitter.get_model(), settings::general::output + "p(r)." + settings::plots::format);
+            plots::PlotProfiles::quick_plot(fitter.get_model(), settings::general::output + "profiles." + settings::plots::format);
+            result->curves.select_columns({0, 1, 2, 3}).save(
+                settings::general::output + "ausaxs.fit", 
+                "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
+            );
+            if (settings::fit::fit_excluded_volume) {
+                msg_exv_vol = 
+                    "\tExcluded:        " 
+                    + std::to_string((int) std::round(protein.get_volume_exv(settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::Parameters::SCALING_EXV) : 1))) 
+                    + " A^3"
+                ;
+            }
+            if (settings::fit::fit_solvent_density) {
+                msg_solv_dens = 
+                    "\tSolvent density: " 
+                    + std::to_string(constants::charge::density::water*result->get_parameter(constants::fit::Parameters::SCALING_RHO)) 
+                    + " e/A^3"
+                ;
+            }
+        }
 
         // calculate extra stuff
         console::print_info("\nExtra informaton");
-        console::indent();
+        console::print_text("Volume:");
         double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
-        double d = settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::Parameters::SCALING_EXV) : 1;
-        console::print_text("Volume (vdW):    " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " A^3");
-        console::print_text("Volume (grid):   " + std::to_string((int) std::round(protein.get_volume_grid())) + " A^3");
-        console::print_text("Volume (exv):    " + std::to_string((int) std::round(protein.get_volume_exv(d)))  + " A^3");
-        console::print_text("RhoM:            " + std::to_string(rhoM) + " g/cm^3");
-        if (settings::fit::fit_solvent_density) {
-            console::print_text("Solvent density: " + std::to_string(constants::charge::density::water*result->get_parameter(constants::fit::Parameters::SCALING_RHO)) + " e/A^3");
-        }
-        console::unindent();
+        double exv_vol = protein.get_volume_grid();
+        double mol_charge = protein.get_total_atomic_charge();
+        console::print_text("\tvan der Waals:   " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " A^3");
+        console::print_text("\tGrid:            " + std::to_string((int) std::round(protein.get_volume_grid())) + " A^3");
+        if (settings::fit::fit_excluded_volume) {console::print_text(msg_exv_vol);}
+        console::print_text("\nCharge:");
+        console::print_text("\tMolecular:       " + utility::round_double(mol_charge, 1) + " e");
+        console::print_text("\tExcluded volume: " + utility::round_double(exv_vol*constants::charge::density::water, 1) + " e");
+        console::print_text("\tExcess density:  " + utility::round_double((mol_charge - exv_vol*constants::charge::density::water)/exv_vol, 3) + " e/A^3");
+        if (settings::fit::fit_solvent_density) {console::print_text(msg_solv_dens);}
+        console::print_text("\nOther properties:");
+        console::print_text("\tRhoM:            " + utility::round_double(rhoM, 3) + " g/cm^3");
 
         protein.save(settings::general::output + "model.pdb");
     } catch (const std::exception& e) {

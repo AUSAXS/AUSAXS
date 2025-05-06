@@ -17,7 +17,7 @@
 #include <rigidbody/BodySplitter.h>
 
 #include <vector>
-#include <string>
+#include <string> 
 
 using namespace ausaxs;
 using namespace ausaxs::grid;

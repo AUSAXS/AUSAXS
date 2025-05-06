@@ -11,6 +11,10 @@
 #include <array>
 
 namespace ausaxs {
+	/**
+	 * @brief A simple 3D vector class. 
+	 *		  This is a essentially just a convenience wrapper around std::array<T, 3>.
+	 */
 	template<numeric T> 
 	class Vector3 final {
 		public:
@@ -178,6 +182,9 @@ namespace ausaxs {
 
 			Vector3<T> copy() const;
 
+			template<size_t i> T& get();
+			template<size_t i> const T& get() const;
+
 			typename std::array<T, 3>::iterator begin();
 			typename std::array<T, 3>::iterator end();
 			const typename std::array<T, 3>::const_iterator begin() const;
@@ -270,8 +277,15 @@ namespace ausaxs {
 	std::ostream& operator<<(std::ostream& os, const Vector3<T>& v) {os << v.to_string(); return os;}
 }
 
+namespace std { // to support structured bindings (auto [x, y, z] = Vector3)
+	template<typename T> struct tuple_size<ausaxs::Vector3<T>> : std::integral_constant<size_t, 3> {};
+	template<typename T> struct tuple_element<0, ausaxs::Vector3<T>> {using type = T;};
+	template<typename T> struct tuple_element<1, ausaxs::Vector3<T>> {using type = T;};
+	template<typename T> struct tuple_element<2, ausaxs::Vector3<T>> {using type = T;};
+}
+
 #include <math/Vector3.tpp>
-static_assert(sizeof(ausaxs::Vector3<double>) == 24, "Vector3 size is not 24 bytes");
-static_assert(std::is_trivial_v<ausaxs::Vector3<double>>, "Vector3 is not trivial");
-static_assert(std::is_standard_layout_v<ausaxs::Vector3<double>>, "Vector3 is not standard layout");
-static_assert(supports_nothrow_move_v<ausaxs::Vector3<double>>, "Vector3 should support nothrow move semantics.");
+static_assert(sizeof(ausaxs::Vector3<double>) == 24, 				"Vector3 size is not 24 bytes");
+static_assert(std::is_trivial_v<ausaxs::Vector3<double>>, 			"Vector3 is not trivial");
+static_assert(std::is_standard_layout_v<ausaxs::Vector3<double>>, 	"Vector3 is not standard layout");
+static_assert(supports_nothrow_move_v<ausaxs::Vector3<double>>, 	"Vector3 should support nothrow move semantics.");

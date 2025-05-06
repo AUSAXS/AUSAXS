@@ -191,28 +191,30 @@ void Grid::expand_volume(GridMember<AtomFF>& atom) {
     if (atom.is_expanded()) {return;} // check if this location has already been expanded
     atom.set_expanded(true); // mark this location as expanded
 
-    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z(); 
-    double rvdw = get_atomic_radius(atom.get_atom_type())/settings::grid::cell_width;
-    double rvol = settings::grid::min_exv_radius/settings::grid::cell_width;
-    double rvdw2 = std::pow(rvdw, 2), rvol2 = std::pow(rvol, 2);
+    auto[ax, ay, az] = atom.get_absolute_loc();
+    double rvdw2 = std::pow(get_atomic_radius(atom.get_atom_type()), 2);
+    double rvol2 = std::pow(settings::grid::min_exv_radius, 2);
 
-    double r = std::max(rvdw, rvol);
-    int xm = std::max<int>(x - std::ceil(r), 0), xp = std::min<int>(x + std::ceil(r) + 1, axes.x.bins); // xminus and xplus
-    int ym = std::max<int>(y - std::ceil(r), 0), yp = std::min<int>(y + std::ceil(r) + 1, axes.y.bins); // yminus and yplus
-    int zm = std::max<int>(z - std::ceil(r), 0), zp = std::min<int>(z + std::ceil(r) + 1, axes.z.bins); // zminus and zplus
+    int xm, xp, ym, yp, zm, zp;
+    {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+        double br = std::ceil(std::max(get_atomic_radius(atom.get_atom_type()), settings::grid::min_exv_radius)/settings::grid::cell_width);
+        auto [bx, by, bz] = atom.get_bin_loc();
+        xm = std::max<int>(bx - br, 0), xp = std::min<int>(bx + br + 1, axes.x.bins); // xminus and xplus
+        ym = std::max<int>(by - br, 0), yp = std::min<int>(by + br + 1, axes.y.bins); // yminus and yplus
+        zm = std::max<int>(bz - br, 0), zp = std::min<int>(bz + br + 1, axes.z.bins); // zminus and zplus    
+    }
 
     // loop over each bin in the box
     int added_volume = 0;
 
     // i, j, k *must* be ints to avoid unsigned underflow
     for (int i = xm; i < xp; ++i) {
-        double x2 = std::pow(x - i, 2);
+        double x2 = std::pow(to_x(i) - ax, 2);
         for (int j = ym; j < yp; ++j) {
-            double x2y2 = x2 + std::pow(y - j, 2);
+            double x2y2 = x2 + std::pow(to_y(j) - ay, 2);
             for (int k = zm; k < zp; ++k) {
                 // fill a sphere of radius [0, vdw] around the atom
-                double dist = x2y2 + std::pow(z - k, 2);
+                double dist = x2y2 + std::pow(to_z(k) - az, 2);
                 auto& bin = grid.index(i, j, k);
                 if (dist <= rvdw2) {
                     if (!grid.is_empty_or_volume(bin)) {continue;}
@@ -236,22 +238,26 @@ void Grid::expand_volume(GridMember<Water>& water) {
     if (water.is_expanded()) {return;} // check if this location has already been expanded
     water.set_expanded(true); // mark this location as expanded
 
-    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = water.get_bin_loc().x(), y = water.get_bin_loc().y(), z = water.get_bin_loc().z();
-    double rvdw = get_hydration_radius()/settings::grid::cell_width;
-    double rvdw2 = std::pow(rvdw, 2);
-    int xm = std::max<int>(x - std::ceil(rvdw), 0), xp = std::min<int>(x + std::ceil(rvdw) + 1, axes.x.bins); // xminus and xplus
-    int ym = std::max<int>(y - std::ceil(rvdw), 0), yp = std::min<int>(y + std::ceil(rvdw) + 1, axes.y.bins); // yminus and yplus
-    int zm = std::max<int>(z - std::ceil(rvdw), 0), zp = std::min<int>(z + std::ceil(rvdw) + 1, axes.z.bins); // zminus and zplus
+    auto [ax, ay, az] = water.get_absolute_loc();
+    double rvdw2 = std::pow(get_hydration_radius(), 2);
+
+    int xm, xp, ym, yp, zm, zp;
+    {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+        auto[bx, by, bz] = water.get_bin_loc();
+        double br = std::ceil(get_hydration_radius()/settings::grid::cell_width);
+        xm = std::max<int>(bx - br, 0), xp = std::min<int>(bx + br + 1, axes.x.bins); // xminus and xplus
+        ym = std::max<int>(by - br, 0), yp = std::min<int>(by + br + 1, axes.y.bins); // yminus and yplus
+        zm = std::max<int>(bz - br, 0), zp = std::min<int>(bz + br + 1, axes.z.bins); // zminus and zplus    
+    }
 
     // i, j, k *must* be ints to avoid unsigned underflow
     for (int i = xm; i < xp; ++i) {
-        double x2 = std::pow(x - i, 2);
+        double x2 = std::pow(to_x(i) - ax, 2);
         for (int j = ym; j < yp; ++j) {
-            double x2y2 = x2 + std::pow(y - j, 2);
+            double x2y2 = x2 + std::pow(to_y(j) - ay, 2);
             for (int k = zm; k < zp; ++k) {
                 // determine if the bin is within a sphere centered on the atom
-                double dist = x2y2 + std::pow(z - k, 2);
+                double dist = x2y2 + std::pow(to_z(k) - az, 2);
                 if (dist <= rvdw2) {
                     if (!grid.is_empty(i, j, k)) {continue;}
                     grid.index(i, j, k) = detail::W_AREA;
@@ -276,23 +282,27 @@ void Grid::deflate_volume(GridMember<AtomFF>& atom) {
     if (!atom.is_expanded()) {return;} // check if this location has already been deflated
     atom.set_expanded(false); // mark the atom as deflated
 
-    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
-    double rvol = std::max<double>(get_atomic_radius(atom.get_atom_type()), settings::grid::min_exv_radius)/settings::grid::cell_width;
+    auto [ax, ay, az] = atom.get_absolute_loc();
+    double rvol = std::max(get_atomic_radius(atom.get_atom_type()), settings::grid::min_exv_radius);
     double rvol2 = std::pow(rvol, 2);
 
-    int xm = std::max<int>(x - std::ceil(rvol), 0), xp = std::min<int>(x + std::ceil(rvol) + 1, axes.x.bins); // xminus and xplus
-    int ym = std::max<int>(y - std::ceil(rvol), 0), yp = std::min<int>(y + std::ceil(rvol) + 1, axes.y.bins); // yminus and yplus
-    int zm = std::max<int>(z - std::ceil(rvol), 0), zp = std::min<int>(z + std::ceil(rvol) + 1, axes.z.bins); // zminus and zplus
+    int xm, xp, ym, yp, zm, zp;
+    {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+        auto [bx, by, bz] = atom.get_bin_loc();
+        double br = std::ceil(rvol/settings::grid::cell_width);
+        xm = std::max<int>(bx - br, 0), xp = std::min<int>(bx + br + 1, axes.x.bins); // xminus and xplus
+        ym = std::max<int>(by - br, 0), yp = std::min<int>(by + br + 1, axes.y.bins); // yminus and yplus
+        zm = std::max<int>(bz - br, 0), zp = std::min<int>(bz + br + 1, axes.z.bins); // zminus and zplus    
+    }
 
     // i, j, k *must* be ints due to avoid unsigned underflow
     int removed_volume = 0;
     for (int i = xm; i < xp; ++i) {
-        double x2 = std::pow(x - i, 2);
+        double x2 = std::pow(to_x(i) - ax, 2);
         for (int j = ym; j < yp; ++j) {
-            double x2y2 = x2 + std::pow(y - j, 2);
+            double x2y2 = x2 + std::pow(to_y(j) - ay, 2);
             for (int k = zm; k < zp; ++k) {
-                double dist = x2y2 + std::pow(z - k, 2);
+                double dist = x2y2 + std::pow(to_z(k) - az, 2);
 
                 // determine if the bin is within a sphere centered on the atom
                 auto& bin = grid.index(i, j, k);
@@ -312,22 +322,26 @@ void Grid::deflate_volume(GridMember<Water>& water) {
     water.set_expanded(false); // mark the water as deflated
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = water.get_bin_loc().x(), y = water.get_bin_loc().y(), z = water.get_bin_loc().z();
-    double rvdw = get_hydration_radius()/settings::grid::cell_width;
+    auto [ax, ay, az] = water.get_absolute_loc();
+    double rvdw = get_hydration_radius();
     double rvdw2 = std::pow(rvdw, 2);
-    int xm = std::max<int>(x - std::ceil(rvdw), 0), xp = std::min<int>(x + std::ceil(rvdw) + 1, axes.x.bins); // xminus and xplus
-    int ym = std::max<int>(y - std::ceil(rvdw), 0), yp = std::min<int>(y + std::ceil(rvdw) + 1, axes.y.bins); // yminus and yplus
-    int zm = std::max<int>(z - std::ceil(rvdw), 0), zp = std::min<int>(z + std::ceil(rvdw) + 1, axes.z.bins); // zminus and zplus
+
+    int xm, xp, ym, yp, zm, zp;
+    {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+        auto[bx, by, bz] = water.get_bin_loc();
+        double r = std::ceil(rvdw/settings::grid::cell_width);
+        xm = std::max<int>(bx - r, 0), xp = std::min<int>(bx + r + 1, axes.x.bins); // xminus and xplus
+        ym = std::max<int>(by - r, 0), yp = std::min<int>(by + r + 1, axes.y.bins); // yminus and yplus
+        zm = std::max<int>(bz - r, 0), zp = std::min<int>(bz + r + 1, axes.z.bins); // zminus and zplus    
+    }
 
     // i, j, k *must* be ints to avoid unsigned underflow
     for (int i = xm; i < xp; ++i) {
-        double x2 = std::pow(x - i, 2);
+        double x2 = std::pow(to_x(i) - ax, 2);
         for (int j = ym; j < yp; ++j) {
-            double x2y2 = x2 + std::pow(y - j, 2);
+            double x2y2 = x2 + std::pow(to_y(j) - ay, 2);
             for (int k = zm; k < zp; ++k) {
-                double dist = x2y2 + std::pow(z - k, 2);
-
-                // determine if the bin is within a sphere centered on the atom
+                double dist = x2y2 + std::pow(to_z(k) - az, 2);
                 if (dist <= rvdw2) {
                     if (!grid.is_water_area(i, j, k)) {continue;}
                     grid.index(i, j, k) = detail::EMPTY;
@@ -624,10 +638,19 @@ std::vector<AtomFF> Grid::get_surface_atoms() const {
 }
 
 Vector3<double> Grid::to_xyz(int i, int j, int k) const {
-    double x = axes.x.min + i*settings::grid::cell_width;
-    double y = axes.y.min + j*settings::grid::cell_width;
-    double z = axes.z.min + k*settings::grid::cell_width;
-    return {x, y, z};
+    return {to_x(i), to_y(j), to_z(k)};
+}
+
+double Grid::to_x(int i) const {
+    return axes.x.min + i*settings::grid::cell_width;
+}
+
+double Grid::to_y(int j) const {
+    return axes.y.min + j*settings::grid::cell_width;
+}
+
+double Grid::to_z(int k) const {
+    return axes.z.min + k*settings::grid::cell_width;
 }
 
 Vector3<int> Grid::get_center() const {

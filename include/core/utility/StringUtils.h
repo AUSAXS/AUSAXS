@@ -22,6 +22,11 @@ namespace ausaxs::utility {
     std::string to_lowercase(std::string_view s);
 
     /**
+     * @brief Round a double to a given number of decimal places.
+     */
+    std::string round_double(double d, int decimals);
+
+    /**
      * @brief Split a string at a given delimiter.
      *        Consecutive delimiters are treated as a single delimiter. 
      */
