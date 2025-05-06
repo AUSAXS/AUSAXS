@@ -27,12 +27,7 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Update vcpkg
-        run: |
-          vcpkg update
-          vcpkg upgrade --no-dry-run
-
-      - name: Install dependencies
+      - name: Install dependencies (windows)
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           choco install ninja
@@ -255,7 +250,7 @@ jobs:
 
       - name: Run tests
         if: matrix.os == 'ubuntu-latest'
-        run: ctest --output-on-failure --test-dir --repeat until-pass:2 build/tests
+        run: ctest --output-on-failure --test-dir build/tests
 
       - name: Generate test report
         uses: mikepenz/action-junit-report@v4

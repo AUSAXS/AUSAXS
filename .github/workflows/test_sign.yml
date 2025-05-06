@@ -1,5 +1,4 @@
 name: Test MacOS signing
-on: workflow_dispatch
 
 on:
   workflow_dispatch:
