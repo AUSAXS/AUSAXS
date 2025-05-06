@@ -13,18 +13,18 @@ namespace ausaxs::data {
             using precision_t = constants::coords_precision_t;
 
             [[nodiscard]] const Vector3<precision_t>& coordinates() const {return static_cast<const T*>(this)->get_atom().coords;}
-            [[nodiscard]] Vector3<precision_t>& coordinates() {return static_cast<T*>(this)->get_atom().coords;}
-            [[nodiscard]] const Vector3<precision_t>& position() const {return static_cast<const T*>(this)->get_atom().coords;}
-            [[nodiscard]] Vector3<precision_t>& position() {return static_cast<T*>(this)->get_atom().coords;}
-            [[nodiscard]] precision_t weight() const {return static_cast<const T*>(this)->get_atom().w;}
-            [[nodiscard]] precision_t& weight() {return static_cast<T*>(this)->get_atom().w;}
+            [[nodiscard]] Vector3<precision_t>& coordinates()             {return static_cast<T*>(this)->get_atom().coords;}
+            [[nodiscard]] const Vector3<precision_t>& position() const    {return coordinates();}
+            [[nodiscard]] Vector3<precision_t>& position()                {return coordinates();}
+            [[nodiscard]] precision_t weight() const                      {return static_cast<const T*>(this)->get_atom().w;}
+            [[nodiscard]] precision_t& weight()                           {return static_cast<T*>(this)->get_atom().w;}
 
-            [[nodiscard]] precision_t x() const {return static_cast<const T*>(this)->get_atom().coords.x();}
-            [[nodiscard]] precision_t y() const {return static_cast<const T*>(this)->get_atom().coords.y();}
-            [[nodiscard]] precision_t z() const {return static_cast<const T*>(this)->get_atom().coords.z();}
-            [[nodiscard]] precision_t& x() {return static_cast<T*>(this)->get_atom().coords.x();}
-            [[nodiscard]] precision_t& y() {return static_cast<T*>(this)->get_atom().coords.y();}
-            [[nodiscard]] precision_t& z() {return static_cast<T*>(this)->get_atom().coords.z();}
+            [[nodiscard]] precision_t x() const                           {return static_cast<const T*>(this)->get_atom().coords.x();}
+            [[nodiscard]] precision_t y() const                           {return static_cast<const T*>(this)->get_atom().coords.y();}
+            [[nodiscard]] precision_t z() const                           {return static_cast<const T*>(this)->get_atom().coords.z();}
+            [[nodiscard]] precision_t& x()                                {return static_cast<T*>(this)->get_atom().coords.x();}
+            [[nodiscard]] precision_t& y()                                {return static_cast<T*>(this)->get_atom().coords.y();}
+            [[nodiscard]] precision_t& z()                                {return static_cast<T*>(this)->get_atom().coords.z();}
 
             [[nodiscard]] bool operator==(const AtomForwarder& rhs) const = default;
         };
