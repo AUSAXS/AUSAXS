@@ -191,7 +191,7 @@ int main(int argc, char const *argv[]) {
         // simulation mode
         if (mfile.empty()) {
             console::print_info("\nSimulation mode enabled.");
-            console::print_text("Please note that the evaluated hydration shell contribution will be quite poor for most molecules in this mode.");
+            console::print_text("Please note that the evaluated hydration shell contribution will be quite poor for most molecules in this mode. For more information, refer to the documentation.");
             settings::general::output += "simulated/" + pdb.stem() + "/";
             auto hist = protein.get_histogram();
 
