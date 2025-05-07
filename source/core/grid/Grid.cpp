@@ -6,6 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <grid/detail/GridSurfaceDetection.h>
+#include <grid/expansion/GridExpander.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <settings/GridSettings.h>
@@ -167,34 +168,34 @@ void Grid::add_volume(double value) {
 void Grid::force_expand_volume() {
     for (auto& atom : a_members) {
         atom.set_expanded(false);
-        expander->expand_volume(atom);
+        volume::expand(this, atom);
     }
 
     for (auto& water : w_members) {
         water.set_expanded(false);
-        expander->expand_volume(water);
+        volume::expand(this, water);
     }
 }
 
 void Grid::expand_volume() {
     // iterate through each member location
     for (auto& atom : a_members) {
-        expander->expand_volume(atom);
+        volume::expand(this, atom);
     }
 
     for (auto& water : w_members) {
-        expander->expand_volume(water);
+        volume::expand(this, water);
     }
 }
 
 void Grid::deflate_volume() {
     // iterate through each member location
     for (auto& atom : a_members) {
-        expander->deflate_volume(atom);
+        volume::deflate(this, atom);
     }
 
     for (auto& water : w_members) {
-        expander->deflate_volume(water);
+        volume::deflate(this, water);
     }
 }
 
@@ -207,7 +208,7 @@ void Grid::remove_waters(const std::vector<bool>& to_remove) {
         if (!to_remove[i]) {
             new_waters.push_back(w_members[i]);
         } else {
-            expander->deflate_volume(w_members[i]);
+            volume::deflate(this, w_members[i]);
             grid.index(w_members[i].get_bin_loc()) = detail::EMPTY;
         }
     }
@@ -245,7 +246,7 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
         bin = detail::A_CENTER;
 
         GridMember gm(atom, std::move(loc));
-        if (expand) {expander->expand_volume(gm);}
+        if (expand) {volume::expand(this, gm);}
         a_members[i] = std::move(gm);
     }
     return {a_members.begin() + start, a_members.end()};
@@ -283,7 +284,7 @@ std::span<grid::GridMember<data::Water>> Grid::add(const std::vector<data::Water
     for (int i = 0; i < static_cast<int>(waters.size()); ++i) {
         auto& w = waters[i];
         auto gm = add_single_water(*this, w);
-        if (expand) {expander->expand_volume(gm);}
+        if (expand) {volume::expand(this, gm);}
         w_members.emplace_back(std::move(gm));
     }
     return {w_members.begin() + start, w_members.end()};
@@ -291,7 +292,7 @@ std::span<grid::GridMember<data::Water>> Grid::add(const std::vector<data::Water
 
 grid::GridMember<data::Water>& Grid::add(const data::Water& water, bool expand) {
     w_members.emplace_back(add_single_water(*this, water));
-    if (expand) {expander->expand_volume(w_members.back());}
+    if (expand) {volume::expand(this, w_members.back());}
     return w_members.back();
 }
 
@@ -306,7 +307,7 @@ void Grid::remove(const Body& body) {
 
     // deflate and remove all atoms in the body from the grid
     for (int i = start; i < end; i++) {
-        expander->deflate_volume(a_members[i]);
+        volume::deflate(this, a_members[i]);
         auto& bin = grid.index(a_members[i].get_bin_loc());
         volume -= !grid.is_empty(bin); // multiple atoms may share a center bin, so we have to check if its volume was already removed
         bin = detail::EMPTY;
@@ -326,7 +327,7 @@ void Grid::remove(const Body& body) {
 
 void Grid::clear_waters() {
     for (auto& water : w_members) {
-        expander->deflate_volume(water);
+        volume::deflate(this, water);
         grid.index(water.get_bin_loc()) = detail::EMPTY;
     }
     w_members.clear();

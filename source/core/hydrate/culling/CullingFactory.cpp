@@ -28,7 +28,7 @@ std::unique_ptr<hydrate::CullingStrategy> hydrate::factory::construct_culling_st
     }
 }
 
-std::unique_ptr<hydrate::CullingStrategy> hydrate::factory::construct_culling_strategy(observer_ptr<data::Molecule> molecule, const settings::hydrate::CullingStrategy& choice) {
+std::unique_ptr<hydrate::CullingStrategy> hydrate::factory::construct_culling_strategy(observer_ptr<data::Molecule> molecule, settings::hydrate::CullingStrategy choice) {
     switch (choice) {
         case settings::hydrate::CullingStrategy::CounterStrategy: 
             if (molecule->size_body() <= 1) {return std::make_unique<hydrate::CounterCulling>(molecule);}

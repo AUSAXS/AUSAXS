@@ -21,12 +21,12 @@ std::unique_ptr<HydrationStrategy> factory::construct_hydration_generator(observ
     return factory::construct_hydration_generator(protein, settings::hydrate::hydration_strategy, settings::hydrate::culling_strategy);
 }
 
-std::unique_ptr<HydrationStrategy> factory::construct_hydration_generator(observer_ptr<data::Molecule> protein, const settings::hydrate::HydrationStrategy& choice) {
+std::unique_ptr<HydrationStrategy> factory::construct_hydration_generator(observer_ptr<data::Molecule> protein, settings::hydrate::HydrationStrategy choice) {
     return factory::construct_hydration_generator(protein, choice, settings::hydrate::culling_strategy);
 }
 
 std::unique_ptr<HydrationStrategy> factory::construct_hydration_generator(
-    observer_ptr<data::Molecule> protein, const settings::hydrate::HydrationStrategy& choice, const settings::hydrate::CullingStrategy& culling_strategy) 
+    observer_ptr<data::Molecule> protein, settings::hydrate::HydrationStrategy choice, settings::hydrate::CullingStrategy culling_strategy) 
 {
     switch (choice) {
         case settings::hydrate::HydrationStrategy::AxesStrategy: 

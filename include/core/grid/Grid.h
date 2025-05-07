@@ -3,7 +3,6 @@
 #include <grid/detail/GridObj.h>
 #include <grid/detail/GridInternalFwd.h>
 #include <grid/detail/GridExcludedVolume.h>
-#include <grid/expansion/GridExpander.h>
 #include <utility/Axis3D.h>
 #include <utility/TypeTraits.h>
 #include <data/DataFwd.h>
@@ -234,31 +233,31 @@ namespace ausaxs::grid {
 			 */
 			void add_volume(double value);
 
-			detail::GridObj grid; // The actual grid.
-			std::vector<GridMember<data::AtomFF>> a_members; // The member atoms and where they are located.
-			std::vector<GridMember<data::Water>>  w_members; // The member water molecules and where they are located. 
-			std::unordered_map<int, int> body_start; 		 // The starting index of each body in the a_members vector. 
-
-		protected: // only protected since they are important for testing
-			int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-
 			/**
 			 * @brief Convert a x bin index to a real x coordinate.
 			 * 		  Complexity: O(1).
 			 */
 			double to_x(int i) const;
 
-			 /**
-			  * @brief Convert a y bin index to a real y coordinate.
-			  * 		  Complexity: O(1).
-			  */
+			/**
+			 * @brief Convert a y bin index to a real y coordinate.
+			 * 		  Complexity: O(1).
+			 */
 			double to_y(int j) const;
  
-			 /**
-			  * @brief Convert a z bin index to a real z coordinate.
-			  * 		  Complexity: O(1).
-			  */
+			/**
+			 * @brief Convert a z bin index to a real z coordinate.
+			 * 		  Complexity: O(1).
+			 */
 			double to_z(int k) const;
+
+			detail::GridObj grid; // The actual grid.
+			std::vector<GridMember<data::AtomFF>> a_members; // The member atoms and where they are located.
+			std::vector<GridMember<data::Water>>  w_members; // The member water molecules and where they are located. 
+			std::unordered_map<int, int> body_start; 		 // The starting index of each body in the a_members vector. 
+
+		protected:
+			int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
 
 			/**
 			 * @brief Create the smallest possible box containing all atoms.
@@ -269,7 +268,6 @@ namespace ausaxs::grid {
 			static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<data::AtomFF>& atoms);
 
 		private:
-			std::unique_ptr<expander::GridExpander> expander; // The expander used to expand the grid.
 			Axis3D axes;
 
 			/** 
@@ -305,8 +303,6 @@ namespace ausaxs::grid {
 			void remove(const std::vector<bool>& to_remove);
 
 			void setup();
-
-			friend class expander::GridExpander;
 	};
 	static_assert(supports_nothrow_move_v<Grid>, "Grid should be nothrow move constructible");
 }
