@@ -5,6 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <em/manager/SmartProteinManager.h>
 #include <em/detail/ImageStackBase.h>
+#include <em/detail/EMGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -14,7 +15,6 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <vector>
 #include <cassert>
-#include <functional>
 
 using namespace ausaxs;
 using namespace ausaxs::em::managers;
@@ -24,6 +24,8 @@ SmartProteinManager::~SmartProteinManager() = default;
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> SmartProteinManager::get_histogram(double cutoff) {
     update_protein(cutoff);
+    protein->set_grid(std::make_unique<grid::EMGrid>(protein->get_bodies()));
+    if (settings::em::hydrate) {protein->generate_new_hydration();}
     return protein->get_histogram();
 }
 
@@ -44,7 +46,7 @@ std::vector<EMAtom> SmartProteinManager::generate_atoms(double cutoff) const {
 std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cutoff) const {
     std::vector<EMAtom> atoms = generate_atoms(cutoff);
     std::vector<Body> bodies(charge_levels.size());
-    std::vector<Atom> current_atoms(atoms.size());
+    std::vector<AtomFF> current_atoms(atoms.size());
 
     if (atoms.empty()) {
         console::print_warning("Warning in SmartProteinManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");
@@ -56,17 +58,16 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
     }
 
     // sort vector so we can slice it into levels of charge density
-    std::function<bool(double, double)> compare_func = [] (double v1, double v2) {return v1 < v2;};
-    std::sort(atoms.begin(), atoms.end(), [&compare_func] (const EMAtom& atom1, const EMAtom& atom2) {return compare_func(atom1.charge_density(), atom2.charge_density());});
+    std::sort(atoms.begin(), atoms.end(), [] (const EMAtom& atom1, const EMAtom& atom2) {return atom1.charge_density() < atom2.charge_density();});
 
     unsigned int charge_index = 0, atom_index = 0, current_index = 0;
     double charge = charge_levels[charge_index]; // initialize charge
 
-    while (compare_func(atoms[atom_index].charge_density(), cutoff)) {++atom_index;} // search for first atom with charge larger than the cutoff
-    while (compare_func(charge, cutoff)) {charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
+    while (atoms[atom_index].charge_density() < cutoff) {++atom_index;} // search for first atom with charge larger than the cutoff
+    while (charge < cutoff) {charge = charge_levels[++charge_index];}   // search for first charge level larger than the cutoff 
     while (atom_index < atoms.size()) {
-        if (compare_func(atoms[atom_index].charge_density(), charge)) {
-            current_atoms[current_index++] = atoms[atom_index++].get_atom();
+        if (atoms[atom_index].charge_density() < charge) {
+            current_atoms[current_index++] = atoms[atom_index++].get_atom_ff();
         } else {
             // create the body for this charge bin
             current_atoms.resize(current_index);
@@ -74,7 +75,7 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
 
             // prepare the next body
             current_index = 0;
-            current_atoms.resize(atoms.size());
+            current_atoms.resize(atoms.size() - atom_index);
 
             // increment the charge level
             if (charge_index+1 == charge_levels.size()) [[unlikely]] {
@@ -107,6 +108,7 @@ void SmartProteinManager::update_protein(double cutoff) {
         protein = generate_protein(cutoff); 
         protein->bind_body_signallers();
         previous_cutoff = cutoff;
+        protein->set_grid(std::make_unique<grid::EMGrid>(protein->get_bodies()));
         toggle_histogram_manager_init(false);
         return;
     }
@@ -121,26 +123,20 @@ void SmartProteinManager::update_protein(double cutoff) {
     }
 
     std::unique_ptr<data::Molecule> new_protein = generate_protein(cutoff);
-    // std::cout << "Found " << new_protein->atom_size() << " voxels with a cutoff larger than " << cutoff << std::endl;
-
-    std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
-    std::function<bool(double, double)> compare_negative = [] (double v1, double v2) {return v1 > v2;};
-    std::function<bool(double, double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
-
-    if (compare_func(cutoff, previous_cutoff)) {
+    if (cutoff < previous_cutoff) {
         // since cutoff is smaller than previously, we have to change all bins in the range [cutoff, previous_cutoff]
 
         // skip all bins before the relevant range
         unsigned int charge_index = 0;
         double current_cutoff = charge_levels[0];
-        while (compare_func(current_cutoff, cutoff) && charge_index < charge_levels.size()) {
+        while (current_cutoff < cutoff && charge_index < charge_levels.size()) {
             current_cutoff = charge_levels[++charge_index];
         }
 
         // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
         for (; charge_index < charge_levels.size(); ++charge_index) {
             // check if the current bin is inside the range
-            if (compare_func(charge_levels[charge_index], previous_cutoff)) {
+            if (charge_levels[charge_index] < previous_cutoff) {
                 // if so, we replace it with the new contents
                 protein->get_body(charge_index) = std::move(new_protein->get_body(charge_index));
             } else {
@@ -160,14 +156,14 @@ void SmartProteinManager::update_protein(double cutoff) {
         // skip all bins before the relevant range
         unsigned int charge_index = 0;
         double current_cutoff = charge_levels[0];
-        while (compare_func(current_cutoff, previous_cutoff) && charge_index < charge_levels.size()) {
+        while (current_cutoff < previous_cutoff && charge_index < charge_levels.size()) {
             current_cutoff = charge_levels[++charge_index];
         }
 
         // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
         for (; charge_index < charge_levels.size(); ++charge_index) {
             // check if the current bin is inside the range
-            if (compare_func(charge_levels[charge_index], cutoff)) {
+            if (charge_levels[charge_index] < cutoff) {
                 // if so, we replace it with the new contents
                 protein->get_body(charge_index) = std::move(new_protein->get_body(charge_index));
             } else {
@@ -180,6 +176,8 @@ void SmartProteinManager::update_protein(double cutoff) {
     }
 
     previous_cutoff = cutoff;
+
+    std::cout << "cutoff " << cutoff << " has " << protein->size_atom() << " atoms" << std::endl;
 }
 
 observer_ptr<const data::Molecule> SmartProteinManager::get_protein() const {
