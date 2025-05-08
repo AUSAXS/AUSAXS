@@ -107,7 +107,6 @@ void SmartProteinManager::update_protein(double cutoff) {
         protein = generate_protein(cutoff); 
         protein->bind_body_signallers();
         previous_cutoff = cutoff;
-        protein->set_grid(std::make_unique<grid::EMGrid>(protein->get_bodies()));
         toggle_histogram_manager_init(false);
         return;
     }
@@ -201,11 +200,6 @@ observer_ptr<data::Molecule> SmartProteinManager::get_protein(double cutoff) {
         protein->get_grid()->add(body);
     }
     if (settings::em::hydrate) {protein->generate_new_hydration();}
-
-    std::cout << "SmartProteinManager::get_protein: protein has been updated." << std::endl;
-    std::cout << "\tAtoms: " << protein->size_atom() << std::endl;
-    std::cout << "\tWaters: " << protein->size_water() << std::endl;
-
     return protein.get();
 }
 
