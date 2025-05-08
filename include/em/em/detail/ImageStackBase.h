@@ -96,14 +96,6 @@ namespace ausaxs::em {
             const std::vector<Image>& images() const;
 
             /**
-             * @brief Save this structure as a .pdb file. 
-             * 
-             * @param cutoff The cutoff value. If positive, atoms will be generated at all pixel values higher than this. If negative, they will be generated at pixels lower than this. 
-             * @param path Path to save location.
-             */
-            void save(double cutoff, const io::File& path) const;
-
-            /**
              * @brief Get the mean density.
              */
             double mean() const;

@@ -68,6 +68,7 @@ int main(int argc, char const *argv[]) {
         if (!constants::filetypes::saxs_data.check(mfile)) {
             throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile.str() + "\"");
         }
+        if (!settings::em::hydrate) {settings::fit::fit_hydration = false;} 
         if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
         settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 

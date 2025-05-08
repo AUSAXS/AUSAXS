@@ -83,27 +83,22 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // 'this' is ok since prepare_function is private and thus only used within the class itself
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};}); // ensure hydration shell is deterministic
     return [this, fitter = std::move(_fitter)] (const std::vector<double>& params) -> double {
-        auto p = get_protein_manager()->get_protein(params[0]);
         if (settings::em::hydrate) {
-            p->clear_grid();                // clear grid from previous iteration
-            p->generate_new_hydration();    // generate a new hydration layer
-
             // pointer cast is ok since the type should always be HydrationFitter when hydration is enabled
             fitter->set_guess({mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), last_c, {0, 200}}});
             fitter->set_algorithm(mini::algorithm::SCAN);
-            fitter->set_model(p->get_histogram());
+            fitter->set_model(get_protein_manager()->get_histogram(params[0]));
 
-            auto mass = p->get_excluded_volume_mass()/1e3;                                                // mass in kDa
+            auto mass = get_protein_manager()->get_excluded_volume_mass()/1e3;                                                // mass in kDa
             last_fit = fitter->fit();                                                                     // do the fit
             water_factors.push_back(last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER));  // record c value
             last_c = last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER).value;            // update c for next iteration
-            evals.push_back(detail::ExtendedLandscape(params[0], mass, p->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
+            evals.push_back(detail::ExtendedLandscape(params[0], mass, get_protein_manager()->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
         } else {
-            p->clear_grid();                                    // clear grid from previous iteration
-            auto mass = p->get_excluded_volume_mass()/1e3;      // mass in kDa
-            fitter->set_model(p->get_histogram());
+            fitter->set_model(get_protein_manager()->get_histogram(params[0]));
+            auto mass = get_protein_manager()->get_excluded_volume_mass()/1e3;      // mass in kDa
             last_fit = fitter->fit();
-            evals.push_back(detail::ExtendedLandscape(params[0], mass, p->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
+            evals.push_back(detail::ExtendedLandscape(params[0], mass, get_protein_manager()->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
         }
 
         double val = last_fit->fval;

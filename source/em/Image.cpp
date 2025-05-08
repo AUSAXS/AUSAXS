@@ -44,13 +44,14 @@ std::list<data::EMAtom> Image::generate_atoms(double cutoff) const {
     // define a weight function for more efficient switching. 
     auto weight = settings::em::fixed_weights ? 
         [] (float) {return 1.0f;} :     // fixed weights enabled - all voxels have the same weight of 1
-        [] (float val) {return val;};   // fixed weights disabled - voxels have a weight equal to their density
-    
+        [] (float val) {return val;}   // fixed weights disabled - voxels have a weight equal to their density
+    ;
+
     for (int x = 0; x < static_cast<int>(N); x += step) {
         for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
             float val = index(x, y);
             if (val < cutoff) {continue;}
-            atoms.emplace_back(Vector3{x*xscale, y*yscale, z*zscale}, weight(val), val);
+            atoms.emplace_back(Vector3<double>{x*xscale, y*yscale, z*zscale}, weight(val), val);
         }
     }
     return atoms;

@@ -74,7 +74,8 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
 
 TEST_CASE("ImageStack::get_protein") {
     settings::molecule::center = false;
-
+    settings::grid::min_bins = 100;
+    
     SECTION("em_weights") {
         SECTION("dynamic") {
             settings::em::fixed_weights = false;
@@ -85,6 +86,7 @@ TEST_CASE("ImageStack::get_protein") {
             std::unique_ptr header = std::make_unique<em::detail::header::MRCHeader>();
             std::unique_ptr header_data = std::make_unique<em::detail::header::MRCData>();
             header_data->cella_x = 6; header_data->cella_y = 6; header_data->cella_z = 2;
+            header_data->nx = 6; header_data->ny = 6; header_data->nz = 2;
             header->set_data(std::move(header_data));
             images.set_header(std::move(header));
 
@@ -110,6 +112,7 @@ TEST_CASE("ImageStack::get_protein") {
             std::unique_ptr header = std::make_unique<em::detail::header::MRCHeader>();
             std::unique_ptr header_data = std::make_unique<em::detail::header::MRCData>();
             header_data->cella_x = 6; header_data->cella_y = 6; header_data->cella_z = 2;
+            header_data->nx = 6; header_data->ny = 6; header_data->nz = 2;
             header->set_data(std::move(header_data));
             images.set_header(std::move(header));
             

@@ -10,9 +10,9 @@ namespace ausaxs::data {
     class AtomFF : public detail::AtomForwarder<AtomFF> {
         public:
             AtomFF() = default;
-            AtomFF(const Atom& a, form_factor::form_factor_t t) : basic(a), type(t) {}
-            AtomFF(const Vector3<precision_t>& coords, form_factor::form_factor_t t) : basic(coords, constants::charge::nuclear::get_charge(t)), type(t) {}
-            AtomFF(const Vector3<precision_t>& coords, form_factor::form_factor_t t, double weight) : basic(coords, weight), type(t) {}
+            AtomFF(Atom a, form_factor::form_factor_t t) : basic(std::move(a)), type(t) {}
+            AtomFF(Vector3<precision_t> coords, form_factor::form_factor_t t) : basic(coords, constants::charge::nuclear::get_charge(t)), type(t) {}
+            AtomFF(Vector3<precision_t> coords, form_factor::form_factor_t t, double weight) : basic(coords, weight), type(t) {}
             Atom& get_atom() {return basic;}
             const Atom& get_atom() const {return basic;}
 

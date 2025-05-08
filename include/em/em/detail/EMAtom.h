@@ -1,6 +1,7 @@
 #pragma once
 
 #include <data/atoms/Atom.h>
+#include <data/atoms/AtomFF.h>
 #include <form_factor/FormFactorType.h>
 
 namespace ausaxs::data {
@@ -14,6 +15,7 @@ namespace ausaxs::data {
             EMAtom(const Vector3<precision_t>& coords, double weight, double density) : basic(coords, weight), density(density) {}
             Atom& get_atom() {return basic.get_atom();}
             const Atom& get_atom() const {return basic.get_atom();}
+            AtomFF get_atom_ff() const {return AtomFF{basic, form_factor::form_factor_t::UNKNOWN};}
 
             [[nodiscard]] double charge_density() const {return density;}
             [[nodiscard]] double& charge_density() {return density;}

@@ -29,7 +29,7 @@
 using namespace ausaxs;
 using namespace data;
 
-TEST_CASE("partial_histogram_manager_works") {
+TEST_CASE("EM_managers: partial_histogram_manager_works") {
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
     auto phm = protein.get_histogram_manager();
@@ -42,7 +42,7 @@ TEST_CASE("partial_histogram_manager_works") {
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, true, false, false});
 }
 
-TEST_CASE("protein_manager") {
+TEST_CASE("EM_managers: protein_manager") {
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
 
@@ -81,8 +81,11 @@ TEST_CASE("protein_manager") {
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, false, false, true});
 }
 
-TEST_CASE("em_partial_histogram_manager") {
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT; // don't use the phm since it eats too much memory
+TEST_CASE("EM_managers: em_partial_histogram_manager") {
+    // don't use the phm since it eats too much memory
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
+    settings::em::hydrate = false;
+    settings::grid::min_bins = 100;
 
     auto compare = [] (std::shared_ptr<em::managers::ProteinManager> manager1, std::shared_ptr<em::managers::ProteinManager> manager2, double cutoff) {
         auto h1 = manager1->get_histogram(cutoff);
@@ -110,16 +113,17 @@ TEST_CASE("em_partial_histogram_manager") {
     SECTION("basic functionality works") {
         settings::em::fixed_weights = GENERATE(true, false);
 
-        std::shared_ptr<em::detail::header::MRCHeader> header;
+        std::unique_ptr<em::detail::header::MRCHeader> header;
         {
             em::detail::header::MRCData data;
-            data.cella_x = 1, data.cella_y = 1, data.cella_z = 1, data.nz = 1;
-            header = std::make_shared<em::detail::header::MRCHeader>(std::move(data));
+            data.cella_x = 1; data.cella_y = 1; data.cella_z = 1;
+            data.nx = 1; data.ny = 1; data.nz = 1;
+            header = std::make_unique<em::detail::header::MRCHeader>(std::move(data));
         }
 
         Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
-        em::Image image(data, header.get(), 0);
-        em::ImageStack images({image});
+        em::ImageStack images({data});
+        images.set_header(std::move(header));
 
         auto manager = em::factory::create_manager(&images);
         manager->set_charge_levels({2, 4, 6, 8});
@@ -143,16 +147,17 @@ TEST_CASE("em_partial_histogram_manager") {
 
     SECTION("comparison with standard approach") {
         SECTION("simple") {
-            std::shared_ptr<em::detail::header::MRCHeader> header;
+            std::unique_ptr<em::detail::header::MRCHeader> header;
             {
                 em::detail::header::MRCData data;
-                data.cella_x = 1, data.cella_y = 1, data.cella_z = 1, data.nz = 1;
-                header = std::make_shared<em::detail::header::MRCHeader>(std::move(data));
+                data.cella_x = 1; data.cella_y = 1; data.cella_z = 1;
+                data.nx = 1; data.ny = 1; data.nz = 1; 
+                header = std::make_unique<em::detail::header::MRCHeader>(std::move(data));
             }
 
             Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
-            em::Image image(data, header.get(), 0);
-            em::ImageStack images({image});
+            em::ImageStack images({data});
+            images.set_header(std::move(header));
 
             std::shared_ptr<em::managers::ProteinManager> manager1 = std::make_shared<em::managers::SimpleProteinManager>(&images);
             std::shared_ptr<em::managers::ProteinManager> manager2 = std::make_shared<em::managers::SmartProteinManager>(&images);

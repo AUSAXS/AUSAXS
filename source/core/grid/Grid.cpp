@@ -91,7 +91,7 @@ void Grid::setup() {
 
     // enforce minimum number of bins if set
     if (settings::grid::min_bins != 0) {
-        double min_length = settings::grid::min_bins*settings::grid::cell_width/2;
+        double min_length = 0.5*settings::grid::min_bins*settings::grid::cell_width;
         if (axes.x.bins < settings::grid::min_bins) {
             axes.x.bins = settings::grid::min_bins;
             axes.x.min = -min_length;
@@ -370,6 +370,10 @@ void Grid::remove_waters(const std::vector<bool>& to_remove) {
 std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
     int start = a_members.size();
     body_start[body.get_uid()] = start;
+    if (body.size_atom() == 0) {
+        return {a_members.begin(), a_members.end()};
+    }
+
     a_members.resize(a_members.size() + body.symmetry().size_atom_total());
     auto b_atoms = body.symmetry().explicit_structure().atoms;
 

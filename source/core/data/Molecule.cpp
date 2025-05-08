@@ -81,7 +81,7 @@ SimpleDataset Molecule::simulate_dataset(bool add_noise) const {
     return data;
 }
 
-void Molecule::save(const io::File& path) {
+void Molecule::save(const io::File& path) const {
     io::Writer::write({*this}, path);
 }
 
@@ -360,7 +360,16 @@ void Molecule::bind_body_signallers() {
     if (phm == nullptr) {return;}
 
     auto cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
-    if (!cast) {return;}
+    if (!cast) {
+        // The caller requested the body signalling objects to be (re)bound, but the histogram manager
+        // does not support this. To avoid leaving the bodies in a potentially dangerous state, we
+        // register a new dummy signaller to all bodies. 
+        for (unsigned int i = 0; i < bodies.size(); i++) {
+            bodies[i].register_probe(std::make_shared<signaller::UnboundSignaller>());
+        }
+        return;
+    }
+
     assert(cast->body_size == size_body() && "Molecule::bind_body_signallers: body size mismatch.");
     for (unsigned int i = 0; i < bodies.size(); i++) {
         bodies[i].register_probe(cast->get_probe(i));

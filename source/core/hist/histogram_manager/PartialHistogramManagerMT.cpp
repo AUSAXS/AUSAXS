@@ -28,6 +28,17 @@ PartialHistogramManagerMT<use_weighted_distribution>::PartialHistogramManagerMT(
 template<bool use_weighted_distribution> 
 PartialHistogramManagerMT<use_weighted_distribution>::~PartialHistogramManagerMT() = default;
 
+namespace {
+    int water_res_index = 1.31e4;
+    int to_res_index(int body1, int body2) {
+        return body1 + body2*1e2;
+    }
+
+    int to_res_index_water(int body) {
+        return body + water_res_index;
+    }
+}
+
 template<bool use_weighted_distribution> 
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate() {
     auto& externally_modified = this->statemanager->get_externally_modified_bodies();
@@ -94,38 +105,43 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
     // for this process, we first have to wait for all threads to finish
     // then we extract the results in the same order they were submitted to ensure correctness
     auto res = calculator->run();
-    int self_index = 0, cross_index = 0;
     {
         if (hydration_modified) {
+            assert(res.self.contains(water_res_index) && "PartialHistogramManagerMT::calculate: water result not found");
             pool->detach_task(
-                [this, r = std::move(res.self[self_index++])] () mutable {combine_ww(std::move(r));}
+                [this, r = std::move(res.self[water_res_index])]
+                () mutable {combine_ww(std::move(r));}
             );
         }
 
         for (unsigned int i = 0; i < this->body_size; ++i) {
             if (internally_modified[i]) {
+                assert(res.self.contains(to_res_index(i, i)) && "PartialHistogramManagerMT::calculate: self result not found");
                 pool->detach_task(
-                    [this, i, r = std::move(res.self[self_index++])] () mutable {combine_self_correlation(i, std::move(r));}
+                    [this, i, r = std::move(res.self[to_res_index(i, i)])]
+                    () mutable {combine_self_correlation(i, std::move(r));}
                 );
             }
 
             for (unsigned int j = 0; j < i; ++j) {
                 if (externally_modified[i] || externally_modified[j]) {
+                    assert(res.cross.contains(to_res_index(i, j)) && "PartialHistogramManagerMT::calculate: cross result not found");
                     pool->detach_task(
-                        [this, i, j, r = std::move(res.cross[cross_index++])] () mutable {combine_aa(i, j, std::move(r));}
+                        [this, i, j, r = std::move(res.cross[to_res_index(i, j)])]
+                        () mutable {combine_aa(i, j, std::move(r));}
                     );
                 }
             }
 
             if (externally_modified[i] || hydration_modified) {
+                assert(res.cross.contains(to_res_index_water(i)) && "PartialHistogramManagerMT::calculate: water result not found");
                 pool->detach_task(
-                    [this, i, r = std::move(res.cross[cross_index++])] () mutable {combine_aw(i, std::move(r));}
+                    [this, i, r = std::move(res.cross[to_res_index_water(i)])]
+                    () mutable {combine_aw(i, std::move(r));}
                 );
             }
         }
     }
-    assert(self_index == static_cast<int>(res.self.size()) && "self_index is not equal to the size of the self vector");
-    assert(cross_index == static_cast<int>(res.cross.size()) && "cross_index is not equal to the size of the cross vector");
 
     this->statemanager->reset_to_false();
     pool->wait();
@@ -145,7 +161,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
 }
 
 template<bool use_weighted_distribution>
-void PartialHistogramManagerMT<use_weighted_distribution>::update_compact_representation_body(unsigned int index) {
+void PartialHistogramManagerMT<use_weighted_distribution>::update_compact_representation_body(int index) {
     this->coords_a[index] = detail::CompactCoordinates(this->protein->get_body(index).get_atoms());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(this->coords_a[index], this->protein);
 }
@@ -224,34 +240,35 @@ void PartialHistogramManagerMT<use_weighted_distribution>::initialize(calculator
     auto res = calculator->run();
     assert(res.self.size() == this->body_size && "The number of self-correlation results does not match the number of bodies.");
     for (int i = 0; i < static_cast<int>(this->body_size); ++i) {
+        assert(res.self.contains(to_res_index(i, i)) && "PartialHistogramManagerMT::initialize: self result not found");
         pool->detach_task(
-            [this, i, r = std::move(res.self[i])] () mutable {combine_self_correlation(i, std::move(r));}
+            [this, i, r = std::move(res.self[to_res_index(i, i)])] () mutable {combine_self_correlation(i, std::move(r));}
         );
     }
 }
 
 template<bool use_weighted_distribution>
-void PartialHistogramManagerMT<use_weighted_distribution>::calc_self_correlation(calculator_t calculator, unsigned int index) {
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_self_correlation(calculator_t calculator, int index) {
     update_compact_representation_body(index);
-    calculator->enqueue_calculate_self(this->coords_a[index]);
+    calculator->enqueue_calculate_self(this->coords_a[index], 1, to_res_index(index, index));
 }
 
-template<bool use_weighted_distribution> 
-void PartialHistogramManagerMT<use_weighted_distribution>::calc_aa(calculator_t calculator, unsigned int n, unsigned int m) {
-    calculator->enqueue_calculate_cross(this->coords_a[n], this->coords_a[m]);
+template<bool use_weighted_distribution>
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_aa(calculator_t calculator, int n, int m) {
+    calculator->enqueue_calculate_cross(this->coords_a[n], this->coords_a[m], 1, to_res_index(n, m));
 }
 
-template<bool use_weighted_distribution> 
-void PartialHistogramManagerMT<use_weighted_distribution>::calc_aw(calculator_t calculator, unsigned int index) {
-    calculator->enqueue_calculate_cross(this->coords_a[index], this->coords_w);
+template<bool use_weighted_distribution>
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_aw(calculator_t calculator, int index) {
+    calculator->enqueue_calculate_cross(this->coords_a[index], this->coords_w, 1, to_res_index_water(index));
 }
 
-template<bool use_weighted_distribution> 
+template<bool use_weighted_distribution>
 void PartialHistogramManagerMT<use_weighted_distribution>::calc_ww(calculator_t calculator) {
-    calculator->enqueue_calculate_self(this->coords_w);
+    calculator->enqueue_calculate_self(this->coords_w, 1, water_res_index);
 }
 
-template<bool use_weighted_distribution> 
+template<bool use_weighted_distribution>
 void PartialHistogramManagerMT<use_weighted_distribution>::combine_self_correlation(int index, GenericDistribution1D_t&& res) {
     master_hist_mutex.lock();
     this->master -= this->partials_aa.index(index, index);
@@ -261,7 +278,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_self_correlat
 }
 
 template<bool use_weighted_distribution> 
-void PartialHistogramManagerMT<use_weighted_distribution>::combine_aa(unsigned int n, unsigned int m, GenericDistribution1D_t&& res) {
+void PartialHistogramManagerMT<use_weighted_distribution>::combine_aa(int n, int m, GenericDistribution1D_t&& res) {
     master_hist_mutex.lock();
     this->master -= this->partials_aa.index(n, m);
     this->partials_aa.index(n, m) = std::move(res);
@@ -270,7 +287,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_aa(unsigned i
 }
 
 template<bool use_weighted_distribution> 
-void PartialHistogramManagerMT<use_weighted_distribution>::combine_aw(unsigned int index, GenericDistribution1D_t&& res) {
+void PartialHistogramManagerMT<use_weighted_distribution>::combine_aw(int index, GenericDistribution1D_t&& res) {
     master_hist_mutex.lock();
     this->master -= this->partials_aw.index(index);
     this->partials_aw.index(index) = std::move(res);

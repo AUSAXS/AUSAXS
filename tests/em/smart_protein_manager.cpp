@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/distribution/Distribution1D.h>
 #include <hydrate/generation/RadialHydration.h>
 #include <em/manager/SimpleProteinManager.h>
 #include <em/manager/SmartProteinManager.h>
@@ -46,6 +47,7 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein", "[files]") {
 }
 
 TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram", "[files]") {
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
     CHECK(manager->get_histogram(1)->get_total_counts() == manager->get_protein(1)->get_histogram()->get_total_counts());
 }
 
@@ -53,6 +55,9 @@ TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
     settings::general::threads = 6;
     settings::em::sample_frequency = 2;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+
+    // ensure hydration shell is deterministic
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     // alpha as the outer loop to ensure the protein is generated anew every time
     em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
@@ -63,6 +68,7 @@ TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
             settings::em::charge_levels = charge_levels;
             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
             REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
+            auto hist2 = images.get_histogram(alpha);
             REQUIRE(compare_hist(hist, images.get_histogram(alpha)->debye_transform()));
         }
     }
@@ -72,6 +78,9 @@ TEST_CASE("SmartProteinManager::update_protein", "[files]") {
     settings::general::threads = 6;
     settings::em::sample_frequency = 2;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+
+    // ensure hydration shell is deterministic
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     // alpha as the inner loop to check the protein update functionality 
     int alpha_min = 5, alpha_max = 24;

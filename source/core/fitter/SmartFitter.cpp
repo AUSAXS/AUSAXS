@@ -100,6 +100,11 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
+    if (get_number_of_enabled_pars() == 0) {
+        auto linear_fitter = prepare_linear_fitter({});
+        return linear_fitter.fit();    
+    }
+
     auto f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
     auto res = mini->minimize();

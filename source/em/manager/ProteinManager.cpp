@@ -4,8 +4,9 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <em/manager/ProteinManager.h>
-#include <utility/Axis.h>
 #include <em/ImageStack.h>
+#include <data/Molecule.h>
+#include <utility/Axis.h>
 #include <settings/EMSettings.h>
 #include <settings/MoleculeSettings.h>
 
@@ -22,6 +23,18 @@ ProteinManager::ProteinManager(observer_ptr<const em::ImageStackBase> images) : 
     Axis axis(min, max, settings::em::charge_levels);
     set_charge_levels(axis.as_vector());
 }
+
+double ProteinManager::get_volume_grid() const {
+    auto protein = get_protein();
+    assert(protein != nullptr && "ProteinManager::get_volume_grid: protein is null");
+    return protein->get_volume_grid();
+}
+
+double ProteinManager::get_excluded_volume_mass() const {
+    auto protein = get_protein();
+    assert(protein != nullptr && "ProteinManager::get_excluded_volume_mass: protein is null");
+    return protein->get_excluded_volume_mass();
+}    
 
 std::vector<double> ProteinManager::get_charge_levels() const noexcept {
     return charge_levels;

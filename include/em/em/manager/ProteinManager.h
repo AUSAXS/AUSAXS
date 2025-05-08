@@ -36,6 +36,21 @@ namespace ausaxs::em {
                 virtual std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(double cutoff) = 0;
 
                 /**
+                 * @brief Get the excluded volume mass of the managed molecule.
+                 * 		  This is the excluded volume of the molecule times the average protein mass density. 
+                 * 
+                 * @return The excluded volume mass in Da.
+                 */
+                double get_excluded_volume_mass() const;
+
+                /**
+                 * @brief Calculate the volume of the managed molecule based on the number of grid bins it spans.
+                 * 
+                 * @return The volume in Å^3.
+                 */
+                double get_volume_grid() const;
+
+                /**
                  * @brief Set the charge levels.
                  */
                 virtual void set_charge_levels(const std::vector<double>& levels) noexcept;

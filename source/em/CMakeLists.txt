@@ -6,6 +6,7 @@ add_library(ausaxs_em OBJECT
 
 	"detail/ImageStackBase.cpp"
 	"detail/EMFitResult.cpp"
+	"detail/EMGrid.cpp"
 	"detail/header/DummyHeader.cpp"
 	"detail/header/HeaderFactory.cpp"
 	"detail/header/MapHeader.cpp"
@@ -14,12 +15,12 @@ add_library(ausaxs_em OBJECT
 	"detail/header/data/HeaderData.cpp"
 	"detail/header/data/MRCData.cpp"
 	"detail/header/data/RECData.cpp"
-	
+
 	"manager/ProteinManager.cpp"
 	"manager/ProteinManagerFactory.cpp"
 	"manager/SimpleProteinManager.cpp"
 	"manager/SmartProteinManager.cpp"
-	
+
 	"plots/PlotImage.cpp"
 )
 

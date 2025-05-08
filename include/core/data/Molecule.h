@@ -60,7 +60,7 @@ namespace ausaxs::data {
 			/** 
 			 * @brief Writes this body to disk.
 			 */
-			void save(const io::File& path);
+			void save(const io::File& path) const;
 
 			/** 
 			 * @brief Use an algorithm to generate a new hydration layer for this body. Note that the previous one will be deleted.
