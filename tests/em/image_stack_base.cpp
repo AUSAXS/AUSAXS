@@ -1,16 +1,15 @@
-#include "settings/GeneralSettings.h"
-#include "settings/HistogramSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/HistFwd.h>
 #include <em/detail/ImageStackBase.h>
 #include <em/detail/header/data/MRCData.h>
 #include <em/detail/header/MRCHeader.h>
 #include <em/manager/ProteinManager.h>
-#include <hist/HistFwd.h>
 #include <em/ObjectBounds3D.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <data/Molecule.h>
 #include <settings/All.h>
 
@@ -98,6 +97,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
     em::ImageStackBase isb("tests/files/A2M_2020_Q4.ccp4");
     REQUIRE(isb.get_histogram(5)->get_total_counts() == isb.get_protein_manager()->get_histogram(5)->get_total_counts());
 }
@@ -159,21 +159,6 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::size") {
         em::ImageStackBase isb(images);
         REQUIRE(isb.size() == 3);
     }
-}
-
-TEST_CASE_METHOD(fixture, "ImageStackBase::save") {
-    settings::general::verbose = false;
-    io::File file("tests/temp/ImageStackBase.save.pdb");
-    em::ImageStackBase isb(images);
-
-    em::detail::header::MRCData header_data;
-    header_data.cella_x = 1; header_data.cella_y = 1; header_data.cella_z = 1;
-    header_data.nx = 3; header_data.ny = 3; header_data.nz = 3;
-    std::unique_ptr header = std::make_unique<em::detail::header::MRCHeader>(std::move(header_data));
-
-    isb.set_header(std::move(header));
-    isb.save(5, file);
-    REQUIRE(file.exists());
 }
 
 TEST_CASE("ImageStackBase::mean") {

@@ -65,11 +65,6 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
 
 ImageStackBase::~ImageStackBase() = default;
 
-void ImageStackBase::save(double cutoff, const io::File& path) const {
-    auto protein = get_protein_manager()->get_protein(cutoff);
-    protein->save(path);
-}
-
 Image& ImageStackBase::image(unsigned int layer) {return data[layer];}
 
 const Image& ImageStackBase::image(unsigned int layer) const {return data[layer];}

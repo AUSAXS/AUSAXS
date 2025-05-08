@@ -24,7 +24,6 @@ namespace ausaxs::em {
                  * @brief Get the Protein backing this object. 
                  */
                 virtual observer_ptr<const data::Molecule> get_protein() const = 0;
-                observer_ptr<data::Molecule> get_protein();
 
                 /**
                  * @brief Get the Protein generated from a given cutoff.

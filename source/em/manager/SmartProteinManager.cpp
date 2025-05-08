@@ -10,8 +10,10 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/Console.h>
+#include <utility/Limit3D.h>
 #include <settings/HistogramSettings.h>
 #include <settings/EMSettings.h>
+#include <settings/GridSettings.h>
 
 #include <vector>
 #include <cassert>
@@ -23,10 +25,7 @@ using namespace ausaxs::data;
 SmartProteinManager::~SmartProteinManager() = default;
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> SmartProteinManager::get_histogram(double cutoff) {
-    update_protein(cutoff);
-    protein->set_grid(std::make_unique<grid::EMGrid>(protein->get_bodies()));
-    if (settings::em::hydrate) {protein->generate_new_hydration();}
-    return protein->get_histogram();
+    return get_protein(cutoff)->get_histogram();
 }
 
 std::vector<EMAtom> SmartProteinManager::generate_atoms(double cutoff) const {
@@ -175,8 +174,6 @@ void SmartProteinManager::update_protein(double cutoff) {
     }
 
     previous_cutoff = cutoff;
-
-    std::cout << "cutoff " << cutoff << " has " << protein->size_atom() << " atoms" << std::endl;
 }
 
 observer_ptr<const data::Molecule> SmartProteinManager::get_protein() const {
@@ -186,6 +183,29 @@ observer_ptr<const data::Molecule> SmartProteinManager::get_protein() const {
 
 observer_ptr<data::Molecule> SmartProteinManager::get_protein(double cutoff) {
     update_protein(cutoff);
+
+    auto ax = images->get_header()->get_axes();
+
+    // ensure the grid is large enough to contain the entire map
+    //? is this a waste of time since it is being overwritten for every iteration anyway?
+    Limit3D limits(ax.x.min, ax.x.max, ax.y.min, ax.y.max, ax.z.min, ax.z.max);
+    double expand_x = 0.5*limits.x.span()*settings::grid::scaling;
+    double expand_y = 0.5*limits.y.span()*settings::grid::scaling;
+    double expand_z = 0.5*limits.z.span()*settings::grid::scaling;
+    limits.x.min -= expand_x, limits.x.max += expand_x;
+    limits.y.min -= expand_y, limits.y.max += expand_y;
+    limits.z.min -= expand_z, limits.z.max += expand_z;
+
+    protein->set_grid(std::make_unique<grid::EMGrid>(limits));
+    for (auto& body : protein->get_bodies()) {
+        protein->get_grid()->add(body);
+    }
+    if (settings::em::hydrate) {protein->generate_new_hydration();}
+
+    std::cout << "SmartProteinManager::get_protein: protein has been updated." << std::endl;
+    std::cout << "\tAtoms: " << protein->size_atom() << std::endl;
+    std::cout << "\tWaters: " << protein->size_water() << std::endl;
+
     return protein.get();
 }
 
