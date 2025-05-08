@@ -95,17 +95,11 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             last_c = last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER).value;            // update c for next iteration
             evals.push_back(detail::ExtendedLandscape(params[0], mass, get_protein_manager()->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
         } else {
-            auto mass = get_protein_manager()->get_excluded_volume_mass()/1e3;      // mass in kDa
             fitter->set_model(get_protein_manager()->get_histogram(params[0]));
+            auto mass = get_protein_manager()->get_excluded_volume_mass()/1e3;      // mass in kDa
             last_fit = fitter->fit();
             evals.push_back(detail::ExtendedLandscape(params[0], mass, get_protein_manager()->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
         }
-
-        std::cout << "Fitted pars: " << std::endl;
-        for (const auto& p : last_fit->get_parameters()) {
-            std::cout << p.name << ": " << p.value << std::endl;
-        }
-        std::cout << "Fitted chi2: " << last_fit->fval << std::endl;
 
         double val = last_fit->fval;
         progress.notify(counter++);

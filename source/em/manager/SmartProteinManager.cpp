@@ -172,7 +172,6 @@ void SmartProteinManager::update_protein(double cutoff) {
                 break;
             }
         }
-
     }
 
     previous_cutoff = cutoff;

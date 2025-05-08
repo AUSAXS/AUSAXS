@@ -81,7 +81,7 @@ SimpleDataset Molecule::simulate_dataset(bool add_noise) const {
     return data;
 }
 
-void Molecule::save(const io::File& path) {
+void Molecule::save(const io::File& path) const {
     io::Writer::write({*this}, path);
 }
 

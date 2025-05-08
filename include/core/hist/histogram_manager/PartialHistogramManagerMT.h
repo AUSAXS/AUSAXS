@@ -44,19 +44,19 @@ namespace ausaxs::hist {
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_self_correlation(calculator_t calculator, unsigned int index);
+			void calc_self_correlation(calculator_t calculator, int index);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aa(calculator_t calculator, unsigned int n, unsigned int m);
+			void calc_aa(calculator_t calculator, int n, int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aw(calculator_t calculator, unsigned int index);
+			void calc_aw(calculator_t calculator, int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
@@ -66,9 +66,9 @@ namespace ausaxs::hist {
 
 			void combine_self_correlation(int index, GenericDistribution1D_t&&);
 
-			void combine_aa(unsigned int n, unsigned int m, GenericDistribution1D_t&&);
+			void combine_aa(int n, int m, GenericDistribution1D_t&&);
 
-			void combine_aw(unsigned int index, GenericDistribution1D_t&&);
+			void combine_aw(int index, GenericDistribution1D_t&&);
 
 			void combine_ww(GenericDistribution1D_t&&);
 
@@ -77,7 +77,7 @@ namespace ausaxs::hist {
 			 * 
 			 * @param index The index of the body to update.
 			 */
-			void update_compact_representation_body(unsigned int index);
+			void update_compact_representation_body(int index);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of the hydration layer.

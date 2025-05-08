@@ -47,17 +47,19 @@ PartialSymmetryManagerMT<use_weighted_distribution>::PartialSymmetryManagerMT(ob
 template<bool use_weighted_distribution> 
 PartialSymmetryManagerMT<use_weighted_distribution>::~PartialSymmetryManagerMT() = default;
 
-int water_res_index = 1.31e8;
-int to_res_index(int body1, int symmetry1, int body2, int symmetry2) {
-    return symmetry2 + body2*1e2 + symmetry1*1e4 + body1*1e6;
-}
+namespace {
+    int water_res_index = 1.31e8;
+    int to_res_index(int body1, int symmetry1, int body2, int symmetry2) {
+        return symmetry2 + body2*1e2 + symmetry1*1e4 + body1*1e6;
+    }
 
-int to_res_index_self(int body, int symmetry) {
-    return to_res_index(body, symmetry, body, symmetry);
-}
+    int to_res_index_self(int body, int symmetry) {
+        return to_res_index(body, symmetry, body, symmetry);
+    }
 
-int to_res_index_water(int body, int symmetry) {
-    return to_res_index_self(body, symmetry) + water_res_index;
+    int to_res_index_water(int body, int symmetry) {
+        return to_res_index_self(body, symmetry) + water_res_index;
+    }    
 }
 
 template<bool use_weighted_distribution>

@@ -17,5 +17,4 @@ void em::managers::SimpleProteinManager::update_protein(double cutoff) {
     std::transform(atoms.begin(), atoms.end(), converted.begin(), [] (const data::EMAtom& atom) {return atom.get_atom_ff();});
     protein = std::make_unique<data::Molecule>(std::vector{data::Body{converted}});
     protein->set_histogram_manager(std::make_unique<hist::HistogramManagerMT<true>>(protein.get()));
-    std::cout << "SimpleProteinManager::update_protein: protein size: " << protein->size_atom() << std::endl;
 }

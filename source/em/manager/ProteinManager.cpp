@@ -24,6 +24,10 @@ ProteinManager::ProteinManager(observer_ptr<const em::ImageStackBase> images) : 
     set_charge_levels(axis.as_vector());
 }
 
+observer_ptr<data::Molecule> ProteinManager::get_protein() {
+    return const_cast<observer_ptr<data::Molecule>>(const_cast<const ProteinManager*>(this)->get_protein());
+}
+
 double ProteinManager::get_volume_grid() const {
     auto protein = get_protein();
     assert(protein != nullptr && "ProteinManager::get_volume_grid: protein is null");
