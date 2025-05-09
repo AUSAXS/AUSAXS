@@ -2,6 +2,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <grid/Grid.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
 #include <plots/All.h>
@@ -103,6 +104,7 @@ int main(int argc, char const *argv[]) {
     sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
 
     // grid subcommands
+    bool save_grid = false;
     auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
     sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
         "The radius of the excluded volume sphere around each atom."
@@ -110,6 +112,9 @@ int main(int argc, char const *argv[]) {
     auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);
+    sub_grid->add_flag("--save", save_grid, 
+        "Write a PDB representation of the grid to disk."
+    )->default_val(save_grid);
 
     // fit subcommands
     // auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
@@ -137,6 +142,11 @@ int main(int argc, char const *argv[]) {
             settings::grid::cell_width = settings::grid::exv::width;
         }
 
+        // adjust excluded volume width to be at least as large as the grid width
+        if (sub_grid_w->count() && !sub_exv_w->count() && settings::grid::exv::width < settings::grid::cell_width) {
+            settings::grid::exv::width = settings::grid::cell_width;
+        }
+
         // save settings if requested
         if (save_settings) {
             settings::write("settings.txt");
@@ -146,6 +156,8 @@ int main(int argc, char const *argv[]) {
 
     CLI11_PARSE(app, argc, argv);
     console::print_info("Running AUSAXS " + std::string(constants::version));
+
+    settings::grid::exv::expansion_strategy = settings::grid::exv::Expansion::Full;
 
     //###################//
     //### PARSE INPUT ###//
@@ -250,6 +262,7 @@ int main(int argc, char const *argv[]) {
         console::print_text("\tRhoM:            " + utility::round_double(rhoM, 3) + " g/cm^3");
 
         protein.save(settings::general::output + "model.pdb");
+        if (save_grid) {protein.get_grid()->save(settings::general::output + "grid.pdb");}
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

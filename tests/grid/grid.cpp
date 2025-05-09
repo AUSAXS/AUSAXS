@@ -463,11 +463,11 @@ TEST_CASE("Grid::remove") {
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    CHECK(g.index(i, j, k) == EMPTY);
+                    REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
         }
-        CHECK(grid.get_volume() == 0);
+        REQUIRE(grid.get_volume() == 0);
     }
 
     SECTION("") {
@@ -483,11 +483,11 @@ TEST_CASE("Grid::remove") {
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    CHECK(g.index(i, j, k) == EMPTY);
+                    REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
         }
-        CHECK(grid.get_volume() == 0);
+        REQUIRE(grid.get_volume() == 0);
     }
 
     SECTION("symmetry-aware") {
@@ -503,11 +503,11 @@ TEST_CASE("Grid::remove") {
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    CHECK(g.index(i, j, k) == EMPTY);
+                    REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
         }
-        CHECK(grid.get_volume() == 0);
+        REQUIRE(grid.get_volume() == 0);
     }
 }
 
@@ -527,7 +527,7 @@ TEST_CASE("Grid::remove_waters") {
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    CHECK(g.index(i, j, k) == EMPTY);
+                    REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
         }
@@ -549,7 +549,7 @@ TEST_CASE("Grid::remove_waters") {
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    CHECK(g.index(i, j, k) == EMPTY);
+                    REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
         }
