@@ -209,7 +209,7 @@ namespace ausaxs::grid {
 			/**
 			 * @brief Get the contents of a single bin.
 			 */
-			[[nodiscard]] const detail::State& index(unsigned int i, unsigned int j, unsigned int k) const;
+			[[nodiscard]] const detail::State& index(int i, int j, int k) const;
 
 			/**
 			 * @brief Get the center of the grid in bin coordinates.
