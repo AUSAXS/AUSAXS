@@ -912,7 +912,6 @@ TEST_CASE("Grid: add and remove") {
     SECTION("add") {
         // add atoms
         grid.add(body);
-        grid.add(body.get_waters());
         auto ga = grid.get_atoms();
         REQUIRE(grid.a_members.size() == 3); // check actual data
         REQUIRE(ga.size() >= 3);
@@ -926,7 +925,7 @@ TEST_CASE("Grid: add and remove") {
         REQUIRE(grid.a_members.size() == 3); // check actual data
         REQUIRE(grid.w_members.size() == 3); // check actual data
         REQUIRE(wa.size() >= 3);
-        auto w = body.get_waters();
+        auto w = body.get_waters()->get();
         for (int i = 0; i < 3; i++) {
             REQUIRE(wa[i] == w[i]); // check equality with what we added
         }
@@ -934,7 +933,6 @@ TEST_CASE("Grid: add and remove") {
 
     SECTION("remove") {
         grid.add(body);
-        grid.add(body.get_waters());
         grid.remove(body);
         auto ga = grid.get_atoms();
         auto wa = grid.get_waters();
@@ -954,7 +952,6 @@ TEST_CASE("Grid: add and remove") {
     SECTION("remove index") {
         SECTION("water") {
             grid.add(body);
-            grid.add(body.get_waters());
 
             REQUIRE(grid.w_members.size() == 3);
             grid.remove_waters({true, true, false});
@@ -1155,6 +1152,7 @@ TEST_CASE("Grid::operator=", "[files]") {
         Grid grid1(axes);
         {
             data::Molecule protein("tests/files/2epe.pdb");
+            protein.clear_hydration();
             grid1.add(protein.get_body(0));
             Grid grid2 = grid1;
             protein.set_grid(std::move(grid2));
@@ -1175,6 +1173,7 @@ TEST_CASE("Grid::operator=", "[files]") {
         Grid grid1(axes);
         {
             data::Molecule protein("tests/files/2epe.pdb");
+            protein.clear_hydration();
             grid1.add(protein.get_body(0));
             Grid grid2 = grid1;
             protein.set_grid(std::move(grid2));
@@ -1231,72 +1230,72 @@ TEST_CASE("Grid: hydration") {
 }
 
 TEST_CASE("Grid::add:remove") {
-    // SECTION("single") {
-    //     Body b(std::vector<AtomFF>{
-    //         AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), 
-    //         AtomFF({-1,  1, -1}, form_factor::form_factor_t::C)
-    //     });
-    //     grid::Grid g(Limit3D(-2, 2, -2, 2, -2, 2));
+    SECTION("single") {
+        Body b(std::vector<AtomFF>{
+            AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), 
+            AtomFF({-1,  1, -1}, form_factor::form_factor_t::C)
+        });
+        grid::Grid g(Limit3D(-2, 2, -2, 2, -2, 2));
 
-    //     g.add(b);
-    //     REQUIRE(g.a_members.size() == 2);
-    //     REQUIRE(g.get_volume() != 0);
+        g.add(b);
+        REQUIRE(g.a_members.size() == 2);
+        REQUIRE(g.get_volume() != 0);
 
-    //     g.remove(b);
-    //     REQUIRE(g.a_members.size() == 0);
-    //     REQUIRE(g.get_volume() == 0);
-    // }
+        g.remove(b);
+        REQUIRE(g.a_members.size() == 0);
+        REQUIRE(g.get_volume() == 0);
+    }
 
-    // SECTION("multiple") {
-    //     constants::radius::set_dummy_radius(1);
-    //     std::vector<AtomFF> a1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> a2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> a3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
-    //     std::vector<AtomFF> a4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
-    //     Body b1(a1), b2(a2), b3(a3), b4(a4);
-    //     std::vector<Body> bodies = {b1, b2, b3, b4};
-    //     grid::Grid grid(Limit3D(-5, 5, -5, 5, -5, 5));
+    SECTION("multiple") {
+        constants::radius::set_dummy_radius(1);
+        std::vector<AtomFF> a1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> a2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> a3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+        std::vector<AtomFF> a4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+        Body b1(a1), b2(a2), b3(a3), b4(a4);
+        std::vector<Body> bodies = {b1, b2, b3, b4};
+        grid::Grid grid(Limit3D(-5, 5, -5, 5, -5, 5));
 
-    //     grid.add(b1);
-    //     grid.add(b2);
-    //     grid.add(b3);
-    //     grid.add(b4);
-    //     REQUIRE(grid.a_members.size() == 8);
+        grid.add(b1);
+        grid.add(b2);
+        grid.add(b3);
+        grid.add(b4);
+        REQUIRE(grid.a_members.size() == 8);
 
-    //     unsigned int vol = grid.get_volume();
-    //     grid.remove(b2);
-    //     grid.add(b2);
-    //     REQUIRE(grid.get_volume() == vol);
-    //     grid.remove(b2);
-    //     grid.force_expand_volume();
-    //     REQUIRE(grid.a_members.size() == 6);
+        unsigned int vol = grid.get_volume();
+        grid.remove(b2);
+        grid.add(b2);
+        REQUIRE(grid.get_volume() == vol);
+        grid.remove(b2);
+        grid.force_expand_volume();
+        REQUIRE(grid.a_members.size() == 6);
 
-    //     vol = grid.get_volume();
-    //     grid.remove(b1);
-    //     grid.add(b1);
-    //     REQUIRE(grid.get_volume() == vol);
-    //     grid.remove(b1);
-    //     grid.force_expand_volume();
-    //     REQUIRE(grid.a_members.size() == 4);
+        vol = grid.get_volume();
+        grid.remove(b1);
+        grid.add(b1);
+        REQUIRE(grid.get_volume() == vol);
+        grid.remove(b1);
+        grid.force_expand_volume();
+        REQUIRE(grid.a_members.size() == 4);
 
-    //     vol = grid.get_volume();
-    //     grid.remove(b3);
-    //     grid.add(b3);
-    //     REQUIRE(grid.get_volume() == vol);
-    //     grid.remove(b3);
-    //     grid.force_expand_volume();
-    //     REQUIRE(grid.a_members.size() == 2);
+        vol = grid.get_volume();
+        grid.remove(b3);
+        grid.add(b3);
+        REQUIRE(grid.get_volume() == vol);
+        grid.remove(b3);
+        grid.force_expand_volume();
+        REQUIRE(grid.a_members.size() == 2);
 
-    //     auto remaining = grid.a_members;
-    //     for (const auto& e : remaining) {
-    //         REQUIRE((e == a4[0] || e == a4[1]));
-    //     }
+        auto remaining = grid.a_members;
+        for (const auto& e : remaining) {
+            REQUIRE((e == a4[0] || e == a4[1]));
+        }
 
-    //     // check volume
-    //     REQUIRE(grid.get_volume() != 0);
-    //     grid.remove(b4);
-    //     REQUIRE(grid.get_volume() == 0);
-    // }
+        // check volume
+        REQUIRE(grid.get_volume() != 0);
+        grid.remove(b4);
+        REQUIRE(grid.get_volume() == 0);
+    }
 
     SECTION("real data") {
         settings::general::verbose = false;
