@@ -8,6 +8,17 @@
 #include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
 
+//? GCC and probably also Clang do not like how this class is used as a temporary front for access into the symmetries
+//? of a body. Specifically, the dangling reference warning is triggered by the chain 'body->symmetry()->get()'
+//? since it believes a reference to a temporary object is being returned. These pragmas silence this warning.
+#if defined(__GNUC__)
+    # pragma GCC diagnostic push
+    # pragma GCC diagnostic ignored "-Wdangling-reference" 
+#elif defined(__clang__)
+    # pragma clang diagnostic push
+    # pragma clang diagnostic ignored "-Wdangling"
+#endif
+
 namespace ausaxs::symmetry::detail {
     template<typename BODY, bool NONCONST = !std::is_const_v<BODY>>
     class BodySymmetryFacade {
@@ -82,3 +93,9 @@ namespace ausaxs::symmetry::detail {
             observer_ptr<BODY> body;
     };
 }
+
+#if defined(__GNUC__)
+    # pragma GCC diagnostic pop
+#elif defined(__clang__)
+    # pragma clang diagnostic pop
+#endif

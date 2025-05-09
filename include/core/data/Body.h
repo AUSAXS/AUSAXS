@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <memory>
+#include <optional>
 
 namespace ausaxs::data {
 	class Body {
@@ -48,11 +49,16 @@ namespace ausaxs::data {
 			[[nodiscard]] std::vector<data::AtomFF>& get_atoms();
 			[[nodiscard]] const std::vector<data::AtomFF>& get_atoms() const; //< @copydoc get_atoms()
 
+			//? we use std::optional here to explicitly inform the user that it may be empty
+			//? principially this is equivalent to returning a potentially zero pointer, but the optional is more explicit
 			/**
 			 * @brief Get a reference to the hydration atoms.
+			 *
+			 * @return An optional reference to the hydration atoms. 
+			 *   	   This may be empty if the hydration model does not support explicit dummy atoms. 
 			 */
-			[[nodiscard]] std::vector<data::Water>& get_waters();
-			[[nodiscard]] const std::vector<data::Water>& get_waters() const; //< @copydoc get_waters()
+			[[nodiscard]] std::optional<std::reference_wrapper<std::vector<data::Water>>> get_waters();
+			[[nodiscard]] std::optional<std::reference_wrapper<const std::vector<data::Water>>> get_waters() const; //< @copydoc get_waters()
 
 			/**
 			 * @brief Set the hydration object.
