@@ -22,7 +22,7 @@ namespace ausaxs::container {
 
             T& operator()(int i) {
                 #if (SAFE_MATH)
-                    if (i >= N || i < 0) {
+                    if (i >= static_cast<int>(N) || i < 0) {
                         throw except::out_of_bounds("Container1D::operator: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
@@ -31,7 +31,7 @@ namespace ausaxs::container {
 
             const T& operator()(int i) const {
                 #if (SAFE_MATH)
-                    if (i >= N || i < 0) {
+                    if (i >= static_cast<int>(N) || i < 0) {
                         throw except::out_of_bounds("Container1D::operator: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif

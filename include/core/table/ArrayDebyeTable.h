@@ -77,9 +77,9 @@
                     double inv_6 = 1./6;      // 1/6
                     double inv_120 = 1./120;  // 1/120
 
-                    for (unsigned int i = 0; i < size_q(); ++i) {
+                    for (int i = 0; i < static_cast<int>(size_q()); ++i) {
                         double q = constants::axes::q_vals[i];
-                        for (unsigned int j = 0; j < size_d(); ++j) {
+                        for (int j = 0; j < static_cast<int>(size_d()); ++j) {
                             constants::axes::d_type d = constants::axes::d_vals[j];
                             double qd = q*d;
                             if (qd < tolerance) {
