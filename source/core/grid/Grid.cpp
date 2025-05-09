@@ -33,7 +33,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
     for (const Body& body : bodies) {
         auto[amin, amax] = bounding_box(body.get_atoms());
 
-        for (unsigned int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             if (amin[i] < min[i]) {min[i] = amin[i];}
             if (amax[i] > max[i]) {max[i] = amax[i];}
         }
@@ -41,7 +41,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
         auto w = body.get_waters();
         if (!w.has_value()) {continue;}
         auto[wmin, wmax] = bounding_box(w.value().get());
-        for (unsigned int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             if (wmin[i] < min[i]) {min[i] = wmin[i];}
             if (wmax[i] > max[i]) {max[i] = wmax[i];}
         }
@@ -55,7 +55,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
 
     // expand bounding box by scaling factor
     Vector3<double> nmin, nmax; // new min & max
-    for (unsigned int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         double expand = 0.5*diff[i]*settings::grid::scaling; // amount to expand in each direction
         nmin[i] = std::floor(min[i] - expand - settings::grid::cell_width); // flooring to make our grid 'nice' (i.e. bin edges are at integer values)
         nmax[i] = std::ceil( max[i] + expand + settings::grid::cell_width); //  ceiling to make our grid 'nice' (i.e. bin edges are at integer values)
@@ -150,7 +150,7 @@ std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
     Vector3<int> min(axes.x.bins, axes.y.bins, axes.z.bins);
     Vector3<int> max(0, 0, 0);
     for (const auto& atom : a_members) {
-        for (unsigned int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             if (min[i] > atom.get_bin_loc()[i]) min[i] = atom.get_bin_loc()[i];     // min
             if (max[i] < atom.get_bin_loc()[i]) max[i] = atom.get_bin_loc()[i]+1;   // max. +1 since this will often be used as loop limits
         }
@@ -226,14 +226,14 @@ void Grid::remove_waters(const std::vector<bool>& to_remove) {
 
     std::vector<GridMember<Water>> new_waters;
     new_waters.reserve(w_members.size());
-    for (unsigned int i = 0; i < w_members.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(w_members.size()); ++i) {
         if (!to_remove[i]) {
             new_waters.push_back(w_members[i]);
         } else {
             volume::deflate(this, w_members[i]);
 
             // clear only W_CENTER since bin may be shared with A_CENTER
-            grid.index(w_members[i].get_bin_loc()) = detail::EMPTY;
+            grid.index(w_members[i].get_bin_loc()) &= ~detail::W_CENTER;
         }
     }
     w_members = std::move(new_waters);
@@ -252,11 +252,15 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
     for (int i = start; i < static_cast<int>(a_members.size()); i++) {
         auto& atom = b_atoms[i-start];
         auto loc = to_bins(atom.coordinates());
-        unsigned int x = loc.x(), y = loc.y(), z = loc.z();
+        int x = loc.x(), y = loc.y(), z = loc.z();
 
         // sanity check
         #if DEBUG
-            bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
+            bool out_of_bounds = 
+                x >= static_cast<int>(axes.x.bins) || 
+                y >= static_cast<int>(axes.y.bins) || 
+                z >= static_cast<int>(axes.z.bins)
+            ;
             if (out_of_bounds) [[unlikely]] {
                 throw except::out_of_bounds(
                     "Grid::add: Atom is located outside the grid!\nBin location: "
@@ -268,7 +272,7 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
 
         auto& bin = grid.index(x, y, z);
         volume += grid.is_empty_or_water(bin);
-        bin = detail::A_CENTER;
+        bin |= detail::A_CENTER;
 
         GridMember gm(atom, std::move(loc));
         if (expand) {volume::expand(this, gm);}
@@ -297,16 +301,8 @@ auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
                 "Real location: " + w.coordinates().to_string()
             );
         }
-
-        auto bin = g.index(x, y, z);
-        if (!(bin == grid::detail::EMPTY || bin == grid::detail::W_AREA || bin == grid::detail::VOLUME)) {
-            throw except::invalid_operation(
-                "Grid::add: Attempting to add a water molecule to a non-empty location containing " + std::to_string(bin) +
-                " (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")"
-            );
-        }
     #endif
-    g.grid.index(x, y, z) = grid::detail::W_CENTER*g.grid.is_empty_or_volume(x, y, z);
+    g.grid.index(x, y, z) |= grid::detail::W_CENTER;
     return GridMember(w, std::move(loc));
 };
 
@@ -341,8 +337,8 @@ void Grid::remove(const Body& body) {
     for (int i = start; i < end; i++) {
         volume::deflate(this, a_members[i]);
         auto& bin = grid.index(a_members[i].get_bin_loc());
-        volume -= !grid.is_empty(bin); // multiple atoms may share a center bin, so we have to check if its volume was already removed
-        bin = detail::EMPTY;
+        volume -= grid.is_only_atom_center(bin); // multiple atoms may share a center bin, so we have to check if its volume was already removed
+        bin &= ~detail::A_CENTER;
     }
 
     int diff = end - start;
@@ -360,7 +356,7 @@ void Grid::remove(const Body& body) {
 void Grid::clear_waters() {
     for (auto& water : w_members) {
         volume::deflate(this, water);
-        grid.index(water.get_bin_loc()) = detail::EMPTY;
+        grid.index(water.get_bin_loc()) &= ~detail::W_CENTER;
     }
     w_members.clear();
 }
@@ -420,9 +416,9 @@ bool Grid::operator==(const Grid& rhs) const {
 
 void Grid::save(const io::File& path) const {
     std::vector<std::vector<AtomFF>> atoms(7);
-    for (unsigned int i = 0; i < grid.size_x(); i++) {
-        for (unsigned int j = 0; j < grid.size_y(); j++) {
-            for (unsigned int k = 0; k < grid.size_z(); k++) {
+    for (int i = 0; i < static_cast<int>(grid.size_x()); i++) {
+        for (int j = 0; j < static_cast<int>(grid.size_y()); j++) {
+            for (int k = 0; k < static_cast<int>(grid.size_z()); k++) {
                 switch (grid.index(i, j, k)) {
                     case detail::A_CENTER:
                         atoms[0].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
@@ -512,7 +508,7 @@ std::vector<data::Water> Grid::get_waters() {
     return waters;
 }
 
-const grid::detail::State& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
+const grid::detail::State& Grid::index(int i, int j, int k) const {
     return grid.index(i, j, k);
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "grid/detail/GridObj.h"
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <data/atoms/AtomFF.h>
@@ -67,14 +68,14 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::expand_volume(observer_ptr
                 if (fill) {
                     if (!grid->grid.is_empty_or_volume(bin)) {continue;}
                     added_volume += !grid->grid.is_volume(bin); // only add to the volume if the bin is not already part of the volume
-                    bin = detail::A_AREA;
+                    bin |= detail::A_AREA;
                 }
 
                 if constexpr (AMV) {
                     // fill outer shell of radius [vdw, rvol]
                     if (!fill && dist <= rvol2) {
                         if (!grid->grid.is_empty(i, j, k)) {continue;}
-                        bin = detail::VOLUME;
+                        bin |= detail::VOLUME;
                         added_volume++;
                     }
                 }
@@ -125,14 +126,14 @@ void ausaxs::grid::volume::SphericalExpander<_, WMV>::expand_volume(observer_ptr
                 bool fill = dist <= rvdw2;
                 if (fill) {
                     if (!grid->grid.is_empty(i, j, k)) {continue;}
-                    grid->grid.index(i, j, k) = detail::W_AREA;
+                    grid->grid.index(i, j, k) |= detail::W_AREA;
                 }
 
                 if constexpr (WMV) {
                     // fill outer shell of radius [vdw, rvol]
                     if (!fill && dist <= rvol2) {
                         if (!grid->grid.is_empty(i, j, k)) {continue;}
-                        grid->grid.index(i, j, k) = detail::VOLUME;
+                        grid->grid.index(i, j, k) |= detail::VOLUME;
                     }
                 }
             }
@@ -176,9 +177,8 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::deflate_volume(observer_pt
                 // determine if the bin is within a sphere centered on the atom
                 auto& bin = grid->grid.index(i, j, k);
                 if (dist <= rmax2) {
-                    if (!grid->grid.is_atom_area_or_volume(bin)) {continue;}
-                    bin = detail::EMPTY;
-                    ++removed_volume;
+                    removed_volume += grid->grid.is_only_atom_area_or_volume(bin);
+                    bin &= ~(detail::A_AREA | detail::VOLUME);
                 }
             }
         }
@@ -218,8 +218,8 @@ void ausaxs::grid::volume::SphericalExpander<_, WMV>::deflate_volume(observer_pt
             for (int k = zm; k < zp; ++k) {
                 double dist = x2y2 + std::pow(grid->to_z(k) - az, 2);
                 if (dist <= rmax2) {
-                    if (!grid->grid.is_water_area(i, j, k)) {continue;}
-                    grid->grid.index(i, j, k) = detail::EMPTY;
+                    grid->grid.index(i, j, k) &= ~detail::W_AREA;
+                    // grid->grid.index(i, j, k) &= ~(detail::W_AREA | detail::VOLUME);
                 }
             }
         }

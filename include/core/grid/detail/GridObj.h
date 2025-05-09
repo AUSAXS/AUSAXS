@@ -36,9 +36,13 @@ namespace ausaxs::grid::detail {
              * @brief Branchless function to check if a given bin is part of a volume. This means the bin is VOLUME.
              */
             bool is_volume(State s) const;
+            bool is_volume(int x, int y, int z) const; // @copydoc is_volume(State s) const
 
-            // @copydoc is_volume(State s) const
-            bool is_volume(int x, int y, int z) const;
+            /**
+             * @brief Branchless function to check if a given bin is part of a volume. This means the bin is *only* VOLUME.
+             */
+            bool is_only_volume(State s) const;
+            bool is_only_volume(int x, int y, int z) const; // @copydoc is_only_volume(State s) const
 
             /**
              * @brief Branchless function to check if a given bin is empty or part of a volume. This means the bin is EMPTY or VOLUME.
@@ -83,12 +87,16 @@ namespace ausaxs::grid::detail {
             bool is_atom_area(int x, int y, int z) const;
 
             /**
-             * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is either A_AREA or VOLUME.
+             * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is A_AREA or VOLUME.
              */
             bool is_atom_area_or_volume(State s) const;
-
-            // @copydoc is_atom_area_or_volume(State) const
-            bool is_atom_area_or_volume(int x, int y, int z) const;
+            bool is_atom_area_or_volume(int x, int y, int z) const; // @copydoc is_atom_area_or_volume(State) const
+            
+            /**
+             * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is *only* A_AREA or VOLUME.
+             */
+            bool is_only_atom_area_or_volume(State s) const;
+            bool is_only_atom_area_or_volume(int x, int y, int z) const; // @copydoc is_only_atom_area_or_volume(State) const
 
             /**
              * @brief Branchless function to check if a given bin is part of a water volume. This means the bin is W_AREA.
@@ -102,9 +110,13 @@ namespace ausaxs::grid::detail {
              * @brief Branchless function to check if a given bin is the center of an atom. This means the bin is A_CENTER.
              */
             bool is_atom_center(State s) const;
+            bool is_atom_center(int x, int y, int z) const; // @copydoc is_atom_center(State) const;
 
-            // @copydoc is_atom_center(State) const;
-            bool is_atom_center(int x, int y, int z) const;
+            /**
+             * @brief Branchless function to check if a given bin is the center of an atom. This means the bin is *only* A_CENTER.
+             */
+            bool is_only_atom_center(State s) const;
+            bool is_only_atom_center(int x, int y, int z) const; // @copydoc is_only_atom_center(State) const;
 
             /**
              * @brief Branchless function to check if a given bin is the center of a water molecule. This means the bin is W_CENTER. 
