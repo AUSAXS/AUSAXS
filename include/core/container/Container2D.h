@@ -22,7 +22,7 @@ namespace ausaxs::container {
              */
             T& operator()(int i, int j) {
                 #if (SAFE_MATH)
-                    if (i >= N || j >= M || i < 0 || j < 0) {
+                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || i < 0 || j < 0) {
                         throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
                     }
                 #endif
@@ -34,7 +34,7 @@ namespace ausaxs::container {
              */
             const T& operator()(int i, int j) const {
                 #if (SAFE_MATH)
-                    if (i >= N || j >= M || i < 0 || j < 0) {
+                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || i < 0 || j < 0) {
                         throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
                     }
                 #endif
@@ -56,7 +56,7 @@ namespace ausaxs::container {
              */
             const typename std::vector<T>::const_iterator begin(int i) const {
                 #if (SAFE_MATH)
-                    if (i >= N || i < 0) {
+                    if (i >= static_cast<int>(N) || i < 0) {
                         throw except::out_of_bounds("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
@@ -68,7 +68,7 @@ namespace ausaxs::container {
              */
             const typename std::vector<T>::const_iterator end(int i) const {
                 #if (SAFE_MATH)
-                    if (i >= N || i < 0) {
+                    if (i >= static_cast<int>(N) || i < 0) {
                         throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
@@ -80,7 +80,7 @@ namespace ausaxs::container {
              */
             typename std::vector<T>::iterator begin(int i) {
                 #if (SAFE_MATH)
-                    if (i >= N || i < 0) {
+                    if (i >= static_cast<int>(N) || i < 0) {
                         throw except::out_of_bounds("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif            
@@ -92,7 +92,7 @@ namespace ausaxs::container {
              */
             typename std::vector<T>::iterator end(int i) {
                 #if (SAFE_MATH)
-                    if (i >= N || i < 0) {
+                    if (i >= static_cast<int>(N) || i < 0) {
                         throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif            
@@ -134,7 +134,7 @@ namespace ausaxs::container {
              */
             void resize(int size) {
                 Container2D tmp(N, size);
-                for (int i = 0; i < N; i++) {
+                for (int i = 0; i < static_cast<int>(N); i++) {
                     std::move(begin(i), begin(i)+std::min<int>(size, M), tmp.begin(i));
                 }
                 M = size;
@@ -147,7 +147,7 @@ namespace ausaxs::container {
             bool empty() const {return data.empty();}
 
         protected:
-            int N, M;
+            std::size_t N, M;
             std::vector<T> data;
     };
 }

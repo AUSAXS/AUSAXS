@@ -37,8 +37,8 @@ void VectorDebyeTable::initialize(const T1& q, const T2& d) {
     constexpr double inv_6 = 1./6;      // 1/6
     constexpr double inv_120 = 1./120;  // 1/120
 
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < M; ++j) {
+    for (int i = 0; i < static_cast<int>(N); ++i) {
+        for (int j = 0; j < static_cast<int>(M); ++j) {
             double qd = q[i]*d[j];
             if (qd < tolerance) {
                 double qd2 = qd*qd;

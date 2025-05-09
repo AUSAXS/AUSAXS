@@ -3,6 +3,7 @@
 #include <data/atoms/Atom.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
+
 #include <type_traits>
 
 namespace ausaxs::data {
