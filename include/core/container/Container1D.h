@@ -15,34 +15,34 @@ namespace ausaxs::container {
     class Container1D {
         public:
             Container1D() : N(0), data(0) {}
-            Container1D(unsigned int size) : N(size), data(size) {}
-            Container1D(unsigned int size, const T& value) : N(size), data(size, value) {}
+            Container1D(int size) : N(size), data(size) {}
+            Container1D(int size, const T& value) : N(size), data(size, value) {}
             Container1D(const std::vector<T>& data) : N(data.size()), data(data) {}
             Container1D(std::vector<T>&& data) : N(data.size()), data(std::move(data)) {}
 
-            T& operator()(unsigned int i) {
+            T& operator()(int i) {
                 #if (SAFE_MATH)
-                    if (i >= N) {
+                    if (i >= N || i < 0) {
                         throw except::out_of_bounds("Container1D::operator: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
                 return data[i];
             }
 
-            const T& operator()(unsigned int i) const {
+            const T& operator()(int i) const {
                 #if (SAFE_MATH)
-                    if (i >= N) {
+                    if (i >= N || i < 0) {
                         throw except::out_of_bounds("Container1D::operator: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
                 return data[i];
             }
 
-            T& operator[](unsigned int i) {return operator()(i);}
-            const T& operator[](unsigned int i) const {return operator()(i);}
+            T& operator[](int i) {return operator()(i);}
+            const T& operator[](int i) const {return operator()(i);}
 
-            T& index(unsigned int i) {return operator()(i);}
-            const T& index(unsigned int i) const {return operator()(i);}
+            T& index(int i) {return operator()(i);}
+            const T& index(int i) const {return operator()(i);}
 
             const typename std::vector<T>::const_iterator begin() const {return data.begin();}
             const typename std::vector<T>::const_iterator end() const {return data.end();}
@@ -58,7 +58,7 @@ namespace ausaxs::container {
             /**
              * @brief Resize the container to contain @a size elements.
              */
-            void resize(unsigned int size) {
+            void resize(int size) {
                 N = size;
                 data.resize(size);
             }
@@ -73,7 +73,7 @@ namespace ausaxs::container {
             bool empty() const {return data.empty();}
 
         protected:
-            std::size_t N;
+            int N;
             std::vector<T> data;
     };
 }
