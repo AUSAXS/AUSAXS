@@ -415,55 +415,44 @@ bool Grid::operator==(const Grid& rhs) const {
 }
 
 void Grid::save(const io::File& path) const {
-    std::vector<std::vector<AtomFF>> atoms(7);
+    std::vector<std::vector<AtomFF>> atoms(7);    
     for (int i = 0; i < static_cast<int>(grid.size_x()); i++) {
         for (int j = 0; j < static_cast<int>(grid.size_y()); j++) {
             for (int k = 0; k < static_cast<int>(grid.size_z()); k++) {
-                switch (grid.index(i, j, k)) {
-                    case detail::A_CENTER:
-                        atoms[0].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
-                        break;
-                    case detail::A_AREA:
-                        atoms[1].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
-                        break;
-                    case detail::VOLUME:
-                        atoms[2].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
-                        break;
-                    case detail::W_CENTER:
-                        atoms[3].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
-                        break;
-                    case detail::W_AREA:
-                        atoms[4].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
-                        break;
-                    case detail::VACUUM:
-                        atoms[5].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
-                    default:
-                        break;
+                auto state = grid.index(i, j, k);
+                if (state & detail::A_CENTER) {
+                    atoms[0].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
+                } else if (state & detail::A_AREA) {
+                    atoms[1].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
+                } else if (state & detail::W_CENTER) {
+                    atoms[2].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
+                } else if (state & detail::W_AREA) {
+                    atoms[3].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
+                } else if (state & detail::VOLUME) {
+                    atoms[4].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
+                } else if (state & detail::VACUUM) {
+                    atoms[5].emplace_back(to_xyz(i, j, k), form_factor::form_factor_t::C);
                 }
             }
         }
     }
 
-    // visualize corners
+    // add corner markers
     atoms[6].emplace_back(to_xyz(0,             0,              0),           form_factor::form_factor_t::C);
     atoms[6].emplace_back(to_xyz(axes.x.bins,   0,              0),           form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    0),           form_factor::form_factor_t::C);
     atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    0),           form_factor::form_factor_t::C);
-    atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    axes.z.bins), form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    0),           form_factor::form_factor_t::C);
     atoms[6].emplace_back(to_xyz(0,             0,              axes.z.bins), form_factor::form_factor_t::C);
     atoms[6].emplace_back(to_xyz(axes.x.bins,   0,              axes.z.bins), form_factor::form_factor_t::C);
+    atoms[6].emplace_back(to_xyz(0,             axes.y.bins,    axes.z.bins), form_factor::form_factor_t::C);
     atoms[6].emplace_back(to_xyz(axes.x.bins,   axes.y.bins,    axes.z.bins), form_factor::form_factor_t::C);
-    
-    std::vector<Body> bodies;
-    bodies.emplace_back(atoms[0]);
-    bodies.emplace_back(atoms[1]);
-    bodies.emplace_back(atoms[2]);
-    bodies.emplace_back(atoms[3]);
-    bodies.emplace_back(atoms[4]);
-    bodies.emplace_back(atoms[5]);
-    bodies.emplace_back(atoms[6]);
 
-    data::Molecule p(bodies);
+    std::vector<Body> bodies;
+    for (size_t i = 0; i < atoms.size(); i++) {
+        bodies.emplace_back(atoms[i]);
+    }
+
+    data::Molecule p(std::move(bodies));
     p.save(path);
 }
 
