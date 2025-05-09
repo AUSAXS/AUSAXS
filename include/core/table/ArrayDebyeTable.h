@@ -32,7 +32,7 @@
                 /**
                  * @brief Look up a value in the table based on indices. This is a constant-time operation. 
                  */
-                [[nodiscard]] constexpr double lookup(unsigned int q_index, unsigned int d_index) const override {return index(q_index, d_index);}
+                [[nodiscard]] constexpr double lookup(int q_index, int d_index) const override {return index(q_index, d_index);}
 
                 /**
                  * @brief Get the size of the table in the q-direction. 
@@ -47,12 +47,12 @@
                 /**
                  * @brief Get an iterator to the beginning of the d-values for the given q-index.
                  */
-                [[nodiscard]] const constants::axes::d_type* begin(unsigned int q_index) const override {return &ArrayContainer2D::index(q_index, 0);}
+                [[nodiscard]] const constants::axes::d_type* begin(int q_index) const override {return &ArrayContainer2D::index(q_index, 0);}
 
                 /**
                  * @brief Get an iterator to the end of the d-values for the given q-index.
                  */
-                [[nodiscard]] const constants::axes::d_type* end(unsigned int q_index) const override {return &ArrayContainer2D::index(q_index, size_d());}
+                [[nodiscard]] const constants::axes::d_type* end(int q_index) const override {return &ArrayContainer2D::index(q_index, size_d());}
 
                 /**
                  * @brief Get the default table. 

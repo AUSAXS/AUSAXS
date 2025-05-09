@@ -37,8 +37,8 @@ void VectorDebyeTable::initialize(const T1& q, const T2& d) {
     constexpr double inv_6 = 1./6;      // 1/6
     constexpr double inv_120 = 1./120;  // 1/120
 
-    for (unsigned int i = 0; i < N; ++i) {
-        for (unsigned int j = 0; j < M; ++j) {
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < M; ++j) {
             double qd = q[i]*d[j];
             if (qd < tolerance) {
                 double qd2 = qd*qd;
@@ -53,23 +53,23 @@ void VectorDebyeTable::initialize(const T1& q, const T2& d) {
 
 bool VectorDebyeTable::is_empty() const {return N == 0 || M == 0;}
 
-double VectorDebyeTable::lookup(unsigned int q_index, unsigned int d_index) const {
+double VectorDebyeTable::lookup(int q_index, int d_index) const {
     return index(q_index, d_index);
 }
 
-const constants::axes::d_type* VectorDebyeTable::begin(unsigned int q_index) const {
+const constants::axes::d_type* VectorDebyeTable::begin(int q_index) const {
     return data.data() + q_index*M;
 }
 
-const constants::axes::d_type* VectorDebyeTable::end(unsigned int q_index) const {
+const constants::axes::d_type* VectorDebyeTable::end(int q_index) const {
     return data.data() + (q_index+1)*M;
 }
 
-constants::axes::d_type* VectorDebyeTable::begin(unsigned int q_index) {
+constants::axes::d_type* VectorDebyeTable::begin(int q_index) {
     return data.data() + q_index*M;
 }
 
-constants::axes::d_type* VectorDebyeTable::end(unsigned int q_index) {
+constants::axes::d_type* VectorDebyeTable::end(int q_index) {
     return data.data() + (q_index+1)*M;
 }
 

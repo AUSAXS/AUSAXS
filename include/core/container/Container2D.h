@@ -14,15 +14,15 @@ namespace ausaxs::container {
     class Container2D {
         public:
             Container2D() : N(0), M(0), data(0) {}
-            Container2D(unsigned int width, unsigned int height) : N(width), M(height), data(width*height) {}
-            Container2D(unsigned int width, unsigned int height, const T& value) : N(width), M(height), data(width*height, value) {}
+            Container2D(int width, int height) : N(width), M(height), data(width*height) {}
+            Container2D(int width, int height, const T& value) : N(width), M(height), data(width*height, value) {}
 
             /**
              * @brief Get the value at index i, j. 
              */
-            T& operator()(unsigned int i, unsigned int j) {
+            T& operator()(int i, int j) {
                 #if (SAFE_MATH)
-                    if (i >= N || j >= M) {
+                    if (i >= N || j >= M || i < 0 || j < 0) {
                         throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
                     }
                 #endif
@@ -32,9 +32,9 @@ namespace ausaxs::container {
             /**
              * @brief Get the value at index i, j. 
              */
-            const T& operator()(unsigned int i, unsigned int j) const {
+            const T& operator()(int i, int j) const {
                 #if (SAFE_MATH)
-                    if (i >= N || j >= M) {
+                    if (i >= N || j >= M || i < 0 || j < 0) {
                         throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
                     }
                 #endif
@@ -44,19 +44,19 @@ namespace ausaxs::container {
             /**
              * @brief Get the value at index i, j. 
              */
-            T& index(unsigned int i, unsigned int j) {return operator()(i, j);}
+            T& index(int i, int j) {return operator()(i, j);}
 
             /**
              * @brief Get the value at index i, j. 
              */
-            const T& index(unsigned int i, unsigned int j) const {return operator()(i, j);}
+            const T& index(int i, int j) const {return operator()(i, j);}
 
             /**
              * @brief Get an iterator to the beginning of the vector at index i.
              */
-            const typename std::vector<T>::const_iterator begin(unsigned int i) const {
+            const typename std::vector<T>::const_iterator begin(int i) const {
                 #if (SAFE_MATH)
-                    if (i >= N) {
+                    if (i >= N || i < 0) {
                         throw except::out_of_bounds("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
@@ -66,9 +66,9 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the end of the vector at index i.
              */
-            const typename std::vector<T>::const_iterator end(unsigned int i) const {
+            const typename std::vector<T>::const_iterator end(int i) const {
                 #if (SAFE_MATH)
-                    if (i >= N) {
+                    if (i >= N || i < 0) {
                         throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
@@ -78,9 +78,9 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the beginning of the vector at index i.
              */
-            typename std::vector<T>::iterator begin(unsigned int i) {
+            typename std::vector<T>::iterator begin(int i) {
                 #if (SAFE_MATH)
-                    if (i >= N) {
+                    if (i >= N || i < 0) {
                         throw except::out_of_bounds("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif            
@@ -90,9 +90,9 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the end of the vector at index i.
              */
-            typename std::vector<T>::iterator end(unsigned int i) {
+            typename std::vector<T>::iterator end(int i) {
                 #if (SAFE_MATH)
-                    if (i >= N) {
+                    if (i >= N || i < 0) {
                         throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif            
@@ -134,7 +134,7 @@ namespace ausaxs::container {
              */
             void resize(int size) {
                 Container2D tmp(N, size);
-                for (unsigned int i = 0; i < N; i++) {
+                for (int i = 0; i < N; i++) {
                     std::move(begin(i), begin(i)+std::min<int>(size, M), tmp.begin(i));
                 }
                 M = size;
@@ -147,7 +147,7 @@ namespace ausaxs::container {
             bool empty() const {return data.empty();}
 
         protected:
-            std::size_t N, M;
+            int N, M;
             std::vector<T> data;
     };
 }
