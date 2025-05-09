@@ -255,8 +255,9 @@ Vector3<double> Molecule::get_cm() const {
         });
 
         // iterate through their hydration atoms
-        if (body.size_water() == 0) {continue;}
-        std::for_each(body.get_waters().begin(), body.get_waters().end(), [&M, &cm] (const auto& water) {
+        auto w = body.get_waters();
+        if (!w.has_value()) {continue;}
+        std::for_each(w.value().get().begin(), w.value().get().end(), [&M, &cm] (const auto& water) {
             double m = constants::mass::get_mass(water.form_factor_type());
             M += m;
             cm += water.coords*m;
@@ -269,8 +270,9 @@ std::vector<Water> Molecule::get_waters() const {
     std::vector<Water> waters(size_water());
     int n = 0; // current index
     for (const auto& body : bodies) {
-        if (body.size_water() == 0) {continue;}
-        for (const auto& a : body.get_waters()) {
+        auto w = body.get_waters();
+        if (!w.has_value()) {continue;}
+        for (const auto& a : w.value().get()) {
             waters[n] = a;
             n++;
         }

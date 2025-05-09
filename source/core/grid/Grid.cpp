@@ -3,12 +3,14 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
+#include "grid/detail/GridObj.h"
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <grid/detail/GridSurfaceDetection.h>
 #include <grid/expansion/GridExpander.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/atoms/AtomHelper.h>
 #include <settings/GridSettings.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
@@ -29,11 +31,19 @@ Grid::Grid(const std::vector<Body>& bodies) {
     // find the total bounding box containing all bodies
     Vector3 min{0, 0, 0}, max{0, 0, 0};
     for (const Body& body : bodies) {
-        auto[cmin, cmax] = bounding_box(body.get_atoms());
+        auto[amin, amax] = bounding_box(body.get_atoms());
 
         for (unsigned int i = 0; i < 3; i++) {
-            if (cmin[i] < min[i]) {min[i] = cmin[i];}
-            if (cmax[i] > max[i]) {max[i] = cmax[i];}
+            if (amin[i] < min[i]) {min[i] = amin[i];}
+            if (amax[i] > max[i]) {max[i] = amax[i];}
+        }
+
+        auto w = body.get_waters();
+        if (!w.has_value()) {continue;}
+        auto[wmin, wmax] = bounding_box(w.value().get());
+        for (unsigned int i = 0; i < 3; i++) {
+            if (wmin[i] < min[i]) {min[i] = wmin[i];}
+            if (wmax[i] > max[i]) {max[i] = wmax[i];}
         }
     }
 
@@ -148,8 +158,9 @@ std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
     return std::make_pair(min, max);
 }
 
-std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector<AtomFF>& atoms) {
-    // initialize the bounds as large as possible
+template<data::AtomType T>
+std::pair<Vector3<double>, Vector3<double>> _bounding_box(const std::vector<T>& atoms) {
+    // initialize the bounds as extreme as possible
     Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
     Vector3 max = {std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min()};
     for (const auto& atom : atoms) {
@@ -159,6 +170,14 @@ std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector
         }
     }
     return std::make_pair(min, max);
+}
+
+std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector<AtomFF>& atoms) {
+    return _bounding_box<AtomFF>(atoms);
+}
+
+std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector<Water>& atoms) {
+    return _bounding_box<Water>(atoms);
 }
 
 void Grid::add_volume(double value) {
@@ -200,7 +219,10 @@ void Grid::deflate_volume() {
 }
 
 void Grid::remove_waters(const std::vector<bool>& to_remove) {
-    assert(to_remove.size() == w_members.size() && "Grid::remove_waters: The size of the removal vector does not match the number of waters!");
+    assert(
+        to_remove.size() == w_members.size() && 
+        "Grid::remove_waters: The size of the removal vector does not match the number of waters!"
+    );
 
     std::vector<GridMember<Water>> new_waters;
     new_waters.reserve(w_members.size());
@@ -209,6 +231,8 @@ void Grid::remove_waters(const std::vector<bool>& to_remove) {
             new_waters.push_back(w_members[i]);
         } else {
             volume::deflate(this, w_members[i]);
+
+            // clear only W_CENTER since bin may be shared with A_CENTER
             grid.index(w_members[i].get_bin_loc()) = detail::EMPTY;
         }
     }
@@ -235,7 +259,8 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
             bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
             if (out_of_bounds) [[unlikely]] {
                 throw except::out_of_bounds(
-                    "Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\n"
+                    "Grid::add: Atom is located outside the grid!\nBin location: "
+                     + loc.to_string() + "\n: " + axes.to_string() + "\n"
                     "Real location: " + atom.coordinates().to_string()
                 );
             }
@@ -249,6 +274,13 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
         if (expand) {volume::expand(this, gm);}
         a_members[i] = std::move(gm);
     }
+
+    // add the hydration if present
+    auto w = body.get_waters();
+    if (w.has_value()) {
+        add(w.value().get(), expand);
+    }
+
     return {a_members.begin() + start, a_members.end()};
 }
 
@@ -274,7 +306,7 @@ auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
             );
         }
     #endif
-    g.grid.index(x, y, z) = grid::detail::W_CENTER;
+    g.grid.index(x, y, z) = grid::detail::W_CENTER*g.grid.is_empty_or_volume(x, y, z);
     return GridMember(w, std::move(loc));
 };
 

@@ -49,12 +49,12 @@ namespace ausaxs::grid {
 			/**
 			 * @brief Get the atomic radius of an atom in Å.
 			 */
-			virtual double get_atomic_radius(form_factor::form_factor_t atom) const;
+			[[nodiscard]] virtual double get_atomic_radius(form_factor::form_factor_t atom) const;
 
 			/**
 			 * @brief Get the radius of a water molecule in Å.
 			 */
-			virtual double get_hydration_radius() const;
+			[[nodiscard]] virtual double get_hydration_radius() const;
 
 			/**
 			 * @brief Add the contents of a body to the grid.
@@ -118,7 +118,7 @@ namespace ausaxs::grid {
 			/**
 			 * @brief Get the number of bins in each dimension.
 			 */
-			Vector3<int> get_bins() const;
+			[[nodiscard]] Vector3<int> get_bins() const;
 
 			/**
 			 * @brief Get the total volume spanned by the atoms in this grid in Å^3.
@@ -126,19 +126,19 @@ namespace ausaxs::grid {
 			 *        Waters do not count towards this volume.
 			 * 		  Complexity: O(n) in the number of unexpanded atoms.
 			 */
-			double get_volume();
+			[[nodiscard]] double get_volume();
 
 			/**
 			 * @brief Get the width of each bin.
 			 * 		  Complexity: O(1).
 			 */
-			double get_width() const;
+			[[nodiscard]] double get_width() const;
 
 			/**
 			 * @brief Get a copy of the axes of the grid.
 			 * 		  Complexity: O(1).
 			 */
-			const Axis3D& get_axes() const {return axes;}
+			[[nodiscard]] const Axis3D& get_axes() const {return axes;}
 
 			/**
 			 * @brief Create the smallest possible box containing the center points of all member atoms.
@@ -146,31 +146,31 @@ namespace ausaxs::grid {
 			 * 
 			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
 			 */
-			std::pair<Vector3<int>, Vector3<int>> bounding_box_index() const;
+			[[nodiscard]] std::pair<Vector3<int>, Vector3<int>> bounding_box_index() const;
 
 			/**
 			 * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
 			 * 		  Complexity: O(1).
 			 */
-			Vector3<int> to_bins(const Vector3<double>& v) const;
+			[[nodiscard]] Vector3<int> to_bins(const Vector3<double>& v) const;
 
 			/**
 			 * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
 			 * 		  If the coordinates are outside the grid, they are set to the closest edge.
 			 * 		  Complexity: O(1) (but slower than to_bins)
 			 */
-			Vector3<int> to_bins_bounded(const Vector3<double>& v) const;
+			[[nodiscard]] Vector3<int> to_bins_bounded(const Vector3<double>& v) const;
 
 			/**
 			 * @brief Convert a location in the grid (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
 			 * 		  Complexity: O(1).
 			 */
 			template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-			Vector3<double> to_xyz(const Vector3<T>& v) const {
+			[[nodiscard]] Vector3<double> to_xyz(const Vector3<T>& v) const {
 				return to_xyz(v.x(), v.y(), v.z());
 			}
 
-			Vector3<double> to_xyz(int i, int j, int k) const; //< @copydoc to_xyz(const Vector3<T>& v)
+			[[nodiscard]] Vector3<double> to_xyz(int i, int j, int k) const; //< @copydoc to_xyz(const Vector3<T>& v)
 
 			/**
 			 * @brief Set this Grid equal to another.
@@ -202,31 +202,31 @@ namespace ausaxs::grid {
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
 			 * 		  This will expand all atoms in the grid.
 			 */
-			virtual detail::GridExcludedVolume generate_excluded_volume(bool determine_surface);
+			[[nodiscard]] virtual detail::GridExcludedVolume generate_excluded_volume(bool determine_surface);
 
-			std::vector<data::AtomFF> get_surface_atoms() const;
+			[[nodiscard]] std::vector<data::AtomFF> get_surface_atoms() const;
 
 			/**
 			 * @brief Get the contents of a single bin.
 			 */
-			const detail::State& index(unsigned int i, unsigned int j, unsigned int k) const;
+			[[nodiscard]] const detail::State& index(unsigned int i, unsigned int j, unsigned int k) const;
 
 			/**
 			 * @brief Get the center of the grid in bin coordinates.
 			 */
-			Vector3<int> get_center() const;
+			[[nodiscard]] Vector3<int> get_center() const;
 
 			/**
 			 * @brief Get the atoms in the grid.
 			 *		  Complexity: O(N).
 			 */
-			std::vector<data::AtomFF> get_atoms();
+			[[nodiscard]] std::vector<data::AtomFF> get_atoms();
 
 			/**
 			 * @brief Get the water molecules in the grid.
 			 *		  Complexity: O(N).
 			 */
-			std::vector<data::Water> get_waters();
+			[[nodiscard]] std::vector<data::Water> get_waters();
 
 			/**
 			 * @brief Add a value to the volume of the grid.
@@ -237,19 +237,19 @@ namespace ausaxs::grid {
 			 * @brief Convert a x bin index to a real x coordinate.
 			 * 		  Complexity: O(1).
 			 */
-			double to_x(int i) const;
+			[[nodiscard]] double to_x(int i) const;
 
 			/**
 			 * @brief Convert a y bin index to a real y coordinate.
 			 * 		  Complexity: O(1).
 			 */
-			double to_y(int j) const;
+			[[nodiscard]] double to_y(int j) const;
  
 			/**
 			 * @brief Convert a z bin index to a real z coordinate.
 			 * 		  Complexity: O(1).
 			 */
-			double to_z(int k) const;
+			[[nodiscard]] double to_z(int k) const;
 
 			detail::GridObj grid; // The actual grid.
 			std::vector<GridMember<data::AtomFF>> a_members; // The member atoms and where they are located.
@@ -265,7 +265,12 @@ namespace ausaxs::grid {
 			 * 
 			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
 			 */
-			static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<data::AtomFF>& atoms);
+			[[nodiscard]] static std::pair<Vector3<double>, Vector3<double>> 
+				bounding_box(const std::vector<data::AtomFF>& atoms);
+
+			// @copydoc bounding_box(const std::vector<data::AtomFF>& atoms)
+			[[nodiscard]] static std::pair<Vector3<double>, Vector3<double>> 
+				bounding_box(const std::vector<data::Water>& atoms);
 
 		private:
 			Axis3D axes;
