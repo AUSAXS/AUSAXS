@@ -123,8 +123,8 @@ std::vector<Vector3<double>> GridSurfaceDetection::determine_vacuum_holes() cons
 }
 
 template<bool detect_surface, bool unity_width>
-GridExcludedVolume GridSurfaceDetection::helper() const {
-    GridExcludedVolume vol;
+grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
+    exv::GridExcludedVolume vol;
     vol.interior.reserve(grid->get_volume());
 
     int stride = std::round(settings::grid::exv::width/settings::grid::cell_width);
@@ -224,16 +224,16 @@ GridExcludedVolume GridSurfaceDetection::helper() const {
 
     return vol;
 }
-template GridExcludedVolume GridSurfaceDetection::helper<true, true>() const;
-template GridExcludedVolume GridSurfaceDetection::helper<true, false>() const;
-template GridExcludedVolume GridSurfaceDetection::helper<false, true>() const;
-template GridExcludedVolume GridSurfaceDetection::helper<false, false>() const;
+template grid::exv::GridExcludedVolume GridSurfaceDetection::helper<true, true>() const;
+template grid::exv::GridExcludedVolume GridSurfaceDetection::helper<true, false>() const;
+template grid::exv::GridExcludedVolume GridSurfaceDetection::helper<false, true>() const;
+template grid::exv::GridExcludedVolume GridSurfaceDetection::helper<false, false>() const;
 
-GridExcludedVolume GridSurfaceDetection::no_detect() const {
+grid::exv::GridExcludedVolume GridSurfaceDetection::no_detect() const {
     return helper<false, true>();
 }
 
-GridExcludedVolume GridSurfaceDetection::detect() const {
+grid::exv::GridExcludedVolume GridSurfaceDetection::detect() const {
     int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width);
     if (expand != 1) {
         return helper<true, false>();

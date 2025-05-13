@@ -3,7 +3,7 @@
 #include <vector>
 #include <math/MathFwd.h>
 
-namespace ausaxs::grid::detail {
+namespace ausaxs::grid::exv {
     /**
      * @brief A simple representation of a grid-based excluded volume.
      * 

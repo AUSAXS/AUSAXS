@@ -456,7 +456,7 @@ void Grid::save(const io::File& path) const {
     p.save(path);
 }
 
-grid::detail::GridExcludedVolume Grid::generate_excluded_volume(bool determine_surface) {
+exv::GridExcludedVolume Grid::generate_excluded_volume(bool determine_surface) {
     expand_volume();
     auto vol = determine_surface ? detail::GridSurfaceDetection(this).detect() : detail::GridSurfaceDetection(this).no_detect();
 
