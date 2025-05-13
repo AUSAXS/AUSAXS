@@ -202,7 +202,7 @@ namespace ausaxs::grid {
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
 			 * 		  This will expand all atoms in the grid.
 			 */
-			[[nodiscard]] virtual detail::GridExcludedVolume generate_excluded_volume(bool determine_surface);
+			[[nodiscard]] virtual exv::GridExcludedVolume generate_excluded_volume(bool determine_surface);
 
 			[[nodiscard]] std::vector<data::AtomFF> get_surface_atoms() const;
 

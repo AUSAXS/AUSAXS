@@ -19,7 +19,7 @@ namespace ausaxs::grid::volume {
 }
 
 template<ausaxs::grid::valid_gridmember T>
-void ausaxs::grid::volume::expand(observer_ptr<grid::Grid> grid, T& atom) {
+inline void ausaxs::grid::volume::expand(observer_ptr<grid::Grid> grid, T& atom) {
     switch (settings::grid::exv::expansion_strategy) {
         case settings::grid::exv::Expansion::Minimal:
             return ausaxs::grid::volume::MinimalExpander::expand_volume(grid, atom);
@@ -31,7 +31,7 @@ void ausaxs::grid::volume::expand(observer_ptr<grid::Grid> grid, T& atom) {
 }
 
 template<ausaxs::grid::valid_gridmember T>
-void ausaxs::grid::volume::deflate(observer_ptr<grid::Grid> grid, T& atom) {
+inline void ausaxs::grid::volume::deflate(observer_ptr<grid::Grid> grid, T& atom) {
     switch (settings::grid::exv::expansion_strategy) {
         case settings::grid::exv::Expansion::Minimal:
             return ausaxs::grid::volume::MinimalExpander::deflate_volume(grid, atom);
