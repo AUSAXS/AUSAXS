@@ -66,7 +66,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         p_ww = std::move(cast_res->get_ww_counts_ff()),
         data_a = *this->data_a_ptr, 
         data_w = *this->data_w_ptr, 
-        data_x = hist::detail::CompactCoordinates(this->protein->get_grid()->generate_excluded_volume(false).interior, 1),
+        data_x = hist::detail::CompactCoordinates(this->protein->get_grid()->generate_excluded_volume().interior, 1),
         pool] 
         (double scale) 
     {

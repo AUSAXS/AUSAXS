@@ -3,11 +3,12 @@ This software is distributed under the GNU Lesser General Public License v3.0.
 For more information, please refer to the LICENSE file in the project root.
 */
 
-#include "grid/detail/GridObj.h"
 #include <grid/Grid.h>
+#include <grid/detail/GridObj.h>
 #include <grid/detail/GridMember.h>
 #include <grid/detail/GridSurfaceDetection.h>
 #include <grid/expansion/GridExpander.h>
+#include <grid/exv/GridExvStrategy.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/atoms/AtomHelper.h>
@@ -141,25 +142,39 @@ double Grid::get_hydration_radius() const {
     return constants::radius::get_vdw_radius(constants::atom_t::O);
 }
 
-std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
-    if (a_members.size() == 0) [[unlikely]] {
-        throw except::invalid_operation("Grid::bounding_box: Calculating a boundary box for a grid with no members!");
-    }
+std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index(bool include_waters) const {
+    // terminate early if there are no members
+    bool w_empty = include_waters ? w_members.empty() : true;
+    if (a_members.size() == 0 && w_empty) [[unlikely]] {return {{0, 0, 0}, {0, 0, 0}};}    
 
-    // initialize the bounds as large as possible
-    Vector3<int> min(axes.x.bins, axes.y.bins, axes.z.bins);
-    Vector3<int> max(0, 0, 0);
+
+    // initialize the bounds as extreme as possible
+    Vector3<int> min{std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), std::numeric_limits<int>::max()};
+    Vector3<int> max{std::numeric_limits<int>::min(), std::numeric_limits<int>::min(), std::numeric_limits<int>::min()};
     for (const auto& atom : a_members) {
         for (int i = 0; i < 3; i++) {
             if (min[i] > atom.get_bin_loc()[i]) min[i] = atom.get_bin_loc()[i];     // min
             if (max[i] < atom.get_bin_loc()[i]) max[i] = atom.get_bin_loc()[i]+1;   // max. +1 since this will often be used as loop limits
         }
     }
-    return std::make_pair(min, max);
+
+    if (w_empty) {
+        return {std::move(min), std::move(max)};
+    }
+
+    for (const auto& water : w_members) {
+        for (int i = 0; i < 3; i++) {
+            if (min[i] > water.get_bin_loc()[i]) min[i] = water.get_bin_loc()[i];     // min
+            if (max[i] < water.get_bin_loc()[i]) max[i] = water.get_bin_loc()[i]+1;   // max. +1 since this will often be used as loop limits
+        }
+    }
+    return {std::move(min), std::move(max)};
 }
 
 template<data::AtomType T>
 std::pair<Vector3<double>, Vector3<double>> _bounding_box(const std::vector<T>& atoms) {
+    if (atoms.size() == 0) [[unlikely]] {return std::make_pair(Vector3<double>{0, 0, 0}, Vector3<double>{0, 0, 0});}
+
     // initialize the bounds as extreme as possible
     Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
     Vector3 max = {std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min()};
@@ -169,7 +184,7 @@ std::pair<Vector3<double>, Vector3<double>> _bounding_box(const std::vector<T>& 
             max[i] = std::max(max[i], atom.coordinates()[i]);
         }
     }
-    return std::make_pair(min, max);
+    return {std::move(min), std::move(max)};
 }
 
 std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector<AtomFF>& atoms) {
@@ -456,28 +471,15 @@ void Grid::save(const io::File& path) const {
     p.save(path);
 }
 
-exv::GridExcludedVolume Grid::generate_excluded_volume(bool determine_surface) {
+exv::GridExcludedVolume Grid::generate_excluded_volume() {
     expand_volume();
-    auto vol = determine_surface ? detail::GridSurfaceDetection(this).detect() : detail::GridSurfaceDetection(this).no_detect();
+    auto vol = exv::create(this);
 
+    //? remove and manually save it in executable?
     if (settings::grid::exv::save) {
-        std::vector<AtomFF> atoms1, atoms2;
-    
-        for (int i = 0; i < static_cast<int>(vol.interior.size()); ++i) {
-            atoms1.emplace_back(vol.interior[i], form_factor::form_factor_t::C);
-        }
-
-        for (int j = 0; j < static_cast<int>(vol.surface.size()); ++j) {
-            atoms2.emplace_back(vol.surface[j], form_factor::form_factor_t::C);
-        }
-
-        std::vector<Body> bodies = {Body{atoms1}, Body{atoms2}};
-        data::Molecule(bodies).save(settings::general::output + "exv.pdb");
+        vol.save(settings::general::output + "exv.pdb");
     }
 
-    if (!determine_surface) {
-        return {vol.interior, {}};
-    }
     return vol;
 }
 

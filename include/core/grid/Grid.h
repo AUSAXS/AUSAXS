@@ -141,14 +141,6 @@ namespace ausaxs::grid {
 			[[nodiscard]] const Axis3D& get_axes() const {return axes;}
 
 			/**
-			 * @brief Create the smallest possible box containing the center points of all member atoms.
-			 * 		  Complexity: O(n) in the number of atoms.
-			 * 
-			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
-			 */
-			[[nodiscard]] std::pair<Vector3<int>, Vector3<int>> bounding_box_index() const;
-
-			/**
 			 * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
 			 * 		  Complexity: O(1).
 			 */
@@ -202,7 +194,7 @@ namespace ausaxs::grid {
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
 			 * 		  This will expand all atoms in the grid.
 			 */
-			[[nodiscard]] virtual exv::GridExcludedVolume generate_excluded_volume(bool determine_surface);
+			[[nodiscard]] virtual exv::GridExcludedVolume generate_excluded_volume();
 
 			[[nodiscard]] std::vector<data::AtomFF> get_surface_atoms() const;
 
@@ -250,6 +242,14 @@ namespace ausaxs::grid {
 			 * 		  Complexity: O(1).
 			 */
 			[[nodiscard]] double to_z(int k) const;
+
+			/**
+			 * @brief Create the smallest possible box containing the center points of all member atoms.
+			 * 		  Complexity: O(n) in the number of atoms.
+			 * 
+			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
+			 */
+			[[nodiscard]] std::pair<Vector3<int>, Vector3<int>> bounding_box_index(bool include_waters = false) const;
 
 			detail::GridObj grid; // The actual grid.
 			std::vector<GridMember<data::AtomFF>> a_members; // The member atoms and where they are located.

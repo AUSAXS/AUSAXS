@@ -1,12 +1,11 @@
 #pragma once
 
-#include <grid/Grid.h>
-#include <grid/detail/GridObj.h>
+#include <grid/detail/GridExcludedVolume.h>
+#include <grid/GridFwd.h>
 #include <utility/observer_ptr.h>
-#include <settings/GridSettings.h>
 
 namespace ausaxs::grid::exv {
-    struct RawGridExv {
+    struct RawGridWithSurfaceExv {
         static GridExcludedVolume create(observer_ptr<grid::Grid> grid);
     };
 }
