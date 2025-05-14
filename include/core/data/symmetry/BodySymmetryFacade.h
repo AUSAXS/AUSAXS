@@ -11,12 +11,16 @@
 //? GCC and probably also Clang do not like how this class is used as a temporary front for access into the symmetries
 //? of a body. Specifically, the dangling reference warning is triggered by the chain 'body->symmetry()->get()'
 //? since it believes a reference to a temporary object is being returned. These pragmas silence this warning.
-#if defined(__GNUC__)
-    # pragma GCC diagnostic push
-    # pragma GCC diagnostic ignored "-Wdangling-reference" 
-#elif defined(__clang__)
-    # pragma clang diagnostic push
-    # pragma clang diagnostic ignored "-Wdangling"
+#if defined(__clang__)
+    #if __has_warning("-Wdangling")
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdangling"
+        #define AUSAXS_DANGLING_WARNING
+    #endif
+#elif defined(__GNUC__) && ( __GNUC__ >= 13)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdangling-reference"
+    #define AUSAXS_DANGLING_WARNING
 #endif
 
 namespace ausaxs::symmetry::detail {
@@ -94,8 +98,11 @@ namespace ausaxs::symmetry::detail {
     };
 }
 
-#if defined(__GNUC__)
-    # pragma GCC diagnostic pop
-#elif defined(__clang__)
-    # pragma clang diagnostic pop
+#if defined(AUSAXS_DANGLING_WARNING)
+    #undef AUSAXS_DANGLING_WARNING
+    #if defined(__clang__)
+        #pragma clang diagnostic pop
+    #elif defined(__GNUC__)
+        #pragma GCC diagnostic pop
+    #endif
 #endif
