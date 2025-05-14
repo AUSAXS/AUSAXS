@@ -41,13 +41,6 @@ namespace ausaxs::settings {
             };
             // The expansion algorithm
             static Expansion expansion_strategy;
-
-            enum class Exv {
-                Grid,               // Use the expanded grid as the excluded volume
-                GridWithSurface,    // Use the expanded grid as the excluded volume and determine its surface
-            };
-            // The excluded volume algorithm
-            static Exv exv_strategy; //? move to flags? 
         };
 
         struct detail {

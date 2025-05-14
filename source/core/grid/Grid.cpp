@@ -474,12 +474,6 @@ void Grid::save(const io::File& path) const {
 exv::GridExcludedVolume Grid::generate_excluded_volume() {
     expand_volume();
     auto vol = exv::create(this);
-
-    //? remove and manually save it in executable?
-    if (settings::grid::exv::save) {
-        vol.save(settings::general::output + "exv.pdb");
-    }
-
     return vol;
 }
 

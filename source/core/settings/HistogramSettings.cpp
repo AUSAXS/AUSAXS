@@ -79,3 +79,12 @@ template<> void settings::io::detail::SettingRef<settings::hist::HistogramManage
         throw except::io_error("settings::hist::histogram_manager: Unkown HistogramManagerChoice. Did you forget to add parsing support for it in HistogramSettings.cpp?");
     }
 }
+
+settings::hist::ExvMethod settings::hist::get_exv_strategy() {
+    switch (settings::hist::histogram_manager) {
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
+            return settings::hist::ExvMethod::GridWithSurface;
+        default:
+            return settings::hist::ExvMethod::Grid;
+    }
+}

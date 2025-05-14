@@ -1,18 +1,18 @@
 #include <grid/exv/GridExvStrategy.h>
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
-#include <settings/GridSettings.h>
+#include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::grid::exv;
 
 GridExcludedVolume grid::exv::create(observer_ptr<grid::Grid> grid) {
-    switch (settings::grid::exv::exv_strategy) {
-        case settings::grid::exv::Exv::Grid:
+    switch (settings::hist::get_exv_strategy()) {
+        case settings::hist::ExvMethod::Grid:
             return RawGridExv::create(grid);
-        case settings::grid::exv::Exv::GridWithSurface:
+        case settings::hist::ExvMethod::GridWithSurface:
             return RawGridWithSurfaceExv::create(grid);
         default:
-            throw except::io_error("Invalid grid excluded volume strategy.");
+            throw except::unexpected("GridExvStrategy::create: Unknown ExvMethod. Did you forget to add it to the switch statement?");
     }
 }

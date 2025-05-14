@@ -32,5 +32,14 @@ namespace ausaxs::settings {
         };
         static bool weighted_bins;          // Whether to use weighted p(r) bins or not.
         static HistogramManagerChoice histogram_manager;
+
+        //? Definitely NOT the right place for this
+        //? Consider creating a new ExvSettings for all exv related settings; there's quite a few of them by now
+        enum class ExvMethod {
+            Grid,               // Use the expanded grid as the excluded volume
+            GridWithSurface,    // Use the expanded grid as the excluded volume and determine its surface
+        };
+        // Get the excluded volume algorithm for the 
+        static ExvMethod get_exv_strategy();
     };
 }
