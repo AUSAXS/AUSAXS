@@ -11,8 +11,8 @@
 #include <data/Body.h>
 #include <grid/Grid.h>
 #include <utility/observer_ptr.h>
-#include <settings/HistogramSettings.h>
 #include <settings/GridSettings.h>
+#include <settings/ExvSettings.h>
 
 double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, double d) {
     auto fraser_helper = [m] () {
@@ -29,33 +29,16 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
     };
 
     auto grid = m->get_grid();
-    switch (settings::hist::histogram_manager) {
-        // simple volumes
-        case settings::hist::HistogramManagerChoice::HistogramManager:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMT:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManager:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg:
+    switch (settings::exv::exv_method) {
+        case settings::exv::ExvMethod::Simple:
+        case settings::exv::ExvMethod::Average:
             return m->get_volume_grid();
-
-        // Fraser volumes
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit: {            
+        
+        case settings::exv::ExvMethod::Fraser:
             return fraser_helper()*hist::CompositeDistanceHistogramFFExplicit::exv_factor(0, d);
-        }
-        case settings::hist::HistogramManagerChoice::CrysolManager: {
-            auto V = fraser_helper();
-            return V*hist::CompositeDistanceHistogramCrysol::exv_factor(0, d, V/m->size_atom());
-        }
-        case settings::hist::HistogramManagerChoice::PepsiManager: {
-            return fraser_helper()*hist::CompositeDistanceHistogramPepsi::exv_factor(0, d);
-        }
-        case settings::hist::HistogramManagerChoice::FoXSManager: {
-            return fraser_helper()*hist::CompositeDistanceHistogramFoXS::exv_factor(0, d);
-        }
 
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: {
+        case settings::exv::ExvMethod::Grid: 
+        case settings::exv::ExvMethod::WAXSiS: {
             // note: not equivalent to grid volume! 
             // the grid can be finer than the resolution of the excluded volume, in which case every Nth bin is used
             auto exv_atoms = exv::RawGridExv::create(grid).interior.size();
@@ -63,13 +46,13 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
             return exv_atoms*single_vol;
         }
 
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: {
+        case settings::exv::ExvMethod::GridScalable: {
             // scale the volume by the cubed factor
             auto exv = exv::RawGridExv::create(grid).interior.size();
             return exv*std::pow(settings::grid::cell_width*d, 3);
         }
 
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: {
+        case settings::exv::ExvMethod::GridSurface: {
             // scale surface volumes by the factor
             auto exv = exv::RawGridWithSurfaceExv::create(grid);
             unsigned int interior_atoms = exv.interior.size();
@@ -79,8 +62,21 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
             return interior_atoms*interior_vol + exterior_atoms*exterior_vol;
         }
 
+        case settings::exv::ExvMethod::CRYSOL: {
+            auto V = fraser_helper();
+            return V*hist::CompositeDistanceHistogramCrysol::exv_factor(0, d, V/m->size_atom());
+        }
+
+        case settings::exv::ExvMethod::FoXS: {
+            return fraser_helper()*hist::CompositeDistanceHistogramFoXS::exv_factor(0, d);
+        }
+
+        case settings::exv::ExvMethod::Pepsi: {
+            return fraser_helper()*hist::CompositeDistanceHistogramPepsi::exv_factor(0, d);
+        }
+
         default:
-            throw std::runtime_error("Molecule::get_volume_exv: No histogram manager selected. The excluded volume cannot be calculated.");
+            throw std::runtime_error("Molecule::get_volume_exv: Unknown excluded volume method. Did you forget to add it to the switch statement?");
     }
     return 0;
 }

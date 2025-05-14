@@ -4,9 +4,11 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <settings/HistogramSettings.h>
+#include <settings/GeneralSettings.h>
+#include <settings/ExvSettings.h>
+#include <settings/FitSettings.h>
 #include <settings/SettingsIORegistry.h>
 #include <utility/Exceptions.h>
-#include <utility/StringUtils.h>
 #include <constants/Constants.h>
 
 using namespace ausaxs;
@@ -24,67 +26,39 @@ namespace ausaxs::settings::io {
     });
 }
 
-settings::hist::HistogramManagerChoice settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
 settings::io::SettingSection hist_section("Histogram", {
-    settings::io::create(settings::hist::histogram_manager, "histogram_manager"),
     settings::io::create(settings::hist::weighted_bins, "weighted_bins")
 });
 
-template<> std::string settings::io::detail::SettingRef<settings::hist::HistogramManagerChoice>::get() const {
-    switch (settingref) {
-        case settings::hist::HistogramManagerChoice::HistogramManager: return "hm";
-        case settings::hist::HistogramManagerChoice::HistogramManagerMT: return "hmmt";
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg: return "hmmtff";
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit: return "hmmtffx";
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: return "hmmtffg";
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: return "hmmtffgs";
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: return "hmmtffgse";
-        case settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT: return "hmsmt";
-        case settings::hist::HistogramManagerChoice::PartialHistogramManager: return "phm";
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT: return "phmmt";
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg: return "phmmtff";
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit: return "phmmtffx";
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid: return "phmmtffg";
-        case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT: return "phsmt";
-        case settings::hist::HistogramManagerChoice::FoXSManager: return "foxs";
-        case settings::hist::HistogramManagerChoice::PepsiManager: return "pepsi";
-        case settings::hist::HistogramManagerChoice::CrysolManager: return "crysol";
-        // case settings::hist::HistogramManagerChoice::DebugManager: return "debug";
-        default: return std::to_string(static_cast<int>(settingref));
-    }
-}
-
-template<> void settings::io::detail::SettingRef<settings::hist::HistogramManagerChoice>::set(const std::vector<std::string>& val) {
-    auto str = utility::to_lowercase(val[0]);
-    if (     str == "hm") {settingref = settings::hist::HistogramManagerChoice::HistogramManager;}
-    else if (str == "hmmt" || str == "simple") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMT;}
-    else if (str == "hmmtff") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg;}
-    else if (str == "hmmtffx" || str == "fraser") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;}
-    else if (str == "hmmtffg") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
-    else if (str == "hmmtffgs" || str == "grid") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;}
-    else if (str == "hmmtffgse" || str == "scalable") {settingref = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;}
-    else if (str == "hmsmt") {settingref = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;}
-    else if (str == "phm") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManager;}
-    else if (str == "phmmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
-    else if (str == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg;}
-    else if (str == "phmmtffx") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit;}
-    else if (str == "phmmtffg") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid;}
-    else if (str == "phsmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;}
-    // else if (str == "debug") {settingref = settings::hist::HistogramManagerChoice::DebugManager;}
-    else if (str == "foxs") {settingref = settings::hist::HistogramManagerChoice::FoXSManager;}
-    else if (str == "pepsi") {settingref = settings::hist::HistogramManagerChoice::PepsiManager;}
-    else if (str == "crysol") {settingref = settings::hist::HistogramManagerChoice::CrysolManager;}
-    else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::hist::HistogramManagerChoice>(std::stoi(val[0]));}
-    else {
-        throw except::io_error("settings::hist::histogram_manager: Unkown HistogramManagerChoice. Did you forget to add parsing support for it in HistogramSettings.cpp?");
-    }
-}
-
-settings::hist::ExvMethod settings::hist::get_exv_strategy() {
-    switch (settings::hist::histogram_manager) {
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
-            return settings::hist::ExvMethod::GridWithSurface;
+settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
+    switch (settings::exv::exv_method) {
+        case settings::exv::ExvMethod::Simple:
+            // if no multi-threading is enabled, switch to the single-threaded manager
+            return settings::general::threads == 1 
+                ? settings::hist::HistogramManagerChoice::HistogramManager 
+                : settings::hist::HistogramManagerChoice::HistogramManagerMT;
+        case settings::exv::ExvMethod::Average: 
+            return settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg;
+        case settings::exv::ExvMethod::Fraser:
+            return settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
+        case settings::exv::ExvMethod::Grid:
+            return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;
+        case settings::exv::ExvMethod::GridScalable:
+            // if no exv fitting is performed, switch to the faster grid manager 
+            return settings::fit::fit_excluded_volume 
+                ? settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv 
+                : settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;
+        case settings::exv::ExvMethod::GridSurface:
+            return settings::fit::fit_excluded_volume 
+                ? settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface 
+                : settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;
+        case settings::exv::ExvMethod::CRYSOL:
+            return settings::hist::HistogramManagerChoice::CrysolManager;
+        case settings::exv::ExvMethod::FoXS:
+            return settings::hist::HistogramManagerChoice::FoXSManager;
+        case settings::exv::ExvMethod::Pepsi:
+            return settings::hist::HistogramManagerChoice::PepsiManager;
         default:
-            return settings::hist::ExvMethod::Grid;
+            throw except::unexpected("settings::hist::get_histogram_manager: Unknown ExvMethod. Did you forget to add it to the switch statement?");
     }
 }
