@@ -26,7 +26,7 @@ int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
     io::ExistingFile pdb, mfile, settings;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
-    bool use_existing_hydration = false, save_settings = false;
+    bool use_existing_hydration = false, save_settings = false, save_grid = false, save_exv = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.fallthrough();
@@ -80,13 +80,12 @@ int main(int argc, char const *argv[]) {
     sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness, 
         "The thickness of the surface layer in Ångström."
     )->default_val(settings::grid::exv::surface_thickness)->group("");
-
     auto sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width, 
         "The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Ångström."
     )->default_val(settings::grid::exv::width);
-    sub_exv->add_flag("--save", settings::grid::exv::save, 
+    sub_exv->add_flag("--save", save_exv, 
         "Write a PDB representation of the excluded volume to disk."
-    )->default_val(settings::grid::exv::save);
+    )->default_val(save_exv);
 
     // solvation subcommands
     auto sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
@@ -104,7 +103,6 @@ int main(int argc, char const *argv[]) {
     sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
 
     // grid subcommands
-    bool save_grid = false;
     auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
     sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
         "The radius of the excluded volume sphere around each atom."
@@ -263,6 +261,7 @@ int main(int argc, char const *argv[]) {
 
         protein.save(settings::general::output + "model.pdb");
         if (save_grid) {protein.get_grid()->save(settings::general::output + "grid.pdb");}
+        if (save_exv) {protein.get_grid()->generate_excluded_volume().save(settings::general::output + "exv.pdb");}
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

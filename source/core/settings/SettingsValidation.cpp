@@ -6,6 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/SettingsValidation.h>
 #include <settings/All.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 
@@ -18,6 +19,10 @@ void settings::validate_settings() {
         case settings::hist::HistogramManagerChoice::CrysolManager:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
+            if (!settings::fit::fit_excluded_volume) {
+                logging::log("Changed HistogramManager to HistogramManagerMTFFGrid for better performance due to no excluded volume fitting.");
+                settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;
+            }
             break;
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv:
             if (settings::hist::histogram_manager == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface) {

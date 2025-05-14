@@ -174,7 +174,7 @@ GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
     return vol;
 }
 
-inline GridExcludedVolume RawGridWithSurfaceExv::create(observer_ptr<grid::Grid> grid) {
+GridExcludedVolume RawGridWithSurfaceExv::create(observer_ptr<grid::Grid> grid) {
     int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width);
     if (expand != 1) {
         return helper<true, false>(grid);
