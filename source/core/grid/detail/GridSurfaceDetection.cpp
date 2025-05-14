@@ -127,12 +127,8 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
     exv::GridExcludedVolume vol;
     vol.interior.reserve(grid->get_volume());
 
-    int stride = std::round(settings::grid::exv::width/settings::grid::cell_width);
-    int buffer = std::round(std::max<double>(settings::grid::min_exv_radius, 2)/settings::grid::cell_width);
-
-    if (stride == 0) {
-        throw std::runtime_error("GridSurfaceDetection::helper: settings::grid::exv::width is too small compared to settings::grid::cell_width");
-    }
+    int stride = std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width));
+    int buffer = std::max(1., std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width));
 
     const auto& axes = grid->get_axes();
     auto& gobj = grid->grid;
@@ -147,7 +143,7 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
                     case grid::detail::State::A_CENTER: {
                         // if we're not detecting the surface, everything is interior
                         if constexpr (!detect_surface) {
-                            vol.interior.push_back(grid->to_xyz(i, j, k));
+                            vol.interior.emplace_back(grid->to_xyz(i, j, k));
                             continue;
                         }
 
@@ -156,8 +152,8 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
                         if constexpr (!unity_width) {
                             if (!collision) {val |= grid::detail::RESERVED_1;}
                         } else { // with unity widths our work is already done here
-                            if (collision) {vol.interior.push_back(grid->to_xyz(i, j, k));}
-                            else           {vol.surface.push_back( grid->to_xyz(i, j, k));}
+                            if (collision) {vol.interior.emplace_back(grid->to_xyz(i, j, k));}
+                            else           {vol.surface.emplace_back( grid->to_xyz(i, j, k));}
                         }
                         break;
                     }
@@ -178,8 +174,7 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
                 for (int m = -expand; m <= expand; m++) {
                     for (int n = -expand; n <= expand; n++) {
                         if (gobj.is_atom_area_or_volume(i+l, j+m, k+n) && origin.distance2(Vector3<int>{i+l, j+m, k+n}) <= expand2) {
-                            // we're out of grid keywords, so we reuse VACUUM here since it should't be present in the grid at this point anyway
-                            gobj.index(i+l, j+m, k+n) |= grid::detail::VACUUM;
+                            gobj.index(i+l, j+m, k+n) |= grid::detail::RESERVED_2;
                         }
                     }
                 }
@@ -202,9 +197,9 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
             for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
                 for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
                     auto& val = gobj.index(i, j, k);
-                    if (val & (grid::detail::RESERVED_1 | grid::detail::VACUUM)) {
-                        vol.surface.push_back(grid->to_xyz(i, j, k));
-                        val &= ~(grid::detail::RESERVED_1 | grid::detail::VACUUM);
+                    if (val & (grid::detail::RESERVED_1 | grid::detail::RESERVED_2)) {
+                        vol.surface.emplace_back(grid->to_xyz(i, j, k));
+                        val &= ~(grid::detail::RESERVED_1 | grid::detail::RESERVED_2);
                         continue;
                     }
 
@@ -212,7 +207,7 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
                         case grid::detail::State::VOLUME:
                         case grid::detail::State::A_AREA:
                         case grid::detail::State::A_CENTER: 
-                            vol.interior.push_back(grid->to_xyz(i, j, k));
+                            vol.interior.emplace_back(grid->to_xyz(i, j, k));
                             break;
                         default:
                             break;

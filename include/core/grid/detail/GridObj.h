@@ -20,6 +20,7 @@ namespace ausaxs::grid::detail {
         W_CENTER    = (1 << 4), // bin is the center of a water molecule
         W_AREA      = (1 << 5), // bin is part of a water volume inside its vdw radius
         RESERVED_1  = (1 << 6),
+        RESERVED_2  = (1 << 7)
     };
 
     /**
@@ -48,43 +49,33 @@ namespace ausaxs::grid::detail {
              * @brief Branchless function to check if a given bin is empty or part of a volume. This means the bin is EMPTY or VOLUME.
              */
             bool is_empty_or_volume(State s) const;
-
-            // @copydoc is_empty_or_volume(State) const
-            bool is_empty_or_volume(int x, int y, int z) const;
+            bool is_empty_or_volume(int x, int y, int z) const; // @copydoc is_empty_or_volume(State) const
 
             /**
              * @brief Branchless function to check if a given bin is empty or part of the hydration shell. 
              *        This means the bin is EMPTY, W_AREA, or W_CENTER.
              */
             bool is_empty_or_water(State s) const;
-
-            // @copydoc is_empty_or_water(State) const
-            bool is_empty_or_water(int x, int y, int z) const;
+            bool is_empty_or_water(int x, int y, int z) const; // @copydoc is_empty_or_water(State) const
 
             /**
              * @brief Branchless function to check if a given bin is empty, part of a volume, or part of the hydration shell. 
              *      This means the bin is EMPTY, VOLUME, W_AREA, or W_CENTER.
              */
             bool is_empty_or_volume_or_water(State s) const;
-
-            // @copydoc is_empty_or_volume_or_water(State) const
-            bool is_empty_or_volume_or_water(int x, int y, int z) const;
+            bool is_empty_or_volume_or_water(int x, int y, int z) const; // @copydoc is_empty_or_volume_or_water(State) const
 
             /**
              * @brief Branchless function to check if a given bin is empty. Empty means the bin is EMPTY (0). 
              */
             bool is_empty(State s) const;
-
-            // @copydoc is_empty(State) const
-            bool is_empty(int x, int y, int z) const;
+            bool is_empty(int x, int y, int z) const; // @copydoc is_empty(State) const
 
             /**
              * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is A_AREA. 
              */
             bool is_atom_area(State s) const;
-
-            // @copydoc is_atom_area(State) const
-            bool is_atom_area(int x, int y, int z) const;
+            bool is_atom_area(int x, int y, int z) const; // @copydoc is_atom_area(State) const
 
             /**
              * @brief Branchless function to check if a given bin is part of an atomic volume. This means the bin is A_AREA or VOLUME.
@@ -102,9 +93,7 @@ namespace ausaxs::grid::detail {
              * @brief Branchless function to check if a given bin is part of a water volume. This means the bin is W_AREA.
              */
             bool is_water_area(State s) const;
-
-            // @copydoc is_water_area(State) const
-            bool is_water_area(int x, int y, int z) const;
+            bool is_water_area(int x, int y, int z) const; // @copydoc is_water_area(State) const
 
             /**
              * @brief Branchless function to check if a given bin is the center of an atom. This means the bin is A_CENTER.
@@ -122,9 +111,7 @@ namespace ausaxs::grid::detail {
              * @brief Branchless function to check if a given bin is the center of a water molecule. This means the bin is W_CENTER. 
              */
             bool is_water_center(State s) const;
-
-            // @copydoc is_water_center(State) const;
-            bool is_water_center(int x, int y, int z) const;
+            bool is_water_center(int x, int y, int z) const; // @copydoc is_water_center(State) const;
 
             using container::Container3D<State>::index;
             State& index(const Vector3<int>& v);
