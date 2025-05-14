@@ -195,20 +195,20 @@ double Molecule::get_volume_exv(double d) const {
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: {
             // note: not equivalent to grid volume! 
             // the grid can be finer than the resolution of the excluded volume, in which case every Nth bin is used
-            unsigned int exv_atoms = get_grid()->generate_excluded_volume(false).interior.size();
+            unsigned int exv_atoms = get_grid()->generate_excluded_volume().interior.size();
             double single_vol = std::pow(settings::grid::cell_width, 3);
             return exv_atoms*single_vol;
         }
 
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: {
             // scale the volume by the cubed factor
-            auto exv = get_grid()->generate_excluded_volume(false).interior.size();
+            auto exv = get_grid()->generate_excluded_volume().interior.size();
             return exv*std::pow(settings::grid::cell_width*d, 3);
         }
 
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: {
             // scale surface volumes by the factor
-            auto exv = get_grid()->generate_excluded_volume(true);
+            auto exv = get_grid()->generate_excluded_volume();
             unsigned int interior_atoms = exv.interior.size();
             unsigned int exterior_atoms = exv.surface.size();
             double interior_vol = std::pow(settings::grid::cell_width, 3);

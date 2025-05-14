@@ -58,7 +58,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     hist::detail::CompactCoordinates data_x_i, data_x_s;
 
     {   // generate the excluded volume representation
-        auto exv = this->protein->get_grid()->generate_excluded_volume(true);
+        auto exv = this->protein->get_grid()->generate_excluded_volume();
         data_x_i = hist::detail::CompactCoordinates(std::move(exv.interior), 1);
         data_x_s = hist::detail::CompactCoordinates(std::move(exv.surface), 1);
     }
