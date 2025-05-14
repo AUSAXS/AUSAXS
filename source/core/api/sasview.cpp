@@ -35,7 +35,7 @@ void fit_saxs_future(
     *_return_status = 1;
 
     // use the multithreaded version of the simple histogram manager
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
     settings::fit::fit_excluded_volume = true;
 
     // set qmax as high as it can go
@@ -87,7 +87,7 @@ void fit_saxs(
     *_return_status = 1;
 
     // use the multithreaded version of the simple histogram manager
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
     settings::fit::fit_excluded_volume = true;
 
     // set qmax as high as it can go
@@ -147,7 +147,7 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     *_return_status = 1;
 
     // use the multithreaded version of the simple histogram manager
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
 
     // do not subtract the solvent charge from the atoms
     hist::detail::SimpleExvModel::disable();

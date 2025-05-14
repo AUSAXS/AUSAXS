@@ -9,9 +9,8 @@ namespace ausaxs::settings {
         static double qmax;         // Upper limit on the used q-values
     };
 
-    struct EXPORT hist {
+    struct hist {
         enum class HistogramManagerChoice {
-            None,                                // No histogram manager. This is only used to avoid performing an expensive constructor when the manager is not needed.
             HistogramManager,                    // A simple manager that recalculates the entire histogram every time.
             HistogramManagerMT,                  // A multithreaded implementation of the simple manager.
             HistogramManagerMTFFAvg,             // A multithreaded implementation of the simple manager that uses precalculated form factor products and an average for the excluded volume.
@@ -31,15 +30,10 @@ namespace ausaxs::settings {
             CrysolManager,                       // A manager that mimics the Crysol method to evaluate the scattering intensity.
         };
         static bool weighted_bins;          // Whether to use weighted p(r) bins or not.
-        static HistogramManagerChoice histogram_manager;
 
-        //? Definitely NOT the right place for this
-        //? Consider creating a new ExvSettings for all exv related settings; there's quite a few of them by now
-        enum class ExvMethod {
-            Grid,               // Use the expanded grid as the excluded volume
-            GridWithSurface,    // Use the expanded grid as the excluded volume and determine its surface
-        };
-        // Get the excluded volume algorithm for the 
-        static ExvMethod get_exv_strategy();
+        /**
+         * @brief Get the histogram manager corresponding to the current combination of excluded volume model and number of threads. 
+         */
+        static HistogramManagerChoice get_histogram_manager(); 
     };
 }

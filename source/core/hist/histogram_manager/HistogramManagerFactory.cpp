@@ -15,9 +15,13 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <settings/HistogramSettings.h>
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>
+#include <settings/HistogramSettings.h>
+#include <settings/GeneralSettings.h>
+#include <settings/ExvSettings.h>
+#include <settings/FitSettings.h>
+#include <settings/Flags.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist::factory;
@@ -25,12 +29,13 @@ using namespace ausaxs::hist::factory;
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, bool use_weighted_distribution
 ) {
-    return hist::factory::construct_histogram_manager(protein, settings::hist::histogram_manager, use_weighted_distribution);
+    return construct_histogram_manager(protein, settings::hist::get_histogram_manager(), use_weighted_distribution);
 }
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, const settings::hist::HistogramManagerChoice& choice, bool use_weighted_distribution
 ) {
+    if (!settings::flags::init_histogram_manager) {return nullptr;}
     if (use_weighted_distribution) {
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager: 
@@ -62,8 +67,6 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
             case settings::hist::HistogramManagerChoice::CrysolManager:
                 // FoXSManager, PepsiManager, and CrysolManager are all extensions of the HistogramManagerMTFFExplicit method
                 return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein);
-            case settings::hist::HistogramManagerChoice::None:
-                return nullptr;
             default:
                 throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");
         }
@@ -98,8 +101,6 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 return std::make_unique<HistogramManagerMTFFExplicit<false>>(protein);
             // case settings::hist::HistogramManagerChoice::DebugManager:
             //     return std::make_unique<DebugManager<false>>(protein);
-            case settings::hist::HistogramManagerChoice::None:
-                return nullptr;
             default:
                 throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");
         }
