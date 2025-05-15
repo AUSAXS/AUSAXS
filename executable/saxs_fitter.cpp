@@ -24,7 +24,7 @@ using namespace ausaxs;
 
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
-    io::ExistingFile pdb, mfile, settings;
+    io::ExistingFile pdb, mfile, exv_ref_file, settings;
     bool use_existing_hydration = false, save_settings = false, save_grid = false, save_exv = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
@@ -85,6 +85,9 @@ int main(int argc, char const *argv[]) {
     sub_exv->add_flag("--save", save_exv, 
         "Write a PDB representation of the excluded volume to disk."
     )->default_val(save_exv);
+    sub_exv->add_option("--ref,--reference", exv_ref_file, 
+        "Path to the excluded volume reference file."
+    )->check(CLI::ExistingFile);
 
     // solvation subcommands
     auto sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
@@ -191,6 +194,7 @@ int main(int argc, char const *argv[]) {
         //######################//
 
         data::Molecule protein(pdb);
+        if (!exv_ref_file.empty()) {protein.set_grid(grid::Grid::create_from_reference(exv_ref_file, protein));}
         if (!use_existing_hydration || protein.size_water() == 0) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();

@@ -18,13 +18,17 @@ For more information, please refer to the LICENSE file in the project root.
 #include <constants/Constants.h>
 #include <io/ExistingFile.h>
 
+#include <functional>
+
 using namespace ausaxs;
 using namespace ausaxs::grid;
 using namespace ausaxs::data;
 
-Grid::Grid(const Limit3D& axes) : axes(Axis3D(axes, settings::grid::cell_width)) {
+Grid::Grid(const Axis3D& axes, private_ctr) : axes(axes) {
     setup();
 }
+
+Grid::Grid(const Limit3D& axes) : Grid(Axis3D(axes, settings::grid::cell_width), private_ctr{}) {}
 
 Grid::Grid(const std::vector<AtomFF>& atoms) : Grid({Body(atoms)}) {}
 
@@ -522,3 +526,27 @@ Vector3<int> Grid::get_center() const {
 }
 
 double Grid::get_width() const {return settings::grid::cell_width;}
+
+std::unique_ptr<Grid> Grid::create_from_reference(const io::ExistingFile& path, const data::Molecule& molecule) {
+    if (path.extension() != ".pdb") {throw except::io_error("Grid::create_from_reference: Only PDB files are currently supported.");}
+    auto ref_grid = std::make_unique<Grid>(data::Molecule(path).get_bodies());
+    auto grid = std::make_unique<Grid>(ref_grid->get_axes(), private_ctr{});
+
+    assert(ref_grid->grid.size_x() == grid->grid.size_x() && 
+        ref_grid->grid.size_y() == grid->grid.size_y() && 
+        ref_grid->grid.size_z() == grid->grid.size_z() && 
+        "Grid::create_from_reference: The reference grid and the new grid must have the same size!"
+    );
+    std::transform(ref_grid->grid.begin(), ref_grid->grid.end(), grid->grid.begin(), 
+        [] (const auto& cell) {
+            // leave empty cells empty and mark all others as VOLUME
+            return cell == detail::EMPTY ? detail::EMPTY : detail::VOLUME;
+        }
+    );
+
+    // add the atoms to the new grid
+    for (const auto& body : molecule.get_bodies()) {
+        grid->add(body, false);
+    }
+    return grid;
+}

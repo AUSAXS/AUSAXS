@@ -16,11 +16,16 @@
 
 namespace ausaxs::grid {
 	class Grid {
+		struct private_ctr {explicit private_ctr() = default;};
 		public:
 			/**
-			 * @brief Constructor.
-			 * 
-			 * @param axes The axis limits. The width must be set through settings::grid::width.
+			 * @brief Initialize a new grid of the given size with the given cell width. 
+			 * 		  This can only be used internally by the Grid class. 
+			 */
+			Grid(const Axis3D& axes, private_ctr);
+
+			/**
+			 * @brief Initialize a new grid of the given size. The cell width is controlled by the settings::grid::cell_width variable.
 			 */
 			Grid(const Limit3D& axes);
 
@@ -45,6 +50,13 @@ namespace ausaxs::grid {
 			Grid(const Grid& grid);
 			Grid(Grid&& grid) noexcept;
 			virtual ~Grid();
+
+			/**
+			 * @brief Create a new Grid from a reference file.
+			 * 
+			 * @param path The path to the reference file. 
+			 */
+			[[nodiscard]] static std::unique_ptr<Grid> create_from_reference(const io::ExistingFile& path, const data::Molecule& molecule);
 
 			/**
 			 * @brief Get the atomic radius of an atom in Å.
