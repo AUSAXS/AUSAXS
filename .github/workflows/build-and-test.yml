@@ -2,7 +2,7 @@ name: Compile & test
 
 on:
   pull_request:
-    types: [ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [master]
 
 permissions:
@@ -13,8 +13,23 @@ env:
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
+  check-draft:
+    name: "Check if PR is draft"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check draft status
+        run: |
+          if [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
+            echo "This is a draft PR. Skipping build." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "This is not a draft PR. Proceeding with build."
+            exit 0
+          fi
+
   build-win: 
     name: "Windows MSVC"
+    needs: check-draft
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -71,6 +86,7 @@ jobs:
 
   build-mac:
     name: "MacOS universal"
+    needs: check-draft
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -109,6 +125,7 @@ jobs:
 
   build-mac-gui:
     name: "${{ matrix.name }}"
+    needs: check-draft
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -185,6 +202,7 @@ jobs:
 
   build-ubuntu:
     name: ${{ matrix.name }}
+    needs: check-draft
     runs-on: ${{ matrix.os }}
     strategy: 
       fail-fast: false
