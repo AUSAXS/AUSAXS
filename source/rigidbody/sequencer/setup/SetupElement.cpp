@@ -46,7 +46,7 @@ std::unordered_map<std::string, unsigned int>& SetupElement::_get_body_names() {
 
 void SetupElement::_set_active_body(observer_ptr<RigidBody> body) {
     active_body = body;
-    static_cast<Sequencer*>(owner)->_get_rigidbody() = body;
+    static_cast<Sequencer*>(owner)->_set_rigidbody(body);
 }
 
 SetupElement& SetupElement::distance_constraint(const std::string& body1, const std::string& body2, unsigned int iatom1, unsigned int iatom2) {

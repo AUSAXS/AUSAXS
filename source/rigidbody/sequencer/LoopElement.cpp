@@ -63,7 +63,7 @@ void LoopElement::run() {
     }
 }
 
-observer_ptr<rigidbody::RigidBody> LoopElement::_get_rigidbody() const {
+observer_ptr<const rigidbody::RigidBody> LoopElement::_get_rigidbody() const {
     return owner->_get_rigidbody();
 }
 

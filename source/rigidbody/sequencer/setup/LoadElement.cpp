@@ -168,5 +168,5 @@ std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
 }
 
 void LoadElement::run() {
-    owner->_get_rigidbody() = rigidbody.get();
+    owner->_set_rigidbody(rigidbody.get());
 }

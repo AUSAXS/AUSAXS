@@ -69,7 +69,8 @@ namespace ausaxs::rigidbody::sequencer {
                 */
             void run() override;
 
-            virtual observer_ptr<RigidBody> _get_rigidbody() const;
+            virtual observer_ptr<RigidBody> _get_rigidbody();
+            virtual observer_ptr<const RigidBody> _get_rigidbody() const;
 
             virtual observer_ptr<detail::BestConf> _get_best_conf() const;
 

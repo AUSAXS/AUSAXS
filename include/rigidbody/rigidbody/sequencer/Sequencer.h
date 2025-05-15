@@ -23,8 +23,9 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Get the RigidBody object.
              */
-            observer_ptr<RigidBody>& _get_rigidbody();
-            observer_ptr<RigidBody> _get_rigidbody() const override;
+            observer_ptr<RigidBody> _get_rigidbody() override;
+            observer_ptr<const RigidBody> _get_rigidbody() const override;
+            void _set_rigidbody(observer_ptr<RigidBody> rb);
 
             /**
              * @brief Get the best configuration.

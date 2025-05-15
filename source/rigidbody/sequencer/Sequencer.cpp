@@ -20,13 +20,15 @@ Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), Se
 
 Sequencer::~Sequencer() = default;
 
-observer_ptr<rigidbody::RigidBody>& Sequencer::_get_rigidbody() {
+observer_ptr<rigidbody::RigidBody> Sequencer::_get_rigidbody() {
     return rigidbody;
 }
 
-observer_ptr<rigidbody::RigidBody> Sequencer::_get_rigidbody() const {
+observer_ptr<const rigidbody::RigidBody> Sequencer::_get_rigidbody() const {
     return rigidbody;
 }
+
+void Sequencer::_set_rigidbody(observer_ptr<RigidBody> rb) {rigidbody = rb;}
 
 observer_ptr<rigidbody::detail::BestConf> Sequencer::_get_best_conf() const {
     return best.get();
