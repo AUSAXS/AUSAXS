@@ -9,7 +9,7 @@ permissions:
   checks: write
 
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: Release 
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
