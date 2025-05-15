@@ -16,7 +16,6 @@ using namespace ausaxs;
 
 struct fixture {
     fixture() {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
         stack = std::make_unique<em::ImageStack>("tests/files/A2M_2020_Q4.ccp4");
         manager = std::make_unique<em::managers::SmartProteinManager>(stack.get());
     }
@@ -54,7 +53,6 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram", "[files]") {
 TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
     settings::general::threads = 6;
     settings::em::sample_frequency = 2;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
 
     // ensure hydration shell is deterministic
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
@@ -77,7 +75,6 @@ TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
 TEST_CASE("SmartProteinManager::update_protein", "[files]") {
     settings::general::threads = 6;
     settings::em::sample_frequency = 2;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
 
     // ensure hydration shell is deterministic
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
@@ -109,7 +106,6 @@ TEST_CASE("SmartProteinManager: consistency", "[files]") {
     settings::em::alpha_levels = {6, 8};
     settings::em::save_pdb = false;
     settings::fit::max_iterations = 20;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     // we need a hydration-sensitive map for this test

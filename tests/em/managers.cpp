@@ -83,7 +83,6 @@ TEST_CASE("EM_managers: protein_manager") {
 
 TEST_CASE("EM_managers: em_partial_histogram_manager") {
     // don't use the phm since it eats too much memory
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
     settings::em::hydrate = false;
     settings::grid::min_bins = 100;
 

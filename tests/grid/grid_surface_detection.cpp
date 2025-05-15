@@ -2,6 +2,8 @@
 
 #include <grid/Grid.h>
 #include <grid/detail/GridSurfaceDetection.h>
+#include <grid/exv/RawGridExv.h>
+#include <grid/exv/RawGridWithSurfaceExv.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <settings/All.h>
@@ -43,7 +45,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 1);
         CHECK(vol.surface.size() == 26);
@@ -58,7 +60,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 2);
         CHECK(vol.surface.size() == 26);
@@ -78,7 +80,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 32);
         CHECK(vol.surface.size()  == 56);
@@ -98,7 +100,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 8);
         CHECK(vol.surface.size() == 48);
@@ -118,7 +120,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 81);
         CHECK( vol.surface.size() == 98);
@@ -130,7 +132,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 1);
         CHECK(vol.surface.size() == 32);
@@ -142,7 +144,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 27);
         CHECK(vol.surface.size()  == 96);
@@ -162,7 +164,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 81);
         CHECK(vol.surface.size() == 98);
@@ -179,7 +181,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 21);
         CHECK(vol.surface.size() == 92);
@@ -246,7 +248,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 8);
         CHECK(vol.surface.size()  == 152);
@@ -266,7 +268,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 81);
         CHECK( vol.surface.size() == 308);
@@ -278,7 +280,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 27);
         CHECK(vol.surface.size()  == 230);
@@ -296,7 +298,7 @@ TEST_CASE("GridSurfaceDetection: thickness") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein);
-        auto vol = protein.get_grid()->generate_excluded_volume(true);
+        auto vol = grid::exv::RawGridWithSurfaceExv::create(protein.get_grid());
 
         CHECK(vol.interior.size() == 21);
         CHECK(vol.surface.size() == 302);

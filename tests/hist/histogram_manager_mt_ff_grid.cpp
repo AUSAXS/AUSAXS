@@ -29,7 +29,7 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
     auto h = calculate(protein);
 
     // convert the grid to water atoms
-    auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
+    auto exv_grid = protein.get_grid()->generate_excluded_volume();
     std::vector<Water> waters(exv_grid.interior.size());
     for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
         waters[i] = Water(exv_grid.interior[i]);
@@ -242,7 +242,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         Molecule protein(a);
         set_unity_charge(protein);
 
-        auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
+        auto exv_grid = protein.get_grid()->generate_excluded_volume();
         std::vector<AtomFF> atoms(exv_grid.interior.size());
         for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
             atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::C);
@@ -286,7 +286,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     }
 
     SECTION("real data") {
-        auto exv_grid = protein.get_grid()->generate_excluded_volume(false);
+        auto exv_grid = protein.get_grid()->generate_excluded_volume();
         std::vector<AtomFF> atoms(exv_grid.interior.size());
         for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
             atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::C);

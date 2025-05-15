@@ -73,10 +73,10 @@ void set_unity_charge(T& protein) {
         for (auto& atom : body.get_atoms()) {
             atom.weight() = 1;
         }
-        if (body.size_water() != 0) {
-            for (auto& water : body.get_waters()) {
-                water.weight() = 1;
-            }
+        auto w = body.get_waters();
+        if (!w) {return;}
+        for (auto& water : w->get()) {
+            water.weight() = 1;
         }
     }
 }
