@@ -317,12 +317,21 @@ void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> ma
     bind_body_signallers();
 }
 
+void Molecule::set_histogram_manager(settings::hist::HistogramManagerChoice choice) {
+    phm = hist::factory::construct_histogram_manager(this, choice);
+    bind_body_signallers();
+}
+
 Body& Molecule::get_body(unsigned int index) {return bodies[index];}
 const Body& Molecule::get_body(unsigned int index) const {return bodies[index];}
 
 std::vector<Body>& Molecule::get_bodies() {return bodies;}
 
 const std::vector<Body>& Molecule::get_bodies() const {return bodies;}
+
+symmetry::detail::MoleculeSymmetryFacade Molecule::symmetry() const {
+    return symmetry::detail::MoleculeSymmetryFacade(this);
+}
 
 bool Molecule::equals_content(const Molecule& other) const {
     if (size_body() != other.size_body()) {

@@ -17,6 +17,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>
+#include <utility/Console.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/ExvSettings.h>
@@ -29,11 +30,27 @@ using namespace ausaxs::hist::factory;
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, bool use_weighted_distribution
 ) {
-    return construct_histogram_manager(protein, settings::hist::get_histogram_manager(), use_weighted_distribution);
+    auto choice = settings::hist::get_histogram_manager();
+    bool has_syms = protein->symmetry().has_symmetries();
+    if (has_syms) {
+        switch (choice) {
+            case settings::hist::HistogramManagerChoice::HistogramManager:
+            case settings::hist::HistogramManagerChoice::HistogramManagerMT:
+                choice = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+                break;
+            default: 
+                console::print_warning(
+                    "construct_histogram_manager: Molecule contains symmetries, but the chosen excluded volume method does not support them. "
+                    "Symmetries will be ignored. "
+                );
+                break;
+        }
+    }
+    return construct_histogram_manager(protein, choice, use_weighted_distribution);
 }
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
-    observer_ptr<const data::Molecule> protein, const settings::hist::HistogramManagerChoice& choice, bool use_weighted_distribution
+    observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool use_weighted_distribution
 ) {
     if (!settings::flags::init_histogram_manager) {return nullptr;}
     if (use_weighted_distribution) {

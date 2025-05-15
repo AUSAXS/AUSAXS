@@ -139,13 +139,12 @@ namespace ausaxs::data {
 			[[nodiscard]] std::size_t size_water() const;
 			
 			/**
-			 * @brief Get the total number of symmetry duplicates of this body.
-			 * 		  This does not account for repeating symmetries. 
+			 * @brief Get the number of symmetries defined for this body.
 			 */
 			[[nodiscard]] std::size_t size_symmetry() const;
 
 			/**
-			 * @brief Get the total number of symmetry duplicates of this body.
+			 * @brief Get the number of symmetry duplicates of this body.
 			 * 		  This accounts for repeating symmetries. 
 			 */
 			[[nodiscard]] std::size_t size_symmetry_total() const;

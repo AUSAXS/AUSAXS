@@ -37,27 +37,37 @@ settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
             return settings::general::threads == 1 
                 ? settings::hist::HistogramManagerChoice::HistogramManager 
                 : settings::hist::HistogramManagerChoice::HistogramManagerMT;
+
         case settings::exv::ExvMethod::Average: 
             return settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg;
+
         case settings::exv::ExvMethod::Fraser:
             return settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
+
         case settings::exv::ExvMethod::Grid:
+        case settings::exv::ExvMethod::WAXSiS:
             return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;
+
         case settings::exv::ExvMethod::GridScalable:
             // if no exv fitting is performed, switch to the faster grid manager 
             return settings::fit::fit_excluded_volume 
                 ? settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv 
                 : settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;
+
         case settings::exv::ExvMethod::GridSurface:
             return settings::fit::fit_excluded_volume 
                 ? settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface 
                 : settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;
+
         case settings::exv::ExvMethod::CRYSOL:
             return settings::hist::HistogramManagerChoice::CrysolManager;
+
         case settings::exv::ExvMethod::FoXS:
             return settings::hist::HistogramManagerChoice::FoXSManager;
+    
         case settings::exv::ExvMethod::Pepsi:
             return settings::hist::HistogramManagerChoice::PepsiManager;
+    
         default:
             throw except::unexpected("settings::hist::get_histogram_manager: Unknown ExvMethod. Did you forget to add it to the switch statement?");
     }
