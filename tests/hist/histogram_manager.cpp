@@ -23,23 +23,12 @@
 #include <constants/Constants.h>
 #include <utility/Utility.h>
 
+#include <hist/hist_test_helper.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 
 struct analytical_histogram {
-    static void set_unity_charge(Molecule& protein) {
-        // set the weights to 1 so we can analytically determine the result
-        for (auto& body : protein.get_bodies()) {
-            for (auto& atom : body.get_atoms()) {
-                atom.weight() = 1;
-            }
-            if (body.size_water() == 0) {continue;}
-            for (auto& water : body.get_waters()) {
-                water.weight() = 1;
-            }
-        }
-    }
-
     // calculation: 8 identical points. 
     //      each point has:
     //          1 line  of length 0
@@ -80,7 +69,6 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;
 
     SECTION("analytical") {
         SECTION("atoms only") {
@@ -91,6 +79,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
             std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
             Molecule protein(a);
+            protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManager);
             set_unity_charge(protein);
 
             { // hm

@@ -16,6 +16,11 @@ namespace ausaxs::symmetry::detail {
             data::detail::SimpleBody explicit_structure() const;
 
             /**
+             * @brief Check if the molecule has any symmetries defined.
+             */
+            bool has_symmetries() const;
+
+            /**
              * @brief Save the explicit structure to a file.
              */
             void save(const io::File& path) const;

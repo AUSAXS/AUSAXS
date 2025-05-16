@@ -16,30 +16,34 @@ namespace ausaxs::container {
             /**
              * @brief Get the value at index i, j, k. 
              */
-            T& operator()(unsigned int i, unsigned int j, unsigned int k) {return data[k + L*(j + M*i)];}
+            T& operator()(int i, int j, int k) {return data[k + L*(j + M*i)];}
 
             /**
              * @brief Get the value at index i, j, k. 
              */
-            const T& operator()(unsigned int i, unsigned int j, unsigned int k) const {return data[k + L*(j + M*i)];}
+            const T& operator()(int i, int j, int k) const {return data[k + L*(j + M*i)];}
 
             /**
              * @brief Get the value at index i, j, k. 
              */
-            T& index(unsigned int i, unsigned int j, unsigned int k) {return operator()(i, j, k);}
+            T& index(int i, int j, int k) {return operator()(i, j, k);}
 
             /**
              * @brief Get the value at index i, j, k. 
              */
-            const T& index(unsigned int i, unsigned int j, unsigned int k) const {return operator()(i, j, k);}
+            const T& index(int i, int j, int k) const {return operator()(i, j, k);}
 
             /**
              * @brief Get an iterator to the beginning of the vector at index i, j.
              */
-            const typename std::vector<T>::const_iterator begin(unsigned int i, unsigned int j) const {
+            const typename std::vector<T>::const_iterator begin(int i, int j) const {
                 #if SAFE_MATH
-                    if (i >= N || j >= M) {
-                        throw except::out_of_bounds("ArrayContainer3D::begin: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
+                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M)) {
+                        throw except::out_of_bounds(
+                            "ArrayContainer3D::begin: Index out of bounds "
+                            "(" + std::to_string(N) + ", " + std::to_string(M) + ") <= "
+                            "(" + std::to_string(i) + ", " + std::to_string(j) + ")"
+                        );
                     }
                 #endif
                 return data.begin() + L*(j + M*i);
@@ -48,10 +52,14 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the end of the vector at index i, j.
              */
-            const typename std::vector<T>::const_iterator end(unsigned int i, unsigned int j) const {
+            const typename std::vector<T>::const_iterator end(int i, int j) const {
                 #if SAFE_MATH
-                    if (i >= N || j >= M) {
-                        throw except::out_of_bounds("ArrayContainer3D::end: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
+                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M)) {
+                        throw except::out_of_bounds(
+                            "ArrayContainer3D::end: Index out of bounds "
+                            "(" + std::to_string(N) + ", " + std::to_string(M) + ") <= "
+                            "(" + std::to_string(i) + ", " + std::to_string(j) + ")"
+                        );
                     }
                 #endif
                 return data.begin() + L*(j + M*i) + L;
@@ -60,10 +68,14 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the beginning of the vector at index i, j.
              */
-            typename std::vector<T>::iterator begin(unsigned int i, unsigned int j) {
+            typename std::vector<T>::iterator begin(int i, int j) {
                 #if SAFE_MATH
-                    if (i >= N || j >= M) {
-                        throw except::out_of_bounds("ArrayContainer3D::begin: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
+                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M)) {
+                        throw except::out_of_bounds(
+                            "ArrayContainer3D::begin: Index out of bounds "
+                            "(" + std::to_string(N) + ", " + std::to_string(M) + ") <= "
+                            "(" + std::to_string(i) + ", " + std::to_string(j) + ")"
+                        );
                     }
                 #endif
                 return data.begin() + L*(j + M*i);
@@ -72,10 +84,14 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the end of the vector at index i, j.
              */
-            typename std::vector<T>::iterator end(unsigned int i, unsigned int j) {
+            typename std::vector<T>::iterator end(int i, int j) {
                 #if SAFE_MATH
-                    if (i >= N || j >= M) {
-                        throw except::out_of_bounds("ArrayContainer3D::end: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
+                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M)) {
+                        throw except::out_of_bounds(
+                            "ArrayContainer3D::end: Index out of bounds "
+                            "(" + std::to_string(N) + ", " + std::to_string(M) + ") <= "
+                            "(" + std::to_string(i) + ", " + std::to_string(j) + ")"
+                        );
                     }
                 #endif
                 return data.begin() + L*(j + M*i) + L;

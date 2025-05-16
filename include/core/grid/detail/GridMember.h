@@ -6,6 +6,7 @@
 #include <data/atoms/Water.h>
 #include <math/Vector3.h>
 #include <constants/Constants.h>
+#include <type_traits>
 
 namespace ausaxs::grid {
     /**
@@ -97,4 +98,10 @@ namespace ausaxs::grid {
             Vector3<int> loc;               // bin location
             bool expanded_volume = false;   // whether the volume of this atom has been expanded
     };
+
+    template<typename T>
+    concept valid_gridmember = 
+        std::is_same_v<std::remove_cvref_t<T>, GridMember<data::AtomFF>> 
+        || std::is_same_v<std::remove_cvref_t<T>, GridMember<data::Water>
+    >;
 }

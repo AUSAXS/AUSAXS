@@ -11,6 +11,7 @@
 #include <settings/All.h>
 #include <data/Body.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
+#include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <io/Writer.h>
 
 #include <vector>
@@ -75,8 +76,8 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
         CHECK(b.get_atom(0) == a1);
         CHECK(b.get_atom(1) == a2);
         REQUIRE(b.size_water() == 2);
-        CHECK(b.get_waters()[0] == w1);
-        CHECK(b.get_waters()[1] == w2);
+        CHECK(b.get_waters()->get()[0] == w1);
+        CHECK(b.get_waters()->get()[1] == w2);
     }
 
     SECTION("Body&") {
@@ -133,7 +134,7 @@ TEST_CASE_METHOD(fixture, "Body::get_atom") {
 TEST_CASE_METHOD(multiple_fixture, "Body::get_waters") {
     auto waters = std::vector<Water>{w1, w2};
     Body body(std::vector<AtomFF>{a1, a2}, waters);
-    REQUIRE(body.get_waters() == waters);
+    REQUIRE(body.get_waters()->get() == waters);
 }
 
 TEST_CASE_METHOD(fixture, "Body::get_cm") {
@@ -158,8 +159,6 @@ TEST_CASE_METHOD(fixture, "Body::total_atomic_charge") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::translate") {
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
-
     SECTION("basic translation") {
         body.translate(Vector3<double>{1, 1, 1});
         CHECK(body.get_atom(0).coordinates() == Vector3<double>{0, 0, 0});
@@ -170,6 +169,7 @@ TEST_CASE_METHOD(fixture, "Body::translate") {
 
     SECTION("informs manager") {
         auto protein = Molecule({body});
+        protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
         auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
         manager->reset_to_false();
         protein.get_body(0).translate(Vector3<double>(10, 0, 0));
@@ -300,9 +300,8 @@ TEST_CASE("Body::operator==") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::state") {
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
-    
     auto protein = Molecule({body});
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
     auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
     manager->reset_to_false();
 

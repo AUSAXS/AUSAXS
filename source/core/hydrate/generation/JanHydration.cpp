@@ -46,20 +46,20 @@ std::span<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explici
             int jm = std::max(j-r_eff, 0), jp = std::min(j+r_eff, bins.y()-1); // yminus and yplus
 
             for (int k = min.z(); k < max.z(); k++) {
-                if (gref.is_empty(i, j, k)) {continue;}
+                if (gref.is_only_empty_or_volume(i, j, k)) {continue;}
                 int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, bins.z()-1); // zminus and zplus
 
                 // check collisions for x ± r_eff                
-                if (gref.is_empty(im, j, k)) {add_loc(Vector3<int>(im, j, k));}
-                if (gref.is_empty(ip, j, k)) {add_loc(Vector3<int>(ip, j, k));}
+                if (gref.is_only_empty_or_volume(im, j, k)) {add_loc(Vector3<int>(im, j, k));}
+                if (gref.is_only_empty_or_volume(ip, j, k)) {add_loc(Vector3<int>(ip, j, k));}
 
                 // check collisions for y ± r_eff
-                if (gref.is_empty(i, jp, k)) {add_loc(Vector3<int>(i, jp, k));}
-                if (gref.is_empty(i, jm, k)) {add_loc(Vector3<int>(i, jm, k));}
+                if (gref.is_only_empty_or_volume(i, jp, k)) {add_loc(Vector3<int>(i, jp, k));}
+                if (gref.is_only_empty_or_volume(i, jm, k)) {add_loc(Vector3<int>(i, jm, k));}
 
                 // check collisions for z ± r_eff
-                if (gref.is_empty(i, j, km)) {add_loc(Vector3<int>(i, j, km));}
-                if (gref.is_empty(i, j, kp)) {add_loc(Vector3<int>(i, j, kp));}
+                if (gref.is_only_empty_or_volume(i, j, km)) {add_loc(Vector3<int>(i, j, km));}
+                if (gref.is_only_empty_or_volume(i, j, kp)) {add_loc(Vector3<int>(i, j, kp));}
             }
         }
     }

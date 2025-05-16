@@ -43,8 +43,6 @@ Matrix<float> dummy_image3 = {
 
 struct fixture {
     fixture() {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
-
         images.emplace_back(dummy_image1);
         images.emplace_back(dummy_image2);
         images.emplace_back(dummy_image3);

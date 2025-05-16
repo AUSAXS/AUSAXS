@@ -22,6 +22,11 @@ TEST_CASE("GridObj: comparisons") {
         CHECK(gref.is_empty(0, 0, 0) == false);
         CHECK(gref.is_volume(0, 0, 0) == false);
         CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
+
+        CHECK(gref.is_only_empty_or_volume(0, 0, 0) == false);
+        CHECK(gref.is_only_atom_area_or_volume(0, 0, 0) == false);
+        CHECK(gref.is_only_atom_center(0, 0, 0) == true);
+        CHECK(gref.is_only_volume(0, 0, 0) == false);
     }
     {
         gref.index(0, 0, 0) = A_AREA;
@@ -33,6 +38,11 @@ TEST_CASE("GridObj: comparisons") {
         CHECK(gref.is_empty(0, 0, 0) == false);
         CHECK(gref.is_volume(0, 0, 0) == false);
         CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
+
+        CHECK(gref.is_only_empty_or_volume(0, 0, 0) == false);
+        CHECK(gref.is_only_atom_area_or_volume(0, 0, 0) == true);
+        CHECK(gref.is_only_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_only_volume(0, 0, 0) == false);
     }
     {
         gref.index(0, 0, 0) = W_CENTER;
@@ -44,6 +54,11 @@ TEST_CASE("GridObj: comparisons") {
         CHECK(gref.is_empty(0, 0, 0) == false);
         CHECK(gref.is_volume(0, 0, 0) == false);
         CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
+
+        CHECK(gref.is_only_empty_or_volume(0, 0, 0) == false);
+        CHECK(gref.is_only_atom_area_or_volume(0, 0, 0) == false);
+        CHECK(gref.is_only_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_only_volume(0, 0, 0) == false);
     }
     {
         gref.index(0, 0, 0) = W_AREA;
@@ -55,6 +70,11 @@ TEST_CASE("GridObj: comparisons") {
         CHECK(gref.is_empty(0, 0, 0) == false);
         CHECK(gref.is_volume(0, 0, 0) == false);
         CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
+
+        CHECK(gref.is_only_empty_or_volume(0, 0, 0) == false);
+        CHECK(gref.is_only_atom_area_or_volume(0, 0, 0) == false);
+        CHECK(gref.is_only_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_only_volume(0, 0, 0) == false);
     }
     {
         gref.index(0, 0, 0) = VOLUME;
@@ -66,6 +86,11 @@ TEST_CASE("GridObj: comparisons") {
         CHECK(gref.is_empty(0, 0, 0) == false);
         CHECK(gref.is_volume(0, 0, 0) == true);
         CHECK(gref.is_empty_or_volume(0, 0, 0) == true);
+
+        CHECK(gref.is_only_empty_or_volume(0, 0, 0) == true);
+        CHECK(gref.is_only_atom_area_or_volume(0, 0, 0) == true);
+        CHECK(gref.is_only_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_only_volume(0, 0, 0) == true);
     }
     {
         gref.index(0, 0, 0) = EMPTY;
@@ -77,6 +102,11 @@ TEST_CASE("GridObj: comparisons") {
         CHECK(gref.is_empty(0, 0, 0) == true);
         CHECK(gref.is_volume(0, 0, 0) == false);
         CHECK(gref.is_empty_or_volume(0, 0, 0) == true);
+
+        CHECK(gref.is_only_empty_or_volume(0, 0, 0) == true);
+        CHECK(gref.is_only_atom_area_or_volume(0, 0, 0) == false);
+        CHECK(gref.is_only_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_only_volume(0, 0, 0) == false);
     }
 }
 
