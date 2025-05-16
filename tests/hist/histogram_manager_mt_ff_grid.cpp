@@ -14,6 +14,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
+#include <grid/exv/RawGridExv.h>
 #include <settings/All.h>
 #include <utility/Utility.h>
 
@@ -29,15 +30,14 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
     auto h = calculate(protein);
 
     // convert the grid to water atoms
-    auto exv_grid = protein.get_grid()->generate_excluded_volume();
+    auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
     std::vector<Water> waters(exv_grid.interior.size());
     for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
         waters[i] = Water(exv_grid.interior[i]);
         waters[i].weight() = 1;
     }
-
+    REQUIRE(waters.size() == exv_grid.interior.size());
     Molecule exv({Body{protein.get_atoms(), waters}});
-    auto h_exv = hist::HistogramManager<true>(&exv).calculate_all();
 
     // calculate the xx, ax, aa distributions
     auto h_cast = static_cast<CompositeDistanceHistogramFFAvg*>(h.get());
@@ -62,6 +62,7 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
         xx1 = std::move(temp_xx);
     }
 
+    auto h_exv = hist::HistogramManager<true>(&exv).calculate_all();
     auto xx2 = h_exv->get_ww_counts();
     auto ax2 = h_exv->get_aw_counts();
     auto aa2 = h_exv->get_aa_counts();
@@ -276,7 +277,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation
-        auto h = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h = DebugHistogramManagerMTFFGrid(&protein).calculate_all();
         auto h_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h.get());
 
         // check the distance axes
@@ -305,11 +306,11 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         auto h_gridsx_cast = static_cast<CompositeDistanceHistogramFFGridScalableExv*>(h_grid.get());
 
         CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
-        CHECK(compare_hist(h_grids_cast->get_d_axis(),   h_atom->get_d_axis()));
-        CHECK(compare_hist(h_gridsx_cast->get_d_axis(),   h_atom->get_d_axis()));
+        CHECK(compare_hist(h_grids_cast->get_d_axis(),  h_atom->get_d_axis()));
+        CHECK(compare_hist(h_gridsx_cast->get_d_axis(), h_atom->get_d_axis()));
 
-        CHECK(compare_hist(h_grid_cast->get_d_axis_xx(), h_exv->get_d_axis()));
-        CHECK(compare_hist(h_grids_cast->get_d_axis_xx(), h_exv->get_d_axis()));
+        CHECK(compare_hist(h_grid_cast->get_d_axis_xx(),   h_exv->get_d_axis()));
+        CHECK(compare_hist(h_grids_cast->get_d_axis_xx(),  h_exv->get_d_axis()));
         CHECK(compare_hist(h_gridsx_cast->get_d_axis_xx(), h_exv->get_d_axis()));
     }
 }

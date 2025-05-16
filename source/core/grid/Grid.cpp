@@ -199,7 +199,7 @@ std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector
     return _bounding_box<Water>(atoms);
 }
 
-void Grid::add_volume(double value) {
+void Grid::add_volume(int value) {
     volume += value;
 }
 

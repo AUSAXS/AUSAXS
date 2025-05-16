@@ -49,6 +49,10 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridSurface::calculate() 
     return calculate_all();
 }
 
+grid::exv::GridExcludedVolume HistogramManagerMTFFGridSurface::get_exv() const {
+    return grid::exv::RawGridWithSurfaceExv::create(this->protein->get_grid());
+}
+
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::calculate_all() {
     using XXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::XXContainer;
     using AXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::AXContainer;
@@ -59,7 +63,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     hist::detail::CompactCoordinates data_x_i, data_x_s;
 
     {   // generate the excluded volume representation
-        auto exv = grid::exv::RawGridWithSurfaceExv::create(this->protein->get_grid());
+        auto exv = get_exv();
         data_x_i = hist::detail::CompactCoordinates(std::move(exv.interior), 1);
         data_x_s = hist::detail::CompactCoordinates(std::move(exv.surface), 1);
     }

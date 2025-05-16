@@ -4,6 +4,9 @@
 #include <grid/detail/GridSurfaceDetection.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <settings/GridSettings.h>
 
 using namespace ausaxs;
@@ -25,7 +28,7 @@ class GridDebug : public grid::Grid {
             protein.set_grid(std::move(grid));
         }
 
-        std::vector<Vector3<double>> exv = {
+        inline static std::vector<Vector3<double>> exv = {
             {0, 0, 0}, 
             { 1, 1, 1}, { 1, 1, -1}, { 1, -1, 1}, { 1, -1, -1}, 
             {-1, 1, 1}, {-1, 1, -1}, {-1, -1, 1}, {-1, -1, -1}
@@ -33,6 +36,62 @@ class GridDebug : public grid::Grid {
 
     private:
         double ra = 0, rh = 0;
+};
+
+/**
+ * @brief Debug version of the HistogramManagerMTFFGrid class, which uses a predictable excluded volume.
+ */
+ class DebugHistogramManagerMTFFGrid : public hist::HistogramManagerMTFFGrid {
+    public:
+        using HistogramManagerMTFFGrid::HistogramManagerMTFFGrid;
+
+        grid::exv::GridExcludedVolume get_exv() const override {
+            return {
+                {
+                    GridDebug::exv[0], 
+                    GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
+                    GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
+                }, 
+                {}
+            };
+        }
+};
+
+/**
+ * @brief Debug version of the HistogramManagerMTFFGridScalableExv class, which uses a predictable excluded volume.
+ */
+class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMTFFGridScalableExv {
+    public:
+        using HistogramManagerMTFFGridScalableExv::HistogramManagerMTFFGridScalableExv;
+
+        grid::exv::GridExcludedVolume get_exv() const override {
+            return {
+                {
+                    GridDebug::exv[0], 
+                    GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
+                    GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
+                }, 
+                {}
+            };
+        }
+};
+
+/**
+ * @brief Debug version of the HistogramManagerMTFFGridSurface class, which uses a predictable excluded volume.
+ */
+ class DebugHistogramManagerMTFFGridSurface : public hist::HistogramManagerMTFFGridSurface {
+    public:
+        using HistogramManagerMTFFGridSurface::HistogramManagerMTFFGridSurface;
+
+        grid::exv::GridExcludedVolume get_exv() const override {
+            return {
+                {GridDebug::exv[0]}, 
+                {
+                    GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
+                    GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
+                }
+            };
+        }
 };
 
 inline grid::exv::GridExcludedVolume GridDebug::generate_excluded_volume() {

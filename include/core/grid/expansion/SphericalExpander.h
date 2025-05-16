@@ -18,8 +18,8 @@ namespace ausaxs::grid::volume {
         static void deflate_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& atom);
     };
 
-    using MinimalExpander = SphericalExpander<true, false>;
-    using FullExpander = SphericalExpander<true, true>;
+    using AtomicExpander         = SphericalExpander<true, false>;
+    using AtomicAndWaterExpander = SphericalExpander<true, true>;
 }
 
 template<bool AMV, bool _>

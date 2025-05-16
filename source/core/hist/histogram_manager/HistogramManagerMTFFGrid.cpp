@@ -49,11 +49,15 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGrid::calculate() {
     return calculate_all();
 }
 
+grid::exv::GridExcludedVolume HistogramManagerMTFFGrid::get_exv() const {
+    return grid::exv::RawGridExv::create(this->protein->get_grid());
+}
+
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_all() {
     auto pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
-    hist::detail::CompactCoordinates data_x(grid::exv::RawGridExv::create(this->protein->get_grid()).interior, 1);
+    auto data_x = hist::detail::CompactCoordinates(std::move(get_exv().interior), 1);
     auto& data_a = *this->data_a_ptr;
     auto& data_w = *this->data_w_ptr;
     int data_a_size = (int) data_a.size();

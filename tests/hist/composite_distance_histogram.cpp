@@ -80,6 +80,12 @@ TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
 TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
     settings::general::warnings = false;
     settings::molecule::implicit_hydrogens = false;
+    auto hist_t = GENERATE(
+        settings::hist::HistogramManagerChoice::HistogramManager,
+        settings::hist::HistogramManagerChoice::HistogramManagerMT,
+        settings::hist::HistogramManagerChoice::PartialHistogramManager,
+        settings::hist::HistogramManagerChoice::PartialHistogramManagerMT
+    );
 
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
     std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
@@ -88,6 +94,7 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
     std::vector<Water> w =   {Water({1, -1,  1}),  Water({1, 1,  1})};
     std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3)};
     Molecule protein(a);
+    protein.set_histogram_manager(hist_t);
 
     auto hist = protein.get_histogram();
     std::vector<double> p_pp = hist->get_aa_counts();
@@ -124,7 +131,6 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
         std::vector<AtomFF> b5 = {AtomFF({ 0,  0,  0}, form_factor::form_factor_t::C)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
         Molecule protein(a);
-
         set_unity_charge(protein);
 
         auto test_func = [&] (const auto& q_axis) {
@@ -198,7 +204,6 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
         std::vector<Water> w = {Water({0,  0,  0})};
         std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
         DebugMolecule protein(a);
-
         set_unity_charge(protein);
         double Z = protein.get_volume_grid()*constants::charge::density::water/8;
         protein.set_volume_scaling(1./Z);
@@ -343,7 +348,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
     }
 }
 
-TEST_CASE("qmin & qmax") {
+TEST_CASE("CompositeDistanceHistogram: qmin & qmax") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     auto Iqf = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();

@@ -1,6 +1,8 @@
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <grid/detail/RadialLineGenerator.h>
 #include <grid/Grid.h>
+#include <grid/detail/GridObj.h>
+#include <utility/Logging.h>
 #include <settings/GridSettings.h>
 
 using namespace ausaxs;
@@ -81,6 +83,26 @@ GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
     GridExcludedVolume vol;
     vol.interior.reserve(grid->get_volume());
 
+    grid::detail::State exv_state;
+    switch (settings::grid::exv::expansion_strategy) {
+        case settings::grid::exv::ExvType::AtomicOnly:
+            exv_state = grid::detail::State::VOLUME   | 
+                        grid::detail::State::A_CENTER | 
+                        grid::detail::State::A_AREA;
+            break;
+
+        case settings::grid::exv::ExvType::AtomicAndWater:
+            exv_state = grid::detail::State::VOLUME   | 
+                        grid::detail::State::A_CENTER | 
+                        grid::detail::State::A_AREA   | 
+                        grid::detail::State::W_CENTER | 
+                        grid::detail::State::W_AREA;
+            break;
+
+        default:
+            throw std::runtime_error("RawGridExv: Unknown expansion strategy. Did you forget to add a case?");
+    }
+
     int stride = std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width));
     int buffer = std::max(1., std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width));
 
@@ -91,44 +113,37 @@ GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
         for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
             for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
                 auto& val = gobj.index(i, j, k);
-                switch (val) {
-                    case grid::detail::State::VOLUME:
-                    case grid::detail::State::A_AREA:
-                    case grid::detail::State::A_CENTER: {
-                        // if we're not detecting the surface, everything is interior
-                        if constexpr (!detect_surface) {
-                            vol.interior.emplace_back(grid->to_xyz(i, j, k));
-                            continue;
-                        }
+                if (!(val & exv_state)) {continue;}
 
-                        // with non-unity widths we don't need the actual vectors yet since we have more work to do later
-                        auto collision = collision_check(grid, {i, j, k});
-                        if constexpr (!unity_width) {
-                            if (!collision) {val |= grid::detail::RESERVED_1;}
-                        } else { // with unity widths our work is already done here
-                            if (collision) {vol.interior.emplace_back(grid->to_xyz(i, j, k));}
-                            else           {vol.surface.emplace_back( grid->to_xyz(i, j, k));}
-                        }
-                        break;
-                    }
+                // if we're not detecting the surface, everything is interior
+                if constexpr (!detect_surface) {
+                    vol.interior.emplace_back(grid->to_xyz(i, j, k));
+                    continue;
+                }
 
-                    default:
-                        break;
+                // with non-unity widths we don't need the actual vectors yet since we have more work to do later
+                auto collision = collision_check(grid, {i, j, k});
+                if constexpr (!unity_width) {
+                    if (!collision) {val |= grid::detail::RESERVED_1;}
+                } else { // with unity widths our work is already done here
+                    if (collision) {vol.interior.emplace_back(grid->to_xyz(i, j, k));}
+                    else           {vol.surface.emplace_back( grid->to_xyz(i, j, k));}
                 }
             }
         }
     }
 
     if constexpr (!unity_width) {
-        int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width)/2;
+        int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width)*0.5;
         int expand2 = expand*expand;
-        auto mark_adjacent = [&gobj, expand, expand2] (int i, int j, int k) {
+        auto mark_adjacent = [&gobj, exv_state, expand, expand2] (int i, int j, int k) {
             Vector3<int> origin{i, j, k};
             for (int l = -expand; l <= expand; l++) {
                 for (int m = -expand; m <= expand; m++) {
                     for (int n = -expand; n <= expand; n++) {
-                        if (gobj.is_atom_area_or_volume(i+l, j+m, k+n) && origin.distance2(Vector3<int>{i+l, j+m, k+n}) <= expand2) {
-                            gobj.index(i+l, j+m, k+n) |= grid::detail::RESERVED_2;
+                        auto& val = gobj.index(i+l, j+m, k+n);
+                        if ((val & exv_state) && (origin.distance2(Vector3<int>{i+l, j+m, k+n}) <= expand2)) {
+                            val |= grid::detail::RESERVED_2;
                         }
                     }
                 }
@@ -157,19 +172,19 @@ GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
                         continue;
                     }
 
-                    switch (gobj.index(i, j, k)) {
-                        case grid::detail::State::VOLUME:
-                        case grid::detail::State::A_AREA:
-                        case grid::detail::State::A_CENTER: 
-                            vol.interior.emplace_back(grid->to_xyz(i, j, k));
-                            break;
-                        default:
-                            break;
-                    }
+                    if (!(val & exv_state)) {continue;}
+                    vol.interior.emplace_back(grid->to_xyz(i, j, k));
                 }
             }
         }
     }
+
+    logging::log(
+        "RawGridWithSurfaceExv::create: added " + std::to_string(vol.interior.size()) + std::to_string(vol.surface.size()) + 
+        "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
+        "\n\tOf these, " + std::to_string(vol.interior.size()) + " are interior atoms, and " + std::to_string(vol.surface.size()) + " are surface atoms."
+    );
+    std::cout << "RawGridExv::create: added " << vol.interior.size() + vol.surface.size() << " / " << grid->get_volume_bins() << " atoms to the excluded volume." << std::endl;
 
     return vol;
 }

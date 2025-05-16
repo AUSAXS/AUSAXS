@@ -35,12 +35,12 @@ namespace ausaxs::settings {
             // The surface thickness of the grid in Ångström. This is used for fitting the excluded volume. 
             static double surface_thickness;
 
-            enum class Expansion {
-                Minimal,
-                Full,
+            enum class ExvType {
+                AtomicOnly,     // Consider only atoms as part of the excluded volume
+                AtomicAndWater, // Consider both atoms and waters as part of the excluded volume
             };
             // The expansion algorithm
-            static Expansion expansion_strategy;
+            static ExvType expansion_strategy;
         };
 
         struct detail {

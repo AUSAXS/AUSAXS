@@ -135,10 +135,18 @@ namespace ausaxs::grid {
 			/**
 			 * @brief Get the total volume spanned by the atoms in this grid in Å^3.
 			 * 		  This will trigger the expansion of all unexpanded atoms. 
-			 *        Waters do not count towards this volume.
+			 *        Waters may count towards this volume dependending on the settings.
 			 * 		  Complexity: O(n) in the number of unexpanded atoms.
 			 */
 			[[nodiscard]] double get_volume();
+
+			/**
+			 * @brief Get the total volume spanned by the atoms in this grid as a number of bins.
+			 * 		  This will trigger the expansion of all unexpanded atoms. 
+			 *        Waters may count towards this volume dependending on the settings.
+			 * 		  Complexity: O(n) in the number of unexpanded atoms.
+			 */
+			[[nodiscard]] int get_volume_bins() const {return volume;}
 
 			/**
 			 * @brief Get the width of each bin.
@@ -235,7 +243,7 @@ namespace ausaxs::grid {
 			/**
 			 * @brief Add a value to the volume of the grid.
 			 */
-			void add_volume(double value);
+			void add_volume(int value);
 
 			/**
 			 * @brief Convert a x bin index to a real x coordinate.
