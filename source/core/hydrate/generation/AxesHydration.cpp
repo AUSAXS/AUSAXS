@@ -51,7 +51,7 @@ std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explic
         // int r_eff_bin = std::round(r_eff_real)/grid->get_width(); // the effective bin radius in bins
 
         const auto& coords_abs = atom.get_atom().coordinates();
-        auto x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
+        auto [x, y, z] = atom.get_bin_loc();
 
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
         auto bin_min = grid->to_bins(coords_abs - r_eff_real);
@@ -61,38 +61,38 @@ std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explic
         bin_min.z() = std::max<int>(bin_min.z(), 0); bin_max.z() = std::min<int>(bin_max.z(), bins[2]-1);
 
         // check collisions for x ± r_eff
-        if ((gref.is_empty(bin_min.x(), y, z)) && collision_check(Vector3<unsigned int>(bin_min.x(), y, z), ra)) {
+        if ((gref.is_only_empty_or_volume(bin_min.x(), y, z)) && collision_check(Vector3<unsigned int>(bin_min.x(), y, z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.x() -= r_eff_real;
             add_loc(std::move(exact_loc));
         }
-        if ((gref.is_empty(bin_max.x(), y, z)) && collision_check(Vector3<unsigned int>(bin_max.x(), y, z), ra)) {
+        if ((gref.is_only_empty_or_volume(bin_max.x(), y, z)) && collision_check(Vector3<unsigned int>(bin_max.x(), y, z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.x() += r_eff_real;
             add_loc(std::move(exact_loc));
         }
 
         // check collisions for y ± r_eff
-        if ((gref.is_empty(x, bin_min.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_min.y(), z), ra)) {
+        if ((gref.is_only_empty_or_volume(x, bin_min.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_min.y(), z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.y() -= r_eff_real;
             add_loc(std::move(exact_loc));
         }
 
-        if ((gref.is_empty(x, bin_max.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_max.y(), z), ra)) {
+        if ((gref.is_only_empty_or_volume(x, bin_max.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_max.y(), z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.y() += r_eff_real;
             add_loc(std::move(exact_loc));
         }
 
         // check collisions for z ± r_eff
-        if ((gref.is_empty(x, y, bin_min.z())) && collision_check(Vector3<unsigned int>(x, y, bin_min.z()), ra)) {
+        if ((gref.is_only_empty_or_volume(x, y, bin_min.z())) && collision_check(Vector3<unsigned int>(x, y, bin_min.z()), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.z() -= r_eff_real;
             add_loc(std::move(exact_loc));
         }
 
-        if ((gref.is_empty(x, y, bin_max.z())) && collision_check(Vector3<unsigned int>(x, y, bin_max.z()), ra)) {
+        if ((gref.is_only_empty_or_volume(x, y, bin_max.z())) && collision_check(Vector3<unsigned int>(x, y, bin_max.z()), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.z() += r_eff_real;
             add_loc(std::move(exact_loc));
@@ -119,7 +119,7 @@ bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, d
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
-                if (!gref.is_empty(i, j, k) && std::pow(x-i, 2) + std::pow(y-j, 2) + std::pow(z-k, 2) < r*r) {return false;}
+                if (!gref.is_only_empty_or_volume(i, j, k) && std::pow(x-i, 2) + std::pow(y-j, 2) + std::pow(z-k, 2) < r*r) {return false;}
             }
         }
     }
