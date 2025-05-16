@@ -52,6 +52,12 @@ namespace ausaxs::grid::detail {
             bool is_empty_or_volume(int x, int y, int z) const; // @copydoc is_empty_or_volume(State) const
 
             /**
+             * @brief Branchless function to check if a given bin is empty or part of a volume. This means the bin is *only* EMPTY or VOLUME.
+             */
+            bool is_only_empty_or_volume(State s) const;
+            bool is_only_empty_or_volume(int x, int y, int z) const; // @copydoc is_only_empty_or_volume(State) const
+
+            /**
              * @brief Branchless function to check if a given bin is empty or part of the hydration shell. 
              *        This means the bin is EMPTY, W_AREA, or W_CENTER.
              */

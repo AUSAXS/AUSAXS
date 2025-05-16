@@ -20,6 +20,9 @@ bool GridObj::is_empty_or_volume(State s) const {return s == EMPTY || (s & VOLUM
 bool GridObj::is_empty_or_volume_or_water(int x, int y, int z) const {return is_empty_or_volume_or_water(index(x, y, z));}
 bool GridObj::is_empty_or_volume_or_water(State s) const {return s == EMPTY || (s & (VOLUME | W_AREA | W_CENTER));}
 
+bool GridObj::is_only_empty_or_volume(State s) const {return s == EMPTY || ((s & VOLUME) && !(s & ~VOLUME));}
+bool GridObj::is_only_empty_or_volume(int x, int y, int z) const {return is_only_empty_or_volume(index(x, y, z));}
+
 bool GridObj::is_empty_or_water(int x, int y, int z) const {return is_empty_or_water(index(x, y, z));}
 bool GridObj::is_empty_or_water(State s) const {return s == EMPTY || (s & (W_AREA | W_CENTER));}
 
