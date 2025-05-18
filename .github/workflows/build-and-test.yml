@@ -3,7 +3,7 @@ name: Compile & test
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches: [master]
+    branches: [master, v1.1.2]
 
 permissions:
   checks: write
