@@ -29,7 +29,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
 }
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
-    observer_ptr<const data::Molecule> protein, const settings::hist::HistogramManagerChoice& choice, bool use_weighted_distribution
+    observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool use_weighted_distribution
 ) {
     if (use_weighted_distribution) {
         switch (choice) {

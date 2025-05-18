@@ -273,7 +273,7 @@ auto test_translation = [] () {
 
         data::Molecule m("tests/files/2epe.pdb");
         m.generate_new_hydration();
-        m.get_body(0).get_waters() = m.get_waters();
+        m.get_body(0).get_waters()->get() = m.get_waters();
         set_unity_charge(m);
 
         symmetry::Symmetry s({{10, 0, 0}, {0, 0, 0}}); 

@@ -75,8 +75,8 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
         CHECK(b.get_atom(0) == a1);
         CHECK(b.get_atom(1) == a2);
         REQUIRE(b.size_water() == 2);
-        CHECK(b.get_waters()[0] == w1);
-        CHECK(b.get_waters()[1] == w2);
+        CHECK(b.get_waters()->get()[0] == w1);
+        CHECK(b.get_waters()->get()[1] == w2);
     }
 
     SECTION("Body&") {
@@ -133,7 +133,7 @@ TEST_CASE_METHOD(fixture, "Body::get_atom") {
 TEST_CASE_METHOD(multiple_fixture, "Body::get_waters") {
     auto waters = std::vector<Water>{w1, w2};
     Body body(std::vector<AtomFF>{a1, a2}, waters);
-    REQUIRE(body.get_waters() == waters);
+    REQUIRE(body.get_waters()->get() == waters);
 }
 
 TEST_CASE_METHOD(fixture, "Body::get_cm") {

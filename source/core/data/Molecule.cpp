@@ -255,8 +255,9 @@ Vector3<double> Molecule::get_cm() const {
         });
 
         // iterate through their hydration atoms
-        if (body.size_water() == 0) {continue;}
-        std::for_each(body.get_waters().begin(), body.get_waters().end(), [&M, &cm] (const auto& water) {
+        auto w = body.get_waters();
+        if (!w.has_value()) {continue;}
+        std::for_each(w.value().get().begin(), w.value().get().end(), [&M, &cm] (const auto& water) {
             double m = constants::mass::get_mass(water.form_factor_type());
             M += m;
             cm += water.coords*m;
@@ -269,8 +270,9 @@ std::vector<Water> Molecule::get_waters() const {
     std::vector<Water> waters(size_water());
     int n = 0; // current index
     for (const auto& body : bodies) {
-        if (body.size_water() == 0) {continue;}
-        for (const auto& a : body.get_waters()) {
+        auto w = body.get_waters();
+        if (!w.has_value()) {continue;}
+        for (const auto& a : w.value().get()) {
             waters[n] = a;
             n++;
         }
@@ -386,12 +388,21 @@ void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> ma
     bind_body_signallers();
 }
 
+void Molecule::set_histogram_manager(settings::hist::HistogramManagerChoice choice) {
+    phm = hist::factory::construct_histogram_manager(this, choice);
+    bind_body_signallers();
+}
+
 Body& Molecule::get_body(unsigned int index) {return bodies[index];}
 const Body& Molecule::get_body(unsigned int index) const {return bodies[index];}
 
 std::vector<Body>& Molecule::get_bodies() {return bodies;}
 
 const std::vector<Body>& Molecule::get_bodies() const {return bodies;}
+
+symmetry::detail::MoleculeSymmetryFacade Molecule::symmetry() const {
+    return symmetry::detail::MoleculeSymmetryFacade(this);
+}
 
 bool Molecule::equals_content(const Molecule& other) const {
     if (size_body() != other.size_body()) {
