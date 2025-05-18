@@ -2,6 +2,7 @@
 
 #include <settings/CrystalSettings.h>
 #include <settings/EMSettings.h>
+#include <settings/ExvSettings.h>
 #include <settings/FitSettings.h>
 #include <settings/Flags.h>
 #include <settings/GeneralSettings.h>

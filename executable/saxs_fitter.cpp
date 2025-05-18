@@ -2,6 +2,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <grid/Grid.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
 #include <plots/All.h>
@@ -24,7 +25,6 @@ using namespace ausaxs;
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
     io::ExistingFile pdb, mfile, settings;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
     bool use_existing_hydration = false, save_settings = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
@@ -67,7 +67,7 @@ int main(int argc, char const *argv[]) {
     // exv subcommands
     auto sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
     sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) 
-        {settings::detail::parse_option("histogram_manager", {s});}, 
+        {settings::detail::parse_option("exv_model", {s});}, 
         "The excluded volume model to use. Options: Simple, Fraser, Grid.");
     sub_exv->add_flag("--fit", settings::fit::fit_excluded_volume, 
         "Fit the excluded volume.")->default_val(settings::fit::fit_excluded_volume);
@@ -135,6 +135,11 @@ int main(int argc, char const *argv[]) {
         // adjust grid width to support user-specified excluded volume width
         if (sub_exv_w->count() && !sub_grid_w->count()) {
             settings::grid::cell_width = settings::grid::exv::width;
+        }
+
+        // adjust excluded volume width to be at least as large as the grid width
+        if (sub_grid_w->count() && !sub_exv_w->count() && settings::grid::exv::width < settings::grid::cell_width) {
+            settings::grid::exv::width = settings::grid::cell_width;
         }
 
         // save settings if requested
