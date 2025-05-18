@@ -15,20 +15,23 @@ namespace ausaxs::container {
             /**
              * @brief Get the value at index i, j, k. 
              */
-            constexpr T& index(unsigned int i, unsigned int j) noexcept {return data[j + M*i];}
+            constexpr T& index(int i, int j) noexcept {return data[j + M*i];}
 
             /**
              * @brief Get the value at index i, j, k. 
              */
-            constexpr const T& index(unsigned int i, unsigned int j) const noexcept {return data[j + M*i];}
+            constexpr const T& index(int i, int j) const noexcept {return data[j + M*i];}
 
             /**
              * @brief Get an iterator to the beginning of the vector at index i.
              */
-            const typename std::array<T, M>::const_iterator begin(unsigned int i) const {
+            const typename std::array<T, M>::const_iterator begin(int i) const {
                 #if SAFE_MATH
-                    if (i >= N) {
-                        throw except::out_of_bounds("ArrayContainer2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
+                    if (i >= static_cast<int>(N)) {
+                        throw except::out_of_bounds(
+                            "ArrayContainer2D::begin: Index out of bounds "
+                            "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
+                        );
                     }
                 #endif
                 return data.begin() + i*M;
@@ -39,8 +42,11 @@ namespace ausaxs::container {
              */
             const typename std::array<T, M>::const_iterator end(unsigned int i) const {
                 #if SAFE_MATH
-                    if (i >= N) {
-                        throw except::out_of_bounds("ArrayContainer2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
+                    if (i >= static_cast<int>(N)) {
+                        throw except::out_of_bounds(
+                            "ArrayContainer2D::end: Index out of bounds "
+                            "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
+                        );
                     }
                 #endif
                 return data.begin() + i*M + M;
@@ -51,8 +57,11 @@ namespace ausaxs::container {
              */
             typename std::array<T, M>::iterator begin(unsigned int i) {
                 #if SAFE_MATH
-                    if (i >= N) {
-                        throw except::out_of_bounds("ArrayContainer2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
+                    if (i >= static_cast<int>(N)) {
+                        throw except::out_of_bounds(
+                            "ArrayContainer2D::begin: Index out of bounds "
+                            "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
+                        );
                     }
                 #endif            
                 return data.begin() + i*M;
@@ -63,8 +72,11 @@ namespace ausaxs::container {
              */
             typename std::array<T, M>::iterator end(unsigned int i) {
                 #if SAFE_MATH
-                    if (i >= N) {
-                        throw except::out_of_bounds("ArrayContainer2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
+                    if (i >= static_cast<int>(N)) {
+                        throw except::out_of_bounds(
+                            "ArrayContainer2D::end: Index out of bounds "
+                            "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
+                        );
                     }
                 #endif            
                 return data.begin() + i*M + M;

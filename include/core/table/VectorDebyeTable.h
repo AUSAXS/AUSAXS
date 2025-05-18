@@ -29,7 +29,7 @@ namespace ausaxs::table {
             /**
              * @brief Look up a value in the table based on indices. This is a constant-time operation. 
              */
-            [[nodiscard]] double lookup(unsigned int q_index, unsigned int d_index) const override;
+            [[nodiscard]] double lookup(int q_index, int d_index) const override;
 
             /**
              * @brief Get the size of the table in the q-direction. 
@@ -44,22 +44,22 @@ namespace ausaxs::table {
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.
              */
-            [[nodiscard]] const constants::axes::d_type* begin(unsigned int q_index) const override;
+            [[nodiscard]] const constants::axes::d_type* begin(int q_index) const override;
 
             /**
              * @brief Get an iterator to the end of the d-values for the given q-index.
              */
-            [[nodiscard]] const constants::axes::d_type* end(unsigned int q_index) const override;
+            [[nodiscard]] const constants::axes::d_type* end(int q_index) const override;
 
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.
              */
-            [[nodiscard]] constants::axes::d_type* begin(unsigned int q_index);
+            [[nodiscard]] constants::axes::d_type* begin(int q_index);
 
             /**
              * @brief Get an iterator to the end of the d-values for the given q-index.
              */
-            [[nodiscard]] constants::axes::d_type* end(unsigned int q_index);
+            [[nodiscard]] constants::axes::d_type* end(int q_index);
 
             /**
              * @brief Get the default table.
