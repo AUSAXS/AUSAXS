@@ -114,13 +114,13 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
 
     SECTION("simple") {
         data::Molecule protein({
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}, 
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}}
         });
+        protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
         protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
 
         test(protein);
@@ -132,6 +132,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({0, 0, 1})}}, 
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}}
         });
+        protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
         protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
 
         test(protein);
@@ -143,6 +144,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body("tests/files/2epe.pdb"), 
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}
         });
+        protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
         protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
         protein.generate_new_hydration();
 
@@ -155,6 +157,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({0, 0, 1})}}, 
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}},
         });
+        protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
         protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
         protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{0, -1, 0}, {0, 0, 0}}, 1}));
         protein.get_body(1).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{0,  1, 0}, {0, 0, 0}}, 1}));
@@ -166,6 +169,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
     SECTION("symmetry-heavy") {
         // split the 2epe file into 10 smaller bodies
         auto protein = rigidbody::BodySplitter::split("tests/files/2epe.pdb", {10, 20, 30, 40, 50, 60, 70, 80, 90});
+        protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
         protein.generate_new_hydration();
 
         static std::random_device seed;

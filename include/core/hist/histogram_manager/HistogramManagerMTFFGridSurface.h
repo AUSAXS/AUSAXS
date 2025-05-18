@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <grid/detail/GridExcludedVolume.h>
 
 namespace ausaxs::hist {
     /**
@@ -23,5 +24,8 @@ namespace ausaxs::hist {
              * @brief Calculate all contributions to the scattering histogram. 
              */
             std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
+
+        private:
+            virtual grid::exv::GridExcludedVolume get_exv() const;
     };
 }

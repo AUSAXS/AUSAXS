@@ -15,6 +15,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/detail/SimpleExvModel.h>
 #include <settings/HistogramSettings.h>
 #include <constants/ConstantsAxes.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -30,6 +31,8 @@ std::unique_ptr<DistanceHistogram> HistogramManager<use_weighted_distribution>::
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distribution>::calculate_all() {
+    logging::log("HistogramManager::calculate: starting calculation");
+
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     GenericDistribution1D_t p_aa(constants::axes::d_axis.bins);
     GenericDistribution1D_t p_ww(constants::axes::d_axis.bins);

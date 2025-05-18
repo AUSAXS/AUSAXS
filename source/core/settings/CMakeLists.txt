@@ -1,6 +1,7 @@
 target_sources(ausaxs_core PRIVATE 
 	"CrystalSettings.cpp"
 	"EMSettings.cpp"
+	"ExvSettings.cpp"
 	"FitSettings.cpp"
 	"Flags.cpp"
 	"GeneralSettings.cpp"

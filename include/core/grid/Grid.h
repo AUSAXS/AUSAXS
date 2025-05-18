@@ -16,11 +16,16 @@
 
 namespace ausaxs::grid {
 	class Grid {
+		struct private_ctr {explicit private_ctr() = default;};
 		public:
 			/**
-			 * @brief Constructor.
-			 * 
-			 * @param axes The axis limits. The width must be set through settings::grid::width.
+			 * @brief Initialize a new grid of the given size with the given cell width. 
+			 * 		  This can only be used internally by the Grid class. 
+			 */
+			Grid(const Axis3D& axes, private_ctr);
+
+			/**
+			 * @brief Initialize a new grid of the given size. The cell width is controlled by the settings::grid::cell_width variable.
 			 */
 			Grid(const Limit3D& axes);
 
@@ -47,14 +52,21 @@ namespace ausaxs::grid {
 			virtual ~Grid();
 
 			/**
+			 * @brief Create a new Grid from a reference file.
+			 * 
+			 * @param path The path to the reference file. 
+			 */
+			[[nodiscard]] static std::unique_ptr<Grid> create_from_reference(const io::ExistingFile& path, const data::Molecule& molecule);
+
+			/**
 			 * @brief Get the atomic radius of an atom in Å.
 			 */
-			virtual double get_atomic_radius(form_factor::form_factor_t atom) const;
+			[[nodiscard]] virtual double get_atomic_radius(form_factor::form_factor_t atom) const;
 
 			/**
 			 * @brief Get the radius of a water molecule in Å.
 			 */
-			virtual double get_hydration_radius() const;
+			[[nodiscard]] virtual double get_hydration_radius() const;
 
 			/**
 			 * @brief Add the contents of a body to the grid.
@@ -118,59 +130,59 @@ namespace ausaxs::grid {
 			/**
 			 * @brief Get the number of bins in each dimension.
 			 */
-			Vector3<int> get_bins() const;
+			[[nodiscard]] Vector3<int> get_bins() const;
 
 			/**
 			 * @brief Get the total volume spanned by the atoms in this grid in Å^3.
 			 * 		  This will trigger the expansion of all unexpanded atoms. 
-			 *        Waters do not count towards this volume.
+			 *        Waters may count towards this volume dependending on the settings.
 			 * 		  Complexity: O(n) in the number of unexpanded atoms.
 			 */
-			double get_volume();
+			[[nodiscard]] double get_volume();
+
+			/**
+			 * @brief Get the total volume spanned by the atoms in this grid as a number of bins.
+			 * 		  This will trigger the expansion of all unexpanded atoms. 
+			 *        Waters may count towards this volume dependending on the settings.
+			 * 		  Complexity: O(n) in the number of unexpanded atoms.
+			 */
+			[[nodiscard]] int get_volume_bins() const {return volume;}
 
 			/**
 			 * @brief Get the width of each bin.
 			 * 		  Complexity: O(1).
 			 */
-			double get_width() const;
+			[[nodiscard]] double get_width() const;
 
 			/**
 			 * @brief Get a copy of the axes of the grid.
 			 * 		  Complexity: O(1).
 			 */
-			const Axis3D& get_axes() const {return axes;}
-
-			/**
-			 * @brief Create the smallest possible box containing the center points of all member atoms.
-			 * 		  Complexity: O(n) in the number of atoms.
-			 * 
-			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
-			 */
-			std::pair<Vector3<int>, Vector3<int>> bounding_box_index() const;
+			[[nodiscard]] const Axis3D& get_axes() const {return axes;}
 
 			/**
 			 * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
 			 * 		  Complexity: O(1).
 			 */
-			Vector3<int> to_bins(const Vector3<double>& v) const;
+			[[nodiscard]] Vector3<int> to_bins(const Vector3<double>& v) const;
 
 			/**
 			 * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
 			 * 		  If the coordinates are outside the grid, they are set to the closest edge.
 			 * 		  Complexity: O(1) (but slower than to_bins)
 			 */
-			Vector3<int> to_bins_bounded(const Vector3<double>& v) const;
+			[[nodiscard]] Vector3<int> to_bins_bounded(const Vector3<double>& v) const;
 
 			/**
 			 * @brief Convert a location in the grid (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
 			 * 		  Complexity: O(1).
 			 */
 			template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-			Vector3<double> to_xyz(const Vector3<T>& v) const {
+			[[nodiscard]] Vector3<double> to_xyz(const Vector3<T>& v) const {
 				return to_xyz(v.x(), v.y(), v.z());
 			}
 
-			Vector3<double> to_xyz(int i, int j, int k) const; //< @copydoc to_xyz(const Vector3<T>& v)
+			[[nodiscard]] Vector3<double> to_xyz(int i, int j, int k) const; //< @copydoc to_xyz(const Vector3<T>& v)
 
 			/**
 			 * @brief Set this Grid equal to another.
@@ -202,90 +214,70 @@ namespace ausaxs::grid {
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
 			 * 		  This will expand all atoms in the grid.
 			 */
-			virtual detail::GridExcludedVolume generate_excluded_volume(bool determine_surface);
+			[[nodiscard]] virtual exv::GridExcludedVolume generate_excluded_volume();
 
-			std::vector<data::AtomFF> get_surface_atoms() const;
+			[[nodiscard]] std::vector<data::AtomFF> get_surface_atoms() const;
 
 			/**
 			 * @brief Get the contents of a single bin.
 			 */
-			const detail::State& index(unsigned int i, unsigned int j, unsigned int k) const;
+			[[nodiscard]] const detail::State& index(int i, int j, int k) const;
 
 			/**
 			 * @brief Get the center of the grid in bin coordinates.
 			 */
-			Vector3<int> get_center() const;
+			[[nodiscard]] Vector3<int> get_center() const;
 
 			/**
 			 * @brief Get the atoms in the grid.
 			 *		  Complexity: O(N).
 			 */
-			std::vector<data::AtomFF> get_atoms();
+			[[nodiscard]] std::vector<data::AtomFF> get_atoms();
 
 			/**
 			 * @brief Get the water molecules in the grid.
 			 *		  Complexity: O(N).
 			 */
-			std::vector<data::Water> get_waters();
+			[[nodiscard]] std::vector<data::Water> get_waters();
 
 			/**
 			 * @brief Add a value to the volume of the grid.
 			 */
-			void add_volume(double value);
+			void add_volume(int value);
+
+			/**
+			 * @brief Convert a x bin index to a real x coordinate.
+			 * 		  Complexity: O(1).
+			 */
+			[[nodiscard]] double to_x(int i) const;
+
+			/**
+			 * @brief Convert a y bin index to a real y coordinate.
+			 * 		  Complexity: O(1).
+			 */
+			[[nodiscard]] double to_y(int j) const;
+ 
+			/**
+			 * @brief Convert a z bin index to a real z coordinate.
+			 * 		  Complexity: O(1).
+			 */
+			[[nodiscard]] double to_z(int k) const;
+
+			/**
+			 * @brief Create the smallest possible box containing the center points of all member atoms.
+			 * 		  Complexity: O(n) in the number of atoms.
+			 * 
+			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
+			 */
+			[[nodiscard]] std::pair<Vector3<int>, Vector3<int>> bounding_box_index(bool include_waters = false) const;
 
 			detail::GridObj grid; // The actual grid.
 			std::vector<GridMember<data::AtomFF>> a_members; // The member atoms and where they are located.
 			std::vector<GridMember<data::Water>>  w_members; // The member water molecules and where they are located. 
 			std::unordered_map<int, int> body_start; 		 // The starting index of each body in the a_members vector. 
 
-		protected: // only protected since they are important for testing
+		protected:
 			int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-
-			/**
-			 * @brief Convert a x bin index to a real x coordinate.
-			 * 		  Complexity: O(1).
-			 */
-			double to_x(int i) const;
-
-			 /**
-			  * @brief Convert a y bin index to a real y coordinate.
-			  * 		  Complexity: O(1).
-			  */
-			double to_y(int j) const;
- 
-			 /**
-			  * @brief Convert a z bin index to a real z coordinate.
-			  * 		  Complexity: O(1).
-			  */
-			double to_z(int k) const;
-
-			/** 
-			 * @brief Expand a single member atom into an actual sphere.
-			 * 		  Only expands atoms if they have not already been expanded. 
-			 * 		  Complexity: O(1).
-			 */
-			void expand_volume(GridMember<data::AtomFF>& atom);
-
-			/** 
-			 * @brief Expand a single member water molecule into an actual sphere.
-			 * 		  Only expands molecules if they have not already been expanded.
-			 * 		  Complexity: O(1).
-			 */
-			void expand_volume(GridMember<data::Water>& atom);
-
-			/** 
-			 * @brief Deflate a single member atom into an actual sphere.
-			 * 		  Only deflates atoms if they have been expanded.
-			 * 		  Complexity: O(1).
-			 */
-			void deflate_volume(GridMember<data::AtomFF>& atom);
-
-			/** 
-			 * @brief Deflate a single member atom into an actual sphere.
-			 * 		  Only deflates atoms if they have been expanded.
-			 * 		  Complexity: O(1).
-			 */
-			void deflate_volume(GridMember<data::Water>& atom);
 
 			/**
 			 * @brief Create the smallest possible box containing all atoms.
@@ -293,7 +285,12 @@ namespace ausaxs::grid {
 			 * 
 			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
 			 */
-			static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<data::AtomFF>& atoms);
+			[[nodiscard]] static std::pair<Vector3<double>, Vector3<double>> 
+				bounding_box(const std::vector<data::AtomFF>& atoms);
+
+			// @copydoc bounding_box(const std::vector<data::AtomFF>& atoms)
+			[[nodiscard]] static std::pair<Vector3<double>, Vector3<double>> 
+				bounding_box(const std::vector<data::Water>& atoms);
 
 		private:
 			Axis3D axes;

@@ -17,6 +17,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/MultiThreading.h>
+#include <utility/Logging.h>
 
 #include <list>
 #include <functional>
@@ -64,6 +65,7 @@ namespace {
 
 template<bool use_weighted_distribution>
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::calculate() {
+    logging::log("PartialSymmetryManagerMT::calculate: starting calculation");
     if (protein->size_water() == 0) {
         return _calculate<false>();
     } else {

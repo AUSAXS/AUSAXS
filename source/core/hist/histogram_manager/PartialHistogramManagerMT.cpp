@@ -15,6 +15,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/MultiThreading.h>
+#include <utility/Logging.h>
 #include <container/ThreadLocalWrapper.h>
 
 using namespace ausaxs;
@@ -173,6 +174,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::update_compact_repres
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate_all() {
+    logging::log("PartialHistogramManagerMT::calculate_all: starting calculation");
     auto total = calculate();
     int bins = total->get_total_counts().size();
 

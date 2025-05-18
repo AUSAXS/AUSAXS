@@ -11,5 +11,6 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 
 std::unique_ptr<em::managers::ProteinManager> em::factory::create_manager(observer_ptr<const ImageStackBase> images) {
-    return std::make_unique<em::managers::SmartProteinManager>(images);
+    return std::make_unique<em::managers::SimpleProteinManager>(images);
+    // return std::make_unique<em::managers::SmartProteinManager>(images);
 }
