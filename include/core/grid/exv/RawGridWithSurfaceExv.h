@@ -6,6 +6,6 @@
 
 namespace ausaxs::grid::exv {
     struct RawGridWithSurfaceExv {
-        static GridExcludedVolume create(observer_ptr<grid::Grid> grid);
+        static GridExcludedVolume create(observer_ptr<grid::Grid> grid, bool detect_surface = true);
     };
 }

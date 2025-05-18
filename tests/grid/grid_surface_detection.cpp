@@ -12,7 +12,7 @@
 #include <string>
 
 using namespace ausaxs;
-using namespace data;
+using namespace ausaxs::data;
 
 class GridDebug : public grid::Grid {
     public: 

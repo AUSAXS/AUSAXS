@@ -44,6 +44,10 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
         }
     }
 
+    assert(
+        static_cast<int>(atoms.size()) == grid->get_volume_bins() 
+        && "RawGridExv: The number of interior and surface atoms does not match the number of volume bins."
+    );
     logging::log(
         "RawGridExv::create: added " + std::to_string(atoms.size()) + "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
     );

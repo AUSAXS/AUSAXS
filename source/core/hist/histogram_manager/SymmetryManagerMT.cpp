@@ -7,6 +7,7 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/detail/SimpleExvModel.h>
+#include <utility/Logging.h>
 
 #include <cassert>
 
@@ -33,6 +34,8 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
 
 template<bool use_weighted_distribution> template <bool contains_waters>
 std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_weighted_distribution>::calculate() {
+    logging::log("SymmetryManagerMT::calculate: starting calculation");
+
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
 

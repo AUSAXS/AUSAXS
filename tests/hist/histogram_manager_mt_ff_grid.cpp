@@ -243,7 +243,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         Molecule protein(a);
         set_unity_charge(protein);
 
-        auto exv_grid = protein.get_grid()->generate_excluded_volume();
+        auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
         std::vector<AtomFF> atoms(exv_grid.interior.size());
         for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
             atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::C);
@@ -287,7 +287,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     }
 
     SECTION("real data") {
-        auto exv_grid = protein.get_grid()->generate_excluded_volume();
+        auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
         std::vector<AtomFF> atoms(exv_grid.interior.size());
         for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
             atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::C);

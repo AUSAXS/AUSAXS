@@ -13,6 +13,8 @@
 #include <data/Molecule.h>
 #include <settings/All.h>
 
+#include "hist/hist_test_helper.h"
+
 #include <fstream>
 
 using namespace ausaxs;
@@ -97,7 +99,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
     em::ImageStackBase isb("tests/files/A2M_2020_Q4.ccp4");
-    REQUIRE(isb.get_histogram(5)->get_total_counts() == isb.get_protein_manager()->get_histogram(5)->get_total_counts());
+    REQUIRE(compare_hist(isb.get_histogram(5)->get_total_counts(), isb.get_protein_manager()->get_histogram(5)->get_total_counts()));
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {

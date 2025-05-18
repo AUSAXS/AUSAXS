@@ -179,20 +179,24 @@ GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
         }
     }
 
+    assert(
+        static_cast<int>(vol.interior.size() + vol.surface.size()) == grid->get_volume_bins() 
+        && "RawGridExv: The number of interior and surface atoms does not match the number of volume bins."
+    );
     logging::log(
         "RawGridWithSurfaceExv::create: added " + std::to_string(vol.interior.size()) + std::to_string(vol.surface.size()) + 
         "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
         "\n\tOf these, " + std::to_string(vol.interior.size()) + " are interior atoms, and " + std::to_string(vol.surface.size()) + " are surface atoms."
     );
-    std::cout << "RawGridExv::create: added " << vol.interior.size() + vol.surface.size() << " / " << grid->get_volume_bins() << " atoms to the excluded volume." << std::endl;
+    std::cout << "RawGridWithSurfaceExv::create: added " << vol.interior.size() + vol.surface.size() << " / " << grid->get_volume_bins() << " atoms to the excluded volume." << std::endl;
 
     return vol;
 }
 
-GridExcludedVolume RawGridWithSurfaceExv::create(observer_ptr<grid::Grid> grid) {
+GridExcludedVolume RawGridWithSurfaceExv::create(observer_ptr<grid::Grid> grid, bool detect_surface) {
     int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width);
     if (expand != 1) {
-        return helper<true, false>(grid);
+        return detect_surface ? helper<true, false>(grid) : helper<false, false>(grid);
     }
-    return helper<true, true>(grid);
+    return detect_surface ? helper<true, true>(grid) : helper<false, true>(grid);
 }

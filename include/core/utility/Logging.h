@@ -26,4 +26,10 @@ namespace ausaxs::logging {
      * @brief Start a new log named `name`_log.
      */
     void start(std::string_view name);
+
+    /**
+     * @brief Stream log messages to the console.
+     *        This is primarily useful for debugging.
+     */
+    void log_to_console(bool enable);
 }

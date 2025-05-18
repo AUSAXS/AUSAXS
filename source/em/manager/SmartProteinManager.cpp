@@ -101,8 +101,7 @@ void SmartProteinManager::update_protein(double cutoff) {
     if (protein == nullptr || protein->size_atom() == 0) {
         toggle_histogram_manager_init(true);
         protein = generate_protein(cutoff); 
-        protein->bind_body_signallers();
-        protein->set_histogram_manager(std::make_unique<hist::PartialHistogramManagerMT<true>>(protein.get()));
+        protein->set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
         previous_cutoff = cutoff;
         toggle_histogram_manager_init(false);
         return;

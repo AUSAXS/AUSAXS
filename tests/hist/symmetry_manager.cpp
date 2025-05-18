@@ -114,6 +114,7 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
         Molecule m({Body{std::vector{a1, a2}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         SECTION("no copies") {
@@ -280,18 +281,19 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         m.get_body(0).get_waters()->get() = m.get_waters();
         set_unity_charge(m);
 
-        symmetry::Symmetry s({{10, 0, 0}, {0, 0, 0}}); 
         SECTION("single copy") {
+            symmetry::Symmetry s({{10, 0, 0}, {0, 0, 0}}); 
             m.get_body(0).symmetry().add(symmetry::Symmetry(s));
 
             auto h = m.get_histogram();
 
             // manually perform the transformation for comparison
             data::Molecule m_copy({m.get_body(0)});
+            m_copy.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT); // ensure symmetries are ignored
             data::Body& b_copy = m_copy.get_body(0);
             std::vector<AtomFF> a_copy = b_copy.get_atoms();
-            for (auto& a : b_copy.get_atoms()) {
-                a.coordinates() += s.initial_relation.translation;
+            for (auto& a : b_copy.get_atoms()) {                
+                a.coordinates() += s.initial_relation.translation; 
                 a_copy.push_back(a);
             }
             b_copy.get_atoms() = std::move(a_copy);

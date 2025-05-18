@@ -57,33 +57,46 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager: 
                 return std::make_unique<HistogramManager<true>>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMT:
                 return std::make_unique<HistogramManagerMT<true>>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
                 return std::make_unique<HistogramManagerMTFFAvg<true>>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
                 return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: 
                 return std::make_unique<HistogramManagerMTFFGrid>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: 
                 return std::make_unique<HistogramManagerMTFFGridSurface>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: 
                 return std::make_unique<HistogramManagerMTFFGridScalableExv>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT:
                 return std::make_unique<SymmetryManagerMT<true>>(protein);
+
             case settings::hist::HistogramManagerChoice::PartialHistogramManager:
                 return std::make_unique<PartialHistogramManager<true>>(protein);
+
             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
                 return std::make_unique<PartialHistogramManagerMT<true>>(protein);
+
             case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
                 return std::make_unique<PartialSymmetryManagerMT<true>>(protein);
+
             // case settings::hist::HistogramManagerChoice::DebugManager:
             //     return std::make_unique<DebugManager<true>>(protein);
+
             case settings::hist::HistogramManagerChoice::FoXSManager:
             case settings::hist::HistogramManagerChoice::PepsiManager:
             case settings::hist::HistogramManagerChoice::CrysolManager:
                 // FoXSManager, PepsiManager, and CrysolManager are all extensions of the HistogramManagerMTFFExplicit method
                 return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein);
+
             default:
                 throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");
         }
@@ -91,26 +104,37 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager: 
                 return std::make_unique<HistogramManager<false>>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMT:
                 return std::make_unique<HistogramManagerMT<false>>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
                 return std::make_unique<HistogramManagerMTFFAvg<false>>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
                 return std::make_unique<HistogramManagerMTFFExplicit<false>>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
                 return std::make_unique<HistogramManagerMTFFGrid>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
                 return std::make_unique<HistogramManagerMTFFGridSurface>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv:
                 return std::make_unique<HistogramManagerMTFFGridScalableExv>(protein);
+
             case settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT:
                 return std::make_unique<SymmetryManagerMT<false>>(protein);
+
             case settings::hist::HistogramManagerChoice::PartialHistogramManager:
                 return std::make_unique<PartialHistogramManager<false>>(protein);
+
             case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
                 return std::make_unique<PartialHistogramManagerMT<false>>(protein);
+
             case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
                 return std::make_unique<PartialSymmetryManagerMT<false>>(protein);
+
             case settings::hist::HistogramManagerChoice::FoXSManager:
             case settings::hist::HistogramManagerChoice::PepsiManager:
             case settings::hist::HistogramManagerChoice::CrysolManager:
@@ -118,6 +142,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 return std::make_unique<HistogramManagerMTFFExplicit<false>>(protein);
             // case settings::hist::HistogramManagerChoice::DebugManager:
             //     return std::make_unique<DebugManager<false>>(protein);
+
             default:
                 throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");
         }

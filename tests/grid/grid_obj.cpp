@@ -4,8 +4,8 @@
 #include <grid/Grid.h>
 
 using namespace ausaxs;
-using namespace grid;
-using namespace grid::detail;
+using namespace ausaxs::grid;
+using namespace ausaxs::grid::detail;
 
 TEST_CASE("GridObj: comparisons") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
