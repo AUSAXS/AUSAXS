@@ -18,6 +18,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/ExvSettings.h>
@@ -52,7 +53,6 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool use_weighted_distribution
 ) {
-    if (!settings::flags::init_histogram_manager) {return nullptr;}
     if (use_weighted_distribution) {
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager: 

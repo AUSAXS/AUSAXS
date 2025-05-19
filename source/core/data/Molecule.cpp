@@ -64,6 +64,7 @@ Molecule& Molecule::operator=(Molecule&& other) {
 }
 
 void Molecule::initialize() {
+    if (!settings::flags::init_histogram_manager) {return;}
     set_histogram_manager(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins));
 }
 

@@ -29,11 +29,13 @@
 using namespace ausaxs;
 using namespace data;
 
-TEST_CASE("EM_managers: partial_histogram_manager_works") {
+TEST_CASE("managers: EM: partial_histogram_manager_works") {
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
     auto phm = protein.get_histogram_manager();
-    auto phm_cast = static_cast<hist::IPartialHistogramManager*>(phm);
+    auto phm_cast = dynamic_cast<hist::IPartialHistogramManager*>(phm);
+    REQUIRE(phm_cast != nullptr);
     auto manager = phm_cast->get_state_manager();
 
     manager->reset_to_false();
@@ -42,12 +44,14 @@ TEST_CASE("EM_managers: partial_histogram_manager_works") {
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, true, false, false});
 }
 
-TEST_CASE("EM_managers: protein_manager") {
+TEST_CASE("managers: EM: protein_manager") {
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
 
     auto phm = protein.get_histogram_manager();
-    auto phm_cast = static_cast<hist::IPartialHistogramManager*>(phm);
+    auto phm_cast = dynamic_cast<hist::IPartialHistogramManager*>(phm);
+    REQUIRE(phm_cast != nullptr);
     auto manager = phm_cast->get_state_manager();
 
     manager->reset_to_false();
@@ -81,7 +85,7 @@ TEST_CASE("EM_managers: protein_manager") {
     CHECK(manager->get_externally_modified_bodies() == std::vector{true, false, false, false, true});
 }
 
-TEST_CASE("EM_managers: em_partial_histogram_manager") {
+TEST_CASE("managers: EM: em_partial_histogram_manager") {
     // don't use the phm since it eats too much memory
     settings::em::hydrate = false;
     settings::grid::min_bins = 100;
@@ -89,24 +93,7 @@ TEST_CASE("EM_managers: em_partial_histogram_manager") {
     auto compare = [] (std::shared_ptr<em::managers::ProteinManager> manager1, std::shared_ptr<em::managers::ProteinManager> manager2, double cutoff) {
         auto h1 = manager1->get_histogram(cutoff);
         auto h2 = manager2->get_histogram(cutoff);
-
-        auto p1 = h1->get_total_counts();
-        auto p2 = h2->get_total_counts();
-        if (p1.size() != p2.size()) {
-            unsigned int lim = std::min(p1.size(), p2.size());
-            for (unsigned int i = 0; i < lim; i++) {
-                std::cout << "h1: " << p1[i] << ", h2: " << p2[i] << std::endl;
-            }
-            std::cout << "Unequal sizes. " << std::endl;
-            return false;
-        }
-        for (unsigned int i = 0; i < p1.size(); i++) {
-            if (p1[i] != p2[i]) {
-                std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-                return false;
-            }
-        }
-        return true;
+        return compare_hist_approx(h1->get_total_counts(), h2->get_total_counts());
     };
 
     SECTION("basic functionality works") {

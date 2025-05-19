@@ -7,11 +7,13 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <data/Molecule.h>
 #include <utility/Exceptions.h>
+#include <utility/Logging.h>
 #include <data/Body.h>
 
 using namespace ausaxs;
 
 void em::managers::SimpleProteinManager::update_protein(double cutoff) {
+    logging::log("SimpleProteinManager::update_protein: cutoff = " + std::to_string(cutoff));
     auto atoms = generate_atoms(cutoff);
 
     // this sorting step is principially not necessary, but required for consistency with SmartProteinManager
@@ -25,5 +27,5 @@ void em::managers::SimpleProteinManager::update_protein(double cutoff) {
     std::vector<data::AtomFF> converted(atoms.size());
     std::transform(atoms.begin(), atoms.end(), converted.begin(), [] (const data::EMAtom& atom) {return atom.get_atom_ff();});
     protein = std::make_unique<data::Molecule>(std::vector{data::Body{converted}});
-    protein->set_histogram_manager(std::make_unique<hist::HistogramManagerMT<true>>(protein.get()));
+    protein->set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
 }

@@ -12,6 +12,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/Body.h>
 #include <utility/Console.h>
 #include <utility/Limit3D.h>
+#include <utility/Logging.h>
 #include <settings/HistogramSettings.h>
 #include <settings/ExvSettings.h>
 #include <settings/EMSettings.h>
@@ -100,15 +101,16 @@ void SmartProteinManager::toggle_histogram_manager_init(bool state) {
 
 void SmartProteinManager::update_protein(double cutoff) {
     if (protein == nullptr || protein->size_atom() == 0) {
-        toggle_histogram_manager_init(true);
+        toggle_histogram_manager_init(false);
+        logging::log("SmartProteinManager::update_protein: protein is nullptr or empty. Generating new protein.");
         protein = generate_protein(cutoff); 
         protein->set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
         previous_cutoff = cutoff;
-        toggle_histogram_manager_init(false);
         return;
     }
 
     if (cutoff == previous_cutoff) {
+        logging::log("SmartProteinManager::update_protein: cutoff is the same as previous. Nothing to do.");
         return;
     }
 
@@ -116,6 +118,7 @@ void SmartProteinManager::update_protein(double cutoff) {
     if (charge_levels.empty()) {
         throw except::unexpected("SmartProteinManager::update_protein: charge_levels is empty.");
     }
+    logging::log("SmartProteinManager::update_protein: cutoff = " + std::to_string(cutoff) + ", previous_cutoff = " + std::to_string(previous_cutoff));
 
     std::unique_ptr<data::Molecule> new_protein = generate_protein(cutoff);
     if (cutoff < previous_cutoff) {
