@@ -64,7 +64,7 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
             auto noise = noise_generator();
             auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff + noise);
-            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check({bins.x(), bins.y(), bins.z()})) {
+            if (grid->grid.is_only_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check({bins.x(), bins.y(), bins.z()})) {
                 Vector3<double> exact_loc = atom.get_atom().coordinates() + rot_locs[i]*reff + noise;
                 add_loc(std::move(exact_loc));
             }
@@ -164,7 +164,7 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
             yr = std::clamp(yr, 0, bins.y()-1);
             zr = std::clamp(zr, 0, bins.z()-1);
 
-            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+            if (!gref.is_only_empty_or_volume(xr, yr, zr)) {
                 if (2 < ++inside_1rh) {
                     return false;
                 }
@@ -180,7 +180,7 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
                 continue;
             }
 
-            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+            if (!gref.is_only_empty_or_volume(xr, yr, zr)) {
                 score -= 2;
                 continue;
             }
@@ -195,7 +195,7 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
                 continue;
             }
 
-            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+            if (!gref.is_only_empty_or_volume(xr, yr, zr)) {
                 score -= 1;
                 continue;
             }

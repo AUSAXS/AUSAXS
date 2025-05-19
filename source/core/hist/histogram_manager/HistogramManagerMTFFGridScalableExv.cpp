@@ -11,6 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
+#include <grid/exv/RawGridExv.h>
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
@@ -49,6 +50,10 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridScalableExv::calculat
     return calculate_all();
 }
 
+grid::exv::GridExcludedVolume HistogramManagerMTFFGridScalableExv::get_exv() const {
+    return grid::exv::RawGridExv::create(this->protein->get_grid());
+}
+
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv::calculate_all() {
     logging::log("HistogramManagerMTFFGridScalableExv::calculate: starting calculation");
     auto pool = utility::multi_threading::get_global_pool();
@@ -68,7 +73,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         p_ww = std::move(cast_res->get_ww_counts_ff()),
         data_a = *this->data_a_ptr, 
         data_w = *this->data_w_ptr, 
-        data_x = hist::detail::CompactCoordinates(this->protein->get_grid()->generate_excluded_volume(false).interior, 1),
+        data_x = hist::detail::CompactCoordinates(std::move(get_exv().interior), 1),
         pool] 
         (double scale) 
     {

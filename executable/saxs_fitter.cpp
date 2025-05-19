@@ -24,8 +24,8 @@ using namespace ausaxs;
 
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
-    io::ExistingFile pdb, mfile, settings;
-    bool use_existing_hydration = false, save_settings = false;
+    io::ExistingFile pdb, mfile, exv_ref_file, settings;
+    bool use_existing_hydration = false, save_settings = false, save_grid = false, save_exv = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.fallthrough();
@@ -79,13 +79,15 @@ int main(int argc, char const *argv[]) {
     sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness, 
         "The thickness of the surface layer in Ångström."
     )->default_val(settings::grid::exv::surface_thickness)->group("");
-
     auto sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width, 
         "The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Ångström."
     )->default_val(settings::grid::exv::width);
-    sub_exv->add_flag("--save", settings::grid::exv::save, 
+    sub_exv->add_flag("--save", save_exv, 
         "Write a PDB representation of the excluded volume to disk."
-    )->default_val(settings::grid::exv::save);
+    )->default_val(save_exv);
+    sub_exv->add_option("--ref,--reference", exv_ref_file, 
+        "Path to the excluded volume reference file."
+    )->check(CLI::ExistingFile);
 
     // solvation subcommands
     auto sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
@@ -110,6 +112,9 @@ int main(int argc, char const *argv[]) {
     auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);
+    sub_grid->add_flag("--save", save_grid, 
+        "Write a PDB representation of the grid to disk."
+    )->default_val(save_grid);
 
     // fit subcommands
     // auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
@@ -187,6 +192,7 @@ int main(int argc, char const *argv[]) {
         //######################//
 
         data::Molecule protein(pdb);
+        if (!exv_ref_file.empty()) {protein.set_grid(grid::Grid::create_from_reference(exv_ref_file, protein));}
         if (!use_existing_hydration || protein.size_water() == 0) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();
@@ -255,6 +261,8 @@ int main(int argc, char const *argv[]) {
         console::print_text("\tRhoM:            " + utility::round_double(rhoM, 3) + " g/cm^3");
 
         protein.save(settings::general::output + "model.pdb");
+        if (save_grid) {protein.get_grid()->save(settings::general::output + "grid.pdb");}
+        if (save_exv) {protein.get_grid()->generate_excluded_volume().save(settings::general::output + "exv.pdb");}
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;
