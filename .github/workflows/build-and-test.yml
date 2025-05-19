@@ -24,10 +24,10 @@ jobs:
         run: |
           if [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
             echo "This is a draft PR. Skipping build." >> $GITHUB_STEP_SUMMARY
-            echo "is-draft=true" >> $GITHUB_ENV
+            echo "is-draft=true" >> $GITHUB_OUTPUTS
           else
             echo "This is not a draft PR. Proceeding with build."
-            echo "is-draft=false" >> $GITHUB_ENV
+            echo "is-draft=false" >> $GITHUB_OUTPUTS
           fi
 
   build-win: 
