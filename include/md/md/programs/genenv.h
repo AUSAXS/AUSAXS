@@ -38,8 +38,28 @@ namespace ausaxs::md {
                 return *this;
             }
 
-            genenv& distance(double distance) {
+            enum class vdw {none, forcefield, database};
+            /**
+             * @brief Set the distance of the envelope from the center of mass of the system.
+             * 
+             * @param distance The distance in nm.
+             * @param type Whether the vdw radii should be added to the distance. Options are:
+             *             none (default): No vdw radii are added to the distance.
+             *             forcefield: The vdw radii from the forcefield are added to the distance.
+             *             database: The vdw radii from the database are added to the distance.
+             */
+            genenv& distance(double distance, vdw type = vdw::none) {
                 options.push_back(std::make_shared<shell::Argument>("-d", distance));
+                switch (type) {
+                    case vdw::forcefield:
+                        options.push_back(std::make_shared<shell::Argument>("-vdw", "ff"));
+                        break;
+                    case vdw::database:
+                        options.push_back(std::make_shared<shell::Argument>("-vdw", "db"));
+                        break;
+                    case vdw::none:
+                        break;
+                }
                 return *this;
             }
 
