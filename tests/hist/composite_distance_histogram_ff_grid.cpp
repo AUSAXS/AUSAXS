@@ -225,8 +225,8 @@ TEST_CASE("HistogramManagerMTFFGrid: consistent solvent density fitting", "[file
         hs_cast->apply_solvent_density_scaling_factor(r);
         hse_cast->apply_solvent_density_scaling_factor(r);
 
-        auto Ig = hg_cast->debye_transform();
-        auto Is = hs_cast->debye_transform();
+        auto Ig  = hg_cast->debye_transform();
+        auto Is  = hs_cast->debye_transform();
         auto Ise = hse_cast->debye_transform();
 
         REQUIRE(compare_hist(Ig, Is));

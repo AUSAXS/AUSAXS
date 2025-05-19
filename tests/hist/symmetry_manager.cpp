@@ -60,10 +60,11 @@ void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
     SUCCEED();
 }
 
-auto test_translation = [] () {
+auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
     SECTION("one body with one atom") {
         AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         SECTION("no copies") {
@@ -113,6 +114,7 @@ auto test_translation = [] () {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
         Molecule m({Body{std::vector{a1, a2}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         SECTION("no copies") {
@@ -153,6 +155,7 @@ auto test_translation = [] () {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
         Molecule m({Body{std::vector{a1}}, Body{std::vector{a2}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         SECTION("no copies") {
@@ -205,6 +208,7 @@ auto test_translation = [] () {
         Water  w1({1, 0, 0});
         Body b1(std::vector<AtomFF>{a1}, std::vector{w1});
         Molecule m({b1});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         SECTION("no copies") {
@@ -272,24 +276,24 @@ auto test_translation = [] () {
         settings::general::verbose = false;
 
         data::Molecule m("tests/files/2epe.pdb");
+        m.set_histogram_manager(choice);
         m.generate_new_hydration();
         m.get_body(0).get_waters()->get() = m.get_waters();
         set_unity_charge(m);
 
-        symmetry::Symmetry s({{10, 0, 0}, {0, 0, 0}}); 
         SECTION("single copy") {
+            symmetry::Symmetry s({{10, 0, 0}, {0, 0, 0}}); 
             m.get_body(0).symmetry().add(symmetry::Symmetry(s));
 
             auto h = m.get_histogram();
 
             // manually perform the transformation for comparison
-            auto hm_backup = settings::hist::histogram_manager;
-            settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
             data::Molecule m_copy({m.get_body(0)});
+            m_copy.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT); // ensure symmetries are ignored
             data::Body& b_copy = m_copy.get_body(0);
             std::vector<AtomFF> a_copy = b_copy.get_atoms();
-            for (auto& a : b_copy.get_atoms()) {
-                a.coordinates() += s.initial_relation.translation;
+            for (auto& a : b_copy.get_atoms()) {                
+                a.coordinates() += s.initial_relation.translation; 
                 a_copy.push_back(a);
             }
             b_copy.get_atoms() = std::move(a_copy);
@@ -303,7 +307,6 @@ auto test_translation = [] () {
             CHECK(compare_hist_approx(h->get_ww_counts(), h2->get_ww_counts()));
             CHECK(compare_hist_approx(h->get_aw_counts(), h2->get_aw_counts()));
             CHECK(compare_hist_approx(h->get_total_counts(), h2->get_total_counts()));
-            settings::hist::histogram_manager = hm_backup;
         }
     }
 };
@@ -311,19 +314,18 @@ auto test_translation = [] () {
 TEST_CASE("SymmetryManager: translations") {
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
-        test_translation();
+        test_translation(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
-        test_translation();
+        test_translation(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
 
-auto test_repeating_symmetries = [] () {
+auto test_repeating_symmetries = [] (settings::hist::HistogramManagerChoice choice) {
     SECTION("one body with one atom") {
         AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         SECTION("two repeats") {
@@ -354,6 +356,7 @@ auto test_repeating_symmetries = [] () {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);        
         Molecule m({Body{std::vector{a1}}, Body{std::vector{a2}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         SECTION("two repeats") {
@@ -389,19 +392,18 @@ auto test_repeating_symmetries = [] () {
 TEST_CASE("SymmetryManager: repeating symmetries") {
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
-        test_repeating_symmetries();
+        test_repeating_symmetries(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
-        test_repeating_symmetries();
+        test_repeating_symmetries(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
 
-auto test_rotations = [] () {
+auto test_rotations = [] (settings::hist::HistogramManagerChoice choice) {
     SECTION("one body with one atom") {
         AtomFF a({1, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         SECTION("one copy") {
@@ -431,21 +433,20 @@ TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     SECTION("SymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
-        test_rotations();
+        test_rotations(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
-        test_rotations();
+        test_rotations(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
 
-auto test_multi_atom = [] () {
+auto test_multi_atom = [] (settings::hist::HistogramManagerChoice choice) {
     SECTION("cross") {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         AtomFF a2({2, 0, 0}, form_factor::form_factor_t::C);
         AtomFF a3({3, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a1, a2, a3}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
 
         // external rotate pi/2 around the y-axis and replicate thrice
@@ -482,6 +483,7 @@ auto test_multi_atom = [] () {
     SECTION("helix") {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
         Molecule m({Body{std::vector{a1}}});
+        m.set_histogram_manager(choice);
         set_unity_charge(m);
         m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 0, 0}, {0, 0, 0}}, {{0, 0, 1}, {0, 0, std::numbers::pi/2}}, 4));
 
@@ -502,16 +504,14 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
     settings::molecule::center = false;
 
     SECTION("SymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
-        test_multi_atom();
+        test_multi_atom(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
-        test_multi_atom();
+        test_multi_atom(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
 
-auto test_random = [] () {
+auto test_random = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-10, 10);
@@ -540,6 +540,7 @@ auto test_random = [] () {
             int repeats = n(gen);
 
             Molecule m({Body{atoms}});
+            m.set_histogram_manager(choice);
             set_unity_charge(m);
             m.get_body(0).symmetry().add(symmetry::Symmetry({{0, 0, 0}, {0, 0, 0}}, {translate, angles}, repeats));
 
@@ -569,6 +570,7 @@ auto test_random = [] () {
             }
 
             Molecule m({Body{atoms}});
+            m.set_histogram_manager(choice);
             set_unity_charge(m);
             for (int j = 0; j < n(gen); ++j) {
                 auto[angles, translate] = GENERATE(
@@ -594,11 +596,9 @@ auto test_random = [] () {
 
 TEST_CASE("SymmetryManager: random tests") {
     SECTION("SymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
-        test_random();
+        test_random(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
-        test_random();
+        test_random(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }

@@ -17,6 +17,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -49,6 +50,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridScalableExv::calculat
 }
 
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv::calculate_all() {
+    logging::log("HistogramManagerMTFFGridScalableExv::calculate: starting calculation");
     auto pool = utility::multi_threading::get_global_pool();
     auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
 

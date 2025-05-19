@@ -17,6 +17,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -49,6 +50,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridSurface::calculate() 
 }
 
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::calculate_all() {
+    logging::log("HistogramManagerMTFFGridSurface::calculate: starting calculation");
     using XXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::XXContainer;
     using AXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::AXContainer;
     using WXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::WXContainer;
