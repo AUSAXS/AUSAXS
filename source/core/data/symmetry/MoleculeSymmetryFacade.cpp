@@ -32,6 +32,15 @@ data::detail::SimpleBody symmetry::detail::MoleculeSymmetryFacade::explicit_stru
     return {atoms, waters};
 }
 
+bool symmetry::detail::MoleculeSymmetryFacade::has_symmetries() const {
+    return std::accumulate(
+        molecule->get_bodies().begin(), 
+        molecule->get_bodies().end(), 
+        false, 
+        [] (bool sum, const Body& body) {return sum || body.size_symmetry();}
+    );
+}
+
 void symmetry::detail::MoleculeSymmetryFacade::save(const io::File& path) const {
     auto body = explicit_structure();
     io::Writer::write(io::pdb::PDBStructure(Body(std::move(body.atoms), std::move(body.waters))), path);

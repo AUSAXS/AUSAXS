@@ -34,7 +34,7 @@ struct analytical_histogram {
                 atom.weight() = 1;
             }
             if (body.size_water() == 0) {continue;}
-            for (auto& water : body.get_waters()) {
+            for (auto& water : body.get_waters()->get()) {
                 water.weight() = 1;
             }
         }
