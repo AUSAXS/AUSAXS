@@ -16,20 +16,24 @@ jobs:
   check-draft:
     name: "Check if PR is draft"
     runs-on: ubuntu-latest
+    outputs:
+      is-draft: ${{ steps.check.outputs.is-draft }}
     steps:
       - name: Check draft status
+        id: check
         run: |
           if [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
             echo "This is a draft PR. Skipping build." >> $GITHUB_STEP_SUMMARY
-            exit 1
+            echo "is-draft=true" >> $GITHUB_ENV
           else
             echo "This is not a draft PR. Proceeding with build."
-            exit 0
+            echo "is-draft=false" >> $GITHUB_ENV
           fi
 
   build-win: 
     name: "Windows MSVC"
     needs: check-draft
+    if: needs.check-draft.outputs.is-draft == 'false'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -87,6 +91,7 @@ jobs:
   build-mac:
     name: "MacOS universal"
     needs: check-draft
+    if: needs.check-draft.outputs.is-draft == 'false'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -126,6 +131,7 @@ jobs:
   build-mac-gui:
     name: "${{ matrix.name }}"
     needs: check-draft
+    if: needs.check-draft.outputs.is-draft == 'false'
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -203,6 +209,7 @@ jobs:
   build-ubuntu:
     name: ${{ matrix.name }}
     needs: check-draft
+    if: needs.check-draft.outputs.is-draft == 'false'
     runs-on: ${{ matrix.os }}
     strategy: 
       fail-fast: false
