@@ -166,7 +166,6 @@ double Molecule::get_volume_exv(double d) const {
         return volume /= constants::charge::density::water;
     };
 
-    auto grid = this->get_grid();
     switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::Simple:
         case settings::exv::ExvMethod::Average:

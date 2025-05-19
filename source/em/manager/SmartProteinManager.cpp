@@ -7,13 +7,16 @@ For more information, please refer to the LICENSE file in the project root.
 #include <em/detail/ImageStackBase.h>
 #include <em/detail/EMGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/Console.h>
 #include <utility/Limit3D.h>
 #include <settings/HistogramSettings.h>
+#include <settings/ExvSettings.h>
 #include <settings/EMSettings.h>
 #include <settings/GridSettings.h>
+#include <settings/Flags.h>
 
 #include <vector>
 #include <cassert>
@@ -92,20 +95,14 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
 }
 
 void SmartProteinManager::toggle_histogram_manager_init(bool state) {
-    static settings::hist::HistogramManagerChoice previous = settings::hist::histogram_manager;
-    if (state) {
-        settings::hist::histogram_manager = previous;
-    } else {
-        previous = settings::hist::histogram_manager;
-        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::None;
-    }
+    settings::flags::init_histogram_manager = state;
 }
 
 void SmartProteinManager::update_protein(double cutoff) {
     if (protein == nullptr || protein->size_atom() == 0) {
         toggle_histogram_manager_init(true);
         protein = generate_protein(cutoff); 
-        protein->bind_body_signallers();
+        protein->set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
         previous_cutoff = cutoff;
         toggle_histogram_manager_init(false);
         return;
