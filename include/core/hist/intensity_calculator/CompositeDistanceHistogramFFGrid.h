@@ -73,6 +73,14 @@ namespace ausaxs::hist {
              */
             const std::vector<double>& get_d_axis_ax() const {return distance_axes.ax;}
 
+            /**
+             * @brief Get the excluded volume scaling factor.
+             *
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             */
+            static double exv_factor(double q, double cx);
+
         protected:
             /**
              * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.
@@ -84,9 +92,9 @@ namespace ausaxs::hist {
              */
             observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
 
+        private: 
             double exv_factor(double q) const override;
 
-        private: 
             inline static form_factor::storage::atomic::table_t ff_table;
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;

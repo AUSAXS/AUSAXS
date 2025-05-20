@@ -102,9 +102,9 @@ namespace ausaxs::hist {
             hist::Distribution1D evaluate_wx_distance_profile(double cx) const;
             hist::Distribution2D evaluate_ax_distance_profile(double cx) const;
 
+        private: 
             double exv_factor(double q) const override;
 
-        private: 
             struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
             struct {hist::Distribution1D xx_i, xx_s, xx_c, wx_i, wx_s; hist::Distribution2D ax_i, ax_s;} exv_distance_profiles;

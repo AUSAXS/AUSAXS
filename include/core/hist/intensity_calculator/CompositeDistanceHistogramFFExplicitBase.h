@@ -79,9 +79,6 @@ namespace ausaxs::hist {
             static double exv_factor(double q, double cx);
 
         protected:
-            // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
-            double exv_factor(double q) const override;
-
             struct {hist::Distribution3D xx, ax; hist::Distribution2D wx;} exv_distance_profiles;
 
             //#################################//
@@ -100,6 +97,9 @@ namespace ausaxs::hist {
             } exv_cache;
 
         private:
+            // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
+            double exv_factor(double q) const override;
+
             void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const override;
             void cache_refresh_sinqd() const override;
     };

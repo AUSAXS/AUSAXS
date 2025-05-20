@@ -6,6 +6,7 @@
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/intensity_calculator/waxsis/CompositeDistanceHistogramWAXSiS.h>
 #include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
@@ -13,6 +14,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
+#include <settings/ExvSettings.h>
 #include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
@@ -214,12 +216,25 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     std::move(p_wx.begin(), p_wx.begin()+max_bin, p_aw.begin(form_factor::exv_bin));
     std::move(p_xx.begin(), p_xx.begin()+max_bin, p_aa.begin(form_factor::exv_bin, form_factor::exv_bin));
 
-    return std::make_unique<CompositeDistanceHistogramFFGrid>(
-        std::move(p_aa), 
-        std::move(p_aw), 
-        std::move(p_ww), 
-        std::move(p_tot),
-        std::move(p_tot_ax),
-        std::move(p_xx_generic)
-    );
+    switch (settings::exv::exv_method) {
+        case settings::exv::ExvMethod::WAXSiS:
+            return std::make_unique<CompositeDistanceHistogramWAXSiS>(
+                std::move(p_aa), 
+                std::move(p_aw), 
+                std::move(p_ww), 
+                std::move(p_tot),
+                std::move(p_tot_ax),
+                std::move(p_xx_generic)
+            );
+
+        default:
+            return std::make_unique<CompositeDistanceHistogramFFGrid>(
+                std::move(p_aa), 
+                std::move(p_aw), 
+                std::move(p_ww), 
+                std::move(p_tot),
+                std::move(p_tot_ax),
+                std::move(p_xx_generic)
+            );
+        }
 }

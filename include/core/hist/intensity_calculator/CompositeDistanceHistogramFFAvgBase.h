@@ -129,6 +129,14 @@ namespace ausaxs::hist {
              */
             static double get_exv_debye_waller_factor(double q, double sigma);
 
+            /**
+             * @brief Get the excluded volume scaling factor.
+             * 
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             */
+            static double exv_factor(double q, double cx);
+
         protected:
             struct {
                 double cw = 1;               // water density scaling factor
@@ -139,12 +147,12 @@ namespace ausaxs::hist {
             } free_params;
             struct {Distribution3D aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
 
+        private:
             /**
              * @brief Get the q-dependent multiplicative factor for the excluded volume form factor.
              */
-            virtual double exv_factor(double q) const;
+             virtual double exv_factor(double q) const;
 
-        private:
             /**
              * @brief Get the atomic Debye Waller factor for a given q value.
              */
