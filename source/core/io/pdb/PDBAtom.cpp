@@ -54,14 +54,13 @@ PDBAtom::PDBAtom(int serial, const std::string& name, const std::string& altLoc,
 
 void PDBAtom::parse_pdb(const std::string& str) {
     auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return
-    int pad_size = 81 - static_cast<int>(s.size());
+    int pad_size = 80 - static_cast<int>(s.size());
     if (pad_size < 0) {
         static bool warned = false;
         if (!warned) {
             console::print_warning("Warning in PDBAtom::parse_pdb: Found line longer than 80 characters. Truncating. Further warnings of this type will be suppressed.");
             warned = true;
         }
-        std::cout << "\"" << s << "\"" << std::endl;
         s = s.substr(0, 80);
     } else if (pad_size > 0) {
         static bool warned = false;

@@ -2,6 +2,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <grid/Grid.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
 #include <plots/All.h>
@@ -23,35 +24,45 @@ using namespace ausaxs;
 
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
-    io::ExistingFile pdb, mfile, settings;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
-    bool use_existing_hydration = false, save_settings = false;
+    io::ExistingFile pdb, mfile, exv_ref_file, settings;
+    bool use_existing_hydration = false, save_settings = false, save_grid = false, save_exv = false;
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.fallthrough();
     auto input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
-    app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
+    auto input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
-    auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
-    app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
-    app.add_flag_callback("-v,--version", [] () {std::cout << constants::version << std::endl; exit(0);}, "Print the AUSAXS version.");
-
-    // advanced options
+    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
+    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
     app.add_flag("!--ignore-unknown-atom", settings::molecule::throw_on_unknown_atom, 
-        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of issues.")
-        ->default_val(settings::molecule::throw_on_unknown_atom)
-        ->group("Advanced options");
+        "Do not exit upon encountering an unknown atom. This is not enabled by default to ensure awareness of potential issues.")
+        ->default_val(settings::molecule::throw_on_unknown_atom);
     app.add_flag("--offline", settings::general::offline, "Run the program in offline mode. This will prevent any network requests.")
-        ->default_val(settings::general::offline)
-        ->group("Advanced options");
-    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("Advanced options");
-    app.add_flag("--save-settings", save_settings, "Save the settings to a file.")->default_val(save_settings)->group("Advanced options");
-    app.add_flag_callback("--log", [] () {logging::start("saxs_fitter");}, "Enable logging to a file.")->group("Advanced options");
+        ->default_val(settings::general::offline);
+    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
+
+    // config subcommands
+    auto sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
+    auto p_settings = sub_config->add_option("--file,-f", settings, "The configuration file to use.")->check(CLI::ExistingFile);
+    sub_config->add_flag("--save", save_settings, "Save the settings to a file.");
+    sub_config->add_flag_callback("--log", [] () {logging::start("saxs_fitter");}, "Enable logging to a file.");
 
     // data subcommands
     auto sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
-    sub_data->add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax);
-    sub_data->add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin);
+    sub_data->add_option(
+        "--qmax", 
+        settings::axes::qmax, 
+        "Upper limit on used q values from the measurement file.")
+        ->default_val(settings::axes::qmax)
+        ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
+    ;
+    sub_data->add_option(
+        "--qmin", 
+        settings::axes::qmin, 
+        "Lower limit on used q values from the measurement file.")
+        ->default_val(settings::axes::qmin)
+        ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
+    ;
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
         "The unit of the q values in the measurement file. Options: A, nm.");
     sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
@@ -67,7 +78,7 @@ int main(int argc, char const *argv[]) {
     // exv subcommands
     auto sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
     sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) 
-        {settings::detail::parse_option("histogram_manager", {s});}, 
+        {settings::detail::parse_option("exv_model", {s});}, 
         "The excluded volume model to use. Options: Simple, Fraser, Grid.");
     sub_exv->add_flag("--fit", settings::fit::fit_excluded_volume, 
         "Fit the excluded volume.")->default_val(settings::fit::fit_excluded_volume);
@@ -79,13 +90,15 @@ int main(int argc, char const *argv[]) {
     sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness, 
         "The thickness of the surface layer in Ångström."
     )->default_val(settings::grid::exv::surface_thickness)->group("");
-
     auto sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width, 
         "The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Ångström."
     )->default_val(settings::grid::exv::width);
-    sub_exv->add_flag("--save", settings::grid::exv::save, 
+    sub_exv->add_flag("--save", save_exv, 
         "Write a PDB representation of the excluded volume to disk."
-    )->default_val(settings::grid::exv::save);
+    )->default_val(save_exv);
+    sub_exv->add_option("--ref,--reference", exv_ref_file, 
+        "Path to the excluded volume reference file."
+    )->check(CLI::ExistingFile);
 
     // solvation subcommands
     auto sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
@@ -110,6 +123,9 @@ int main(int argc, char const *argv[]) {
     auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);
+    sub_grid->add_flag("--save", save_grid, 
+        "Write a PDB representation of the grid to disk."
+    )->default_val(save_grid);
 
     // fit subcommands
     // auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
@@ -126,15 +142,29 @@ int main(int argc, char const *argv[]) {
     )->default_val(settings::hist::weighted_bins)->group("");
 
     app.final_callback([&] () {
+        // save settings if requested
+        if (save_settings) {
+            settings::write("settings.txt");
+            console::print_info("Settings saved to settings.txt in current directory.");
+            if (!input_s->count() || !input_m->count()) { // gracefully exit if no input files are provided
+                exit(0);
+            }
+        }
+
         // required args (not marked ->required() since that interferes with the help flag for subcommands)
         if (!input_s->count()) {
-            std::cout << "Error: input_structure is required." << std::endl;
+            console::print_warning("Error: input_structure is required.");
             exit(1);
         }
 
         // adjust grid width to support user-specified excluded volume width
         if (sub_exv_w->count() && !sub_grid_w->count()) {
             settings::grid::cell_width = settings::grid::exv::width;
+        }
+
+        // adjust excluded volume width to be at least as large as the grid width
+        if (sub_grid_w->count() && !sub_exv_w->count() && settings::grid::exv::width < settings::grid::cell_width) {
+            settings::grid::exv::width = settings::grid::cell_width;
         }
 
         // save settings if requested
@@ -182,6 +212,7 @@ int main(int argc, char const *argv[]) {
         //######################//
 
         data::Molecule protein(pdb);
+        if (!exv_ref_file.empty()) {protein.set_grid(grid::Grid::create_from_reference(exv_ref_file, protein));}
         if (!use_existing_hydration || protein.size_water() == 0) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();
@@ -250,6 +281,8 @@ int main(int argc, char const *argv[]) {
         console::print_text("\tRhoM:            " + utility::round_double(rhoM, 3) + " g/cm^3");
 
         protein.save(settings::general::output + "model.pdb");
+        if (save_grid) {protein.get_grid()->save(settings::general::output + "grid.pdb");}
+        if (save_exv) {protein.get_grid()->generate_excluded_volume().save(settings::general::output + "exv.pdb");}
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;

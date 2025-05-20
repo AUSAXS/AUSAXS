@@ -633,13 +633,13 @@ TEST_CASE("Molecule::histogram", "[files]") {
 
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
-#include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
     settings::general::verbose = false;
 
     Molecule protein(bodies);
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
+
     SECTION("at construction") {
         auto& bodies = protein.get_bodies();
         REQUIRE(bodies.size() == 4);
@@ -659,7 +659,7 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
     SECTION("after construction") {
         auto& bodies = protein.get_bodies();
         REQUIRE(bodies.size() == 4);
-        protein.set_histogram_manager(hist::factory::construct_histogram_manager(&protein));
+        protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
         auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
 
         for (unsigned int i = 0; i < bodies.size(); ++i) {
@@ -670,9 +670,8 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
 }
 
 TEST_CASE_METHOD(fixture, "Molecule::signal_modified_hydration_layer") {
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManager;
-
     Molecule protein(bodies);
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
     auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
     manager->reset_to_false();
     REQUIRE(manager->is_modified_hydration() == false);

@@ -11,12 +11,14 @@ For more information, please refer to the LICENSE file in the project root.
 #include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
+#include <grid/exv/RawGridWithSurfaceExv.h>
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -48,7 +50,12 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridSurface::calculate() 
     return calculate_all();
 }
 
+grid::exv::GridExcludedVolume HistogramManagerMTFFGridSurface::get_exv() const {
+    return grid::exv::RawGridWithSurfaceExv::create(this->protein->get_grid());
+}
+
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::calculate_all() {
+    logging::log("HistogramManagerMTFFGridSurface::calculate: starting calculation");
     using XXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::XXContainer;
     using AXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::AXContainer;
     using WXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::WXContainer;
@@ -58,7 +65,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     hist::detail::CompactCoordinates data_x_i, data_x_s;
 
     {   // generate the excluded volume representation
-        auto exv = this->protein->get_grid()->generate_excluded_volume(true);
+        auto exv = get_exv();
         data_x_i = hist::detail::CompactCoordinates(std::move(exv.interior), 1);
         data_x_s = hist::detail::CompactCoordinates(std::move(exv.surface), 1);
     }

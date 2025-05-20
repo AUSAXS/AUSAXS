@@ -12,6 +12,7 @@
 #include <fitter/FitterFwd.h>
 #include <grid/GridFwd.h>
 #include <hydrate/HydrationFwd.h>
+#include <settings/HistogramSettings.h>
 
 #include <string>
 #include <vector>
@@ -234,6 +235,7 @@ namespace ausaxs::data {
 			 * @brief Set the histogram manager of this molecule.
 			 */
 			void set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager);
+			void set_histogram_manager(settings::hist::HistogramManagerChoice choice);
 
 			/**
 			 * @brief Signal that the hydration layer has been modified.

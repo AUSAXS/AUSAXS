@@ -72,8 +72,8 @@ class SmartFitterDebug : public fitter::SmartFitter {
 
 TEST_CASE("SmartFitter::fit") {
     settings::molecule::implicit_hydrogens = false;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
     Molecule protein("tests/files/2epe.pdb");
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
 
     SmartFitterDebug fitter({{}}, protein.get_histogram());
     auto h = static_cast<hist::ICompositeDistanceHistogramExv*>(fitter.get_model());
@@ -154,8 +154,8 @@ TEST_CASE("SmartFitter::fit") {
 
 TEST_CASE("fitter: correct dof", "[files]") {
     settings::general::verbose = false;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;
     Molecule protein("tests/files/2epe.pdb");
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
     SimpleDataset data("tests/files/2epe.dat");
     unsigned int size = data.size();
 

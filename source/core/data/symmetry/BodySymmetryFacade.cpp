@@ -4,6 +4,8 @@
 #include <io/pdb/PDBStructure.h>
 #include <io/Writer.h>
 
+#include <span>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::data::detail;
@@ -75,29 +77,37 @@ std::size_t symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_water_tot
 template<typename BODY, bool NONCONST>
 data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::explicit_structure() const {
     std::vector<AtomFF> atoms = body->get_atoms();
-    std::vector<Water> waters = body->size_water() == 0 ? std::vector<Water>{} : body->get_waters();
+    std::vector<Water> waters = [this] () {
+        auto w = body->get_waters(); return w.has_value() ? w.value().get() : std::vector<Water>{};
+    }();
 
     if (body->size_symmetry() == 0) {
         return data::detail::SimpleBody(std::move(atoms), std::move(waters));
     }
 
-    atoms.reserve(body->size_symmetry_total()*body->size_atom());
-    waters.reserve(body->size_symmetry_total()*body->size_water());
+    atoms.reserve((1+body->size_symmetry_total())*body->size_atom());
+    waters.reserve((1+body->size_symmetry_total())*body->size_water());
     auto cm = body->get_cm();
 
+    // static spans for iteration
+    std::span<AtomFF> atom_span(atoms);
+    std::span<Water> water_span(waters);
     for (const auto& symmetry : get()) {
+        assert(atom_span.data() == atoms.data() && "atoms span has been reallocated and invalidated atom_span");
+        assert(water_span.data() == waters.data() && "waters span has been reallocated and invalidated water_span");
         for (int i = 0; i < symmetry.repetitions; ++i) {
             auto t = symmetry.template get_transform<double>(cm, i+1);
-            for (const auto& a : body->get_atoms()) {
+            for (const auto& a : atom_span) {
                 atoms.emplace_back(t(a.coordinates()), a.form_factor_type());
             }
 
-            if (body->size_water() == 0) {continue;}
-            for (const auto& w : body->get_waters()) {
+            for (const auto& w : water_span) {
                 waters.emplace_back(t(w.coordinates()));
             }
         }
     }
+    assert(atoms.capacity() == atoms.size() && "atomic loop was not executed the expected number of times");
+    assert(waters.capacity() == waters.size() && "water loop was not executed the expected number of times");
 
     return data::detail::SimpleBody(atoms, waters);
 }

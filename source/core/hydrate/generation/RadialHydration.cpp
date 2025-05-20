@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <data/Molecule.h>
+#include <utility/Logging.h>
 #include <constants/Constants.h>
 #include <settings/GridSettings.h>
 #include <settings/MoleculeSettings.h>
@@ -64,12 +65,13 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
             auto noise = noise_generator();
             auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff + noise);
-            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check({bins.x(), bins.y(), bins.z()})) {
+            if (grid->grid.is_only_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check({bins.x(), bins.y(), bins.z()})) {
                 Vector3<double> exact_loc = atom.get_atom().coordinates() + rot_locs[i]*reff + noise;
                 add_loc(std::move(exact_loc));
             }
         }
     }
+    logging::log("RadialHydration: Generated " + std::to_string(grid->w_members.size() - water_start) + " dummy hydration molecules.");
     return {grid->w_members.begin() + water_start, grid->w_members.end()};
 }
 
@@ -164,7 +166,7 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
             yr = std::clamp(yr, 0, bins.y()-1);
             zr = std::clamp(zr, 0, bins.z()-1);
 
-            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+            if (!gref.is_only_empty_or_volume(xr, yr, zr)) {
                 if (2 < ++inside_1rh) {
                     return false;
                 }
@@ -180,7 +182,7 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
                 continue;
             }
 
-            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+            if (!gref.is_only_empty_or_volume(xr, yr, zr)) {
                 score -= 2;
                 continue;
             }
@@ -195,7 +197,7 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
                 continue;
             }
 
-            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+            if (!gref.is_only_empty_or_volume(xr, yr, zr)) {
                 score -= 1;
                 continue;
             }

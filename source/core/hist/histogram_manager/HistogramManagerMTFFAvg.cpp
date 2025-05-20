@@ -15,6 +15,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -28,6 +29,8 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg<use_weighted_distribu
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighted_distribution>::calculate_all() {
+    logging::log("HistogramManagerMTFFAvg::calculate: starting calculation");
+
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     using GenericDistribution2D_t = typename hist::GenericDistribution2D<use_weighted_distribution>::type;
     using GenericDistribution3D_t = typename hist::GenericDistribution3D<use_weighted_distribution>::type;

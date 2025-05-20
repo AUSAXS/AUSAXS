@@ -13,10 +13,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <form_factor/FormFactorType.h>
 #include <form_factor/DisplacedVolumeTable.h>
 #include <data/Molecule.h>
-#include <settings/HistogramSettings.h>
+#include <settings/ExvSettings.h>
 #include <settings/GeneralSettings.h>
 #include <container/ThreadLocalWrapper.h>
 #include <utility/MultiThreading.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -30,6 +31,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit<use_weighted_dis
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_weighted_distribution>::calculate_all() {
+    logging::log("HistogramManagerMTFFExplicit::calculate: starting calculation");
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     using GenericDistribution2D_t = typename hist::GenericDistribution2D<use_weighted_distribution>::type;
     using GenericDistribution3D_t = typename hist::GenericDistribution3D<use_weighted_distribution>::type;
@@ -213,8 +215,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
         return V / data_a_size;
     };
 
-    switch (settings::hist::histogram_manager) {
-        case settings::hist::HistogramManagerChoice::FoXSManager:
+    switch (settings::exv::exv_method) {
+        case settings::exv::ExvMethod::FoXS:
             return std::make_unique<CompositeDistanceHistogramFoXS>(
                 std::move(Distribution3D(std::move(p_aa))), 
                 std::move(Distribution3D(std::move(p_ax))), 
@@ -224,7 +226,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
-        case settings::hist::HistogramManagerChoice::PepsiManager:
+        case settings::exv::ExvMethod::Pepsi:
             return std::make_unique<CompositeDistanceHistogramPepsi>(
                 std::move(Distribution3D(std::move(p_aa))), 
                 std::move(Distribution3D(std::move(p_ax))), 
@@ -235,7 +237,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
                 std::move(p_tot),
                 displaced_avg()
             );
-        case settings::hist::HistogramManagerChoice::CrysolManager:
+        case settings::exv::ExvMethod::CRYSOL:
             return std::make_unique<CompositeDistanceHistogramCrysol>(
                 std::move(Distribution3D(std::move(p_aa))), 
                 std::move(Distribution3D(std::move(p_ax))), 

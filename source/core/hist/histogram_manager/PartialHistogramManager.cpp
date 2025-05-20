@@ -11,6 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/state/StateManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <utility/Logging.h>
 #include <settings/HistogramSettings.h>
 
 #include <algorithm>
@@ -100,6 +101,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<use_weighted_distribution>::calculate_all() {
+    logging::log("PartialHistogramManager::calculate_all: starting calculation");
     auto total = calculate();
     int bins = total->get_total_counts().size();
 

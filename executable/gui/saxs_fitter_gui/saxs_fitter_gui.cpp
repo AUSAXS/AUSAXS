@@ -349,24 +349,21 @@ auto selection_menu_settings(gui::view&) {
 	);
 	ColorManager::manage_text([] (gui::color color) {hydration_model.second->font_color(color);});
 
-	std::vector<std::pair<std::string, ausaxs::settings::hist::HistogramManagerChoice>> options2 {
-		{"1. Simple", ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMT},
-		{"2. Fraser", ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
-		{"3. Grid", ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface}
+	std::vector<std::pair<std::string, ausaxs::settings::exv::ExvMethod>> options2 {
+		{"1. Simple", ausaxs::settings::exv::ExvMethod::Simple},
+		{"2. Fraser", ausaxs::settings::exv::ExvMethod::Fraser},
+		{"3. Grid", ausaxs::settings::exv::ExvMethod::GridSurface}
 	};
 
 	static auto excluded_volume_model = gui::selection_menu(
 		[options2] (std::string_view selection) {
 			for (auto& option : options2) {
 				if (option.first == selection) {
-					ausaxs::settings::hist::histogram_manager = option.second;
+					ausaxs::settings::exv::exv_method = option.second;
 				}
 			}
-			switch (ausaxs::settings::hist::histogram_manager) {
-				case ausaxs::settings::hist::HistogramManagerChoice::HistogramManager:
-				case ausaxs::settings::hist::HistogramManagerChoice::HistogramManagerMT:
-				case ausaxs::settings::hist::HistogramManagerChoice::PartialHistogramManager:
-				case ausaxs::settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
+			switch (ausaxs::settings::exv::exv_method) {
+				case ausaxs::settings::exv::ExvMethod::Simple:
 					ausaxs::settings::fit::fit_excluded_volume = false;
 					deck.select(0);
 					break;

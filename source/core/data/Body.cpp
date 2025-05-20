@@ -230,15 +230,16 @@ void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
 
 std::vector<data::AtomFF>& Body::get_atoms() {return atoms;}
 
-const std::vector<data::Water>& Body::get_waters() const {
+std::optional<std::reference_wrapper<const std::vector<data::Water>>> Body::get_waters() const {
     assert(hydration != nullptr && "Body::get_waters: hydration is nullptr.");
     auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
-    assert(h != nullptr && "Body::get_waters: hydration is not an ExplicitHydration object.");
-    return h->waters;
+    return h ? std::optional(std::cref(h->waters)) : std::nullopt;
 }
 
-std::vector<data::Water>& Body::get_waters() {
-    return const_cast<std::vector<data::Water>&>(const_cast<const Body*>(this)->get_waters());
+std::optional<std::reference_wrapper<std::vector<data::Water>>> Body::get_waters() {
+    assert(hydration != nullptr && "Body::get_waters: hydration is nullptr.");
+    auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
+    return h ? std::optional(std::ref(h->waters)) : std::nullopt;
 }
 
 void Body::set_hydration(std::unique_ptr<hydrate::Hydration> hydration) {

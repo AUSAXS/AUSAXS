@@ -11,6 +11,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <data/Molecule.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -23,6 +24,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMT<use_weighted_distribution>
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_distribution>::calculate_all() {
+    logging::log("HistogramManagerMT::calculate: starting calculation");
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
 
     // create a more compact representation of the coordinates

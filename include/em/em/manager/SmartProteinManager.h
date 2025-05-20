@@ -11,9 +11,9 @@
 namespace ausaxs::em::managers {
     /**
      * @brief A helper class for the ImageStack. 
-     * 
-     * This class generates and updates histograms in a smart way. This is done by splitting the 
-     * generated atoms into multiple bodies, and then utilizing the smart histogram manager from the Protein. 
+     *
+     * This class stores a single instance of a Molecule, which is generated from the EM images.
+     * Various methods are provided to update the state of this single instance to reflect new cutoff values. 
      */
     class SmartProteinManager : public ProteinManager {
         public:
@@ -21,22 +21,24 @@ namespace ausaxs::em::managers {
             virtual ~SmartProteinManager() override;
 
             /**
-             * @brief Get the histogram for a given cutoff.
+             * @brief Evaluate and get the histogram for the given cutoff. 
+             *        This will update the underlying Molecule to reflect the new cutoff value.
              */
             std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(double cutoff) override;
 
             /**
-             * @brief Get the Protein backing this object. 
+             * @brief Get the current state of the underlying Molecule. 
              */
             observer_ptr<const data::Molecule> get_protein() const override;
 
             /**
-             * @brief Get the Protein generated from a given cutoff.
+             * @brief Refresh the underlying Molecule with a new cutoff, and get a pointer to it. 
              */
             observer_ptr<data::Molecule> get_protein(double cutoff) override;
 
             /**
              * @brief Set the charge levels.
+             *        This will invalidate the underlying Molecule, meaning it will be regenerated on the next call to get_protein.
              */
             virtual void set_charge_levels(const std::vector<double>& levels) noexcept override;
 
@@ -44,12 +46,12 @@ namespace ausaxs::em::managers {
             std::unique_ptr<data::Molecule> protein;
 
             /**
-             * @brief Generate the atmos for a given cutoff.
+             * @brief Generate a list of all atoms with charge densities larger than the cutoff. 
              */
             std::vector<data::EMAtom> generate_atoms(double cutoff) const;
 
             /**
-             * @brief Update the Protein to reflect a new cutoff value.
+             * @brief Update the underlying Molecule to reflect a new cutoff value.
              */
             virtual void update_protein(double cutoff);
 
@@ -65,8 +67,8 @@ namespace ausaxs::em::managers {
             double previous_cutoff = 0;
 
             /**
-             * @brief Generate a new Protein for a given cutoff. 
+             * @brief Generate a new Molecule with the given cutoff. 
              */
-            std::unique_ptr<data::Molecule> generate_protein(double cutoff) const;
+            std::unique_ptr<data::Molecule> generate_new_protein(double cutoff) const;
     };
 }

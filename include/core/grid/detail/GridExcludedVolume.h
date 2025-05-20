@@ -1,9 +1,11 @@
 #pragma once
 
-#include <vector>
 #include <math/MathFwd.h>
+#include <io/IOFwd.h>
 
-namespace ausaxs::grid::detail {
+#include <vector>
+
+namespace ausaxs::grid::exv {
     /**
      * @brief A simple representation of a grid-based excluded volume.
      * 
@@ -11,5 +13,8 @@ namespace ausaxs::grid::detail {
     struct GridExcludedVolume {
         std::vector<Vector3<double>> interior;
         std::vector<Vector3<double>> surface;
+
+        bool has_surface() const;
+        void save(const io::File& file) const;
     };
 }
