@@ -19,7 +19,6 @@ namespace ausaxs::hydrate {
             bool global() const override {return false;}
 
         private:
-            void modified_expand_volume(grid::GridMember<data::AtomFF>& atom);
             void initialize() override;
     };
 }

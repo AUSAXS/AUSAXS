@@ -10,14 +10,14 @@ namespace ausaxs::grid::detail {
             GridSurfaceDetection(observer_ptr<grid::Grid> grid);
             ~GridSurfaceDetection() override;
 
-            GridExcludedVolume detect() const;
-            GridExcludedVolume no_detect() const;
+            exv::GridExcludedVolume detect() const;
+            exv::GridExcludedVolume no_detect() const;
 
         private:
             observer_ptr<grid::Grid> grid;
 
             template<bool detect, bool unity_width>
-            GridExcludedVolume helper() const;
+            exv::GridExcludedVolume helper() const;
 
             bool collision_check(const Vector3<int>& loc) const;
 

@@ -168,7 +168,7 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     GridDebug::generate_debug_grid(protein);
 
     SECTION("Grid") {
-        auto h = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h = DebugHistogramManagerMTFFGrid(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(h.get());
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
@@ -179,7 +179,7 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     }
 
     SECTION("GridSurface") {
-        auto h = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto h = DebugHistogramManagerMTFFGridSurface(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(h.get());
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
@@ -190,7 +190,7 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     }
 
     SECTION("GridScalableExv") {
-        auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+        auto h = DebugHistogramManagerMTFFGridScalableExv(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis_ax()));
@@ -249,7 +249,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
 
     Molecule protein({Body{atoms}});
     GridDebug::generate_debug_grid(protein);
-    auto h = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+    auto h = DebugHistogramManagerMTFFGridSurface(&protein).calculate_all();
     auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(h.get());
 
     // check the distance axes
@@ -297,7 +297,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
-        auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+        auto h = DebugHistogramManagerMTFFGridScalableExv(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());
 
         auto calc = [] (double k) {

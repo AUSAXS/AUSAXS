@@ -4,6 +4,7 @@
 
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/HistFwd.h>
+#include <hist/distribution/Distribution1D.h>
 #include <em/detail/ImageStackBase.h>
 #include <em/detail/header/data/MRCData.h>
 #include <em/detail/header/MRCHeader.h>
@@ -99,7 +100,12 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
     em::ImageStackBase isb("tests/files/A2M_2020_Q4.ccp4");
-    REQUIRE(compare_hist(isb.get_histogram(5)->get_total_counts(), isb.get_protein_manager()->get_histogram(5)->get_total_counts()));
+    auto h1 = isb.get_histogram(5);
+    auto h2 = isb.get_protein_manager()->get_histogram(5);
+    REQUIRE(compare_hist_approx(h1->get_aa_counts(), h2->get_aa_counts()));
+    REQUIRE(compare_hist_approx(h1->get_ww_counts(), h2->get_ww_counts()));
+    REQUIRE(compare_hist_approx(h1->get_aw_counts(), h2->get_aw_counts()));
+    REQUIRE(compare_hist_approx(h1->get_total_counts(), h2->get_total_counts()));
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
