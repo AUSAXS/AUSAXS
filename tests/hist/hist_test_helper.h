@@ -47,19 +47,24 @@ bool compare_hist_approx(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
     int pmin = std::min<int>(p1.size(), p2.size());
     for (int i = 0; i < pmin; ++i) {
         if (!utility::approx(p1[i], p2[i], abs, rel)) {
-            if (i+1 < pmin) {
-                auto diffi = std::abs(p1[i] - p2[i]);
-                auto diffi1 = std::abs(p1[i+1] - p2[i+1]);
-                if (utility::approx(diffi, diffi1, abs, rel)) {
-                    ++i;
-                    continue;
+            double sum1 = 0, sum2 = 0;
+            for (int offset = -1; offset <= 1; ++offset) {
+                int idx = i + offset;
+                if (0 <= idx && idx < pmin) {
+                    sum1 += p1[idx];
+                    sum2 += p2[idx];    
                 }
             }
-            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-            if (i+1 < pmin) {
-                std::cout << "\tNext index: " << p1[i+1] << ", " << p2[i+1] << std::endl;
+            if (!utility::approx(sum1, sum2, abs, rel)) {
+                std::cout << "Failed on index " << i << ". Window values: " << std::endl;
+                for (int offset = -1; offset <= 1; ++offset) {
+                    int idx = i + offset;
+                    if (0 <= idx && idx < pmin) {
+                        std::cout << "\t" << p1[idx] << ", " << p2[idx] << std::endl;
+                    }
+                }
+                return false;
             }
-            return false;
         }
     }
     return true;

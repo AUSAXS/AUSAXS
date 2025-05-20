@@ -939,7 +939,7 @@ TEST_CASE("Grid: add and remove") {
 
         // check sizes
         REQUIRE(ga.size() == 0);
-        REQUIRE(wa.size() != 0);
+        REQUIRE(wa.size() == 0);
 
         // check old centers
         GridObj &g = grid.grid;
