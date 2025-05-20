@@ -42,6 +42,7 @@ namespace {
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate() {
+    logging::log("PartialHistogramManagerMT::calculate: starting calculation");
     auto& externally_modified = this->statemanager->get_externally_modified_bodies();
     auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();

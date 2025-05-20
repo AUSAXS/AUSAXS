@@ -370,6 +370,7 @@ void Grid::remove(const Body& body) {
             start -= diff;
         }
     }
+    clear_waters(); // we are not keeping track of which waters belong to which body, so clear all of them
 }
 
 void Grid::clear_waters() {

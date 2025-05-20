@@ -52,7 +52,7 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram", "[files]") {
 
 TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
     settings::general::threads = 6;
-    settings::em::sample_frequency = 2;
+    settings::em::sample_frequency = 3;
 
     // ensure hydration shell is deterministic
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});

@@ -47,34 +47,19 @@ bool compare_hist_approx(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
     int pmin = std::min<int>(p1.size(), p2.size());
     for (int i = 0; i < pmin; ++i) {
         if (!utility::approx(p1[i], p2[i], abs, rel)) {
-            bool found = false;
             if (i+1 < pmin) {
                 auto diffi = std::abs(p1[i] - p2[i]);
                 auto diffi1 = std::abs(p1[i+1] - p2[i+1]);
-                found = utility::approx(diffi, diffi1, abs, rel);
-                ++i;
-            } 
-
-            if (!found && i+1 < pmin) {
-                auto diffi = std::abs(p1[i] - p2[i]);
-                auto diffi1 = std::abs(p1[i-1] - p2[i-1]);
-                found = utility::approx(diffi, diffi1, abs, rel);
-                ++i;
-            }
-            
-            if (!found) {
-                if (2 < i) {
-                    std::cout << "Failed on index " << i-2 << ". Values: " << p1[i-2] << ", " << p2[i-2] << std::endl;
-                    std::cout << "\tNext index: " << p1[i-1] << ", " << p2[i-1] << std::endl;
-                    std::cout << "\tNext index: " << p1[i] << ", " << p2[i] << std::endl;
-                } else if (1 < i) {
-                    std::cout << "Failed on index " << i-1 << ". Values: " << p1[i-1] << ", " << p2[i-1] << std::endl;
-                    std::cout << "\tNext index: " << p1[i] << ", " << p2[i] << std::endl;
-                } else {
-                    std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
+                if (utility::approx(diffi, diffi1, abs, rel)) {
+                    ++i;
+                    continue;
                 }
-                return false;
             }
+            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
+            if (i+1 < pmin) {
+                std::cout << "\tNext index: " << p1[i+1] << ", " << p2[i+1] << std::endl;
+            }
+            return false;
         }
     }
     return true;

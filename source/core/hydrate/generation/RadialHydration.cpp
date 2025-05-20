@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <data/Molecule.h>
+#include <utility/Logging.h>
 #include <constants/Constants.h>
 #include <settings/GridSettings.h>
 #include <settings/MoleculeSettings.h>
@@ -70,6 +71,7 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
             }
         }
     }
+    logging::log("RadialHydration: Generated " + std::to_string(grid->w_members.size() - water_start) + " dummy hydration molecules.");
     return {grid->w_members.begin() + water_start, grid->w_members.end()};
 }
 

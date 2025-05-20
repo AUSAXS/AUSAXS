@@ -32,6 +32,45 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> SmartProteinManager::get_hist
     return get_protein(cutoff)->get_histogram();
 }
 
+observer_ptr<data::Molecule> SmartProteinManager::get_protein(double cutoff) {
+    update_protein(cutoff);
+
+    auto ax = images->get_header()->get_axes();
+
+    // ensure the grid is large enough to contain the entire map
+    //? is this a waste of time since it is being overwritten for every iteration anyway?
+    Limit3D limits(ax.x.min, ax.x.max, ax.y.min, ax.y.max, ax.z.min, ax.z.max);
+    double expand_x = 0.5*limits.x.span()*settings::grid::scaling;
+    double expand_y = 0.5*limits.y.span()*settings::grid::scaling;
+    double expand_z = 0.5*limits.z.span()*settings::grid::scaling;
+    limits.x.min -= expand_x, limits.x.max += expand_x;
+    limits.y.min -= expand_y, limits.y.max += expand_y;
+    limits.z.min -= expand_z, limits.z.max += expand_z;
+
+    // hydration must be cleared to ensure the grid state will be exactly the same as the one used to generate the hydration
+    // when the grid is first created, *only* the body atoms are added to the grid, with the hydration being added later
+    // if we do not clear the hydration now, since it can be bound to individual bodies, the hydration will be added in-between the body atoms, 
+    // potentially leading to a different grid state than the one used to generate the hydration
+    protein->clear_hydration();
+
+    protein->set_grid(std::make_unique<grid::EMGrid>(limits));
+    for (auto& body : protein->get_bodies()) {
+        protein->get_grid()->add(body);
+    }
+    if (settings::em::hydrate) {protein->generate_new_hydration();}
+    return protein.get();
+}
+
+observer_ptr<const data::Molecule> SmartProteinManager::get_protein() const {
+    assert(protein != nullptr && "SmartProteinManager::get_protein: Protein has not been initialized yet.");
+    return protein.get();
+}
+
+void SmartProteinManager::set_charge_levels(const std::vector<double>& levels) noexcept {
+    ProteinManager::set_charge_levels(levels);
+    protein = nullptr; // the protein must be generated anew to ensure the bodies remains in sync with the new levels
+}
+
 std::vector<EMAtom> SmartProteinManager::generate_atoms(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     std::list<EMAtom> atoms;
@@ -46,7 +85,7 @@ std::vector<EMAtom> SmartProteinManager::generate_atoms(double cutoff) const {
     return std::vector<EMAtom>(std::make_move_iterator(std::begin(atoms)), std::make_move_iterator(std::end(atoms)));
 }
 
-std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cutoff) const {
+std::unique_ptr<data::Molecule> SmartProteinManager::generate_new_protein(double cutoff) const {
     std::vector<EMAtom> atoms = generate_atoms(cutoff);
     std::vector<Body> bodies(charge_levels.size());
     std::vector<AtomFF> current_atoms(atoms.size());
@@ -101,9 +140,10 @@ void SmartProteinManager::toggle_histogram_manager_init(bool state) {
 
 void SmartProteinManager::update_protein(double cutoff) {
     if (protein == nullptr || protein->size_atom() == 0) {
+        // the protein is not initialized, so simply assign it a new one
         toggle_histogram_manager_init(false);
         logging::log("SmartProteinManager::update_protein: protein is nullptr or empty. Generating new protein.");
-        protein = generate_protein(cutoff); 
+        protein = generate_new_protein(cutoff); 
         protein->set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
         previous_cutoff = cutoff;
         return;
@@ -120,7 +160,9 @@ void SmartProteinManager::update_protein(double cutoff) {
     }
     logging::log("SmartProteinManager::update_protein: cutoff = " + std::to_string(cutoff) + ", previous_cutoff = " + std::to_string(previous_cutoff));
 
-    std::unique_ptr<data::Molecule> new_protein = generate_protein(cutoff);
+    // the idea is to generate a new protein with the new cutoff, and then replace the relevant bodies in the old protein with the new ones
+    // this will trigger the "update" signals for the replaced bodies, which will inform the histogram manager to only recalculate their contributions
+    std::unique_ptr<data::Molecule> new_protein = generate_new_protein(cutoff);
     if (cutoff < previous_cutoff) {
         // since cutoff is smaller than previously, we have to change all bins in the range [cutoff, previous_cutoff]
 
@@ -173,37 +215,4 @@ void SmartProteinManager::update_protein(double cutoff) {
     }
 
     previous_cutoff = cutoff;
-}
-
-observer_ptr<const data::Molecule> SmartProteinManager::get_protein() const {
-    assert(protein != nullptr && "SmartProteinManager::get_protein: Protein has not been initialized yet.");
-    return protein.get();
-}
-
-observer_ptr<data::Molecule> SmartProteinManager::get_protein(double cutoff) {
-    update_protein(cutoff);
-
-    auto ax = images->get_header()->get_axes();
-
-    // ensure the grid is large enough to contain the entire map
-    //? is this a waste of time since it is being overwritten for every iteration anyway?
-    Limit3D limits(ax.x.min, ax.x.max, ax.y.min, ax.y.max, ax.z.min, ax.z.max);
-    double expand_x = 0.5*limits.x.span()*settings::grid::scaling;
-    double expand_y = 0.5*limits.y.span()*settings::grid::scaling;
-    double expand_z = 0.5*limits.z.span()*settings::grid::scaling;
-    limits.x.min -= expand_x, limits.x.max += expand_x;
-    limits.y.min -= expand_y, limits.y.max += expand_y;
-    limits.z.min -= expand_z, limits.z.max += expand_z;
-
-    protein->set_grid(std::make_unique<grid::EMGrid>(limits));
-    for (auto& body : protein->get_bodies()) {
-        protein->get_grid()->add(body);
-    }
-    if (settings::em::hydrate) {protein->generate_new_hydration();}
-    return protein.get();
-}
-
-void SmartProteinManager::set_charge_levels(const std::vector<double>& levels) noexcept {
-    ProteinManager::set_charge_levels(levels);
-    protein = nullptr; // the protein must be generated anew to ensure the bodies remains in sync with the new levels
 }
