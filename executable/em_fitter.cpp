@@ -24,8 +24,8 @@ int main(int argc, char const *argv[]) {
     auto input_map = app.add_option("input-map", mapfile, "Path to the EM map.")->check(CLI::ExistingFile);
     auto input_saxs = app.add_option("input-saxs", mfile, "Path to the SAXS measurement.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/em_fitter/");
-    app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
-    app.add_flag_callback("-v,--version", [] () {std::cout << constants::version << std::endl; exit(0);}, "Print the AUSAXS version.");
+    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
+    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
 
     // config subcommands
@@ -80,7 +80,7 @@ int main(int argc, char const *argv[]) {
 
         // required args (not marked ->required() since that interferes with the help flag for subcommands)
         if (!input_map->count() || !input_saxs->count()) {
-            std::cout << "Error: Both input_structure and input_measurement are required." << std::endl;
+            console::print_warning("Error: Both input_structure and input_measurement are required.");
             exit(1);
         }
     });
@@ -118,7 +118,7 @@ int main(int argc, char const *argv[]) {
         if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
         settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 
-        std::cout << "Performing EM fit with map \"" << mapfile << "\" and measurement \"" << mfile << "\"" << std::endl;
+        console::print_text("Performing EM fit with map \"" + mapfile.str() + "\" and measurement \"" + mfile.str() + "\"");
         em::ImageStack map(mapfile); 
         auto res = map.fit(mfile);
 
