@@ -49,8 +49,20 @@ int main(int argc, char const *argv[]) {
 
     // data subcommands
     auto sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
-    sub_data->add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax);
-    sub_data->add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin);
+    sub_data->add_option(
+        "--qmax", 
+        settings::axes::qmax, 
+        "Upper limit on used q values from the measurement file.")
+        ->default_val(settings::axes::qmax)
+        ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
+    ;
+    sub_data->add_option(
+        "--qmin", 
+        settings::axes::qmin, 
+        "Lower limit on used q values from the measurement file.")
+        ->default_val(settings::axes::qmin)
+        ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
+    ;
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
         "The unit of the q values in the measurement file. Options: A, nm.");
     sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
