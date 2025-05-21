@@ -1,8 +1,11 @@
 add_subdirectory(core)
 add_subdirectory(crystal)
 add_subdirectory(em)
-add_subdirectory(gpu)
 add_subdirectory(gui)
 add_subdirectory(math)
 add_subdirectory(md)
 add_subdirectory(rigidbody)
+
+if (GPU)
+	add_subdirectory(gpu)
+endif()
