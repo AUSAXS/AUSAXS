@@ -7,6 +7,7 @@ option(GUI "Enable GUI executables" OFF)
 option(DLIB "Download and use the dlib minimizers" ON)
 option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" OFF)
 option(CONSTEXPR_TABLES "Generate lookup tables at compile-time" OFF)
+option(GPU "Enable WebGPU support" ON)
 set(ARCH "native" CACHE STRING "Target architecture. Default: native")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -88,6 +89,17 @@ if (DLIB)
 	FetchContent_MakeAvailable(dlib)
 	set(CMAKE_CXX_STANDARD 20) # continue with C++20	
 	add_compile_definitions("DLIB_AVAILABLE")
+endif()
+
+if (GPU)
+	FetchContent_Declare(
+		webgpu
+		GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
+		GIT_TAG v0.3.0-beta
+		GIT_PROGRESS TRUE
+	)
+	set(WEBGPU_BACKEND "DAWN")
+	FetchContent_MakeAvailable(webgpu)
 endif()
 
 FetchContent_Declare(
