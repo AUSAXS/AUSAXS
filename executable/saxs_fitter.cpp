@@ -23,6 +23,8 @@
 #include <string>
 #include <iostream>
 
+#include <gpu/WebGPUSimple.h>
+
 using namespace ausaxs;
 
 int main(int argc, char const *argv[]) {
@@ -179,6 +181,9 @@ int main(int argc, char const *argv[]) {
 
     CLI11_PARSE(app, argc, argv);
     console::print_info("Running AUSAXS " + std::string(constants::version));
+
+    //! DEBUG
+    hist::distance_calculator::WebGPUSimple<true> calculator;
 
     //###################//
     //### PARSE INPUT ###//

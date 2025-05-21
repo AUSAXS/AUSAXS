@@ -34,7 +34,7 @@ namespace ausaxs::hist {
 
 		private:
 		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-			using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<use_weighted_distribution>>;
+			using calculator_t = observer_ptr<distance_calculator::SimpleKernel<use_weighted_distribution>>;
 			std::mutex master_hist_mutex;
 
 			/**

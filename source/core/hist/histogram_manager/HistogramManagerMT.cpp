@@ -31,11 +31,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     hist::detail::CompactCoordinates data_w(this->protein->get_waters());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, this->protein);
 
-    hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
-    calculator.enqueue_calculate_self(data_a);
-    calculator.enqueue_calculate_self(data_w);
-    calculator.enqueue_calculate_cross(data_a, data_w);
-    auto res = calculator.run();
+    auto calculator = distance_calculator::SimpleCalculator<use_weighted_distribution>::create();
+    calculator->enqueue_calculate_self(data_a);
+    calculator->enqueue_calculate_self(data_w);
+    calculator->enqueue_calculate_cross(data_a, data_w);
+    auto res = calculator->run();
 
     auto p_aa = res.self[0];
     auto p_ww = res.self[1];

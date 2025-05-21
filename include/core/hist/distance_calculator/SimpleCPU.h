@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <hist/distance_calculator/SimpleKernel.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/detail/CompactCoordinates.h>
@@ -22,14 +23,9 @@ namespace ausaxs::hist::distance_calculator {
      *        The caller must guarantee the lifetime of all submitted data.
      */
     template<bool weighted_bins>
-    class SimpleCPU {
+    class SimpleCPU : public SimpleKernel<weighted_bins> {
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
         public:
-            struct run_result {
-                std::unordered_map<int, GenericDistribution1D_t> self;
-                std::unordered_map<int, GenericDistribution1D_t> cross;
-            };
-
             /**
              * @brief Queue a self-correlation calculation. 
              *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made. 
@@ -65,7 +61,7 @@ namespace ausaxs::hist::distance_calculator {
              *
              * @return The calculated histograms. 
              */
-            run_result run();
+            SimpleKernel<weighted_bins>::run_result run();
 
         private:
             std::vector<std::unique_ptr<container::ThreadLocalWrapper<GenericDistribution1D_t>>> self_results, cross_results;
@@ -200,10 +196,10 @@ inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::size_cro
 }
 
 template<bool weighted_bins>
-inline typename ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::run() {
+inline typename ausaxs::hist::distance_calculator::SimpleKernel<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins>::run() {
     auto pool = utility::multi_threading::get_global_pool();
     pool->wait();
-    run_result result;
+    typename SimpleKernel<weighted_bins>::run_result result;
 
     #if DEBUG_INFO
         if (!self_merge_ids.empty()) {

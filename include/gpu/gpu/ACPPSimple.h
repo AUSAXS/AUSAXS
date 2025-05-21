@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/distance_calculator/detail/SimpleKernel.h>
+#include <hist/distance_calculator/SimpleKernel.h>
 
 namespace ausaxs::hist::distance_calculator {
     /**

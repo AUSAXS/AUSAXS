@@ -1,0 +1,4 @@
+const inv_width = 0.1;
+fn eval_single(array<f32, 4> v1, array<f32, 4> v2) -> array<f32, 2> {
+    return array<f32, 2>(round(inv_width*distance(v1, v2)), v1[3]*v2[3])
+}
