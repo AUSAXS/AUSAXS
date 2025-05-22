@@ -111,10 +111,36 @@ wgpu::Device get_device(wgpu::Adapter adapter) {
     return userData.device;
 }
 
+wgpu::Queue get_queue(wgpu::Device device) {
+    auto queue = device.getQueue();
+
+    wgpu::QueueWorkDoneCallbackInfo queue_callback;
+    queue_callback.mode = wgpu::CallbackMode::WaitAnyOnly;
+    queue_callback.callback = [] (WGPUQueueWorkDoneStatus status, void *, void *) -> void {
+        if (status == wgpu::QueueWorkDoneStatus::Success) {
+            std::cout << "Queue finished successfully." << std::endl;
+        } else {
+            std::cout << "Queue failed its job." << std::endl;
+        }
+    };
+    queue.onSubmittedWorkDone(queue_callback);
+    return queue;
+}
+
+wgpu::Device device;
+wgpu::Queue queue;
+
 template<bool weighted_bins>
 void WebGPUSimple<weighted_bins>::initialize() {
-    auto adapter = get_adapter();
-    auto device = get_device(adapter);
+    device = get_device(get_adapter());
+    queue = get_queue(device);
+    
+}
+
+template<bool weighted_bins>
+WebGPUSimple<weighted_bins>::~WebGPUSimple() {
+    device.release();
+    queue.release();
 }
 
 template<bool weighted_bins>
