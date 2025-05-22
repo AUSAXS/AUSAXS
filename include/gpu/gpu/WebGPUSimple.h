@@ -9,6 +9,7 @@ namespace ausaxs::hist::distance_calculator {
     template<bool weighted_bins>
     struct WebGPUSimple : public SimpleKernel<weighted_bins> {
         WebGPUSimple();
+        ~WebGPUSimple() override;
 
         void initialize();
 
