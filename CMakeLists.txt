@@ -98,7 +98,7 @@ if (GPU)
 		GIT_TAG v0.3.0-beta
 		GIT_PROGRESS TRUE
 	)
-	set(WEBGPU_BACKEND "WGPU")
+	set(WEBGPU_BACKEND "DAWN")
 	FetchContent_MakeAvailable(webgpu)
 endif()
 
