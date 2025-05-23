@@ -15,6 +15,9 @@ target_link_libraries(em_fitter PRIVATE ausaxs_core ausaxs_math ausaxs_em CLI11:
 target_link_libraries(rigidbody_optimizer PRIVATE ausaxs_core ausaxs_math ausaxs_rigidbody CLI11::CLI11)
 target_copy_webgpu_binaries(saxs_fitter)
 
+add_executable(gpu_debug "gpu_debug.cpp")
+target_link_libraries(gpu_debug PRIVATE ausaxs_core ausaxs_math ausaxs_gpu webgpu)
+
 if (GUI)
 	add_subdirectory(gui)
 endif()

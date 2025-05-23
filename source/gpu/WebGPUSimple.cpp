@@ -3,6 +3,9 @@
 #define WEBGPU_CPP_IMPLEMENTATION
 #include <webgpu/webgpu.hpp>
 
+#include <filesystem>
+#include <fstream>
+
 using namespace ausaxs;
 using namespace ausaxs::hist::distance_calculator;
 
@@ -11,6 +14,7 @@ WebGPUSimple<weighted_bins>::WebGPUSimple() {
     initialize();
 }
 
+namespace {
 void print_adapter_info(wgpu::Adapter adapter) {
     wgpu::AdapterInfo info;
     adapter.getInfo(&info);
@@ -150,8 +154,6 @@ wgpu::ComputePassEncoder get_encoder(wgpu::Device device, wgpu::Queue queue) {
     queue.release();
 }
 
-#include <filesystem>
-#include <fstream>
 wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::Device device) {
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -261,6 +263,7 @@ void fill_input_buffers(const hist::detail::CompactCoordinates& a1, const hist::
 
     queue.writeBuffer(atom_buffer_1, 0, a1.get_data().data(), atom_buffer_1_desc.size);
     queue.writeBuffer(atom_buffer_2, 0, a2.get_data().data(), atom_buffer_2_desc.size);
+}
 }
 
 template<bool weighted_bins>
