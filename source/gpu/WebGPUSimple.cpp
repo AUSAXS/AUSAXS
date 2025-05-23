@@ -165,11 +165,11 @@ wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::D
     file.seekg(0);
     file.read(source.data(), size);
 
-    wgpu::ShaderModuleGLSLDescriptor shader_code_descriptor{};
-    shader_code_descriptor.chain.next = nullptr;
-    shader_code_descriptor.chain.sType = wgpu::SType::ShaderSourceWGSL;
-    shader_code_descriptor.code.data = source.c_str();
-    shader_code_descriptor.code.length = source.size();
+    // wgpu::ShaderModuleGLSLDescriptor shader_code_descriptor{};
+    // shader_code_descriptor.chain.next = nullptr;
+    // shader_code_descriptor.chain.sType = wgpu::SType::ShaderSourceWGSL;
+    // shader_code_descriptor.code.data = source.c_str();
+    // shader_code_descriptor.code.length = source.size();
 
     wgpu::ShaderModuleDescriptor shaderDesc{};
     
@@ -178,7 +178,7 @@ wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::D
         shader_code_descriptor.defines = nullptr;
     #endif
     
-    shaderDesc.nextInChain = &shader_code_descriptor.chain;
+    // shaderDesc.nextInChain = &shader_code_descriptor.chain;
     return device.createShaderModule(shaderDesc);
 }
 

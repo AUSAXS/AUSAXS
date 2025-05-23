@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <thread>
 
 wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::Device device) {
     std::cout << "Loading shader module..." << std::endl;
@@ -28,12 +29,15 @@ wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::D
     return device.createShaderModule(shader_module_descriptor);
 }
 
-wgpu::Adapter get_adapter() {
-    // we do not need any special features, so we can use the default descriptor
+wgpu::Instance create_instance() {
     std::cout << "Creating WebGPU instance..." << std::endl;
     wgpu::InstanceDescriptor descriptor;
     wgpu::Instance instance = wgpu::createInstance(descriptor);
+    assert(instance && "Could not create WebGPU instance.");
+    return instance;
+}
 
+wgpu::Adapter get_adapter(wgpu::Instance instance) {
     if (!instance) {
         std::cout << "Could not create WebGPU instance." << std::endl;
         exit(0);
@@ -54,10 +58,11 @@ wgpu::Adapter get_adapter() {
         // define callback function triggered when the adapter is ready (or failed)
         wgpu::RequestAdapterCallbackInfo adapter_callback;
         adapter_callback.userdata1 = &user_data;
-        adapter_callback.mode = wgpu::CallbackMode::WaitAnyOnly;
+        adapter_callback.mode = wgpu::CallbackMode::AllowProcessEvents;
         adapter_callback.callback = [] (WGPURequestAdapterStatus status, WGPUAdapter adapter, WGPUStringView message, void* user_data_p, void*) -> void {
             UserData& user_data = *reinterpret_cast<UserData*>(user_data_p);
             if (status == wgpu::RequestAdapterStatus::Success) {
+                std::cout << "Adapter found." << std::endl;
                 user_data.adapter = adapter;
             } else {
                 std::cout << "Could not get WebGPU adapter: " << std::string(message.data, message.length) << std::endl;
@@ -65,6 +70,7 @@ wgpu::Adapter get_adapter() {
             user_data.request_finished = true;
         };
         instance.requestAdapter(options, adapter_callback);
+        instance.processEvents();
     }
 
     assert(user_data.request_finished);
@@ -77,9 +83,9 @@ wgpu::Adapter get_adapter() {
     return user_data.adapter;
 }
 
-wgpu::Device get_device() {
+wgpu::Device get_device(wgpu::Instance instance) {
     // create a device with default descriptor
-    auto adapter = get_adapter();
+    auto adapter = get_adapter(instance);
     wgpu::DeviceDescriptor device_descriptor;
 
     {   
@@ -113,17 +119,19 @@ wgpu::Device get_device() {
     {   // perform the device request
         WGPURequestDeviceCallbackInfo device_callback;
         device_callback.userdata1 = &userData;
-        device_callback.mode = wgpu::CallbackMode::WaitAnyOnly;
+        device_callback.mode = wgpu::CallbackMode::AllowProcessEvents;
         device_callback.callback = [] (WGPURequestDeviceStatus status, WGPUDevice device, WGPUStringView message, void* user_data_p, void*) -> void {
             UserData& userData = *reinterpret_cast<UserData*>(user_data_p);
             if (status == wgpu::RequestDeviceStatus::Success) {
+                std::cout << "Device found." << std::endl;
                 userData.device = device;
             } else {
                 std::cout << "Could not get WebGPU device: " << std::string(message.data, message.length) << std::endl;
             }
             userData.requestEnded = true;
         };
-        adapter.requestDevice(device_descriptor, device_callback);    
+        adapter.requestDevice(device_descriptor, device_callback);
+        instance.processEvents();
     }
 
     assert(userData.requestEnded);
@@ -139,6 +147,7 @@ wgpu::BindGroupLayout initialize_bind_group_layout(wgpu::Device device) {
     bindings[0].binding = 0;
     bindings[0].buffer.type = wgpu::BufferBindingType::ReadOnlyStorage;
     bindings[0].visibility = wgpu::ShaderStage::Compute;
+
     bindings[1].binding = 1;
     bindings[1].buffer.type = wgpu::BufferBindingType::ReadOnlyStorage;
     bindings[1].visibility = wgpu::ShaderStage::Compute;
@@ -158,41 +167,51 @@ wgpu::ComputePipeline initialize_compute_pipeline(wgpu::Device device, wgpu::Bin
     wgpu::ShaderModule compute_shader_module = load_shader_module("executable/gpu_debug.wgsl", device);
     std::cout << "Shader module loaded: " << compute_shader_module << std::endl;
 
-    std::cout << "Creating compute pipeline descriptor..." << std::endl;
+    std::cout << "Creating pipeline layout..." << std::endl;
+    wgpu::PipelineLayoutDescriptor pipeline_layout_desc;
+    pipeline_layout_desc.bindGroupLayoutCount = 1;
+    pipeline_layout_desc.bindGroupLayouts = (WGPUBindGroupLayout*) &bind_group_layout;
+    auto pipeline_layout = device.createPipelineLayout(pipeline_layout_desc);
+
+    std::cout << "Creating pipeline..." << std::endl;
     std::string entry_point = "calculate_self";
     wgpu::ComputePipelineDescriptor pipeline_descriptor = wgpu::Default;
     pipeline_descriptor.compute.entryPoint.data = entry_point.data();
     pipeline_descriptor.compute.entryPoint.length = entry_point.size();
     pipeline_descriptor.compute.module = compute_shader_module;
+    pipeline_descriptor.layout = pipeline_layout;
     wgpu::ComputePipeline pipeline = device.createComputePipeline(pipeline_descriptor);
 
-    std::cout << "Creating compute pipeline..." << std::endl;
-    wgpu::PipelineLayoutDescriptor pipeline_layout_desc;
-    pipeline_layout_desc.bindGroupLayoutCount = 1;
-    pipeline_layout_desc.bindGroupLayouts = (WGPUBindGroupLayout*) &bind_group_layout;
-    auto pipeline_layout = device.createPipelineLayout(pipeline_layout_desc);
-    pipeline_descriptor.layout = pipeline_layout;
     return pipeline;
 }
 
 std::array<wgpu::Buffer, 3> create_buffers(wgpu::Device device) {
     std::cout << "Creating buffers..." << std::endl;
+    static std::string atom_buffer_1_name = "atom buffer 1";
     wgpu::BufferDescriptor atom_buffer_1_desc;
+    atom_buffer_1_desc.label.data = atom_buffer_1_name.data();
+    atom_buffer_1_desc.label.length = atom_buffer_1_name.size();
     atom_buffer_1_desc.size = 8 * sizeof(float);
     atom_buffer_1_desc.mappedAtCreation = false;
     atom_buffer_1_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopyDst;
     wgpu::Buffer atom_buffer_1 = device.createBuffer(atom_buffer_1_desc);
 
+    static std::string atom_buffer_2_name = "atom buffer 2";
     wgpu::BufferDescriptor atom_buffer_2_desc;
+    atom_buffer_2_desc.label.data = atom_buffer_2_name.data();
+    atom_buffer_2_desc.label.length = atom_buffer_2_name.size();
     atom_buffer_2_desc.size = 8 * sizeof(float);
     atom_buffer_2_desc.mappedAtCreation = false;
     atom_buffer_2_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopyDst;
     wgpu::Buffer atom_buffer_2 = device.createBuffer(atom_buffer_2_desc);
 
+    static std::string histogram_buffer_name = "histogram buffer";
     wgpu::BufferDescriptor histogram_buffer_desc;
+    histogram_buffer_desc.label.data = histogram_buffer_name.data();
+    histogram_buffer_desc.label.length = histogram_buffer_name.size();
     histogram_buffer_desc.size = 8 * sizeof(float);
     histogram_buffer_desc.mappedAtCreation = false;
-    histogram_buffer_desc.usage = wgpu::BufferUsage::Storage;
+    histogram_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc;
     wgpu::Buffer histogram_buffer = device.createBuffer(histogram_buffer_desc);
     std::cout << "Buffers created." << std::endl;
 
@@ -200,35 +219,59 @@ std::array<wgpu::Buffer, 3> create_buffers(wgpu::Device device) {
 }
 
 wgpu::BindGroup assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout) {
-    std::array<wgpu::BindGroupEntry, 3> entries;
+    assert(buffer1 && "Buffer 1 is null");
+    assert(buffer2 && "Buffer 2 is null");
+    assert(histogram_buffer && "Histogram buffer is null");
+    std::cout << "Assigning buffers to bind group..." << std::endl;
+
+    std::vector<wgpu::BindGroupEntry> entries(3, wgpu::Default);
     entries[0].binding = 0;
     entries[0].buffer = buffer1;
     entries[0].size = buffer1.getSize();
     entries[0].offset = 0;
+    entries[0].textureView = nullptr;
+    entries[0].sampler = nullptr;
 
     entries[1].binding = 1;
     entries[1].buffer = buffer2;
     entries[1].size = buffer2.getSize();
     entries[1].offset = 0;
+    entries[1].textureView = nullptr;
+    entries[1].sampler = nullptr;
 
     entries[2].binding = 2;
     entries[2].buffer = histogram_buffer;
     entries[2].size = histogram_buffer.getSize();
     entries[2].offset = 0;
+    entries[2].textureView = nullptr;
+    entries[2].sampler = nullptr;
 
+    static std::string bind_group_name = "bind group 0";
     wgpu::BindGroupDescriptor bind_group_desc;
+    bind_group_desc.label.data = bind_group_name.data();
+    bind_group_desc.label.length = bind_group_name.size();
     bind_group_desc.layout = bind_group_layout;
     bind_group_desc.entryCount = entries.size();
-    bind_group_desc.entries = entries.data();
+    bind_group_desc.entries = (WGPUBindGroupEntry*) entries.data();
     return device.createBindGroup(bind_group_desc);
 }
 
+void fill_buffers(wgpu::Queue queue, wgpu::Buffer buffer1, wgpu::Buffer buffer2) {
+    std::cout << "Filling buffers..." << std::endl;
+    std::array<float, 8> data1 = {0, 0, 1, 2, 0, 0, 2, 4};
+    std::array<float, 8> data2 = {1, 0, 1, 6, 1, 0, 2, 8};
+    queue.writeBuffer(buffer1, 0, data1.data(), buffer1.getSize());
+    queue.writeBuffer(buffer2, 0, data2.data(), buffer2.getSize());
+}
+
 int main(int, char const *[]) {
-    auto device = get_device();
+    auto instance = create_instance();
+    auto device = get_device(instance);
     auto bind_group_layout = initialize_bind_group_layout(device);
     auto pipeline = initialize_compute_pipeline(device, bind_group_layout);
 
     auto[atom_buffer_1, atom_buffer_2, histogram_buffer] = create_buffers(device);
+    fill_buffers(device.getQueue(), atom_buffer_1, atom_buffer_2);
     auto bind_group = assign_buffers(device, atom_buffer_1, atom_buffer_2, histogram_buffer, bind_group_layout);
     auto encoder = device.createCommandEncoder();
 
@@ -241,34 +284,52 @@ int main(int, char const *[]) {
     compute_pass.end();
 
     // retrieve data
+    static std::string readback_buffer_name = "readback buffer";
     wgpu::BufferDescriptor readback_buffer_desc;
-    readback_buffer_desc.size = 8*sizeof(float);
+    readback_buffer_desc.label.data = readback_buffer_name.data();
+    readback_buffer_desc.label.length = readback_buffer_name.size();
+    readback_buffer_desc.size = histogram_buffer.getSize();
     readback_buffer_desc.mappedAtCreation = false;
-    readback_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc;
+    readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     wgpu::Buffer readback_buffer = device.createBuffer(readback_buffer_desc);
-    encoder.copyBufferToBuffer(histogram_buffer, 0, readback_buffer, 0, readback_buffer_desc.size);
+    assert(readback_buffer.getSize() == histogram_buffer.getSize() && "Readback buffer size does not match histogram buffer size.");
+    encoder.copyBufferToBuffer(histogram_buffer, 0, readback_buffer, 0, readback_buffer.getSize());
+
+    wgpu::CommandBufferDescriptor command_buffer_desc;
+    command_buffer_desc.nextInChain = nullptr;
+    command_buffer_desc.label.data = "command buffer";
+    auto command_buffer = encoder.finish(command_buffer_desc);
+    encoder.release();
+
+    std::cout << "Submitting command buffer..." << std::endl;
+    device.getQueue().submit(command_buffer);
+    command_buffer.release();
+    std::cout << "Command buffer submitted." << std::endl;
 
     // print
     bool done = false;
     wgpu::BufferMapCallbackInfo map_callback;
-    map_callback.mode = wgpu::CallbackMode::WaitAnyOnly;
+    map_callback.mode = wgpu::CallbackMode::AllowProcessEvents;
+    map_callback.userdata1 = &readback_buffer;
+    map_callback.userdata2 = &done;
     map_callback.callback = [] (WGPUMapAsyncStatus, WGPUStringView, void* p_readback_buffer, void* p_done) -> void {
+        std::cout << "Readback buffer callback!" << std::endl;
         wgpu::Buffer readback_buffer = *reinterpret_cast<wgpu::Buffer*>(p_readback_buffer);
         bool* done = reinterpret_cast<bool*>(p_done);
-        const float* output = (const float*) readback_buffer.getConstMappedRange(0, readback_buffer.getSize());
+        const uint32_t* output = (const uint32_t*) readback_buffer.getConstMappedRange(0, readback_buffer.getSize());
         for (int i = 0; i < 8; ++i) {
             std::cout << "output " << i << ": " << output[i] << std::endl;
         }
-        readback_buffer.unmap();
         *done = true;
+        readback_buffer.unmap();
     };
+    readback_buffer.mapAsync(wgpu::MapMode::Read, 0, readback_buffer.getSize(), map_callback);
+    instance.processEvents();
 
-    while (!done) {
-        #ifdef WEBGPU_BACKEND_WGPU
-            device.getQueue().submit(0, nullptr);
-        #else
-            throw std::runtime_error("WebGPU backend not supported.");
-        #endif
+    while(!done) {
+        std::cout << "Waiting for readback..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        instance.processEvents();
     }
 
     return 0;

@@ -26,7 +26,7 @@ fn atomic_add(i: u32, value: f32) {
     }
 }
 
-@compute @workgroup_size(32)
+@compute @workgroup_size(2)
 fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
     let num_atoms = arrayLength(&atom_buffer_1);
 
@@ -35,7 +35,8 @@ fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 
     let atom1 = atom_buffer_1[id.x];
-    atomic_add(0, atom1.w);
+    atomicAdd(&histogram[id.x], u32(atom1.w));
+    // atomic_add(0, atom1.w);
 
     // for (var i = id.x + 1u; i < num_atoms; i = i + 1u) {
     //     let atom2 = atom_buffer_1[i];
