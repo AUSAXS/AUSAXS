@@ -11,6 +11,12 @@ WebGPUSimple<weighted_bins>::WebGPUSimple() {
     initialize();
 }
 
+void print_adapter_info(wgpu::Adapter adapter) {
+    wgpu::AdapterInfo info;
+    adapter.getInfo(&info);
+    std::cout << "WebGPU: Acquired device: " << std::string(info.device.data, info.device.length) << std::endl;
+}
+
 wgpu::Adapter get_adapter() {
     // we do not need any special features, so we can use the default descriptor
     std::cout << "Creating WebGPU instance..." << std::endl;
@@ -39,10 +45,8 @@ wgpu::Adapter get_adapter() {
         adapter_callback.userdata1 = &user_data;
         adapter_callback.mode = wgpu::CallbackMode::WaitAnyOnly;
         adapter_callback.callback = [] (WGPURequestAdapterStatus status, WGPUAdapter adapter, WGPUStringView message, void* user_data_p, void*) -> void {
-            std::cout << "Adapter callback triggered." << std::endl;
             UserData& user_data = *reinterpret_cast<UserData*>(user_data_p);
             if (status == wgpu::RequestAdapterStatus::Success) {
-                std::cout << "Got WebGPU adapter: " << adapter << std::endl;
                 user_data.adapter = adapter;
             } else {
                 std::cout << "Could not get WebGPU adapter: " << std::string(message.data, message.length) << std::endl;
@@ -53,6 +57,7 @@ wgpu::Adapter get_adapter() {
     }
 
     assert(user_data.request_finished);
+    print_adapter_info(user_data.adapter);
     return user_data.adapter;
 }
 
@@ -93,10 +98,8 @@ wgpu::Device get_device(wgpu::Adapter adapter) {
         device_callback.userdata1 = &userData;
         device_callback.mode = wgpu::CallbackMode::WaitAnyOnly;
         device_callback.callback = [] (WGPURequestDeviceStatus status, WGPUDevice device, WGPUStringView message, void* user_data_p, void*) -> void {
-            std::cout << "Device callback triggered." << std::endl;
             UserData& userData = *reinterpret_cast<UserData*>(user_data_p);
             if (status == wgpu::RequestDeviceStatus::Success) {
-                std::cout << "Got WebGPU device: " << device << std::endl;
                 userData.device = device;
             } else {
                 std::cout << "Could not get WebGPU device: " << std::string(message.data, message.length) << std::endl;
@@ -127,14 +130,145 @@ wgpu::Queue get_queue(wgpu::Device device) {
     return queue;
 }
 
+wgpu::ComputePassEncoder get_encoder(wgpu::Device device, wgpu::Queue queue) {
+    wgpu::CommandEncoderDescriptor encoder_descriptor = wgpu::Default;
+    wgpu::CommandEncoder encoder = device.createCommandEncoder(encoder_descriptor);
+
+    // compute pass
+    wgpu::ComputePassDescriptor compute_pass_descriptor = wgpu::Default;
+    wgpu::ComputePassEncoder compute_pass = encoder.beginComputePass(compute_pass_descriptor);
+    compute_pass.end();
+
+    wgpu::CommandBufferDescriptor command_buffer_descriptor = wgpu::Default;
+    wgpu::CommandBuffer commands = encoder.finish(command_buffer_descriptor);
+    queue.submit(commands);
+
+    // cleanup
+    compute_pass.release();
+    encoder.release();
+    commands.release();
+    queue.release();
+}
+
+#include <filesystem>
+#include <fstream>
+wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::Device device) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        return nullptr;
+    }
+    file.seekg(0, std::ios::end);
+    size_t size = file.tellg();
+    std::string source(size, ' ');
+    file.seekg(0);
+    file.read(source.data(), size);
+
+    wgpu::ShaderModuleGLSLDescriptor shader_code_descriptor{};
+    shader_code_descriptor.chain.next = nullptr;
+    shader_code_descriptor.chain.sType = wgpu::SType::ShaderSourceWGSL;
+    shader_code_descriptor.code.data = source.c_str();
+    shader_code_descriptor.code.length = source.size();
+
+    wgpu::ShaderModuleDescriptor shaderDesc{};
+    
+    #ifdef WEBGPU_BACKEND_WGPU
+        shader_code_descriptor.defineCount = 0;
+        shader_code_descriptor.defines = nullptr;
+    #endif
+    
+    shaderDesc.nextInChain = &shader_code_descriptor.chain;
+    return device.createShaderModule(shaderDesc);
+}
+
+wgpu::ComputePipeline prepare_compute_pipeline(wgpu::Device device) {
+    std::cout << "Preparing compute pipeline..." << std::endl;
+    wgpu::ShaderModule module;
+    load_shader_module("source/gpu/WebGPUSimple.wgsl", device);
+
+    std::string func = "calculate_self";
+    wgpu::ComputePipelineDescriptor pipeline_descriptor = wgpu::Default;
+    pipeline_descriptor.compute.module = module;
+    pipeline_descriptor.compute.entryPoint.data = func.data();
+    pipeline_descriptor.compute.entryPoint.length = func.size();
+    return device.createComputePipeline(pipeline_descriptor);
+}
+
+wgpu::BindGroupLayout prepare_bindings(wgpu::Device device) {
+    std::cout << "Preparing bindings..." << std::endl;
+    std::vector<wgpu::BindGroupLayoutEntry> bindings(3, wgpu::Default);
+
+    // atom buffers
+    bindings[0].binding = 0;
+    bindings[0].buffer.type = wgpu::BufferBindingType::ReadOnlyStorage;
+    bindings[0].visibility = wgpu::ShaderStage::Compute;
+    bindings[1].binding = 1;
+    bindings[1].buffer.type = wgpu::BufferBindingType::ReadOnlyStorage;
+    bindings[1].visibility = wgpu::ShaderStage::Compute;
+
+    // histogram buffer
+    bindings[2].binding = 2;
+    bindings[2].buffer.type = wgpu::BufferBindingType::Storage;
+    bindings[2].visibility = wgpu::ShaderStage::Compute;
+
+    wgpu::BindGroupLayoutDescriptor bindgroup_layout;
+    bindgroup_layout.entryCount = (uint32_t) bindings.size();
+    bindgroup_layout.entries = bindings.data();
+    return device.createBindGroupLayout(bindgroup_layout);
+}
+
 wgpu::Device device;
 wgpu::Queue queue;
+wgpu::BindGroupLayout bindings;
+wgpu::ComputePipeline pipeline;
+wgpu::Buffer atom_buffer_1;
+wgpu::Buffer atom_buffer_2;
+wgpu::Buffer histogram_buffer;
+
+void fill_input_buffers(const hist::detail::CompactCoordinates& a) {
+    wgpu::BufferDescriptor atom_buffer_desc;
+    atom_buffer_desc.size = a.size() * sizeof(hist::detail::CompactCoordinatesData);
+    atom_buffer_desc.mappedAtCreation = false;
+    atom_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopyDst;
+    wgpu::Buffer atom_buffer_1 = device.createBuffer(atom_buffer_desc);
+
+    wgpu::BufferDescriptor histogram_buffer_desc;
+    histogram_buffer_desc.size = constants::axes::d_axis.bins * sizeof(constants::axes::d_type);
+    histogram_buffer_desc.mappedAtCreation = false;
+    histogram_buffer_desc.usage = wgpu::BufferUsage::Storage;
+    wgpu::Buffer histogram_buffer = device.createBuffer(histogram_buffer_desc);
+
+    queue.writeBuffer(atom_buffer_1, 0, a.get_data().data(), atom_buffer_desc.size);
+}
+
+void fill_input_buffers(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2) {
+    wgpu::BufferDescriptor atom_buffer_1_desc;
+    atom_buffer_1_desc.size = a1.size() * sizeof(hist::detail::CompactCoordinatesData);
+    atom_buffer_1_desc.mappedAtCreation = false;
+    atom_buffer_1_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopyDst;
+    wgpu::Buffer atom_buffer_1 = device.createBuffer(atom_buffer_1_desc);
+
+    wgpu::BufferDescriptor atom_buffer_2_desc;
+    atom_buffer_2_desc.size = a2.size() * sizeof(hist::detail::CompactCoordinatesData);
+    atom_buffer_2_desc.mappedAtCreation = false;
+    atom_buffer_2_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopyDst;
+    wgpu::Buffer atom_buffer_2 = device.createBuffer(atom_buffer_2_desc);
+
+    wgpu::BufferDescriptor histogram_buffer_desc;
+    histogram_buffer_desc.size = constants::axes::d_axis.bins * sizeof(constants::axes::d_type);
+    histogram_buffer_desc.mappedAtCreation = false;
+    histogram_buffer_desc.usage = wgpu::BufferUsage::Storage;
+    wgpu::Buffer histogram_buffer = device.createBuffer(histogram_buffer_desc);
+
+    queue.writeBuffer(atom_buffer_1, 0, a1.get_data().data(), atom_buffer_1_desc.size);
+    queue.writeBuffer(atom_buffer_2, 0, a2.get_data().data(), atom_buffer_2_desc.size);
+}
 
 template<bool weighted_bins>
 void WebGPUSimple<weighted_bins>::initialize() {
     device = get_device(get_adapter());
     queue = get_queue(device);
-    
+    bindings = prepare_bindings(device);
+    pipeline = prepare_compute_pipeline(device);
 }
 
 template<bool weighted_bins>
@@ -144,12 +278,14 @@ WebGPUSimple<weighted_bins>::~WebGPUSimple() {
 }
 
 template<bool weighted_bins>
-int WebGPUSimple<weighted_bins>::enqueue_calculate_self(const hist::detail::CompactCoordinates&, int, int) {
+int WebGPUSimple<weighted_bins>::enqueue_calculate_self(const hist::detail::CompactCoordinates& a, int, int) {
+    fill_input_buffers(a);
     return 0;
 }
 
 template<bool weighted_bins>
-int WebGPUSimple<weighted_bins>::enqueue_calculate_cross(const hist::detail::CompactCoordinates&, const hist::detail::CompactCoordinates&, int, int) {
+int WebGPUSimple<weighted_bins>::enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2, int, int) {
+    fill_input_buffers(a1, a2);
     return 0;
 }
 

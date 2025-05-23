@@ -22,6 +22,7 @@ namespace ausaxs::hist::distance_calculator {
             std::unordered_map<int, GenericDistribution1D_t> self;
             std::unordered_map<int, GenericDistribution1D_t> cross;
         };
+        virtual ~SimpleKernel() = default;
 
         /**
          * @brief Queue a self-correlation calculation. 
