@@ -14,7 +14,6 @@ target_link_libraries(saxs_fitter PRIVATE ausaxs_core ausaxs_math CLI11::CLI11)
 target_link_libraries(em_fitter PRIVATE ausaxs_core ausaxs_math ausaxs_em CLI11::CLI11)
 target_link_libraries(rigidbody_optimizer PRIVATE ausaxs_core ausaxs_math ausaxs_rigidbody CLI11::CLI11)
 
-add_subdirectory(md)
 if (GUI)
 	add_subdirectory(gui)
 endif()
