@@ -87,6 +87,12 @@ auto make_start_button(gui::view& view) {
 		worker = std::thread([&view] () {
 			ausaxs::settings::axes::qmin = qslider_axis_transform(qslider->value_first());
 			ausaxs::settings::axes::qmax = qslider_axis_transform(qslider->value_second());
+			logging::log(std::string("Starting SAXS fitting with: ") +
+				"\n\tqmin = " + std::to_string(ausaxs::settings::axes::qmin) +
+				"\n\tqmax = " + std::to_string(ausaxs::settings::axes::qmax) +
+				"\n\tpdb file = " + ::settings::pdb_file +
+				"\n\tsaxs file = " + ::settings::saxs_file
+			);
 			setup::pdb = std::make_unique<data::Molecule>(::settings::pdb_file);
 			setup::pdb->generate_new_hydration();
 
@@ -105,9 +111,9 @@ auto make_start_button(gui::view& view) {
 
 			auto make_image_pane = [] (const io::File& path) {
 				if (!path.exists()) {
-					throw except::io_error("file " + path.absolute_path() + " does not exist");
+					throw except::io_error("File " + path.absolute_path() + " does not exist");
 				}
-				console::print_text_minor("loading image " + path.absolute_path());
+				logging::log("Loading image " + path.absolute_path());
 				return gui::image(path.absolute_path().c_str(), 0.13);
 			};
 
@@ -140,13 +146,16 @@ auto make_start_button(gui::view& view) {
 					)
 				)
 			);
+			logging::log("Created image viewer layout");
 
 			start_button->set_body_color(ColorManager::get_color_success());
 			start_button->set_text("Start");
 
+			logging::log("Switching to image viewer layout");
 			deck[1] = gui::share(image_viewer_layout);
 			deck.select(1);
 			view.refresh();
+			logging::log("Finished processing SAXS data and updating GUI");
 		});
 	};
 
@@ -203,7 +212,7 @@ auto io_menu(gui::view& view) {
 		pdb_box.second->set_text(file.path());
 
 		::settings::pdb_file = file.path();
-		console::print_text("pdb file was set to " + ::settings::pdb_file);
+		logging::log("PDB file was set to " + ::settings::pdb_file);
 		pdb_box_bg.get() = ColorManager::get_color_success();
 		pdb_ok = true;
 
@@ -261,7 +270,7 @@ auto io_menu(gui::view& view) {
 		}
 		saxs_box.second->set_text(file.path());
 
-		console::print_text("saxs file was set to " + ::settings::saxs_file);
+		logging::log("SAXS file was set to " + ::settings::saxs_file);
 		::settings::saxs_file = file.path();
 		saxs_box_bg.get() = ColorManager::get_color_success();
 		setup::saxs_dataset = std::make_unique<SimpleDataset>(::settings::saxs_file);
