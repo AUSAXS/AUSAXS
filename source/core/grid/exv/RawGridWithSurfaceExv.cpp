@@ -188,7 +188,6 @@ GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
         "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
         "\n\tOf these, " + std::to_string(vol.interior.size()) + " are interior atoms, and " + std::to_string(vol.surface.size()) + " are surface atoms."
     );
-    std::cout << "RawGridWithSurfaceExv::create: added " << vol.interior.size() + vol.surface.size() << " / " << grid->get_volume_bins() << " atoms to the excluded volume." << std::endl;
 
     return vol;
 }

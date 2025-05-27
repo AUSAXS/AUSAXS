@@ -51,7 +51,6 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
     logging::log(
         "RawGridExv::create: added " + std::to_string(atoms.size()) + "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
     );
-    std::cout << "RawGridExv::create: added " << atoms.size() << " / " << grid->get_volume_bins() << " atoms to the excluded volume." << std::endl;
 
     return GridExcludedVolume{std::move(atoms), {}};
 }
