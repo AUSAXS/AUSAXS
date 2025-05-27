@@ -25,7 +25,7 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
                 return sum + ff_table.get_form_factor(atom.form_factor_type()).evaluate(0);
             });
         }
-        return volume /= constants::charge::density::water;
+        return volume / constants::charge::density::water;
     };
 
     auto grid = m->get_grid();
