@@ -129,7 +129,7 @@ inline shell::Command get_plotter_cmd() {
 		if (plot_exe_available) {
 			return shell::Command("\"" + utility::remove_all(res.out, "\n\r") + "\"");
 		}
-		throw except::io_error("No valid python installation found, and \"plot.exe\" is not available in the system path or local directory.")
+		throw except::io_error("No valid python installation found, and \"plot.exe\" is not available in the system path or local directory.");
 	#endif
 	throw except::io_error("No valid python command found. Please ensure that python is installed and available in the system path.");
 }
