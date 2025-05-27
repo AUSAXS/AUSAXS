@@ -13,6 +13,10 @@ namespace ausaxs::fitter {
      */
     class SmartFitter : public Fitter {
         public:
+            struct EnabledFitParameters {
+                bool hydration, excluded_volume, solvent_density, atomic_debye_waller, exv_debye_waller;
+            } fit_parameters;
+
             virtual ~SmartFitter() override;
             SmartFitter(SmartFitter&&) noexcept;
             SmartFitter& operator=(SmartFitter&&) noexcept;
@@ -67,8 +71,9 @@ namespace ausaxs::fitter {
             SimpleDataset data;
             std::unique_ptr<hist::DistanceHistogram> model;
             std::vector<mini::Parameter> guess;
+            EnabledFitParameters enabled_fit_parameters;
 
-			/**
+            /**
 			 * @brief Splice values from the model to match the data.
 			 * 
 			 * @param ym the model y-values corresponding to xm

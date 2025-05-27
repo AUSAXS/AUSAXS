@@ -66,8 +66,8 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) { // iterate through all q values
+    int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
+    for (int q = q0; q < static_cast<int>(q0+debye_axis.bins); ++q) { // iterate through all q values
         Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
     }
@@ -84,7 +84,7 @@ SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) c
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(q.size(), 0);
-    for (unsigned int i = 0; i < q.size(); ++i) { // iterate through all q values
+    for (int i = 0; i < static_cast<int>(q.size()); ++i) { // iterate through all q values
         Iq[i] = std::inner_product(p.begin(), p.end(), sinqd_table.begin(i), 0.0);
         Iq[i] *= std::exp(-q[i]*q[i]); // form factor
     }

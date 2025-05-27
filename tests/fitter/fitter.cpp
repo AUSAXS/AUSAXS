@@ -258,3 +258,33 @@ TEST_CASE("fitter: correct dof", "[files]") {
         }
     }
 }
+
+TEST_CASE("SmartFitter: consistent fits using different q-ranges") {
+    Molecule protein("tests/files/2epe.pdb");
+    protein.generate_new_hydration();
+
+    settings::fit::fit_hydration = GENERATE(true, false);
+    settings::fit::fit_excluded_volume = GENERATE(true, false);
+    settings::fit::fit_solvent_density = false;
+    settings::fit::fit_atomic_debye_waller = false;
+    settings::fit::fit_exv_debye_waller = false;
+
+    for (int hm = 0; hm < static_cast<int>(settings::hist::HistogramManagerChoice::Count); ++hm) {
+        std::vector<double> qmin = {0.01, 0.025, 0.05, 0.1, 0.25};
+        std::vector<double> qmax = {0.5, 0.475, 0.45, 0.4, 0.35};
+        for (auto v1 : qmin) {
+            settings::axes::qmin = v1;
+            for (auto v2: qmax) {
+                settings::axes::qmax = v2;
+                int chi2 = 0;
+                for (int i = 0; i < 5; ++i) {
+                    fitter::SmartFitter fitter({"tests/files/2epe.dat"}, protein.get_histogram());
+                    auto fit = fitter.fit();
+                    if (i == 0) {chi2 = fit->fval;}
+                    else {REQUIRE(utility::approx(fit->fval, chi2));}
+                }
+            }
+        }
+
+    }
+}
