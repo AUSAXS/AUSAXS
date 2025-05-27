@@ -15,27 +15,14 @@ namespace ausaxs::utility {
 
     template<typename T>
     class Observable {
-        class Observer {
-            friend class Observable;
-            public:
-                Observer() = default;
-
-                ~Observer() {
-                    on_delete();
-                }
-
-                std::function<void(const T&)> on_notify;
-
-            private:
-                void notify(const T& value) {
-                    on_notify(value);
-                }
-
-                std::function<void()> on_delete;
-        };
-
         public: 
             Observable() = default;
+            ~Observable() {
+                for (auto& o : observers) {
+                    o->on_delete();
+                    o->on_delete = [] () {}; // clear the on_delete callback to avoid dangling pointer to this
+                }
+            }
 
             /**
              * @brief Notify all observers of a new value.
@@ -51,8 +38,8 @@ namespace ausaxs::utility {
              * 
              * When the returned observer is destroyed, it will detach itself from this observable.
              */
-            std::unique_ptr<Observer> make_observer() {
-                auto o = std::make_unique<Observer>();
+            std::unique_ptr<Observer<T>> make_observer() {
+                auto o = std::make_unique<Observer<T>>();
                 o->on_delete = [this, ptr=o.get()] () {
                     this->detach_observer(ptr);
                 };
@@ -61,14 +48,14 @@ namespace ausaxs::utility {
             }
 
         private:
-            void attach_observer(observer_ptr<Observer> observer) {
+            void attach_observer(observer_ptr<Observer<T>> observer) {
                 observers.push_back(observer);
             }
 
-            void detach_observer(observer_ptr<Observer> observer) {
+            void detach_observer(observer_ptr<Observer<T>> observer) {
                 observers.remove(observer);
             }
 
-            std::list<observer_ptr<Observer>> observers;
+            std::list<observer_ptr<Observer<T>>> observers;
     };
 }
