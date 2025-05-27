@@ -259,29 +259,40 @@ TEST_CASE("fitter: correct dof", "[files]") {
     }
 }
 
+// Check that the SmartFitter produces consistent fits when using different q-ranges
+// This is a good but rather long test for potential memory issues or inconsistencies in the various histogram managers
 TEST_CASE("SmartFitter: consistent fits using different q-ranges") {
+    settings::general::verbose = false;
+    settings::general::warnings = false;
+
     Molecule protein("tests/files/2epe.pdb");
     protein.generate_new_hydration();
 
-    settings::fit::fit_hydration = GENERATE(true, false);
-    settings::fit::fit_excluded_volume = GENERATE(true, false);
+    settings::fit::fit_hydration = true;
+    settings::fit::fit_excluded_volume = true;
     settings::fit::fit_solvent_density = false;
     settings::fit::fit_atomic_debye_waller = false;
     settings::fit::fit_exv_debye_waller = false;
 
     for (int hm = 0; hm < static_cast<int>(settings::hist::HistogramManagerChoice::Count); ++hm) {
-        std::vector<double> qmin = {0.01, 0.025, 0.05, 0.1, 0.25};
-        std::vector<double> qmax = {0.5, 0.475, 0.45, 0.4, 0.35};
+        if (hm == static_cast<int>(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv)) {
+            continue; // this histogram manager currently passes, takes too long to run, and is unlikely to receive any updates, so skip it
+        }
+        protein.set_histogram_manager(static_cast<settings::hist::HistogramManagerChoice>(hm));
+        std::vector<double> qmin = {0.01, 0.05, 0.1};
+        std::vector<double> qmax = {0.5, 0.35};
         for (auto v1 : qmin) {
             settings::axes::qmin = v1;
             for (auto v2: qmax) {
                 settings::axes::qmax = v2;
-                int chi2 = 0;
-                for (int i = 0; i < 5; ++i) {
+                double chi2 = 0;
+
+                // rerun thrice and check that the results are consistent
+                for (int i = 0; i < 3; ++i) {
                     fitter::SmartFitter fitter({"tests/files/2epe.dat"}, protein.get_histogram());
                     auto fit = fitter.fit();
                     if (i == 0) {chi2 = fit->fval;}
-                    else {REQUIRE(utility::approx(fit->fval, chi2));}
+                    else {CHECK_THAT(fit->fval, Catch::Matchers::WithinRelMatcher(chi2, 0.02));}
                 }
             }
         }

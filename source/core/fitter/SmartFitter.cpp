@@ -34,12 +34,6 @@ SmartFitter::~SmartFitter() = default;
 SmartFitter::SmartFitter(SmartFitter&&) noexcept = default;
 SmartFitter& SmartFitter::operator=(SmartFitter&&) noexcept = default;
 
-SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {}
-
-SmartFitter::SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::DistanceHistogram> h) : SmartFitter(saxs) {
-    set_model(std::move(h));
-}
-
 SmartFitter::EnabledFitParameters initialize_parameters() {
     return {
         .hydration = settings::fit::fit_hydration,
@@ -48,6 +42,13 @@ SmartFitter::EnabledFitParameters initialize_parameters() {
         .atomic_debye_waller = settings::fit::fit_atomic_debye_waller,
         .exv_debye_waller = settings::fit::fit_exv_debye_waller
     };
+}
+
+SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {enabled_fit_parameters = initialize_parameters();}
+
+SmartFitter::SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::DistanceHistogram> h) : SmartFitter(saxs) {
+    enabled_fit_parameters = initialize_parameters();
+    set_model(std::move(h));
 }
 
 void validate_model(observer_ptr<hist::DistanceHistogram> h, SmartFitter::EnabledFitParameters& fit) {
@@ -79,23 +80,53 @@ observer_ptr<hist::ICompositeDistanceHistogram> cast_h(observer_ptr<hist::Distan
 std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     std::vector<mini::Parameter> guess;
     if (enabled_fit_parameters.hydration) {
-        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), 1, cast_h(model.get())->get_water_scaling_factor_limits()});
+        guess.emplace_back(
+            mini::Parameter{
+                constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), 
+                1, 
+                cast_h(model.get())->get_water_scaling_factor_limits()
+            }
+        );
     }
 
     if (enabled_fit_parameters.excluded_volume) {
-        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_EXV), 1, cast_exv(model.get())->get_excluded_volume_scaling_factor_limits()});
+        guess.emplace_back(
+            mini::Parameter{
+                constants::fit::to_string(constants::fit::Parameters::SCALING_EXV), 
+                1, 
+                cast_exv(model.get())->get_excluded_volume_scaling_factor_limits()
+            }
+        );
     }
 
     if (enabled_fit_parameters.solvent_density) {
-        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_RHO), 1, cast_exv(model.get())->get_solvent_density_scaling_factor_limits()});
+        guess.emplace_back(
+            mini::Parameter{
+                constants::fit::to_string(constants::fit::Parameters::SCALING_RHO), 
+                1, 
+                cast_exv(model.get())->get_solvent_density_scaling_factor_limits()
+            }
+        );
     }
 
     if (enabled_fit_parameters.atomic_debye_waller) {
-        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC), 0, cast_exv(model.get())->get_debye_waller_factor_limits()});
+        guess.emplace_back(
+            mini::Parameter{
+                constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC), 
+                0, 
+                cast_exv(model.get())->get_debye_waller_factor_limits()
+            }
+        );
     }
 
     if (enabled_fit_parameters.exv_debye_waller) {
-        guess.push_back(mini::Parameter{constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV), 0, cast_exv(model.get())->get_debye_waller_factor_limits()});
+        guess.emplace_back(
+            mini::Parameter{
+                constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV), 
+                0, 
+                cast_exv(model.get())->get_debye_waller_factor_limits()
+            }
+        );
     }
     return guess;
 }
@@ -131,7 +162,6 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
 
     auto linear_fitter = prepare_linear_fitter(res.get_parameter_values());
     auto linear_fit = linear_fitter.fit();
-    std::cout << "SmartFitter::fit: Linear fit fval = " << linear_fit->fval << ", minimizer fval = " << res.fval << std::endl;
     assert(std::abs(linear_fit->fval - res.fval) < 1e-6 && "SmartFitter::fit: Linear fit and minimizer results do not match.");
 
     auto fit_result = std::make_unique<FitResult>(res, res.fval, dof()+2);     // start with the fit performed here

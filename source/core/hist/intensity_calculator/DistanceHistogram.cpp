@@ -94,7 +94,8 @@ SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) c
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 
 const std::vector<double>& DistanceHistogram::get_q_axis() {
-    static const std::vector<double> q_vals = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+    static std::vector<double> q_vals; 
+    q_vals = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
     return q_vals;
 }
 
