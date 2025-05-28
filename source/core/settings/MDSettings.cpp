@@ -12,10 +12,10 @@ std::string settings::md::gmx_path = "gmx";
 std::string settings::md::gmx_top_path = "";
 std::string settings::md::buffer_path = "";
 
-namespace ausaxs::settings::md::io {
+namespace ausaxs::settings::io {
     settings::io::SettingSection md_section("MD", {
-        settings::io::create(gmx_path, {"gmx_exe", "gmx_executable", "gmx"}),
-        settings::io::create(gmx_top_path, {"gmx_top_path"}),
-        settings::io::create(buffer_path, {"buffer_path", "buffer"}),
+        settings::io::create(md::gmx_path, {"gmx_exe", "gmx_executable", "gmx"}),
+        settings::io::create(md::gmx_top_path, {"gmx_top_path"}),
+        settings::io::create(md::buffer_path, {"buffer_path", "buffer"}),
     });
 }
