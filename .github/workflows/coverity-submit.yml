@@ -39,6 +39,6 @@ jobs:
 
       - uses: vapier/coverity-scan-action@v1.8.0
         with:
-          command: cmake --build build --target ausaxs ausaxs_md -j12
+          command: cmake --build build --target ausaxs -j12
           email: ${{ secrets.COVERITY_SCAN_EMAIL }}
           token: ${{ secrets.COVERITY_SCAN_TOKEN }}

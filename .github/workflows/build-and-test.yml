@@ -97,7 +97,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: | 
-          brew install curl
+          brew install --quiet curl
           
       - name: Build the library
         shell: bash
@@ -153,7 +153,7 @@ jobs:
             vcpkg_triplet: arm64-osx
             CC: $(brew --prefix llvm@18)/bin/clang
             CXX: $(brew --prefix llvm@18)/bin/clang++
-            XCODE_VER: 16.0
+            XCODE_VER: 15.4
 
     steps:
       - uses: actions/checkout@v4
@@ -168,7 +168,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install cmake curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
+          brew install --quiet cmake curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
 
       - name: Build the library
         run: |
