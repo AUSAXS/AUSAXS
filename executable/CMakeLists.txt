@@ -33,6 +33,7 @@ add_plot_scripts_to_target(saxs_fitter)
 add_plot_scripts_to_target(em_fitter)
 add_plot_scripts_to_target(rigidbody_optimizer)
 
+add_subdirectory(md)
 if (GUI)
 	add_subdirectory(gui)
 endif()
