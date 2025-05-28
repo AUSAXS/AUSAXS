@@ -586,15 +586,20 @@ auto make_start_button(gui::view& view) {
 		}
 
         // reinitialize the map to ensure it reflects the current settings
-        setup::map = nullptr; // delete first to free up memory
+		static std::unique_ptr<utility::Observer<int>> observer;
+		observer = nullptr; // avoid dangling pointer to old map
+
+		setup::map = nullptr; // delete first to free up memory
         setup::map = std::make_unique<em::ImageStack>(::settings::map_file);
 
-		static auto observer = setup::map->get_progress_observer();
+		logging::log("Creating observer for progress updates");
+		observer = setup::map->get_progress_observer();
 		observer->on_notify = [&view] (int progress) {
 			progress_bar.value(float(progress)/(2*ausaxs::settings::fit::max_iterations));
 			view.refresh(deck);
 		};
 
+		logging::log("Switching to progress view");
 		deck.select(1);
 		view.refresh();
 		worker = std::thread([&view] () {

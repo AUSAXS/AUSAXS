@@ -1,3 +1,8 @@
+/*
+This software is distributed under the GNU Lesser General Public License v3.0. 
+For more information, please refer to the LICENSE file in the project root.
+*/
+
 #include <grid/exv/ExvVolume.h>
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
@@ -25,7 +30,7 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
                 return sum + ff_table.get_form_factor(atom.form_factor_type()).evaluate(0);
             });
         }
-        return volume /= constants::charge::density::water;
+        return volume / constants::charge::density::water;
     };
 
     auto grid = m->get_grid();

@@ -1,3 +1,8 @@
+/*
+This software is distributed under the GNU Lesser General Public License v3.0. 
+For more information, please refer to the LICENSE file in the project root.
+*/
+
 #include <grid/exv/RawGridExv.h>
 #include <utility/Logging.h>
 #include <settings/GridSettings.h>
@@ -51,7 +56,6 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
     logging::log(
         "RawGridExv::create: added " + std::to_string(atoms.size()) + "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
     );
-    std::cout << "RawGridExv::create: added " << atoms.size() << " / " << grid->get_volume_bins() << " atoms to the excluded volume." << std::endl;
 
     return GridExcludedVolume{std::move(atoms), {}};
 }

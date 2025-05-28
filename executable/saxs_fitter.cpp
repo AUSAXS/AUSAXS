@@ -250,7 +250,7 @@ int main(int argc, char const *argv[]) {
             if (settings::fit::fit_excluded_volume) {
                 msg_exv_vol = 
                     "\tExcluded:        " 
-                    + std::to_string((int) std::round(protein.get_volume_exv(settings::fit::fit_excluded_volume ? result->get_parameter(constants::fit::Parameters::SCALING_EXV) : 1))) 
+                    + std::to_string((int) std::round(protein.get_volume_exv(result->get_parameter(constants::fit::Parameters::SCALING_EXV))))
                     + " A^3"
                 ;
             }

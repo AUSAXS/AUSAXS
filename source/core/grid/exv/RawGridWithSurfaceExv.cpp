@@ -1,3 +1,8 @@
+/*
+This software is distributed under the GNU Lesser General Public License v3.0. 
+For more information, please refer to the LICENSE file in the project root.
+*/
+
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <grid/detail/RadialLineGenerator.h>
 #include <grid/Grid.h>
@@ -188,7 +193,6 @@ GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
         "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
         "\n\tOf these, " + std::to_string(vol.interior.size()) + " are interior atoms, and " + std::to_string(vol.surface.size()) + " are surface atoms."
     );
-    std::cout << "RawGridWithSurfaceExv::create: added " << vol.interior.size() + vol.surface.size() << " / " << grid->get_volume_bins() << " atoms to the excluded volume." << std::endl;
 
     return vol;
 }

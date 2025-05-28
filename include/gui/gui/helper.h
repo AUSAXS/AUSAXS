@@ -8,6 +8,7 @@
 #include <shell/Command.h>
 #include <constants/Constants.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 #include <settings/All.h>
 #include <gui/plotting.h>
 
@@ -105,32 +106,32 @@ static auto background = ColorManager::new_background_color();
 // }
 
 inline shell::Command get_plotter_cmd() {
+	// first check if python is available
+	std::vector<std::string> python_cmds = {
+		"python3",
+		"python"
+	};
+
+	for (const auto& cmd : python_cmds) {
+		auto res = shell::Command(cmd + " --version").mute().execute();
+		if (res.exit_code == 0) {
+			logging::log("Using " + cmd + " as plotting command.");
+			return shell::Command(cmd + " " + resources::generate_plotting_script().path());
+		}
+		logging::log("get_plotter_cmd: Command \"" + cmd + "\" failed with exit code " + std::to_string(res.exit_code) + ". Trying next command.");
+	}
 	#if defined(_WIN32)
+		logging::log("get_plotter_cmd: No valid python command found. Trying to find plot.exe in the path.");
+
 		// check if plot.exe is available in the path
 		auto res = shell::Command("where.exe plot").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
 			return shell::Command("\"" + utility::remove_all(res.out, "\n\r") + "\"");
 		}
-
-		// check if python is available
-		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
-		auto path = resources::generate_plotting_script();
-		bool python_script_available = path.exists();
-		if (python_available && python_script_available) {
-			return shell::Command("python " + path.path());
-		}
-	#elif defined(__linux__) || defined(__APPLE__)
-		// check if python & the python script is available
-		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
-		auto path = resources::generate_plotting_script();
-		bool python_script_available = path.exists();
-		if (python_available && python_script_available) {
-			return shell::Command("python " + path.path());
-		}
-		throw except::io_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
+		throw except::io_error("No valid python installation found, and \"plot.exe\" is not available in the system path or local directory.");
 	#endif
-		throw except::io_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
+	throw except::io_error("No valid python command found. Please ensure that python is installed and available in the system path.");
 }
 
 inline auto perform_plot(const std::string& path) {

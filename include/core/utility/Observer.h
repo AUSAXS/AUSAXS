@@ -14,11 +14,16 @@ namespace ausaxs::utility {
     template<typename T>
     struct Observer {
         Observer() = default;
+        ~Observer() {
+            on_delete();
+        }
+
+        std::function<void(const T&)> on_notify;
+        std::function<void()> on_delete;
 
         void notify(const T& value) {
             on_notify(value);
         }
-
-        std::function<void(const T&)> on_notify;
     };
+
 }

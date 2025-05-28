@@ -20,9 +20,6 @@ void settings::validate_settings() {
         case settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT:
         case settings::hist::HistogramManagerChoice::PartialHistogramManager:
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFAvg:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFExplicit:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFFGrid:
         case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
             if (settings::fit::fit_excluded_volume) {
                 console::print_warning("Warning: The chosen histogram manager does not support excluded volume fitting. Disabling excluded volume fitting.");
@@ -38,6 +35,7 @@ void settings::validate_settings() {
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
+        case settings::hist::HistogramManagerChoice::Count:
             break;
     }
 
