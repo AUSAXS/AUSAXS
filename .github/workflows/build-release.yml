@@ -140,9 +140,11 @@ jobs:
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
-            CC: $(brew --prefix llvm@18)/bin/clang
-            CXX: $(brew --prefix llvm@18)/bin/clang++
-            XCODE_VER: 16.3
+            # CC: $(brew --prefix llvm@18)/bin/clang
+            # CXX: $(brew --prefix llvm@18)/bin/clang++
+            CC: clang
+            CXX: clang++
+            XCODE_VER: 15.4
 
     steps:
       - uses: actions/checkout@v4
