@@ -3,7 +3,7 @@ import os
 
 def generate_header(input_files, output_header):
     header_content = "#pragma once\n\n"
-    header_content += "#include <plotting.cpp>\n"
+    header_content += "#include <plotting.h>\n"
     header_content += "#include <array>\n\n"
 
     for input_file in input_files:
@@ -13,7 +13,7 @@ def generate_header(input_files, output_header):
             array_content = ", ".join(f"{byte}" for byte in content)
             
             header_content += (
-                f"inline constexpr std::array<char, {len(content)}> resources::{variable_name} = {{\n"
+                f"inline constexpr std::array<unsigned char, {len(content)}> resources::{variable_name} = {{\n"
                 f"    {array_content}\n"
                 f"    }};\n\n"
             )

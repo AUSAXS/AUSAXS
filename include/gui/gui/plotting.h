@@ -8,8 +8,8 @@
 using namespace ausaxs;
 
 namespace resources {
-    extern const std::array<unsigned char, 3759> plot_py;
-    extern const std::array<unsigned char, 16726> plot_helper_py;
+    extern const std::array<unsigned char, 3278> plot_py;
+    extern const std::array<unsigned char, 16825> plot_helper_py;
 
     inline io::ExistingFile generate_plotting_script() {
         io::File file("resources/plot.py");
