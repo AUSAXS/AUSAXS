@@ -2,9 +2,10 @@
 
 #include <md/programs/gmx.h>
 #include <md/utility/files/all.h>
+#include <md/utility/files/MDPCreator.h>
+#include <md/utility/Protein.h>
 #include <io/Folder.h>
 #include <io/File.h>
-#include <md/utility/Protein.h>
 
 namespace ausaxs::md {
     class genenv : private gmx {
@@ -94,6 +95,16 @@ namespace ausaxs::md {
                 auto dmax = Protein(gro).maximum_distance()/20 + 0.2; // half of the maximum extent converted to nm plus generous 2Å vdw buffer 
                 options.push_back(std::make_shared<shell::Flag>("-sphere"));
                 options.push_back(std::make_shared<shell::Argument>("-d_sphere", dmax + radius));
+                return *this;
+            }
+
+            /**
+             * @brief Write out the Fourier transform of the envelope.
+             */
+            genenv& fourier_transform(observer_ptr<MDPCreator> mdp) {
+                options.push_back(std::make_shared<shell::Flag>("-ft"));
+                options.push_back(std::make_shared<shell::Argument>("-nq", mdp->get(MDPOptions::waxs_nq)));
+                options.push_back(std::make_shared<shell::Argument>("-qmax", mdp->get(MDPOptions::waxs_endq)));
                 return *this;
             }
 
