@@ -38,6 +38,7 @@ void RigidBody::initialize() {
     body_selector = factory::create_selection_strategy(this);
     transform = factory::create_transform_strategy(this);
     constraints = std::make_shared<ConstraintManager>(this);
+    set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
 }
 
 void RigidBody::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
@@ -54,46 +55,6 @@ void RigidBody::set_transform_manager(std::shared_ptr<rigidbody::transform::Tran
 
 void RigidBody::set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters) {
     this->parameter_generator = std::move(parameters);
-}
-
-std::shared_ptr<fitter::FitResult> RigidBody::optimize(const io::ExistingFile& measurement_path) {
-    generate_new_hydration();
-    prepare_fitter(measurement_path);
-
-    if (settings::general::supplementary_plots) {
-        // plots::PlotDistance::quick_plot(get_histogram(), settings::general::output + "/hist/distance_0.png");
-        // plots::PlotIntensityFit::quick_plot(fitter->fit().get(), settings::general::output + "initial_curve.png");
-    }
-
-    // save the best configuration in a simple struct
-    detail::BestConf best(std::make_shared<grid::Grid>(*get_grid()), get_waters(), fitter->fit_chi2_only());
-
-    if (settings::general::verbose) {
-        console::print_info("\nStarting rigid body optimization.");
-        std::cout << "\tInitial chi2: " << best.chi2 << std::endl;
-    }
-
-    // prepare the trajectory output
-    io::detail::xyz::XYZWriter trajectory(settings::general::output + "trajectory.xyz");
-    trajectory.write_frame(this);
-
-    for (unsigned int i = 0; i < settings::rigidbody::iterations; i++) {
-        if (optimize_step(best)) [[unlikely]] {
-            trajectory.write_frame(this);
-            std::cout << "Iteration " << i << std::endl;
-            console::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(best.chi2));
-        } else [[likely]] {
-            if (i % 10 == 0 && settings::general::verbose) {
-                std::cout << "Iteration " << i << "          " << std::flush;
-            }
-        }
-    }
-
-    save(settings::general::output + "optimized.pdb");
-    update_fitter();
-    auto fit = fitter->fit();
-    if (calibration != nullptr) {fit->add_parameter(calibration->get_parameter("c"));}
-    return fit;
 }
 
 bool RigidBody::optimize_step(detail::BestConf& best) {
@@ -137,7 +98,6 @@ void RigidBody::apply_calibration(std::unique_ptr<fitter::FitResult> calibration
 }
 
 void RigidBody::prepare_fitter(const io::ExistingFile& measurement_path) {
-    // constraints = std::make_shared<ConstraintManager>(this);
     if (calibration == nullptr) {
         fitter::ConstrainedFitter<fitter::SmartFitter> fitter({measurement_path}, get_histogram());
         fitter.set_constraint_manager(constraints);
@@ -162,10 +122,12 @@ std::unique_ptr<fitter::SmartFitter> RigidBody::get_unconstrained_fitter(const i
 }
 
 std::shared_ptr<fitter::SmartFitter> RigidBody::get_fitter() const {
+    assert(fitter != nullptr && "RigidBody::get_fitter: Fitter not initialized.");
     return fitter;
 }
 
 void RigidBody::update_fitter() {
+    assert(fitter != nullptr && "RigidBody::update_fitter: Fitter not initialized.");
     if (calibration == nullptr) {
         fitter->set_model(get_histogram());
     } else {
@@ -176,9 +138,6 @@ void RigidBody::update_fitter() {
 }
 
 std::shared_ptr<ConstraintManager> RigidBody::get_constraint_manager() const {
-    #ifdef DEBUG
-        if (constraints == nullptr) {throw except::nullptr_error("RigidBody::get_constraints: Constraint manager not initialized.");}
-    #endif
-
+    assert(constraints != nullptr && "RigidBody::get_constraints: Constraint manager not initialized.");
     return constraints;
 }
