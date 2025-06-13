@@ -8,7 +8,7 @@
 using namespace ausaxs::rigidbody::sequencer;
 
 LoadExistingElement::LoadExistingElement(observer_ptr<Sequencer> owner, observer_ptr<RigidBody> rigidbody) : owner(owner), rigidbody(rigidbody) {
-    owner->_set_active_body(rigidbody);
+    owner->setup()->_set_active_body(rigidbody);
 }
 
 void LoadExistingElement::run() {

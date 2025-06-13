@@ -20,14 +20,14 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 
     owner->_get_rigidbody()->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true>>(owner->_get_rigidbody()));
     for (unsigned int i = 0; i < names.size(); ++i) {
-        if (!owner->_get_body_names().contains(names[i])) {
+        if (!owner->setup()->_get_body_names().contains(names[i])) {
             std::cout << "Body names:" << std::endl;
-            for (const auto& [name, index] : owner->_get_body_names()) {
+            for (const auto& [name, index] : owner->setup()->_get_body_names()) {
                 std::cout << name << " " << index << std::endl;
             }
             throw std::runtime_error("SymmetryElement::SymmetryElement: The body name \"" + names[i] + "\" is not known.");
         }
-        int ibody = owner->_get_body_names().at(names[i]);
+        int ibody = owner->setup()->_get_body_names().at(names[i]);
 
         // the body symmetry storage must be replaced with an OptimizableSymmetryStorage object
         if (auto obj = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(owner->_get_rigidbody()->get_body(ibody).symmetry().get_obj()); !obj) {

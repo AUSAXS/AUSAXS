@@ -17,10 +17,10 @@ RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner
     assert(names.size() == ratios.size() && "RelativeHydrationElement::RelativeHydrationElement: The number of names and ratios must be equal.");
 
     for (unsigned int i = 0; i < names.size(); ++i) {
-        if (!owner->_get_body_names().contains(names[i])) {
+        if (!owner->setup()->_get_body_names().contains(names[i])) {
             throw std::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + names[i] + "\" is not known.");
         }
-        this->ratios.push_back(owner->_get_body_names().at(names[i]));
+        this->ratios.push_back(owner->setup()->_get_body_names().at(names[i]));
     }
 }
 
