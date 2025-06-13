@@ -131,3 +131,11 @@ SetupElement& SetupElement::generate_volumetric_constraints() {
     elements.push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric));
     return *this;
 }
+
+const ausaxs::io::ExistingFile& SetupElement::_get_saxs_path() const {
+    return saxs_path;
+}
+
+std::vector<std::unique_ptr<GenericElement>>& SetupElement::_get_elements() {
+    return elements;
+}

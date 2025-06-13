@@ -17,8 +17,8 @@ ConstraintElement::ConstraintElement(observer_ptr<Sequencer> owner, const std::s
     owner->_get_rigidbody()->get_constraint_manager()->add_constraint(
         std::make_unique<rigidbody::constraints::DistanceConstraint>(
             owner->_get_rigidbody(),
-            owner->_get_body_names().at(body1),
-            owner->_get_body_names().at(body2),
+            owner->setup()->_get_body_names().at(body1),
+            owner->setup()->_get_body_names().at(body2),
             center_mass
         )
     );
@@ -28,8 +28,8 @@ ConstraintElement::ConstraintElement(observer_ptr<Sequencer> owner, const std::s
     owner->_get_rigidbody()->get_constraint_manager()->add_constraint(
         std::make_unique<rigidbody::constraints::DistanceConstraint>(
             owner->_get_rigidbody(),
-            owner->_get_body_names().at(body1),
-            owner->_get_body_names().at(body2),
+            owner->setup()->_get_body_names().at(body1),
+            owner->setup()->_get_body_names().at(body2),
             iatom1,
             iatom2
         )

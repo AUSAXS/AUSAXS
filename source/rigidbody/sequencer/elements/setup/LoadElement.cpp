@@ -23,21 +23,21 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
 
     // add default names
     for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-        owner->_get_body_names().emplace("b" + std::to_string(i+1), i);
+        owner->setup()->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names
     if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
     if (!body_names.empty()) {
         for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-            owner->_get_body_names().emplace(body_names[i], i);
+            owner->setup()->_get_body_names().emplace(body_names[i], i);
         }
     }
-    owner->_set_active_body(rigidbody.get());
+    owner->setup()->_set_active_body(rigidbody.get());
 
     if (!saxs_path.empty()) {
         auto path = lookup_file(saxs_path);
-        owner->_set_saxs_path(path.first);
+        owner->setup()->_set_saxs_path(path.first);
     }
 
     if (settings::general::verbose) {
@@ -56,21 +56,21 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
 
     // add default names
     for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-        owner->_get_body_names().emplace("b" + std::to_string(i+1), i);
+        owner->setup()->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names
     if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
     if (!body_names.empty()) {
         for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-            owner->_get_body_names().emplace(body_names[i], i);
+            owner->setup()->_get_body_names().emplace(body_names[i], i);
         }
     }
-    owner->_set_active_body(rigidbody.get());
+    owner->setup()->_set_active_body(rigidbody.get());
 
     if (!saxs_path.empty()) {
         auto path = lookup_file(saxs_path);
-        owner->_set_saxs_path(path.first);
+        owner->setup()->_set_saxs_path(path.first);
     }
 
     if (settings::general::verbose) {
@@ -83,21 +83,21 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
 
     // add default names
     for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-        owner->_get_body_names().emplace("b" + std::to_string(i+1), i);
+        owner->setup()->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names
     if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
     if (!body_names.empty()) {
         for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
-            owner->_get_body_names().emplace(body_names[i], i);
+            owner->setup()->_get_body_names().emplace(body_names[i], i);
         }
     }
-    owner->_set_active_body(rigidbody.get());
+    owner->setup()->_set_active_body(rigidbody.get());
 
     if (!saxs_path.empty()) {
         auto path = lookup_file(saxs_path);
-        owner->_set_saxs_path(path.first);
+        owner->setup()->_set_saxs_path(path.first);
     }
 
     if (settings::general::verbose) {
@@ -109,7 +109,7 @@ std::pair<std::string, bool> LoadElement::lookup_file(const std::string& path) {
     io::File file(path);
     if (file.exists()) {return {file, true};}
 
-    auto config_folder = owner->_get_config_folder();
+    auto config_folder = owner->setup()->_get_config_folder();
     io::File relative(config_folder, file.stem(), file.extension());
     if (relative.exists()) {return {relative, true};}
 

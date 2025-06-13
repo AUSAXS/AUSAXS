@@ -12,9 +12,9 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
-Sequencer::Sequencer() : LoopElement(nullptr, 1), SetupElement(this), rigidbody(nullptr), best(nullptr) {}
+Sequencer::Sequencer() : LoopElement(nullptr, 1), setup_loop(this), rigidbody(nullptr), best(nullptr) {}
 
-Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), SetupElement(this, saxs), rigidbody(nullptr), best(nullptr) {}
+Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), setup_loop(this, saxs), rigidbody(nullptr), best(nullptr) {}
 
 Sequencer::~Sequencer() = default;
 
@@ -38,12 +38,15 @@ bool Sequencer::_optimize_step() const {
     return rigidbody->optimize_step(*best);
 }
 
+observer_ptr<SetupElement> Sequencer::setup() {return &setup_loop;}
+
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
+    auto saxs_path = setup()->_get_saxs_path();
     if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path.str() + "\"does not exist.");}
     rigidbody->generate_new_hydration(); // some setup elements requires access to the hydration generators
 
     // run the setup elements, defining all of the necessary parameters
-    for (auto& e : SetupElement::elements) {
+    for (auto& e : setup()->_get_elements()) {
         e->run();
     }
 
