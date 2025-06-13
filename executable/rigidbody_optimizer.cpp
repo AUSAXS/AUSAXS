@@ -7,17 +7,18 @@
 #include <data/Molecule.h>
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/BodySplitter.h>
-#include <fitter/FitReporter.h>
-#include <fitter/SmartFitter.h>
+#include <rigidbody/DefaultOptimizer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <fitter/FitReporter.h>
+#include <fitter/SmartFitter.h>
 #include <constants/Constants.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 #include <io/File.h>
 #include <plots/All.h>
 #include <settings/All.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/DefaultOptimizer.h>
 
 #include <vector>
 #include <string>
@@ -54,6 +55,7 @@ int main(int argc, char const *argv[]) {
 
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::molecule::implicit_hydrogens = false;
+    logging::start("rigidbody");
 
     //###################//
     //### PARSE INPUT ###//
@@ -80,7 +82,7 @@ int main(int argc, char const *argv[]) {
             }
         }
         if (settings::rigidbody::detail::constraints.empty()) {
-            throw except::missing_option("rigidbody: Constraints must be supplied. Use --constraints to specify them.");
+            throw except::missing_option("Constraints must be supplied. Use --constraints to specify them.");
         }
         settings::validate_settings();
 

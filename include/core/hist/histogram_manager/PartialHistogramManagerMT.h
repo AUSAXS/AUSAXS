@@ -35,6 +35,12 @@ namespace ausaxs::hist {
 		private:
 		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 			using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>;
+			struct { // cache for early return
+				GenericDistribution1D_t p_aa;
+				GenericDistribution1D_t p_aw;
+				GenericDistribution1D_t p_ww;
+				GenericDistribution1D_t p_tot;
+			} cache;
 			std::mutex master_hist_mutex;
 
 			/**
