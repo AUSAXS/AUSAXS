@@ -2,18 +2,18 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/ParameterElement.h>
-#include <rigidbody/sequencer/BodySelectElement.h>
-#include <rigidbody/sequencer/TransformElement.h>
-#include <rigidbody/sequencer/OptimizeStepElement.h>
-#include <rigidbody/sequencer/EveryNStepElement.h>
-#include <rigidbody/sequencer/OnImprovementElement.h>
-#include <rigidbody/sequencer/SaveElement.h>
-#include <rigidbody/sequencer/setup/LoadElement.h>
-#include <rigidbody/sequencer/setup/ConstraintElement.h>
-#include <rigidbody/sequencer/setup/AutoConstraintsElement.h>
-#include <rigidbody/sequencer/setup/RelativeHydrationElement.h>
-#include <rigidbody/sequencer/setup/SymmetryElement.h>
+#include <rigidbody/sequencer/elements/ParameterElement.h>
+#include <rigidbody/sequencer/elements/BodySelectElement.h>
+#include <rigidbody/sequencer/elements/TransformElement.h>
+#include <rigidbody/sequencer/elements/OptimizeStepElement.h>
+#include <rigidbody/sequencer/elements/EveryNStepElement.h>
+#include <rigidbody/sequencer/elements/OnImprovementElement.h>
+#include <rigidbody/sequencer/elements/SaveElement.h>
+#include <rigidbody/sequencer/elements/setup/LoadElement.h>
+#include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
+#include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
+#include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
+#include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
