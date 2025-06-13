@@ -4,10 +4,8 @@
 #pragma once
 
 #include <rigidbody/RigidbodyFwd.h>
-#include <data/DataFwd.h>
-
-#include <rigidbody/sequencer/setup/SetupElement.h>
-#include <rigidbody/sequencer/LoopElement.h>
+#include <rigidbody/sequencer/elements/setup/SetupElement.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {

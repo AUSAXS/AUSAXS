@@ -17,7 +17,6 @@
 #include <plots/All.h>
 #include <settings/All.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/All.h>
 
 #include <vector>
 #include <string>
