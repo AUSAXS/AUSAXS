@@ -1,4 +1,5 @@
 add_library(ausaxs_rigidbody OBJECT 
+	"DefaultOptimizer.cpp"
 	"RigidBody.cpp"
 	"BodySplitter.cpp"
 
