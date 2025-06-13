@@ -6,7 +6,7 @@
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
-    class Sequencer : public LoopElement, public SetupElement {
+    class Sequencer : public LoopElement {
         public:
             Sequencer();
             Sequencer(const io::ExistingFile& saxs);
@@ -34,6 +34,8 @@ namespace ausaxs::rigidbody::sequencer {
              */
             observer_ptr<const Sequencer> _get_sequencer() const override;
 
+            observer_ptr<SetupElement> setup();
+
             /**
              * @brief Perform an optimization step on the rigid body.
              * @return True if a better configuration was found, false otherwise.
@@ -41,6 +43,7 @@ namespace ausaxs::rigidbody::sequencer {
             bool _optimize_step() const;
 
         private:
+            SetupElement setup_loop;
             observer_ptr<RigidBody> rigidbody;
             std::unique_ptr<detail::BestConf> best;
     };
