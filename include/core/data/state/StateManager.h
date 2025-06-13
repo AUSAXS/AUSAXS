@@ -107,6 +107,11 @@ namespace ausaxs::state {
 			[[nodiscard]] bool is_modified_hydration() const;
 
 			/**
+			 * @brief Returns true if anything has been modified, false otherwise. 
+			 */
+			[[nodiscard]] bool is_modified() const;
+
+			/**
 			 * @brief Get the number of bodies being managed. 
 			 */
 			[[nodiscard]] std::size_t size() const;
@@ -117,6 +122,7 @@ namespace ausaxs::state {
 			std::vector<bool> 				_internally_modified;
 			std::vector<std::vector<bool>> 	_symmetry_modified;
 			bool 							_modified_hydration;
+			bool 							_modified;
 			std::vector<std::shared_ptr<signaller::Signaller>> probes;
 	};
 }
