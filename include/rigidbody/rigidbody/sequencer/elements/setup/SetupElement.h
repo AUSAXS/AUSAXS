@@ -49,6 +49,7 @@ namespace ausaxs::rigidbody::sequencer {
 
             /**
              * @brief Load an existing rigidbody. 
+             *        This is simply a deferred call to _set_active_body.
              */
             SetupElement& load_existing(observer_ptr<RigidBody> rigidbody);
 
@@ -147,13 +148,21 @@ namespace ausaxs::rigidbody::sequencer {
              */
             void _set_saxs_path(const io::ExistingFile& saxs);
 
-        protected:
-            io::ExistingFile saxs_path;
-            std::vector<std::unique_ptr<GenericElement>> elements;
+            /**
+             * @brief Get the path to the SAXS measurement data.
+             */
+            const io::ExistingFile& _get_saxs_path() const;
+
+            /**
+             * @brief Get the elements that are part of this setup.
+             */
+            std::vector<std::unique_ptr<GenericElement>>& _get_elements();
 
         private:
             std::unordered_map<std::string, unsigned int> body_names;
             observer_ptr<RigidBody> active_body = nullptr;
             io::Folder config_folder;
+            io::ExistingFile saxs_path;
+            std::vector<std::unique_ptr<GenericElement>> elements;
     };
 }

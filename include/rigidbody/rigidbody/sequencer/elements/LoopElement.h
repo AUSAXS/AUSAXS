@@ -26,50 +26,50 @@ namespace ausaxs::rigidbody::sequencer {
             virtual std::shared_ptr<fitter::FitResult> execute();
 
             /**
-                * @brief Create a nested loop.
-                */
+             * @brief Create a nested loop.
+             */
             LoopElement& loop(unsigned int repeats);
 
             /**
-                * @brief Set the parameter strategy.
-                */
+             * @brief Set the parameter strategy.
+             */
             ParameterElement& parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
 
             /**
-                * @brief Set the body selection strategy.
-                */
+             * @brief Set the body selection strategy.
+             */
             BodySelectElement& body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
 
             /**
-                * @brief Set the transformation strategy.
-                */
+             * @brief Set the transformation strategy.
+             */
             TransformElement& transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
 
             /**
-                * @brief Perform a single optimization step.
-                */
+             * @brief Perform a single optimization step.
+             */
             OptimizeStepElement& optimize();
 
             /**
-                * @brief End the current loop.
-                */
+             * @brief End the current loop.
+             */
             LoopElement& end();
 
             /**
-                * @brief Save the current state of the system.
-                *
-                * @param path The path to save the state to. The extension of the file will determine the format.
-                */
+             * @brief Save the current state of the system.
+             *
+             * @param path The path to save the state to. The extension of the file will determine the format.
+             */
             LoopElement& save(const io::File& path);
 
             /**
-                * @brief Perform the subroutines for every n iterations of this loop.
-                */
+             * @brief Perform the subroutines for every n iterations of this loop.
+             */
             EveryNStepElement& every(unsigned int n);
 
             /**
-                * @brief Run an iteration of this loop. 
-                */
+             * @brief Run an iteration of this loop. 
+             */
             void run() override;
 
             virtual observer_ptr<RigidBody> _get_rigidbody() const;

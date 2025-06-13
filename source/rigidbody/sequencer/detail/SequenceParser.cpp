@@ -481,7 +481,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Ove
     if (!scaling.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"scaling\".");}
     if (!distance.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"distance\".");}
 
-    static_cast<Sequencer*>(loop_stack.front())->set_overlap_function([a=scaling.value, d=distance.value] (double x) {return x < d ? a*std::pow((d-x)/d, 2) : 0;});
+    static_cast<Sequencer*>(loop_stack.front())->setup()->set_overlap_function([a=scaling.value, d=distance.value] (double x) {return x < d ? a*std::pow((d-x)/d, 2) : 0;});
     return nullptr;
 }
 
@@ -496,7 +496,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
     // the top element of this stack is the current loop element which new elements will be added to
     // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
-    sequencer->_set_config_folder(config.directory());
+    sequencer->setup()->_set_config_folder(config.directory());
     
     std::string line;
     while(!in.eof()) {
