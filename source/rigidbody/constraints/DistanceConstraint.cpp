@@ -11,10 +11,10 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
 
-DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
-    : protein(protein), ibody1(ibody1), ibody2(ibody2), iatom1(iatom1), iatom2(iatom2) {
-    const Body& body1 = protein->get_body(ibody1);
-    const Body& body2 = protein->get_body(ibody2);
+DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
+    : molecule(molecule), ibody1(ibody1), ibody2(ibody2), iatom1(iatom1), iatom2(iatom2) {
+    const Body& body1 = molecule->get_body(ibody1);
+    const Body& body2 = molecule->get_body(ibody2);
     const AtomFF& atom1 = body1.get_atom(iatom1);
     const AtomFF& atom2 = body2.get_atom(iatom2);
 
@@ -39,10 +39,11 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibo
     }
 }
 
-DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, bool center_mass)
-    : protein(protein), ibody1(ibody1), ibody2(ibody2) {
-    const Body& body1 = protein->get_body(ibody1);
-    const Body& body2 = protein->get_body(ibody2);
+DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, bool center_mass)
+    : molecule(molecule), ibody1(ibody1), ibody2(ibody2) 
+{
+    const Body& body1 = molecule->get_body(ibody1);
+    const Body& body2 = molecule->get_body(ibody2);
 
     if (center_mass) {
         // find the atoms closest to the center of mass of the two bodies
@@ -102,7 +103,7 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibo
     if (iatom1 == iatom2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Could not find atoms to constrain.");}
 }
 
-DistanceConstraint::DistanceConstraint(data::Molecule* protein, const AtomFF& atom1, const AtomFF& atom2) : protein(protein) {
+DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, const AtomFF& atom1, const AtomFF& atom2) : molecule(molecule) {
     // we only want to allow constraints between the backbone C-alpha structure
     if (form_factor::to_atom_type(atom1.form_factor_type()) != constants::atom_t::C || form_factor::to_atom_type(atom2.form_factor_type()) != constants::atom_t::C) {
         throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Constraints only makes sense between the carbon-atoms of the backbone!");
@@ -128,8 +129,8 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, const AtomFF& at
 std::pair<DistanceConstraint::AtomLoc, DistanceConstraint::AtomLoc> DistanceConstraint::find_host_bodies(const AtomFF& atom1, const AtomFF& atom2) const {
     int ibody1 = -1, ibody2 = -1;
     int iatom1 = -1, iatom2 = -1;
-    for (unsigned int ibody = 0; ibody < protein->size_body(); ++ibody) {
-        const Body& body = protein->get_body(ibody);
+    for (unsigned int ibody = 0; ibody < molecule->size_body(); ++ibody) {
+        const Body& body = molecule->get_body(ibody);
         for (unsigned int iatom = 0; iatom < body.size_atom(); ++iatom) {
             auto& atom = body.get_atom(iatom);
             if (atom1 == atom) {
@@ -153,8 +154,8 @@ std::pair<DistanceConstraint::AtomLoc, DistanceConstraint::AtomLoc> DistanceCons
 }
 
 double DistanceConstraint::evaluate() const {
-    const AtomFF& atom1 = protein->get_body(ibody1).get_atom(iatom1);
-    const AtomFF& atom2 = protein->get_body(ibody2).get_atom(iatom2);
+    const AtomFF& atom1 = molecule->get_body(ibody1).get_atom(iatom1);
+    const AtomFF& atom2 = molecule->get_body(ibody2).get_atom(iatom2);
     return transform(r_base - atom1.coordinates().distance(atom2.coordinates()));
 }
 
@@ -170,32 +171,24 @@ double DistanceConstraint::transform(double offset) {
 }
 
 const AtomFF& DistanceConstraint::get_atom1() const {
-    return protein->get_body(ibody1).get_atom(iatom1);
+    return molecule->get_body(ibody1).get_atom(iatom1);
 }
 
 const AtomFF& DistanceConstraint::get_atom2() const {
-    return protein->get_body(ibody2).get_atom(iatom2);
+    return molecule->get_body(ibody2).get_atom(iatom2);
 }
 
 const Body& DistanceConstraint::get_body1() const {
-    return protein->get_body(ibody1);
+    return molecule->get_body(ibody1);
 }
 
 const Body& DistanceConstraint::get_body2() const {
-    return protein->get_body(ibody2);
-}
-
-Body& DistanceConstraint::get_body1() {
-    return protein->get_body(ibody1);
-}
-
-Body& DistanceConstraint::get_body2() {
-    return protein->get_body(ibody2);
+    return molecule->get_body(ibody2);
 }
 
 std::string DistanceConstraint::to_string() const {
     std::stringstream ss;
-    ss << "Constraint between (" << form_factor::to_string(protein->get_body(ibody1).get_atom(iatom1).form_factor_type()) << ") and "
-                             "(" << form_factor::to_string(protein->get_body(ibody2).get_atom(iatom2).form_factor_type()) << ")";
+    ss << "Constraint between (" << form_factor::to_string(molecule->get_body(ibody1).get_atom(iatom1).form_factor_type()) << ") and "
+                             "(" << form_factor::to_string(molecule->get_body(ibody2).get_atom(iatom2).form_factor_type()) << ")";
     return ss.str();
 }

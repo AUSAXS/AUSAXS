@@ -6,7 +6,7 @@
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
 #include <data/Body.h>
@@ -17,7 +17,7 @@
 
 using namespace ausaxs::rigidbody::transform;
 
-RigidTransform::RigidTransform(observer_ptr<RigidBody> rigidbody) : TransformStrategy(rigidbody) {}
+RigidTransform::RigidTransform(observer_ptr<Rigidbody> rigidbody) : TransformStrategy(rigidbody) {}
 
 RigidTransform::~RigidTransform() = default;
 
@@ -26,7 +26,7 @@ void RigidTransform::apply(parameter::Parameter&& par, constraints::DistanceCons
     backup(group);
 
     // remove the bodies from the grid
-    auto grid = rigidbody->get_grid();
+    auto grid = rigidbody->molecule.get_grid();
     for (auto& body : group.bodies) {
         grid->remove(*body);
     }
@@ -51,7 +51,7 @@ TransformGroup RigidTransform::get_connected(const constraints::DistanceConstrai
         indices.insert(ibody);
 
         // explore all bodies connected to this body
-        for (const auto& constraint : rigidbody->get_constraint_manager()->distance_constraints_map[ibody]) {
+        for (const auto& constraint : rigidbody->constraints->distance_constraints_map[ibody]) {
             if (constraint.get().ibody1 == ibody) {
                 explore_branch(constraint.get().ibody2, indices);
             } else {
@@ -73,28 +73,28 @@ TransformGroup RigidTransform::get_connected(const constraints::DistanceConstrai
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size() && path1 == path2) {
-        return TransformGroup({&rigidbody->get_body(pivot.ibody1)}, {pivot.ibody1}, pivot, pivot.get_atom1().coordinates());
+        return TransformGroup({&rigidbody->molecule.get_body(pivot.ibody1)}, {pivot.ibody1}, pivot, pivot.get_atom1().coordinates());
     }
 
     // create a vector of pointers to the bodies in the paths
-    std::vector<data::Body*> bodies1, bodies2;
+    std::vector<observer_ptr<data::Body>> bodies1, bodies2;
     for (const auto& ibody : path1) {
-        bodies1.push_back(&rigidbody->get_body(ibody));
+        bodies1.push_back(&rigidbody->molecule.get_body(ibody));
     }
     for (const auto& ibody : path2) {
-        bodies2.push_back(&rigidbody->get_body(ibody));
+        bodies2.push_back(&rigidbody->molecule.get_body(ibody));
     }
 
     // check if the system is overconstrained
-    if (0.5*rigidbody->size_body() < path1.size() && 0.5*rigidbody->size_body() < path2.size()) {
+    if (0.5*rigidbody->molecule.size_body() < path1.size() && 0.5*rigidbody->molecule.size_body() < path2.size()) {
         throw except::size_error("TransformStrategy::get_connected: The system is overconstrained. Use a different TransformStrategy.");
     }
 
     unsigned int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
-        return sum + rigidbody->get_body(ibody).size_atom();
+        return sum + rigidbody->molecule.get_body(ibody).size_atom();
     });
     unsigned int N2 = std::accumulate(path2.begin(), path2.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
-        return sum + rigidbody->get_body(ibody).size_atom();
+        return sum + rigidbody->molecule.get_body(ibody).size_atom();
     });
 
     // return the path with the least atoms, since that will be the cheapest to transform

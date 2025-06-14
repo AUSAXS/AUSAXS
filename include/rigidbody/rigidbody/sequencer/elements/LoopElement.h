@@ -8,6 +8,7 @@
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <utility/observer_ptr.h>
 #include <fitter/FitterFwd.h>
+#include <data/DataFwd.h>
 #include <io/IOFwd.h>
 
 #include <memory>
@@ -72,7 +73,9 @@ namespace ausaxs::rigidbody::sequencer {
              */
             void run() override;
 
-            virtual observer_ptr<RigidBody> _get_rigidbody() const;
+            virtual observer_ptr<Rigidbody> _get_rigidbody() const;
+
+            virtual observer_ptr<data::Molecule> _get_molecule() const;
 
             virtual observer_ptr<detail::BestConf> _get_best_conf() const;
 

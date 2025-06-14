@@ -8,13 +8,6 @@
 #include <settings/RigidBodySettings.h>
 
 namespace ausaxs::rigidbody::factory {
-    /**
-     * @brief Prepare a transformation strategy.
-     */
-    std::unique_ptr<rigidbody::transform::TransformStrategy> create_transform_strategy(RigidBody* body);
-
-    /**
-     * @brief Prepare a transformation strategy.
-     */
-    std::unique_ptr<rigidbody::transform::TransformStrategy> create_transform_strategy(RigidBody* body, const settings::rigidbody::TransformationStrategyChoice& choice);
+    std::unique_ptr<rigidbody::transform::TransformStrategy> create_transform_strategy(observer_ptr<Rigidbody> body);
+    std::unique_ptr<rigidbody::transform::TransformStrategy> create_transform_strategy(observer_ptr<Rigidbody> body, settings::rigidbody::TransformationStrategyChoice choice);
 }

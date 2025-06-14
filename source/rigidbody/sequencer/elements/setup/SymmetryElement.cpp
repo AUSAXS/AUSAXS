@@ -18,7 +18,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 {
     assert(names.size() == symmetry.size() && "SymmetryElement::SymmetryElement: The number of names and symmetries must be equal.");
 
-    owner->_get_rigidbody()->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true>>(owner->_get_rigidbody()));
+    owner->_get_molecule()->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true>>(owner->_get_molecule()));
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (!owner->setup()->_get_body_names().contains(names[i])) {
             std::cout << "Body names:" << std::endl;
@@ -30,19 +30,19 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         int ibody = owner->setup()->_get_body_names().at(names[i]);
 
         // the body symmetry storage must be replaced with an OptimizableSymmetryStorage object
-        if (auto obj = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(owner->_get_rigidbody()->get_body(ibody).symmetry().get_obj()); !obj) {
+        if (auto obj = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(owner->_get_molecule()->get_body(ibody).symmetry().get_obj()); !obj) {
             // sanity check: ensure that the body does not already have symmetries before replacing the object
-            assert(owner->_get_rigidbody()->get_body(ibody).size_symmetry() == 0 && "SymmetryElement::SymmetryElement: The body already has symmetries.");
-            owner->_get_rigidbody()->get_body(ibody).symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>());
+            assert(owner->_get_molecule()->get_body(ibody).size_symmetry() == 0 && "SymmetryElement::SymmetryElement: The body already has symmetries.");
+            owner->_get_molecule()->get_body(ibody).symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>());
         }
-        owner->_get_rigidbody()->get_body(ibody).symmetry().add(symmetry[i]);
+        owner->_get_molecule()->get_body(ibody).symmetry().add(symmetry[i]);
 
         // place the symmetry body at a sane distance from the original
-        double Rg = owner->_get_rigidbody()->get_Rg();
-        owner->_get_rigidbody()->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
+        double Rg = owner->_get_molecule()->get_Rg();
+        owner->_get_molecule()->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
 
         std::cout << "SymmetryElement::SymmetryElement: Added symmetry to body " << names[i] << std::endl;
-        std::cout << "\tIt now has " << owner->_get_rigidbody()->get_body(ibody).size_symmetry() << " symmetries." << std::endl;
+        std::cout << "\tIt now has " << owner->_get_molecule()->get_body(ibody).size_symmetry() << " symmetries." << std::endl;
     }
 }
 

@@ -61,8 +61,12 @@ void LoopElement::run() {
     }
 }
 
-observer_ptr<rigidbody::RigidBody> LoopElement::_get_rigidbody() const {
+observer_ptr<rigidbody::Rigidbody> LoopElement::_get_rigidbody() const {
     return owner->_get_rigidbody();
+}
+
+observer_ptr<data::Molecule> LoopElement::_get_molecule() const {
+    return owner->_get_molecule();
 }
 
 observer_ptr<rigidbody::detail::BestConf> LoopElement::_get_best_conf() const {

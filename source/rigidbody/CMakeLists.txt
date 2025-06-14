@@ -1,6 +1,6 @@
 add_library(ausaxs_rigidbody OBJECT 
 	"DefaultOptimizer.cpp"
-	"RigidBody.cpp"
+	"Rigidbody.cpp"
 	"BodySplitter.cpp"
 
 	"constraints/Constraint.cpp"
@@ -14,6 +14,9 @@ add_library(ausaxs_rigidbody OBJECT
 	"constraints/generation/LinearConstraints.cpp"
 	"constraints/generation/NoConstraints.cpp"
 	"constraints/generation/VolumetricConstraints.cpp"
+
+	"controller/IController.cpp"
+	"controller/SimpleController.cpp"
 
 	"detail/BestConf.cpp"
 	

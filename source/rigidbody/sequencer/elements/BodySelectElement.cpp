@@ -4,7 +4,7 @@
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/selection/BodySelectFactory.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -12,5 +12,5 @@ BodySelectElement::BodySelectElement(observer_ptr<LoopElement> owner, std::uniqu
 BodySelectElement::~BodySelectElement() = default;
 
 void BodySelectElement::run() {
-    owner->_get_rigidbody()->set_body_select_manager(strategy);
+    owner->_get_rigidbody()->body_selector = strategy;
 }

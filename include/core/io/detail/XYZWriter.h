@@ -5,6 +5,7 @@
 
 #include <data/DataFwd.h>
 #include <io/IOFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <fstream>
 
@@ -21,7 +22,7 @@ namespace ausaxs::io::detail::xyz {
             /**
              * @brief Write a frame to the file.
              */
-            void write_frame(const data::Molecule* protein);
+            void write_frame(observer_ptr<const data::Molecule> molecule);
 
         private:
             std::ofstream file;

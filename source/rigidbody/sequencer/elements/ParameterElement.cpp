@@ -4,7 +4,7 @@
 #include <rigidbody/sequencer/elements/ParameterElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -13,7 +13,7 @@ ParameterElement::ParameterElement(observer_ptr<LoopElement> owner, std::unique_
 ParameterElement::~ParameterElement() = default;
 
 void ParameterElement::run() {
-    owner->_get_rigidbody()->set_parameter_manager(strategy);
+    owner->_get_rigidbody()->parameter_generator = strategy;
 }
 
 ParameterElement& ParameterElement::decay_strategy(std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> strategy) {

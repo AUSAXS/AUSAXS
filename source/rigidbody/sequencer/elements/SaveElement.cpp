@@ -3,7 +3,7 @@
 
 #include <rigidbody/sequencer/elements/SaveElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <settings/GeneralSettings.h>
 #include <io/detail/XYZWriter.h>
 
@@ -18,13 +18,13 @@ void SaveElement::run() {
     static int counter = 0;
     static std::unordered_map<std::string, io::detail::xyz::XYZWriter> writers;
     if (const auto& ext = path.extension(); ext == ".pdb") {
-        owner->_get_rigidbody()->save(path.append(std::to_string(counter++)));
+        owner->_get_rigidbody()->molecule.save(path.append(std::to_string(counter++)));
     } else if (ext == ".xyz") {
         auto p = path.path(); 
         if (!writers.contains(p)) {
             writers.emplace(p, path);
         }
-        writers.at(p).write_frame(owner->_get_rigidbody());
+        writers.at(p).write_frame(&owner->_get_rigidbody()->molecule);
     } else {
         throw std::runtime_error("SaveElement::run: Unknown file format: \"" + ext + "\"");
     }

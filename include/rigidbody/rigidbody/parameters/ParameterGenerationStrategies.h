@@ -5,7 +5,7 @@
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
 
 namespace ausaxs::rigidbody::parameter {
@@ -37,9 +37,9 @@ ausaxs::rigidbody::parameter::Parameter ausaxs::rigidbody::parameter::LimitedPar
         r.z() = rotation_dist(generator)*scaling;
     }
 
-    std::vector<Parameter::SymmetryParameter> symmetry_pars(molecule->get_body(ibody).size_symmetry());
+    std::vector<Parameter::SymmetryParameter> symmetry_pars(rigidbody->molecule.get_body(ibody).size_symmetry());
     if constexpr (SYMMETRY) {
-        auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(molecule->get_body(ibody).symmetry().get_obj());
+        auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
         for (size_t i = 0; i < symmetries->symmetries.size(); ++i) {
             if (symmetries->optimize_translate) {
                 symmetry_pars[i].translation.x() = symmetry_dist(generator)*scaling;

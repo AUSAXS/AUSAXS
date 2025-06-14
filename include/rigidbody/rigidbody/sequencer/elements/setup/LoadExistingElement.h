@@ -18,13 +18,13 @@ namespace ausaxs::rigidbody::sequencer {
              * @brief Use the given RigidBody for the optimization.
              *        The RigidBody must be fully initialized, and must have a lifetime that exceeds that of the Sequencer.
              */
-            LoadExistingElement(observer_ptr<Sequencer> owner, observer_ptr<RigidBody> rigidbody);
+            LoadExistingElement(observer_ptr<Sequencer> owner, observer_ptr<Rigidbody> rigidbody);
             virtual ~LoadExistingElement() = default;
 
             void run() override;
         
         private:
             observer_ptr<Sequencer> owner;
-            observer_ptr<RigidBody> rigidbody;
+            observer_ptr<Rigidbody> rigidbody;
     };
 }
