@@ -31,13 +31,13 @@ namespace ausaxs::rigidbody::sequencer {
              */
             LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names = {}, const std::string& saxs_path = {});
 
-            ~LoadElement() override = default;
+            ~LoadElement() override;
 
             void run() override;
         
         private:
             observer_ptr<Sequencer> owner;
-            std::unique_ptr<rigidbody::RigidBody> rigidbody;
+            std::unique_ptr<rigidbody::Rigidbody> rigidbody;
 
             std::vector<std::string> load_wildcarded(const std::string& path);
             std::pair<std::string, bool> lookup_file(const std::string& path);

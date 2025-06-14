@@ -6,6 +6,7 @@
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
+#include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
@@ -22,10 +23,17 @@ namespace ausaxs::rigidbody::sequencer {
             std::shared_ptr<fitter::FitResult> execute() override;
 
             /**
-             * @brief Get the RigidBody object.
+             * @brief Get the Rigidbody object.
              */
-            observer_ptr<RigidBody>& _get_rigidbody();
-            observer_ptr<RigidBody> _get_rigidbody() const override;
+            observer_ptr<Rigidbody>& _get_rigidbody();
+            observer_ptr<Rigidbody> _get_rigidbody() const override;
+
+            /**
+             * @brief Get the molecule object.
+             * 
+             * This is a convenience method to access the molecule from the Rigidbody.
+             */
+            observer_ptr<data::Molecule> _get_molecule() const override;
 
             /**
              * @brief Get the best configuration.
@@ -47,7 +55,7 @@ namespace ausaxs::rigidbody::sequencer {
 
         private:
             SetupElement setup_loop;
-            observer_ptr<RigidBody> rigidbody;
+            observer_ptr<Rigidbody> rigidbody;
             std::unique_ptr<detail::BestConf> best;
     };
 }

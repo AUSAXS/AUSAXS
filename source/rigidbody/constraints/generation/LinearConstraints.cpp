@@ -20,7 +20,7 @@ std::vector<DistanceConstraint> LinearConstraints::generate() const {
     if (settings::general::verbose) {console::print_info("\tGenerating simple constraints for rigid body optimization.");}
     std::vector<DistanceConstraint> constraints;
 
-    auto& protein = *manager->protein;
+    auto& protein = *manager->molecule;
     for (unsigned int ibody1 = 0; ibody1 < protein.size_body()-1; ibody1++) {
         unsigned int ibody2 = ibody1 + 1;
 
@@ -53,7 +53,7 @@ std::vector<DistanceConstraint> LinearConstraints::generate() const {
         if (min_atom1 == -1u || min_atom2 == -1u) {
             throw except::unexpected("LinearConstraints::generate: No suitable atoms were found for constraint generation. ");
         }
-        constraints.emplace_back(manager->protein, ibody1, ibody2, min_atom1, min_atom2);
+        constraints.emplace_back(manager->molecule, ibody1, ibody2, min_atom1, min_atom2);
         if (settings::general::verbose) {
             std::cout 
                 << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " 

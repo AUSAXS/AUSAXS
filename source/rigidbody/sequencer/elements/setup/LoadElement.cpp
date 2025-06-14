@@ -3,33 +3,38 @@
 
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/LoadElement.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/BodySplitter.h>
+#include <data/Molecule.h>
 #include <settings/GeneralSettings.h>
 
-#include <iostream>
 #include <algorithm>
 
 using namespace ausaxs::rigidbody::sequencer;
 
+LoadElement::~LoadElement() = default;
+
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names, const std::string& saxs_path) : owner(owner) {
     if (auto loc = paths[0].find("%"); loc != std::string::npos) {
-        rigidbody = std::make_unique<RigidBody>(data::Molecule(load_wildcarded(paths[0])));
+        rigidbody = std::make_unique<Rigidbody>(data::Molecule(load_wildcarded(paths[0])));
     } else {
         auto rel_paths = paths;
         std::transform(paths.begin(), paths.end(), rel_paths.begin(), [this] (const std::string& path) {return lookup_file(path).first;});
-        rigidbody = std::make_unique<RigidBody>(data::Molecule(paths));
+        rigidbody = std::make_unique<Rigidbody>(data::Molecule(paths));
     }
 
     // add default names
-    for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
+    for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names
-    if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
+    if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
+        throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
+    }
     if (!body_names.empty()) {
-        for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
+        for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
             owner->setup()->_get_body_names().emplace(body_names[i], i);
         }
     }
@@ -41,7 +46,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
     }
 
     if (settings::general::verbose) {
-        std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from " << paths.size() << " files." << std::endl;
+        std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from " << paths.size() << " files." << std::endl;
     }
 }
 
@@ -49,20 +54,22 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     : owner(owner) 
 {
     if (auto loc = path.find("%"); loc != std::string::npos) {
-        rigidbody = std::make_unique<RigidBody>(data::Molecule(load_wildcarded(path)));
+        rigidbody = std::make_unique<Rigidbody>(data::Molecule(load_wildcarded(path)));
     } else {
-        rigidbody = std::make_unique<RigidBody>(rigidbody::BodySplitter::split(lookup_file(path).first, splits));
+        rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(lookup_file(path).first, splits));
     }
 
     // add default names
-    for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
+    for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names
-    if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
+    if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
+        throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
+    }
     if (!body_names.empty()) {
-        for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
+        for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
             owner->setup()->_get_body_names().emplace(body_names[i], i);
         }
     }
@@ -74,22 +81,24 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
 
     if (settings::general::verbose) {
-        std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from \"" << path << "\"." << std::endl;
+        std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from \"" << path << "\"." << std::endl;
     }
 }
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names, const std::string& saxs_path) : owner(owner) {
-    rigidbody = std::make_unique<RigidBody>(rigidbody::BodySplitter::split(lookup_file(path).first));
+    rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(lookup_file(path).first));
 
     // add default names
-    for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
+    for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()->_get_body_names().emplace("b" + std::to_string(i+1), i);
     }
 
     // add custom names
-    if (!body_names.empty() && body_names.size() != rigidbody->size_body()) {throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");}
+    if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
+        throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
+    }
     if (!body_names.empty()) {
-        for (unsigned int i = 0; i < rigidbody->size_body(); ++i) {
+        for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
             owner->setup()->_get_body_names().emplace(body_names[i], i);
         }
     }
@@ -101,7 +110,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
 
     if (settings::general::verbose) {
-        std::cout << "\tLoaded " << rigidbody->size_body() << " bodies from \"" << path << "\"." << std::endl;
+        std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from \"" << path << "\"." << std::endl;
     }
 }
 

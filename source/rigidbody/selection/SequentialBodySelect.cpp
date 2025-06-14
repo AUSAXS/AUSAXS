@@ -3,20 +3,20 @@
 
 #include <rigidbody/selection/SequentialBodySelect.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 
 #include <random>
 
 using namespace ausaxs::rigidbody::selection;
 
-SequentialBodySelect::SequentialBodySelect(observer_ptr<const RigidBody> rigidbody) : BodySelectStrategy(rigidbody) {}
+SequentialBodySelect::SequentialBodySelect(observer_ptr<const Rigidbody> rigidbody) : BodySelectStrategy(rigidbody) {}
 
 SequentialBodySelect::~SequentialBodySelect() = default;
 
 std::pair<unsigned int, int> SequentialBodySelect::next() {
     unsigned int this_body = ibody;
-    unsigned int N = rigidbody->get_constraint_manager()->distance_constraints_map.size();
-    unsigned int M = rigidbody->get_constraint_manager()->distance_constraints_map.at(this_body).size();
+    unsigned int N = rigidbody->constraints->distance_constraints_map.size();
+    unsigned int M = rigidbody->constraints->distance_constraints_map.at(this_body).size();
     ibody = (ibody + 1) % N;
 
     switch (M) {

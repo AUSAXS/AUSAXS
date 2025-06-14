@@ -5,7 +5,7 @@
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/parameters/Parameter.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
 
@@ -13,14 +13,14 @@
 
 using namespace ausaxs::rigidbody::transform;
 
-TransformStrategy::TransformStrategy(observer_ptr<RigidBody> rigidbody) : rigidbody(rigidbody) {}
+TransformStrategy::TransformStrategy(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody) {}
 
 TransformStrategy::~TransformStrategy() = default;
 
 void TransformStrategy::rotate(const Matrix<double>& M, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (data::Body* body) {body->translate(-group.pivot);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]     (data::Body* body) {body->rotate(M);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (data::Body* body) {body->translate(group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (observer_ptr<data::Body> body) {body->translate(-group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]     (observer_ptr<data::Body> body) {body->rotate(M);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (observer_ptr<data::Body> body) {body->translate(group.pivot);});
 }
 
 void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& group) {
@@ -28,9 +28,9 @@ void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& grou
 }
 
 void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group]     (data::Body* body) {body->translate(-group.pivot);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]         (data::Body* body) {body->rotate(M);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (data::Body* body) {body->translate(group.pivot+t);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group]     (observer_ptr<data::Body> body) {body->translate(-group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]         (observer_ptr<data::Body> body) {body->rotate(M);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (observer_ptr<data::Body> body) {body->translate(group.pivot+t);});
 }
 
 void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParameter>&& symmetry_pars, data::Body& body) {
@@ -43,12 +43,12 @@ void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParam
 }
 
 void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
-    auto& body = rigidbody->get_body(ibody);
+    auto& body = rigidbody->molecule.get_body(ibody);
 
     bodybackup.clear();
     bodybackup.emplace_back(body, ibody);
 
-    auto grid = rigidbody->get_grid();
+    auto grid = rigidbody->molecule.get_grid();
     grid->remove(body);
 
     // translate & rotate
@@ -65,7 +65,7 @@ void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
 
 void TransformStrategy::undo() {
     for (auto& body : bodybackup) {
-        rigidbody->get_body(body.index) = std::move(body.body);
+        rigidbody->molecule.get_body(body.index) = std::move(body.body);
     }
     bodybackup.clear();
 }

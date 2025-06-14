@@ -25,7 +25,7 @@ XYZWriter::~XYZWriter() {
     console::print_info("Trajectory written to " + path);
 }
 
-void XYZWriter::write_frame(const data::Molecule* protein) {
+void XYZWriter::write_frame(observer_ptr<const data::Molecule> protein) {
     static unsigned int frame = 0;
     std::vector<data::AtomFF> atoms;
     atoms.reserve(protein->size_atom());

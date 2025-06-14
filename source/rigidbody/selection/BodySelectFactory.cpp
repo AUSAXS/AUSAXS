@@ -12,11 +12,11 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::selection;
 
-std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const RigidBody> body) {
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const Rigidbody> body) {
     return create_selection_strategy(body, settings::rigidbody::body_select_strategy);
 }
 
-std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const RigidBody> body, settings::rigidbody::BodySelectStrategyChoice choice) {
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const Rigidbody> body, settings::rigidbody::BodySelectStrategyChoice choice) {
     switch (choice) {
         case settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect:
             return std::make_unique<RandomBodySelect>(body);

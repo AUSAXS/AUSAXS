@@ -5,7 +5,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/DefaultOptimizer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
@@ -25,7 +25,7 @@
 
 using namespace ausaxs;
 
-void add_calibration(rigidbody::RigidBody& rigidbody, const io::ExistingFile& mfile);
+void add_calibration(rigidbody::Rigidbody& rigidbody, const io::ExistingFile& mfile);
 int main(int argc, char const *argv[]) { 
     settings::grid::scaling = 2;
     settings::grid::cubic = true;
@@ -86,7 +86,7 @@ int main(int argc, char const *argv[]) {
         }
         settings::validate_settings();
 
-        rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split(pdb, settings::rigidbody::detail::constraints);
+        rigidbody::Rigidbody rigidbody = rigidbody::BodySplitter::split(pdb, settings::rigidbody::detail::constraints);
         if (p_cal->count() != 0) { // calibration file was provided
             add_calibration(rigidbody, mfile);
         }
@@ -101,7 +101,7 @@ int main(int argc, char const *argv[]) {
     return 0;
 }
 
-void add_calibration(rigidbody::RigidBody& rigidbody, const io::ExistingFile& mfile) {
+void add_calibration(rigidbody::Rigidbody& rigidbody, const io::ExistingFile& mfile) {
     if (settings::rigidbody::detail::calibration_file.empty()) {
         // look for calibration file in the same directory as the measurement file
         for (const auto& f : mfile.directory().files()) {
@@ -117,13 +117,13 @@ void add_calibration(rigidbody::RigidBody& rigidbody, const io::ExistingFile& mf
     }
 
     settings::general::output += "calibrated/";
-    rigidbody.generate_new_hydration();
-    fitter::SmartFitter fitter({settings::rigidbody::detail::calibration_file}, rigidbody.get_histogram());
+    rigidbody.molecule.generate_new_hydration();
+    fitter::SmartFitter fitter({settings::rigidbody::detail::calibration_file}, rigidbody.molecule.get_histogram());
     auto res = fitter.fit();
     if (settings::general::verbose) {
         std::cout << "Calibration results:" << std::endl;
         fitter::FitReporter::report(res.get());
     }
-    rigidbody.apply_calibration(std::move(res));
-    // plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "calibration.png");
+    throw std::runtime_error("rigidbody: Calibration is currently disabled.");
+    // rigidbody.apply_calibration(std::move(res));
 }
