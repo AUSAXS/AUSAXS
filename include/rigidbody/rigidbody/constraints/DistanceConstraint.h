@@ -2,6 +2,7 @@
 
 #include <rigidbody/constraints/Constraint.h>
 #include <data/DataFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <iostream>
 
@@ -27,7 +28,7 @@ namespace ausaxs::rigidbody::constraints {
              * @param iatom1 The index of the first atom in the first body.
              * @param iatom2 The index of the second atom in the second body.
              */
-            DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
+            DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
 
             /**
              * @brief Create a new constraint between a pair of atoms in the two bodies.
@@ -38,7 +39,7 @@ namespace ausaxs::rigidbody::constraints {
              * @param body2 The second body.
              * @param center_mass Create a constraint from the center-masses of the two bodies. If false, the two closest carbon atoms are used instead. 
              */
-            DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, bool center_mass = false);
+            DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, bool center_mass = false);
 
             /**
              * @brief Create a new constraint between a pair of atoms.
@@ -49,7 +50,7 @@ namespace ausaxs::rigidbody::constraints {
              * @param atom1 The first atom.
              * @param atom2 The second atom.
              */
-            DistanceConstraint(data::Molecule* protein, const data::AtomFF& atom1, const data::AtomFF& atom2);
+            DistanceConstraint(observer_ptr<const data::Molecule> molecule, const data::AtomFF& atom1, const data::AtomFF& atom2);
 
             virtual ~DistanceConstraint() override = default;
 
@@ -76,19 +77,9 @@ namespace ausaxs::rigidbody::constraints {
             const data::Body& get_body1() const;
 
             /**
-             * @brief Get the first body of this constraint. 
-             */
-            data::Body& get_body1();
-
-            /**
              * @brief Get the second body of this constraint. 
              */
             const data::Body& get_body2() const;
-
-            /**
-             * @brief Get the second body of this constraint. 
-             */
-            data::Body& get_body2();
 
             /**
              * @brief Check if a constraint is identical to this object. 
@@ -104,12 +95,12 @@ namespace ausaxs::rigidbody::constraints {
 
             friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.to_string(); return os;}
 
-            double r_base;              // The normal distance between the two atoms. 
-            data::Molecule* protein;    // The protein this constraint belongs to.
-            unsigned int ibody1 = -1;   // The index of the first body.
-            unsigned int ibody2 = -1;   // The index of the second body.
-            unsigned int iatom1 = -1;   // The index of the first atom.
-            unsigned int iatom2 = -1;   // The index of the second atom.
+            double r_base;                               // The normal distance between the two atoms. 
+            observer_ptr<const data::Molecule> molecule; // The molecule this constraint belongs to.
+            unsigned int ibody1 = -1;                    // The index of the first body.
+            unsigned int ibody2 = -1;                    // The index of the second body.
+            unsigned int iatom1 = -1;                    // The index of the first atom.
+            unsigned int iatom2 = -1;                    // The index of the second atom.
 
         private: 
             struct AtomLoc {int body, atom;};

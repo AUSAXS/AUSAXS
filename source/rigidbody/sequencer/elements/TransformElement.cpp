@@ -5,7 +5,7 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/sequencer/elements/TransformElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -13,5 +13,5 @@ TransformElement::TransformElement(observer_ptr<LoopElement> owner, std::unique_
 TransformElement::~TransformElement() = default;
 
 void TransformElement::run() {
-    owner->_get_rigidbody()->set_transform_manager(strategy);
+    owner->_get_rigidbody()->transformer = strategy;
 }

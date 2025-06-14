@@ -22,8 +22,8 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/transform/TransformFactory.h>
-#include <rigidbody/RigidBody.h>
 #include <rigidbody/BodySplitter.h>
+#include <rigidbody/Rigidbody.h>
 
 #include <utility/observer_ptr.h>
 #include <utility/StringUtils.h>
@@ -279,10 +279,10 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     auto rigidbody = loop_stack.front()->_get_rigidbody();
-    if (rigidbody->size_body() < args.size()) {
+    if (rigidbody->molecule.size_body() < args.size()) {
         throw except::invalid_argument(
             "SequenceParser::parse_arguments: Too many arguments for \"symmetry\". "
-            "Expected no more than " + std::to_string(rigidbody->size_body()) + "."
+            "Expected no more than " + std::to_string(rigidbody->molecule.size_body()) + "."
         );
     }
 
@@ -429,10 +429,10 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Rel
     };
 
     auto rigidbody = loop_stack.front()->_get_rigidbody();
-    if (args.size() != rigidbody->size_body()) {
+    if (args.size() != rigidbody->molecule.size_body()) {
         throw except::invalid_argument(
             "SequenceParser::parse_arguments: Invalid number of arguments for \"relative_hydration\". "
-            "Expected " + std::to_string(rigidbody->size_body()) + ", but got " + std::to_string(args.size()) + "."
+            "Expected " + std::to_string(rigidbody->molecule.size_body()) + ", but got " + std::to_string(args.size()) + "."
         );
     }
 

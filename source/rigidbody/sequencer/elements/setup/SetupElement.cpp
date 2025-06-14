@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -35,7 +35,7 @@ SetupElement& SetupElement::load(const io::ExistingFile& saxs) {
     return *this;
 }
 
-SetupElement& SetupElement::load_existing(observer_ptr<RigidBody> rigidbody) {
+SetupElement& SetupElement::load_existing(observer_ptr<Rigidbody> rigidbody) {
     elements.push_back(std::make_unique<LoadExistingElement>(static_cast<Sequencer*>(owner), rigidbody));
     return *this;
 }
@@ -44,15 +44,15 @@ std::unordered_map<std::string, unsigned int>& SetupElement::_get_body_names() {
     return body_names;
 }
 
-void SetupElement::_set_active_body(observer_ptr<RigidBody> body) {
+void SetupElement::_set_active_body(observer_ptr<Rigidbody> body) {
     active_body = body;
     static_cast<Sequencer*>(owner)->_get_rigidbody() = body;
 }
 
 SetupElement& SetupElement::distance_constraint(const std::string& body1, const std::string& body2, unsigned int iatom1, unsigned int iatom2) {
-    owner->_get_rigidbody()->get_constraint_manager()->add_constraint(
+    owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraint>(
-            active_body,
+            &active_body->molecule,
             body_names.at(body1),
             body_names.at(body2),
             iatom1,
@@ -63,9 +63,9 @@ SetupElement& SetupElement::distance_constraint(const std::string& body1, const 
 }
 
 SetupElement& SetupElement::distance_constraint_closest(unsigned int ibody1, unsigned int ibody2) {
-    owner->_get_rigidbody()->get_constraint_manager()->add_constraint(
+    owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraint>(
-            active_body,
+            &active_body->molecule,
             ibody1, 
             ibody2
         )
@@ -74,9 +74,9 @@ SetupElement& SetupElement::distance_constraint_closest(unsigned int ibody1, uns
 }
 
 SetupElement& SetupElement::distance_constraint_closest(const std::string& ibody1, const std::string& ibody2) {
-    owner->_get_rigidbody()->get_constraint_manager()->add_constraint(
+    owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraint>(
-            active_body,
+            &active_body->molecule,
             body_names.at(ibody1), 
             body_names.at(ibody2)
         )
@@ -85,9 +85,9 @@ SetupElement& SetupElement::distance_constraint_closest(const std::string& ibody
 }
 
 SetupElement& SetupElement::distance_constraint_center_mass(unsigned int ibody1, unsigned int ibody2) {
-    owner->_get_rigidbody()->get_constraint_manager()->add_constraint(
+    owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraint>(
-            active_body,
+            &active_body->molecule,
             ibody1, 
             ibody2,
             true
@@ -97,9 +97,9 @@ SetupElement& SetupElement::distance_constraint_center_mass(unsigned int ibody1,
 }
 
 SetupElement& SetupElement::distance_constraint_center_mass(const std::string& ibody1, const std::string& ibody2) {
-    owner->_get_rigidbody()->get_constraint_manager()->add_constraint(
+    owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraint>(
-            active_body,
+            &active_body->molecule,
             body_names.at(ibody1), 
             body_names.at(ibody2),
             true

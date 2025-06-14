@@ -11,14 +11,7 @@ namespace ausaxs::rigidbody::transform {
      */
     class ForceTransform : public TransformStrategy {
         public:
-            /**
-             * @brief Construtor. 
-             */
-            ForceTransform(RigidBody* rigidbody);
-
-            /**
-             * @brief Destructor.
-             */
+            ForceTransform(Rigidbody* rigidbody);
             ~ForceTransform() override;
 
             /**

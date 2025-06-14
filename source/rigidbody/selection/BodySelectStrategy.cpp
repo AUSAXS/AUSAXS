@@ -5,8 +5,8 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/selection/BodySelectStrategy.h>
 
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs::rigidbody::selection;
 
-BodySelectStrategy::BodySelectStrategy(observer_ptr<const RigidBody> rigidbody) : rigidbody(rigidbody), N(rigidbody->size_body()) {}
+BodySelectStrategy::BodySelectStrategy(observer_ptr<const Rigidbody> rigidbody) : rigidbody(rigidbody), N(rigidbody->molecule.size_body()) {}
