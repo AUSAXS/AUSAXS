@@ -8,8 +8,6 @@
 #include <fitter/FitterFwd.h>
 #include <grid/GridFwd.h>
 #include <data/DataFwd.h>
-#include <data/symmetry/PredefinedSymmetries.h>
-
 #include <data/Molecule.h>
 
 #include <memory>
@@ -20,13 +18,7 @@ namespace ausaxs::rigidbody {
 		public:
 			template <typename... Args, typename = decltype(Molecule(std::declval<Args>()...))>
 			RigidBody(Args&&... args) : Molecule(std::forward<Args>(args)...) {initialize();}
-
 			virtual ~RigidBody() override;
-
-			/**
-			 * @brief Perform a rigid-body optimization for this structure. 
-			 */
-			std::shared_ptr<fitter::FitResult> optimize(const io::ExistingFile& measurement_path);
 
 			/**
 			 * @brief Apply a calibration to this rigid body. 
