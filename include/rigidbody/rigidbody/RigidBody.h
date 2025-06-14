@@ -12,11 +12,16 @@
 
 #include <memory>
 
+// to remove
+#include <fitter/SmartFitter.h>
+#include <fitter/FitResult.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+
 namespace ausaxs::rigidbody {
 	class RigidBody : public data::Molecule {
 		friend rigidbody::sequencer::Sequencer;
 		public:
-			template <typename... Args, typename = decltype(Molecule(std::declval<Args>()...))>
+			template <typename... Args, typename = std::enable_if_t<std::is_constructible_v<Molecule, Args...>>>
 			RigidBody(Args&&... args) : Molecule(std::forward<Args>(args)...) {initialize();}
 			virtual ~RigidBody() override;
 
@@ -35,19 +40,19 @@ namespace ausaxs::rigidbody {
 			/**
 			 * @brief Get the constraint manager for this rigid body.
 			 */
-			std::shared_ptr<constraints::ConstraintManager> get_constraint_manager() const;
+			observer_ptr<constraints::ConstraintManager> get_constraint_manager() const;
 
 			/**
 			 * @brief Get the fitter for this rigid body. Note that this is a ConstrainedFitter, and will thus include chi2 contributions from the constraints. 
 			 */
-			std::shared_ptr<fitter::SmartFitter> get_fitter() const;
+			observer_ptr<fitter::SmartFitter> get_fitter() const;
 
 			/**
 			 * @brief Create a new fitter for this rigid body. This fitter will not include any constraints.
 			 */
 			std::unique_ptr<fitter::SmartFitter> get_unconstrained_fitter(const io::ExistingFile& saxs) const;
 
-			void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
+			void set_constraint_manager(std::unique_ptr<rigidbody::constraints::ConstraintManager> constraints);
 
 			void set_body_select_manager(std::shared_ptr<rigidbody::selection::BodySelectStrategy> body_selector);
 
@@ -56,12 +61,14 @@ namespace ausaxs::rigidbody {
 			void set_parameter_manager(std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> parameters);
 
 		private:
-			std::shared_ptr<constraints::ConstraintManager> constraints = nullptr;
-			std::shared_ptr<fitter::FitResult> calibration = nullptr;
+			std::unique_ptr<constraints::ConstraintManager> constraints;
+			std::unique_ptr<fitter::FitResult> calibration;
+			std::unique_ptr<fitter::SmartFitter> fitter;
+
+			// the following are shared because they may be owned by the sequencer
 			std::shared_ptr<selection::BodySelectStrategy> body_selector;
 			std::shared_ptr<transform::TransformStrategy> transform;
 			std::shared_ptr<parameter::ParameterGenerationStrategy> parameter_generator;
-			std::shared_ptr<fitter::SmartFitter> fitter;
 
 			/**
 			 * @brief Perform an optimization step.
