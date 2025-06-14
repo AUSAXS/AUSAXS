@@ -37,11 +37,11 @@ void RigidBody::initialize() {
     parameter_generator = factory::create_parameter_strategy(this, settings::rigidbody::iterations, 5, std::numbers::pi/3);
     body_selector = factory::create_selection_strategy(this);
     transform = factory::create_transform_strategy(this);
-    constraints = std::make_shared<ConstraintManager>(this);
+    constraints = std::make_unique<ConstraintManager>(this);
     set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
 }
 
-void RigidBody::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
+void RigidBody::set_constraint_manager(std::unique_ptr<rigidbody::constraints::ConstraintManager> constraints) {
     this->constraints = std::move(constraints);
 }
 
@@ -99,14 +99,12 @@ void RigidBody::apply_calibration(std::unique_ptr<fitter::FitResult> calibration
 
 void RigidBody::prepare_fitter(const io::ExistingFile& measurement_path) {
     if (calibration == nullptr) {
-        fitter::ConstrainedFitter<fitter::SmartFitter> fitter({measurement_path}, get_histogram());
-        fitter.set_constraint_manager(constraints);
+        fitter::ConstrainedFitter<fitter::SmartFitter> fitter(constraints.get(), measurement_path, get_histogram());
         this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::SmartFitter>>(std::move(fitter));
     } else {
         auto histogram = get_histogram();
         histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        fitter::ConstrainedFitter<fitter::SmartFitter> fitter(measurement_path, std::move(histogram));
-        fitter.set_constraint_manager(constraints);
+        fitter::ConstrainedFitter<fitter::SmartFitter> fitter(constraints.get(), measurement_path, std::move(histogram));
         this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::SmartFitter>>(std::move(fitter));
     }
 }
@@ -121,9 +119,9 @@ std::unique_ptr<fitter::SmartFitter> RigidBody::get_unconstrained_fitter(const i
     }
 }
 
-std::shared_ptr<fitter::SmartFitter> RigidBody::get_fitter() const {
+observer_ptr<fitter::SmartFitter> RigidBody::get_fitter() const {
     assert(fitter != nullptr && "RigidBody::get_fitter: Fitter not initialized.");
-    return fitter;
+    return fitter.get();
 }
 
 void RigidBody::update_fitter() {
@@ -137,7 +135,7 @@ void RigidBody::update_fitter() {
     }
 }
 
-std::shared_ptr<ConstraintManager> RigidBody::get_constraint_manager() const {
+observer_ptr<ConstraintManager> RigidBody::get_constraint_manager() const {
     assert(constraints != nullptr && "RigidBody::get_constraints: Constraint manager not initialized.");
-    return constraints;
+    return constraints.get();
 }

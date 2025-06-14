@@ -1,0 +1,1 @@
+[] Fix excessive calls to get_histogram in Sequencer (see log)
