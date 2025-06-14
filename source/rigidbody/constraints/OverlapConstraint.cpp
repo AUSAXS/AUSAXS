@@ -13,7 +13,7 @@ For more information, please refer to the LICENSE file in the project root.
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 
-OverlapConstraint::OverlapConstraint(data::Molecule* protein) {
+OverlapConstraint::OverlapConstraint(observer_ptr<data::Molecule> protein) {
     this->protein = protein;
     initialize();
 }

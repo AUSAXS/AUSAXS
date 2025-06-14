@@ -16,7 +16,7 @@ namespace ausaxs::rigidbody::constraints {
      */
     class OverlapConstraint : public Constraint {
         public:
-            OverlapConstraint(data::Molecule* protein);
+            OverlapConstraint(observer_ptr<data::Molecule> protein);
 
             virtual ~OverlapConstraint() override;
 
