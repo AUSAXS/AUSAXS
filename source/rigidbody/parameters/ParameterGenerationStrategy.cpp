@@ -10,8 +10,8 @@
 using namespace ausaxs::rigidbody::parameter;
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
-    observer_ptr<const RigidBody> molecule, unsigned int iterations, double length_start, double rad_start) 
-    : molecule(molecule), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
+    observer_ptr<const Rigidbody> rigidbody, unsigned int iterations, double length_start, double rad_start) 
+    : rigidbody(rigidbody), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
 ) {
     generator = std::mt19937(std::random_device{}());
     translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
@@ -20,8 +20,8 @@ ParameterGenerationStrategy::ParameterGenerationStrategy(
 }
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
-    observer_ptr<const RigidBody> molecule, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) 
-    : molecule(molecule), decay_strategy(std::move(decay_strategy)
+    observer_ptr<const Rigidbody> rigidbody, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) 
+    : rigidbody(rigidbody), decay_strategy(std::move(decay_strategy)
 ) {
     generator = std::mt19937(std::random_device{}());
     translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);

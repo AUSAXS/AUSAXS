@@ -11,8 +11,7 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 
-OverlapConstraint::OverlapConstraint(observer_ptr<data::Molecule> protein) {
-    this->protein = protein;
+OverlapConstraint::OverlapConstraint(observer_ptr<const data::Molecule> molecule) : molecule(molecule) {
     initialize();
 }
 
@@ -24,7 +23,7 @@ void OverlapConstraint::set_overlap_function(std::function<double(double)> func)
 
 double OverlapConstraint::evaluate() const {
     if (target.empty()) [[unlikely]] {return 0;}
-    auto current = protein->get_total_histogram()->get_weighted_counts();
+    auto current = molecule->get_total_histogram()->get_weighted_counts();
     double chi2 = 0;
     for (unsigned int i = 1; i < target.size(); i++) { // skip the self-correlation bin
         chi2 += std::pow((current[i] - target[i])*weights[i], 2);
@@ -38,7 +37,7 @@ double OverlapConstraint::weight(double r) {
 
 void OverlapConstraint::initialize() {
     // define the target distribution
-    auto hist = protein->get_histogram();
+    auto hist = molecule->get_histogram();
     target = hist->get_weighted_counts();
     axis = hist->get_d_axis();
     weights.resize(axis.size());

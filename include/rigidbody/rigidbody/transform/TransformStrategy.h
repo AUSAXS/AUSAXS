@@ -21,7 +21,7 @@ namespace ausaxs::rigidbody::transform {
      */
     class TransformStrategy {
         public:
-            TransformStrategy(observer_ptr<RigidBody> rigidbody);
+            TransformStrategy(observer_ptr<Rigidbody> rigidbody);
             virtual ~TransformStrategy();
 
             /**
@@ -50,7 +50,7 @@ namespace ausaxs::rigidbody::transform {
             virtual void undo();
 
         protected: 
-            observer_ptr<RigidBody> rigidbody;
+            observer_ptr<Rigidbody> rigidbody;
             std::vector<BackupBody> bodybackup;
 
             /**

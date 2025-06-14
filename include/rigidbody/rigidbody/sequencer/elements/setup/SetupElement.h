@@ -51,7 +51,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @brief Load an existing rigidbody. 
              *        This is simply a deferred call to _set_active_body.
              */
-            SetupElement& load_existing(observer_ptr<RigidBody> rigidbody);
+            SetupElement& load_existing(observer_ptr<Rigidbody> rigidbody);
 
             /**
              * @brief Create a distance constraint between the two bodies at the specified atoms.
@@ -129,7 +129,7 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Set the currently active body for the setup.
              */
-            void _set_active_body(observer_ptr<RigidBody> body);
+            void _set_active_body(observer_ptr<Rigidbody> body);
 
             /**
              * @brief Get the location of the configuration folder.
@@ -160,7 +160,7 @@ namespace ausaxs::rigidbody::sequencer {
 
         private:
             std::unordered_map<std::string, unsigned int> body_names;
-            observer_ptr<RigidBody> active_body = nullptr;
+            observer_ptr<Rigidbody> active_body;
             io::Folder config_folder;
             io::ExistingFile saxs_path;
             std::vector<std::unique_ptr<GenericElement>> elements;

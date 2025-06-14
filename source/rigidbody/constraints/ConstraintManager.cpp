@@ -13,7 +13,7 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 
-ConstraintManager::ConstraintManager(data::Molecule* protein) : protein(protein), overlap_constraint(protein) {
+ConstraintManager::ConstraintManager(observer_ptr<const data::Molecule> molecule) : molecule(molecule), overlap_constraint(molecule) {
     generate_constraints(factory::generate_constraints(this));
 }
 
@@ -59,18 +59,14 @@ void ConstraintManager::add_constraint(const OverlapConstraint& constraint) {
 }
 
 double ConstraintManager::evaluate() const {
-    double chi2 = 0.0;
-    for (const auto& constraint : distance_constraints) {
-        chi2 += constraint.evaluate();
-    }
-    chi2 += overlap_constraint.evaluate();
-    return chi2;
+    return std::accumulate(distance_constraints.begin(), distance_constraints.end(), overlap_constraint.evaluate(), [](double sum, const DistanceConstraint& constraint) {
+        return sum + constraint.evaluate();
+    });
 }
 
 void ConstraintManager::update_constraint_map() {
-    assert(protein != nullptr && "ConstraintManager::update_constraint_map: Molecule is not set.");
-
-    for (unsigned int i = 0; i < protein->size_body(); i++) {
+    assert(molecule != nullptr && "ConstraintManager::update_constraint_map: Molecule must not be null.");
+    for (unsigned int i = 0; i < molecule->size_body(); i++) {
         distance_constraints_map[i] = std::vector<std::reference_wrapper<DistanceConstraint>>();
     }
 
