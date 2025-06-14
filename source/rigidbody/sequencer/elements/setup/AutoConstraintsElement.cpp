@@ -14,5 +14,5 @@ AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, se
 
 void AutoConstraintsElement::run() {
     if (owner->_get_rigidbody() == nullptr) {throw std::runtime_error("AutoConstraintsElement::run: No body is currently loaded.");}
-    owner->_get_rigidbody()->get_constraint_manager()->generate_constraints(rigidbody::factory::generate_constraints(owner->_get_rigidbody()->get_constraint_manager().get(), strategy));
+    owner->_get_rigidbody()->get_constraint_manager()->generate_constraints(rigidbody::factory::generate_constraints(owner->_get_rigidbody()->get_constraint_manager(), strategy));
 }

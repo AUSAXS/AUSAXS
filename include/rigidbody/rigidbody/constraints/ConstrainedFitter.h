@@ -8,7 +8,6 @@
 #include <utility/observer_ptr.h>
 
 #include <vector>
-#include <memory>
 
 namespace ausaxs::fitter {
     template<typename C>
@@ -21,25 +20,17 @@ namespace ausaxs::fitter {
      * Note that the constraint manager must manually be set with the set_constraint_manager method.
      */
     template<fitter_t T>
-    class ConstrainedFitter : public T {
-        public: 
-            using T::T;
-            ConstrainedFitter(ConstrainedFitter<T>&& other);
+    struct ConstrainedFitter : T {
+        template <typename... Args, typename = std::enable_if_t<std::is_constructible_v<T, Args...>>>
+        ConstrainedFitter(observer_ptr<rigidbody::constraints::ConstraintManager> constraints, Args&&... args) : T(std::forward<Args>(args)...), constraints(constraints) {
+            assert(constraints != nullptr && "ConstrainedFitter: Constraint manager must not be null.");
+        }
 
-            [[nodiscard]] double chi2(const std::vector<double>& params) override;
+        ConstrainedFitter(ConstrainedFitter<T>&& other) : T(std::move(other)), constraints(other.constraints) {}
 
-            /**
-             * @brief Set the constraints for the fitter. 
-             * 
-             * Overwrites any existing constraints.
-             */
-            void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
-
-            observer_ptr<rigidbody::constraints::ConstraintManager> get_constraint_manager(); 
-
-        private: 
-            std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints = nullptr;
+        [[nodiscard]] double chi2(const std::vector<double>& params) override {
+            return T::chi2(params) + constraints->evaluate();
+        }
+        observer_ptr<rigidbody::constraints::ConstraintManager> constraints;
     };
 }
-
-#include <rigidbody/constraints/ConstrainedFitter.tpp>
