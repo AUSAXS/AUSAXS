@@ -17,6 +17,10 @@ using namespace ausaxs::rigidbody::sequencer;
 SetupElement::SetupElement(observer_ptr<Sequencer> owner) : LoopElementCallback(owner) {}
 SetupElement::SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs) : LoopElementCallback(owner), saxs_path(std::move(saxs)) {}
 
+LoopElement& SetupElement::end() {
+    return *owner;
+}
+
 SetupElement& SetupElement::set_overlap_function(std::function<double(double)> func) {
     rigidbody::constraints::OverlapConstraint::set_overlap_function(std::move(func));
     return *this;
