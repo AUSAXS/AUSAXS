@@ -9,6 +9,8 @@
 
 namespace ausaxs::rigidbody {
 	struct Rigidbody {
+        Rigidbody(Rigidbody&& other);
+        Rigidbody& operator=(Rigidbody&& other);
         Rigidbody(data::Molecule&& molecule);
         ~Rigidbody();
 
