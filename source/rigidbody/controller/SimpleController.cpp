@@ -20,21 +20,19 @@ SimpleController::~SimpleController() = default;
 
 void SimpleController::setup(const io::ExistingFile& measurement_path) {
     if (!calibration) {
-        fitter::ConstrainedFitter fitter{
+        this->fitter = std::make_unique<fitter::ConstrainedFitter>(
             rigidbody->constraints.get(), 
             measurement_path, 
             rigidbody->molecule.get_histogram()
-        };
-        this->fitter = std::make_unique<fitter::ConstrainedFitter>(std::move(fitter));
+        );
     } else {
         auto histogram = rigidbody->molecule.get_histogram();
         histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        fitter::ConstrainedFitter fitter{
+        this->fitter = std::make_unique<fitter::ConstrainedFitter>(
             rigidbody->constraints.get(), 
             measurement_path, 
             std::move(histogram)
-        };
-        this->fitter = std::make_unique<fitter::ConstrainedFitter>(std::move(fitter));
+        );
     }
 }
 
