@@ -2,19 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/elements/ParameterElement.h>
-#include <rigidbody/sequencer/elements/BodySelectElement.h>
-#include <rigidbody/sequencer/elements/TransformElement.h>
-#include <rigidbody/sequencer/elements/OptimizeStepElement.h>
-#include <rigidbody/sequencer/elements/EveryNStepElement.h>
-#include <rigidbody/sequencer/elements/OnImprovementElement.h>
-#include <rigidbody/sequencer/elements/SaveElement.h>
-#include <rigidbody/sequencer/elements/setup/LoadElement.h>
-#include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
-#include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
-#include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
-#include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
-
+#include <rigidbody/sequencer/elements/All.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
@@ -22,7 +10,6 @@
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
-
 #include <utility/observer_ptr.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>

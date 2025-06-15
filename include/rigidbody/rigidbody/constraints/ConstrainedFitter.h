@@ -19,13 +19,19 @@ namespace ausaxs::fitter {
      * Note that the constraint manager must manually be set with the set_constraint_manager method.
      */
     struct ConstrainedFitter : SmartFitter{
+        // warn of pointer issues with the embedded function
+        ConstrainedFitter(ConstrainedFitter&&) noexcept = delete;
+        ConstrainedFitter(const ConstrainedFitter&) = delete;
+        ConstrainedFitter& operator=(ConstrainedFitter&& other) noexcept = delete;
+        ConstrainedFitter& operator=(const ConstrainedFitter& other) = delete;
+
         template <typename... Args, typename = std::enable_if_t<std::is_constructible_v<SmartFitter, Args...>>>
         ConstrainedFitter(observer_ptr<rigidbody::constraints::ConstraintManager> constraints, Args&&... args) : SmartFitter(std::forward<Args>(args)...), constraints(constraints) {
             assert(constraints != nullptr && "ConstrainedFitter: Constraint manager must not be null.");
         }
 
         [[nodiscard]] double chi2(const std::vector<double>& params) override {
-            return SmartFitter::chi2(params) + constraints->evaluate();
+            return SmartFitter::chi2(params) + constraints_chi2();
         }
 
         std::unique_ptr<FitResult> unconstrained_fit() {
