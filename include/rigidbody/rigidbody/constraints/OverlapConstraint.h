@@ -4,9 +4,12 @@
 #pragma once
 
 #include <rigidbody/constraints/Constraint.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <utility/observer_ptr.h>
 #include <data/DataFwd.h>
+
+#include <functional>
+#include <vector>
+#include <cmath>
 
 namespace ausaxs::rigidbody::constraints {
     /**

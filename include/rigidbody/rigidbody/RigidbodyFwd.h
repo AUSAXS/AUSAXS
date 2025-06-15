@@ -8,11 +8,11 @@ namespace ausaxs::rigidbody {
     namespace detail            {struct BestConf;}
     namespace transform         {class TransformStrategy;}
     namespace selection         {class BodySelectStrategy;}
-    namespace constraints       {class ConstraintManager;}
+    namespace constraints       {struct ConstraintManager;}
     namespace parameter         {class ParameterGenerationStrategy;}
     namespace parameter::decay  {class DecayStrategy;}
 }
 
 namespace ausaxs::fitter {
-    class ConstrainedFitter;
+    struct ConstrainedFitter;
 }

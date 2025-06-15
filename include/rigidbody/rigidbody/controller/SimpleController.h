@@ -11,7 +11,7 @@ namespace ausaxs::rigidbody::controller {
 
             void setup(const io::ExistingFile& measurement_path) override; //< @copydoc IController::setup()
             bool run_step() override; //< @copydoc IController::run_step()
-        
+
         private:
             void update_fitter(); 
     };

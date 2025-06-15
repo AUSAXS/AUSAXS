@@ -5,6 +5,7 @@
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
+#include <rigidbody/Rigidbody.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
@@ -13,7 +14,7 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 
-ConstraintManager::ConstraintManager(observer_ptr<const data::Molecule> molecule) : molecule(molecule), overlap_constraint(molecule) {
+ConstraintManager::ConstraintManager(observer_ptr<const Rigidbody> rigidbody) : molecule(&rigidbody->molecule), overlap_constraint(molecule) {
     generate_constraints(factory::generate_constraints(this));
 }
 

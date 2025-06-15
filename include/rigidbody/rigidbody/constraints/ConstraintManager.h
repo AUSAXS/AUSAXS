@@ -5,14 +5,16 @@
 
 #include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
+#include <rigidbody/RigidbodyFwd.h>
 #include <data/DataFwd.h>
 
+#include <memory>
 #include <vector>
 #include <unordered_map>
 
 namespace ausaxs::rigidbody::constraints {
     struct ConstraintManager {
-        ConstraintManager(observer_ptr<const data::Molecule> molecule);
+        ConstraintManager(observer_ptr<const Rigidbody> rigidbody);
         ~ConstraintManager();
 
         /**

@@ -10,6 +10,8 @@
 #include <rigidbody/sequencer/elements/EveryNStepElement.h>
 #include <rigidbody/sequencer/elements/SaveElement.h>
 
+#include <cassert>
+
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -62,22 +64,32 @@ void LoopElement::run() {
 }
 
 observer_ptr<rigidbody::Rigidbody> LoopElement::_get_rigidbody() const {
+    assert(owner != nullptr && "LoopElement::_get_rigidbody: Owner is null.");
     return owner->_get_rigidbody();
 }
 
 observer_ptr<data::Molecule> LoopElement::_get_molecule() const {
+    assert(owner != nullptr && "LoopElement::_get_molecule: Owner is null.");
     return owner->_get_molecule();
 }
 
 observer_ptr<rigidbody::detail::BestConf> LoopElement::_get_best_conf() const {
+    assert(owner != nullptr && "LoopElement::_get_best_conf: Owner is null.");
     return owner->_get_best_conf();
 }
 
 observer_ptr<LoopElement> LoopElement::_get_owner() const {
+    assert(owner != nullptr && "LoopElement::_get_owner: Owner is null.");
     return owner;
 }
 
 observer_ptr<const Sequencer> LoopElement::_get_sequencer() const {
+    assert(owner != nullptr && "LoopElement::_get_sequencer: Owner is null.");
+    return owner->_get_sequencer();
+}
+
+observer_ptr<Sequencer> LoopElement::_get_sequencer() {
+    assert(owner != nullptr && "LoopElement::_get_sequencer: Owner is null.");
     return owner->_get_sequencer();
 }
 
