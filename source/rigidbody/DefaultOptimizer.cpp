@@ -1,5 +1,6 @@
 #include <rigidbody/DefaultOptimizer.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/elements/All.h>
 #include <rigidbody/Rigidbody.h>
 #include <fitter/FitResult.h>
 #include <io/ExistingFile.h>
@@ -8,10 +9,21 @@
 using namespace ausaxs;
 
 std::shared_ptr<fitter::FitResult> rigidbody::default_optimize(observer_ptr<Rigidbody> rigidbody, const io::ExistingFile& measurement_path) {
-    rigidbody->molecule.save(settings::general::output + "initial.pdb");
-    auto sequencer = std::make_unique<rigidbody::sequencer::Sequencer>(measurement_path);
-    sequencer->setup()->load_existing(rigidbody);
-    sequencer->loop(10).optimize();
-    rigidbody->molecule.save(settings::general::output + "optimized.pdb");
-    return sequencer->execute();
+    rigidbody::sequencer::Sequencer sequencer(measurement_path);
+    // sequencer
+    //     .setup()
+    //         .load_existing(rigidbody)
+    //     .end()
+    //     .save(settings::general::output + "initial.pdb")
+    //     .loop(100)
+    //         .optimize()
+    //     .end()
+    //     .save(settings::general::output + "optimized.pdb")
+    // .end();
+
+    sequencer.setup()->load_existing(rigidbody);
+    sequencer.save(settings::general::output + "initial.pdb");
+    sequencer.loop(100).optimize();
+    sequencer.save(settings::general::output + "optimized.pdb");
+    return sequencer.execute();
 }

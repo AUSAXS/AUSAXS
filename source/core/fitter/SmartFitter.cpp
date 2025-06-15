@@ -159,9 +159,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     auto linear_fitter = prepare_linear_fitter(res.get_parameter_values());
     auto linear_fit = linear_fitter.fit();
 
-    //? nice assert, but breaks when constraints are used (only applied in res.fval, not linear_fit->fval)
-    // assert(std::abs(linear_fit->fval - res.fval) < 1e-6 && "SmartFitter::fit: Linear fit and minimizer results do not match.");
-
+    assert(std::abs(linear_fit->fval - res.fval) < 1e-6 && "SmartFitter::fit: Linear fit and minimizer results do not match.");
     auto fit_result = std::make_unique<FitResult>(res, res.fval, dof()+2);     // start with the fit performed here
     fit_result->add_fit(linear_fit.get(), true);                               // add the a,b inner fit
     fit_result->set_data_curves(
