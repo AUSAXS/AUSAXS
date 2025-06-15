@@ -27,6 +27,11 @@ namespace ausaxs::rigidbody::sequencer {
             virtual ~SetupElement() = default;
 
             /**
+             * @brief End the setup phase and return to the main loop.
+             */
+            LoopElement& end() override;
+
+            /**
              * @brief Set the overlap function for evaluating the overlap penalty. 
              *        The function is multiplied onto the distance histogram, with the sum of the product being the chi2 penalty. 
              *

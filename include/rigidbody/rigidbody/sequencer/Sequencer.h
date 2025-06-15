@@ -28,7 +28,9 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Expose the setup element for configuration.
              */
-            observer_ptr<SetupElement> setup();
+            SetupElement& setup();
+            
+            LoopElement& end() override;
 
             /**
              * @brief Get the Rigidbody object.

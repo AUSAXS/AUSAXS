@@ -18,6 +18,10 @@ Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), se
 
 Sequencer::~Sequencer() = default;
 
+LoopElement& Sequencer::end() {
+    throw std::runtime_error("Sequencer::end: Too many end() calls detected.");
+}
+
 observer_ptr<rigidbody::Rigidbody> Sequencer::_get_rigidbody() const {
     assert(rigidbody != nullptr && "Sequencer::_get_rigidbody: Rigidbody not set.");
     return rigidbody;
@@ -53,15 +57,15 @@ observer_ptr<controller::IController> Sequencer::_get_controller() const {
     return rigidbody->controller.get();
 }
 
-observer_ptr<SetupElement> Sequencer::setup() {return &setup_loop;}
+SetupElement& Sequencer::setup() {return setup_loop;}
 
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
-    auto saxs_path = setup()->_get_saxs_path();
+    auto saxs_path = setup()._get_saxs_path();
     if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path.str() + "\" does not exist.");}
     rigidbody->molecule.generate_new_hydration(); // some setup elements requires access to the hydration generators
 
     // run the setup elements, defining all of the necessary parameters
-    for (auto& e : setup()->_get_elements()) {
+    for (auto& e : setup()._get_elements()) {
         e->run();
     }
 
