@@ -47,7 +47,7 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief End the current loop.
              */
-            LoopElement& end();
+            virtual LoopElement& end();
 
             /**
              * @brief Perform the subroutines for every n iterations of this loop.

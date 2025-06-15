@@ -54,7 +54,7 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief End the current loop.
              */
-            LoopElement& end();
+            virtual LoopElement& end();
 
             /**
              * @brief Save the current state of the system.
