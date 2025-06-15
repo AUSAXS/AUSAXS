@@ -10,20 +10,14 @@ using namespace ausaxs;
 
 std::shared_ptr<fitter::FitResult> rigidbody::default_optimize(observer_ptr<Rigidbody> rigidbody, const io::ExistingFile& measurement_path) {
     rigidbody::sequencer::Sequencer sequencer(measurement_path);
-    // sequencer
-    //     .setup()
-    //         .load_existing(rigidbody)
-    //     .end()
-    //     .save(settings::general::output + "initial.pdb")
-    //     .loop(100)
-    //         .optimize()
-    //     .end()
-    //     .save(settings::general::output + "optimized.pdb")
-    // .end();
-
-    sequencer.setup()->load_existing(rigidbody);
-    sequencer.save(settings::general::output + "initial.pdb");
-    sequencer.loop(100).optimize();
-    sequencer.save(settings::general::output + "optimized.pdb");
-    return sequencer.execute();
+    return sequencer
+        .setup()
+            .load_existing(rigidbody)
+        .end()
+        .save(settings::general::output + "initial.pdb")
+        .loop(100)
+            .optimize()
+        .end()
+        .save(settings::general::output + "optimized.pdb")
+    .execute();
 }
