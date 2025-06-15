@@ -19,7 +19,9 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 
 template<bool use_weighted_distribution>
-HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : protein(protein) {}
+HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : protein(protein) {
+    logging::log("initializing HistogramManager");
+}
 
 template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::~HistogramManager() = default;

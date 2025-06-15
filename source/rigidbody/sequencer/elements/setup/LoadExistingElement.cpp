@@ -12,5 +12,5 @@ LoadExistingElement::LoadExistingElement(observer_ptr<Sequencer> owner, observer
 }
 
 void LoadExistingElement::run() {
-    owner->_get_rigidbody() = rigidbody;
+    owner->_get_sequencer()->_set_rigidbody(rigidbody);
 }

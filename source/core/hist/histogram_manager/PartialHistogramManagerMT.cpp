@@ -22,7 +22,7 @@ using namespace ausaxs::hist;
 template<bool use_weighted_distribution> 
 PartialHistogramManagerMT<use_weighted_distribution>::PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein) 
     : PartialHistogramManager<use_weighted_distribution>(protein) 
-{}
+{logging::log("initializing PartialHistogramManagerMT");}
 
 template<bool use_weighted_distribution> 
 PartialHistogramManagerMT<use_weighted_distribution>::~PartialHistogramManagerMT() = default;

@@ -8,6 +8,7 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <utility/observer_ptr.h>
 
+#include <cassert>
 #include <vector>
 
 namespace ausaxs::fitter {
@@ -24,7 +25,7 @@ namespace ausaxs::fitter {
         }
 
         [[nodiscard]] double chi2(const std::vector<double>& params) override {
-            return SmartFitter::chi2(params) + constraints_chi2();
+            return SmartFitter::chi2(params) + constraints->evaluate();
         }
 
         std::unique_ptr<FitResult> unconstrained_fit() {

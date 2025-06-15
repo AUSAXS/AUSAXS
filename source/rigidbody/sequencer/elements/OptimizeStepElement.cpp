@@ -20,7 +20,7 @@ namespace ausaxs::rigidbody::sequencer {
 
     void OptimizeStepElement::run() {
         logging::log("OptimizeStepElement::run: running optimization step " + std::to_string(LoopElement::global_counter));
-        if (owner->_get_sequencer()->_optimize_step()) {
+        if (owner->_get_sequencer()->_get_controller()->run_step()) {
             logging::log("OptimizeStepElement::run: optimization step " + std::to_string(LoopElement::global_counter) + " accepted");
             if (settings::general::verbose) {
                 std::cout << "Iteration " << LoopElement::global_counter << " of " << LoopElement::total_loop_count << std::endl;
