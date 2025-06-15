@@ -15,6 +15,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"constraints/generation/NoConstraints.cpp"
 	"constraints/generation/VolumetricConstraints.cpp"
 
+	"controller/ControllerFactory.cpp"
 	"controller/IController.cpp"
 	"controller/SimpleController.cpp"
 

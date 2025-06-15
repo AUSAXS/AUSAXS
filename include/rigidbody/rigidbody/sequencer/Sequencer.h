@@ -6,11 +6,14 @@
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/controller/IController.h>
 #include <data/DataFwd.h>
-#include <utility/observer_ptr.h>
+
+#include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
     class Sequencer : public LoopElement {
+        friend class SetupElement;
         public:
             Sequencer();
             Sequencer(const io::ExistingFile& saxs);
@@ -23,10 +26,15 @@ namespace ausaxs::rigidbody::sequencer {
             std::shared_ptr<fitter::FitResult> execute() override;
 
             /**
+             * @brief Expose the setup element for configuration.
+             */
+            observer_ptr<SetupElement> setup();
+
+            /**
              * @brief Get the Rigidbody object.
              */
-            observer_ptr<Rigidbody>& _get_rigidbody();
             observer_ptr<Rigidbody> _get_rigidbody() const override;
+            void _set_rigidbody(observer_ptr<Rigidbody> rigidbody);
 
             /**
              * @brief Get the molecule object.
@@ -36,26 +44,23 @@ namespace ausaxs::rigidbody::sequencer {
             observer_ptr<data::Molecule> _get_molecule() const override;
 
             /**
-             * @brief Get the best configuration.
-             */
-            observer_ptr<detail::BestConf> _get_best_conf() const override;
-
-            /**
              * @brief Get the top Sequencer object.
              */
             observer_ptr<const Sequencer> _get_sequencer() const override;
-
-            observer_ptr<SetupElement> setup();
+            observer_ptr<Sequencer> _get_sequencer() override;
 
             /**
-             * @brief Perform an optimization step on the rigid body.
-             * @return True if a better configuration was found, false otherwise.
+             * @brief Get the current rigidbody controller.
              */
-            bool _optimize_step() const;
+            observer_ptr<controller::IController> _get_controller() const;
 
+            /**
+             * @brief Get the best configuration found so far.
+             */
+            observer_ptr<rigidbody::detail::BestConf> _get_best_conf() const override;
+            
         private:
             SetupElement setup_loop;
             observer_ptr<Rigidbody> rigidbody;
-            std::unique_ptr<detail::BestConf> best;
     };
 }

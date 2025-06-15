@@ -22,7 +22,7 @@ using namespace ausaxs::hist;
 template<bool weighted_bins, bool variable_bin_width> 
 PartialHistogramManagerMT<weighted_bins, variable_bin_width>::PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein) 
     : PartialHistogramManager<weighted_bins, variable_bin_width>(protein) 
-{}
+{logging::log("initializing PartialHistogramManagerMT");}
 
 template<bool weighted_bins, bool variable_bin_width> 
 PartialHistogramManagerMT<weighted_bins, variable_bin_width>::~PartialHistogramManagerMT() = default;

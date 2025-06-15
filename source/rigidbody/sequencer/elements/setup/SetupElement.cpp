@@ -10,7 +10,6 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs::rigidbody::sequencer;
@@ -24,7 +23,7 @@ SetupElement& SetupElement::set_overlap_function(std::function<double(double)> f
 }
 
 SetupElement& SetupElement::load(const std::vector<std::string>& paths, const std::vector<std::string>& names) {
-    elements.push_back(std::make_unique<LoadElement>(static_cast<Sequencer*>(owner), paths, names));
+    elements.push_back(std::make_unique<LoadElement>(owner->_get_sequencer(), paths, names));
     return *this;
 }
 
@@ -34,7 +33,7 @@ SetupElement& SetupElement::load(const io::ExistingFile& saxs) {
 }
 
 SetupElement& SetupElement::load_existing(observer_ptr<Rigidbody> rigidbody) {
-    elements.push_back(std::make_unique<LoadExistingElement>(static_cast<Sequencer*>(owner), rigidbody));
+    elements.push_back(std::make_unique<LoadExistingElement>(owner->_get_sequencer(), rigidbody));
     return *this;
 }
 
@@ -44,7 +43,7 @@ std::unordered_map<std::string, unsigned int>& SetupElement::_get_body_names() {
 
 void SetupElement::_set_active_body(observer_ptr<Rigidbody> body) {
     active_body = body;
-    static_cast<Sequencer*>(owner)->_get_rigidbody() = body;
+    owner->_get_sequencer()->rigidbody = body;
 }
 
 SetupElement& SetupElement::distance_constraint(const std::string& body1, const std::string& body2, unsigned int iatom1, unsigned int iatom2) {

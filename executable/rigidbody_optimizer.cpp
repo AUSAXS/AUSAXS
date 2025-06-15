@@ -55,6 +55,7 @@ int main(int argc, char const *argv[]) {
 
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::molecule::implicit_hydrogens = false;
+    settings::flags::init_histogram_manager = false;
     logging::start("rigidbody");
 
     //###################//

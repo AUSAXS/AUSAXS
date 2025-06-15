@@ -54,7 +54,9 @@ Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
     initialize();
 }
 
+#include <utility/Logging.h>
 Molecule& Molecule::operator=(Molecule&& other) {
+    logging::log("Molecule move-assign");
     if (this == &other) {return *this;}
     bodies = std::move(other.bodies);
     grid = std::move(other.grid);
@@ -67,6 +69,7 @@ void Molecule::reset_histogram_manager() {
 }
 
 void Molecule::initialize() {
+    logging::log("initializing Molecule");
     if (!settings::flags::init_histogram_manager) {return;}
     reset_histogram_manager();
 }
