@@ -83,7 +83,7 @@ template<typename BODY, bool NONCONST>
 data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::explicit_structure() const {
     std::vector<AtomFF> atoms = body->get_atoms();
     std::vector<Water> waters = [this] () {
-        auto w = body->get_waters(); return w.has_value() ? w.value().get() : std::vector<Water>{};
+        const auto& w = body->get_waters(); return w.has_value() ? w.value().get() : std::vector<Water>{};
     }();
 
     if (body->size_symmetry() == 0) {

@@ -37,7 +37,7 @@ BodySymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data:
                 sym_atomic[i_repeat].get_data().begin(), 
                 sym_atomic[i_repeat].get_data().end(), 
                 sym_atomic[i_repeat].get_data().begin(), 
-                [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
+                [t=std::move(t)] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
             );
         }
         atomic[1+i_sym_1] = std::move(sym_atomic);
@@ -59,7 +59,7 @@ SymmetryData ausaxs::symmetry::detail::generate_transformed_data(const data::Bod
             sym_atomic[i_repeat].get_data().begin(), 
             sym_atomic[i_repeat].get_data().end(), 
             sym_atomic[i_repeat].get_data().begin(), 
-            [t] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
+            [t=std::move(t)] (const CompactCoordinatesData& v) -> CompactCoordinatesData {return {t(v.value.pos), v.value.w}; }
         );
     }
     return {std::move(sym_atomic)};

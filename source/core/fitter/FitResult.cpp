@@ -38,7 +38,7 @@ void FitResult::set_data_curves(Dataset&& curves_) {
 }
 
 void FitResult::set_data_curves(std::vector<double>&& q, std::vector<double>&& data, std::vector<double>&& data_err, std::vector<double>&& model, std::vector<double>&& residuals) {
-    curves = Dataset({q, data, data_err, model, residuals}, {"q", "I", "I_err", "I_fit", "residuals"});
+    curves = Dataset({std::move(q), std::move(data), std::move(data_err), std::move(model), std::move(residuals)}, {"q", "I", "I_err", "I_fit", "residuals"});
 }
 
 std::string FitResult::to_string() const noexcept {

@@ -21,7 +21,7 @@ namespace ausaxs::fitter::detail {
              * @param data The measured data.
              * @param model The model data to be fitted.
              */
-            LinearLeastSquares(const std::vector<double> data, const std::vector<double> model);
+            LinearLeastSquares(std::vector<double> data, std::vector<double> model);
 
             /**
              * @brief Prepare a linear least-squares fit.
@@ -30,7 +30,7 @@ namespace ausaxs::fitter::detail {
              * @param model The model data to be fitted.
              * @param errors The errors on the measured data.
              */
-            LinearLeastSquares(const std::vector<double> data, const std::vector<double> model, const std::vector<double> errors);
+            LinearLeastSquares(std::vector<double> data, std::vector<double> model, std::vector<double> errors);
 
             [[nodiscard]] std::unique_ptr<FitResult> fit() override;
             [[nodiscard]] unsigned int dof() const override;
