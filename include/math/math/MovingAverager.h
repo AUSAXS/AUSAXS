@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cmath>
+#include <cassert>
 
 namespace ausaxs {
     struct MovingAverage {
@@ -62,6 +63,7 @@ namespace ausaxs {
                         sum += data[index+j] * weights[mid+j];
                         w_sum += weights[mid+j];
                     }
+                    assert(w_sum != 0 && "MovingAverage::average: Division by zero.");
                     return sum/w_sum;
                 };
 

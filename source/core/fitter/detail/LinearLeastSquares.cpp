@@ -35,6 +35,7 @@ std::vector<double> LinearLeastSquares::fit_params_only() {
     }
 
     double delta = S*Sxx - Sx*Sx;
+    assert(delta != 0 && "LinearLeastSquares::fit_params_only: Division by zero.");
     double a = (S*Sxy - Sx*Sy)/delta;
     double b = (Sxx*Sy - Sx*Sxy)/delta;
     double a_err = S/delta;

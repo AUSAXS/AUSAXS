@@ -274,6 +274,7 @@ void SimpleDataset::rebin() noexcept {
                 wsum += y(index);
                 qsum += x(index++);
             }
+            assert(folds != 0 && "SimpleDataset::rebin: Division by zero.");
             newdata.push_back(qsum/folds, wsum/folds, 0);
         };
     } else {
@@ -284,6 +285,7 @@ void SimpleDataset::rebin() noexcept {
                 wsum += y(index)/(std::pow(yerr(index), 2));
                 qsum += x(index++);
             }
+            assert(siginv != 0 && "SimpleDataset::rebin: Division by zero.");
             newdata.push_back(qsum/folds, wsum/siginv, std::pow(siginv, -0.5));
         };
     }

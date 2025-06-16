@@ -20,6 +20,7 @@ void hydrate::BodyCounterCulling::cull(std::span<grid::GridMember<data::Water>>&
     if (body_ratios.empty()) {return CounterCulling(molecule).cull(placed_water);}
     double total_reduction_factor = static_cast<double>(placed_water.size())/target_count;
     double total_weight = std::accumulate(body_ratios.begin(), body_ratios.end(), 0.0);
+    assert(total_weight != 0 && "BodyCounterCulling::cull: Division by zero. The molecule has no atoms.");
 
     std::vector<Vector3<double>> cms(molecule->size_body());
     std::vector<double> reduction_factors(cms.size());

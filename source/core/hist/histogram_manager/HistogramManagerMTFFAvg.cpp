@@ -29,6 +29,8 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg<use_weighted_distribu
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighted_distribution>::calculate_all() {
+    assert(this->protein != nullptr && "HistogramManagerMTFFAvg::calculate_all: Molecule is not set.");
+    assert(0 < this->protein->size_atom() && "HistogramManagerMTFFAvg::calculate_all: Molecule does not contain any atoms.");
     logging::log("HistogramManagerMTFFAvg::calculate: starting calculation");
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;

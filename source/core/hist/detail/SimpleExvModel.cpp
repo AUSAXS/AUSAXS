@@ -21,8 +21,10 @@ void SimpleExvModel::disable() {
     logging::log("SimpleExvModel disabled.");
 }
 
-void SimpleExvModel::apply_simple_excluded_volume(hist::detail::CompactCoordinates& data_a, observer_ptr<const data::Molecule> protein) {
+void SimpleExvModel::apply_simple_excluded_volume(hist::detail::CompactCoordinates& data_a, observer_ptr<const data::Molecule> molecule) {
+    assert(molecule != nullptr && "SimpleExvModel::apply_simple_excluded_volume: molecule is nullptr.");
+    assert(0 < molecule->size_atom() && "SimpleExvModel::apply_simple_excluded_volume: Division by zero. The molecule has no atoms.");
     if (flag_simple_excluded_volume) {
-        data_a.implicit_excluded_volume(protein->get_volume_grid()/protein->size_atom());
+        data_a.implicit_excluded_volume(molecule->get_volume_grid()/molecule->size_atom());
     }
 }
