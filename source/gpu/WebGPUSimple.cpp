@@ -152,6 +152,7 @@ wgpu::ComputePassEncoder get_encoder(wgpu::Device device, wgpu::Queue queue) {
     encoder.release();
     commands.release();
     queue.release();
+    return compute_pass;
 }
 
 wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::Device device) {
