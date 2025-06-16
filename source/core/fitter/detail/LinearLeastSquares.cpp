@@ -12,11 +12,13 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace ausaxs::fitter::detail;
 
-LinearLeastSquares::LinearLeastSquares(std::vector<double> data, std::vector<double> model) : data(std::move(data)), model(std::move(model)), inv_sigma(data.size(), 1) {
-    assert(data.size() == model.size() && "LinearFitter::LinearFitter: Data and model must have the same size.");
+LinearLeastSquares::LinearLeastSquares(const std::vector<double>& data, const std::vector<double>& model) : data(data), model(model), inv_sigma(this->data.size(), 1) {
+    assert(this->data.size() == this->model.size() && "LinearFitter::LinearFitter: Data and model must have the same size.");
 }
 
-LinearLeastSquares::LinearLeastSquares(std::vector<double> data, std::vector<double> model, std::vector<double> errors) : data(std::move(data)), model(std::move(model)), inv_sigma(data.size(), 1) {
+LinearLeastSquares::LinearLeastSquares(const std::vector<double>& data, const std::vector<double>& model, const std::vector<double>& errors) 
+    : LinearLeastSquares(data, model)
+{
     assert(data.size() == errors.size() && "LinearFitter::LinearFitter: Data and errors must have the same size.");
     for (int i = 0; i < static_cast<int>(errors.size()); ++i) {
         inv_sigma[i] = 1./errors[i];

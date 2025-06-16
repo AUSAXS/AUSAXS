@@ -30,7 +30,6 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg<use_weighted_distribu
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighted_distribution>::calculate_all() {
     assert(this->protein != nullptr && "HistogramManagerMTFFAvg::calculate_all: Molecule is not set.");
-    assert(0 < this->protein->size_atom() && "HistogramManagerMTFFAvg::calculate_all: Molecule does not contain any atoms.");
     logging::log("HistogramManagerMTFFAvg::calculate: starting calculation");
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
@@ -169,7 +168,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     pool->wait();
 
     // multiply the excluded volume charge onto the excluded volume bins
-    double Z_exv_avg = this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom();
+    double Z_exv_avg = 
+        this->protein->size_atom() == 0 
+        ? 0 
+        : this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom()
+    ;
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         std::transform(p_aa.begin(ff1, form_factor::exv_bin), p_aa.end(ff1, form_factor::exv_bin), p_aa.begin(ff1, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
     }
