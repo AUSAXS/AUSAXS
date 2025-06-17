@@ -5,8 +5,8 @@
 #include <functional>
 
 namespace ausaxs::math::sampling {
-    class Metropolis {
-        Metropolis() {
+    class MetropolisSampler {
+        MetropolisSampler() {
             gen = std::mt19937(rd());
         }
 

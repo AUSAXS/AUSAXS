@@ -3,10 +3,10 @@
 #include <rigidbody/controller/IController.h>
 
 namespace ausaxs::rigidbody::controller {
-    class SimpleController : public IController {
+    class MetropolisController : public IController {
         public:
             using IController::IController;
-            ~SimpleController() override;
+            ~MetropolisController() override;
 
             void setup(const io::ExistingFile& measurement_path) override; //< @copydoc IController::setup()
             bool run_step() override; //< @copydoc IController::run_step()

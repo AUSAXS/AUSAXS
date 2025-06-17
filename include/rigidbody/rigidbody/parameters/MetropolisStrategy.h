@@ -10,7 +10,7 @@ namespace ausaxs::rigidbody::sampling {
      */
     class MetropolisStrategy : public parameter::ParameterGenerationStrategy {
         public:
-            MetropolisStrategy(observer_ptr<const RigidBody> molecule, unsigned int iterations, double length_start, double rad_start);
+            MetropolisStrategy(observer_ptr<const Rigidbody> molecule, unsigned int iterations);
             ~MetropolisStrategy() override;
 
             void set_pdf(std::function<double(double)> pdf) {this->pdf = std::move(pdf);}
