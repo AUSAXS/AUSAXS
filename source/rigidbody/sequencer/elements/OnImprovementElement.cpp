@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/OnImprovementElement.h>
-#include <rigidbody/detail/BestConf.h>
+#include <rigidbody/detail/Configuration.h>
 
 #include <limits>
 

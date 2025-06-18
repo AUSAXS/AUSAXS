@@ -73,7 +73,7 @@ observer_ptr<data::Molecule> LoopElement::_get_molecule() const {
     return owner->_get_molecule();
 }
 
-observer_ptr<rigidbody::detail::BestConf> LoopElement::_get_best_conf() const {
+observer_ptr<rigidbody::detail::Configuration> LoopElement::_get_best_conf() const {
     assert(owner != nullptr && "LoopElement::_get_best_conf: Owner is null.");
     return owner->_get_best_conf();
 }
