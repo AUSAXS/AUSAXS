@@ -4,7 +4,7 @@
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/selection/BodySelectStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/detail/BestConf.h>
+#include <rigidbody/detail/Configuration.h>
 #include <rigidbody/Rigidbody.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
@@ -52,14 +52,14 @@ void MetropolisController::setup(const io::ExistingFile& measurement_path) {
         return fitter->fit_chi2_only();
     };
 
-    auto reject_update = [this] (const detail::BestConf& best) {
+    auto reject_update = [this] (const detail::Configuration& best) {
         rigidbody->transformer->undo();         // undo the body transforms
         *rigidbody->molecule.get_grid() = *best.grid;          // restore the old grid
         rigidbody->molecule.get_waters() = best.waters; // restore the old waters
         rigidbody->molecule.signal_modified_hydration_layer();
     };
 
-    auto accept_update = [this] (detail::BestConf& best, double new_chi2) {
+    auto accept_update = [this] (detail::Configuration& best, double new_chi2) {
         best.grid = std::make_shared<grid::Grid>(*rigidbody->molecule.get_grid());
         best.waters = rigidbody->molecule.get_waters();
         best.chi2 = new_chi2;

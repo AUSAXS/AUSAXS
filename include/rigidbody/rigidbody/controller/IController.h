@@ -29,7 +29,7 @@ namespace ausaxs::rigidbody::controller {
             */
             virtual bool run_step() = 0;
 
-            observer_ptr<detail::BestConf> current_best() const;
+            observer_ptr<detail::Configuration> current_best() const;
             observer_ptr<fitter::ConstrainedFitter> get_fitter() const;
             observer_ptr<const fitter::FitResult> get_calibration() const;
 
@@ -37,6 +37,6 @@ namespace ausaxs::rigidbody::controller {
                 observer_ptr<Rigidbody> rigidbody;
                 std::unique_ptr<fitter::ConstrainedFitter> fitter;
                 std::unique_ptr<fitter::FitResult> calibration;
-                std::unique_ptr<rigidbody::detail::BestConf> best;
+                std::unique_ptr<rigidbody::detail::Configuration> best;
     };
 }

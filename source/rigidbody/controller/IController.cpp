@@ -1,6 +1,6 @@
 #include <rigidbody/controller/IController.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
-#include <rigidbody/detail/BestConf.h>
+#include <rigidbody/detail/Configuration.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/Grid.h>
 
@@ -10,8 +10,8 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::controller;
 
-std::unique_ptr<rigidbody::detail::BestConf> init_best(observer_ptr<Rigidbody> rigidbody) {
-    return std::make_unique<rigidbody::detail::BestConf>(
+std::unique_ptr<rigidbody::detail::Configuration> init_best(observer_ptr<Rigidbody> rigidbody) {
+    return std::make_unique<rigidbody::detail::Configuration>(
         std::make_shared<grid::Grid>(*rigidbody->molecule.get_grid()), 
         rigidbody->molecule.get_waters(), 
         std::numeric_limits<double>::max()
@@ -30,7 +30,7 @@ IController::IController(observer_ptr<Rigidbody> rigidbody, std::unique_ptr<fitt
 
 IController::~IController() = default;
 
-observer_ptr<rigidbody::detail::BestConf> IController::current_best() const {
+observer_ptr<rigidbody::detail::Configuration> IController::current_best() const {
     assert(best != nullptr && "IController::current_best: Best configuration not set.");
     return best.get();
 }

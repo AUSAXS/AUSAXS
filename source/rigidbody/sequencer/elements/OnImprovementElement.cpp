@@ -4,7 +4,7 @@ For more information, please refer to the LICENSE file in the project root.
 */
 
 #include <rigidbody/sequencer/elements/OnImprovementElement.h>
-#include <rigidbody/detail/BestConf.h>
+#include <rigidbody/detail/Configuration.h>
 
 #include <limits>
 
