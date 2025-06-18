@@ -6,6 +6,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <math/Vector3.h>
+#include <utility/Random.h>
 
 #include <random>
 
@@ -15,7 +16,6 @@ ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, unsigned int iterations, double length_start, double rad_start) 
     : rigidbody(rigidbody), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
 ) {
-    generator = std::mt19937(std::random_device{}());
     translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
     rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
     symmetry_dist = std::uniform_real_distribution<double>(-10, 10);
@@ -25,7 +25,6 @@ ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) 
     : rigidbody(rigidbody), decay_strategy(std::move(decay_strategy)
 ) {
-    generator = std::mt19937(std::random_device{}());
     translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
     rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
     symmetry_dist = std::uniform_real_distribution<double>(-10, 10);

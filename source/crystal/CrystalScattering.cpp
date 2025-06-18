@@ -19,6 +19,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <grid/Grid.h>
 #include <dataset/SimpleDataset.h>
 #include <utility/Basis3D.h>
+#include <utility/Random.h>
 #include <io/ExistingFile.h>
 #include <constants/Constants.h>
 
@@ -44,12 +45,10 @@ CrystalScattering::CrystalScattering(const std::string& input) {
 }
 
 void CrystalScattering::random_rotation() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0, 1);
-    double theta = std::acos(2*dis(gen) - 1);
-    double phi = 2*std::numbers::pi*dis(gen);
-    double psi = 2*std::numbers::pi*dis(gen);
+    double theta = std::acos(2*dis(random::generator()) - 1);
+    double phi = 2*std::numbers::pi*dis(random::generator());
+    double psi = 2*std::numbers::pi*dis(random::generator());
     auto v = Vector3<double>(std::cos(theta)*std::cos(phi), std::sin(theta)*std::cos(phi), std::sin(phi));
     rotate(v, psi);
 }
