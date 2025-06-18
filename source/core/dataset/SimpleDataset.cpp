@@ -2,16 +2,16 @@
 // Author: Kristian Lytje
 
 #include <dataset/SimpleDataset.h>
+#include <dataset/DatasetFactory.h>
+#include <hist/Histogram.h>
 #include <math/Statistics.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
-#include <dataset/DatasetFactory.h>
-#include <hist/Histogram.h>
+#include <utility/Random.h>
 #include <settings/GeneralSettings.h>
 
 #include <vector>
 #include <string>
-#include <random>
 
 using namespace ausaxs;
 
@@ -181,14 +181,12 @@ SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double val)
 }
 
 SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double min, double max) {
-    std::random_device dev;
-    std::mt19937 gen(dev());
     auto uniform = std::uniform_real_distribution<double>(min, max);
 
     std::vector<double> x(size), y(size), yerr(size);
     for (unsigned int i = 0; i < size; i++) {
         x[i] = i;
-        y[i] = uniform(gen);
+        y[i] = uniform(random::generator());
         yerr[i] = y[i]*0.1;
     }
     return SimpleDataset(x, y, yerr);
@@ -218,11 +216,9 @@ void SimpleDataset::scale_y(double factor) {
 }
 
 void SimpleDataset::simulate_noise() {
-    std::random_device dev;
-    std::mt19937 gen(dev());
     auto fun = [&] (double y, double yerr) {
         auto gauss = std::normal_distribution<double>(y, yerr);
-        return gauss(gen);
+        return gauss(random::generator());
     };
 
     auto y = this->y();

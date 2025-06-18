@@ -4,6 +4,7 @@
 #include <rigidbody/selection/SequentialBodySelect.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/Rigidbody.h>
+#include <utility/Random.h>
 
 #include <random>
 
@@ -27,10 +28,8 @@ std::pair<unsigned int, int> SequentialBodySelect::next() {
             return std::make_pair(this_body, 0);
         }
         default: {
-            std::random_device random;
-            std::mt19937 generator2(random());
             std::uniform_int_distribution<int> distribution2(0, M-1);
-            unsigned int iconstraint = distribution2(generator2);
+            unsigned int iconstraint = distribution2(random::generator());
 
             return std::make_pair(this_body, iconstraint);
         }

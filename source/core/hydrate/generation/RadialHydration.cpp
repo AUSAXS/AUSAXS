@@ -6,6 +6,7 @@
 #include <grid/detail/GridMember.h>
 #include <data/Molecule.h>
 #include <utility/Logging.h>
+#include <utility/Random.h>
 #include <constants/Constants.h>
 #include <settings/GridSettings.h>
 #include <settings/MoleculeSettings.h>
@@ -16,10 +17,8 @@
 using namespace ausaxs;
 
 std::function<Vector3<double>()> hydrate::RadialHydration::noise_generator = [] () {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
     static std::normal_distribution<> gauss(0, 0.75);
-    return Vector3<double>(gauss(gen), gauss(gen), gauss(gen));
+    return Vector3<double>(gauss(random::generator()), gauss(random::generator()), gauss(random::generator()));
 };
 
 hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
