@@ -4,7 +4,7 @@
 #include <rigidbody/selection/BodySelectStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
-#include <rigidbody/detail/BestConf.h>
+#include <rigidbody/detail/Configuration.h>
 #include <rigidbody/Rigidbody.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>

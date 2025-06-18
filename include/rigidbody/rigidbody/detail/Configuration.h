@@ -11,10 +11,10 @@
 #include <vector>
 
 namespace ausaxs::rigidbody::detail {
-    struct BestConf {
-        BestConf();
-        BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::Water> waters, double chi2) noexcept;
-        ~BestConf();
+    struct Configuration {
+        Configuration();
+        Configuration(std::shared_ptr<grid::Grid> grid, std::vector<data::Water> waters, double chi2) noexcept;
+        ~Configuration();
 
         std::shared_ptr<grid::Grid> grid;
         std::vector<data::Water> waters;
