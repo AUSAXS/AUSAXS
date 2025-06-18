@@ -59,7 +59,6 @@ namespace ausaxs::rigidbody::parameter {
 
         protected:
             observer_ptr<const Rigidbody> rigidbody;
-            std::mt19937 generator;
             std::uniform_real_distribution<double> translation_dist; // Random number distribution for translations. 
             std::uniform_real_distribution<double> rotation_dist;    // Random number distribution for rotations. 
             std::uniform_real_distribution<double> symmetry_dist;    // Random number distribution for symmetry transforms.

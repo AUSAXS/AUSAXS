@@ -6,6 +6,7 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/Rigidbody.h>
 #include <utility/Exceptions.h>
+#include <utility/Random.h>
 
 #include <utility>
 
@@ -13,15 +14,13 @@ using namespace ausaxs::rigidbody::selection;
 
 RandomConstraintSelect::RandomConstraintSelect(observer_ptr<const Rigidbody> rigidbody) : BodySelectStrategy(rigidbody) {
     unsigned int M = rigidbody->constraints->distance_constraints.size();
-    std::random_device random;
-    generator = std::mt19937(random());
     distribution = std::uniform_int_distribution<int>(0, M-1);
 }
 
 RandomConstraintSelect::~RandomConstraintSelect() = default;
 
 std::pair<unsigned int, int> RandomConstraintSelect::next() {
-    unsigned int iconstraint = distribution(generator);
+    unsigned int iconstraint = distribution(random::generator());
     const auto& constraint = rigidbody->constraints->distance_constraints[iconstraint];
     unsigned int ibody = constraint.ibody1;
 
