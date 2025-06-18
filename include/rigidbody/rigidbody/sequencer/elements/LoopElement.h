@@ -77,7 +77,7 @@ namespace ausaxs::rigidbody::sequencer {
 
             virtual observer_ptr<data::Molecule> _get_molecule() const;
 
-            virtual observer_ptr<detail::BestConf> _get_best_conf() const;
+            virtual observer_ptr<detail::Configuration> _get_best_conf() const;
 
             virtual observer_ptr<const Sequencer> _get_sequencer() const;
             virtual observer_ptr<Sequencer> _get_sequencer();

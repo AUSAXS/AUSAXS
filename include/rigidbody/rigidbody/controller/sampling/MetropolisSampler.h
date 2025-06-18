@@ -1,23 +1,28 @@
 #pragma once
 
+#include <rigidbody/detail/Configuration.h>
+#include <utility/Random.h>
+
 #include <cmath>
 #include <random>
 #include <functional>
 
-namespace ausaxs::math::sampling {
+namespace ausaxs::rigidbody::sampling {
     class MetropolisSampler {
-        MetropolisSampler() {
-            gen = std::mt19937(rd());
-        }
+        MetropolisSampler() {}
 
         private:
-            std::function<double(double)> pdf;
-            inline static std::random_device rd;
-            inline static std::mt19937 gen;
+            std::function<double(double)> chi2;
+            std::function<void(detail::Configuration& best, double new_chi2)> accept_update;
+            std::function<void(const detail::Configuration&)> reject_update;
+
+            double pdf(double x) {
+                return std::exp(-chi2(x));
+            }
 
             double random_uniform() {
                 static std::uniform_real_distribution<double> dist(0, 1);
-                return dist(gen);
+                return dist(random::generator());
             }
 
             double P_ratio(double x_old, double x_new) {
