@@ -4,26 +4,23 @@
 #include <rigidbody/Rigidbody.h>
 #include <grid/Grid.h>
 
+#include <memory>
 #include <cassert>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::controller;
 
-std::unique_ptr<rigidbody::detail::Configuration> init_best(observer_ptr<Rigidbody> rigidbody) {
-    return std::make_unique<rigidbody::detail::Configuration>(
-        std::make_shared<grid::Grid>(*rigidbody->molecule.get_grid()), 
-        rigidbody->molecule.get_waters(), 
-        std::numeric_limits<double>::max()
-    );
+std::unique_ptr<rigidbody::detail::Configuration> init_config() {
+    return std::make_unique<rigidbody::detail::Configuration>();
 }
 
-IController::IController(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody), best(init_best(rigidbody)) {
+IController::IController(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody), current_config(init_config()) {
     assert(rigidbody != nullptr && "IController: RigidBody must not be null.");
 }
 
 IController::IController(observer_ptr<Rigidbody> rigidbody, std::unique_ptr<fitter::FitResult> calibration) 
-    : rigidbody(rigidbody), calibration(std::move(calibration)), best(init_best(rigidbody))
+    : rigidbody(rigidbody), calibration(std::move(calibration)), current_config(init_config())
 {
     assert(rigidbody != nullptr && "IController: RigidBody must not be null.");
 }
@@ -31,8 +28,8 @@ IController::IController(observer_ptr<Rigidbody> rigidbody, std::unique_ptr<fitt
 IController::~IController() = default;
 
 observer_ptr<rigidbody::detail::Configuration> IController::current_best() const {
-    assert(best != nullptr && "IController::current_best: Best configuration not set.");
-    return best.get();
+    assert(current_config != nullptr && "IController::current_best: Best configuration not set.");
+    return current_config.get();
 }
 
 observer_ptr<fitter::ConstrainedFitter> IController::get_fitter() const {

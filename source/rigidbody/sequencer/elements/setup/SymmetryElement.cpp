@@ -5,10 +5,10 @@ For more information, please refer to the LICENSE file in the project root.
 
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
-#include <rigidbody/RigidBody.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/HistogramSettings.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
 
 #include <cassert>

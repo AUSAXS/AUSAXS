@@ -49,7 +49,6 @@ void SimpleController::update_fitter() {
 
 bool SimpleController::run_step() {
     auto& molecule = rigidbody->molecule;
-    auto grid = molecule.get_grid();
 
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = rigidbody->body_selector->next();
@@ -68,17 +67,19 @@ bool SimpleController::run_step() {
     double new_chi2 = fitter->fit_chi2_only();
 
     // if the old configuration was better
-    if (new_chi2 >= best->chi2) {
-        rigidbody->transformer->undo();         // undo the body transforms
-        *grid = *best->grid;                    // restore the old grid
-        molecule.get_waters() = best->waters;   // restore the old waters
-        molecule.signal_modified_hydration_layer();
+    if (new_chi2 >= current_config->chi2) {
+        // undo the body transforms
+        rigidbody->transformer->undo();
+
+        // regenerate grid & hydration layer
+        //? potential inconsistency: the new grid may not be exactly identical to the old one,
+        //? as the order of adding bodies may differ. perhaps the difference is negligible?
+        rigidbody->molecule.clear_grid();
+        rigidbody->molecule.generate_new_hydration();
         return false;
     } else {
         // accept the changes
-        best->grid = std::make_shared<grid::Grid>(*grid);
-        best->waters = molecule.get_waters();
-        best->chi2 = new_chi2;
+        current_config->chi2 = new_chi2;
         return true;
     }
 }

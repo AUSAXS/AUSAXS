@@ -8,7 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <rigidbody/sequencer/elements/SaveElement.h>
 #include <rigidbody/detail/Configuration.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>

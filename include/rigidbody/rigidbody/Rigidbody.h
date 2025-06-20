@@ -22,5 +22,11 @@ namespace ausaxs::rigidbody {
         std::shared_ptr<selection::BodySelectStrategy> body_selector;
         std::shared_ptr<transform::TransformStrategy> transformer;
         std::shared_ptr<parameter::ParameterGenerationStrategy> parameter_generator;
+
+        /**
+         * @brief Refresh the grid of the molecule if necessary. 
+         *        This guarantees that there is room for the current conformation. 
+         */
+        void refresh_grid();
     };
 }
