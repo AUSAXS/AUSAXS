@@ -3,15 +3,17 @@
 
 #pragma once
 
+#include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/parameters/Parameter.h>
+#include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::detail {
     struct Configuration {
         Configuration();
-        Configuration(parameter::Parameter&& parameters, double chi2) noexcept;
+        Configuration(observer_ptr<Rigidbody> rigidbody, double chi2) noexcept;
         ~Configuration();
 
-        parameter::Parameter parameters;
+        std::vector<parameter::Parameter> parameters;
         double chi2;
     };
 }
