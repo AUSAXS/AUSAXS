@@ -3,21 +3,15 @@
 
 #pragma once
 
-#include <data/DataFwd.h>
-#include <grid/GridFwd.h>
-#include <data/atoms/Water.h>
-
-#include <memory>
-#include <vector>
+#include <rigidbody/parameters/Parameter.h>
 
 namespace ausaxs::rigidbody::detail {
     struct Configuration {
         Configuration();
-        Configuration(std::shared_ptr<grid::Grid> grid, std::vector<data::Water> waters, double chi2) noexcept;
+        Configuration(parameter::Parameter&& parameters, double chi2) noexcept;
         ~Configuration();
 
-        std::shared_ptr<grid::Grid> grid;
-        std::vector<data::Water> waters;
-        double chi2;	
+        parameter::Parameter parameters;
+        double chi2;
     };
 }
