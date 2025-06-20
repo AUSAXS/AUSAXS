@@ -37,6 +37,6 @@ namespace ausaxs::rigidbody::controller {
                 observer_ptr<Rigidbody> rigidbody;
                 std::unique_ptr<fitter::ConstrainedFitter> fitter;
                 std::unique_ptr<fitter::FitResult> calibration;
-                std::unique_ptr<rigidbody::detail::Configuration> best;
+                std::unique_ptr<rigidbody::detail::Configuration> current_config;
     };
 }

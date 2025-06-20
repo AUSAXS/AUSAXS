@@ -29,7 +29,6 @@ void add_calibration(rigidbody::Rigidbody& rigidbody, const io::ExistingFile& mf
 int main(int argc, char const *argv[]) { 
     settings::grid::scaling = 2;
     settings::grid::cubic = true;
-    settings::grid::min_bins = 1000;
     settings::general::verbose = true;
 
     CLI::App app{"Rigid-body optimization."};

@@ -60,6 +60,9 @@ void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
     // update symmetry parameters
     symmetry(std::move(par.symmetry_pars), body);
 
+    // ensure there is space for the new conformation in the grid
+    rigidbody->refresh_grid();
+
     grid->add(body);
 }
 
