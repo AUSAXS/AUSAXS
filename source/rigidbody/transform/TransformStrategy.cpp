@@ -60,11 +60,9 @@ void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
         auto body = rigidbody->conformation->original_conformation[ibody];
 
         // translate & rotate
-        //! the first two ops can be optimized away by moving all original bodies to origo, and using their original cm as starting points
-        auto cm = body.get_cm();
-        body.translate(-cm);
+        assert(body.get_cm() == Vector3<double>(0, 0, 0) && "Body is supposed to always be at the origin.");
         body.rotate(matrix::rotation_matrix(par.rotation));
-        body.translate(cm + par.translation);
+        body.translate(par.translation);
 
         // update symmetry parameters
         symmetry(std::move(par.symmetry_pars), body);
