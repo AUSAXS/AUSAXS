@@ -24,6 +24,8 @@ namespace ausaxs::rigidbody::parameter {
 template<bool TRANSLATE, bool ROTATE, bool SYMMETRY>
 ausaxs::rigidbody::parameter::Parameter ausaxs::rigidbody::parameter::LimitedParameterGenerator<TRANSLATE, ROTATE, SYMMETRY>::next(int ibody) {
     double scaling = decay_strategy->next();
+
+    assert(ibody < static_cast<int>(rigidbody->conformation->configuration.parameters.size()) && "ibody out of bounds");
     auto& current_pars = rigidbody->conformation->configuration.parameters[ibody];
 
     Vector3<double> t = current_pars.translation;
