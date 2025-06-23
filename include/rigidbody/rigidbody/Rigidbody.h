@@ -17,6 +17,7 @@ namespace ausaxs::rigidbody {
         data::Molecule molecule;
         std::unique_ptr<constraints::ConstraintManager> constraints;
         std::unique_ptr<controller::IController> controller;
+        std::unique_ptr<detail::Conformation> conformation;
 
         // the following are shared because they may be owned by the sequencer
         std::shared_ptr<selection::BodySelectStrategy> body_selector;
