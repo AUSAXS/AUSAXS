@@ -20,6 +20,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"controller/SimpleController.cpp"
 
 	"detail/Configuration.cpp"
+	"detail/Conformation.cpp"
 	
 	"parameters/ParameterGenerationFactory.cpp"
 	"parameters/ParameterGenerationStrategy.cpp"

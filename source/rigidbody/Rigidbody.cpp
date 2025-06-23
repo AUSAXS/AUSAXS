@@ -28,7 +28,7 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
         std::numbers::pi/3
     );
     constraints = std::make_unique<constraints::ConstraintManager>(this);
-    conformation = std::make_unique<rigidbody::detail::Conformation>(molecule.get_bodies());
+    conformation = std::make_unique<rigidbody::detail::Conformation>(this);
 }
 
 Rigidbody::Rigidbody(Rigidbody&& other) = default;
