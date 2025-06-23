@@ -5,6 +5,7 @@
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/parameters/Parameter.h>
+#include <rigidbody/detail/Conformation.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
@@ -43,27 +44,40 @@ void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParam
 }
 
 void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
-    auto& body = rigidbody->molecule.get_body(ibody);
-
-    bodybackup.clear();
-    bodybackup.emplace_back(body, ibody);
-
     auto grid = rigidbody->molecule.get_grid();
-    grid->remove(body);
 
-    // translate & rotate
-    auto cm = body.get_cm();
-    body.translate(-cm);
-    body.rotate(matrix::rotation_matrix(par.rotation));
-    body.translate(cm + par.translation);
+    {   // remove old body
+        auto& body = rigidbody->molecule.get_body(ibody);
 
-    // update symmetry parameters
-    symmetry(std::move(par.symmetry_pars), body);
+        bodybackup.clear();
+        bodybackup.emplace_back(body, ibody); //! std::move
 
-    // ensure there is space for the new conformation in the grid
-    rigidbody->refresh_grid();
+        grid->remove(body);
+    }
 
-    grid->add(body);
+    {   // get fresh body and apply absolute transformation
+        assert(ibody < rigidbody->conformation->original_conformation.size() && "ibody out of bounds");
+        auto body = rigidbody->conformation->original_conformation[ibody];
+
+        // translate & rotate
+        //! the first two ops can be optimized away by moving all original bodies to origo, and using their original cm as starting points
+        auto cm = body.get_cm();
+        body.translate(-cm);
+        body.rotate(matrix::rotation_matrix(par.rotation));
+        body.translate(cm + par.translation);
+
+        // update symmetry parameters
+        symmetry(std::move(par.symmetry_pars), body);
+
+        // update the conformation
+        rigidbody->molecule.get_body(ibody) = std::move(body);
+
+        // ensure there is space for the new conformation in the grid
+        rigidbody->refresh_grid();
+    }
+
+    // finally, re-add the body to the grid
+    grid->add(rigidbody->molecule.get_body(ibody));
 }
 
 void TransformStrategy::undo() {

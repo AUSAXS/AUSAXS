@@ -5,7 +5,10 @@
 
 namespace ausaxs::rigidbody {
     struct Rigidbody;
-    namespace detail            {struct Configuration;}
+    namespace detail            {
+        struct Configuration;
+        struct Conformation;
+    }
     namespace transform         {class TransformStrategy;}
     namespace selection         {class BodySelectStrategy;}
     namespace constraints       {struct ConstraintManager;}
