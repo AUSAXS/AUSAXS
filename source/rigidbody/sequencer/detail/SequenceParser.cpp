@@ -484,7 +484,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
     // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
     sequencer->setup()._set_config_folder(config.directory());
-    
+
     std::string line;
     while(!in.eof()) {
         // read the next line
