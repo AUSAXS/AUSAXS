@@ -8,7 +8,11 @@
 namespace ausaxs::rigidbody::detail {
     /**
      * @brief The current conformation of a rigid-body molecule.
-     *        Storing the original conformation is required to express the current conformation in absolute terms. 
+     * 
+     * This structure holds all original bodies and their current configuration.
+     *
+     * For convenience, the contained bodies are moved to the origin, with the configuration
+     * initialized with the center of mass of each body required to restore the original conformation.
      */
     struct Conformation {
         Conformation();
