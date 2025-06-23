@@ -49,12 +49,12 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
         // find the atoms closest to the center of mass of the two bodies
         double min_distance = std::numeric_limits<double>::max();
         double target_distance = body1.get_cm().distance2(body2.get_cm());
-        for (unsigned int i = 0; i < body1.get_atoms().size(); i++) {
+        for (unsigned int i = 0; i < body1.size_atom(); i++) {
             if (form_factor::to_atom_type(body1.get_atom(i).form_factor_type()) != constants::atom_t::C) {
                 continue;
             }
 
-            for (unsigned int j = 0; j < body2.get_atoms().size(); j++) {
+            for (unsigned int j = 0; j < body2.size_atom(); j++) {
                 if (form_factor::to_atom_type(body2.get_atom(j).form_factor_type()) != constants::atom_t::C) {
                     continue;
                 }
@@ -71,12 +71,12 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
     } else {
         // find the closest atoms in the two bodies
         double min_distance = std::numeric_limits<double>::max();
-        for (unsigned int i = 0; i < body1.get_atoms().size(); i++) {
+        for (unsigned int i = 0; i < body1.size_atom(); i++) {
             if (form_factor::to_atom_type(body1.get_atom(i).form_factor_type()) != constants::atom_t::C) {
                 continue;
             }
 
-            for (unsigned int j = 0; j < body2.get_atoms().size(); j++) {
+            for (unsigned int j = 0; j < body2.size_atom(); j++) {
                 if (form_factor::to_atom_type(body2.get_atom(j).form_factor_type()) != constants::atom_t::C) {
                     continue;
                 }
