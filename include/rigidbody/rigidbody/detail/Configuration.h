@@ -10,7 +10,8 @@
 namespace ausaxs::rigidbody::detail {
     struct Configuration {
         Configuration();
-        Configuration(observer_ptr<Rigidbody> rigidbody, double chi2) noexcept;
+        Configuration(observer_ptr<const Rigidbody> rigidbody) noexcept;
+        Configuration(observer_ptr<const Rigidbody> rigidbody, double chi2) noexcept;
         ~Configuration();
 
         std::vector<parameter::Parameter> parameters;

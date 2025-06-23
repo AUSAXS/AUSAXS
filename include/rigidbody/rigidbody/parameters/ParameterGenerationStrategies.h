@@ -5,6 +5,7 @@
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
+#include <rigidbody/detail/Conformation.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
 #include <utility/Random.h>
@@ -23,39 +24,40 @@ namespace ausaxs::rigidbody::parameter {
 template<bool TRANSLATE, bool ROTATE, bool SYMMETRY>
 ausaxs::rigidbody::parameter::Parameter ausaxs::rigidbody::parameter::LimitedParameterGenerator<TRANSLATE, ROTATE, SYMMETRY>::next(int ibody) {
     double scaling = decay_strategy->next();
+    auto& current_pars = rigidbody->conformation->configuration.parameters[ibody];
 
-    Vector3<double> t = {0, 0, 0};
+    Vector3<double> t = current_pars.translation;
     if constexpr (TRANSLATE) {
-        t.x() = translation_dist(random::generator())*scaling;
-        t.y() = translation_dist(random::generator())*scaling;
-        t.z() = translation_dist(random::generator())*scaling;
+        t.x() += translation_dist(random::generator())*scaling;
+        t.y() += translation_dist(random::generator())*scaling;
+        t.z() += translation_dist(random::generator())*scaling;
     }
 
-    Vector3<double> r = {0, 0, 0};
+    Vector3<double> r = current_pars.rotation;
     if constexpr (ROTATE) {
-        r.x() = rotation_dist(random::generator())*scaling;
-        r.y() = rotation_dist(random::generator())*scaling;
-        r.z() = rotation_dist(random::generator())*scaling;
+        r.x() += rotation_dist(random::generator())*scaling;
+        r.y() += rotation_dist(random::generator())*scaling;
+        r.z() += rotation_dist(random::generator())*scaling;
     }
 
-    std::vector<Parameter::SymmetryParameter> symmetry_pars(rigidbody->molecule.get_body(ibody).size_symmetry());
+    std::vector<Parameter::SymmetryParameter> symmetry_pars = current_pars.symmetry_pars;
     if constexpr (SYMMETRY) {
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
         for (size_t i = 0; i < symmetries->symmetries.size(); ++i) {
             if (symmetries->optimize_translate) {
-                symmetry_pars[i].translation.x() = symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].translation.y() = symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].translation.z() = symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].translation.x() += symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].translation.y() += symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].translation.z() += symmetry_dist(random::generator())*scaling;
             }
 
             if (symmetries->optimize_rotate) {
-                symmetry_pars[i].rotation_cm.x() = symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].rotation_cm.y() = symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].rotation_cm.z() = symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].rotation_cm.x() += symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].rotation_cm.y() += symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].rotation_cm.z() += symmetry_dist(random::generator())*scaling;
 
-                symmetry_pars[i].rotation_angle.x() = symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].rotation_angle.y() = symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].rotation_angle.z() = symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].rotation_angle.x() += symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].rotation_angle.y() += symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].rotation_angle.z() += symmetry_dist(random::generator())*scaling;
             }
         }
     }
