@@ -25,11 +25,12 @@ User-guides to all of these programs can be found in the [wiki](https://github.c
 # Installation
 The fastest way to get started is using the most recent precompiled binaries available in the [releases](https://github.com/klytje/AUSAXS/releases).  
 
-Alternatively you can follow [compilation guide](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) to compile it yourself in just a few simple steps. 
+Alternatively you can follow the [compilation guide](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) to compile it yourself in just a few simple steps. 
 
 # References
+* AUSAXS: an open-source small-angle X-ray scattering profile calculator for high-resolution models of bio-macromolecules (accepted for publication, but not yet available.)
 * Validation of electron-microscopy maps using solution small-angle X-ray scattering (doi: [10.1107/S2059798324005497](https://doi.org/10.1107/S2059798324005497))
 
-Two other articles documenting the SAXS fitter and rigidbody optimizer are currently under development. 
+Another article documenting the rigidbody optimizer is currently under development. 
 
 _This project is licenced under the GNU Lesser General Public Licence v3.0. Alternative licencing arrangements can be discussed upon request. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
