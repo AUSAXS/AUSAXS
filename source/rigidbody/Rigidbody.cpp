@@ -4,6 +4,7 @@
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/controller/ControllerFactory.h>
+#include <rigidbody/detail/Conformation.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/FitResult.h>
 #include <data/Molecule.h>
@@ -16,7 +17,6 @@ using namespace ausaxs::rigidbody;
 Rigidbody::~Rigidbody() = default;
 
 Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)) {
-    logging::log("setting histogram manager to PartialHistogramManagerMT.");
     molecule.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
     controller = factory::create_controller(this);
     body_selector = factory::create_selection_strategy(this);
@@ -28,6 +28,7 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
         std::numbers::pi/3
     );
     constraints = std::make_unique<constraints::ConstraintManager>(this);
+    conformation = std::make_unique<rigidbody::detail::Conformation>(molecule.get_bodies());
 }
 
 Rigidbody::Rigidbody(Rigidbody&& other) = default;
@@ -51,7 +52,7 @@ void Rigidbody::refresh_grid() {
             bounds.second[i] = std::max(bounds.second[i], max[i]);
         }
     }
-    
+
     auto grid_bounds = grid->get_axes();
     if (grid_bounds.x.min < bounds.first.x() && grid_bounds.x.max > bounds.second.x() &&
         grid_bounds.y.min < bounds.first.y() && grid_bounds.y.max > bounds.second.y() &&
