@@ -59,7 +59,7 @@ jobs:
           mkdir build
           cmake -B build -S . -G "Ninja" \
             -DGUI=ON \
-            -DBUILD_PLOT_EXE=ON \
+            -DBUILD_PLOT_EXE=OFF \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
