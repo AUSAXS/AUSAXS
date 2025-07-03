@@ -134,7 +134,7 @@ jobs:
             # CXX: $(brew --prefix llvm@15)/bin/clang++
             XCODE_VER: 15.0.1
 
-          - runner: macos-15
+          - runner: macos-14
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
@@ -142,7 +142,7 @@ jobs:
             CXX: clang++
             # CC: $(brew --prefix llvm@18)/bin/clang
             # CXX: $(brew --prefix llvm@18)/bin/clang++
-            XCODE_VER: 15.4
+            XCODE_VER: 15.0.1
 
     steps:
       - uses: actions/checkout@v4
