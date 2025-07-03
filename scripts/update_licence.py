@@ -1,7 +1,7 @@
 import os
 import sys
 
-directory = "source"
+directory = "include"
 if len(sys.argv) == 2:
     directory = sys.argv[1]
 
