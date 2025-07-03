@@ -75,19 +75,6 @@ jobs:
             build/lib/*
             build/bin/*
 
-      # - name: Build tests
-      #   run: cmake --build build --target tests -j12
-
-      # - name: Run tests
-      #   run: ctest --output-on-failure --test-dir build/tests
-
-      # - name: Generate test report
-      #   uses: mikepenz/action-junit-report@v4
-      #   if: (success() || failure())
-      #   with:
-      #     check_name: "Windows test report"
-      #     report_paths: build/tests/reports/*.xml
-
   build-mac:
     name: "MacOS universal"
     needs: check-draft
@@ -147,13 +134,15 @@ jobs:
             # CXX: $(brew --prefix llvm@15)/bin/clang++
             XCODE_VER: 15.0.1
 
-          - runner: macos-15
+          - runner: macos-14
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
-            CC: $(brew --prefix llvm@18)/bin/clang
-            CXX: $(brew --prefix llvm@18)/bin/clang++
-            XCODE_VER: 15.4
+            CC: clang
+            CXX: clang++
+            # CC: $(brew --prefix llvm@18)/bin/clang
+            # CXX: $(brew --prefix llvm@18)/bin/clang++
+            XCODE_VER: 15.0.1
 
     steps:
       - uses: actions/checkout@v4
@@ -184,20 +173,8 @@ jobs:
         
       - name: Clean up GUI binary folders for upload
         run: |
-          cd build
-          echo "Current directory: $(pwd)"
-          echo "Contents of current folder: $(ls -la)"
-          cd bin
-          echo "Current directory: $(pwd)"
-          echo "Contents of current folder: $(ls -la)"
-          cd scripts
-          echo "Current directory: $(pwd)"
-          echo "Contents of current folder: $(ls -la)"
-          cd ../../..
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
-          echo "OK"
           find build/bin/scripts ! -name "plot*" -exec rm -rf {} +
-          echo "OK"
 
       - uses: actions/upload-artifact@v4
         with:
