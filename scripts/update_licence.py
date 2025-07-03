@@ -6,14 +6,14 @@ if len(sys.argv) == 2:
     directory = sys.argv[1]
 
 default_license = \
-"""/*
-This software is distributed under the GNU Lesser General Public License v3.0. 
-For more information, please refer to the LICENSE file in the project root.
-*/"""
+"""\
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje\
+"""
 
 for root, dirs, files in os.walk(directory):
     for file in files:
-        if file.endswith(".cpp"): # only cpp files
+        if file.endswith(".cpp") or file.endswith(".h"): # only cpp files
             file_path = os.path.join(root, file)
             with open(file_path, 'r+') as f:
                 content = f.read()
