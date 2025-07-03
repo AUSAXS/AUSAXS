@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <vector>
 #include <cmath>
+#include <cassert>
 
 namespace ausaxs::stats {
     /**
@@ -20,6 +21,7 @@ namespace ausaxs::stats {
             sum_wx += w*x[i];
             sum_w += w;
         }
+        assert(sum_w != 0 && "stats::weighted_mean: Division by zero.");
         return sum_wx/sum_w;
     }
 
@@ -33,6 +35,7 @@ namespace ausaxs::stats {
             double w = 1.0/(xerr[i]*xerr[i]);
             sum += w;
         }
+        assert(sum != 0 && "stats::weighted_mean_error: Division by zero.");
         return std::sqrt(1.0/(sum));
     }
 

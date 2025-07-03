@@ -29,6 +29,6 @@ namespace ausaxs::hist::detail {
              * @param data_a The atomic data to apply the excluded volume transformation to.
              * @param protein The protein to use for the excluded volume calculation.
              */
-            static void apply_simple_excluded_volume(hist::detail::CompactCoordinates& data_a, observer_ptr<const data::Molecule> protein);
+            static void apply_simple_excluded_volume(hist::detail::CompactCoordinates& data_a, observer_ptr<const data::Molecule> molecule);
     };
 }

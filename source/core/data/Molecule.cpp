@@ -115,6 +115,8 @@ double Molecule::get_Rg() const {
     }
 
     // return the RMS
+    double Z = get_total_atomic_charge();
+    assert(Z != 0 && "Molecule::get_Rg: Division by zero. The molecule has no atoms.");
     return std::sqrt(Rg/get_total_atomic_charge());
 }
 
@@ -193,6 +195,7 @@ Vector3<double> Molecule::get_cm() const {
             cm += water.coords*m;
         });
     }
+    assert(M != 0 && "Molecule::get_cm: Division by zero. The molecule has no atoms.");
     return cm/M;
 }
 

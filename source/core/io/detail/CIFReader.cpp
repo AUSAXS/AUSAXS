@@ -106,7 +106,7 @@ std::vector<residue::detail::Residue> parse_residue(CIFSection& atom, CIFSection
             }
         }
 
-        residues.push_back(residue);
+        residues.emplace_back(std::move(residue));
         residue_names[current_comp_id] = residues.size()-1;
     }
 
@@ -333,10 +333,10 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
         if (line.starts_with('#')) {continue;}
         if (line.starts_with('_')) {
             auto tokens = utility::split(line, ' ');
-            labels.push_back(utility::split(tokens[0], '.').back());
+            labels.emplace_back(utility::split(tokens[0], '.').back());
 
             // if the label is followed by a value, add it to the data
-            if (tokens.size() == 2) {data[0].push_back(tokens[1]);}
+            if (tokens.size() == 2) {data[0].emplace_back(std::move(tokens[1]));}
             continue;
         }
     } while(input.peek() == '_' && getline(input, line));
@@ -374,10 +374,10 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
             );
         }
 
-        data.push_back(values);
+        data.emplace_back(std::move(values));
     };
 
-    return CIFSection{labels, data};
+    return CIFSection{std::move(labels), std::move(data)};
 }
 
 std::vector<residue::detail::Residue> io::detail::cif::read_residue(const io::File& path) {

@@ -4,6 +4,7 @@
 #include <constants/ConstantsSI.h>
 
 #include <cassert>
+#include <stdexcept>
 
 namespace ausaxs::constants {
     namespace mass {
@@ -60,8 +61,11 @@ constexpr double ausaxs::constants::mass::get_mass(atom_t atom) {
         case atom_t::W: return 183.84;
         case atom_t::M: return 0;
         case atom_t::dummy: return 1;
-        case atom_t::unknown: assert(false && "constants::mass::get_mass: Attempting to get mass of \"unknown\" atom type");
-        default: assert(false && "constants::mass:get_mass: Missing switch case statement.");
+        case atom_t::unknown: 
+            assert(false && "constants::mass::get_mass: Attempting to get mass of \"unknown\" atom type");
+            [[fallthrough]];
+        default: 
+            throw std::runtime_error("constants::mass::get_mass: Missing switch case for atom type: " + std::to_string(static_cast<int>(atom)));
         return 0;
     }
 }
@@ -76,8 +80,11 @@ constexpr double ausaxs::constants::mass::get_mass(atomic_group_t group) {
         case atomic_group_t::NH3: return get_mass(atom_t::N) + 3*get_mass(atom_t::H);
         case atomic_group_t::OH: return get_mass(atom_t::O) + get_mass(atom_t::H);
         case atomic_group_t::SH: return get_mass(atom_t::S) + get_mass(atom_t::H);
-        case atomic_group_t::unknown: assert(false && "constants::mass::get_mass: Attempting to get mass of \"unknown\" atomic group");
-        default: assert(false && "constants::mass::get_mass: Missing switch case for atomic group."); 
+        case atomic_group_t::unknown: 
+            assert(false && "constants::mass::get_mass: Attempting to get mass of \"unknown\" atomic group");
+            [[fallthrough]];
+        default: 
+            throw std::runtime_error("constants::mass::get_mass: Missing switch case for atomic group: " + std::to_string(static_cast<int>(group)));
         return 0;
     }
 }

@@ -20,6 +20,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <settings/ExvSettings.h>
 
 double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, double d) {
+    assert(0 < m->size_atom() && "Molecule::get_volume_exv: Cannot compute excluded volume for an empty molecule.");
     auto fraser_helper = [m] () {
         double volume = 0;
 
@@ -83,5 +84,4 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
         default:
             throw std::runtime_error("Molecule::get_volume_exv: Unknown excluded volume method. Did you forget to add it to the switch statement?");
     }
-    return 0;
 }
