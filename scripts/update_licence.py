@@ -1,7 +1,7 @@
 import os
 import sys
 
-directory = "include"
+directory = "executable"
 if len(sys.argv) == 2:
     directory = sys.argv[1]
 
