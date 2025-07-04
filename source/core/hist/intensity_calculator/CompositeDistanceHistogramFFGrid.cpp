@@ -35,8 +35,12 @@ void CompositeDistanceHistogramFFGrid::regenerate_ff_table(T&& ffx) {ff_table = 
 template void CompositeDistanceHistogramFFGrid::regenerate_ff_table(ExvFormFactor&&);
 template void CompositeDistanceHistogramFFGrid::regenerate_ff_table(FormFactor&&);
 
-double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
-    return free_params.cx;
+double CompositeDistanceHistogramFFGrid::exv_factor(double, double cx) {
+    return cx;
+}
+
+double CompositeDistanceHistogramFFGrid::exv_factor(double q) const {
+    return exv_factor(q, free_params.cx);
 }
 
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table() {

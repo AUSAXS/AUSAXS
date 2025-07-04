@@ -21,7 +21,7 @@ namespace ausaxs::hist {
         public:
             CompositeDistanceHistogramFFGrid(CompositeDistanceHistogramFFGrid&&) noexcept;
             CompositeDistanceHistogramFFGrid& operator=(CompositeDistanceHistogramFFGrid&&) noexcept;
-            ~CompositeDistanceHistogramFFGrid() override;
+            virtual ~CompositeDistanceHistogramFFGrid() override;
 
             /**
              * @brief Create a weighted grid-based composite distance histogram with form factors.

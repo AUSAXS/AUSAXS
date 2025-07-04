@@ -40,4 +40,5 @@ target_sources(ausaxs_core PRIVATE
 	"intensity_calculator/crysol/CompositeDistanceHistogramCrysol.cpp"
 	"intensity_calculator/foxs/CompositeDistanceHistogramFoXS.cpp"
 	"intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.cpp"
+	"intensity_calculator/waxsis/CompositeDistanceHistogramWAXSiS.cpp"
 )

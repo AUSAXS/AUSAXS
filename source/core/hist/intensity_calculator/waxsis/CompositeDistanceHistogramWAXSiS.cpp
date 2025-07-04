@@ -5,8 +5,9 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-template<typename FormFactorTableType>
-void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
+CompositeDistanceHistogramWAXSiS::~CompositeDistanceHistogramWAXSiS() = default;
+
+void CompositeDistanceHistogramWAXSiS::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
     auto pool = utility::multi_threading::get_global_pool();
     const auto& ff_table = get_ff_table(); 
 
@@ -30,7 +31,9 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
 
     // calculate exv factor
     std::vector<double> cx(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(constants::axes::q_vals[q]);}
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        cx[q-q0] = CompositeDistanceHistogramFFGrid::exv_factor(constants::axes::q_vals[q], free_params.cx);
+    }
 
     if (sinqd_changed) {
         // aa

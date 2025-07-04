@@ -216,25 +216,21 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     std::move(p_wx.begin(), p_wx.begin()+max_bin, p_aw.begin(form_factor::exv_bin));
     std::move(p_xx.begin(), p_xx.begin()+max_bin, p_aa.begin(form_factor::exv_bin, form_factor::exv_bin));
 
+    auto ctr = [&] <typename T> () {
+        return std::make_unique<T>(
+            std::move(p_aa), 
+            std::move(p_aw), 
+            std::move(p_ww), 
+            std::move(p_tot),
+            std::move(p_tot_ax),
+            std::move(p_xx_generic)
+        );
+    };
     switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::WAXSiS:
-            return std::make_unique<CompositeDistanceHistogramWAXSiS>(
-                std::move(p_aa), 
-                std::move(p_aw), 
-                std::move(p_ww), 
-                std::move(p_tot),
-                std::move(p_tot_ax),
-                std::move(p_xx_generic)
-            );
+            return ctr.template operator()<CompositeDistanceHistogramWAXSiS>();
 
         default:
-            return std::make_unique<CompositeDistanceHistogramFFGrid>(
-                std::move(p_aa), 
-                std::move(p_aw), 
-                std::move(p_ww), 
-                std::move(p_tot),
-                std::move(p_tot_ax),
-                std::move(p_xx_generic)
-            );
-        }
+            return ctr.template operator()<CompositeDistanceHistogramFFGrid>();
+    }
 }
