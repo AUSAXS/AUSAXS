@@ -1,3 +1,5 @@
+#include "constants/ConstantsAxes.h"
+#include <string_view>
 #include <webgpu/webgpu.hpp>
 
 #include <vector>
@@ -10,6 +12,17 @@
 
 using namespace ausaxs;
 using namespace ausaxs::data;
+
+struct BufferData {
+    wgpu::Buffer atom_1;
+    wgpu::Buffer atom_2;
+    wgpu::Buffer histogram;
+};
+
+struct ComputePipelines {
+    wgpu::ComputePipeline self;
+    wgpu::ComputePipeline cross;
+};
 
 class WebGPU {
     public:
@@ -29,15 +42,8 @@ class WebGPU {
         wgpu::Device device;
         wgpu::Adapter adapter;
         wgpu::BindGroupLayout bind_group_layout;
-        struct ComputePipelines {
-            wgpu::ComputePipeline self;
-            wgpu::ComputePipeline cross;
-        } pipelines;
-        struct BufferData {
-            wgpu::Buffer atom_1;
-            wgpu::Buffer atom_2;
-            wgpu::Buffer histogram;
-        } buffers;
+        ComputePipelines pipelines;
+        BufferData buffers;
         std::vector<wgpu::Buffer> readback_buffers;
 
         void initialize();
@@ -46,18 +52,20 @@ class WebGPU {
         wgpu::Device get_device(wgpu::Instance instance);
         wgpu::BindGroupLayout initialize_bind_group_layout(wgpu::Device device);
         ComputePipelines initialize_compute_pipelines(wgpu::Device device, wgpu::BindGroupLayout bind_group_layout);
-        BufferData create_buffers(wgpu::Device device);
         wgpu::BindGroup assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout);
         void test_fill_buffers(wgpu::Queue queue, wgpu::Buffer buffer1, wgpu::Buffer buffer2);
         wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::Device device);
 };
+
+BufferData create_buffers_test(wgpu::Device device);
+BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& data);
+BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& data1, const std::vector<Atom>& data2);
 
 void WebGPU::initialize() {
     instance = create_instance();
     device = get_device(instance);
     bind_group_layout = initialize_bind_group_layout(device);
     pipelines = initialize_compute_pipelines(device, bind_group_layout);
-    buffers = create_buffers(device);
 }
 
 void WebGPU::submit() {
@@ -65,6 +73,7 @@ void WebGPU::submit() {
     wgpu::CommandEncoder encoder = device.createCommandEncoder();
 
     // fill buffers with test data
+    buffers = create_buffers_test(device);
     test_fill_buffers(device.getQueue(), buffers.atom_1, buffers.atom_2);
     wgpu::BindGroup bind_group = assign_buffers(device, buffers.atom_1, buffers.atom_2, buffers.histogram, bind_group_layout);
 
@@ -292,7 +301,7 @@ wgpu::BindGroupLayout WebGPU::initialize_bind_group_layout(wgpu::Device device) 
     return device.createBindGroupLayout(bindgroup_layout);
 }
 
-WebGPU::ComputePipelines WebGPU::initialize_compute_pipelines(wgpu::Device device, wgpu::BindGroupLayout bind_group_layout) {
+ComputePipelines WebGPU::initialize_compute_pipelines(wgpu::Device device, wgpu::BindGroupLayout bind_group_layout) {
     wgpu::ShaderModule compute_shader_module = load_shader_module("executable/gpu_debug.wgsl", device);
     std::cout << "Shader module loaded: " << compute_shader_module << std::endl;
 
@@ -317,7 +326,7 @@ WebGPU::ComputePipelines WebGPU::initialize_compute_pipelines(wgpu::Device devic
     };
 }
 
-WebGPU::BufferData WebGPU::create_buffers(wgpu::Device device) {
+BufferData create_buffers_test(wgpu::Device device) {
     std::cout << "Creating buffers..." << std::endl;
     static std::string atom_buffer_1_name = "atom buffer 1";
     wgpu::BufferDescriptor atom_buffer_1_desc;
@@ -347,6 +356,54 @@ WebGPU::BufferData WebGPU::create_buffers(wgpu::Device device) {
     wgpu::Buffer histogram_buffer = device.createBuffer(histogram_buffer_desc);
     std::cout << "Buffers created." << std::endl;
 
+    return {atom_buffer_1, atom_buffer_2, histogram_buffer};
+}
+
+std::vector<float> convert_data(const std::vector<Atom>& atoms) {
+    std::vector<float> data(atoms.size()*4);
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        const auto& atom = atoms[i];
+        data[i*4 + 0] = atom.x();
+        data[i*4 + 1] = atom.y();
+        data[i*4 + 2] = atom.z();
+        data[i*4 + 3] = atom.w;
+    }
+    return data;
+}
+
+wgpu::Buffer create_buffer(wgpu::Device device, const std::vector<Atom>& atoms) {
+    auto queue = device.getQueue();
+    auto data1 = convert_data(atoms);
+    wgpu::BufferDescriptor atom_buffer_desc;
+    atom_buffer_desc.size = data1.size()*sizeof(float);
+    atom_buffer_desc.mappedAtCreation = false;
+    atom_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopyDst;
+    wgpu::Buffer atom_buffer = device.createBuffer(atom_buffer_desc);
+    queue.writeBuffer(atom_buffer, 0, data1.data(), atom_buffer.getSize());
+    return atom_buffer;
+}
+
+BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& atoms) {
+    assert(false && "Not implemented yet");
+    auto atom_buffer_1 = create_buffer(device, atoms);
+
+    wgpu::BufferDescriptor histogram_buffer_desc;
+    histogram_buffer_desc.size = constants::axes::d_vals.size()*sizeof(float);
+    histogram_buffer_desc.mappedAtCreation = false;
+    histogram_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc;
+    wgpu::Buffer histogram_buffer = device.createBuffer(histogram_buffer_desc);
+    return {atom_buffer_1, {}, histogram_buffer};
+}
+
+BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& atoms1, const std::vector<Atom>& atoms2) {
+    auto atom_buffer_1 = create_buffer(device, atoms1);
+    auto atom_buffer_2 = create_buffer(device, atoms2);
+
+    wgpu::BufferDescriptor histogram_buffer_desc;
+    histogram_buffer_desc.size = constants::axes::d_vals.size()*sizeof(float);
+    histogram_buffer_desc.mappedAtCreation = false;
+    histogram_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc;
+    wgpu::Buffer histogram_buffer = device.createBuffer(histogram_buffer_desc);
     return {atom_buffer_1, atom_buffer_2, histogram_buffer};
 }
 
@@ -396,28 +453,11 @@ void WebGPU::test_fill_buffers(wgpu::Queue queue, wgpu::Buffer buffer1, wgpu::Bu
     queue.writeBuffer(buffer2, 0, data2.data(), buffer2.getSize());
 }
 
-std::vector<float> convert_data(const std::vector<Atom>& atoms) {
-    std::vector<float> data(atoms.size()*4);
-    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
-        const auto& atom = atoms[i];
-        data[i*4 + 0] = atom.x();
-        data[i*4 + 1] = atom.y();
-        data[i*4 + 2] = atom.z();
-        data[i*4 + 3] = atom.w;
-    }
-    return data;
-}
-
 void WebGPU::submit_self(const std::vector<Atom>& atoms) {
     std::cout << "Calculating self..." << std::endl;
     wgpu::CommandEncoder encoder = device.createCommandEncoder();
-    wgpu::Queue queue = device.getQueue();
 
-    {   // write data to buffers
-        auto data = convert_data(atoms);
-        assert(data.size() < buffers.atom_1.getSize() && "Data size exceeds buffer size.");
-        queue.writeBuffer(buffers.atom_1, 0, data.data(), buffers.atom_1.getSize());
-    }
+    buffers = create_buffers(device, atoms, atoms); //! use single buffer version for self calculation
     wgpu::BindGroup bind_group = assign_buffers(device, buffers.atom_1, buffers.atom_2, buffers.histogram, bind_group_layout);
 
     // submit work
@@ -459,8 +499,10 @@ void WebGPU::submit_cross(const std::vector<Atom>& atom_1, const std::vector<Ato
 
 int main(int, char const *[]) {
     std::vector<Atom> atoms = {
-        Atom({0, 0, 0}, 1), 
-        Atom({0, 0, 1}, 1)
+        Atom({-1, -1, -1}, 1), Atom({-1, 1, -1}, 1),
+        Atom({ 1, -1, -1}, 1), Atom({ 1, 1, -1}, 1),
+        Atom({-1, -1,  1}, 1), Atom({-1, 1,  1}, 1),
+        Atom({ 1, -1,  1}, 1), Atom({ 1, 1,  1}, 1)
     };
 
     WebGPU webgpu;
@@ -468,7 +510,7 @@ int main(int, char const *[]) {
     auto res = webgpu.run();
 
     std::cout << "Results:" << std::endl;
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 20; ++i) {
         std::cout << res[i] << std::endl;
     }
 

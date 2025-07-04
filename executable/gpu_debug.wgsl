@@ -26,11 +26,9 @@ fn atomic_add(i: u32, value: f32) {
     }
 }
 
-@compute @workgroup_size(2)
+@compute @workgroup_size(32)
 fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
-//    let num_atoms = arrayLength(&atom_buffer_1);
-
-    let num_atoms: u32 = 2;
+    let num_atoms = arrayLength(&atom_buffer_1);
 
     if (id.x >= num_atoms) {
         return;
@@ -42,7 +40,7 @@ fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
         let atom2 = atom_buffer_1[i];
         let distance = distance(atom1.xyz, atom2.xyz);
         let bin = u32(round(inv_width * distance));
-        let weight = atom1.w * atom2.w;
+        let weight = 2*atom1.w * atom2.w;
         atomic_add(bin, weight);
     }
 }
