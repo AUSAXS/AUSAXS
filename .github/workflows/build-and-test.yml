@@ -30,10 +30,19 @@ jobs:
             echo "is-draft=false" >> $GITHUB_OUTPUT
           fi
 
-  build-win: 
-    name: "Windows MSVC"
+  check-headers:
+    name: "Check that all file headers include a license and author"
     needs: check-draft
     if: needs.check-draft.outputs.is-draft == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check headers
+        run: python .github/check_headers.py
+
+  build-win: 
+    name: "Windows MSVC"
+    needs: check-headers
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,8 +86,7 @@ jobs:
 
   build-mac:
     name: "MacOS universal"
-    needs: check-draft
-    if: needs.check-draft.outputs.is-draft == 'false'
+    needs: check-headers
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -117,8 +125,7 @@ jobs:
 
   build-mac-gui:
     name: "${{ matrix.name }}"
-    needs: check-draft
-    if: needs.check-draft.outputs.is-draft == 'false'
+    needs: check-headers
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -185,8 +192,7 @@ jobs:
 
   build-ubuntu:
     name: ${{ matrix.name }}
-    needs: check-draft
-    if: needs.check-draft.outputs.is-draft == 'false'
+    needs: check-headers
     runs-on: ${{ matrix.os }}
     strategy: 
       fail-fast: false
