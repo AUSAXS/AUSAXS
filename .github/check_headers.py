@@ -19,7 +19,6 @@ for directory in directories:
                     line = f.readline()
                     tokens = line.split()
                     if len(tokens) < 3 or tokens[0] not in ["//", "#"] or tokens[1] != "Author:":
-                        print(line)
                         print(f"Missing or improperly formatted author line in {file_path}")
                         flag_fail = True
 
