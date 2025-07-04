@@ -1,7 +1,5 @@
-/*
-This software is distributed under the GNU Lesser General Public License v3.0. 
-For more information, please refer to the LICENSE file in the project root.
-*/
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
 
 #ifdef _MSC_VER
     #pragma warning(disable:4996) // disable fopen deprecation warning on MSVC

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Author: Kristian Lytje
+
 from multiprocessing import freeze_support
 import matplotlib.pyplot as plt
 import concurrent.futures
