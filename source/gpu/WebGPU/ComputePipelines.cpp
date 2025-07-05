@@ -1,3 +1,4 @@
+#include "gpu/WebGPU/InstanceManager.h"
 #include <gpu/WebGPU/ComputePipelines.h>
 #include <gpu/WebGPU/BindGroups.h>
 #include <io/ExistingFile.h>
@@ -26,31 +27,27 @@ wgpu::ShaderModule load_shader_module(const io::ExistingFile& path, wgpu::Device
 
     // create shader module descriptor
     wgpu::ShaderModuleDescriptor shader_module_descriptor{};
-    // shader_module_descriptor.label = wgpu::StringView("gpu_debug");
     shader_module_descriptor.nextInChain = &shader_source.chain;
     wgpu::ShaderModule module = device.createShaderModule(shader_module_descriptor);
     logging::log("WebGPU: Succesfully loaded shader module.");
     return module;
 }
 
-ComputePipelines::Pipelines ComputePipelines::create(wgpu::Device device) {
-    static wgpu::Device ptr = device;
-    static wgpu::ShaderModule compute_shader_module = load_shader_module("executable/gpu_debug.wgsl", device);
-    static wgpu::BindGroupLayout bind_group_layout = BindGroups::get(device);
-    if (device != ptr) {throw std::runtime_error("ComputePipelines::create: Device pointer has been changed.");}
+ComputePipelines::Pipelines ComputePipelines::create(const InstanceManager& instance) {
+    static wgpu::ShaderModule compute_shader_module = load_shader_module("executable/gpu_debug.wgsl", instance.device);
 
-    auto ctr = [] (std::string_view shader_name) {
+    auto ctr = [&] (std::string_view shader_name) {
         wgpu::PipelineLayoutDescriptor pipeline_layout_desc;
         pipeline_layout_desc.bindGroupLayoutCount = 1;
-        pipeline_layout_desc.bindGroupLayouts = (WGPUBindGroupLayout*) &bind_group_layout;
-        auto pipeline_layout = ptr.createPipelineLayout(pipeline_layout_desc);
+        pipeline_layout_desc.bindGroupLayouts = (WGPUBindGroupLayout*) &instance.bind_group_layout;
+        auto pipeline_layout = instance.device.createPipelineLayout(pipeline_layout_desc);
 
         wgpu::ComputePipelineDescriptor pipeline_descriptor = wgpu::Default;
         pipeline_descriptor.compute.entryPoint.data = shader_name.data();
         pipeline_descriptor.compute.entryPoint.length = shader_name.size();
         pipeline_descriptor.compute.module = compute_shader_module;
         pipeline_descriptor.layout = pipeline_layout;
-        return ptr.createComputePipeline(pipeline_descriptor);
+        return instance.device.createComputePipeline(pipeline_descriptor);
     };
 
     return {

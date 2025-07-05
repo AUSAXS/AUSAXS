@@ -31,7 +31,7 @@ wgpu::Buffer create_histogram_buffer(wgpu::Device device) {
     return device.createBuffer(histogram_buffer_desc);
 }
 
-wgpu::BindGroup assign(wgpu::Device device, wgpu::Buffer atoms, wgpu::Buffer hist) {
+wgpu::BindGroup assign(const InstanceManager& instance, wgpu::Buffer atoms, wgpu::Buffer hist) {
     assert(atoms && "Buffer is null");
     assert(hist && "Histogram buffer is null");
 
@@ -50,13 +50,13 @@ wgpu::BindGroup assign(wgpu::Device device, wgpu::Buffer atoms, wgpu::Buffer his
     entries[2].size = hist.getSize();
 
     wgpu::BindGroupDescriptor bind_group_desc;
-    bind_group_desc.layout = BindGroups::get(device);
+    bind_group_desc.layout = instance.bind_group_layout;
     bind_group_desc.entryCount = entries.size();
     bind_group_desc.entries = (WGPUBindGroupEntry*) entries.data();
-    return device.createBindGroup(bind_group_desc);
+    return instance.device.createBindGroup(bind_group_desc);
 }
 
-wgpu::BindGroup assign(wgpu::Device device, wgpu::Buffer atoms1, wgpu::Buffer atoms2, wgpu::Buffer hist) {
+wgpu::BindGroup assign(const InstanceManager& instance, wgpu::Buffer atoms1, wgpu::Buffer atoms2, wgpu::Buffer hist) {
     assert(atoms1 && "Buffer 1 is null");
     assert(atoms2 && "Buffer 2 is null");
     assert(hist && "Histogram buffer is null");
@@ -75,24 +75,24 @@ wgpu::BindGroup assign(wgpu::Device device, wgpu::Buffer atoms1, wgpu::Buffer at
     entries[2].size = hist.getSize();
 
     wgpu::BindGroupDescriptor bind_group_desc;
-    bind_group_desc.layout = BindGroups::get(device);
+    bind_group_desc.layout = instance.bind_group_layout;
     bind_group_desc.entryCount = entries.size();
     bind_group_desc.entries = (WGPUBindGroupEntry*) entries.data();
-    return device.createBindGroup(bind_group_desc);
+    return instance.device.createBindGroup(bind_group_desc);
 }
 
 std::vector<wgpu::Buffer> readback_buffers;
 wgpu::BindGroup BufferManager::create(wgpu::CommandEncoder encoder, const CompactCoordinates& data) {
-    auto atom_buffer = create_atomic_buffer(device, data);
-    auto hist_buffer = create_histogram_buffer(device);
+    auto atom_buffer = create_atomic_buffer(instance.device, data);
+    auto hist_buffer = create_histogram_buffer(instance.device);
     hist_buffers.emplace_back(hist_buffer);
-    wgpu::BindGroup group = assign(device, atom_buffer, hist_buffer);
+    wgpu::BindGroup group = assign(instance, atom_buffer, hist_buffer);
 
     wgpu::BufferDescriptor readback_buffer_desc;
     readback_buffer_desc.size = hist_buffer.getSize();
     readback_buffer_desc.mappedAtCreation = false;
     readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
-    wgpu::Buffer readback_buffer = device.createBuffer(readback_buffer_desc);
+    wgpu::Buffer readback_buffer = instance.device.createBuffer(readback_buffer_desc);
     encoder.copyBufferToBuffer(hist_buffer, 0, readback_buffer, 0, readback_buffer.getSize());
     readback_buffers.push_back(readback_buffer);
 
@@ -100,17 +100,17 @@ wgpu::BindGroup BufferManager::create(wgpu::CommandEncoder encoder, const Compac
 }
 
 wgpu::BindGroup BufferManager::create(wgpu::CommandEncoder encoder, const CompactCoordinates& data1, const CompactCoordinates& data2) {
-    auto atom_buffer_1 = create_atomic_buffer(device, data1);
-    auto atom_buffer_2 = create_atomic_buffer(device, data2);
-    auto hist_buffer = create_histogram_buffer(device);
+    auto atom_buffer_1 = create_atomic_buffer(instance.device, data1);
+    auto atom_buffer_2 = create_atomic_buffer(instance.device, data2);
+    auto hist_buffer = create_histogram_buffer(instance.device);
     hist_buffers.emplace_back(hist_buffer);
-    wgpu::BindGroup group = assign(device, atom_buffer_1, atom_buffer_2, hist_buffer);
+    wgpu::BindGroup group = assign(instance, atom_buffer_1, atom_buffer_2, hist_buffer);
 
     wgpu::BufferDescriptor readback_buffer_desc;
     readback_buffer_desc.size = hist_buffer.getSize();
     readback_buffer_desc.mappedAtCreation = false;
     readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
-    wgpu::Buffer readback_buffer = device.createBuffer(readback_buffer_desc);
+    wgpu::Buffer readback_buffer = instance.device.createBuffer(readback_buffer_desc);
     encoder.copyBufferToBuffer(hist_buffer, 0, readback_buffer, 0, readback_buffer.getSize());
     readback_buffers.push_back(readback_buffer);
 

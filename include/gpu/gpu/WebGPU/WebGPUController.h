@@ -54,7 +54,7 @@ namespace ausaxs::gpu {
     BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& data1, const std::vector<Atom>& data2);
 
     inline void WebGPU::initialize() {
-        pipelines = ComputePipelines::create(instance.device);
+        pipelines = ComputePipelines::create(instance);
     }
 
     inline void WebGPU::submit() {
@@ -64,7 +64,7 @@ namespace ausaxs::gpu {
         // fill buffers with test data
         buffers = create_buffers_test(instance.device);
         test_fill_buffers(instance.device.getQueue(), buffers.atom_1, buffers.atom_2);
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, BindGroups::get(instance.device));
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, instance.bind_group_layout);
 
         // submit work
         wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;
@@ -276,7 +276,7 @@ namespace ausaxs::gpu {
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
         buffers = create_buffers(instance.device, atoms, atoms); //! use single buffer version for self calculation
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, BindGroups::get(instance.device));
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, instance.bind_group_layout);
 
         // submit work
         wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;
@@ -311,7 +311,7 @@ namespace ausaxs::gpu {
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
         buffers = create_buffers(instance.device, atoms1, atoms2);
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, BindGroups::get(instance.device));
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, instance.bind_group_layout);
 
         // submit work
         wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;

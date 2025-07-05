@@ -100,7 +100,11 @@ wgpu::Device get_device(wgpu::Instance instance) {
     return device;
 }
 
-InstanceManager::InstanceManager() : instance(create_instance()), device(get_device(instance)) {}
+InstanceManager::InstanceManager() : 
+    instance(create_instance()), 
+    device(get_device(instance)),
+    bind_group_layout(BindGroups::create(device))
+{}
 
 void InstanceManager::process() {
     instance.processEvents();

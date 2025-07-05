@@ -1,12 +1,10 @@
+#include "webgpu/webgpu.hpp"
 #include <gpu/WebGPU/BindGroups.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs::gpu;
 
-wgpu::BindGroupLayout BindGroups::get(wgpu::Device device) {
-    static wgpu::Device ptr = device;
-    if (device != ptr) {throw std::runtime_error("ComputePipelines::create: Device pointer has been changed.");}
-
+wgpu::BindGroupLayoutDescriptor init() {
     // layout is fixed for the current shader, so we can use a static array
     static std::array<wgpu::BindGroupLayoutEntry, 3> bindings = [] () {
         std::array<wgpu::BindGroupLayoutEntry, 3> b = {wgpu::Default, wgpu::Default, wgpu::Default};
@@ -28,15 +26,16 @@ wgpu::BindGroupLayout BindGroups::get(wgpu::Device device) {
     }();
 
     // bindgroup layout can also be static
-    static wgpu::BindGroupLayoutDescriptor bindgroup_layout = [] () {
+    static wgpu::BindGroupLayoutDescriptor bindgroup_layout_desc = [] () {
         wgpu::BindGroupLayoutDescriptor bindgroup_layout_desc;
         bindgroup_layout_desc.entryCount = bindings.size();
         bindgroup_layout_desc.entries = bindings.data();
         return bindgroup_layout_desc;
     }();
 
-    // create the bind group
-    static wgpu::BindGroupLayout bind_group = ptr.createBindGroupLayout(bindgroup_layout);
-    logging::log("WebGPU: Created bind group layout.");
-    return bind_group;
+    return bindgroup_layout_desc;
+}
+
+wgpu::BindGroupLayout BindGroups::create(wgpu::Device device) {
+    return device.createBindGroupLayout(init());
 }

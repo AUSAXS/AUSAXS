@@ -2,6 +2,8 @@
 
 #include <webgpu/webgpu.hpp>
 
+#include <gpu/WebGPU/InstanceManager.h>
+
 namespace ausaxs::gpu {
     struct ComputePipelines {
         struct Pipelines {
@@ -9,6 +11,6 @@ namespace ausaxs::gpu {
             wgpu::ComputePipeline cross;
         };
 
-        static ComputePipelines::Pipelines create(wgpu::Device device);
+        static ComputePipelines::Pipelines create(const InstanceManager& device);
     };
 }
