@@ -73,5 +73,6 @@ fn calculate_test(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 
     let atom1 = atom_buffer_1[id.x];
-    atomicAdd(&histogram[id.x], u32(atom1.w));
+    // atomicAdd(&histogram[id.x], u32(atom1.w));
+    atomicAdd(&histogram[id.x], u32(2));
 }
