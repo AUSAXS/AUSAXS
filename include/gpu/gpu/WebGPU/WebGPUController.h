@@ -3,7 +3,7 @@
 #include <gpu/WebGPU/InstanceManager.h>
 // #include <gpu/WebGPU/BufferManager.h>
 // #include <gpu/WebGPU/ComputePipelines.h>
-// #include <gpu/WebGPU/BindGroups.h>
+#include <gpu/WebGPU/BindGroups.h>
 
 #include <vector>
 #include <data/atoms/AtomFF.h>
@@ -44,7 +44,6 @@ namespace ausaxs::gpu {
 
         private:
             InstanceManager instance;
-            wgpu::BindGroupLayout bind_group_layout;
             ComputePipelines pipelines;
             BufferData buffers;
             std::vector<wgpu::Buffer> readback_buffers;
@@ -62,8 +61,7 @@ namespace ausaxs::gpu {
     BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& data1, const std::vector<Atom>& data2);
 
     inline void WebGPU::initialize() {
-        bind_group_layout = initialize_bind_group_layout(instance.device);
-        pipelines = initialize_compute_pipelines(instance.device, bind_group_layout);
+        pipelines = initialize_compute_pipelines(instance.device, BindGroups::get(instance.device));
     }
 
     inline void WebGPU::submit() {
@@ -73,7 +71,7 @@ namespace ausaxs::gpu {
         // fill buffers with test data
         buffers = create_buffers_test(instance.device);
         test_fill_buffers(instance.device.getQueue(), buffers.atom_1, buffers.atom_2);
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, bind_group_layout);
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, BindGroups::get(instance.device));
 
         // submit work
         wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;
@@ -334,7 +332,7 @@ namespace ausaxs::gpu {
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
         buffers = create_buffers(instance.device, atoms, atoms); //! use single buffer version for self calculation
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, bind_group_layout);
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, BindGroups::get(instance.device));
 
         // submit work
         wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;
@@ -369,7 +367,7 @@ namespace ausaxs::gpu {
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
         buffers = create_buffers(instance.device, atoms1, atoms2);
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, bind_group_layout);
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, BindGroups::get(instance.device));
 
         // submit work
         wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;
