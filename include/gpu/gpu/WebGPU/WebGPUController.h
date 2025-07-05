@@ -2,7 +2,7 @@
 
 #include <gpu/WebGPU/InstanceManager.h>
 // #include <gpu/WebGPU/BufferManager.h>
-// #include <gpu/WebGPU/ComputePipelines.h>
+#include <gpu/WebGPU/ComputePipelines.h>
 #include <gpu/WebGPU/BindGroups.h>
 
 #include <vector>
@@ -24,11 +24,6 @@ namespace ausaxs::gpu {
         wgpu::Buffer histogram;
     };
 
-    struct ComputePipelines {
-        wgpu::ComputePipeline self;
-        wgpu::ComputePipeline cross;
-    };
-
     class WebGPU {
         public:
             WebGPU() {
@@ -44,13 +39,11 @@ namespace ausaxs::gpu {
 
         private:
             InstanceManager instance;
-            ComputePipelines pipelines;
+            ComputePipelines::Pipelines pipelines;
             BufferData buffers;
             std::vector<wgpu::Buffer> readback_buffers;
 
             void initialize();
-            wgpu::BindGroupLayout initialize_bind_group_layout(wgpu::Device device);
-            ComputePipelines initialize_compute_pipelines(wgpu::Device device, wgpu::BindGroupLayout bind_group_layout);
             wgpu::BindGroup assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout);
             void test_fill_buffers(wgpu::Queue queue, wgpu::Buffer buffer1, wgpu::Buffer buffer2);
             wgpu::ShaderModule load_shader_module(const std::filesystem::path& path, wgpu::Device device);
@@ -61,7 +54,7 @@ namespace ausaxs::gpu {
     BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& data1, const std::vector<Atom>& data2);
 
     inline void WebGPU::initialize() {
-        pipelines = initialize_compute_pipelines(instance.device, BindGroups::get(instance.device));
+        pipelines = ComputePipelines::create(instance.device);
     }
 
     inline void WebGPU::submit() {
@@ -161,55 +154,6 @@ namespace ausaxs::gpu {
         shader_module_descriptor.label = wgpu::StringView("gpu_debug");
         shader_module_descriptor.nextInChain = &shader_source.chain;
         return device.createShaderModule(shader_module_descriptor);
-    }
-
-    inline wgpu::BindGroupLayout WebGPU::initialize_bind_group_layout(wgpu::Device device) {
-        std::cout << "Preparing bind group layout..." << std::endl;
-        std::vector<wgpu::BindGroupLayoutEntry> bindings(3, wgpu::Default);
-
-        // atom buffers
-        bindings[0].binding = 0;
-        bindings[0].buffer.type = wgpu::BufferBindingType::ReadOnlyStorage;
-        bindings[0].visibility = wgpu::ShaderStage::Compute;
-
-        bindings[1].binding = 1;
-        bindings[1].buffer.type = wgpu::BufferBindingType::ReadOnlyStorage;
-        bindings[1].visibility = wgpu::ShaderStage::Compute;
-
-        // histogram buffer
-        bindings[2].binding = 2;
-        bindings[2].buffer.type = wgpu::BufferBindingType::Storage;
-        bindings[2].visibility = wgpu::ShaderStage::Compute;
-
-        wgpu::BindGroupLayoutDescriptor bindgroup_layout;
-        bindgroup_layout.entryCount = (uint32_t) bindings.size();
-        bindgroup_layout.entries = bindings.data();
-        return device.createBindGroupLayout(bindgroup_layout);
-    }
-
-    inline ComputePipelines WebGPU::initialize_compute_pipelines(wgpu::Device device, wgpu::BindGroupLayout bind_group_layout) {
-        wgpu::ShaderModule compute_shader_module = load_shader_module("executable/gpu_debug.wgsl", device);
-        std::cout << "Shader module loaded: " << compute_shader_module << std::endl;
-
-        auto ctr = [&] (std::string_view shader_name) {
-            std::cout << "Creating compute pipeline for shader: " << shader_name << std::endl;
-            wgpu::PipelineLayoutDescriptor pipeline_layout_desc;
-            pipeline_layout_desc.bindGroupLayoutCount = 1;
-            pipeline_layout_desc.bindGroupLayouts = (WGPUBindGroupLayout*) &bind_group_layout;
-            auto pipeline_layout = device.createPipelineLayout(pipeline_layout_desc);
-
-            wgpu::ComputePipelineDescriptor pipeline_descriptor = wgpu::Default;
-            pipeline_descriptor.compute.entryPoint.data = shader_name.data();
-            pipeline_descriptor.compute.entryPoint.length = shader_name.size();
-            pipeline_descriptor.compute.module = compute_shader_module;
-            pipeline_descriptor.layout = pipeline_layout;
-            return device.createComputePipeline(pipeline_descriptor);
-        };
-
-        return {
-            .self=ctr("calculate_self"),
-            .cross=ctr("calculate_cross")
-        };
     }
 
     inline BufferData create_buffers_test(wgpu::Device device) {
