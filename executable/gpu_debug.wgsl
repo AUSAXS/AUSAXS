@@ -26,7 +26,7 @@ fn atomic_add(i: u32, value: f32) {
     }
 }
 
-@compute @workgroup_size(32)
+@compute @workgroup_size(64)
 fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
     let num_atoms = arrayLength(&atom_buffer_1);
 
@@ -45,7 +45,7 @@ fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
-@compute @workgroup_size(32)
+@compute @workgroup_size(64)
 fn calculate_cross(@builtin(global_invocation_id) id: vec3<u32>) {
     let num_atoms1 = arrayLength(&atom_buffer_1);
     let num_atoms2 = arrayLength(&atom_buffer_2); 

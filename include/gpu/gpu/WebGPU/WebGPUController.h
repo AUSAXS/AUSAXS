@@ -1,13 +1,12 @@
 #include <webgpu/webgpu.hpp>
 
 #include <gpu/WebGPU/InstanceManager.h>
-// #include <gpu/WebGPU/BufferManager.h>
 #include <gpu/WebGPU/ComputePipelines.h>
 #include <gpu/WebGPU/BindGroups.h>
+#include <gpu/WebGPU/Buffers.h>
+#include <hist/detail/CompactCoordinates.h>
 
 #include <vector>
-#include <data/atoms/AtomFF.h>
-
 #include <iostream>
 #include <thread>
 
@@ -15,12 +14,6 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 namespace ausaxs::gpu {
-    struct BufferData {
-        wgpu::Buffer atom_1;
-        wgpu::Buffer atom_2;
-        wgpu::Buffer histogram;
-    };
-
     class WebGPU {
         public:
             WebGPU() {
@@ -37,25 +30,35 @@ namespace ausaxs::gpu {
         private:
             InstanceManager instance;
             ComputePipelines::Pipelines pipelines;
-            BufferData buffers;
-            std::vector<wgpu::Buffer> readback_buffers;
+            Buffers::BufferInstance buffers;
 
             void initialize();
             wgpu::BindGroup assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout);
     };
-
-    BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& data);
-    BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& data1, const std::vector<Atom>& data2);
 
     inline void WebGPU::initialize() {
         pipelines = ComputePipelines::create(instance);
     }
 
     inline std::vector<float> WebGPU::run() {
-        assert(readback_buffers.size() == 1);
-        auto readback_buffer = readback_buffers[0];
-        static std::vector<float> result(readback_buffer.getSize());
+        wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
+        wgpu::BufferDescriptor readback_buffer_desc;
+        readback_buffer_desc.size = buffers.histogram.getSize();
+        readback_buffer_desc.mappedAtCreation = false;
+        readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
+        wgpu::Buffer readback_buffer = instance.device.createBuffer(readback_buffer_desc);
 
+        assert(readback_buffer.getSize() == buffers.histogram.getSize() && "Readback buffer size does not match histogram buffer size.");
+        encoder.copyBufferToBuffer(buffers.histogram, 0, readback_buffer, 0, readback_buffer.getSize());
+        wgpu::CommandBufferDescriptor command_buffer_desc;
+        command_buffer_desc.nextInChain = nullptr;
+        auto command_buffer = encoder.finish(command_buffer_desc);
+        encoder.release();
+
+        instance.device.getQueue().submit(command_buffer);
+        command_buffer.release();
+
+        static std::vector<float> result(readback_buffer.getSize());
         bool done = false;
         wgpu::BufferMapCallbackInfo map_callback;
         map_callback.mode = wgpu::CallbackMode::AllowProcessEvents;
@@ -79,56 +82,7 @@ namespace ausaxs::gpu {
             instance.process();
         }
 
-        std::for_each(readback_buffers.begin(), readback_buffers.end(), [](wgpu::Buffer& buffer) {buffer.release();});
         return result;
-    }
-
-    inline std::vector<float> convert_data(const std::vector<Atom>& atoms) {
-        std::vector<float> data(atoms.size()*4);
-        for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
-            const auto& atom = atoms[i];
-            data[i*4 + 0] = atom.x();
-            data[i*4 + 1] = atom.y();
-            data[i*4 + 2] = atom.z();
-            data[i*4 + 3] = atom.w;
-        }
-        return data;
-    }
-
-    inline wgpu::Buffer create_buffer(wgpu::Device device, const std::vector<Atom>& atoms) {
-        auto queue = device.getQueue();
-        auto data1 = convert_data(atoms);
-        wgpu::BufferDescriptor atom_buffer_desc;
-        atom_buffer_desc.size = data1.size()*sizeof(float);
-        atom_buffer_desc.mappedAtCreation = false;
-        atom_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopyDst;
-        wgpu::Buffer atom_buffer = device.createBuffer(atom_buffer_desc);
-        queue.writeBuffer(atom_buffer, 0, data1.data(), atom_buffer.getSize());
-        return atom_buffer;
-    }
-
-    inline BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& atoms) {
-        assert(false && "Not implemented yet");
-        auto atom_buffer_1 = create_buffer(device, atoms);
-
-        wgpu::BufferDescriptor histogram_buffer_desc;
-        histogram_buffer_desc.size = constants::axes::d_vals.size()*sizeof(float);
-        histogram_buffer_desc.mappedAtCreation = false;
-        histogram_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc;
-        wgpu::Buffer histogram_buffer = device.createBuffer(histogram_buffer_desc);
-        return {atom_buffer_1, {}, histogram_buffer};
-    }
-
-    inline BufferData create_buffers(wgpu::Device device, const std::vector<Atom>& atoms1, const std::vector<Atom>& atoms2) {
-        auto atom_buffer_1 = create_buffer(device, atoms1);
-        auto atom_buffer_2 = create_buffer(device, atoms2);
-
-        wgpu::BufferDescriptor histogram_buffer_desc;
-        histogram_buffer_desc.size = constants::axes::d_vals.size()*sizeof(float);
-        histogram_buffer_desc.mappedAtCreation = false;
-        histogram_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc;
-        wgpu::Buffer histogram_buffer = device.createBuffer(histogram_buffer_desc);
-        return {atom_buffer_1, atom_buffer_2, histogram_buffer};
     }
 
     inline wgpu::BindGroup WebGPU::assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout) {
@@ -161,8 +115,8 @@ namespace ausaxs::gpu {
         std::cout << "Calculating self..." << std::endl;
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
-        buffers = create_buffers(instance.device, atoms, atoms); //! use single buffer version for self calculation
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, instance.bind_group_layout);
+        buffers = Buffers::create(instance.device, atoms, atoms); //! use single buffer version for self calculation
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram, instance.bind_group_layout);
 
         // submit work
         wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;
@@ -172,16 +126,6 @@ namespace ausaxs::gpu {
         compute_pass.dispatchWorkgroups(1, 1, 1);
         compute_pass.end();
 
-        // retrieve data
-        wgpu::BufferDescriptor readback_buffer_desc;
-        readback_buffer_desc.size = buffers.histogram.getSize();
-        readback_buffer_desc.mappedAtCreation = false;
-        readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
-        wgpu::Buffer readback_buffer = instance.device.createBuffer(readback_buffer_desc);
-
-        assert(readback_buffer.getSize() == buffers.histogram.getSize() && "Readback buffer size does not match histogram buffer size.");
-        encoder.copyBufferToBuffer(buffers.histogram, 0, readback_buffer, 0, readback_buffer.getSize());
-
         wgpu::CommandBufferDescriptor command_buffer_desc;
         command_buffer_desc.nextInChain = nullptr;
         auto command_buffer = encoder.finish(command_buffer_desc);
@@ -189,15 +133,14 @@ namespace ausaxs::gpu {
 
         instance.device.getQueue().submit(command_buffer);
         command_buffer.release();
-        readback_buffers.push_back(readback_buffer);    
     }
 
     inline void WebGPU::submit_cross(const std::vector<Atom>& atoms1, const std::vector<Atom>& atoms2) {
         std::cout << "Calculating cross..." << std::endl;
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
-        buffers = create_buffers(instance.device, atoms1, atoms2);
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atom_1, buffers.atom_2, buffers.histogram, instance.bind_group_layout);
+        buffers = Buffers::create(instance.device, atoms1, atoms2);
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram, instance.bind_group_layout);
 
         // submit work
         wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;
@@ -207,15 +150,6 @@ namespace ausaxs::gpu {
         compute_pass.dispatchWorkgroups(1, 1, 1);
         compute_pass.end();
 
-        // retrieve data
-        wgpu::BufferDescriptor readback_buffer_desc;
-        readback_buffer_desc.size = buffers.histogram.getSize();
-        readback_buffer_desc.mappedAtCreation = false;
-        readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
-        wgpu::Buffer readback_buffer = instance.device.createBuffer(readback_buffer_desc);
-        assert(readback_buffer.getSize() == buffers.histogram.getSize() && "Readback buffer size does not match histogram buffer size.");
-        encoder.copyBufferToBuffer(buffers.histogram, 0, readback_buffer, 0, readback_buffer.getSize());
-
         wgpu::CommandBufferDescriptor command_buffer_desc;
         command_buffer_desc.nextInChain = nullptr;
         auto command_buffer = encoder.finish(command_buffer_desc);
@@ -223,6 +157,5 @@ namespace ausaxs::gpu {
 
         instance.device.getQueue().submit(command_buffer);
         command_buffer.release();
-        readback_buffers.push_back(readback_buffer);
     }
 }
