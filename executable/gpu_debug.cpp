@@ -1,4 +1,3 @@
-#include "hist/detail/CompactCoordinates.h"
 #include <webgpu/webgpu.hpp>
 
 // #include <vector>
@@ -523,10 +522,10 @@ int main(int, char const *[]) {
     webgpu.submit_self(atoms);
     auto res = webgpu.run();
 
-    // std::cout << "Results:" << std::endl;
-    // for (int i = 0; i < 20; ++i) {
-    //     std::cout << res[i] << std::endl;
-    // }
+    std::cout << "Results:" << std::endl;
+    for (int i = 0; i < 20; ++i) {
+        std::cout << res[i] << std::endl;
+    }
 
     return 0;
 }
