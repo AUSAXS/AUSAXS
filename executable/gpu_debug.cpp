@@ -417,28 +417,16 @@ wgpu::BindGroup WebGPU::assign_buffers(wgpu::Device device, wgpu::Buffer buffer1
     entries[0].binding = 0;
     entries[0].buffer = buffer1;
     entries[0].size = buffer1.getSize();
-    entries[0].offset = 0;
-    entries[0].textureView = nullptr;
-    entries[0].sampler = nullptr;
 
     entries[1].binding = 1;
     entries[1].buffer = buffer2;
     entries[1].size = buffer2.getSize();
-    entries[1].offset = 0;
-    entries[1].textureView = nullptr;
-    entries[1].sampler = nullptr;
 
     entries[2].binding = 2;
     entries[2].buffer = histogram_buffer;
     entries[2].size = histogram_buffer.getSize();
-    entries[2].offset = 0;
-    entries[2].textureView = nullptr;
-    entries[2].sampler = nullptr;
 
-    static std::string bind_group_name = "bind group 0";
     wgpu::BindGroupDescriptor bind_group_desc;
-    bind_group_desc.label.data = bind_group_name.data();
-    bind_group_desc.label.length = bind_group_name.size();
     bind_group_desc.layout = bind_group_layout;
     bind_group_desc.entryCount = entries.size();
     bind_group_desc.entries = (WGPUBindGroupEntry*) entries.data();
@@ -469,10 +457,42 @@ void WebGPU::submit_self(const std::vector<Atom>& atoms) {
     compute_pass.end();
 
     // retrieve data
-    static std::string readback_buffer_name = "readback buffer";
     wgpu::BufferDescriptor readback_buffer_desc;
-    readback_buffer_desc.label.data = readback_buffer_name.data();
-    readback_buffer_desc.label.length = readback_buffer_name.size();
+    readback_buffer_desc.size = buffers.histogram.getSize();
+    readback_buffer_desc.mappedAtCreation = false;
+    readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
+    wgpu::Buffer readback_buffer = device.createBuffer(readback_buffer_desc);
+
+    assert(readback_buffer.getSize() == buffers.histogram.getSize() && "Readback buffer size does not match histogram buffer size.");
+    encoder.copyBufferToBuffer(buffers.histogram, 0, readback_buffer, 0, readback_buffer.getSize());
+
+    wgpu::CommandBufferDescriptor command_buffer_desc;
+    command_buffer_desc.nextInChain = nullptr;
+    auto command_buffer = encoder.finish(command_buffer_desc);
+    encoder.release();
+
+    device.getQueue().submit(command_buffer);
+    command_buffer.release();
+    readback_buffers.push_back(readback_buffer);    
+}
+
+void WebGPU::submit_cross(const std::vector<Atom>& atoms1, const std::vector<Atom>& atoms2) {
+    std::cout << "Calculating cross..." << std::endl;
+    wgpu::CommandEncoder encoder = device.createCommandEncoder();
+
+    buffers = create_buffers(device, atoms1, atoms2);
+    wgpu::BindGroup bind_group = assign_buffers(device, buffers.atom_1, buffers.atom_2, buffers.histogram, bind_group_layout);
+
+    // submit work
+    wgpu::ComputePassDescriptor compute_pass_desc = wgpu::Default;
+    auto compute_pass = encoder.beginComputePass(compute_pass_desc);
+    compute_pass.setPipeline(pipelines.self);
+    compute_pass.setBindGroup(0, bind_group, 0, nullptr);
+    compute_pass.dispatchWorkgroups(1, 1, 1);
+    compute_pass.end();
+
+    // retrieve data
+    wgpu::BufferDescriptor readback_buffer_desc;
     readback_buffer_desc.size = buffers.histogram.getSize();
     readback_buffer_desc.mappedAtCreation = false;
     readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
@@ -482,19 +502,12 @@ void WebGPU::submit_self(const std::vector<Atom>& atoms) {
 
     wgpu::CommandBufferDescriptor command_buffer_desc;
     command_buffer_desc.nextInChain = nullptr;
-    command_buffer_desc.label.data = "command buffer";
     auto command_buffer = encoder.finish(command_buffer_desc);
     encoder.release();
 
-    std::cout << "Submitting command buffer..." << std::endl;
     device.getQueue().submit(command_buffer);
     command_buffer.release();
-    std::cout << "Command buffer submitted." << std::endl;
-    readback_buffers.push_back(readback_buffer);    
-}
-
-void WebGPU::submit_cross(const std::vector<Atom>& atom_1, const std::vector<Atom>& atom_2) {
-    std::cout << "Calculating self..." << std::endl;
+    readback_buffers.push_back(readback_buffer);
 }
 
 int main(int, char const *[]) {

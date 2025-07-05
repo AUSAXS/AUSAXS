@@ -45,18 +45,6 @@ fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
-@compute @workgroup_size(2)
-fn calculate_test(@builtin(global_invocation_id) id: vec3<u32>) {
-    let num_atoms = arrayLength(&atom_buffer_1);
-
-    if (id.x >= num_atoms) {
-        return;
-    }
-
-    let atom1 = atom_buffer_1[id.x];
-    atomicAdd(&histogram[id.x], u32(atom1.w));
-}
-
 @compute @workgroup_size(32)
 fn calculate_cross(@builtin(global_invocation_id) id: vec3<u32>) {
     let num_atoms1 = arrayLength(&atom_buffer_1);
@@ -67,13 +55,23 @@ fn calculate_cross(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 
     let atom1 = atom_buffer_1[id.x];
-
     for (var i = num_atoms1; i < num_atoms1 + num_atoms2; i = i + 1u) {
         let atom2 = atom_buffer_2[i];
         let distance = distance(atom1.xyz, atom2.xyz);
         let bin = u32(round(inv_width * distance));
-        let weight = atom1.w * atom2.w;
-
+        let weight = 2*atom1.w*atom2.w;
         atomic_add(bin, weight);
     }
+}
+
+@compute @workgroup_size(2)
+fn calculate_test(@builtin(global_invocation_id) id: vec3<u32>) {
+    let num_atoms = arrayLength(&atom_buffer_1);
+
+    if (id.x >= num_atoms) {
+        return;
+    }
+
+    let atom1 = atom_buffer_1[id.x];
+    atomicAdd(&histogram[id.x], u32(atom1.w));
 }
