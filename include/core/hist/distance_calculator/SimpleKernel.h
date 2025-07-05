@@ -1,0 +1,58 @@
+#pragma once
+
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/detail/CompactCoordinates.h>
+#include <hist/distance_calculator/detail/TemplateHelpers.h>
+#include <container/ThreadLocalWrapper.h>
+#include <utility/MultiThreading.h>
+
+#include <unordered_map>
+
+namespace ausaxs::hist::distance_calculator {
+    /**
+     * @brief Simple interface to queue histogram calculations. 
+     *        Submit the data and then call calculate to get the result.
+     *        The caller must guarantee the lifetime of all submitted data.
+     */
+    template<bool weighted_bins>
+    struct SimpleKernel {
+        using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
+        struct run_result {
+            std::unordered_map<int, GenericDistribution1D_t> self;
+            std::unordered_map<int, GenericDistribution1D_t> cross;
+        };
+        virtual ~SimpleKernel() = default;
+
+        /**
+         * @brief Queue a self-correlation calculation. 
+         *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made. 
+         *
+         * @param a The data to calculate the self-correlation for. The reference must be valid until calculate is called.
+         * @param merge_id The result vector id this calculation can be merged into. Supplying this can save significant memory resources. 
+         * @param scaling The scaling factor to apply to the result.
+         *
+         * @return The index of the data in the result vector.
+         */
+        virtual int enqueue_calculate_self(const hist::detail::CompactCoordinates& a, int scaling = 1, int merge_id = -1) = 0;
+
+        /**
+         * @brief Queue a cross-correlation calculation. 
+         *
+         * @param a1 The first set of data to calculate the cross-correlation for. The reference must be valid until calculate is called.
+         * @param a2 The second set of data to calculate the cross-correlation for. The reference must be valid until calculate is called.
+         * @param merge_id The result vector id this calculation can be merged into. Supplying this can save significant memory resources.
+         * @param scaling The scaling factor to apply to the result.
+         * @return The index of the data in the result vector.
+         */
+        virtual int enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2, int scaling = 1, int merge_id = -1) = 0;
+
+        /**
+         * @brief Calculate the queued histograms. 
+         *        This will block until all calculations are done.
+         *
+         * @return The calculated histograms. 
+         */
+        virtual run_result run() = 0;
+    };
+}

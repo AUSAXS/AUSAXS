@@ -23,6 +23,8 @@
 #include <string>
 #include <iostream>
 
+#include <gpu/WebGPUSimple.h>
+
 using namespace ausaxs;
 
 int main(int argc, char const *argv[]) {
