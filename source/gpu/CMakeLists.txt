@@ -1,6 +1,7 @@
 add_library(ausaxs_gpu OBJECT 
 	"WebGPUSimple.cpp"
 
+	"WebGPU/BufferManager.cpp"
 	"WebGPU/Buffers.cpp"
 	"WebGPU/GPUInstance.cpp"
 	"WebGPU/WebGPU.cpp"
