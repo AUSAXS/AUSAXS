@@ -5,6 +5,7 @@
 #include <gpu/WebGPU/BindGroups.h>
 #include <gpu/WebGPU/Buffers.h>
 #include <gpu/WebGPU/BufferManager.h>
+#include <gpu/WebGPU/shaders/ShaderStorage.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/distance_calculator/SimpleKernel.h>
 
@@ -31,14 +32,16 @@ namespace ausaxs::gpu {
             ComputePipelines<weighted_bins>::Pipelines pipelines;
             Buffers<weighted_bins>::BufferInstance buffers;
             BufferManager<weighted_bins> buffer_manager;
+            shader::Simple shaders;
 
             void initialize();
-            wgpu::BindGroup assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout);
+            wgpu::BindGroup assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer);
     };
 
     template<bool weighted_bins>
     inline void WebGPU<weighted_bins>::initialize() {
-        pipelines = ComputePipelines<weighted_bins>::create(instance);
+        shaders = shader::Simple(instance.device);
+        pipelines = ComputePipelines<weighted_bins>::create(instance.device, shaders.get<weighted_bins>());
     }
 
     template<bool weighted_bins>
@@ -47,7 +50,7 @@ namespace ausaxs::gpu {
     }
 
     template<bool weighted_bins>
-    inline wgpu::BindGroup WebGPU<weighted_bins>::assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout) {
+    inline wgpu::BindGroup WebGPU<weighted_bins>::assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer) {
         assert(buffer1 && "Buffer 1 is null");
         assert(buffer2 && "Buffer 2 is null");
         assert(histogram_buffer && "Histogram buffer is null");
@@ -67,7 +70,7 @@ namespace ausaxs::gpu {
         entries[2].size = histogram_buffer.getSize();
 
         wgpu::BindGroupDescriptor bind_group_desc;
-        bind_group_desc.layout = bind_group_layout;
+        bind_group_desc.layout = shaders.get<weighted_bins>().layout;
         bind_group_desc.entryCount = entries.size();
         bind_group_desc.entries = entries.data();
         return device.createBindGroup(bind_group_desc);
@@ -75,16 +78,14 @@ namespace ausaxs::gpu {
 
     template<bool weighted_bins>
     inline int WebGPU<weighted_bins>::submit_self(const hist::detail::CompactCoordinates& atoms, int merge_id) {
-        wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
-
         buffers = Buffers<weighted_bins>::create(instance.device, atoms, atoms); //! use single buffer version
         int index = buffer_manager.manage_self(buffers.histogram, merge_id);
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram, instance.bind_group_layout);
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram);
 
-        // submit work
+        wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
         auto compute_pass = encoder.beginComputePass(wgpu::Default);
         compute_pass.setPipeline(pipelines.self);
-        compute_pass.setBindGroup(weighted_bins ? 1 : 0, bind_group, 0, nullptr);
+        compute_pass.setBindGroup(0, bind_group, 0, nullptr);
         compute_pass.dispatchWorkgroups(1, 1, 1);
         compute_pass.end();
 
@@ -97,16 +98,14 @@ namespace ausaxs::gpu {
 
     template<bool weighted_bins>
     inline int WebGPU<weighted_bins>::submit_cross(const hist::detail::CompactCoordinates& atoms1, const hist::detail::CompactCoordinates& atoms2, int merge_id) {
-        wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
-
         buffers = Buffers<weighted_bins>::create(instance.device, atoms1, atoms2);
         int index = buffer_manager.manage_cross(buffers.histogram, merge_id);
-        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram, instance.bind_group_layout);
+        wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram);
 
-        // submit work
+        wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
         auto compute_pass = encoder.beginComputePass(wgpu::Default);
         compute_pass.setPipeline(pipelines.cross);
-        compute_pass.setBindGroup(weighted_bins ? 1 : 0, bind_group, 0, nullptr);
+        compute_pass.setBindGroup(0, bind_group, 0, nullptr);
         compute_pass.dispatchWorkgroups(1, 1, 1);
         compute_pass.end();
 

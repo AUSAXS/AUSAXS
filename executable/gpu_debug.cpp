@@ -9,7 +9,7 @@ int main(int, char const *[]) {
         Atom({ 1, -1,  1}, 1), Atom({ 1, 1,  1}, 1)
     };
 
-    ausaxs::gpu::WebGPU<false> webgpu;
+    ausaxs::gpu::WebGPU<true> webgpu;
     webgpu.submit_self(atoms);
     auto res = webgpu.run();
     std::cout << "results: " << std::endl;

@@ -5,6 +5,9 @@ add_library(ausaxs_gpu OBJECT
 	"WebGPU/Buffers.cpp"
 	"WebGPU/ComputePipelines.cpp"
 	"WebGPU/InstanceManager.cpp"
+
+	"WebGPU/shaders/ShaderDefinition.cpp"
+	"WebGPU/shaders/ShaderStorage.cpp"
 )
 
 target_include_directories(ausaxs_gpu PUBLIC "${CMAKE_SOURCE_DIR}/include/gpu")
