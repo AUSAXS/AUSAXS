@@ -41,49 +41,6 @@ namespace ausaxs::gpu {
         pipelines = ComputePipelines::create(instance);
     }
 
-    // inline std::vector<float> WebGPU::run() {
-    //     wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
-    //     wgpu::BufferDescriptor readback_buffer_desc;
-    //     readback_buffer_desc.size = buffers.histogram.getSize();
-    //     readback_buffer_desc.mappedAtCreation = false;
-    //     readback_buffer_desc.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
-    //     wgpu::Buffer readback_buffer = instance.device.createBuffer(readback_buffer_desc);
-
-    //     assert(readback_buffer.getSize() == buffers.histogram.getSize() && "Readback buffer size does not match histogram buffer size.");
-    //     encoder.copyBufferToBuffer(buffers.histogram, 0, readback_buffer, 0, readback_buffer.getSize());
-    //     auto command_buffer = encoder.finish();
-    //     encoder.release();
-
-    //     instance.device.getQueue().submit(command_buffer);
-    //     command_buffer.release();
-
-    //     static std::vector<float> result(readback_buffer.getSize());
-    //     bool done = false;
-    //     wgpu::BufferMapCallbackInfo map_callback;
-    //     map_callback.mode = wgpu::CallbackMode::AllowProcessEvents;
-    //     map_callback.userdata1 = &readback_buffer;
-    //     map_callback.userdata2 = &done;
-    //     map_callback.callback = [] (WGPUMapAsyncStatus, WGPUStringView, void* p_readback_buffer, void* p_done) -> void {
-    //         std::cout << "Readback buffer callback!" << std::endl;
-    //         wgpu::Buffer readback_buffer = *reinterpret_cast<wgpu::Buffer*>(p_readback_buffer);
-    //         bool* done = reinterpret_cast<bool*>(p_done);
-    //         const float* output = (const float*) readback_buffer.getConstMappedRange(0, readback_buffer.getSize());
-    //         result.assign(output, output + readback_buffer.getSize());
-    //         *done = true;
-    //         readback_buffer.unmap();
-    //     };
-    //     readback_buffer.mapAsync(wgpu::MapMode::Read, 0, readback_buffer.getSize(), map_callback);
-    //     instance.process();
-
-    //     while(!done) {
-    //         std::cout << "Waiting for readback..." << std::endl;
-    //         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    //         instance.process();
-    //     }
-
-    //     return result;
-    // }
-
     inline std::vector<double> WebGPU::run() {
         auto res = buffer_manager.merge(instance);
         return res.self.at(0);
@@ -111,14 +68,14 @@ namespace ausaxs::gpu {
         wgpu::BindGroupDescriptor bind_group_desc;
         bind_group_desc.layout = bind_group_layout;
         bind_group_desc.entryCount = entries.size();
-        bind_group_desc.entries = (WGPUBindGroupEntry*) entries.data();
+        bind_group_desc.entries = entries.data();
         return device.createBindGroup(bind_group_desc);
     }
 
     inline void WebGPU::submit_self(const std::vector<Atom>& atoms, int merge_id) {
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
-        buffers = Buffers::create(instance.device, atoms, atoms); //! use single buffer version for self calculation
+        buffers = Buffers::create(instance.device, atoms);
         buffer_manager.manage_self(buffers.histogram, merge_id);
         wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram, instance.bind_group_layout);
 
