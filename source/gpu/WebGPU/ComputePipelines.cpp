@@ -33,7 +33,8 @@ wgpu::ShaderModule load_shader_module(const io::ExistingFile& path, wgpu::Device
     return module;
 }
 
-ComputePipelines::Pipelines ComputePipelines::create(const InstanceManager& instance) {
+template<bool weighted_bins>
+ComputePipelines<weighted_bins>::Pipelines ComputePipelines<weighted_bins>::create(const InstanceManager& instance) {
     static wgpu::ShaderModule compute_shader_module = load_shader_module("executable/gpu_debug.wgsl", instance.device);
 
     auto ctr = [&] (std::string_view shader_name) {
@@ -50,8 +51,18 @@ ComputePipelines::Pipelines ComputePipelines::create(const InstanceManager& inst
         return instance.device.createComputePipeline(pipeline_descriptor);
     };
 
-    return {
-        .self=ctr("calculate_self"),
-        .cross=ctr("calculate_cross")
-    };
+    if constexpr (weighted_bins) {
+        return {
+            .self = ctr("weighted_calculate_self"),
+            .cross = ctr("weighted_calculate_cross")
+        };
+    } else {
+        return {
+            .self = ctr("unweighted_calculate_self"),
+            .cross = ctr("unweighted_calculate_cross")
+        };
+    }
 }
+
+template struct ausaxs::gpu::ComputePipelines<false>;
+template struct ausaxs::gpu::ComputePipelines<true>;

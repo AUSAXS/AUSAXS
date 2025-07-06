@@ -20,23 +20,29 @@ wgpu::Buffer create_atomic_buffer(wgpu::Device device, const CompactCoordinates&
     return atom_buffer;
 }
 
+template<bool weighted_bins>
 wgpu::Buffer create_histogram_buffer(wgpu::Device device) {
     wgpu::BufferDescriptor histogram_buffer_desc;
-    histogram_buffer_desc.size = constants::axes::d_vals.size()*sizeof(float);
+    histogram_buffer_desc.size = constants::axes::d_axis.bins*sizeof(typename Buffers<weighted_bins>::HistogramType);
     histogram_buffer_desc.mappedAtCreation = false;
     histogram_buffer_desc.usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc;
     return device.createBuffer(histogram_buffer_desc);
 }
 
-Buffers::BufferInstance Buffers::create(wgpu::Device device, const CompactCoordinates& data) {
+template<bool weighted_bins>
+Buffers<weighted_bins>::BufferInstance Buffers<weighted_bins>::create(wgpu::Device device, const CompactCoordinates& data) {
     auto atom_buffer = create_atomic_buffer(device, data);
-    auto hist_buffer = create_histogram_buffer(device);
+    auto hist_buffer = create_histogram_buffer<weighted_bins>(device);
     return {atom_buffer, {}, hist_buffer};
 }
 
-Buffers::BufferInstance Buffers::create(wgpu::Device device, const CompactCoordinates& data1, const CompactCoordinates& data2) {
+template<bool weighted_bins>
+Buffers<weighted_bins>::BufferInstance Buffers<weighted_bins>::create(wgpu::Device device, const CompactCoordinates& data1, const CompactCoordinates& data2) {
     auto atomic_1 = create_atomic_buffer(device, data1);
     auto atomic_2 = create_atomic_buffer(device, data2);
-    auto hist = create_histogram_buffer(device);
+    auto hist = create_histogram_buffer<weighted_bins>(device);
     return {atomic_1, atomic_2, hist};
 }
+
+template struct ausaxs::gpu::Buffers<false>;
+template struct ausaxs::gpu::Buffers<true>;

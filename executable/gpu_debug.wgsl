@@ -1,16 +1,11 @@
 const inv_width: f32 = 4;
 
+alias atomic_f32 = atomic<u32>;
+alias Bin = atomic_f32;
+
 struct Atom {
     xyz: vec3<f32>,
     w: f32,
-}
-
-struct atomic_f32 {
-    value: atomic<u32>
-}
-
-struct Bin {
-    value: atomic_f32
 }
 
 struct WeightedBin {
@@ -21,10 +16,10 @@ struct WeightedBin {
 
 // workaround until wgsl supports atomic operations on f32
 fn atomic_add_f32(v1: ptr<storage,atomic_f32,read_write>, v2: f32) {
-    var old_v = atomicLoad(&v1.value);
+    var old_v = atomicLoad(v1);
     loop {
         let new_v = v2 + bitcast<f32>(old_v);
-        let exchange_result = atomicCompareExchangeWeak(&v1.value, old_v, bitcast<u32>(new_v));
+        let exchange_result = atomicCompareExchangeWeak(v1, old_v, bitcast<u32>(new_v));
         if exchange_result.exchanged {
             return;
         }
@@ -33,7 +28,7 @@ fn atomic_add_f32(v1: ptr<storage,atomic_f32,read_write>, v2: f32) {
 }
 
 fn atomic_add_Bin(bin: ptr<storage,Bin,read_write>, value: f32) {
-    atomic_add_f32(&bin.value, value);
+    atomic_add_f32(bin, value);
 }
 
 fn atomic_add_WeightedBin(bin: ptr<storage,WeightedBin,read_write>, value: f32, distance: f32) {
@@ -50,7 +45,7 @@ fn atomic_add_WeightedBin(bin: ptr<storage,WeightedBin,read_write>, value: f32, 
 @group(0) @binding(2) var<storage,read_write> unweighted_histogram: array<Bin>;
 
 @compute @workgroup_size(64)
-fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
+fn unweighted_calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
     let num_atoms = arrayLength(&unweighted_atom_buffer_1);
     if (id.x >= num_atoms) {
         return;
@@ -70,7 +65,7 @@ fn calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 @compute @workgroup_size(64)
-fn calculate_cross(@builtin(global_invocation_id) id: vec3<u32>) {
+fn unweighted_calculate_cross(@builtin(global_invocation_id) id: vec3<u32>) {
     let num_atoms1 = arrayLength(&unweighted_atom_buffer_1);
     let num_atoms2 = arrayLength(&unweighted_atom_buffer_2); 
     if (id.x >= num_atoms1) {
@@ -95,7 +90,7 @@ fn calculate_cross(@builtin(global_invocation_id) id: vec3<u32>) {
 @group(1) @binding(2) var<storage,read_write> weighted_histogram: array<WeightedBin>;
 
 @compute @workgroup_size(64)
-fn calculate_weighted_self(@builtin(global_invocation_id) id: vec3<u32>) {
+fn weighted_calculate_self(@builtin(global_invocation_id) id: vec3<u32>) {
     let num_atoms = arrayLength(&weighted_atom_buffer_1);
     if (id.x >= num_atoms) {
         return;
@@ -113,7 +108,7 @@ fn calculate_weighted_self(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 @compute @workgroup_size(64)
-fn calculate_weighted_cross(@builtin(global_invocation_id) id: vec3<u32>) {
+fn weighted_calculate_cross(@builtin(global_invocation_id) id: vec3<u32>) {
     let num_atoms1 = arrayLength(&weighted_atom_buffer_1);
     let num_atoms2 = arrayLength(&weighted_atom_buffer_2); 
     if (id.x >= num_atoms1) {

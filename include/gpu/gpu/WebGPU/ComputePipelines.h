@@ -5,6 +5,7 @@
 #include <gpu/WebGPU/InstanceManager.h>
 
 namespace ausaxs::gpu {
+    template<bool weighted_bins>
     struct ComputePipelines {
         struct Pipelines {
             wgpu::ComputePipeline self;

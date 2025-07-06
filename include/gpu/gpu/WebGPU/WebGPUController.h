@@ -6,6 +6,7 @@
 #include <gpu/WebGPU/Buffers.h>
 #include <gpu/WebGPU/BufferManager.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/distance_calculator/SimpleKernel.h>
 
 #include <vector>
 #include <iostream>
@@ -14,39 +15,39 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 namespace ausaxs::gpu {
+    template<bool weighted_bins>
     class WebGPU {
         public:
             WebGPU() {
                 initialize();
             }
 
-            void submit_self(const std::vector<Atom>& atoms, int merge_id = -1);
-            void submit_cross(const std::vector<Atom>& atom_1, const std::vector<Atom>& atom_2, int merge_id = -1);
-
-            void submit();
-
-            std::vector<double> run();
+            int submit_self(const hist::detail::CompactCoordinates& atoms, int merge_id = -1);
+            int submit_cross(const hist::detail::CompactCoordinates& atom_1, const hist::detail::CompactCoordinates& atom_2, int merge_id = -1);
+            hist::distance_calculator::SimpleKernel<weighted_bins>::run_result run();
 
         private:
-            InstanceManager instance;
-            ComputePipelines::Pipelines pipelines;
-            Buffers::BufferInstance buffers;
-            BufferManager buffer_manager;
+            inline static InstanceManager instance;
+            ComputePipelines<weighted_bins>::Pipelines pipelines;
+            Buffers<weighted_bins>::BufferInstance buffers;
+            BufferManager<weighted_bins> buffer_manager;
 
             void initialize();
             wgpu::BindGroup assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout);
     };
 
-    inline void WebGPU::initialize() {
-        pipelines = ComputePipelines::create(instance);
+    template<bool weighted_bins>
+    inline void WebGPU<weighted_bins>::initialize() {
+        pipelines = ComputePipelines<weighted_bins>::create(instance);
     }
 
-    inline std::vector<double> WebGPU::run() {
-        auto res = buffer_manager.merge(instance);
-        return res.self.at(0);
+    template<bool weighted_bins>
+    inline hist::distance_calculator::SimpleKernel<weighted_bins>::run_result WebGPU<weighted_bins>::run() {
+        return buffer_manager.merge(instance);
     }
 
-    inline wgpu::BindGroup WebGPU::assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout) {
+    template<bool weighted_bins>
+    inline wgpu::BindGroup WebGPU<weighted_bins>::assign_buffers(wgpu::Device device, wgpu::Buffer buffer1, wgpu::Buffer buffer2, wgpu::Buffer histogram_buffer, wgpu::BindGroupLayout bind_group_layout) {
         assert(buffer1 && "Buffer 1 is null");
         assert(buffer2 && "Buffer 2 is null");
         assert(histogram_buffer && "Histogram buffer is null");
@@ -72,17 +73,18 @@ namespace ausaxs::gpu {
         return device.createBindGroup(bind_group_desc);
     }
 
-    inline void WebGPU::submit_self(const std::vector<Atom>& atoms, int merge_id) {
+    template<bool weighted_bins>
+    inline int WebGPU<weighted_bins>::submit_self(const hist::detail::CompactCoordinates& atoms, int merge_id) {
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
-        buffers = Buffers::create(instance.device, atoms);
-        buffer_manager.manage_self(buffers.histogram, merge_id);
+        buffers = Buffers<weighted_bins>::create(instance.device, atoms, atoms); //! use single buffer version
+        int index = buffer_manager.manage_self(buffers.histogram, merge_id);
         wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram, instance.bind_group_layout);
 
         // submit work
         auto compute_pass = encoder.beginComputePass(wgpu::Default);
         compute_pass.setPipeline(pipelines.self);
-        compute_pass.setBindGroup(0, bind_group, 0, nullptr);
+        compute_pass.setBindGroup(weighted_bins ? 1 : 0, bind_group, 0, nullptr);
         compute_pass.dispatchWorkgroups(1, 1, 1);
         compute_pass.end();
 
@@ -90,19 +92,21 @@ namespace ausaxs::gpu {
         instance.device.getQueue().submit(command_buffer);
         command_buffer.release();
         encoder.release();
+        return index;
     }
 
-    inline void WebGPU::submit_cross(const std::vector<Atom>& atoms1, const std::vector<Atom>& atoms2, int merge_id) {
+    template<bool weighted_bins>
+    inline int WebGPU<weighted_bins>::submit_cross(const hist::detail::CompactCoordinates& atoms1, const hist::detail::CompactCoordinates& atoms2, int merge_id) {
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
-        buffers = Buffers::create(instance.device, atoms1, atoms2);
-        buffer_manager.manage_cross(buffers.histogram, merge_id);
+        buffers = Buffers<weighted_bins>::create(instance.device, atoms1, atoms2);
+        int index = buffer_manager.manage_cross(buffers.histogram, merge_id);
         wgpu::BindGroup bind_group = assign_buffers(instance.device, buffers.atomic_1, buffers.atomic_2, buffers.histogram, instance.bind_group_layout);
 
         // submit work
         auto compute_pass = encoder.beginComputePass(wgpu::Default);
-        compute_pass.setPipeline(pipelines.self);
-        compute_pass.setBindGroup(0, bind_group, 0, nullptr);
+        compute_pass.setPipeline(pipelines.cross);
+        compute_pass.setBindGroup(weighted_bins ? 1 : 0, bind_group, 0, nullptr);
         compute_pass.dispatchWorkgroups(1, 1, 1);
         compute_pass.end();
 
@@ -110,5 +114,6 @@ namespace ausaxs::gpu {
         instance.device.getQueue().submit(command_buffer);
         command_buffer.release();
         encoder.release();
+        return index;
     }
 }
