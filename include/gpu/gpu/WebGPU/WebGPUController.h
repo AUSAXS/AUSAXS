@@ -1,7 +1,6 @@
 #include <webgpu/webgpu.hpp>
 
-#include <gpu/WebGPU/InstanceManager.h>
-#include <gpu/WebGPU/BindGroups.h>
+#include <gpu/WebGPU/GPUInstance.h>
 #include <gpu/WebGPU/Buffers.h>
 #include <gpu/WebGPU/BufferManager.h>
 #include <gpu/WebGPU/shaders/ShaderStorage.h>
@@ -27,7 +26,7 @@ namespace ausaxs::gpu {
             hist::distance_calculator::SimpleKernel<weighted_bins>::run_result run();
 
         private:
-            inline static InstanceManager instance;
+            inline static GPUInstance instance;
             Buffers<weighted_bins>::BufferInstance buffers;
             BufferManager<weighted_bins> buffer_manager;
             shader::Simple shaders;

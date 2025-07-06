@@ -2,7 +2,7 @@
 
 #include <webgpu/webgpu.hpp>
 
-#include <gpu/WebGPU/InstanceManager.h>
+#include <gpu/WebGPU/GPUInstance.h>
 #include <gpu/WebGPU/Buffers.h>
 #include <hist/distance_calculator/SimpleKernel.h>
 #include <constants/ConstantsAxes.h>
@@ -18,7 +18,7 @@ namespace ausaxs::gpu {
 
         int manage_self(wgpu::Buffer buffer, int merge_id = -1);
         int manage_cross(wgpu::Buffer buffer, int merge_id = -1);
-        run_result merge(ausaxs::gpu::InstanceManager& instance) const;
+        run_result merge(ausaxs::gpu::GPUInstance& instance) const;
 
         // vector of vectors to allow for multiple buffers per merge_id
         // this is different from the CPU version where only a single buffer per thread is needed, as they can simply accumulate results in a single vector
@@ -58,7 +58,7 @@ inline int ausaxs::gpu::BufferManager<weighted_bins>::manage_cross(wgpu::Buffer 
 }
 
 template<bool weighted_bins>
-inline void merge_buffer(ausaxs::gpu::InstanceManager& instance, typename ausaxs::hist::GenericDistribution1D<weighted_bins>::type& destination, wgpu::Buffer histogram_readback) {
+inline void merge_buffer(ausaxs::gpu::GPUInstance& instance, typename ausaxs::hist::GenericDistribution1D<weighted_bins>::type& destination, wgpu::Buffer histogram_readback) {
     assert(histogram_readback && "Readback buffer is null.");
     assert(histogram_readback.getUsage() & (wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead) && "Readback buffer does not have the correct usage flags.");
     using GPUHistogramType = typename ausaxs::gpu::Buffers<weighted_bins>::HistogramType;
@@ -107,7 +107,7 @@ inline void merge_buffer(ausaxs::gpu::InstanceManager& instance, typename ausaxs
 }
 
 template<bool weighted_bins>
-inline std::vector<std::vector<wgpu::Buffer>> create_readback_buffers(const ausaxs::gpu::InstanceManager& instance, std::vector<std::vector<wgpu::Buffer>> hists) {
+inline std::vector<std::vector<wgpu::Buffer>> create_readback_buffers(const ausaxs::gpu::GPUInstance& instance, std::vector<std::vector<wgpu::Buffer>> hists) {
     wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
 
     static wgpu::BufferDescriptor readback_buffer_desc = [] () {
@@ -139,7 +139,7 @@ inline std::vector<std::vector<wgpu::Buffer>> create_readback_buffers(const ausa
 }
 
 template<bool weighted_bins>
-inline ausaxs::gpu::BufferManager<weighted_bins>::run_result ausaxs::gpu::BufferManager<weighted_bins>::merge(ausaxs::gpu::InstanceManager& instance) const {
+inline ausaxs::gpu::BufferManager<weighted_bins>::run_result ausaxs::gpu::BufferManager<weighted_bins>::merge(ausaxs::gpu::GPUInstance& instance) const {
     run_result result;
 
     auto self_readback_buffers = create_readback_buffers<weighted_bins>(instance, self_results);

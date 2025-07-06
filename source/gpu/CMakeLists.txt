@@ -1,9 +1,8 @@
 add_library(ausaxs_gpu OBJECT 
 	"WebGPUSimple.cpp"
 
-	"WebGPU/BindGroups.cpp"
 	"WebGPU/Buffers.cpp"
-	"WebGPU/InstanceManager.cpp"
+	"WebGPU/GPUInstance.cpp"
 
 	"WebGPU/shaders/ShaderDefinition.cpp"
 	"WebGPU/shaders/ShaderStorage.cpp"

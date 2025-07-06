@@ -2,7 +2,7 @@
 
 #include <webgpu/webgpu.hpp>
 
-#include <gpu/WebGPU/InstanceManager.h>
+#include <gpu/WebGPU/GPUInstance.h>
 #include <hist/detail/HistDetailFwd.h>
 
 namespace ausaxs::gpu {

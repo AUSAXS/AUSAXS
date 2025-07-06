@@ -1,5 +1,5 @@
 #define WEBGPU_CPP_IMPLEMENTATION
-#include <gpu/WebGPU/InstanceManager.h>
+#include <gpu/WebGPU/GPUInstance.h>
 
 using namespace ausaxs;
 using namespace ausaxs::gpu;
@@ -101,11 +101,11 @@ wgpu::Device get_device(wgpu::Instance instance) {
     return device;
 }
 
-InstanceManager::InstanceManager() : 
+GPUInstance::GPUInstance() : 
     instance(create_instance()), 
     device(get_device(instance))
 {}
 
-void InstanceManager::process() {
+void GPUInstance::process() {
     instance.processEvents();
 }
