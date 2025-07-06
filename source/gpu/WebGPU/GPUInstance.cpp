@@ -1,5 +1,7 @@
 #include <gpu/WebGPU/GPUInstance.h>
 
+#include <thread>
+
 using namespace ausaxs;
 using namespace ausaxs::gpu;
 
@@ -107,4 +109,11 @@ GPUInstance::GPUInstance() :
 
 void GPUInstance::process() {
     instance.processEvents();
+}
+
+void GPUInstance::wait(bool& done) {
+    while (!done) {
+        instance.processEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 }

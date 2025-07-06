@@ -64,7 +64,7 @@ void merge_buffer(ausaxs::gpu::GPUInstance& instance, typename ausaxs::hist::Gen
             done = true;
         };
         histogram_readback.mapAsync(wgpu::MapMode::Read, 0, histogram_readback.getSize(), map_callback);
-        instance.process();
+        instance.wait(done);
         assert(done && "Readback buffer mapping did not finish.");
     }
 

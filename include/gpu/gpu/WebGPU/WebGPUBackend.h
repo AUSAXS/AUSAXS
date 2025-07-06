@@ -22,6 +22,7 @@ namespace ausaxs::gpu {
         private:
             GPUInstance instance;
             BufferManager<weighted_bins> buffer_manager;
+            std::vector<wgpu::Buffer> garbage_collector; // track buffer ptrs to be released after run
             shader::Simple shaders;
 
             void initialize();

@@ -5,6 +5,13 @@
 #include <hist/detail/HistDetailFwd.h>
 
 namespace ausaxs::gpu {
+    // Tuple of buffers for use in the GPU pipeline
+    struct BufferInstance {
+        wgpu::Buffer atomic_1;
+        wgpu::Buffer atomic_2;
+        wgpu::Buffer histogram;
+    };
+
     template<bool weighted_bins>
     struct Buffers {
         //? Consider containing the webgpu struct definition inside the type definitions, and write them directly into an embedded wgsl script.
@@ -32,13 +39,6 @@ namespace ausaxs::gpu {
             }
         };
         using HistogramType = std::conditional_t<weighted_bins, HistogramTypeWeighted, HistogramTypeUnweighted>;
-
-        // Tuple of buffers for use in the GPU pipeline
-        struct BufferInstance {
-            wgpu::Buffer atomic_1;
-            wgpu::Buffer atomic_2;
-            wgpu::Buffer histogram;
-        };
 
         static BufferInstance create(wgpu::Device device, const hist::detail::CompactCoordinates& atoms);
         static BufferInstance create(wgpu::Device device, const hist::detail::CompactCoordinates& atoms1, const hist::detail::CompactCoordinates& atoms2);

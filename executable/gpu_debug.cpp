@@ -1,16 +1,21 @@
 #include <webgpu/webgpu.hpp>
 #include <gpu/WebGPU/WebGPUBackend.h>
+#include <data/Molecule.h>
 
 int main(int, char const *[]) {
-    std::vector<Atom> atoms = {
-        Atom({-1, -1, -1}, 1), Atom({-1, 1, -1}, 1),
-        Atom({ 1, -1, -1}, 1), Atom({ 1, 1, -1}, 1),
-        Atom({-1, -1,  1}, 1), Atom({-1, 1,  1}, 1),
-        Atom({ 1, -1,  1}, 1), Atom({ 1, 1,  1}, 1)
-    };
+    // std::vector<Atom> atoms = {
+    //     Atom({-1, -1, -1}, 1), Atom({-1, 1, -1}, 1),
+    //     Atom({ 1, -1, -1}, 1), Atom({ 1, 1, -1}, 1),
+    //     Atom({-1, -1,  1}, 1), Atom({-1, 1,  1}, 1),
+    //     Atom({ 1, -1,  1}, 1), Atom({ 1, 1,  1}, 1)
+    // };
+    // ausaxs::gpu::WebGPUBackend<true> webgpu;
+    // webgpu.submit_self(atoms);
 
+    data::Molecule molecule("tests/files/2epe.pdb");
     ausaxs::gpu::WebGPUBackend<true> webgpu;
-    webgpu.submit_self(atoms);
+    webgpu.submit_self(molecule.get_atoms());
+
     auto res = webgpu.run();
     std::cout << "results: " << std::endl;
     std::cout << "\tself: " << res.self.size() << std::endl;

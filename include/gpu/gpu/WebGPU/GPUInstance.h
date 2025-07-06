@@ -9,5 +9,6 @@ namespace ausaxs::gpu {
         wgpu::Device device;
 
         void process();
+        void wait(bool& done);
     };
 }
