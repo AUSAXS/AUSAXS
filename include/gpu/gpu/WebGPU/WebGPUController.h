@@ -1,7 +1,6 @@
 #include <webgpu/webgpu.hpp>
 
 #include <gpu/WebGPU/InstanceManager.h>
-#include <gpu/WebGPU/ComputePipelines.h>
 #include <gpu/WebGPU/BindGroups.h>
 #include <gpu/WebGPU/Buffers.h>
 #include <gpu/WebGPU/BufferManager.h>
@@ -29,7 +28,6 @@ namespace ausaxs::gpu {
 
         private:
             inline static InstanceManager instance;
-            ComputePipelines<weighted_bins>::Pipelines pipelines;
             Buffers<weighted_bins>::BufferInstance buffers;
             BufferManager<weighted_bins> buffer_manager;
             shader::Simple shaders;
@@ -41,7 +39,6 @@ namespace ausaxs::gpu {
     template<bool weighted_bins>
     inline void WebGPU<weighted_bins>::initialize() {
         shaders = shader::Simple(instance.device);
-        pipelines = ComputePipelines<weighted_bins>::create(instance.device, shaders.get<weighted_bins>());
     }
 
     template<bool weighted_bins>
@@ -70,7 +67,7 @@ namespace ausaxs::gpu {
         entries[2].size = histogram_buffer.getSize();
 
         wgpu::BindGroupDescriptor bind_group_desc;
-        bind_group_desc.layout = shaders.get<weighted_bins>().layout;
+        bind_group_desc.layout = shaders.get<weighted_bins>().bind_group_layout;
         bind_group_desc.entryCount = entries.size();
         bind_group_desc.entries = entries.data();
         return device.createBindGroup(bind_group_desc);
@@ -84,7 +81,7 @@ namespace ausaxs::gpu {
 
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
         auto compute_pass = encoder.beginComputePass(wgpu::Default);
-        compute_pass.setPipeline(pipelines.self);
+        compute_pass.setPipeline(shaders.get<weighted_bins>().pipelines.self);
         compute_pass.setBindGroup(0, bind_group, 0, nullptr);
         compute_pass.dispatchWorkgroups(1, 1, 1);
         compute_pass.end();
@@ -104,7 +101,7 @@ namespace ausaxs::gpu {
 
         wgpu::CommandEncoder encoder = instance.device.createCommandEncoder();
         auto compute_pass = encoder.beginComputePass(wgpu::Default);
-        compute_pass.setPipeline(pipelines.cross);
+        compute_pass.setPipeline(shaders.get<weighted_bins>().pipelines.cross);
         compute_pass.setBindGroup(0, bind_group, 0, nullptr);
         compute_pass.dispatchWorkgroups(1, 1, 1);
         compute_pass.end();
