@@ -1,7 +1,6 @@
 #pragma once
 
-#include <webgpu/webgpu.hpp>
-
+#include <gpu/WebGPU/WebGPU.h>
 #include <gpu/WebGPU/GPUInstance.h>
 #include <gpu/WebGPU/Buffers.h>
 #include <hist/distance_calculator/SimpleKernel.h>

@@ -1,4 +1,3 @@
-#define WEBGPU_CPP_IMPLEMENTATION
 #include <gpu/WebGPU/GPUInstance.h>
 
 using namespace ausaxs;

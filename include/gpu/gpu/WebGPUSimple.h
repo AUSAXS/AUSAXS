@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hist/distance_calculator/SimpleKernel.h>
-#include <gpu/WebGPU/WebGPUController.h>
+#include <gpu/WebGPU/WebGPUBackend.h>
 
 namespace ausaxs::hist::distance_calculator {
     /**
@@ -18,7 +18,7 @@ namespace ausaxs::hist::distance_calculator {
             SimpleKernel<weighted_bins>::run_result run() override;
         
         private:
-            gpu::WebGPU<weighted_bins> controller;
+            gpu::WebGPUBackend<weighted_bins> controller;
     };
 }
 

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <webgpu/webgpu.hpp>
-
+#include <gpu/WebGPU/WebGPU.h>
 #include <gpu/WebGPU/GPUInstance.h>
 #include <hist/detail/HistDetailFwd.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <webgpu/webgpu.hpp>
+#include <gpu/WebGPU/WebGPU.h>
 
 namespace ausaxs::gpu {
     struct ShaderDefinition {

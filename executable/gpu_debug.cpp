@@ -1,5 +1,5 @@
 #include <webgpu/webgpu.hpp>
-#include <gpu/WebGPU/WebGPUController.h>
+#include <gpu/WebGPU/WebGPUBackend.h>
 
 int main(int, char const *[]) {
     std::vector<Atom> atoms = {
@@ -9,7 +9,7 @@ int main(int, char const *[]) {
         Atom({ 1, -1,  1}, 1), Atom({ 1, 1,  1}, 1)
     };
 
-    ausaxs::gpu::WebGPU<true> webgpu;
+    ausaxs::gpu::WebGPUBackend<true> webgpu;
     webgpu.submit_self(atoms);
     auto res = webgpu.run();
     std::cout << "results: " << std::endl;
