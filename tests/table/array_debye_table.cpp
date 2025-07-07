@@ -13,7 +13,7 @@ auto& debye_table = table::ArrayDebyeTable::get_default_table();
 auto& q = constants::axes::q_vals;
 auto& d = constants::axes::d_vals;
 
-TEST_CASE("ArrayDebyeTable::correct_zero_values") {
+TEST_CASE("ArrayDebyeTable: correct zero values") {
     SECTION("d = 0") {
         for (unsigned int i = 0; i < q.size(); ++i) {
             CHECK(debye_table.lookup(i, 0) == 1);
@@ -21,7 +21,7 @@ TEST_CASE("ArrayDebyeTable::correct_zero_values") {
     }
 }
 
-TEST_CASE("ArrayDebyeTable::correct_values") {
+TEST_CASE("ArrayDebyeTable: correct values") {
     SECTION("default_table") {
         REQUIRE(debye_table.size_d() == d.size());
         REQUIRE(debye_table.size_q() == q.size());
