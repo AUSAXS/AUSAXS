@@ -68,7 +68,7 @@ TEST_CASE("PrecalculatedFormFactorProduct::table") {
 }
 
 TEST_CASE("ExvFormFactor: switch volumes") {
-    auto test = [] (const constants::displaced_volume::detail::DisplacedVolumeSet& vols) {
+    auto test = [] (const constants::exv::detail::ExvSet& vols) {
         SECTION("exv") {
             const auto& table = storage::exv::get_precalculated_form_factor_table();
             auto ffset = form_factor::detail::ExvFormFactorSet(vols);
@@ -101,32 +101,32 @@ TEST_CASE("ExvFormFactor: switch volumes") {
     };
 
     SECTION("Traube") {
-        settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::Traube;
-        test(constants::displaced_volume::Traube);
+        settings::molecule::exv_set = settings::molecule::ExvSet::Traube;
+        test(constants::exv::Traube);
     }
 
     SECTION("Voronoi_explicit_H") {
-        settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::Voronoi_explicit_H;
-        test(constants::displaced_volume::Voronoi_explicit_H);
+        settings::molecule::exv_set = settings::molecule::ExvSet::Voronoi_explicit_H;
+        test(constants::exv::Voronoi_explicit_H);
     }
 
     SECTION("Voronoi_implicit_H") {
-        settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::Voronoi_implicit_H;
-        test(constants::displaced_volume::Voronoi_implicit_H);
+        settings::molecule::exv_set = settings::molecule::ExvSet::Voronoi_implicit_H;
+        test(constants::exv::Voronoi_implicit_H);
     }
 
     SECTION("MinimumFluctutation_explicit_H") {
-        settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::MinimumFluctutation_explicit_H;
-        test(constants::displaced_volume::MinimumFluctuation_explicit_H);
+        settings::molecule::exv_set = settings::molecule::ExvSet::MinimumFluctutation_explicit_H;
+        test(constants::exv::MinimumFluctuation_explicit_H);
     }
 
     SECTION("MinimumFluctutation_implicit_H") {
-        settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::MinimumFluctutation_implicit_H;
-        test(constants::displaced_volume::MinimumFluctuation_implicit_H);
+        settings::molecule::exv_set = settings::molecule::ExvSet::MinimumFluctutation_implicit_H;
+        test(constants::exv::MinimumFluctuation_implicit_H);
     }
 
     SECTION("vdw") {
-        settings::molecule::displaced_volume_set = settings::molecule::DisplacedVolumeSet::vdw;
-        test(constants::displaced_volume::vdw);
+        settings::molecule::exv_set = settings::molecule::ExvSet::vdw;
+        test(constants::exv::vdw);
     }
 }

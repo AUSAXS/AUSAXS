@@ -6,7 +6,7 @@
 #include <constants/Constants.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorTable.h>
-#include <form_factor/DisplacedVolumeTable.h>
+#include <form_factor/ExvTable.h>
 #include <math/ConstexprMath.h>
 
 namespace ausaxs::form_factor {
@@ -43,12 +43,12 @@ namespace ausaxs::form_factor {
 
     namespace detail {
         struct ExvFormFactorSet {
-            constexpr ExvFormFactorSet(const constants::displaced_volume::detail::DisplacedVolumeSet& set) : 
+            constexpr ExvFormFactorSet(const constants::exv::detail::ExvSet& set) : 
                 H(set.H), C(set.C), CH(set.CH), CH2(set.CH2), CH3(set.CH3), 
                 N(set.N), NH(set.NH), NH2(set.NH2), NH3(set.NH3), 
                 O(set.O), OH(set.OH), 
                 S(set.S), SH(set.SH),
-                Ar(constants::displaced_volume::Ar)
+                Ar(constants::exv::Ar)
             {}
 
             constexpr ExvFormFactor get_form_factor(form_factor_t type) const {
@@ -81,6 +81,6 @@ namespace ausaxs::form_factor {
     }
 
     namespace storage::exv {
-        constexpr form_factor::detail::ExvFormFactorSet standard(constants::displaced_volume::standard);
+        constexpr form_factor::detail::ExvFormFactorSet standard(constants::exv::standard);
     }
 }

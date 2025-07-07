@@ -1,15 +1,12 @@
-// SPDX-License-Identifier: LGPL-3.0-or-later
-// Author: Kristian Lytje
-
 #pragma once
 
 #include <constants/ConstantsSI.h>
 #include <constants/vdwTable.h>
 #include <math/ConstexprMath.h>
 
-namespace ausaxs::constants::displaced_volume {
+namespace ausaxs::constants::exv {
     namespace detail {
-        struct DisplacedVolumeSet {
+        struct ExvSet {
             double H;
             double C, CH, CH2, CH3;
             double N, NH, NH2, NH3;
@@ -23,7 +20,7 @@ namespace ausaxs::constants::displaced_volume {
     }
 
     // from original CRYSOL paper, 1995: https://doi.org/10.1107/S0021889895007047
-    constexpr detail::DisplacedVolumeSet Traube {
+    constexpr detail::ExvSet Traube {
         .H   = 0.00515*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3),
         .C   = 0.01644*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
         .CH  = 0.02159*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
@@ -40,7 +37,7 @@ namespace ausaxs::constants::displaced_volume {
     };
 
     // table I, V^vor from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
-    constexpr detail::DisplacedVolumeSet Voronoi_implicit_H {
+    constexpr detail::ExvSet Voronoi_implicit_H {
         .H   = 0,
         .C   = 8.895,
         .CH  = 12.430,
@@ -57,7 +54,7 @@ namespace ausaxs::constants::displaced_volume {
     };
 
     // table I, V^mf from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
-    constexpr detail::DisplacedVolumeSet MinimumFluctuation_implicit_H {
+    constexpr detail::ExvSet MinimumFluctuation_implicit_H {
         .H   = 0,
         .C   = 12.352,
         .CH  = 11.640,
@@ -74,7 +71,7 @@ namespace ausaxs::constants::displaced_volume {
     };
 
     // table I, V^vor_H from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
-    constexpr detail::DisplacedVolumeSet Voronoi_explicit_H {
+    constexpr detail::ExvSet Voronoi_explicit_H {
         .H   = 12.958,
         .C   = 8.658,
         .CH  = 11.784,
@@ -91,7 +88,7 @@ namespace ausaxs::constants::displaced_volume {
     };
 
     // table I, V^mf_H from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
-    constexpr detail::DisplacedVolumeSet MinimumFluctuation_explicit_H {
+    constexpr detail::ExvSet MinimumFluctuation_explicit_H {
         .H   = 0.347,
         .C   = 12.734,
         .CH  = 11.399,
@@ -108,7 +105,7 @@ namespace ausaxs::constants::displaced_volume {
     };
 
     // based on the van der waals radii of each atom
-    constexpr detail::DisplacedVolumeSet vdw {
+    constexpr detail::ExvSet vdw {
         .H   = detail::volume(constants::radius::vdw::H),
         .C   = detail::volume(constants::radius::vdw::C),
         .CH  = detail::volume(constants::radius::vdw::C) + 1*detail::volume(constants::radius::vdw::H),
@@ -127,10 +124,10 @@ namespace ausaxs::constants::displaced_volume {
     /**
      * @brief Get the currently used displaced volume set as specified by the settings.
      */
-    detail::DisplacedVolumeSet get_displaced_volume_set();
+    detail::ExvSet get_exv_set();
 
     //! Remember to update settings::molecule::DisplacedVolumeSet::Default if this is changed
-    inline constexpr const detail::DisplacedVolumeSet& standard = MinimumFluctuation_implicit_H;
+    inline constexpr const detail::ExvSet& standard = MinimumFluctuation_implicit_H;
     constexpr double OH2 = 2.98*constexpr_math::pow(10., -23)*constexpr_math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = detail::volume(constants::radius::vdw::Ar);
 }

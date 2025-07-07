@@ -12,7 +12,7 @@ namespace ausaxs::settings {
         static bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
         static bool use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
 
-        enum class DisplacedVolumeSet {
+        enum class ExvSet {
             Traube,                         // Traube 1895 as used by CRYSOL, Pepsi-SAXS & FoXS
             Voronoi_implicit_H,             // Voronoi volume with implicit hydrogens from Schaefer et al.
             Voronoi_explicit_H,             // Voronoi volume with explicit hydrogens from Schaefer et al.
@@ -26,7 +26,7 @@ namespace ausaxs::settings {
             //! Remember to update constants::displaced_volume::standard if this is changed
             Default = MinimumFluctutation_implicit_H // Default displaced volume set
         };
-        static DisplacedVolumeSet displaced_volume_set;
+        static ExvSet exv_set;
     };
 
     struct EXPORT hydrate {

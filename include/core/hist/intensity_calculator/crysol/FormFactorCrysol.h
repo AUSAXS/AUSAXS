@@ -6,7 +6,7 @@
 #include <constants/Constants.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorTable.h>
-#include <form_factor/DisplacedVolumeTable.h>
+#include <form_factor/ExvTable.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
 #include <container/ArrayContainer2D.h>
@@ -43,20 +43,20 @@ namespace ausaxs::form_factor::crysol {
 
     namespace storage {
         struct exv {
-            inline static ExvFormFactorCrysol H  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.H);
-            inline static ExvFormFactorCrysol C  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.C);
-            inline static ExvFormFactorCrysol CH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.CH);
-            inline static ExvFormFactorCrysol CH2 = ExvFormFactorCrysol(constants::displaced_volume::Traube.CH2);
-            inline static ExvFormFactorCrysol CH3 = ExvFormFactorCrysol(constants::displaced_volume::Traube.CH3);
-            inline static ExvFormFactorCrysol N  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.N);
-            inline static ExvFormFactorCrysol NH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.NH);
-            inline static ExvFormFactorCrysol NH2 = ExvFormFactorCrysol(constants::displaced_volume::Traube.NH2);
-            inline static ExvFormFactorCrysol NH3 = ExvFormFactorCrysol(constants::displaced_volume::Traube.NH3);
-            inline static ExvFormFactorCrysol O  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.O);
-            inline static ExvFormFactorCrysol OH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.OH);
-            inline static ExvFormFactorCrysol S  =  ExvFormFactorCrysol(constants::displaced_volume::Traube.S);
-            inline static ExvFormFactorCrysol SH  = ExvFormFactorCrysol(constants::displaced_volume::Traube.SH);
-            inline static ExvFormFactorCrysol Ar =  ExvFormFactorCrysol(constants::displaced_volume::Ar);
+            inline static ExvFormFactorCrysol H  =  ExvFormFactorCrysol(constants::exv::Traube.H);
+            inline static ExvFormFactorCrysol C  =  ExvFormFactorCrysol(constants::exv::Traube.C);
+            inline static ExvFormFactorCrysol CH  = ExvFormFactorCrysol(constants::exv::Traube.CH);
+            inline static ExvFormFactorCrysol CH2 = ExvFormFactorCrysol(constants::exv::Traube.CH2);
+            inline static ExvFormFactorCrysol CH3 = ExvFormFactorCrysol(constants::exv::Traube.CH3);
+            inline static ExvFormFactorCrysol N  =  ExvFormFactorCrysol(constants::exv::Traube.N);
+            inline static ExvFormFactorCrysol NH  = ExvFormFactorCrysol(constants::exv::Traube.NH);
+            inline static ExvFormFactorCrysol NH2 = ExvFormFactorCrysol(constants::exv::Traube.NH2);
+            inline static ExvFormFactorCrysol NH3 = ExvFormFactorCrysol(constants::exv::Traube.NH3);
+            inline static ExvFormFactorCrysol O  =  ExvFormFactorCrysol(constants::exv::Traube.O);
+            inline static ExvFormFactorCrysol OH  = ExvFormFactorCrysol(constants::exv::Traube.OH);
+            inline static ExvFormFactorCrysol S  =  ExvFormFactorCrysol(constants::exv::Traube.S);
+            inline static ExvFormFactorCrysol SH  = ExvFormFactorCrysol(constants::exv::Traube.SH);
+            inline static ExvFormFactorCrysol Ar =  ExvFormFactorCrysol(constants::exv::Ar);
 
             inline static ExvFormFactorCrysol get_form_factor(form_factor_t type) {
                 switch(type) {
