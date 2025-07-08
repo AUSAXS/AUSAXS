@@ -9,7 +9,6 @@
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>
-#include <form_factor/DisplacedVolumeTable.h>
 #include <data/Molecule.h>
 #include <settings/ExvSettings.h>
 #include <settings/GeneralSettings.h>
@@ -193,20 +192,20 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
             0.0, 
             [] (double sum, unsigned int ff) {
                 switch (static_cast<form_factor::form_factor_t>(ff)) {
-                    case form_factor::form_factor_t::H: return constants::displaced_volume::standard.H + sum;
-                    case form_factor::form_factor_t::C: return constants::displaced_volume::standard.C + sum;
-                    case form_factor::form_factor_t::CH: return constants::displaced_volume::standard.C + sum;
-                    case form_factor::form_factor_t::CH2: return constants::displaced_volume::standard.C + sum;
-                    case form_factor::form_factor_t::CH3: return constants::displaced_volume::standard.C + sum;
-                    case form_factor::form_factor_t::N: return constants::displaced_volume::standard.N + sum;
-                    case form_factor::form_factor_t::NH: return constants::displaced_volume::standard.N + sum;
-                    case form_factor::form_factor_t::NH2: return constants::displaced_volume::standard.N + sum;
-                    case form_factor::form_factor_t::NH3: return constants::displaced_volume::standard.N + sum;
-                    case form_factor::form_factor_t::O: return constants::displaced_volume::standard.O + sum;
-                    case form_factor::form_factor_t::OH: return constants::displaced_volume::standard.O + sum;
-                    case form_factor::form_factor_t::S: return constants::displaced_volume::standard.S + sum;
-                    case form_factor::form_factor_t::SH: return constants::displaced_volume::standard.S + sum;
-                    default: return sum + constants::displaced_volume::standard.OH;
+                    case form_factor::form_factor_t::H: return constants::exv::standard.H + sum;
+                    case form_factor::form_factor_t::C: return constants::exv::standard.C + sum;
+                    case form_factor::form_factor_t::CH: return constants::exv::standard.C + sum;
+                    case form_factor::form_factor_t::CH2: return constants::exv::standard.C + sum;
+                    case form_factor::form_factor_t::CH3: return constants::exv::standard.C + sum;
+                    case form_factor::form_factor_t::N: return constants::exv::standard.N + sum;
+                    case form_factor::form_factor_t::NH: return constants::exv::standard.N + sum;
+                    case form_factor::form_factor_t::NH2: return constants::exv::standard.N + sum;
+                    case form_factor::form_factor_t::NH3: return constants::exv::standard.N + sum;
+                    case form_factor::form_factor_t::O: return constants::exv::standard.O + sum;
+                    case form_factor::form_factor_t::OH: return constants::exv::standard.O + sum;
+                    case form_factor::form_factor_t::S: return constants::exv::standard.S + sum;
+                    case form_factor::form_factor_t::SH: return constants::exv::standard.S + sum;
+                    default: return sum + constants::exv::standard.OH;
                 }
             }
         );

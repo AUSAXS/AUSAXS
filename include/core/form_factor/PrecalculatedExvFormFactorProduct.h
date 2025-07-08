@@ -45,5 +45,5 @@ namespace ausaxs::form_factor::storage::cross {
 }
 
 namespace ausaxs::form_factor::storage::detail {
-    void set_custom_displaced_volume_table(const constants::displaced_volume::detail::DisplacedVolumeSet& set);
+    void set_custom_exv_table(const constants::exv::detail::ExvSet& set);
 }
