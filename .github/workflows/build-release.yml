@@ -175,6 +175,10 @@ jobs:
         run: |
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
           find build/bin/scripts ! -name "plot*" -exec rm -rf {} +
+          mv build/bin/saxs_fitter_gui.app/contents/MacOS/saxs_fitter_gui build/bin/saxs_fitter_gui
+          mv build/bin/em_fitter_gui.app/contents/MacOS/em_fitter_gui build/bin/em_fitter_gui
+          rm -rf build/bin/saxs_fitter_gui.app
+          rm -rf build/bin/em_fitter_gui.app
 
       - name: Sign the artifacts
         env: 
@@ -196,12 +200,12 @@ jobs:
             security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PWD $KEYCHAIN_PATH
             security list-keychain -d user -s $KEYCHAIN_PATH
 
-            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/saxs_fitter build/bin/em_fitter build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
+            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/saxs_fitter build/bin/em_fitter build/bin/saxs_fitter_gui build/bin/em_fitter_gui
 
       - name: Notarize saxs_fitter_gui
         uses: lando/notarize-action@v2
         with: 
-          product-path: build/bin/saxs_fitter_gui.app
+          product-path: build/bin/saxs_fitter_gui
           primary-bundle-id: "com.ausaxs.saxs_fitter_gui"
           appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
           appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
@@ -211,20 +215,20 @@ jobs:
       - name: Notarize em_fitter_gui
         uses: lando/notarize-action@v2
         with: 
-          product-path: build/bin/em_fitter_gui.app
+          product-path: build/bin/em_fitter_gui
           primary-bundle-id: "com.ausaxs.em_fitter_gui"
           appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
           appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
           appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
           verbose: true
 
-      - name: Staple the notarization ticket
-        run: |
-          xcrun stapler staple build/bin/saxs_fitter_gui.app
-          xcrun stapler staple build/bin/em_fitter_gui.app
-          codesign -dv --verbose=4 build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
-          spctl -a -vv build/bin/saxs_fitter_gui.app
-          spctl -a -vv build/bin/em_fitter_gui.app
+      # - name: Staple the notarization ticket
+      #   run: |
+      #     xcrun stapler staple build/bin/saxs_fitter_gui.app
+      #     xcrun stapler staple build/bin/em_fitter_gui.app
+      #     codesign -dv --verbose=4 build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
+      #     spctl -a -vv build/bin/saxs_fitter_gui.app
+      #     spctl -a -vv build/bin/em_fitter_gui.app
 
       - uses: actions/upload-artifact@v4
         with:
