@@ -40,7 +40,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
     logging::log("SymmetryManagerMT::calculate: starting calculation");
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
+    auto calculator = distance_calculator::SimpleCalculator<use_weighted_distribution>::create();
 
     // start by generating the transformed data
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
@@ -52,9 +52,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
     for (int i_body1 = 0; i_body1 < static_cast<int>(protein->size_body()); ++i_body1) {
         const auto& body = protein->get_body(i_body1);
         const auto& body1_atomic = data[i_body1].atomic[0][0];
-        calculator.enqueue_calculate_self(body1_atomic, 1 + body.size_symmetry_total(), self_merge_id_aa);
+        calculator->enqueue_calculate_self(body1_atomic, 1 + body.size_symmetry_total(), self_merge_id_aa);
         if constexpr (contains_waters) {
-            calculator.enqueue_calculate_cross(waters, body1_atomic, 1, cross_merge_id_aw);
+            calculator->enqueue_calculate_cross(waters, body1_atomic, 1, cross_merge_id_aw);
         }
 
         for (int i_sym1 = 0; i_sym1 < static_cast<int>(body.size_symmetry()); ++i_sym1) {
@@ -71,27 +71,27 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
                 // if the symmetry is closed, AB3 == AB1
                 int scale = sym1.repetitions - i_repeat1;
                 if (i_repeat1 == 0 && closed) {scale += 1;}
-                calculator.enqueue_calculate_cross(body1_atomic, body1_sym_atomic, scale, cross_merge_id_aa);
+                calculator->enqueue_calculate_cross(body1_atomic, body1_sym_atomic, scale, cross_merge_id_aa);
             }
 
             for (int i_repeat1 = 0; i_repeat1 < sym1.repetitions; ++i_repeat1) {
                 const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
                 if constexpr (contains_waters) {
-                    calculator.enqueue_calculate_cross(waters, body1_sym_atomic, 1, cross_merge_id_aw);
+                    calculator->enqueue_calculate_cross(waters, body1_sym_atomic, 1, cross_merge_id_aw);
                 }
 
                 // external histograms with other bodies
                 for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
                     const auto& body2 = protein->get_body(j_body1);
                     const auto& body2_atomic = data[j_body1].atomic[0][0];
-                    calculator.enqueue_calculate_cross(body2_atomic, body1_sym_atomic, 1, cross_merge_id_aa);
+                    calculator->enqueue_calculate_cross(body2_atomic, body1_sym_atomic, 1, cross_merge_id_aa);
 
                     // external histograms with other symmetries in same body
                     for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
                         const auto& sym2 = body2.symmetry().get(j_sym1);
                         for (int j_repeat1 = 0; j_repeat1 < sym2.repetitions; ++j_repeat1) {
                             const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
-                            calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
+                            calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                         }
                     }
                 }
@@ -101,7 +101,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
                     const auto& sym2 = body.symmetry().get(i_sym2);
                     for (int i_repeat2 = 0; i_repeat2 < sym2.repetitions; ++i_repeat2) {
                         const auto& body2_sym_atomic = data[i_body1].atomic[1+i_sym2][i_repeat2];
-                        calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
+                        calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                     }
                 }
             }
@@ -111,23 +111,23 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
         for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
             const auto& body2 = protein->get_body(j_body1);
             const auto& body2_atomic = data[j_body1].atomic[0][0];
-            calculator.enqueue_calculate_cross(body1_atomic, body2_atomic, 1, cross_merge_id_aa);
+            calculator->enqueue_calculate_cross(body1_atomic, body2_atomic, 1, cross_merge_id_aa);
 
             // external histograms with other symmetries in same body
             for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
                 const auto& sym2 = body2.symmetry().get(j_sym1);
                 for (int j_repeat1 = 0; j_repeat1 < sym2.repetitions; ++j_repeat1) {
                     const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
-                    calculator.enqueue_calculate_cross(body1_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
+                    calculator->enqueue_calculate_cross(body1_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                 }
             }
         }
     }
     if constexpr (contains_waters) {
-        calculator.enqueue_calculate_self(waters, 1, self_merge_id_ww);
+        calculator->enqueue_calculate_self(waters, 1, self_merge_id_ww);
     }
 
-    auto res = calculator.run();
+    auto res = calculator->run();
     assert((contains_waters ? 2 : 1) == res.self.size() && "SymmetryManager::calculate: self size mismatch");
 
     GenericDistribution1D_t p_aa = std::move(res.self[self_merge_id_aa]);

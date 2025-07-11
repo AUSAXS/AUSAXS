@@ -78,7 +78,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     auto symmetry_modified = this->statemanager->get_symmetry_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
-    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<use_weighted_distribution>>();
+    auto calculator = distance_calculator::SimpleCalculator<use_weighted_distribution>::create();
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -150,7 +150,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
     // prepare a list of tasks to be run after the calculations are done
     // this way we avoid having to maintain two identical but separate loops for calculations and combining
-    using res_t = distance_calculator::SimpleCalculator<use_weighted_distribution>::run_result;
+    using res_t = distance_calculator::SimpleKernel<use_weighted_distribution>::run_result;
     std::list<std::function<void()>> combine_tasks;
     res_t res; // placeholder for future results
 
