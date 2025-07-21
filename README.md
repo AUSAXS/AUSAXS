@@ -1,18 +1,8 @@
 ![title_light](../media/title_dark.png?raw=true#gh-light-mode-only)
 ![title_dark](../media/title_light.png?raw=true#gh-dark-mode-only)
 
-<a href="https://github.com/AUSAXS/AUSAXS/releases/latest">
-  <img alt="Release shield"
-       src="https://img.shields.io/github/v/release/AUSAXS/AUSAXS"/>
-</a>
-<a href="https://github.com/AUSAXS/AUSAXS/actions/workflows/build-and-test.yml?query=branch%3Amaster">
-  <img alt="Latest build shield"
-       src="https://img.shields.io/github/actions/workflow/status/AUSAXS/AUSAXS/build-and-test.yml?branch=master"/>
-</a>
-<a href="https://scan.coverity.com/projects/ausaxs-ausaxs">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/30350/badge.svg"/>
-</a>
+[![release](https://img.shields.io/github/v/release/AUSAXS/AUSAXS)](https://github.com/AUSAXS/AUSAXS/releases/latest)
+[![coverity](https://scan.coverity.com/projects/30350/badge.svg)](https://scan.coverity.com/projects/ausaxs-ausaxs)
 
 # Main features
 - **Simple foundation**: We have implemented the methods in the simplest possible way, making as few assumptions about your data as possible. With the Debye equation as the basis for the scattering profiles, the only loss of accuracy is through the histogram approximation, where we support using both weighted and unweighted bins depending on your preferences. By implementing the technique in modern C++ with efficiency in mind, we have managed to achieve some of the [best performance available](https://github.com/klytje/AUSAXS/blob/media/benchmark.png).
@@ -31,7 +21,8 @@ Alternatively you can follow the [compilation guide](https://github.com/AUSAXS/A
 Are you encountering problems, have feedback or suggestions, or are you considering contributing to the project? Please check out the [contributor guidelines](CONTRIBUTING.md).  
 
 # References
-* AUSAXS: an open-source small-angle X-ray scattering profile calculator for high-resolution models of bio-macromolecules (accepted for publication, but not yet available.)
+* AUSAXS: an open-source small-angle X-ray scattering profile calculator for high-resolution models of bio-macromolecules  
+(doi: [10.1107/S160057672500562X](https://doi.org/10.1107/S160057672500562X))
 * Validation of electron-microscopy maps using solution small-angle X-ray scattering (doi: [10.1107/S2059798324005497](https://doi.org/10.1107/S2059798324005497))
 
 Another article documenting the rigidbody optimizer is currently under development. 
