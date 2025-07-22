@@ -21,7 +21,7 @@ Alternatively you can follow the [compilation guide](https://github.com/AUSAXS/A
 Are you encountering problems, have feedback or suggestions, or are you considering contributing to the project? Please check out the [contributor guidelines](CONTRIBUTING.md).  
 
 # References
-* AUSAXS: an open-source small-angle X-ray scattering profile calculator for high-resolution models of bio-macromolecules  
+* Small-angle X-ray scattering profile calculation for high-resolution models of biomacromolecules  
 (doi: [10.1107/S160057672500562X](https://doi.org/10.1107/S160057672500562X))
 * Validation of electron-microscopy maps using solution small-angle X-ray scattering (doi: [10.1107/S2059798324005497](https://doi.org/10.1107/S2059798324005497))
 
