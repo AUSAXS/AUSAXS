@@ -16,6 +16,7 @@
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
+#include <settings/GeneralSettings.h>
 
 #include <fstream>
 #include <unordered_map>
@@ -38,7 +39,8 @@ enum class rigidbody::sequencer::ElementType {
     EveryNStep,
     OnImprovement,
     Save,
-    RelativeHydration
+    RelativeHydration,
+    OutputFolder,
 };
 
 ElementType get_type(std::string_view line) {
@@ -57,7 +59,8 @@ ElementType get_type(std::string_view line) {
         {ElementType::EveryNStep, {"every", "for_every"}},
         {ElementType::OnImprovement, {"on_improvement"}},
         {ElementType::Save, {"save", "write"}},
-        {ElementType::RelativeHydration, {"relative_hydration"}}
+        {ElementType::RelativeHydration, {"relative_hydration"}},
+        {ElementType::OutputFolder, {"output", "output_folder"}}
     };
     for (const auto& [type, prefixes] : type_map) {
         for (const auto& prefix : prefixes) {
@@ -94,6 +97,7 @@ struct ParameterStrategyDefs {
     static inline std::string BOTH = "both";
     static inline std::string SYMMETRY_ONLY = "symmetry_only";
 };
+
 settings::rigidbody::ParameterGenerationStrategyChoice get_parameter_strategy(std::string_view line) {
     if (line == ParameterStrategyDefs::ROTATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}
     if (line == ParameterStrategyDefs::TRANSLATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly;}
@@ -231,6 +235,31 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
             body2.value,
             iatom1.value,
             iatom2.value
+        );
+    }
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OutputFolder>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    enum class Args {path, mode};
+    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
+        {Args::path, {"path", "folder", "anonymous"}},
+        {Args::mode, {"mode", "relative"}}
+    };
+    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"output_folder\": Missing required argument \"path\".");}
+    if (2 < args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"output_folder\": Too many arguments. Expected at most 2, but got " + std::to_string(args.size()) + ".");}
+
+    auto path = get_arg<std::string>(valid_args[Args::path], args);
+    auto mode = get_arg<std::string>(valid_args[Args::mode], args, "relative_terminal");
+    if (!path.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"output_folder\": Missing required argument \"path\".");}
+
+    if (mode.value == "relative" || mode.value == "relative_terminal") {
+        return std::make_unique<OutputFolderElement>(static_cast<Sequencer*>(loop_stack.front()), io::Folder(path.value), OutputFolderElement::Mode::RELATIVE_TERMINAL);
+    } else if (mode.value == "relative_config") {
+        return std::make_unique<OutputFolderElement>(static_cast<Sequencer*>(loop_stack.front()), io::Folder(path.value), OutputFolderElement::Mode::RELATIVE_CONFIG);
+    } else {
+        throw except::invalid_argument(
+            "SequenceParser::parse_arguments: \"output_folder\": Invalid argument for \"mode\": \"" + mode.value + "\". Expected one of {absolute, relative, relative_config}."
         );
     }
 }
@@ -463,7 +492,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OnI
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Save>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    return std::make_unique<SaveElement>(loop_stack.back(), args.begin()->second[0]);
+    return std::make_unique<SaveElement>(loop_stack.back(), settings::general::output + args.begin()->second[0]);
 }
 
 template<>
@@ -517,9 +546,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                 if (argline.empty()) {continue;}
                 auto sub_tokens = utility::split(argline, " \t\r\n");
 
-                // check for comment tokens 
+                // remove possible quotations & check for comment tokens 
                 int end = sub_tokens.size();
                 for (unsigned int i = 0; i < sub_tokens.size(); i++) {
+                    sub_tokens[i] = utility::remove_quotation_marks(sub_tokens[i]);
                     if (sub_tokens[i][0] == '#') {
                         end = i;
                         break;
@@ -535,19 +565,16 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
         // else check if we only have a single argument
         else if (tokens.size() == 2) {
             // allow for a single anonymous argument
-            args["anonymous"] = {tokens[1]};
+            args["anonymous"] = {utility::remove_quotation_marks(tokens[1])};
         }
 
-        std::cout << "continuing with element: " << std::endl;
-        for (const auto& t : tokens) {
-            std::cout << "\t\"" << t << "\"" << std::endl;
-        }
-        std::cout << "and arguments: " << std::endl; 
+        std::cout << tokens[0] << ":" << std::endl;
         for (const auto& [key, value] : args) {
-            std::cout << "\t\"" << key << "\"" << std::endl;
+            std::cout << "\t\"" << key << "\": ";
             for (const auto& v : value) {
-                std::cout << "\t\t\"" << v << "\"" << std::endl;
+                std::cout << v << "\" ";
             }
+            std::cout << std::endl;
         }
         switch (get_type(tokens[0])) {
             case ElementType::Constraint:
@@ -613,6 +640,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
             case ElementType::RelativeHydration:
                 loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::RelativeHydration>(args));
+                break;
+
+            case ElementType::OutputFolder:
+                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::OutputFolder>(args));
                 break;
 
             default:

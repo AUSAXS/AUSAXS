@@ -56,6 +56,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/elements/setup/RelativeHydrationElement.cpp"
 	"sequencer/elements/setup/SetupElement.cpp"
 	"sequencer/elements/setup/SymmetryElement.cpp"
+	"sequencer/elements/setup/OutputFolderElement.cpp"
 	
 	"transform/RigidTransform.cpp"
 	"transform/SingleTransform.cpp"
