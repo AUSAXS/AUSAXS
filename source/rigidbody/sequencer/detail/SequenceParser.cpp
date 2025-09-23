@@ -561,7 +561,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                 if (in.eof()) {throw except::io_error("SequenceParser::parse: Unescaped argument list starting in line \"" + line + "\".");}
             }
         } 
-        
+
         // else check if we only have a single argument
         else if (tokens.size() == 2) {
             // allow for a single anonymous argument
@@ -578,16 +578,16 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
         }
         switch (get_type(tokens[0])) {
             case ElementType::Constraint:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::Constraint>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Constraint>(args));
                 break;
 
             case ElementType::AutomaticConstraint:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::AutomaticConstraint>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::AutomaticConstraint>(args));
                 break;
 
             case ElementType::LoopBegin:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::LoopBegin>(args));
-                loop_stack.push_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::LoopBegin>(args));
+                loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
                 break;
 
             case ElementType::LoopEnd:
@@ -597,41 +597,41 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                 break;
 
             case ElementType::Parameter:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::Parameter>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Parameter>(args));
                 break;
 
             case ElementType::BodySelect:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::BodySelect>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::BodySelect>(args));
                 break;
 
             case ElementType::Transform:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::Transform>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Transform>(args));
                 break;
-            
+
             case ElementType::OptimizeStep:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::OptimizeStep>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::OptimizeStep>(args));
                 break;
 
             case ElementType::EveryNStep:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::EveryNStep>(args));
-                loop_stack.push_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::EveryNStep>(args));
+                loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
                 break;
 
             case ElementType::OnImprovement:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::OnImprovement>(args));
-                loop_stack.push_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::OnImprovement>(args));
+                loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
                 break;
 
             case ElementType::Save:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::Save>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Save>(args));
                 break;
 
             case ElementType::LoadElement:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::LoadElement>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::LoadElement>(args));
                 break;
 
             case ElementType::SymmetryElement:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::SymmetryElement>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::SymmetryElement>(args));
                 break;
 
             case ElementType::OverlapStrength:
@@ -639,11 +639,11 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                 break;
 
             case ElementType::RelativeHydration:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::RelativeHydration>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::RelativeHydration>(args));
                 break;
 
             case ElementType::OutputFolder:
-                loop_stack.back()->_get_elements().push_back(parse_arguments<ElementType::OutputFolder>(args));
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::OutputFolder>(args));
                 break;
 
             default:
