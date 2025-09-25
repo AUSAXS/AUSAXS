@@ -21,7 +21,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
     } else {
         auto rel_paths = paths;
         std::transform(paths.begin(), paths.end(), rel_paths.begin(), [this] (const std::string& path) {return lookup_file(path).first;});
-        rigidbody = std::make_unique<Rigidbody>(data::Molecule(paths));
+        rigidbody = std::make_unique<Rigidbody>(data::Molecule(rel_paths));
     }
 
     // add default names
@@ -114,6 +114,10 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
 }
 
+/**
+ * @brief Looks up a file relative to both the current working directory and the configuration file directory.
+ * @return A pair containing the resolved file path and a boolean indicating whether the file exists.
+ */
 std::pair<std::string, bool> LoadElement::lookup_file(const std::string& path) {
     io::File file(path);
     if (file.exists()) {return {file, true};}
