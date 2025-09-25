@@ -155,6 +155,9 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
+      - name: Install system package prerequisites
+        run: brew install autoconf autoconf-archive automake libtool
+
       - name: Install vcpkg dependencies
         uses: lukka/run-vcpkg@v11
         env:
