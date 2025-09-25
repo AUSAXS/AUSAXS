@@ -62,6 +62,18 @@ endif()
 ############################################
 include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+get_property(
+    compile_options
+    DIRECTORY
+    PROPERTY COMPILE_OPTIONS
+)
+
+set_property(
+    DIRECTORY
+    APPEND
+    PROPERTY COMPILE_OPTIONS -w
+)
+
 if (DLIB)
 	FetchContent_Declare(
 		dlib
@@ -104,6 +116,12 @@ FetchContent_Declare(
 	gcem
 	GIT_REPOSITORY https://github.com/klytje/gcem
 )
+
+set_property(
+    DIRECTORY
+    PROPERTY COMPILE_OPTIONS ${compile_options}
+)
+unset(compile_options)
 
 FetchContent_MakeAvailable(thread_pool GCEM backward)
 include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include ${backward_SOURCE_DIR})

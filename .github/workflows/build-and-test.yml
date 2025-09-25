@@ -49,6 +49,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install vcpkg dependencies
+        id: vcpkg
         env: 
           VCPKG_DEFAULT_TRIPLET: x64-windows-static
         uses: lukka/run-vcpkg@v11
@@ -71,8 +72,8 @@ jobs:
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
             -DARCH=x86-64 \
-            -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="x64-windows-static"
+            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
       - uses: actions/upload-artifact@v4
@@ -159,6 +160,7 @@ jobs:
         run: brew install autoconf autoconf-archive automake libtool
 
       - name: Install vcpkg dependencies
+        id: vcpkg
         uses: lukka/run-vcpkg@v11
         env:
           VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
@@ -176,9 +178,9 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.CXX }} \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" \
-            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
-            -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}"
+            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
+            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
         
       - name: Clean up GUI binary folders for upload
