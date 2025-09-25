@@ -53,6 +53,7 @@ jobs:
           VCPKG_DEFAULT_TRIPLET: x64-windows-static
         uses: lukka/run-vcpkg@v11
         with:
+          vcpkgCommitId: '2025.09.17'
           vcpkgJsonGlob: '.github/vcpkg.json'
           runVcpkgInstall: true
 
@@ -159,6 +160,7 @@ jobs:
         env:
           VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
         with:
+          vcpkgCommitId: '2025.09.17'
           vcpkgJsonGlob: '.github/vcpkg.json'
           runVcpkgInstall: true
 
