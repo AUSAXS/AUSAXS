@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
 #include <rigidbody/controller/MetropolisController.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>

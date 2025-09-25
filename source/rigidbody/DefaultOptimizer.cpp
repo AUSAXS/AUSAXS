@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
 #include <rigidbody/DefaultOptimizer.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/All.h>
