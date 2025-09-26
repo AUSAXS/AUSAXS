@@ -48,19 +48,11 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: actions/setup-python@v5
 
-      - uses: lukka/get-cmake@latest
-      - name: Install vcpkg dependencies
-        id: vcpkg
-        env: 
-          VCPKG_DEFAULT_TRIPLET: x64-windows-static
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
-          vcpkgJsonGlob: '.github/vcpkg.json'
-          runVcpkgInstall: true
-
-      - name: Install Python dependencies
-        run: pip install matplotlib numpy scipy pyinstaller
+      - name: Install dependencies (windows)
+        run: |
+          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
+          choco install ninja
+          pip install matplotlib numpy pyinstaller
 
       - name: Build the library
         shell: bash
@@ -73,10 +65,9 @@ jobs:
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
             -DARCH=x86-64 \
-            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\scripts\buildsystems\vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
+            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}\scripts\buildsystems\vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="x64-windows-static"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
-          grep -E 'CMAKE_TOOLCHAIN_FILE|VCPKG_' build/CMakeCache.txt || true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -158,19 +149,16 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
-      - name: Install system package prerequisites
-        run: brew install autoconf autoconf-archive automake libtool
-
-      - uses: lukka/get-cmake@latest
-      - name: Install vcpkg dependencies
+      - uses: lukka/get-cmake@latest            
+      - uses: lukka/run-vcpkg@v11
         id: vcpkg
-        uses: lukka/run-vcpkg@v11
-        env:
-          VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
         with:
-          vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
-          vcpkgJsonGlob: '.github/vcpkg.json'
-          runVcpkgInstall: true
+          vcpkgGitCommitId: 4334d8b4c8916018600212ab4dd4bbdc343065d1
+
+      - name: Install dependencies
+        run: |
+          brew install autoconf autoconf-archive automake libtool
+          vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
 
       - name: Build the library
         run: |
@@ -180,12 +168,10 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.CC }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.CXX }} \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" \
-            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
             -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
+            -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}" \
+            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
-          grep -E 'CMAKE_TOOLCHAIN_FILE|VCPKG_' build/CMakeCache.txt || true
         
       - name: Clean up GUI binary folders for upload
         run: |
