@@ -48,6 +48,7 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: actions/setup-python@v5
 
+      - uses: lukka/get-cmake@latest
       - name: Install vcpkg dependencies
         id: vcpkg
         env: 
@@ -72,9 +73,10 @@ jobs:
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
             -DARCH=x86-64 \
-            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\scripts\buildsystems\vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+          grep -E 'CMAKE_TOOLCHAIN_FILE|VCPKG_' build/CMakeCache.txt || true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -159,6 +161,7 @@ jobs:
       - name: Install system package prerequisites
         run: brew install autoconf autoconf-archive automake libtool
 
+      - uses: lukka/get-cmake@latest
       - name: Install vcpkg dependencies
         id: vcpkg
         uses: lukka/run-vcpkg@v11
@@ -182,6 +185,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+          grep -E 'CMAKE_TOOLCHAIN_FILE|VCPKG_' build/CMakeCache.txt || true
         
       - name: Clean up GUI binary folders for upload
         run: |
