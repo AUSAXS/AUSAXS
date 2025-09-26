@@ -71,7 +71,7 @@ get_property(
 set_property(
     DIRECTORY
     APPEND
-    PROPERTY COMPILE_OPTIONS -w
+    PROPERTY COMPILE_OPTIONS -w -Wno-missing-template-arg-list-after-template-kw
 )
 
 if (DLIB)
