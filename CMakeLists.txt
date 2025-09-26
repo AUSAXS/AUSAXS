@@ -28,7 +28,7 @@ if (WIN32)
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 	elseif (MINGW)
 		add_compile_options(
-			-Ofast -pipe -mavx
+			-O3 -ffast-math -pipe -mavx
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
@@ -38,7 +38,7 @@ if (WIN32)
 	endif()
 elseif (APPLE)
 	add_compile_options(
-		-Ofast -pipe
+		-O3 -ffast-math -pipe 
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
@@ -71,7 +71,7 @@ get_property(
 set_property(
     DIRECTORY
     APPEND
-    PROPERTY COMPILE_OPTIONS -w -Wno-missing-template-arg-list-after-template-kw
+    PROPERTY COMPILE_OPTIONS -w -Wno-error
 )
 
 if (DLIB)
