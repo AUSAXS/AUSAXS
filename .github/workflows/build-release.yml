@@ -8,7 +8,6 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   build-win: 
@@ -20,11 +19,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install dependencies (windows)
         run: |
@@ -136,39 +130,42 @@ jobs:
             CXX: clang++
             XCODE_VER: 15.0.1
 
-          - runner: macos-15
+          - runner: macos-14
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
-            CC: $(brew --prefix llvm@18)/bin/clang
-            CXX: $(brew --prefix llvm@18)/bin/clang++
-            XCODE_VER: 15.4
+            CC: clang
+            CXX: clang++
+            XCODE_VER: 15.0.1
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/github-script@v7
+      - uses: lukka/get-cmake@latest            
+      - uses: lukka/run-vcpkg@v11
+        id: vcpkg
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkgGitCommitId: 4334d8b4c8916018600212ab4dd4bbdc343065d1
 
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
       - name: Install dependencies
         run: |
-          brew install --quiet cmake curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
+          brew install autoconf autoconf-archive automake libtool
+          vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
 
       - name: Build the library
         run: |
           mkdir build
           cmake -B build -S . \
+          cmake -B build -S . \
             -DGUI=ON \
             -DCMAKE_C_COMPILER=${{ matrix.CC }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.CXX }} \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" \
-            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
+            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}" \
+            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
       - name: Clean up GUI binary folders for upload
