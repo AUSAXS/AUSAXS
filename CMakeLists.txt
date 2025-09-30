@@ -38,7 +38,7 @@ if (WIN32)
 	endif()
 elseif (APPLE)
 	add_compile_options(
-		-O3 -ffast-math -pipe 
+		-O3 -pipe 
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
