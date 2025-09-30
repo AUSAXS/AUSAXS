@@ -52,7 +52,7 @@ jobs:
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           choco install ninja
-          pip install matplotlib numpy pyinstaller
+          pip install matplotlib numpy scipy pyinstaller
 
       - name: Build the library
         shell: bash

@@ -158,7 +158,6 @@ jobs:
         run: |
           mkdir build
           cmake -B build -S . \
-          cmake -B build -S . \
             -DGUI=ON \
             -DCMAKE_C_COMPILER=${{ matrix.CC }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.CXX }} \
