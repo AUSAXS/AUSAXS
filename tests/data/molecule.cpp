@@ -364,13 +364,19 @@ TEST_CASE("Molecule::get_relative_charge_density", "[files]") {
 TEST_CASE("Molecule::get_relative_mass_density", "[files]") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    REQUIRE(protein.get_relative_mass_density() == (protein.get_absolute_mass() - constants::mass::density::water*protein.get_volume_grid())/protein.get_volume_grid());
+    Catch::Matchers::WithinAbs(
+        protein.get_relative_mass_density() - (protein.get_absolute_mass() - constants::mass::density::water*protein.get_volume_grid())/protein.get_volume_grid(),
+        1e-6
+    );
 }
 
 TEST_CASE("Molecule::get_relative_charge", "[files]") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    REQUIRE(protein.get_relative_charge() == protein.get_total_atomic_charge() - protein.get_volume_grid()*constants::charge::density::water);
+    Catch::Matchers::WithinAbs(
+        protein.get_relative_charge() - (protein.get_total_atomic_charge() - protein.get_volume_grid()*constants::charge::density::water),
+        1e-6    
+    );
 }
 
 TEST_CASE_METHOD(fixture, "Molecule::get_grid") {

@@ -8,7 +8,6 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   build-win: 
@@ -20,11 +19,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install dependencies (windows)
         run: |
@@ -136,28 +130,29 @@ jobs:
             CXX: clang++
             XCODE_VER: 15.0.1
 
-          - runner: macos-15
+          - runner: macos-14
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
-            CC: $(brew --prefix llvm@18)/bin/clang
-            CXX: $(brew --prefix llvm@18)/bin/clang++
-            XCODE_VER: 15.4
+            CC: clang
+            CXX: clang++
+            XCODE_VER: 15.0.1
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/github-script@v7
+      - uses: lukka/get-cmake@latest            
+      - uses: lukka/run-vcpkg@v11
+        id: vcpkg
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkgGitCommitId: 4334d8b4c8916018600212ab4dd4bbdc343065d1
 
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
       - name: Install dependencies
         run: |
-          brew install --quiet cmake curl pkg-config cairo fontconfig bzip2 expat zlib libpng webp
+          brew install autoconf autoconf-archive automake libtool
+          vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
 
       - name: Build the library
         run: |
@@ -167,14 +162,19 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.CC }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.CXX }} \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" \
-            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
+            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}" \
+            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
       - name: Clean up GUI binary folders for upload
         run: |
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
           find build/bin/scripts ! -name "plot*" -exec rm -rf {} +
+          mv build/bin/saxs_fitter_gui.app/contents/MacOS/saxs_fitter_gui build/bin/saxs_fitter_gui
+          mv build/bin/em_fitter_gui.app/contents/MacOS/em_fitter_gui build/bin/em_fitter_gui
+          rm -rf build/bin/saxs_fitter_gui.app
+          rm -rf build/bin/em_fitter_gui.app
 
       - name: Sign the artifacts
         env: 
@@ -196,12 +196,12 @@ jobs:
             security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PWD $KEYCHAIN_PATH
             security list-keychain -d user -s $KEYCHAIN_PATH
 
-            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/saxs_fitter build/bin/em_fitter build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
+            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/saxs_fitter build/bin/em_fitter build/bin/saxs_fitter_gui build/bin/em_fitter_gui
 
       - name: Notarize saxs_fitter_gui
         uses: lando/notarize-action@v2
         with: 
-          product-path: build/bin/saxs_fitter_gui.app
+          product-path: build/bin/saxs_fitter_gui
           primary-bundle-id: "com.ausaxs.saxs_fitter_gui"
           appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
           appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
@@ -211,20 +211,20 @@ jobs:
       - name: Notarize em_fitter_gui
         uses: lando/notarize-action@v2
         with: 
-          product-path: build/bin/em_fitter_gui.app
+          product-path: build/bin/em_fitter_gui
           primary-bundle-id: "com.ausaxs.em_fitter_gui"
           appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
           appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
           appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
           verbose: true
 
-      - name: Staple the notarization ticket
-        run: |
-          xcrun stapler staple build/bin/saxs_fitter_gui.app
-          xcrun stapler staple build/bin/em_fitter_gui.app
-          codesign -dv --verbose=4 build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
-          spctl -a -vv build/bin/saxs_fitter_gui.app
-          spctl -a -vv build/bin/em_fitter_gui.app
+      # - name: Staple the notarization ticket
+      #   run: |
+      #     xcrun stapler staple build/bin/saxs_fitter_gui.app
+      #     xcrun stapler staple build/bin/em_fitter_gui.app
+      #     codesign -dv --verbose=4 build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
+      #     spctl -a -vv build/bin/saxs_fitter_gui.app
+      #     spctl -a -vv build/bin/em_fitter_gui.app
 
       - uses: actions/upload-artifact@v4
         with:

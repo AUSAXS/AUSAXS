@@ -28,7 +28,7 @@ if (WIN32)
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 	elseif (MINGW)
 		add_compile_options(
-			-Ofast -pipe -mavx
+			-O3 -ffast-math -fno-finite-math-only -pipe -mavx
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
@@ -38,7 +38,7 @@ if (WIN32)
 	endif()
 elseif (APPLE)
 	add_compile_options(
-		-Ofast -pipe
+		-O3 -ffast-math -fno-finite-math-only -pipe 
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
@@ -48,7 +48,7 @@ elseif (APPLE)
 elseif (UNIX)
 #	add_compile_definitions("$<$<CONFIG:DEBUG>:_GLIBCXX_DEBUG>")
 	add_compile_options(
-		-Ofast -pipe -mavx
+		-Ofast -fno-finite-math-only -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
@@ -58,10 +58,30 @@ elseif (UNIX)
 endif()
 
 ############################################
+##      Temporary External Library Fixes ##
+############################################
+# TODO: Remove once dlib fixes the missing template argument issue
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "17.0")
+    add_compile_options(-Wno-error=missing-template-arg-list-after-template-kw)
+endif()
+
+############################################
 ##            Dependencies                ##
 ############################################
 include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+get_property(
+    compile_options
+    DIRECTORY
+    PROPERTY COMPILE_OPTIONS
+)
+
+set_property(
+    DIRECTORY
+    APPEND
+    PROPERTY COMPILE_OPTIONS -w
+)
+
 if (DLIB)
 	FetchContent_Declare(
 		dlib
@@ -104,6 +124,12 @@ FetchContent_Declare(
 	gcem
 	GIT_REPOSITORY https://github.com/klytje/gcem
 )
+
+set_property(
+    DIRECTORY
+    PROPERTY COMPILE_OPTIONS ${compile_options}
+)
+unset(compile_options)
 
 FetchContent_MakeAvailable(thread_pool GCEM backward)
 include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include ${backward_SOURCE_DIR})
