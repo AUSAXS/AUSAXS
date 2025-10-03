@@ -20,7 +20,7 @@ namespace ausaxs::rigidbody {
 
     namespace parameter {
     	class ParameterGenerationStrategy;
-        struct SymmetryParameter;
+        struct BodyTransformParameters;
     }
 
     namespace constraints {

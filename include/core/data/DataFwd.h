@@ -11,3 +11,5 @@ namespace ausaxs::data {
     class AtomFF;
     struct Water;
 }
+
+namespace ausaxs::symmetry { struct Symmetry; }

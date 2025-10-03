@@ -56,11 +56,11 @@ bool SimpleController::run_step() {
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = rigidbody->body_selector->next();
     if (iconstraint == -1) {    // transform free body
-        Parameter param = rigidbody->parameter_generator->next(ibody);
+        auto param = rigidbody->parameter_generator->next(ibody);
         rigidbody->transformer->apply(std::move(param), ibody);
     } else {                    // transform constrained body
         DistanceConstraint& constraint = rigidbody->constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
-        Parameter param = rigidbody->parameter_generator->next(ibody);
+        auto param = rigidbody->parameter_generator->next(ibody);
         rigidbody->transformer->apply(std::move(param), constraint);
     }
     molecule.generate_new_hydration(); 
