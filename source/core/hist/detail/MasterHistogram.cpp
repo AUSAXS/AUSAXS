@@ -10,7 +10,10 @@ template<bool use_weighted_distribution>
 MasterHistogram<use_weighted_distribution>::MasterHistogram() = default;
 
 template<bool use_weighted_distribution> 
-MasterHistogram<use_weighted_distribution>::MasterHistogram(const std::vector<double>& p_base, const Axis& axis) : GenericDistribution1D_t(p_base), base(std::move(p_base)), axis(axis) {}
+MasterHistogram<use_weighted_distribution>::MasterHistogram(std::vector<double>&& p_base, const Axis& axis) : GenericDistribution1D_t(p_base), base(std::move(p_base)), axis(axis) {}
+
+template<bool use_weighted_distribution> 
+MasterHistogram<use_weighted_distribution>::MasterHistogram(const std::vector<double>& p_base, const Axis& axis) : GenericDistribution1D_t(p_base), base(p_base), axis(axis) {}
 
 template<>
 MasterHistogram<true>& MasterHistogram<true>::operator+=(const GenericDistribution1D_t& rhs) {
