@@ -21,7 +21,7 @@ extern "C" API void test_integration(int* test_value);
  * This will initialize the fit process, converting the given data and PDB coordinates into a
  * dataset and a molecule, respectively. The fit will be performed in steps, allowing SasView to control the fitting process.
 */
-void iterative_fit_start(
+extern "C" API void iterative_fit_start(
     double* data_q, double* data_I, double* data_Ierr, int n_data,
     double* pdb_x,  double* pdb_y,  double* pdb_z, 
     const char** atom_names, const char** residue_names, const char** elements, 
@@ -31,13 +31,13 @@ void iterative_fit_start(
 /**
  * @brief Calculate the scattering intensity for the current parameters.
  */
-void iterative_fit_step(double* pars, double* return_I, int* return_status);
+extern "C" API void iterative_fit_step(double* pars, double* return_I, int* return_status);
 
 /**
  * @brief Finish the iterative fit process.
  *        This will return the final intensity, and write out the model to disk. 
  */
-void iterative_fit_finish(double* pars, double* return_I, int* return_status);
+extern "C" API void iterative_fit_finish(double* pars, double* return_I, int* return_status);
 
 /**
  * @brief Fit the scattering intensity for a structure to the given data.
