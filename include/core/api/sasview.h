@@ -16,16 +16,28 @@
 extern "C" API void test_integration(int* test_value);
 
 /**
- * @brief Fit the scattering intensity for a structure to the given data.
- *        The _pdb_type is the form factor type of the atoms in the structure; see FormFactorType.h for possible values.
- *        The return status will be non-zero if an error occurred.
- *        The resulting I(q) values will be stored in the given array.
- */
-extern "C" API void fit_saxs_future(
-    double* _data_q, double* _data_I, double* _data_Ierr, int _n_data,
-    double* _pdb_x,  double* _pdb_y,  double* _pdb_z,     int _pdb_type, int _n_pdb,
-    double* _return_I, int* _return_status
+ * @brief Start an iterative fit.
+ *
+ * This will initialize the fit process, converting the given data and PDB coordinates into a
+ * dataset and a molecule, respectively. The fit will be performed in steps, allowing SasView to control the fitting process.
+*/
+extern "C" API void iterative_fit_start(
+    double* data_q, double* data_I, double* data_Ierr, int n_data,
+    double* pdb_x,  double* pdb_y,  double* pdb_z, 
+    const char** atom_names, const char** residue_names, const char** elements, 
+    int n_pdb, int* return_status
 );
+
+/**
+ * @brief Calculate the scattering intensity for the current parameters.
+ */
+extern "C" API void iterative_fit_step(double* pars, double* return_I, int* return_status);
+
+/**
+ * @brief Finish the iterative fit process.
+ *        This will return the final intensity, and write out the model to disk. 
+ */
+extern "C" API void iterative_fit_finish(double* pars, double* return_I, int* return_status);
 
 /**
  * @brief Fit the scattering intensity for a structure to the given data.
