@@ -67,6 +67,7 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
         }
 
         case settings::exv::ExvMethod::CRYSOL: {
+            assert(m->size_atom() != 0 && "ExvVolume::get_volume_exv: Division by zero. The molecule has no atoms.");
             auto V = fraser_helper();
             return V*hist::CompositeDistanceHistogramCrysol::exv_factor(0, d, V/m->size_atom());
         }
