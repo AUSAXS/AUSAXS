@@ -7,7 +7,9 @@
 
 using namespace ausaxs;
 
-mini::Landscape::Landscape(const std::vector<Evaluation>& evals) : evals(std::move(evals)) {}
+mini::Landscape::Landscape(std::vector<Evaluation>&& evals) : evals(std::move(evals)) {}
+
+mini::Landscape::Landscape(const std::vector<Evaluation>& evals) : evals(evals) {}
 
 void mini::Landscape::append(const std::vector<Evaluation>& evals) {this->evals.insert(this->evals.end(), evals.begin(), evals.end());}
 
