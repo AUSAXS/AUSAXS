@@ -34,6 +34,13 @@ namespace ausaxs::hist::detail {
             MasterHistogram(const std::vector<double>& p_base, const Axis& axis);
 
             /**
+             * @brief Create a new Master Histogram. 
+             * @param p The current histogram. 
+             * @param p_base The constant, unchanging part of the histogram. 
+             */
+            MasterHistogram(std::vector<double>&& p_base, const Axis& axis);
+
+            /**
              * @brief Add a PartialHistogram to the MasterHistogram. 
              */
             MasterHistogram& operator+=(const GenericDistribution1D_t& rhs);

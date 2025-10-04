@@ -10,7 +10,7 @@ using namespace ausaxs::hist;
 CompositeDistanceHistogramFFGridScalableExv::CompositeDistanceHistogramFFGridScalableExv(
     CompositeDistanceHistogramFFGrid&& res, 
     std::function<std::unique_ptr<CompositeDistanceHistogramFFGrid>(double)> eval_scaled_exv
-) : CompositeDistanceHistogramFFGrid(std::move(res)), eval_scaled_exv(eval_scaled_exv) {}
+) : CompositeDistanceHistogramFFGrid(std::move(res)), eval_scaled_exv(std::move(eval_scaled_exv)) {}
 
 void CompositeDistanceHistogramFFGridScalableExv::apply_excluded_volume_scaling_factor(double k) {
     auto h = eval_scaled_exv(k);

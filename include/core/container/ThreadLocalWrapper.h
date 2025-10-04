@@ -6,11 +6,24 @@
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
 
+#include <type_traits>
+#include <utility>
+#include <thread>
 #include <vector>
 #include <functional>
 #include <unordered_map>
 
 namespace ausaxs::container {
+    template <typename X>
+    using base_t = std::remove_cvref_t<X>;
+
+    template <typename T, typename... Args>
+    concept ValueConstructible =
+        (!std::is_reference_v<T> && !std::is_pointer_v<T>) &&
+        std::constructible_from<T, base_t<Args>...> &&
+        (std::copy_constructible<base_t<Args>> && ...)
+    ;
+
     /**
      * @brief A simple wrapper around T to keep track of the thread-local instances of T.
      *        This allows access to all the thread-local data from any single thread.
@@ -20,7 +33,7 @@ namespace ausaxs::container {
      *        ? This is probably due to the threads owning the data no longer existing when this class is destroyed, combined with the FreeLibrary locking the system resources necessary for C++ to solve this. 
      */
     template <typename T>
-    class ThreadLocalWrapper {
+    class ThreadLocalWrapper {        
         public:
             /**
              * @brief Create a wrapper around T, and create a thread-local instance of T for each thread using the given arguments.
@@ -28,6 +41,7 @@ namespace ausaxs::container {
              * ! This constructor *must* be called from the main thread, otherwise it will not receive its own thread-local instance.
              */
             template <typename... Args>
+            requires ValueConstructible<T, Args...>
             ThreadLocalWrapper(Args&&... args) {
                 auto ids = utility::multi_threading::get_global_pool()->get_thread_ids();
                 for (auto& id : ids) {
@@ -62,6 +76,7 @@ namespace ausaxs::container {
              * @brief Reinitialize all thread-local instances of the wrapped type using the given arguments.
              */
             template <typename... Args>
+            requires ValueConstructible<T, Args...>
             void reinitialize_all(Args&&... args) {
                 for (auto& e : data) {
                     e.second = T(args...);
@@ -92,4 +107,9 @@ namespace ausaxs::container {
         private:
             std::unordered_map<std::thread::id, T> data;
     };
+
+    static_assert(!std::is_constructible<ThreadLocalWrapper<int&>>::value);
+    static_assert(!std::is_constructible<ThreadLocalWrapper<int*>>::value);    
+    static_assert(!std::is_constructible<ThreadLocalWrapper<const int&>>::value);
+    static_assert(!std::is_constructible<ThreadLocalWrapper<const int*>>::value);    
 }

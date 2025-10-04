@@ -134,8 +134,8 @@ inline std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::symmetry::S
     }
 
     // cast to the correct type for better performance
-    Matrix<Q> R_cast = R_final;
-    Vector3<Q> T_cast = T_final;
+    Matrix<Q> R_cast = std::move(R_final);
+    Vector3<Q> T_cast = std::move(T_final);
     return [R_cast=std::move(R_cast), T_cast=std::move(T_cast)](Vector3<Q> v) {
         return R_cast * v + T_cast;
     };
