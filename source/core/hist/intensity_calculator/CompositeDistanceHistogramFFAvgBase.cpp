@@ -75,11 +75,6 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::deby
 }
 
 template<typename FormFactorTableType>
-SimpleDataset CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::debye_transform(const std::vector<double>&) const {
-    throw except::not_implemented("CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>& q) const");
-}
-
-template<typename FormFactorTableType>
 const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_counts() const {
     p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);
     auto[aa, aw, ww] = cache_get_distance_profiles();

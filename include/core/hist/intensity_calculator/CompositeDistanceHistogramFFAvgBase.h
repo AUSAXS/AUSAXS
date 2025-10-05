@@ -64,7 +64,6 @@ namespace ausaxs::hist {
             virtual ~CompositeDistanceHistogramFFAvgBase() override;
 
             virtual ScatteringProfile debye_transform() const override;
-            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
             void apply_water_scaling_factor(double k) override;
             void apply_excluded_volume_scaling_factor(double k) override;
