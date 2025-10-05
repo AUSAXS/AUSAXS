@@ -79,6 +79,13 @@ inline ausaxs::hist::detail::CompactCoordinates::CompactCoordinates(std::vector<
     std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return CompactCoordinatesData(v, weight);});
 }
 
+inline ausaxs::hist::detail::CompactCoordinates::CompactCoordinates(const std::vector<data::Atom>& atoms) : data(atoms.size()) {
+    for (unsigned int i = 0; i < size(); ++i) {
+        const auto& a = atoms[i]; 
+        data[i] = CompactCoordinatesData(a.coordinates(), a.weight());
+    }
+}
+
 inline ausaxs::hist::detail::CompactCoordinates::CompactCoordinates(const std::vector<data::AtomFF>& atoms) : data(atoms.size()) {
     for (unsigned int i = 0; i < size(); ++i) {
         const auto& a = atoms[i]; 

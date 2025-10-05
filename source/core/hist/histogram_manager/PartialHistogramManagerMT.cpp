@@ -45,7 +45,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
     auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
-    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<use_weighted_distribution>>();
+    auto calculator = distance_calculator::SimpleCalculator<use_weighted_distribution>::create();
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
