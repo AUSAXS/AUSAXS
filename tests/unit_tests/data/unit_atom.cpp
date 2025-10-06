@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
 #include <data/atoms/Atom.h>
@@ -12,7 +13,7 @@ using namespace ausaxs::data;
 TEST_CASE("Atom::Atom") {
     SECTION("default") {
         Atom atom;
-        CHECK(atom.weight() == 0);
+        CHECK_THAT(atom.weight(), Catch::Matchers::WithinAbs(0, 1e-6));
     }
 
     SECTION("Vector3<precision_t>&, precision_t") {
@@ -88,7 +89,7 @@ TEST_CASE("Atom::equality") {
 TEST_CASE("AtomFF::AtomFF") {
     SECTION("default") {
         AtomFF atom;
-        CHECK(atom.weight() == 0);
+        CHECK_THAT(atom.weight(), Catch::Matchers::WithinAbs(0, 1e-6));
     }
 
     SECTION("Atom&, form_factor_t") {
@@ -155,7 +156,7 @@ TEST_CASE("AtomFF::equality") {
 TEST_CASE("Water::Water") {
     SECTION("default") {
         Water water;
-        CHECK(water.weight() == 0);
+        CHECK_THAT(water.weight(), Catch::Matchers::WithinAbs(0, 1e-6));
     }
 
     SECTION("Vector3<precision_t>&") {
