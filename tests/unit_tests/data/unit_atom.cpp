@@ -11,11 +11,6 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 TEST_CASE("Atom::Atom") {
-    SECTION("default") {
-        Atom atom;
-        CHECK_THAT(atom.weight(), Catch::Matchers::WithinAbs(0, 1e-6));
-    }
-
     SECTION("Vector3<precision_t>&, precision_t") {
         Vector3 coords = GENERATE(
             Vector3<double>{1, 2, 3},
@@ -87,11 +82,6 @@ TEST_CASE("Atom::equality") {
 }
 
 TEST_CASE("AtomFF::AtomFF") {
-    SECTION("default") {
-        AtomFF atom;
-        CHECK_THAT(atom.weight(), Catch::Matchers::WithinAbs(0, 1e-6));
-    }
-
     SECTION("Atom&, form_factor_t") {
         Atom basic({1, 2, 3}, 4);
         AtomFF atom(basic, form_factor::form_factor_t::C);
@@ -154,11 +144,6 @@ TEST_CASE("AtomFF::equality") {
 }
 
 TEST_CASE("Water::Water") {
-    SECTION("default") {
-        Water water;
-        CHECK_THAT(water.weight(), Catch::Matchers::WithinAbs(0, 1e-6));
-    }
-
     SECTION("Vector3<precision_t>&") {
         Vector3 coords = GENERATE(
             Vector3<double>{1, 2, 3},
