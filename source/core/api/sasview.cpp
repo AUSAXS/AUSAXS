@@ -9,7 +9,7 @@
 #include <data/Body.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/FitReporter.h>
 #include <constants/Constants.h>
@@ -75,6 +75,7 @@ void iterative_fit_start(
 
 void iterative_fit_step(double* pars, double* return_I, int* return_status) {
     std::cout << "AUSAXS: Starting method \"iterative_fit::step\"." << std::endl;
+    std::cout << "DEBUG VERSION!" << std::endl;
 
     // default state is error since we don't trust the input enough to assume success
     *return_status = 1;
@@ -87,8 +88,8 @@ void iterative_fit_step(double* pars, double* return_I, int* return_status) {
     double c = pars[0];
     double d = pars[1];
     hist->apply_water_scaling_factor(c);
-    static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(hist.get())->apply_excluded_volume_scaling_factor(d);
-    
+    static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(hist.get())->apply_excluded_volume_scaling_factor(d);
+
     *return_status = 4;
     auto I = hist->debye_transform(iterative_fit_state.data->x());
 
@@ -123,7 +124,7 @@ void fit_saxs(
 
     // use the multithreaded version of the simple histogram manager
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
-    settings::fit::fit_excluded_volume = true;
+    settings::fit::fit_excluded_volume = false;
 
     // set qmax as high as it can go
     settings::axes::qmax = 1;
@@ -160,7 +161,7 @@ void fit_saxs(
     fitter::SmartFitter fitter(std::move(data), protein.get_histogram());
     auto res = fitter.fit();
     fitter::FitReporter::report(res.get());
-    fitter::FitReporter::save(res.get(), "ausaxs_fit_result.txt");
+    fitter::FitReporter::save(res.get(), settings::general::output + "ausaxs_fit_result.txt");
 
     res->curves.select_columns({0, 1, 2, 3}).save(
         settings::general::output + "ausaxs.fit", 

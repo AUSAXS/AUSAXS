@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies (windows)
+      - name: Install dependencies
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           choco install ninja

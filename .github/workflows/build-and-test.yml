@@ -48,7 +48,7 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: actions/setup-python@v5
 
-      - name: Install dependencies (windows)
+      - name: Install dependencies
         run: |
           vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           choco install ninja

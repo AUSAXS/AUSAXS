@@ -60,7 +60,7 @@ namespace ausaxs::hist {
              *
              * @param q The q values at which to evaluate the scattering. 
              */
-            virtual SimpleDataset debye_transform(const std::vector<double>& q) const;
+            SimpleDataset debye_transform(const std::vector<double>& q) const;
 
             /**
              * @brief Get the distance axis describing the current histogram.
