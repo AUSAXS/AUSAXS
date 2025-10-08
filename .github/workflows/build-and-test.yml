@@ -55,6 +55,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Set up vcpkg nuget caching
+        shell: pwsh
         run: |
           .$(${{ env.VCPKG_EXE }} fetch nuget) `
             sources add `
@@ -170,6 +171,11 @@ jobs:
             # CC: $(brew --prefix llvm@18)/bin/clang
             # CXX: $(brew --prefix llvm@18)/bin/clang++
             XCODE_VER: 15.0.1
+    env:
+      USERNAME: AUSAXS
+      VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+      FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
 
     steps:
       - uses: actions/checkout@v4
@@ -181,6 +187,18 @@ jobs:
 
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
+
+      - name: Set up vcpkg nuget caching
+        run: |
+          "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget sources add \
+            -Source "${{ env.FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.GITHUB_TOKEN }}"
+          "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -Source "${{ env.FEED_URL }}"
 
       - name: Install dependencies
         run: |
