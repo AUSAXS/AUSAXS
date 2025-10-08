@@ -69,7 +69,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
+          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static --debug
           choco install ninja
           pip install matplotlib numpy scipy pyinstaller
 
@@ -193,7 +193,6 @@ jobs:
       - name: Set up vcpkg nuget caching (x86_64)
         if: matrix.arch == 'x86_64'
         run: |
-          brew install mono
           nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
           mono "$nuget" sources add \
             -Source "${{ env.FEED_URL }}" \
@@ -207,7 +206,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install autoconf autoconf-archive automake libtool
-          vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
+          vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }} --debug
 
       - name: Build the library
         run: |
