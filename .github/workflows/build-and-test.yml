@@ -177,7 +177,8 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
-      - name: Set up vcpkg nuget caching
+      - name: Set up vcpkg nuget caching (arm64)
+        if: matrix.arch == 'arm64'
         run: |
           nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
           "$nuget" sources add \
@@ -187,6 +188,20 @@ jobs:
             -UserName "${{ env.USERNAME }}" \
             -Password "${{ secrets.GITHUB_TOKEN }}"
           "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -Source "${{ env.FEED_URL }}"
+
+      - name: Set up vcpkg nuget caching (x86_64)
+        if: matrix.arch == 'x86_64'
+        run: |
+          brew install mono
+          nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
+          mono "$nuget" sources add \
+            -Source "${{ env.FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.GITHUB_TOKEN }}"
+          mono "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.FEED_URL }}"
 
       - name: Install dependencies
@@ -206,7 +221,7 @@ jobs:
             -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}" \
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
-        
+
       - name: Clean up GUI binary folders for upload
         run: |
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
