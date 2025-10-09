@@ -206,6 +206,8 @@ jobs:
             -Source "${{ env.FEED_URL }}"
   
       - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
 
       - name: Install dependencies
         run: |
