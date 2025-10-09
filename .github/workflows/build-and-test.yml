@@ -204,10 +204,12 @@ jobs:
             -Password "${{ secrets.PACKAGEACCESS }}"
           mono "$nuget" setapikey "${{ secrets.PACKAGEACCESS }}" \
             -Source "${{ env.FEED_URL }}"
+  
+      - uses: actions/setup-dotnet@v5
 
       - name: Install dependencies
         run: |
-          brew install autoconf autoconf-archive automake libtool mono
+          brew install autoconf autoconf-archive automake libtool
           ${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
 
       - name: Build the library
