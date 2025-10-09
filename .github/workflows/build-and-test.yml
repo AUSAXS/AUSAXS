@@ -208,7 +208,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install autoconf autoconf-archive automake libtool
-          vcpkg --debug install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
+          ${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
 
       - name: Build the library
         run: |
