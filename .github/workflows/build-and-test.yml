@@ -3,13 +3,14 @@ name: Compile & test
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches: [master, v1.1.2]
+    branches: [master]
 
 permissions:
   checks: write
+  packages: write
 
 env:
-  BUILD_TYPE: Release 
+  BUILD_TYPE: Release
 
 jobs:
   check-draft:
@@ -43,10 +44,29 @@ jobs:
     name: "Windows MSVC"
     needs: check-headers
     runs-on: windows-latest
+    env:
+      USERNAME: AUSAXS
+      FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
+
     steps:
       - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: actions/setup-python@v5
+
+      - name: Set up vcpkg nuget caching
+        shell: pwsh
+        run: |
+          .$(vcpkg fetch nuget) `
+            sources add `
+            -Source "${{ env.FEED_URL }}" `
+            -StorePasswordInClearText `
+            -Name GitHubPackages `
+            -UserName "${{ env.USERNAME }}" `
+            -Password "${{ secrets.PACKAGEACCESS }}"
+          .$(vcpkg fetch nuget) `
+          setapikey "${{ secrets.PACKAGEACCESS }}" `
+          -Source "${{ env.FEED_URL }}"
 
       - name: Install dependencies
         run: |
@@ -85,7 +105,7 @@ jobs:
       - name: Install dependencies
         run: | 
           brew install --quiet curl
-          
+
       - name: Build the library
         shell: bash
         run: |
@@ -142,6 +162,10 @@ jobs:
             # CC: $(brew --prefix llvm@18)/bin/clang
             # CXX: $(brew --prefix llvm@18)/bin/clang++
             XCODE_VER: 15.0.1
+    env:
+      USERNAME: AUSAXS
+      FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
 
     steps:
       - uses: actions/checkout@v4
@@ -154,10 +178,36 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
+      - name: Set up vcpkg nuget caching (arm64)
+        if: matrix.arch == 'arm64'
+        run: |
+          nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
+          "$nuget" sources add \
+            -Source "${{ env.FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.PACKAGEACCESS }}"
+          "$nuget" setapikey "${{ secrets.PACKAGEACCESS }}" \
+            -Source "${{ env.FEED_URL }}"
+
+      - name: Set up vcpkg nuget caching (x86_64)
+        if: matrix.arch == 'x86_64'
+        run: |
+          nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
+          mono "$nuget" sources add \
+            -Source "${{ env.FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.PACKAGEACCESS }}"
+          mono "$nuget" setapikey "${{ secrets.PACKAGEACCESS }}" \
+            -Source "${{ env.FEED_URL }}"
+  
       - name: Install dependencies
         run: |
           brew install autoconf autoconf-archive automake libtool
-          vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
+          ${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
 
       - name: Build the library
         run: |
@@ -171,7 +221,7 @@ jobs:
             -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}" \
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
-        
+
       - name: Clean up GUI binary folders for upload
         run: |
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
