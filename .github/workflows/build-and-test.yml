@@ -48,7 +48,6 @@ jobs:
       USERNAME: AUSAXS
       FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
-      VCPKG_ROOT: ""
 
     steps:
       - uses: actions/checkout@v4
@@ -71,7 +70,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static --debug
+          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
           choco install ninja
           pip install matplotlib numpy scipy pyinstaller
 
