@@ -75,7 +75,6 @@ void iterative_fit_start(
 
 void iterative_fit_step(double* pars, double* return_I, int* return_status) {
     std::cout << "AUSAXS: Starting method \"iterative_fit::step\"." << std::endl;
-    std::cout << "DEBUG VERSION!" << std::endl;
 
     // default state is error since we don't trust the input enough to assume success
     *return_status = 1;
