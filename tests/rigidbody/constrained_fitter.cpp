@@ -1,12 +1,11 @@
-#include "rigidbody/constraints/DistanceConstraint.h"
-#include "settings/RigidBodySettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
 #include <hist//intensity_calculator/ICompositeDistanceHistogram.h>
 #include <fitter/SmartFitter.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <math/Vector3.h>
 #include <data/Body.h>
 #include <settings/All.h>
@@ -35,27 +34,24 @@ struct fixture {
 TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    RigidBody protein(ap);
+    Rigidbody protein(Molecule{ap});
 
-    fitter::ConstrainedFitter<fitter::SmartFitter> fitter(SimpleDataset("tests/files/2epe.dat"), protein.get_histogram());
-    CHECK(fitter.get_constraint_manager() == nullptr);
-    fitter.set_constraint_manager(protein.get_constraint_manager());
-    CHECK(fitter.get_constraint_manager() == protein.get_constraint_manager().get());
+    fitter::ConstrainedFitter fitter(protein.constraints.get(), SimpleDataset("tests/files/2epe.dat"), protein.molecule.get_histogram());
+    CHECK(fitter.constraints == protein.constraints.get());
 }
 
 TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None; // make sure there's no other distance constraints
-    RigidBody protein(ap);
+    Rigidbody protein(Molecule{ap});
 
-    fitter::ConstrainedFitter<fitter::SmartFitter> fitter(SimpleDataset("tests/files/2epe.dat"), protein.get_histogram());
-    fitter.set_constraint_manager(protein.get_constraint_manager());
+    fitter::ConstrainedFitter fitter(protein.constraints.get(), SimpleDataset("tests/files/2epe.dat"), protein.molecule.get_histogram());
     double chi2 = fitter.fit()->fval;
 
-    constraints::DistanceConstraint constraint(&protein, a1, a3);
-    protein.get_body(0).translate(Vector3<double>(-1, 0, 0));
-    fitter.get_constraint_manager()->add_constraint(std::move(constraint));
+    constraints::DistanceConstraint constraint(&protein.molecule, a1, a3);
+    protein.molecule.get_body(0).translate(Vector3<double>(-1, 0, 0));
+    fitter.constraints->add_constraint(std::move(constraint));
     double chi2c = fitter.fit()->fval;
 
     CHECK(constraint.evaluate() > 0);

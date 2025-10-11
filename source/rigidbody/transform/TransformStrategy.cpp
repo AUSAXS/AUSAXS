@@ -5,7 +5,8 @@
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/parameters/Parameter.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
 
@@ -13,14 +14,14 @@
 
 using namespace ausaxs::rigidbody::transform;
 
-TransformStrategy::TransformStrategy(observer_ptr<RigidBody> rigidbody) : rigidbody(rigidbody) {}
+TransformStrategy::TransformStrategy(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody) {}
 
 TransformStrategy::~TransformStrategy() = default;
 
 void TransformStrategy::rotate(const Matrix<double>& M, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (data::Body* body) {body->translate(-group.pivot);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]     (data::Body* body) {body->rotate(M);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (data::Body* body) {body->translate(group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (observer_ptr<data::Body> body) {body->translate(-group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]     (observer_ptr<data::Body> body) {body->rotate(M);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (observer_ptr<data::Body> body) {body->translate(group.pivot);});
 }
 
 void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& group) {
@@ -28,9 +29,9 @@ void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& grou
 }
 
 void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group]     (data::Body* body) {body->translate(-group.pivot);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]         (data::Body* body) {body->rotate(M);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (data::Body* body) {body->translate(group.pivot+t);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group]     (observer_ptr<data::Body> body) {body->translate(-group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]         (observer_ptr<data::Body> body) {body->rotate(M);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (observer_ptr<data::Body> body) {body->translate(group.pivot+t);});
 }
 
 void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParameter>&& symmetry_pars, data::Body& body) {
@@ -43,29 +44,43 @@ void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParam
 }
 
 void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
-    auto& body = rigidbody->get_body(ibody);
+    auto grid = rigidbody->molecule.get_grid();
 
-    bodybackup.clear();
-    bodybackup.emplace_back(body, ibody);
+    {   // remove old body
+        auto& body = rigidbody->molecule.get_body(ibody);
 
-    auto grid = rigidbody->get_grid();
-    grid->remove(body);
+        bodybackup.clear();
+        bodybackup.emplace_back(body, ibody); //! std::move
 
-    // translate & rotate
-    auto cm = body.get_cm();
-    body.translate(-cm);
-    body.rotate(matrix::rotation_matrix(par.rotation));
-    body.translate(cm + par.translation);
+        grid->remove(body);
+    }
 
-    // update symmetry parameters
-    symmetry(std::move(par.symmetry_pars), body);
+    {   // get fresh body and apply absolute transformation
+        assert(ibody < rigidbody->conformation->original_conformation.size() && "ibody out of bounds");
+        auto body = rigidbody->conformation->original_conformation[ibody];
 
-    grid->add(body);
+        // translate & rotate
+        assert(body.get_cm() == Vector3<double>(0, 0, 0) && "Body is supposed to always be at the origin.");
+        body.rotate(matrix::rotation_matrix(par.rotation));
+        body.translate(par.translation);
+
+        // update symmetry parameters
+        symmetry(std::move(par.symmetry_pars), body);
+
+        // update the conformation
+        rigidbody->molecule.get_body(ibody) = std::move(body);
+
+        // ensure there is space for the new conformation in the grid
+        rigidbody->refresh_grid();
+    }
+
+    // finally, re-add the body to the grid
+    grid->add(rigidbody->molecule.get_body(ibody));
 }
 
 void TransformStrategy::undo() {
     for (auto& body : bodybackup) {
-        rigidbody->get_body(body.index) = std::move(body.body);
+        rigidbody->molecule.get_body(body.index) = std::move(body.body);
     }
     bodybackup.clear();
 }

@@ -19,30 +19,6 @@ namespace ausaxs::hist {
 	 */
     template<bool use_weighted_distribution> 
 	class PartialSymmetryManagerMT : public IPartialHistogramManager {
-		using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-		using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<use_weighted_distribution>>;
-
-		template<typename T> using BodyIndexer2D = typename container::Container2D<T>;
-		template<typename T> using BodyIndexer1D = typename container::Container1D<T>;
-
-		// 2D symmetry indexer to be stored within a BodyIndexer2D
-		template<typename T> struct SymmetryIndexer2D {
-			SymmetryIndexer2D() = default;
-			SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::forward<T>(value))) {}
-			SymmetryIndexer2D(int size_x, int size_y, T&& value) : data(size_x, std::vector<T>(size_y, std::forward<T>(value))) {}
-			T& index(int isym1, int isym2) {return data[isym1][isym2];}
-			std::vector<std::vector<T>> data;
-		}; 
-
-		// 1D symmetry indexer to be stored within a BodyIndexer1D
-		template<typename T> struct SymmetryIndexer1D {
-			SymmetryIndexer1D() = default;
-			SymmetryIndexer1D(int size, T&& value) : data(size, std::forward<T>(value)) {}
-			template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
-			T& index(int isym) {return data[isym];}
-			std::vector<T> data;
-		};
-
 		public:
 			PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein);
 			virtual ~PartialSymmetryManagerMT() override;
@@ -58,6 +34,36 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		private:
+			using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
+			using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<use_weighted_distribution>>;
+			template<typename T> using BodyIndexer2D = typename container::Container2D<T>;
+			template<typename T> using BodyIndexer1D = typename container::Container1D<T>;
+
+			// 2D symmetry indexer to be stored within a BodyIndexer2D
+			template<typename T> struct SymmetryIndexer2D {
+				SymmetryIndexer2D() = default;
+				SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::forward<T>(value))) {}
+				SymmetryIndexer2D(int size_x, int size_y, T&& value) : data(size_x, std::vector<T>(size_y, std::forward<T>(value))) {}
+				T& index(int isym1, int isym2) {return data[isym1][isym2];}
+				std::vector<std::vector<T>> data;
+			}; 
+
+			// 1D symmetry indexer to be stored within a BodyIndexer1D
+			template<typename T> struct SymmetryIndexer1D {
+				SymmetryIndexer1D() = default;
+				SymmetryIndexer1D(int size, T&& value) : data(size, std::forward<T>(value)) {}
+				template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
+				T& index(int isym) {return data[isym];}
+				std::vector<T> data;
+			};
+
+			struct { // cache for early return
+				GenericDistribution1D_t p_aa;
+				GenericDistribution1D_t p_aw;
+				GenericDistribution1D_t p_ww;
+				GenericDistribution1D_t p_tot;
+			} cache;
+
 			observer_ptr<const data::Molecule> protein;					// the molecule we are calculating the histogram for
             detail::MasterHistogram<use_weighted_distribution> master;	// the current total histogram
 			std::vector<symmetry::detail::BodySymmetryData> coords;		// a compact representation of the relevant data from the managed bodies

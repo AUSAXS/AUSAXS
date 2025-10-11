@@ -4,10 +4,10 @@
 #pragma once
 
 #include <crystal/miller/MillerGenerationStrategy.h>
+#include <settings/CrystalSettings.h>
 
 #include <memory>
 
-namespace ausaxs::settings::crystal {enum class MillerGenerationChoice;}
 namespace ausaxs::crystal {
     namespace factory {
         /**

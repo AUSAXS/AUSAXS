@@ -4,12 +4,14 @@
 #pragma once
 
 #include <rigidbody/constraints/Constraint.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <utility/observer_ptr.h>
 #include <data/DataFwd.h>
 
-namespace ausaxs::rigidbody::constraints {
+#include <functional>
+#include <vector>
+#include <cmath>
 
+namespace ausaxs::rigidbody::constraints {
     /**
      * @brief Overlap constraint. 
      * 
@@ -19,7 +21,7 @@ namespace ausaxs::rigidbody::constraints {
      */
     class OverlapConstraint : public Constraint {
         public:
-            OverlapConstraint(data::Molecule* protein);
+            OverlapConstraint(observer_ptr<const data::Molecule> molecule);
 
             virtual ~OverlapConstraint() override;
 
@@ -39,7 +41,7 @@ namespace ausaxs::rigidbody::constraints {
 
         private: 
             inline static std::function<double(double)> overlap_function = [](double r) {return std::exp(-5*r);};
-            observer_ptr<data::Molecule> protein;
+            observer_ptr<const data::Molecule> molecule;
             std::vector<double> target;
             std::vector<double> weights;
             std::vector<double> axis;

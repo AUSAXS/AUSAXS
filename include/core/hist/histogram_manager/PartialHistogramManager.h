@@ -32,7 +32,6 @@ namespace ausaxs::hist {
 	 */
     template<bool use_weighted_distribution> 
 	class PartialHistogramManager : public IPartialHistogramManager {
-	    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
 		public:
 			PartialHistogramManager(observer_ptr<const data::Molecule> protein); 
 			virtual ~PartialHistogramManager() override;
@@ -57,6 +56,14 @@ namespace ausaxs::hist {
 			detail::HydrationHistogram<use_weighted_distribution> partials_ww;               			// the partial histogram for the hydration layer
 
 		private:
+		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
+			struct { // cache for early return
+				Distribution1D p_aa;
+				Distribution1D p_aw;
+				Distribution1D p_ww;
+				GenericDistribution1D_t p_tot;
+			} cache;
+
 			/**
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
 			 *        They are unaffected by both rotations and translations, and so we precalculate them. 

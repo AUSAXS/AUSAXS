@@ -73,6 +73,12 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
 template<bool use_weighted_distribution> template<bool hydration_enabled>
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::_calculate() {
+    if (!this->statemanager->is_modified() && !cache.p_tot.empty()) {
+        logging::log("PartialSymmetryManagerMT::calculate: returning cached value");
+        auto p_tot = cache.p_tot; // if the state was not modified, we can return the cached value
+        return std::make_unique<DistanceHistogram>(std::move(p_tot));
+    }
+
     auto externally_modified = this->statemanager->get_externally_modified_bodies();
     auto internally_modified = this->statemanager->get_internally_modified_bodies();
     auto symmetry_modified = this->statemanager->get_symmetry_modified_bodies();
@@ -371,6 +377,9 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     }
     p_tot.resize(max_bin);
 
+    // update cache
+    cache.p_tot = p_tot;
+
     return std::make_unique<DistanceHistogram>(std::move(p_tot));
 }
 
@@ -399,6 +408,32 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_represe
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::calculate_all() {
+    if (
+        !this->statemanager->is_modified() 
+        && !cache.p_tot.empty() && !cache.p_aa.empty() && !cache.p_aw.empty() && !cache.p_ww.empty()
+    ) {
+        logging::log("PartialSymmetryManagerMT::calculate_all: returning cached value");
+        auto p_tot = cache.p_tot; // if the state was not modified, we can return the cached value
+        auto p_aa = cache.p_aa;
+        auto p_aw = cache.p_aw;
+        auto p_ww = cache.p_ww;
+        if constexpr (use_weighted_distribution) {
+            return std::make_unique<CompositeDistanceHistogram>(
+                std::move(Distribution1D(std::move(p_aa))), 
+                std::move(Distribution1D(std::move(p_aw))), 
+                std::move(Distribution1D(std::move(p_ww))), 
+                std::move(p_tot)
+            );
+        } else {
+            return std::make_unique<CompositeDistanceHistogram>(
+                std::move(p_aa), 
+                std::move(p_aw), 
+                std::move(p_ww), 
+                std::move(p_tot)
+            );
+        }
+    }
+
     auto total = calculate();
     int bins = total->get_total_counts().size();
 

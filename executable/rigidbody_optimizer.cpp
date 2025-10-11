@@ -5,29 +5,30 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/BodySplitter.h>
-#include <fitter/FitReporter.h>
-#include <fitter/SmartFitter.h>
+#include <rigidbody/DefaultOptimizer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <fitter/FitReporter.h>
+#include <fitter/SmartFitter.h>
 #include <constants/Constants.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 #include <io/File.h>
 #include <plots/All.h>
 #include <settings/All.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/All.h>
 
 #include <vector>
 #include <string>
 
 using namespace ausaxs;
 
+void add_calibration(rigidbody::Rigidbody& rigidbody, const io::ExistingFile& mfile);
 int main(int argc, char const *argv[]) { 
     settings::grid::scaling = 2;
     settings::grid::cubic = true;
-    settings::grid::min_bins = 1000;
     settings::general::verbose = true;
 
     CLI::App app{"Rigid-body optimization."};
@@ -53,6 +54,8 @@ int main(int argc, char const *argv[]) {
 
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::molecule::implicit_hydrogens = false;
+    settings::flags::init_histogram_manager = false;
+    logging::start("rigidbody");
 
     //###################//
     //### PARSE INPUT ###//
@@ -79,46 +82,15 @@ int main(int argc, char const *argv[]) {
             }
         }
         if (settings::rigidbody::detail::constraints.empty()) {
-            throw except::missing_option("rigidbody: Constraints must be supplied. Use --constraints to specify them.");
+            throw except::missing_option("Constraints must be supplied. Use --constraints to specify them.");
         }
-
         settings::validate_settings();
-        rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split(pdb, settings::rigidbody::detail::constraints);
 
-        if (p_cal->count() != 0) {
-            if (settings::rigidbody::detail::calibration_file.empty()) {
-                // look for calibration file in the same directory as the measurement file
-                for (const auto& f : mfile.directory().files()) {
-                    if (constants::filetypes::saxs_data.check(f)) {
-                        settings::rigidbody::detail::calibration_file = f.path();
-                        std::cout << "\tUsing calibration file: \"" << f.path() << "\"" << std::endl;
-                        break;
-                    }
-                }
-            }
-            if (settings::rigidbody::detail::calibration_file.empty()) {
-                throw except::missing_option("rigidbody: Default calibration file not found. Use --calibrate <path> to specify it.");
-            }
-
-            settings::general::output += "calibrated/";
-            rigidbody.generate_new_hydration();
-            fitter::SmartFitter fitter({settings::rigidbody::detail::calibration_file}, rigidbody.get_histogram());
-            auto res = fitter.fit();
-            if (settings::general::verbose) {
-                std::cout << "Calibration results:" << std::endl;
-                fitter::FitReporter::report(res.get());
-            }
-            rigidbody.apply_calibration(std::move(res));
-            // plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "calibration.png");
-        } else {
-            settings::general::output += "uncalibrated/";
+        rigidbody::Rigidbody rigidbody = rigidbody::BodySplitter::split(pdb, settings::rigidbody::detail::constraints);
+        if (p_cal->count() != 0) { // calibration file was provided
+            add_calibration(rigidbody, mfile);
         }
-
-        rigidbody.save(settings::general::output + "initial.pdb");
-        rigidbody.optimize(mfile);
-        rigidbody.save(settings::general::output + "optimized.pdb");
-
-        auto res = rigidbody.get_unconstrained_fitter(mfile)->fit();
+        auto res = rigidbody::default_optimize(&rigidbody, mfile);
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt", argc, argv);
         res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
@@ -127,4 +99,31 @@ int main(int argc, char const *argv[]) {
         throw e;
     }
     return 0;
+}
+
+void add_calibration(rigidbody::Rigidbody& rigidbody, const io::ExistingFile& mfile) {
+    if (settings::rigidbody::detail::calibration_file.empty()) {
+        // look for calibration file in the same directory as the measurement file
+        for (const auto& f : mfile.directory().files()) {
+            if (constants::filetypes::saxs_data.check(f)) {
+                settings::rigidbody::detail::calibration_file = f.path();
+                std::cout << "\tUsing calibration file: \"" << f.path() << "\"" << std::endl;
+                break;
+            }
+        }
+    }
+    if (settings::rigidbody::detail::calibration_file.empty()) {
+        throw except::missing_option("rigidbody: Default calibration file not found. Use --calibrate <path> to specify it.");
+    }
+
+    settings::general::output += "calibrated/";
+    rigidbody.molecule.generate_new_hydration();
+    fitter::SmartFitter fitter({settings::rigidbody::detail::calibration_file}, rigidbody.molecule.get_histogram());
+    auto res = fitter.fit();
+    if (settings::general::verbose) {
+        std::cout << "Calibration results:" << std::endl;
+        fitter::FitReporter::report(res.get());
+    }
+    throw std::runtime_error("rigidbody: Calibration is currently disabled.");
+    // rigidbody.apply_calibration(std::move(res));
 }
