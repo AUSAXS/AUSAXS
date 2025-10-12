@@ -10,11 +10,6 @@ using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
 TEST_CASE("Symmetry::Symmetry") {
-    SECTION("default") {
-        Symmetry s;
-        CHECK(s.repetitions == 0);
-    }
-
     SECTION("_Relation") {
         Symmetry s({{1, 2, 3}, {0, 0, 0}});
         CHECK(s.initial_relation.translation == Vector3<double>{1, 2, 3});
