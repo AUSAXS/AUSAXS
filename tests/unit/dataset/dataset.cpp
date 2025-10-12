@@ -300,3 +300,21 @@ TEST_CASE("Dataset::append") {
     CHECK(dataset1.y(3) == 9);
     CHECK(dataset1.y(4) == 10);
 }
+
+TEST_CASE("Dataset::sort_x") {
+    std::vector<double> x = {5, 2, 8, 1, 9};
+    std::vector<double> y = {10, 20, 30, 40, 50};
+    Dataset dataset({x, y});
+
+    dataset.sort_x();
+    CHECK(dataset.x(0) == 1);
+    CHECK(dataset.x(1) == 2);
+    CHECK(dataset.x(2) == 5);
+    CHECK(dataset.x(3) == 8);
+    CHECK(dataset.x(4) == 9);
+    CHECK(dataset.y(0) == 40);
+    CHECK(dataset.y(1) == 20);
+    CHECK(dataset.y(2) == 10);
+    CHECK(dataset.y(3) == 30);
+    CHECK(dataset.y(4) == 50);
+}
