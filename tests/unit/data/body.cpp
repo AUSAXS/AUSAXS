@@ -68,7 +68,7 @@ TEST_CASE("Body::Body") {
         REQUIRE(body.size_atom() == 1);
         REQUIRE(body.size_water() == 1);
         CHECK(body.get_atom(0) == atoms[0]);
-        CHECK(body.get_waters()[0] == waters[0]);
+        CHECK(body.get_waters()->get()[0] == waters[0]);
     }
 
     SECTION("Body&") {
@@ -148,17 +148,17 @@ TEST_CASE("Body::get_waters") {
 
     SECTION("const") {
         const Body& cbody = body;
-        const auto& result = cbody.get_waters();
-        REQUIRE(result.size() == 2);
-        CHECK(result[0] == waters[0]);
-        CHECK(result[1] == waters[1]);
+        const auto result = cbody.get_waters();
+        REQUIRE(result->get().size() == 2);
+        CHECK(result->get()[0] == waters[0]);
+        CHECK(result->get()[1] == waters[1]);
     }
 
     SECTION("non-const") {
-        auto& result = body.get_waters();
-        REQUIRE(result.size() == 2);
-        result[0].coordinates() = Vector3<double>{10, 20, 30};
-        CHECK(body.get_waters()[0].coordinates() == Vector3<double>{10, 20, 30});
+        auto result = body.get_waters();
+        REQUIRE(result->get().size() == 2);
+        result->get()[0].coordinates() = Vector3<double>{10, 20, 30};
+        CHECK(body.get_waters()->get()[0].coordinates() == Vector3<double>{10, 20, 30});
     }
 }
 
