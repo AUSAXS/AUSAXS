@@ -126,7 +126,9 @@ jobs:
         run: cmake --build build --target tests -j12
 
       - name: Run tests
-        run: ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests
+        run: |
+          ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/unit
+          ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/feature
 
       - name: Generate test report
         uses: mikepenz/action-junit-report@v4
@@ -303,7 +305,9 @@ jobs:
 
       - name: Run tests
         if: matrix.os == 'ubuntu-latest'
-        run: ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests
+        run: |
+          ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/unit
+          ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/feature
 
       - name: Generate test report
         uses: mikepenz/action-junit-report@v4

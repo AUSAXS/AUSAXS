@@ -120,44 +120,6 @@ TEST_CASE("Body::save") {
     std::remove("temp/body_io.pdb");
 }
 
-TEST_CASE_METHOD(fixture, "Body::get_atoms") {
-    CHECK(body.get_atoms() == a);
-}
-
-TEST_CASE_METHOD(fixture, "Body::get_atom") {
-    REQUIRE(body.get_atoms().size() == a.size());
-    for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
-        CHECK(body.get_atom(i) == a[i]);
-    }
-}
-
-TEST_CASE_METHOD(multiple_fixture, "Body::get_waters") {
-    auto waters = std::vector<Water>{w1, w2};
-    Body body(std::vector<AtomFF>{a1, a2}, waters);
-    REQUIRE(body.get_waters()->get() == waters);
-}
-
-TEST_CASE_METHOD(fixture, "Body::get_cm") {
-    Vector3<double> cm = body.get_cm();
-    REQUIRE(cm == Vector3<double>({0, 0, 0}));
-}
-
-// TEST_CASE_METHOD(fixture, "Body::get_volume") {
-//     REQUIRE(body.get_volume_acids() == constants::volume::amino_acids.get("LYS"));
-// }
-
-TEST_CASE_METHOD(fixture, "Body::molar_mass") {
-    CHECK_THAT(body.get_molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(form_factor::form_factor_t::C)*constants::Avogadro, 1e-6));
-}
-
-TEST_CASE_METHOD(fixture, "Body::absolute_mass") {
-    CHECK_THAT(body.get_absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(form_factor::form_factor_t::C), 1e-6));
-}
-
-TEST_CASE_METHOD(fixture, "Body::total_atomic_charge") {
-    CHECK(body.get_total_atomic_charge() == 8*6);
-}
-
 TEST_CASE_METHOD(fixture, "Body::translate") {
     SECTION("basic translation") {
         body.translate(Vector3<double>{1, 1, 1});
