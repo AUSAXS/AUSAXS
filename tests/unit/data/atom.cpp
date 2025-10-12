@@ -83,11 +83,32 @@ TEST_CASE("Atom::equality") {
 
 TEST_CASE("AtomFF::AtomFF") {
     SECTION("Atom&, form_factor_t") {
-        Atom basic({1, 2, 3}, 4);
-        AtomFF atom(basic, form_factor::form_factor_t::C);
-        CHECK(atom.coordinates() == basic.coordinates());
-        CHECK(atom.weight() == basic.weight());
-        CHECK(atom.form_factor_type() == form_factor::form_factor_t::C);
+        {
+            Atom basic({1, 2, 3}, 4);
+            AtomFF atom(basic, form_factor::form_factor_t::C);
+            CHECK(atom.coordinates() == basic.coordinates());
+            CHECK(atom.weight() == basic.weight());
+            CHECK(atom.form_factor_type() == form_factor::form_factor_t::C);
+        }
+
+        {   // generator expression
+            Vector3 coords = GENERATE(
+                Vector3<double>{1, 2, 3},
+                Vector3<double>{4, 5, 6},
+                Vector3<double>{7, 8, 9}
+            );
+            form_factor::form_factor_t ff = GENERATE(
+                form_factor::form_factor_t::C, 
+                form_factor::form_factor_t::O, 
+                form_factor::form_factor_t::H
+            );
+            Atom atom(coords, constants::charge::nuclear::get_charge(ff));
+            AtomFF atom_ff(atom, ff);
+            CHECK(atom_ff.coordinates() == coords);
+            CHECK(atom_ff.form_factor_type() == ff);
+            CHECK(atom_ff.weight() == constants::charge::nuclear::get_charge(ff));
+            CHECK(atom_ff.get_atom() == atom);        
+        }
     }
 
     SECTION("Vector3<precision_t>&, form_factor_t") {
@@ -108,10 +129,30 @@ TEST_CASE("AtomFF::AtomFF") {
     }
 
     SECTION("Vector3<precision_t>&, form_factor_t, double") {
-        AtomFF atom({1, 2, 3}, form_factor::form_factor_t::C, 0.5);
-        CHECK(atom.coordinates() == Vector3<double>{1, 2, 3});
-        CHECK(atom.form_factor_type() == form_factor::form_factor_t::C);
-        CHECK(atom.weight() == 0.5);
+        {
+            AtomFF atom({1, 2, 3}, form_factor::form_factor_t::C, 0.5);
+            CHECK(atom.coordinates() == Vector3<double>{1, 2, 3});
+            CHECK(atom.form_factor_type() == form_factor::form_factor_t::C);
+            CHECK(atom.weight() == 0.5);
+        }
+
+        {   // generator expression
+            Vector3 coords = GENERATE(
+                Vector3<double>{1, 2, 3},
+                Vector3<double>{4, 5, 6},
+                Vector3<double>{7, 8, 9}
+            );
+            form_factor::form_factor_t ff = GENERATE(
+                form_factor::form_factor_t::C, 
+                form_factor::form_factor_t::O, 
+                form_factor::form_factor_t::H
+            );
+            double w = GENERATE(1., 2., 3.);
+            AtomFF atom(coords, ff, w);
+            CHECK(atom.coordinates() == coords);
+            CHECK(atom.form_factor_type() == ff);
+            CHECK(atom.weight() == w);
+        }
     }
 }
 
