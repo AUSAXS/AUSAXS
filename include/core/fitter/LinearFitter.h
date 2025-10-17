@@ -5,6 +5,7 @@
 
 #include <fitter/detail/LinearLeastSquares.h>
 #include <dataset/DatasetFwd.h>
+#include <hist/HistFwd.h>
 
 #include <vector>
 
