@@ -82,4 +82,20 @@ TEST_CASE("FitReporter::save_multiple") {
         
         std::filesystem::remove(path.str());
     }
+    
+    SECTION("without titles") {
+        io::File path("/tmp/fit_report_multi2.txt");
+        std::vector<FitResult> fits = {result1, result2};
+        
+        FitReporter::save(fits, path);
+        
+        REQUIRE(std::filesystem::exists(path.str()));
+        
+        std::ifstream file(path.str());
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        
+        REQUIRE_THAT(content, Catch::Matchers::ContainsSubstring("FIT REPORT"));
+        
+        std::filesystem::remove(path.str());
+    }
 }
