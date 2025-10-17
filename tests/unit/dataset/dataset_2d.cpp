@@ -71,11 +71,7 @@ TEST_CASE("Dataset2D::Dataset2D") {
 }
 
 TEST_CASE("Dataset2D::xerr") {
-    std::vector<double> xv = {1, 2, 3};
-    std::vector<double> yv = {4, 5, 6};
-    std::vector<double> xev = {7, 8, 9};
-    std::vector<double> yev = {10, 11, 12};
-    Dataset2D dataset(xv, yv, xev, yev);
+    Dataset2D dataset({1, 2, 3}, {4, 5, 6}, {7, 8, 9}, {10, 11, 12});
 
     SECTION("column accessor") {
         CHECK(dataset.xerr() == dataset.col(3));
@@ -128,11 +124,7 @@ TEST_CASE("Dataset2D::push_back") {
 }
 
 TEST_CASE("Dataset2D::scale_errors") {
-    std::vector<double> xv = {1, 2, 3};
-    std::vector<double> yv = {10, 20, 30};
-    std::vector<double> xev = {1, 2, 3};
-    std::vector<double> yev = {4, 5, 6};
-    Dataset2D dataset(xv, yv, xev, yev);
+    Dataset2D dataset({1, 2, 3}, {10, 20, 30}, {1, 2, 3}, {4, 5, 6});
     
     dataset.scale_errors(2);
     CHECK(dataset.y(0) == 10);
@@ -162,18 +154,14 @@ TEST_CASE("Dataset2D::columns") {
     REQUIRE(y.size() == 5);
     REQUIRE(yerr.size() == 5);
     REQUIRE(xerr.size() == 5);
-    CHECK(x == Vector(xd));
-    CHECK(y == Vector(yd));
-    CHECK(yerr == Vector(yed));
-    CHECK(xerr == Vector(xed));
+    CHECK(x == xd);
+    CHECK(y == yd);
+    CHECK(yerr == yed);
+    CHECK(xerr == xed);
 }
 
 TEST_CASE("Dataset2D::indexing") {
-    std::vector<double> xd = {1, 2, 3};
-    std::vector<double> yd = {4, 5, 6};
-    std::vector<double> xed = {0.1, 0.2, 0.3};
-    std::vector<double> yed = {7, 8, 9};
-    Dataset2D data(xd, yd, xed, yed);
+    Dataset2D data({1, 2, 3}, {4, 5, 6}, {0.1, 0.2, 0.3}, {7, 8, 9});
 
     CHECK(data.x(0) == 1);
     CHECK(data.x(1) == 2);
