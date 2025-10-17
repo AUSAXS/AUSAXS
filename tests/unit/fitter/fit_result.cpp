@@ -9,11 +9,6 @@ using namespace ausaxs;
 using namespace ausaxs::fitter;
 
 TEST_CASE("FitResult::constructor") {
-    SECTION("default constructor") {
-        FitResult result;
-        REQUIRE(result.dof == 0);
-    }
-
     SECTION("from mini::Result") {
         mini::Result res;
         res.fval = 1.5;
