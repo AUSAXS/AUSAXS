@@ -350,4 +350,15 @@ TEST_CASE("SimpleDataset::reduce") {
         dataset.reduce(10, false);
         CHECK(dataset.size() == 3);
     }
+
+    SECTION("explicit") {
+        std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        std::vector<double> y = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        SimpleDataset data(x, y);
+
+        data.reduce(6, true);
+        CHECK(data.size_rows() == 6);
+        CHECK(data.size_cols() == 3);
+        CHECK(data.x() == std::vector{1, 2, 3, 5, 7, 10});
+    }
 }

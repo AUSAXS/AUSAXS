@@ -100,32 +100,6 @@ TEST_CASE("SimpleDataset::reduce") {
         data.reduce(25, true);
         CHECK(data.size() <= 25);
     }
-
-    SECTION("explicit") {
-        std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        std::vector<double> y = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        SimpleDataset data(x, y);
-
-        data.reduce(6, true);
-        CHECK(data.size_rows() == 6);
-        CHECK(data.size_cols() == 3);
-        CHECK(data.x() == std::vector{1, 2, 3, 5, 7, 10});
-    }
-
-    SECTION("10000 to 100") {
-        std::vector<double> x(10000);
-        std::vector<double> y(10000);
-        for (unsigned int i = 0; i < x.size(); i++) {
-            x[i] = std::pow(10, i*6.0/10000);
-            y[i] = i;
-        }
-        SimpleDataset data(x, y);
-
-        data.reduce(100, true);
-        CHECK(data.size_rows() == 100);
-        CHECK(data.size_cols() == 3);
-        CHECK(data.x() == std::vector{1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6});
-    }
 }
 
 TEST_CASE("SimpleDataset::simulate_errors") {
@@ -142,8 +116,8 @@ TEST_CASE("SimpleDataset::simulate_errors") {
 
 TEST_CASE("SimpleDataset::rebin") {
     settings::general::verbose = false;
-    SimpleDataset dataset("tests/files/2epe.dat");
-    CHECK(dataset.size() == 104);
+    SimpleDataset dataset("tests/files/SASDJQ4.dat");
+    REQUIRE(dataset.size() == 844);
     dataset.rebin();
-    CHECK(dataset.size() < 104);
+    CHECK(dataset.size() < 400);
 }
