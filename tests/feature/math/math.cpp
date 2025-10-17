@@ -40,7 +40,13 @@ static Matrix<double> GenRandMatrix(int n, int m) {
 TEST_CASE("math: QRDecomposition") {
     Matrix<double> A = {{1, 2}, {3, 4}};
     QRDecomposition qr(A);
-    REQUIRE(A*qr.inverse() == matrix::identity(2));
+    auto I = matrix::identity(2);
+    auto inv = qr.inverse();
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            REQUIRE_THAT((A*inv)[i][j], Catch::Matchers::WithinAbs(I[i][j], 1e-3));
+        }
+    }
     REQUIRE_THAT(qr.abs_determinant(), Catch::Matchers::WithinAbs(2, 1e-3));
 
     // randomized tests on 5x5 matrices
