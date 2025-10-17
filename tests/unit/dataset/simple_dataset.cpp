@@ -351,14 +351,29 @@ TEST_CASE("SimpleDataset::reduce") {
         CHECK(dataset.size() == 3);
     }
 
-    SECTION("explicit") {
-        std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        std::vector<double> y = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        SimpleDataset data(x, y);
+    SECTION("linear") {
+        SimpleDataset dataset(
+            std::vector<double>{0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11}, 
+            std::vector<double>{1,    2,    3,    4,    5,    6,    7,    8,    9,    10,   11},
+            std::vector<double>{1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1}
+        );
 
-        data.reduce(6, true);
-        CHECK(data.size_rows() == 6);
-        CHECK(data.size_cols() == 3);
-        CHECK(data.x() == std::vector{1, 2, 3, 5, 7, 10});
+        dataset.reduce(6);
+        CHECK(dataset.size_rows() < 11);
+        CHECK(dataset.size_cols() == 3);
+        CHECK(dataset.x() == std::vector{0.01, 0.03, 0.05, 0.07, 0.09, 0.11});
+    }
+
+    SECTION("log") {
+        SimpleDataset dataset(
+            std::vector<double>{1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6}, 
+            std::vector<double>{1,    2,    3,    4,    5,   6,   7,   8,   9,   10,  11},
+            std::vector<double>{1,    1,    1,    1,    1,   1,   1,   1,   1,   1,   1}
+        );
+
+        dataset.reduce(6, true);
+        CHECK(dataset.size_rows() == 6);
+        CHECK(dataset.size_cols() == 3);
+        CHECK(dataset.x() == std::vector{1e-4, 1e-2, 1e0, 1e2, 1e4, 1e6});
     }
 }
