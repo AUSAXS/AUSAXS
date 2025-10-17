@@ -20,7 +20,7 @@ namespace ausaxs::hist {
     template<bool use_weighted_distribution> 
 	class PartialSymmetryManagerMT : public IPartialHistogramManager {
 		using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-		using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<use_weighted_distribution>>;
+		using calculator_t = observer_ptr<distance_calculator::SimpleKernel<use_weighted_distribution>>;
 
 		template<typename T> using BodyIndexer2D = typename container::Container2D<T>;
 		template<typename T> using BodyIndexer1D = typename container::Container1D<T>;
