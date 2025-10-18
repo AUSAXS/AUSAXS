@@ -52,7 +52,30 @@ extern "C" API int molecule_from_arrays(
 
 extern "C" API int molecule_get_data(
     int molecule_id,
-    double** ax, double** ay, double** az, double** aw, const char*** aform_factors, // atoms
-    double** wx, double** wy, double** wz, double** ww,                              // waters
+    double** ax, double** ay, double** az, double** aw, const char*** aff, // atoms
+    double** wx, double** wy, double** wz, double** ww,                    // waters
     int* an, int* wn, int* status
+);
+
+extern "C" API void molecule_hydrate(
+    int molecule_id,
+    int* status
+);
+
+extern "C" API int molecule_distance_histogram(
+    int molecule_id,
+    double** aa, double** aw, double** ww,
+    double** ax, double** xx, double** wx,
+    int* n_bins, double* delta_r, bool* exv_hists, int* status
+);
+
+extern "C" API int molecule_debye(
+    int molecule_id,
+    double** q, double** I,
+    int* n_points, int* status
+);
+
+extern "C" API void molecule_debye_userq(
+    int molecule_id, double* q, int n_points,
+    double* I, int* status
 );

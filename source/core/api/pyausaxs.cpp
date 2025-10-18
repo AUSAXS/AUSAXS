@@ -8,6 +8,7 @@
 #include <dataset/SimpleDataset.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <settings/MoleculeSettings.h>
 
 #include <string>
@@ -15,7 +16,7 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-extern "C" API int read_pdb(
+int read_pdb(
     const char* filename,
     int* status
 ) {
@@ -26,13 +27,13 @@ extern "C" API int read_pdb(
     return pdb_id;
 }
 
-extern "C" API void deallocate(int object_id, int* status) {
+void deallocate(int object_id, int* status) {
     *status = 1;
     api::ObjectStorage::unregister_object(object_id);
     *status = 0;
 }
 
-extern "C" API int pdb_read(
+int pdb_read(
     const char* filename,
     int* status
 ) {
@@ -55,7 +56,7 @@ struct _pdb_get_data_obj {
     std::vector<char> chainID;
     std::vector<double> x, y, z, occupancy, tempFactor;
 };
-extern "C" API int pdb_get_data(
+int pdb_get_data(
     int object_id,
     int** serial_out, const char*** name_out, const char*** altLoc_out, const char*** resName_out, const char** chainID_out, int** resSeq_out, 
     const char*** iCode_out, double** x_out, double** y_out, double** z_out, double** occupancy_out, double** tempFactor_out, const char*** element_out, 
@@ -111,7 +112,7 @@ extern "C" API int pdb_get_data(
     return data_id;
 }
 
-extern "C" API int data_read(
+int data_read(
     const char* filename,
     int* status
 ) {
@@ -128,7 +129,7 @@ struct _data_get_data_obj {
     {}
     std::vector<double> q, I, Ierr;
 };
-extern "C" API int data_get_data(
+int data_get_data(
     int object_id,
     double** q, double** I, double** Ierr, int* n_points,
     int* status
@@ -152,7 +153,7 @@ extern "C" API int data_get_data(
     return data_id;
 }
 
-extern "C" API int molecule_from_file(const char* filename, int* status) {
+int molecule_from_file(const char* filename, int* status) {
     *status = 1;
     auto molecule = data::Molecule(std::string(filename));
     auto molecule_id = api::ObjectStorage::register_object(std::move(molecule));
@@ -160,7 +161,7 @@ extern "C" API int molecule_from_file(const char* filename, int* status) {
     return molecule_id;
 }
 
-extern "C" API int molecule_from_pdb_id(int pdb_id, int* status) {
+int molecule_from_pdb_id(int pdb_id, int* status) {
     *status = 1;
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
     if (!pdb) {*status = 2; return -1;}
@@ -175,7 +176,7 @@ extern "C" API int molecule_from_pdb_id(int pdb_id, int* status) {
     return molecule_id;
 }
 
-extern "C" API int molecule_from_arrays(double* xx, double* yy, double* zz, double* ww, int n_atoms, int* status) {
+int molecule_from_arrays(double* xx, double* yy, double* zz, double* ww, int n_atoms, int* status) {
     *status = 1;
     std::vector<data::Atom> atoms(n_atoms);
     std::vector<double> x(xx, xx + n_atoms);
@@ -201,7 +202,7 @@ struct _molecule_get_data_obj {
     std::vector<std::string> aform_factors;
     std::vector<const char*> aform_factors_ptr;
 };
-extern "C" API int molecule_get_data(
+int molecule_get_data(
     int molecule_id,
     double** ax_out, double** ay_out, double** az_out, double** aw_out, const char*** aform_factors_out,
     double** wx_out, double** wy_out, double** wz_out, double** ww_out,
@@ -244,4 +245,101 @@ extern "C" API int molecule_get_data(
     *nw = static_cast<int>(waters.size());
     *status = 0;
     return data_id;
+}
+
+void molecule_hydrate(
+    int molecule_id,
+    int* status
+) {
+    *status = 1;
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return;}
+    molecule->generate_new_hydration();
+    *status = 0;
+}
+
+struct _molecule_distance_histogram_obj {
+    _molecule_distance_histogram_obj(unsigned int n_bins) :
+        aa(n_bins), aw(n_bins), ww(n_bins), ax(n_bins), xx(n_bins), wx(n_bins)
+    {}
+    std::vector<double> aa, aw, ww, ax, xx, wx;
+};
+int molecule_distance_histogram(
+    int molecule_id,
+    double** aa, double** aw, double** ww,
+    double** ax, double** xx, double** wx,
+    int* n_bins, double* delta_r, bool* exv_hists, int* status
+) {
+    *status = 1;
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return -1;}
+    auto hist = molecule->get_histogram();
+    _molecule_distance_histogram_obj data(constants::axes::q_axis.bins);
+    if (auto cast = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())) {
+        data.aa = cast->get_profile_aa().get_counts();
+        data.aw = cast->get_profile_aw().get_counts();
+        data.ww = cast->get_profile_ww().get_counts();
+        data.ax = cast->get_profile_ax().get_counts();
+        data.xx = cast->get_profile_xx().get_counts();
+        data.wx = cast->get_profile_wx().get_counts();
+        *exv_hists = true;
+    } else {
+        data.aa = hist->get_profile_aa().get_counts();
+        data.aw = hist->get_profile_aw().get_counts();
+        data.ww = hist->get_profile_ww().get_counts();
+        *exv_hists = false;
+    }
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_molecule_distance_histogram_obj>(data_id);
+    *aa = ref->aa.data();
+    *aw = ref->aw.data();
+    *ww = ref->ww.data();
+    *ax = ref->ax.data();
+    *xx = ref->xx.data();
+    *wx = ref->wx.data();
+    *n_bins = static_cast<int>(constants::axes::q_axis.bins);
+    *delta_r = constants::axes::q_axis.step();
+    *status = 0;
+    return data_id;
+}
+
+int molecule_debye(
+    int molecule_id,
+    double** q, double** I,
+    int* n_points, int* status
+) {
+    *status = 1;
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return -1;}
+    auto hist = molecule->get_histogram();
+    auto debye_I = hist->debye_transform();
+    _data_get_data_obj data(debye_I.size());
+    for (unsigned int i = 0; i < debye_I.size(); ++i) {
+        data.q[i] = constants::axes::q_vals[i];
+        data.I[i] = debye_I[i];
+    }
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_data_get_data_obj>(data_id);
+    *q = ref->q.data();
+    *I = ref->I.data();
+    *n_points = static_cast<int>(debye_I.size());
+    *status = 0;
+    return data_id;
+}
+
+void molecule_debye_userq(
+    int molecule_id, double* q, int n_points,
+    double* I, int* status
+) {
+    *status = 1;
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return;}
+    std::vector<double> q_vals(q, q + n_points);
+    auto hist = molecule->get_histogram();
+    auto debye_I = hist->debye_transform(q_vals);
+    if (static_cast<int>(debye_I.size()) != n_points) {*status = 3; return;}
+    for (int i = 0; i < n_points; ++i) {
+        I[i] = debye_I.y(i);
+    }
+    *status = 0;
 }
