@@ -6,10 +6,13 @@
 #include <io/detail/PDBReader.h>
 #include <io/Reader.h>
 #include <dataset/SimpleDataset.h>
+#include <data/Molecule.h>
+#include <data/Body.h>
 
 #include <string>
 
 using namespace ausaxs;
+using namespace ausaxs::data;
 
 extern "C" API int read_pdb(
     const char* filename,
@@ -33,7 +36,7 @@ extern "C" API int pdb_read(
     int* status
 ) {
     *status = 1;
-    auto pdb = io::detail::pdb::read(ausaxs::io::ExistingFile(std::string(filename)));
+    auto pdb = io::Reader::read(std::string(filename));
     auto pdb_id = api::ObjectStorage::register_object(std::move(pdb));
     *status = 0;
     return pdb_id;
@@ -144,6 +147,99 @@ extern "C" API int data_get_data(
     *I = ref->I.data();
     *Ierr = ref->Ierr.data();
     *n_points = static_cast<int>(dataset->size());
+    *status = 0;
+    return data_id;
+}
+
+extern "C" API int molecule_from_file(const char* filename, int* status) {
+    *status = 1;
+    auto molecule = data::Molecule(std::string(filename));
+    auto molecule_id = api::ObjectStorage::register_object(std::move(molecule));
+    *status = 0;
+    return molecule_id;
+}
+
+extern "C" API int molecule_from_pdb_id(int pdb_id, int* status) {
+    *status = 1;
+    auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
+    if (!pdb) {*status = 2; return -1;}
+    auto data = pdb->reduced_representation();
+    auto molecule = data.waters.empty() 
+        ? Molecule({Body{std::move(data.atoms)}})
+        : Molecule({Body{std::move(data.atoms), std::move(data.waters)}})
+    ;
+    auto molecule_id = api::ObjectStorage::register_object(std::move(molecule));
+    *status = 0;
+    return molecule_id;
+}
+
+extern "C" API int molecule_from_arrays(double* xx, double* yy, double* zz, double* ww, int n_atoms, int* status) {
+    *status = 1;
+    std::vector<data::Atom> atoms(n_atoms);
+    std::vector<double> x(xx, xx + n_atoms);
+    std::vector<double> y(yy, yy + n_atoms);
+    std::vector<double> z(zz, zz + n_atoms);
+    std::vector<double> w(ww, ww + n_atoms);
+    for (int i = 0; i < n_atoms; ++i) {
+        atoms[i] = data::Atom({x[i], y[i], z[i]}, w[i]);
+    }
+    auto molecule = Molecule({Body{atoms}});
+    auto molecule_id = api::ObjectStorage::register_object(std::move(molecule));
+    *status = 0;
+    return molecule_id;
+}
+
+struct _molecule_get_data_obj {
+    _molecule_get_data_obj(unsigned int n_atoms, unsigned int n_waters) :
+        ax(n_atoms), ay(n_atoms), az(n_atoms), aw(n_atoms),
+        wx(n_waters), wy(n_waters), wz(n_waters), ww(n_waters), 
+        aform_factors(n_atoms), aform_factors_ptr(n_atoms)
+    {}
+    std::vector<double> ax, ay, az, aw, wx, wy, wz, ww;
+    std::vector<std::string> aform_factors;
+    std::vector<const char*> aform_factors_ptr;
+};
+extern "C" API int molecule_get_data(
+    int molecule_id,
+    double** ax_out, double** ay_out, double** az_out, double** aw_out, const char*** aform_factors_out,
+    double** wx_out, double** wy_out, double** wz_out, double** ww_out,
+    int* na, int* nw, int* status
+) {
+    *status = 1;
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return -1;}
+    auto atoms = molecule->get_atoms();
+    auto waters = molecule->get_waters();
+    _molecule_get_data_obj data(atoms.size(), waters.size());
+    for (unsigned int i = 0; i < atoms.size(); ++i) {
+        const auto& atom = atoms[i];
+        data.ax[i] = atom.coordinates().x();
+        data.ay[i] = atom.coordinates().y();
+        data.az[i] = atom.coordinates().z();
+        data.aw[i] = atom.weight();
+        data.aform_factors[i] = form_factor::to_string(atom.form_factor_type());
+        data.aform_factors_ptr[i] = data.aform_factors[i].c_str();
+    }
+    for (unsigned int i = 0; i < waters.size(); ++i) {
+        const auto& water = waters[i];
+        data.wx[i] = water.coords.x();
+        data.wy[i] = water.coords.y();
+        data.wz[i] = water.coords.z();
+        data.ww[i] = water.weight();
+    }
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_molecule_get_data_obj>(data_id);
+    *ax_out = ref->ax.data();
+    *ay_out = ref->ay.data();
+    *az_out = ref->az.data();
+    *aw_out = ref->aw.data();
+    *wx_out = ref->wx.data();
+    *wy_out = ref->wy.data();
+    *wz_out = ref->wz.data();
+    *ww_out = ref->ww.data();
+    *aform_factors_out = ref->aform_factors_ptr.data();
+    *na = static_cast<int>(atoms.size());
+    *nw = static_cast<int>(waters.size());
     *status = 0;
     return data_id;
 }

@@ -34,3 +34,25 @@ extern "C" API int data_get_data(
     double** q, double** I, double** Ierr, int* n_points,
     int* status
 );
+
+extern "C" API int molecule_from_file(
+    const char* filename,
+    int* status
+);
+
+extern "C" API int molecule_from_pdb_id(
+    int pdb_id,
+    int* status
+);
+
+extern "C" API int molecule_from_arrays(
+    double* x, double* y, double* z, double* w, int n_atoms,
+    int* status
+);
+
+extern "C" API int molecule_get_data(
+    int molecule_id,
+    double** ax, double** ay, double** az, double** aw, const char*** aform_factors, // atoms
+    double** wx, double** wy, double** wz, double** ww,                              // waters
+    int* an, int* wn, int* status
+);
