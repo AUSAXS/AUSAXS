@@ -8,6 +8,7 @@
 #include <dataset/SimpleDataset.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <settings/MoleculeSettings.h>
 
 #include <string>
 
@@ -163,6 +164,7 @@ extern "C" API int molecule_from_pdb_id(int pdb_id, int* status) {
     *status = 1;
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
     if (!pdb) {*status = 2; return -1;}
+    if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
     auto data = pdb->reduced_representation();
     auto molecule = data.waters.empty() 
         ? Molecule({Body{std::move(data.atoms)}})
