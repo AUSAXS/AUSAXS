@@ -121,32 +121,32 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww
 }
 
 template<typename FormFactorTableType>
-const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_ff() const {
+const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() const {
     return distance_profiles.aa;
 }
 
 template<typename FormFactorTableType>
-Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_ff() {
+Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() {
     return distance_profiles.aa;
 }
 
 template<typename FormFactorTableType>
-const Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts_ff() const {
+const Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts_by_ff() const {
     return distance_profiles.aw;
 }
 
 template<typename FormFactorTableType>
-Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts_ff() {
+Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts_by_ff() {
     return distance_profiles.aw;
 }
 
 template<typename FormFactorTableType>
-const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts_ff() const {
+const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts_by_ff() const {
     return distance_profiles.ww;
 }
 
 template<typename FormFactorTableType>
-Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts_ff() {
+Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts_by_ff() {
     return distance_profiles.ww;
 }
 

@@ -92,20 +92,20 @@ namespace ausaxs::hist {
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            const Distribution3D& get_aa_counts_ff() const;
-            Distribution3D& get_aa_counts_ff(); // @copydoc get_aa_counts_ff() const
+            const Distribution3D& get_aa_counts_by_ff() const;
+            Distribution3D& get_aa_counts_by_ff(); // @copydoc get_aa_counts_ff() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            const Distribution2D& get_aw_counts_ff() const;
-            Distribution2D& get_aw_counts_ff(); // @copydoc get_aw_counts_ff() const
+            const Distribution2D& get_aw_counts_by_ff() const;
+            Distribution2D& get_aw_counts_by_ff(); // @copydoc get_aw_counts_ff() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            const Distribution1D& get_ww_counts_ff() const;
-            Distribution1D& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
+            const Distribution1D& get_ww_counts_by_ff() const;
+            Distribution1D& get_ww_counts_by_ff(); // @copydoc get_ww_counts_ff() const
 
             const std::vector<double>& get_counts() const override;
 
