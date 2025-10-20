@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <hist/detail/SimpleExvModel.h>
+#include <utility/Exceptions.h>
+#include <constants/Constants.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/ExvSettings.h>
 #include <settings/FitSettings.h>
 #include <settings/SettingsIORegistry.h>
-#include <utility/Exceptions.h>
-#include <constants/Constants.h>
 
 using namespace ausaxs;
 
@@ -65,7 +66,13 @@ settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
     
         case settings::exv::ExvMethod::Pepsi:
             return settings::hist::HistogramManagerChoice::PepsiManager;
-    
+
+        case settings::exv::ExvMethod::None:
+            ausaxs::hist::detail::SimpleExvModel::disable();
+            return settings::general::threads == 1 
+                ? settings::hist::HistogramManagerChoice::HistogramManager 
+                : settings::hist::HistogramManagerChoice::HistogramManagerMT;
+
         default:
             throw except::unexpected("settings::hist::get_histogram_manager: Unknown ExvMethod. Did you forget to add it to the switch statement?");
     }

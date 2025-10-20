@@ -1,4 +1,4 @@
-target_sources(ausaxs_core PRIVATE 
+target_sources(ausaxs_core PRIVATE
     "ErrorMessage.cpp"
     "ObjectStorage.cpp"
 

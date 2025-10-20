@@ -11,6 +11,7 @@
 #include <data/Body.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/distribution/Distribution1D.h>
+#include <fitter/SmartFitter.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/SettingsIO.h>
 
@@ -299,8 +300,10 @@ int molecule_debye(
     const char* exv_model, double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
+    std::cout << "Parsing exv_model: \"" << exv_model << "\"" << std::endl;
     settings::detail::parse_option("exv_model", {std::string(exv_model)});
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    molecule->reset_histogram_manager();
     if (!molecule) {*status = 2; return -1;}
     auto hist = molecule->get_histogram();
     auto debye_I = hist->debye_transform();
@@ -324,6 +327,7 @@ void molecule_debye_userq(
 ) {return execute_with_catch([&]() {
     settings::detail::parse_option("exv_model", {std::string(exv_model)});
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    molecule->reset_histogram_manager();
     if (!molecule) {*status = 2; return;}
     std::vector<double> q_vals(q, q + n_points);
     auto hist = molecule->get_histogram();
@@ -333,3 +337,40 @@ void molecule_debye_userq(
         I[i] = debye_I.y(i);
     }
 }, status);}
+
+int molecule_debye_fit(
+    int molecule_id, int data_id,
+    const char* exv_model,
+    int* status
+) {return execute_with_catch([&]() {
+    settings::detail::parse_option("exv_model", {std::string(exv_model)});
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    molecule->reset_histogram_manager();
+    auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
+    if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}
+    auto fitter = fitter::SmartFitter(*dataset, molecule->get_histogram());
+    int fit_result_id = api::ObjectStorage::register_object(fitter.fit());
+    return fit_result_id;
+}, status);}
+
+// #include <em/ImageStack.h>
+// int map_read(
+//     const char* filename,
+//     int* status
+// ) {return execute_with_catch([&]() {
+//     return map_id;
+// }, status);}
+
+// void map_get_slice(
+//     int map_id,
+//     double z_position,
+//     double** slice_data,
+//     int* width, int* height,
+//     int* status
+// );
+
+// int map_fit(
+//     int map_id, int data_id,
+//     int* status
+// );

@@ -74,3 +74,27 @@ extern "C" API void molecule_debye_userq(
     const char* exv_model, double* q, double* I, int n_points,
     int* status
 );
+
+extern "C" API int molecule_debye_fit(
+    int molecule_id, int data_id,
+    const char* exv_model,
+    int* status
+);
+
+extern "C" API int map_read(
+    const char* filename,
+    int* status
+);
+
+extern "C" API void map_get_slice(
+    int map_id,
+    double z_position,
+    double** slice_data,
+    int* width, int* height,
+    int* status
+);
+
+extern "C" API int map_fit(
+    int map_id, int data_id,
+    int* status
+);
