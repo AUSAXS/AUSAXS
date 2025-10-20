@@ -9,6 +9,6 @@ struct ErrorMessage {
 };
 
 extern "C" API void get_last_error_msg(
-    char** buffer, int* buffer_size, 
+    char** msg,
     int* status
 );
