@@ -6,7 +6,7 @@
 #include <api/Definitions.h>
 
 #include <unordered_map>
-#include <vector>
+#include <functional>
 
 namespace ausaxs::api {
     /**
@@ -14,8 +14,10 @@ namespace ausaxs::api {
      *        This avoids the need for C-style memory management despite being bound by a C API.
      */
     struct ObjectStorage {
-        static int register_object(void* obj);
-        static int register_object(std::vector<void*> obj);
+        struct StoredObject {
+            void* ptr;
+            std::function<void(void*)> deleter;
+        };
         template<typename T> static int register_object(T&& obj);
 
         /**
@@ -27,32 +29,37 @@ namespace ausaxs::api {
          * @brief Deregister an object, deleting it and freeing its memory.
          */
         static void deregister_object(int id);
-        static inline std::unordered_map<int, void*> storage;
-    };
 
-    inline int ObjectStorage::register_object(void* obj) {
-        static int current_id = 0;
-        int id = current_id++;
-        storage[id] = obj;
-        return id;
-    }
+        static inline int current_id = 1;
+        static inline std::unordered_map<int, StoredObject> storage;
+    };
 
     template<typename T> 
     int ObjectStorage::register_object(T&& obj) {
-        return register_object(static_cast<void*>(new T(std::forward<T>(obj))));
+        int id = current_id++;
+        T* ptr = new T(std::move(obj));
+        storage.emplace(id, StoredObject{
+            .ptr=static_cast<void*>(ptr), 
+            .deleter=[](void* p) { delete static_cast<T*>(p); }
+        });
+        return id;
     }
 
     template<typename T>
     inline T* ObjectStorage::get_object(int id) {
         auto it = storage.find(id);
         if (it != storage.end()) {
-            return static_cast<T*>(it->second);
+            return static_cast<T*>(it->second.ptr);
         }
         return nullptr;
     }
 
     inline void ObjectStorage::deregister_object(int id) {
-        storage.erase(id);
+        auto it = storage.find(id);
+        if (it != storage.end()) {
+            it->second.deleter(it->second.ptr);
+            storage.erase(it);
+        }
     }
 }
 
