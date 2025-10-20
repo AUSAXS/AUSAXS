@@ -9,6 +9,7 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/distribution/Distribution1D.h>
 #include <settings/MoleculeSettings.h>
 
 #include <string>
@@ -259,44 +260,27 @@ void molecule_hydrate(
 }
 
 struct _molecule_distance_histogram_obj {
-    _molecule_distance_histogram_obj(unsigned int n_bins) :
-        aa(n_bins), aw(n_bins), ww(n_bins), ax(n_bins), xx(n_bins), wx(n_bins)
-    {}
-    std::vector<double> aa, aw, ww, ax, xx, wx;
+    _molecule_distance_histogram_obj(unsigned int n_bins) : aa(n_bins), aw(n_bins), ww(n_bins) {}
+    std::vector<double> aa, aw, ww;
 };
 int molecule_distance_histogram(
     int molecule_id,
     double** aa, double** aw, double** ww,
-    double** ax, double** xx, double** wx,
-    int* n_bins, double* delta_r, bool* exv_hists, int* status
+    int* n_bins, double* delta_r, int* status
 ) {
     *status = 1;
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {*status = 2; return -1;}
     auto hist = molecule->get_histogram();
     _molecule_distance_histogram_obj data(constants::axes::q_axis.bins);
-    if (auto cast = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(hist.get())) {
-        data.aa = cast->get_profile_aa().get_counts();
-        data.aw = cast->get_profile_aw().get_counts();
-        data.ww = cast->get_profile_ww().get_counts();
-        data.ax = cast->get_profile_ax().get_counts();
-        data.xx = cast->get_profile_xx().get_counts();
-        data.wx = cast->get_profile_wx().get_counts();
-        *exv_hists = true;
-    } else {
-        data.aa = hist->get_profile_aa().get_counts();
-        data.aw = hist->get_profile_aw().get_counts();
-        data.ww = hist->get_profile_ww().get_counts();
-        *exv_hists = false;
-    }
+    data.aa = hist->get_aa_counts();
+    data.aw = hist->get_aw_counts();
+    data.ww = hist->get_ww_counts();
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto ref = api::ObjectStorage::get_object<_molecule_distance_histogram_obj>(data_id);
     *aa = ref->aa.data();
     *aw = ref->aw.data();
     *ww = ref->ww.data();
-    *ax = ref->ax.data();
-    *xx = ref->xx.data();
-    *wx = ref->wx.data();
     *n_bins = static_cast<int>(constants::axes::q_axis.bins);
     *delta_r = constants::axes::q_axis.step();
     *status = 0;

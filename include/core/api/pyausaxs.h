@@ -65,8 +65,7 @@ extern "C" API void molecule_hydrate(
 extern "C" API int molecule_distance_histogram(
     int molecule_id,
     double** aa, double** aw, double** ww,
-    double** ax, double** xx, double** wx,
-    int* n_bins, double* delta_r, bool* exv_hists, int* status
+    int* n_bins, double* delta_r, int* status
 );
 
 extern "C" API int molecule_debye(
