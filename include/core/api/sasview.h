@@ -3,11 +3,7 @@
 
 #pragma once
 
-#ifdef WIN32
-    #define API __declspec(dllexport)
-#else
-    #define API
-#endif
+#include <api/Definitions.h>
 
 /**
  * @brief Test the integration of the C++ code with the Python code.

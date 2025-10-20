@@ -1,6 +1,7 @@
 #include <api/ObjectStorage.h>
 
-#include <unordered_map>
-
-using namespace ausaxs::api;
-
+void deallocate(int object_id, int* status) {
+    *status = 1;
+    ausaxs::api::ObjectStorage::deregister_object(object_id);
+    *status = 0;
+}

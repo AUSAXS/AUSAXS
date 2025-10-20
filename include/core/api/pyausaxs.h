@@ -3,13 +3,7 @@
 
 #pragma once
 
-#ifdef WIN32
-    #define API __declspec(dllexport)
-#else
-    #define API
-#endif
-
-extern "C" API void deallocate(int object_id, int* status);
+#include <api/Definitions.h>
 
 extern "C" API int pdb_read(
     const char* filename,
@@ -52,13 +46,14 @@ extern "C" API int molecule_from_arrays(
 
 extern "C" API int molecule_get_data(
     int molecule_id,
-    double** ax, double** ay, double** az, double** aw, const char*** aff, // atoms
-    double** wx, double** wy, double** wz, double** ww,                    // waters
+    double** ax, double** ay, double** az, double** aw, const char*** aff,
+    double** wx, double** wy, double** wz, double** ww,
     int* an, int* wn, int* status
 );
 
 extern "C" API void molecule_hydrate(
-    int molecule_id,
+    int molecule_id, 
+    const char* hydration_model,
     int* status
 );
 
@@ -70,11 +65,12 @@ extern "C" API int molecule_distance_histogram(
 
 extern "C" API int molecule_debye(
     int molecule_id,
-    double** q, double** I,
-    int* n_points, int* status
+    const char* exv_model, double** q, double** I, int* n_points, 
+    int* status
 );
 
 extern "C" API void molecule_debye_userq(
-    int molecule_id, double* q, int n_points,
-    double* I, int* status
+    int molecule_id, 
+    const char* exv_model, double* q, double* I, int n_points,
+    int* status
 );
