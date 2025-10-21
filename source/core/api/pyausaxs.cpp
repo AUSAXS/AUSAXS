@@ -353,6 +353,25 @@ int molecule_debye_fit(
     return fit_result_id;
 }, status);}
 
+void molecule_clear_hydration(
+    int molecule_id,
+    int* status
+) {return execute_with_catch([&]() {
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    molecule->clear_hydration();
+}, status);}
+
+void molecule_Rg(
+    int molecule_id,
+    double* Rg,
+    int* status
+) {return execute_with_catch([&]() {
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    *Rg = molecule->get_Rg();
+}, status);}
+
 int pdb_debye_fit(
     int pdb_id, int data_id,
     const char* exv_model,

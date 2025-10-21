@@ -81,6 +81,17 @@ extern "C" API int molecule_debye_fit(
     int* status
 );
 
+extern "C" API void molecule_clear_hydration(
+    int molecule_id,
+    int* status
+);
+
+extern "C" API void molecule_Rg(
+    int molecule_id,
+    double* Rg,
+    int* status
+);
+
 extern "C" API int pdb_debye_fit(
     int pdb_id, int data_id,
     const char* exv_model,
