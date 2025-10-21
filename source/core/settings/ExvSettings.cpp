@@ -45,6 +45,6 @@ template<> void settings::io::detail::SettingRef<settings::exv::ExvMethod>::set(
     else if (str == "none") {settingref = settings::exv::ExvMethod::None;}
     else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::exv::ExvMethod>(std::stoi(val[0]));}
     else {
-        throw except::io_error("settings: Unknown excluded volume method. Did you forget to add parsing support for it in ExvSettings.cpp?");
+        throw except::io_error("settings: Unknown excluded volume method \"" + str + "\". Did you forget to add parsing support for it in ExvSettings.cpp?");
     }
 }

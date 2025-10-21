@@ -259,7 +259,7 @@ void molecule_hydrate(
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
-    settings::detail::parse_option("hydration_model", {std::string(hydration_model)});
+    settings::detail::parse_option("hydration_strategy", {std::string(hydration_model)});
     molecule->generate_new_hydration();
 }, status);}
 
