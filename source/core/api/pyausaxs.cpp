@@ -353,6 +353,28 @@ int molecule_debye_fit(
     return fit_result_id;
 }, status);}
 
+int pdb_debye_fit(
+    int pdb_id, int data_id,
+    const char* exv_model,
+    int* status
+) {return execute_with_catch([&]() {
+    settings::detail::parse_option("exv_model", {std::string(exv_model)});
+    auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
+    if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(pdb_id) + "\""; return -1;}
+    if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
+    auto data = pdb->reduced_representation();
+    auto molecule = data.waters.empty() 
+        ? Molecule({Body{std::move(data.atoms)}})
+        : Molecule({Body{std::move(data.atoms), std::move(data.waters)}})
+    ;
+    molecule.reset_histogram_manager();
+    auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
+    if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}
+    auto fitter = fitter::SmartFitter(*dataset, molecule.get_histogram());
+    int fit_result_id = api::ObjectStorage::register_object(fitter.fit());
+    return fit_result_id;
+}, status);}
+
 // #include <em/ImageStack.h>
 // int map_read(
 //     const char* filename,

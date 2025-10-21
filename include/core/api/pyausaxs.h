@@ -81,6 +81,12 @@ extern "C" API int molecule_debye_fit(
     int* status
 );
 
+extern "C" API int pdb_debye_fit(
+    int pdb_id, int data_id,
+    const char* exv_model,
+    int* status
+);
+
 extern "C" API int map_read(
     const char* filename,
     int* status
