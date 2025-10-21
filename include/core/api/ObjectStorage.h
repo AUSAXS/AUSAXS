@@ -7,6 +7,7 @@
 
 #include <unordered_map>
 #include <functional>
+#include <memory>
 
 namespace ausaxs::api {
     /**
@@ -19,6 +20,7 @@ namespace ausaxs::api {
             std::function<void(void*)> deleter;
         };
         template<typename T> static int register_object(T&& obj);
+        template<typename T> static int register_object(std::unique_ptr<T> obj);
 
         /**
          * @brief Get an object by its ID. Manual type casting is required.
@@ -42,6 +44,15 @@ namespace ausaxs::api {
             .ptr=static_cast<void*>(ptr), 
             .deleter=[](void* p) { delete static_cast<T*>(p); }
         });
+        return id;
+    }
+
+    template<typename T>
+    int ObjectStorage::register_object(std::unique_ptr<T> obj) {
+        int id = current_id++;
+        T* ptr = obj.release(); // take ownership
+        storage.emplace(id, StoredObject{ ptr,
+            [](void* p){ delete static_cast<T*>(p); }});
         return id;
     }
 

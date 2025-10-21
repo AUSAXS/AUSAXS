@@ -312,7 +312,7 @@ int molecule_debye(
         data.I[i] = debye_I[i];
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_data_get_data_obj>(data_id);
+    auto ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
     *q = ref->q.data();
     *I = ref->I.data();
     *n_points = static_cast<int>(debye_I.size());
@@ -377,7 +377,7 @@ int pdb_debye_fit(
 
 struct _fit_get_fit_info_obj {
     _fit_get_fit_info_obj(unsigned int n_pars) : 
-        pars(n_pars), pvals(n_pars), perr_n(n_pars), perr_p(n_pars)
+        pars(n_pars), pars_ptr(n_pars), pvals(n_pars), perr_n(n_pars), perr_p(n_pars)
     {}
     std::vector<std::string> pars;
     std::vector<const char*> pars_ptr;
@@ -428,7 +428,7 @@ int fit_get_fit_curves(
 ) {return execute_with_catch([&]() {
     auto fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
     if (!fit_result) {ErrorMessage::last_error = "Invalid fit result id: \"" + std::to_string(fit_id) + "\""; return -1;}
-    _fit_get_fit_curves_obj data(fit_result->curves.size());
+    _fit_get_fit_curves_obj data(fit_result->curves.size_rows());
     for (unsigned int i = 0; i < data.size(); ++i) {
         data.q[i]       = fit_result->curves.col(0)[i];
         data.I_data[i]  = fit_result->curves.col(1)[i];
@@ -436,12 +436,12 @@ int fit_get_fit_curves(
         data.I_model[i] = fit_result->curves.col(3)[i];
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_data_get_data_obj>(data_id);
+    auto ref = api::ObjectStorage::get_object<_fit_get_fit_curves_obj>(data_id);
     *q = ref->q.data();
-    *I_data = ref->I.data();
-    *I_err = ref->Ierr.data();
-    *I_model = ref->I.data();
-    *n_points = static_cast<int>(data.size());
+    *I_data = ref->I_data.data();
+    *I_err = ref->I_err.data();
+    *I_model = ref->I_model.data();
+    *n_points = static_cast<int>(ref->size());
     return data_id;
 }, status);}
 
