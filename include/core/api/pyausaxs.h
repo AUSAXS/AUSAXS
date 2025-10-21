@@ -87,20 +87,33 @@ extern "C" API int pdb_debye_fit(
     int* status
 );
 
-extern "C" API int map_read(
-    const char* filename,
+extern "C" API int fit_get_fit_info(
+    int fit_id,
+    const char*** pars, double** pvals, double** perr_min, double** perr_max, int* n_pars,
+    double* chi_squared, int* dof,
     int* status
 );
 
-extern "C" API void map_get_slice(
-    int map_id,
-    double z_position,
-    double** slice_data,
-    int* width, int* height,
+extern "C" API int fit_get_fit_curves(
+    int fit_id,
+    double** q, double** I_data, double** I_err, double** I_model, int* n_points,
     int* status
 );
 
-extern "C" API int map_fit(
-    int map_id, int data_id,
-    int* status
-);
+// extern "C" API int map_read(
+//     const char* filename,
+//     int* status
+// );
+
+// extern "C" API void map_get_slice(
+//     int map_id,
+//     double z_position,
+//     double** slice_data,
+//     int* width, int* height,
+//     int* status
+// );
+
+// extern "C" API int map_fit(
+//     int map_id, int data_id,
+//     int* status
+// );
