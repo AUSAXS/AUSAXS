@@ -48,7 +48,7 @@ int read_pdb(
     const char* filename,
     int* status
 ) {return execute_with_catch([&]() {
-    auto pdb = io::detail::pdb::read(ausaxs::io::ExistingFile(std::string(filename)));
+    auto pdb = io::detail::pdb::read(std::string(filename));
     auto pdb_id = api::ObjectStorage::register_object(std::move(pdb));
     return pdb_id;
 }, status);}
@@ -81,7 +81,7 @@ int pdb_get_data(
     const char*** charge_out, int* n_atoms_out, int* status
 ) {return execute_with_catch([&]() {
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(object_id);
-    if (!pdb) {*status = 2; return -1;}
+    if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(object_id) + "\""; return -1;}
     const auto& atoms = pdb->atoms;
     _pdb_get_data_obj data(atoms.size());
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
@@ -150,7 +150,7 @@ int data_get_data(
     int* status
 ) {return execute_with_catch([&]() {
     auto dataset = api::ObjectStorage::get_object<SimpleDataset>(object_id);
-    if (!dataset) {*status = 2; return -1;}
+    if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(object_id) + "\""; return -1;}
     _data_get_data_obj data(dataset->size());
     for (unsigned int i = 0; i < dataset->size(); ++i) {
         data.q[i] = dataset->x(i);
@@ -174,7 +174,7 @@ int molecule_from_file(const char* filename, int* status) {return execute_with_c
 
 int molecule_from_pdb_id(int pdb_id, int* status) {return execute_with_catch([&]() {
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
-    if (!pdb) {*status = 2; return -1;}
+    if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(pdb_id) + "\""; return -1;}
     if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
     auto data = pdb->reduced_representation();
     auto molecule = data.waters.empty() 
@@ -216,7 +216,7 @@ int molecule_get_data(
     int* na, int* nw, int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {*status = 2; return -1;}
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     auto atoms = molecule->get_atoms();
     auto waters = molecule->get_waters();
     _molecule_get_data_obj data(atoms.size(), waters.size());
@@ -258,7 +258,7 @@ void molecule_hydrate(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {*status = 2; return;}
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
     settings::detail::parse_option("hydration_model", {std::string(hydration_model)});
     molecule->generate_new_hydration();
 }, status);}
@@ -273,7 +273,7 @@ int molecule_distance_histogram(
     int* n_bins, double* delta_r, int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {*status = 2; return -1;}
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     auto hist = molecule->get_histogram();
     _molecule_distance_histogram_obj data(constants::axes::q_axis.bins);
     data.aa = hist->get_aa_counts();
@@ -300,7 +300,6 @@ int molecule_debye(
     const char* exv_model, double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    std::cout << "Parsing exv_model: \"" << exv_model << "\"" << std::endl;
     settings::detail::parse_option("exv_model", {std::string(exv_model)});
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     molecule->reset_histogram_manager();
