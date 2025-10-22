@@ -10,11 +10,11 @@ extern "C" API void set_exv_settings(
 extern "C" API void set_fit_settings(
     unsigned int N,
     unsigned int max_iterations,
-    int fit_excluded_volume,
-    int fit_solvent_density,
-    int fit_hydration,
-    int fit_atomic_debye_waller,
-    int fit_exv_debye_waller,
+    bool fit_excluded_volume,
+    bool fit_solvent_density,
+    bool fit_hydration,
+    bool fit_atomic_debye_waller,
+    bool fit_exv_debye_waller,
     int* status
 );
 
@@ -31,7 +31,8 @@ extern "C" API void set_hist_settings(
     unsigned int skip,
     double qmin,
     double qmax,
-    bool weighted_bins
+    bool weighted_bins,
+    int* status
 );
 
 extern "C" API void set_molecule_settings(
@@ -40,5 +41,6 @@ extern "C" API void set_molecule_settings(
     bool implicit_hydrogens,
     bool use_occupancy,
     const char* exv_set,
-    const char* hydration_strategy
+    const char* hydration_strategy,
+    int* status
 );

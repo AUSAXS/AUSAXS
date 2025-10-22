@@ -12,7 +12,6 @@
 #include <hist/distribution/Distribution1D.h>
 #include <fitter/SmartFitter.h>
 #include <settings/MoleculeSettings.h>
-#include <settings/SettingsIO.h>
 
 #include <string>
 
@@ -229,12 +228,10 @@ int molecule_get_data(
 
 void molecule_hydrate(
     int molecule_id,
-    const char* hydration_model,
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
-    settings::detail::parse_option("hydration_strategy", {std::string(hydration_model)});
     molecule->generate_new_hydration();
 }, status);}
 
@@ -272,10 +269,9 @@ struct _molecule_debye_obj {
 };
 int molecule_debye(
     int molecule_id, 
-    const char* exv_model, double** q, double** I, int* n_points,
+    double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    settings::detail::parse_option("exv_model", {std::string(exv_model)});
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     molecule->reset_histogram_manager();
     if (!molecule) {*status = 2; return -1;}
@@ -296,10 +292,9 @@ int molecule_debye(
 
 void molecule_debye_userq(
     int molecule_id, 
-    const char* exv_model, double* q, double* I, int n_points,
+    double* q, double* I, int n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    settings::detail::parse_option("exv_model", {std::string(exv_model)});
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     molecule->reset_histogram_manager();
     if (!molecule) {*status = 2; return;}
@@ -314,10 +309,8 @@ void molecule_debye_userq(
 
 int molecule_debye_fit(
     int molecule_id, int data_id,
-    const char* exv_model,
     int* status
 ) {return execute_with_catch([&]() {
-    settings::detail::parse_option("exv_model", {std::string(exv_model)});
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     molecule->reset_histogram_manager();
@@ -349,10 +342,8 @@ void molecule_Rg(
 
 int pdb_debye_fit(
     int pdb_id, int data_id,
-    const char* exv_model,
     int* status
 ) {return execute_with_catch([&]() {
-    settings::detail::parse_option("exv_model", {std::string(exv_model)});
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
     if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(pdb_id) + "\""; return -1;}
     if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
@@ -445,10 +436,8 @@ struct _iterative_fit_state_obj {
 };
 int iterative_fit_start(
     int molecule_id, int data_id,
-    const char* exv_model,
     int* status
 ) {return execute_with_catch([&]() {
-    settings::detail::parse_option("exv_model", {std::string(exv_model)});
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     molecule->reset_histogram_manager();

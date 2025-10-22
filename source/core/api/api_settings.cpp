@@ -14,11 +14,11 @@ void set_exv_settings(
 void set_fit_settings(
     unsigned int N,
     unsigned int max_iterations,
-    int fit_excluded_volume,
-    int fit_solvent_density,
-    int fit_hydration,
-    int fit_atomic_debye_waller,
-    int fit_exv_debye_waller,
+    bool fit_excluded_volume,
+    bool fit_solvent_density,
+    bool fit_hydration,
+    bool fit_atomic_debye_waller,
+    bool fit_exv_debye_waller,
     int* status
 ) {return execute_with_catch([&]() {
     settings::fit::N = N;

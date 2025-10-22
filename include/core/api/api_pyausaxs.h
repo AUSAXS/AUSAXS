@@ -52,8 +52,7 @@ extern "C" API int molecule_get_data(
 );
 
 extern "C" API void molecule_hydrate(
-    int molecule_id, 
-    const char* hydration_model,
+    int molecule_id,
     int* status
 );
 
@@ -65,19 +64,18 @@ extern "C" API int molecule_distance_histogram(
 
 extern "C" API int molecule_debye(
     int molecule_id,
-    const char* exv_model, double** q, double** I, int* n_points, 
+    double** q, double** I, int* n_points, 
     int* status
 );
 
 extern "C" API void molecule_debye_userq(
     int molecule_id, 
-    const char* exv_model, double* q, double* I, int n_points,
+    double* q, double* I, int n_points,
     int* status
 );
 
 extern "C" API int molecule_debye_fit(
     int molecule_id, int data_id,
-    const char* exv_model,
     int* status
 );
 
@@ -94,7 +92,6 @@ extern "C" API void molecule_Rg(
 
 extern "C" API int pdb_debye_fit(
     int pdb_id, int data_id,
-    const char* exv_model,
     int* status
 );
 
@@ -113,7 +110,6 @@ extern "C" API int fit_get_fit_curves(
 
 extern "C" API int iterative_fit_start(
     int molecule_id, int data_id,
-    const char* exv_model,
     int* status
 );
 
