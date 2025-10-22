@@ -1,9 +1,15 @@
 #include <api/api_settings.h>
+#include <settings/SettingsIO.h>
+#include <settings/All.h>
+
+using namespace ausaxs;
 
 void set_exv_settings(
     const char* exv_model,
     int* status
-);
+) {return execute_with_catch([&]() {
+    settings::detail::parse_option("exv_model", {std::string(exv_model)});
+}, status);}
 
 void set_fit_settings(
     unsigned int N,
@@ -14,7 +20,15 @@ void set_fit_settings(
     int fit_atomic_debye_waller,
     int fit_exv_debye_waller,
     int* status
-);
+) {return execute_with_catch([&]() {
+    settings::fit::N = N;
+    settings::fit::max_iterations = max_iterations;
+    settings::fit::fit_excluded_volume = static_cast<bool>(fit_excluded_volume);
+    settings::fit::fit_solvent_density = static_cast<bool>(fit_solvent_density);
+    settings::fit::fit_hydration = static_cast<bool>(fit_hydration);
+    settings::fit::fit_atomic_debye_waller = static_cast<bool>(fit_atomic_debye_waller);
+    settings::fit::fit_exv_debye_waller = static_cast<bool>(fit_exv_debye_waller);
+}, status);}
 
 void set_grid_settings(
     double water_scaling,
@@ -23,14 +37,26 @@ void set_grid_settings(
     double min_exv_radius,
     unsigned int min_bins,
     int* status
-);
+) {return execute_with_catch([&]() {
+    settings::grid::water_scaling = water_scaling;
+    settings::grid::cell_width = cell_width;
+    settings::grid::scaling = scaling;
+    settings::grid::min_exv_radius = min_exv_radius;
+    settings::grid::min_bins = min_bins;
+}, status);}
 
 void set_hist_settings(
     unsigned int skip,
     double qmin,
     double qmax,
-    bool weighted_bins
-);
+    bool weighted_bins,
+    int* status
+) {return execute_with_catch([&]() {
+    settings::axes::skip = skip;
+    settings::axes::qmin = qmin;
+    settings::axes::qmax = qmax;
+    settings::hist::weighted_bins = weighted_bins;
+}, status);}
 
 void set_molecule_settings(
     bool center,
@@ -38,5 +64,13 @@ void set_molecule_settings(
     bool implicit_hydrogens,
     bool use_occupancy,
     const char* exv_set,
-    const char* hydration_strategy
-);
+    const char* hydration_strategy,
+    int* status
+) {return execute_with_catch([&]() {
+    settings::molecule::center = center;
+    settings::molecule::throw_on_unknown_atom = throw_on_unknown_atom;
+    settings::molecule::implicit_hydrogens = implicit_hydrogens;
+    settings::molecule::use_occupancy = use_occupancy;
+    settings::detail::parse_option("exv_volume", {std::string(exv_set)});
+    settings::detail::parse_option("hydration_strategy", {std::string(hydration_strategy)});
+}, status);}
