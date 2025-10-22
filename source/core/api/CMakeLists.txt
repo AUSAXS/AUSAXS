@@ -1,7 +1,8 @@
 target_sources(ausaxs_core PRIVATE
-    "ErrorMessage.cpp"
     "ObjectStorage.cpp"
 
-    "sasview.cpp"
-    "pyausaxs.cpp"
+    "api_helper.cpp
+    "api_sasview.cpp"
+    "api_pyausaxs.cpp"
+    "api_settings.cpp"
 )

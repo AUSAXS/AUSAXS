@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <api/pyausaxs.h>
+#include <api/api_pyausaxs.h>
 #include <api/ObjectStorage.h>
-#include <api/ErrorMessage.h>
 #include <io/detail/PDBReader.h>
 #include <io/Reader.h>
 #include <dataset/SimpleDataset.h>
@@ -16,33 +15,9 @@
 #include <settings/SettingsIO.h>
 
 #include <string>
-#include <type_traits>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
-
-template<typename Func>
-auto execute_with_catch(Func&& f, int* status) -> decltype(f()) {
-    try {
-        *status = 1;
-        if constexpr (std::is_void_v<decltype(f())>) {
-            f();
-            *status = 0;
-            return;
-        } else {
-            auto v = f();
-            *status = 0;
-            return v;
-        }
-    } catch (const std::exception& e) {
-        ErrorMessage::last_error = e.what();
-        *status = 1;
-    } catch (...) {
-        ErrorMessage::last_error = "An unknown error occurred.";
-        *status = 1;
-    }
-    if constexpr (!std::is_void_v<decltype(f())>) {return {};}
-}
 
 int read_pdb(
     const char* filename,
@@ -463,6 +438,42 @@ int fit_get_fit_curves(
     *n_points = static_cast<int>(ref->size());
     return data_id;
 }, status);}
+
+struct _iterative_fit_state_obj {
+    Molecule* protein;
+    SimpleDataset* data;
+};
+int iterative_fit_start(
+    int molecule_id, int data_id,
+    const char* exv_model,
+    int* status
+) {return execute_with_catch([&]() {
+    settings::detail::parse_option("exv_model", {std::string(exv_model)});
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    molecule->reset_histogram_manager();
+    auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
+    if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}
+    _iterative_fit_state_obj obj{.protein=molecule, .data=dataset};
+    return api::ObjectStorage::register_object(std::move(obj));
+}, status);}
+
+void iterative_fit_step(
+    int iterative_fit_id, 
+    double* pars, int npars, double* return_I,
+    int* status
+) {return execute_with_catch([&]() {
+    auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
+    if (!iterative_fit_state) {ErrorMessage::last_error = "Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\""; return;}
+    auto hist = iterative_fit_state->protein->get_histogram();
+}, status);}
+
+int iterative_fit_finish(
+    int molecule_id, 
+    double* pars, int npars, double* return_I,
+    int* status
+);
+
 
 // #include <em/ImageStack.h>
 // int map_read(

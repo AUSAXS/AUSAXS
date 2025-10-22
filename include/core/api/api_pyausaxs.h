@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <api/Definitions.h>
+#include <api/api_helper.h>
 
 extern "C" API int pdb_read(
     const char* filename,
@@ -108,6 +108,24 @@ extern "C" API int fit_get_fit_info(
 extern "C" API int fit_get_fit_curves(
     int fit_id,
     double** q, double** I_data, double** I_err, double** I_model, int* n_points,
+    int* status
+);
+
+extern "C" API int iterative_fit_start(
+    int molecule_id, int data_id,
+    const char* exv_model,
+    int* status
+);
+
+extern "C" API void iterative_fit_step(
+    int iterative_fit_id, 
+    double* pars, int npars, double* return_I,
+    int* status
+);
+
+extern "C" API int iterative_fit_finish(
+    int molecule_id, 
+    double* pars, int npars, double* return_I,
     int* status
 );
 

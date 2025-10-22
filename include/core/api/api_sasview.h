@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <api/Definitions.h>
+#include <api/api_helper.h>
 
 /**
  * @brief Test the integration of the C++ code with the Python code.

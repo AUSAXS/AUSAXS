@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <api/Definitions.h>
+#include <api/api_helper.h>
 
 #include <unordered_map>
 #include <functional>

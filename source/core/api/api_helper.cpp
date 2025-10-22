@@ -1,4 +1,4 @@
-#include <api/ErrorMessage.h>
+#include <api/api_helper.h>
 
 extern "C" API void get_last_error_msg(
     char** buffer,
