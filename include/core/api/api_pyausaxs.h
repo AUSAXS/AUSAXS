@@ -115,13 +115,12 @@ extern "C" API int iterative_fit_start(
 
 extern "C" API void iterative_fit_step(
     int iterative_fit_id, 
-    double* pars, int npars, double* return_I,
+    double* pars, double* return_I,
     int* status
 );
 
 extern "C" API int iterative_fit_finish(
-    int molecule_id, 
-    double* pars, int npars, double* return_I,
+    int iterative_fit_id, 
     int* status
 );
 

@@ -441,6 +441,7 @@ int iterative_fit_start(
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     molecule->reset_histogram_manager();
+    fitter::SmartFitter::EnabledFitParameters().validate_model(molecule->get_histogram().get());
     auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
     if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}
     _iterative_fit_state_obj obj{.protein=molecule, .data=dataset};
@@ -449,20 +450,32 @@ int iterative_fit_start(
 
 void iterative_fit_step(
     int iterative_fit_id, 
-    double* pars, int npars, double* return_I,
+    double* pars, double* return_I,
     int* status
 ) {return execute_with_catch([&]() {
     auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
     if (!iterative_fit_state) {ErrorMessage::last_error = "Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\""; return;}
     auto hist = iterative_fit_state->protein->get_histogram();
+
+    fitter::SmartFitter::EnabledFitParameters enabled_pars{};
+    enabled_pars.apply_pars(
+        std::vector<double>(pars, pars+enabled_pars.get_enabled_pars_count()),
+        hist.get()
+    );
+
+    auto debye_I = hist->debye_transform(iterative_fit_state->data->x());
+    std::vector<double> debye_I_y = debye_I.y();
+    return_I = debye_I_y.data();
 }, status);}
 
 int iterative_fit_finish(
-    int molecule_id, 
-    double* pars, int npars, double* return_I,
+    int iterative_fit_id,
     int* status
-);
-
+) {return execute_with_catch([&]() {
+    auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
+    if (!iterative_fit_state) {ErrorMessage::last_error = "Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\""; return -1;}
+    auto hist = iterative_fit_state->protein->get_histogram();
+}, status);}
 
 // #include <em/ImageStack.h>
 // int map_read(

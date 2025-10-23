@@ -16,18 +16,6 @@
 using namespace ausaxs;
 using namespace ausaxs::fitter;
 
-// Note that in this implementation we rely on the parameters always being in the same order as defined in the EnabledFitParameters struct.
-
-unsigned int get_number_of_enabled_pars(SmartFitter::EnabledFitParameters fit) {
-    return 
-        fit.hydration + 
-        fit.excluded_volume + 
-        fit.solvent_density + 
-        fit.atomic_debye_waller + 
-        fit.exv_debye_waller
-    ;
-}
-
 SmartFitter::~SmartFitter() = default;
 SmartFitter::SmartFitter(SmartFitter&&) noexcept = default;
 SmartFitter& SmartFitter::operator=(SmartFitter&&) noexcept = default;
@@ -42,29 +30,45 @@ SmartFitter::EnabledFitParameters initialize_parameters() {
     };
 }
 
+int SmartFitter::EnabledFitParameters::get_enabled_pars_count() const {return hydration+excluded_volume+solvent_density+atomic_debye_waller+exv_debye_waller;}
+
+void SmartFitter::EnabledFitParameters::apply_pars(const std::vector<double>& params, observer_ptr<hist::DistanceHistogram> model) {
+    assert(
+        params.size() == SmartFitter::EnabledFitParameters().get_enabled_pars_count()
+        && "SmartFitter::EnabledFitParameters::apply_pars: Invalid number of parameters."
+    );
+
+    int index = 0;
+    if (hydration)           {static_cast<hist::ICompositeDistanceHistogram*>(model)->apply_water_scaling_factor(params[index++]);}
+    if (excluded_volume)     {static_cast<hist::ICompositeDistanceHistogramExv*>(model)->apply_excluded_volume_scaling_factor(params[index++]);}
+    if (solvent_density)     {static_cast<hist::ICompositeDistanceHistogramExv*>(model)->apply_solvent_density_scaling_factor(params[index++]);}
+    if (atomic_debye_waller) {static_cast<hist::ICompositeDistanceHistogramExv*>(model)->apply_atomic_debye_waller_factor(params[index++]);}
+    if (exv_debye_waller)    {static_cast<hist::ICompositeDistanceHistogramExv*>(model)->apply_exv_debye_waller_factor(params[index++]);}
+}
+
+void SmartFitter::EnabledFitParameters::validate_model(observer_ptr<hist::DistanceHistogram> h) {
+    if (h == nullptr) {throw except::invalid_argument("SmartFitter::EnabledFitParameters::validate_model: Cannot fit without a model.");}
+    if (hydration && dynamic_cast<hist::ICompositeDistanceHistogram*>(h) == nullptr) {
+        console::print_warning("SmartFitter::EnabledFitParameters::validate_model: Hydration shell fitting is enabled, but the model does not support hydration shell operations. Disabling hydration shell fitting.");
+        hydration = false;
+    }
+    if ((excluded_volume || solvent_density) && dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h) == nullptr) {
+        console::print_warning("SmartFitter::EnabledFitParameters::validate_model: Excluded volume fitting is enabled, but the model does not support excluded volume operations. Disabling excluded volume fitting.");
+        excluded_volume = false;
+        solvent_density = false;
+    }
+    if ((atomic_debye_waller || exv_debye_waller) && dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h) == nullptr) {
+        console::print_warning("SmartFitter::EnabledFitParameters::validate_model: Debye-Waller fitting is enabled, but the model does not support Debye-Waller operations. Disabling Debye-Waller fitting.");
+        atomic_debye_waller = false;
+        exv_debye_waller = false;
+    }
+}
+
 SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {enabled_fit_parameters = initialize_parameters();}
 
 SmartFitter::SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::DistanceHistogram> h) : SmartFitter(saxs) {
     enabled_fit_parameters = initialize_parameters();
     set_model(std::move(h));
-}
-
-void validate_model(observer_ptr<hist::DistanceHistogram> h, SmartFitter::EnabledFitParameters& fit) {
-    if (h == nullptr) {throw except::invalid_argument("SmartFitter::validate_model: Cannot fit without a model.");}
-    if (fit.hydration && dynamic_cast<hist::ICompositeDistanceHistogram*>(h) == nullptr) {
-        console::print_warning("SmartFitter::validate_model: Hydration shell fitting is enabled, but the model does not support hydration shell operations. Disabling hydration shell fitting.");
-        fit.hydration = false;
-    }
-    if ((fit.excluded_volume || fit.solvent_density) && dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h) == nullptr) {
-        console::print_warning("SmartFitter::validate_model: Excluded volume fitting is enabled, but the model does not support excluded volume operations. Disabling excluded volume fitting.");
-        fit.excluded_volume = false;
-        fit.solvent_density = false;
-    }
-    if ((fit.atomic_debye_waller || fit.exv_debye_waller) && dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h) == nullptr) {
-        console::print_warning("SmartFitter::validate_model: Debye-Waller fitting is enabled, but the model does not support Debye-Waller operations. Disabling Debye-Waller fitting.");
-        fit.atomic_debye_waller = false;
-        fit.exv_debye_waller = false;
-    }
 }
 
 observer_ptr<hist::ICompositeDistanceHistogramExv> cast_exv(observer_ptr<hist::DistanceHistogram> hist) {
@@ -131,25 +135,19 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
 
 fitter::detail::LinearLeastSquares SmartFitter::prepare_linear_fitter(const std::vector<double>& params) {
     assert(
-        params.size() == get_number_of_enabled_pars(enabled_fit_parameters)
+        params.size() == enabled_fit_parameters.get_enabled_pars_count()
         && "SmartFitter::get_model_curve: Invalid number of parameters."
     );
-
-    int index = 0;
-    if (enabled_fit_parameters.hydration)           {cast_h(model.get())->apply_water_scaling_factor(params[index++]);}
-    if (enabled_fit_parameters.excluded_volume)     {cast_exv(model.get())->apply_excluded_volume_scaling_factor(params[index++]);}
-    if (enabled_fit_parameters.solvent_density)     {cast_exv(model.get())->apply_solvent_density_scaling_factor(params[index++]);}
-    if (enabled_fit_parameters.atomic_debye_waller) {cast_exv(model.get())->apply_atomic_debye_waller_factor(params[index++]);}
-    if (enabled_fit_parameters.exv_debye_waller)    {cast_exv(model.get())->apply_exv_debye_waller_factor(params[index++]);}
+    enabled_fit_parameters.apply_pars(params, model.get());
     return detail::LinearLeastSquares(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
 }
 
 std::unique_ptr<FitResult> SmartFitter::fit() {
     enabled_fit_parameters = initialize_parameters();
-    validate_model(model.get(), enabled_fit_parameters);
+    enabled_fit_parameters.validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
-    if (get_number_of_enabled_pars(enabled_fit_parameters) == 0) {
+    if (enabled_fit_parameters.get_enabled_pars_count() == 0) {
         auto linear_fitter = prepare_linear_fitter({});
         return linear_fitter.fit();    
     }
@@ -177,7 +175,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
 
 std::vector<double> SmartFitter::fit_params_only() {
     enabled_fit_parameters = initialize_parameters();
-    validate_model(model.get(), enabled_fit_parameters);
+    enabled_fit_parameters.validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
     std::function<double(std::vector<double>)> f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
@@ -208,11 +206,11 @@ unsigned int SmartFitter::size() const {
 }
 
 unsigned int SmartFitter::dof() const {
-    return data.size() - 2 - get_number_of_enabled_pars(enabled_fit_parameters);
+    return data.size() - 2 - enabled_fit_parameters.get_enabled_pars_count();
 }
 
 void SmartFitter::set_guess(std::vector<mini::Parameter>&& guess) {
-    if (unsigned int N = get_number_of_enabled_pars(enabled_fit_parameters); guess.size() != N) {
+    if (unsigned int N = enabled_fit_parameters.get_enabled_pars_count(); guess.size() != N) {
         throw except::invalid_argument("SmartFitter::set_guess: Invalid number of parameters. Got " + std::to_string(guess.size()) + ", expected " + std::to_string(N) + ".");
     }
 
