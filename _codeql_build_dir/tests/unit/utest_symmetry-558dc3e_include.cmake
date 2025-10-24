@@ -1,5 +1,0 @@
-if(EXISTS "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/unit/utest_symmetry-558dc3e_tests.cmake")
-  include("/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/unit/utest_symmetry-558dc3e_tests.cmake")
-else()
-  add_test(utest_symmetry_NOT_BUILT-558dc3e utest_symmetry_NOT_BUILT-558dc3e)
-endif()
