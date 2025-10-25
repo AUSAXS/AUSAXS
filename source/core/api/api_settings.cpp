@@ -74,3 +74,16 @@ void set_molecule_settings(
     settings::detail::parse_option("exv_volume", {std::string(exv_set)});
     settings::detail::parse_option("hydration_strategy", {std::string(hydration_strategy)});
 }, status);}
+
+void set_general_settings(
+    bool offline,
+    bool verbose,
+    bool warnings,
+    unsigned int threads,
+    int* status
+) {return execute_with_catch([&]() {
+    settings::general::offline = offline;
+    settings::general::verbose = verbose;
+    settings::general::warnings = warnings;
+    settings::general::threads = threads;
+}, status);}

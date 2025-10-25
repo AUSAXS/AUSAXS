@@ -450,7 +450,7 @@ int iterative_fit_start(
 
 void iterative_fit_step(
     int iterative_fit_id, 
-    double* pars, double* return_I,
+    double* pars, int n_pars, double* return_I,
     int* status
 ) {return execute_with_catch([&]() {
     auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
@@ -458,8 +458,13 @@ void iterative_fit_step(
     auto hist = iterative_fit_state->protein->get_histogram();
 
     fitter::SmartFitter::EnabledFitParameters enabled_pars{};
+    if (n_pars != static_cast<int>(enabled_pars.get_enabled_pars_count())) {
+        ErrorMessage::last_error = "Number of provided parameters (" + std::to_string(n_pars) + 
+            ") does not match number of enabled fit parameters (" + std::to_string(enabled_pars.get_enabled_pars_count()) + ")";
+        return;
+    }
     enabled_pars.apply_pars(
-        std::vector<double>(pars, pars+enabled_pars.get_enabled_pars_count()),
+        std::vector<double>(pars, pars+n_pars),
         hist.get()
     );
 

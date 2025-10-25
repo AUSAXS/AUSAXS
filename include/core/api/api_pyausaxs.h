@@ -115,7 +115,7 @@ extern "C" API int iterative_fit_start(
 
 extern "C" API void iterative_fit_step(
     int iterative_fit_id, 
-    double* pars, double* return_I,
+    double* pars, int n_pars, double* return_I,
     int* status
 );
 

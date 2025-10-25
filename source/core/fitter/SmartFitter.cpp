@@ -30,11 +30,11 @@ SmartFitter::EnabledFitParameters initialize_parameters() {
     };
 }
 
-int SmartFitter::EnabledFitParameters::get_enabled_pars_count() const {return hydration+excluded_volume+solvent_density+atomic_debye_waller+exv_debye_waller;}
+unsigned int SmartFitter::EnabledFitParameters::get_enabled_pars_count() const {return hydration+excluded_volume+solvent_density+atomic_debye_waller+exv_debye_waller;}
 
 void SmartFitter::EnabledFitParameters::apply_pars(const std::vector<double>& params, observer_ptr<hist::DistanceHistogram> model) {
     assert(
-        params.size() == SmartFitter::EnabledFitParameters().get_enabled_pars_count()
+        params.size() == get_enabled_pars_count()
         && "SmartFitter::EnabledFitParameters::apply_pars: Invalid number of parameters."
     );
 

@@ -2,6 +2,14 @@
 
 #include <api/api_helper.h>
 
+extern "C" API void set_general_settings(
+    bool offline,
+    bool verbose,
+    bool warnings,
+    unsigned int threads,
+    int* status
+);
+
 extern "C" API void set_exv_settings(
     const char* exv_model,
     int* status

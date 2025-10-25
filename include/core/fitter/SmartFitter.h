@@ -18,7 +18,7 @@ namespace ausaxs::fitter {
         public:
             struct EnabledFitParameters {
                 bool hydration, excluded_volume, solvent_density, atomic_debye_waller, exv_debye_waller;
-                int get_enabled_pars_count() const;
+                unsigned int get_enabled_pars_count() const;
                 void apply_pars(const std::vector<double>& params, observer_ptr<hist::DistanceHistogram> model);
                 void validate_model(observer_ptr<hist::DistanceHistogram> h);
             } enabled_fit_parameters;
