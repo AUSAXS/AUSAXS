@@ -119,11 +119,6 @@ extern "C" API void iterative_fit_step(
     int* status
 );
 
-extern "C" API int iterative_fit_finish(
-    int iterative_fit_id, 
-    int* status
-);
-
 // extern "C" API int map_read(
 //     const char* filename,
 //     int* status

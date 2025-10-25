@@ -468,15 +468,6 @@ void iterative_fit_step(
     return_I = debye_I_y.data();
 }, status);}
 
-int iterative_fit_finish(
-    int iterative_fit_id,
-    int* status
-) {return execute_with_catch([&]() {
-    auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
-    if (!iterative_fit_state) {ErrorMessage::last_error = "Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\""; return -1;}
-    auto hist = iterative_fit_state->protein->get_histogram();
-}, status);}
-
 // #include <em/ImageStack.h>
 // int map_read(
 //     const char* filename,
