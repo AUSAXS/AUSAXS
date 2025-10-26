@@ -19,6 +19,13 @@ set_target_properties(ausaxs
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
 
+# windows-specific option to ensure DLL is located in /lib
+set_target_properties(ausaxs PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib
+)
+
 target_link_libraries(ausaxs ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody)
 target_link_libraries(ausaxs_static ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody)
 
