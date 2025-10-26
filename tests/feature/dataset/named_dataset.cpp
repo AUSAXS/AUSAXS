@@ -31,8 +31,19 @@ TEST_CASE("NamedDataset: User-facing file I/O") {
         // User-facing output: wrap with NamedDataset for clarity
         NamedDataset<SimpleDataset> named_output(std::move(raw_data), {"q", "I(q)", "error"});
         
-        // Save with meaningful column names
-        io::File output_path("/tmp/saxs_data_test.dat");
+        // Save with meaningful column names (use build directory for portability)
+        io::File output_path("saxs_data_test.dat");
+        
+        // Ensure cleanup happens even if test fails
+        struct FileGuard {
+            io::File path;
+            ~FileGuard() { 
+                if (path.exists()) {
+                    std::remove(path.str().c_str());
+                }
+            }
+        } guard{output_path};
+        
         named_output.save(output_path, "# SAXS experimental data");
         
         // Verify file was created
@@ -44,14 +55,13 @@ TEST_CASE("NamedDataset: User-facing file I/O") {
         std::getline(input, header_line); // Comment line
         std::string column_line;
         std::getline(input, column_line); // Column names
+        input.close();
         
         CHECK(column_line.find("q") != std::string::npos);
         CHECK(column_line.find("I(q)") != std::string::npos);
         CHECK(column_line.find("error") != std::string::npos);
         
-        // Clean up
-        input.close();
-        std::remove(output_path.str().c_str());
+        // Cleanup handled by FileGuard destructor
     }
 }
 

@@ -1,0 +1,5 @@
+if(EXISTS "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/feature/ftest_precalculated_exv_form_factor_product-558dc3e_tests.cmake")
+  include("/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/feature/ftest_precalculated_exv_form_factor_product-558dc3e_tests.cmake")
+else()
+  add_test(ftest_precalculated_exv_form_factor_product_NOT_BUILT-558dc3e ftest_precalculated_exv_form_factor_product_NOT_BUILT-558dc3e)
+endif()

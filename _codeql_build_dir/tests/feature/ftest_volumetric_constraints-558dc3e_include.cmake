@@ -1,0 +1,5 @@
+if(EXISTS "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/feature/ftest_volumetric_constraints-558dc3e_tests.cmake")
+  include("/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/feature/ftest_volumetric_constraints-558dc3e_tests.cmake")
+else()
+  add_test(ftest_volumetric_constraints_NOT_BUILT-558dc3e ftest_volumetric_constraints_NOT_BUILT-558dc3e)
+endif()

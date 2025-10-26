@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/CMakeFiles/backward-populate"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/CMakeFiles/backward-populate.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/CMakeFiles/backward-populate-complete.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/backward-populate-prefix/src/backward-populate-stamp/backward-populate-build.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/backward-populate-prefix/src/backward-populate-stamp/backward-populate-configure.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/backward-populate-prefix/src/backward-populate-stamp/backward-populate-download.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/backward-populate-prefix/src/backward-populate-stamp/backward-populate-install.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/backward-populate-prefix/src/backward-populate-stamp/backward-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/backward-populate-prefix/src/backward-populate-stamp/backward-populate-patch_disconnected.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/backward-populate-prefix/src/backward-populate-stamp/backward-populate-test.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/backward-subbuild/backward-populate-prefix/src/backward-populate-stamp/backward-populate-update_disconnected.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"backward-populate"
+		],
+		"name" : "backward-populate"
+	}
+}
