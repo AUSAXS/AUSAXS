@@ -27,11 +27,15 @@ jobs:
           fi
 
           # extract the version string from the file (e.g. "v1.2.3")
-          VERSION_IN_FILE=$(sed -n -E 's/.*version\]\s*=\s*"([^"]+)".*/\1/p' "$VERSION_FILE" || true)
-          echo "Version in file: $VERSION_IN_FILE"
+          VERSION_IN_FILE=$(sed -n -E 's/.*version\[\]\s*=\s*"([^"]+)".*/\1/p' "$VERSION_FILE" || true)
+          if [ -z "$VERSION_IN_FILE" ]; then
+            echo "Could not extract version from file: $VERSION_FILE"
+            exit 1
+          fi
 
           # try to get the most recent tag (prefer git describe --abbrev=0)
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          echo "Version in file: $VERSION_IN_FILE"
           echo "Latest git tag: $LATEST_TAG"
 
           # normalize by removing a leading 'v' or 'V' so tags like 'v1.2.3' compare to '1.2.3'
