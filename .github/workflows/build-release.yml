@@ -133,6 +133,11 @@ jobs:
           appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
           verbose: true
 
+      - name: Configure output folders for upload
+        shell: bash
+        run: |
+          rm -rf build/lib/*.a
+
       - uses: actions/upload-artifact@v4
         with:
           name: macos-universal-binaries
@@ -346,6 +351,7 @@ jobs:
       - name: Configure output folders for upload
         shell: bash
         run: |
+          rm -rf build/bin/resources
           rm -rf build/lib/*.a
 
       - uses: actions/upload-artifact@v4
