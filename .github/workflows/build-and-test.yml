@@ -89,6 +89,12 @@ jobs:
             -DVCPKG_TARGET_TRIPLET="x64-windows-static"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
+      - name: Configure output folders for upload
+        shell: bash
+        run: |
+          rm -rf build/lib/*.exp build/lib/*.lib
+          rm -rf build/bin/resources
+
       - uses: actions/upload-artifact@v4
         with:
           name: windows-binaries
@@ -224,10 +230,10 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
-      - name: Clean up GUI binary folders for upload
+      - name: Configure output folders for upload
         run: |
           find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
-          find build/bin/scripts ! -name "plot*" -exec rm -rf {} +
+          rm -rf build/lib/*.a
 
       - uses: actions/upload-artifact@v4
         with:
@@ -291,6 +297,11 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
             -DARCH=${{ matrix.arch }}
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
+
+      - name: Configure output folders for upload
+        shell: bash
+        run: |
+          rm -rf build/lib/*.a
 
       - uses: actions/upload-artifact@v4
         with:
