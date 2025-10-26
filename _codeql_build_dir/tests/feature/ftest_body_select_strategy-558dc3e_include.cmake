@@ -1,5 +1,0 @@
-if(EXISTS "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/feature/ftest_body_select_strategy-558dc3e_tests.cmake")
-  include("/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/feature/ftest_body_select_strategy-558dc3e_tests.cmake")
-else()
-  add_test(ftest_body_select_strategy_NOT_BUILT-558dc3e ftest_body_select_strategy_NOT_BUILT-558dc3e)
-endif()

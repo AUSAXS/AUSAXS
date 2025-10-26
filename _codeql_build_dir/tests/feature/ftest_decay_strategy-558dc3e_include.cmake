@@ -1,5 +1,0 @@
-if(EXISTS "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/feature/ftest_decay_strategy-558dc3e_tests.cmake")
-  include("/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/feature/ftest_decay_strategy-558dc3e_tests.cmake")
-else()
-  add_test(ftest_decay_strategy_NOT_BUILT-558dc3e ftest_decay_strategy_NOT_BUILT-558dc3e)
-endif()
