@@ -26,7 +26,7 @@ if (${BUILD_PLOT_EXE})
 		)
 		if (${EXIT_CODE} EQUAL 0)
 		  add_custom_command(TARGET plotter POST_BUILD
-				COMMAND ${Python3_EXECUTABLE} -c "import PyInstaller.__main__; PyInstaller.__main__.run(['${CMAKE_SOURCE_DIR}/scripts/plot.py', '--onefile', '--distpath', '${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bin'])"
+				COMMAND ${Python3_EXECUTABLE} -c "import PyInstaller.__main__; PyInstaller.__main__.run(['${CMAKE_SOURCE_DIR}/scripts/plot.py', '--onefile', '--distpath', '${CMAKE_RUNTIME_OUTPUT_DIRECTORY}'])"
 				VERBATIM
 			)
 		elseif(${GUI})
