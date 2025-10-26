@@ -8,4 +8,7 @@ namespace ausaxs {
     class SimpleDataset;
     class Dataset2D;
     class Multiset;
+    
+    template<typename T>
+    struct NamedDataset;
 }
