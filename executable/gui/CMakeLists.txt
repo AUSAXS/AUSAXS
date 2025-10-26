@@ -26,7 +26,7 @@ if (${BUILD_PLOT_EXE})
 		)
 		if (${EXIT_CODE} EQUAL 0)
 		  add_custom_command(TARGET plotter POST_BUILD
-				COMMAND ${Python3_EXECUTABLE} -c "import PyInstaller.__main__; PyInstaller.__main__.run(['${CMAKE_SOURCE_DIR}/scripts/plot.py', '--onefile', '--distpath', '${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bin'])"
+				COMMAND ${Python3_EXECUTABLE} -c "import PyInstaller.__main__; PyInstaller.__main__.run(['${CMAKE_SOURCE_DIR}/scripts/plot.py', '--onefile', '--distpath', '${CMAKE_RUNTIME_OUTPUT_DIRECTORY}'])"
 				VERBATIM
 			)
 		elseif(${GUI})
@@ -35,11 +35,6 @@ if (${BUILD_PLOT_EXE})
 			message(WARNING "The plotting utility cannot be built. The GUI executables will only be able to use the raw Python scripts.")
 		endif()
 	endif()
-elseif(${GUI})
-	find_package(Python3 COMPONENTS Interpreter)
-	add_custom_command(TARGET plotter POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_SOURCE_DIR}/scripts" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scripts"
-	)
 endif()
 
 # gui executables
