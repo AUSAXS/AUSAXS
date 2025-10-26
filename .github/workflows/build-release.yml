@@ -10,8 +10,33 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  check-version:
+    name: "Check that version number has been incremented"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check build version
+        run: |
+          # file: include/core/constants/Version.h
+          VERSION_FILE="include/core/constants/Version.h"
+          VERSION_LINE=$(grep 'inline constexpr char version[]' $VERSION_FILE)
+          VERSION_IN_FILE=$(echo $VERSION_LINE | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "Version in file: $VERSION_IN_FILE"
+
+          # get the latest tag from git
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "Latest git tag: $LATEST_TAG"
+          if [ "$VERSION_IN_FILE" == "$LATEST_TAG" ]; then
+            echo "Version number has not been incremented since the last tag."
+            echo "Please update the version number in $VERSION_FILE."
+            exit 1
+          else
+            echo "Version number has been incremented."
+          fi
+
   build-win: 
     name: "Windows MSVC"
+    needs: check-version
     runs-on: windows-latest
     env:
       USERNAME: AUSAXS
@@ -75,6 +100,7 @@ jobs:
 
   build-mac:
     name: "MacOS universal"
+    needs: check-version
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -147,6 +173,7 @@ jobs:
 
   build-mac-gui:
     name: "${{ matrix.name }}"
+    needs: check-version
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -295,6 +322,7 @@ jobs:
 
   build-ubuntu:
     name: ${{ matrix.name }}
+    needs: check-version
     runs-on: ${{ matrix.os }}
     strategy: 
       fail-fast: false
