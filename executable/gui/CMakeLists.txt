@@ -35,11 +35,6 @@ if (${BUILD_PLOT_EXE})
 			message(WARNING "The plotting utility cannot be built. The GUI executables will only be able to use the raw Python scripts.")
 		endif()
 	endif()
-elseif(${GUI})
-	find_package(Python3 COMPONENTS Interpreter)
-	add_custom_command(TARGET plotter POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_SOURCE_DIR}/scripts" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scripts"
-	)
 endif()
 
 # gui executables
