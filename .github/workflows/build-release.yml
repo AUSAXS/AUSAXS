@@ -10,8 +10,50 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  check-version:
+    name: "Check that version number has been incremented"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check build version
+        run: |
+          VERSION_FILE="include/core/constants/Version.h"
+          if [ ! -f "$VERSION_FILE" ]; then
+            echo "Version file not found: $VERSION_FILE"
+            exit 1
+          fi
+
+          # extract the version string from the file (e.g. "v1.2.3")
+          VERSION_IN_FILE=$(sed -n -E 's/.*version\[\]\s*=\s*"([^"]+)".*/\1/p' "$VERSION_FILE" || true)
+          if [ -z "$VERSION_IN_FILE" ]; then
+            echo "Could not extract version from file: $VERSION_FILE"
+            exit 1
+          fi
+
+          # try to get the most recent tag (prefer git describe --abbrev=0)
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          echo "Version in file: $VERSION_IN_FILE"
+          echo "Latest git tag: $LATEST_TAG"
+
+          # normalize by removing a leading 'v' or 'V' so tags like 'v1.2.3' compare to '1.2.3'
+          normalize() { echo "${1}" | sed -E 's/^[vV]//'; }
+          norm_file=$(normalize "$VERSION_IN_FILE")
+          norm_tag=$(normalize "$LATEST_TAG")
+
+          if [ "$norm_file" = "$norm_tag" ]; then
+            echo "Version number has not been incremented since the last tag."
+            echo "Please update the version number in $VERSION_FILE."
+            exit 1
+          else
+            echo "Version number has been incremented."
+          fi
+
   build-win: 
     name: "Windows MSVC"
+    needs: check-version
     runs-on: windows-latest
     env:
       USERNAME: AUSAXS
@@ -75,6 +117,7 @@ jobs:
 
   build-mac:
     name: "MacOS universal"
+    needs: check-version
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -147,6 +190,7 @@ jobs:
 
   build-mac-gui:
     name: "${{ matrix.name }}"
+    needs: check-version
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -295,6 +339,7 @@ jobs:
 
   build-ubuntu:
     name: ${{ matrix.name }}
+    needs: check-version
     runs-on: ${{ matrix.os }}
     strategy: 
       fail-fast: false
