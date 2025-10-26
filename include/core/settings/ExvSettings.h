@@ -44,6 +44,9 @@ namespace ausaxs::settings {
 
             // Mimic of the WAXSiS implementation, where the excluded volume covers the entire envelope.
             WAXSiS,
+
+            // Disable excluded volume modeling.
+            None
         };
         static ExvMethod exv_method; // The method used to model the excluded volume.
     };

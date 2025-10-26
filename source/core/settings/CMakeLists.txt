@@ -8,7 +8,6 @@ target_sources(ausaxs_core PRIVATE
 	"GridSettings.cpp"
 	"HistogramSettings.cpp"
 	"MoleculeSettings.cpp"
-	"MDSettings.cpp"
 	"PlotSettings.cpp"
 	"RigidBodySettings.cpp"
 	"SettingRef.cpp"

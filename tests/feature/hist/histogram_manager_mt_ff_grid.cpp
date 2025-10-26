@@ -44,7 +44,7 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
     hist::Distribution1D xx1, ax1, aa1;
     {
         // we have to sum all form factor contributions into the single distributions
-        auto aa = h_cast->get_aa_counts_ff();
+        auto aa = h_cast->get_aa_counts_by_ff();
         hist::Distribution1D temp_aa(aa.size_z()), temp_ax(aa.size_z()), temp_xx(aa.size_z());
         for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
             for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
@@ -171,14 +171,14 @@ auto test_derived = [] () {
         auto h_grids = H(&protein).calculate_all();
 
         auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-        auto aa1 = h_grid_cast->get_aa_counts_ff();
-        auto ax1 = h_grid_cast->get_aw_counts_ff();
-        auto xx1 = h_grid_cast->get_ww_counts_ff();
+        auto aa1 = h_grid_cast->get_aa_counts_by_ff();
+        auto ax1 = h_grid_cast->get_aw_counts_by_ff();
+        auto xx1 = h_grid_cast->get_ww_counts_by_ff();
 
         auto h_grids_cast = static_cast<C*>(h_grids.get());
-        auto aa2 = h_grids_cast->get_aa_counts_ff();
-        auto ax2 = h_grids_cast->get_aw_counts_ff();
-        auto xx2 = h_grids_cast->get_ww_counts_ff();
+        auto aa2 = h_grids_cast->get_aa_counts_by_ff();
+        auto ax2 = h_grids_cast->get_aw_counts_by_ff();
+        auto xx2 = h_grids_cast->get_ww_counts_by_ff();
 
         CHECK(xx1.size() == xx2.size());
         for (unsigned int k = 0; k < xx1.size(); ++k) {

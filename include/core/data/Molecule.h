@@ -239,6 +239,7 @@ namespace ausaxs::data {
 			 */
 			void set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager);
 			void set_histogram_manager(settings::hist::HistogramManagerChoice choice);
+			void reset_histogram_manager(); // resets to default based on current settings
 
 			/**
 			 * @brief Signal that the hydration layer has been modified.

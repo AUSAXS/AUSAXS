@@ -59,7 +59,7 @@ template<> void settings::io::detail::SettingRef<settings::hydrate::HydrationStr
     else if (str == "none") {settingref = settings::hydrate::HydrationStrategy::NoStrategy;}
     else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::hydrate::HydrationStrategy>(std::stoi(val[0]));}
     else {
-        throw except::io_error("settings::hydrate::placement_strategy: Unkown HydrationStrategy. Did you forget to add parsing support for it in MoleculeSettings.cpp?");
+        throw except::io_error("settings::hydrate::placement_strategy: Unkown HydrationStrategy \"" + str + "\". Did you forget to add parsing support for it in MoleculeSettings.cpp?");
     }
 }
 
@@ -90,6 +90,6 @@ template<> void settings::io::detail::SettingRef<settings::molecule::ExvSet>::se
     else if (str == "vdw") {settingref = settings::molecule::ExvSet::vdw;}
     else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::molecule::ExvSet>(std::stoi(val[0]));}
     else {
-        throw except::io_error("settings::molecule::displaced_volume_set: Unkown DisplacedVolumeSet. Did you forget to add parsing support for it in MoleculeSettings.cpp?");
+        throw except::io_error("settings::molecule::displaced_volume_set: Unkown DisplacedVolumeSet \"" + str + "\". Did you forget to add parsing support for it in MoleculeSettings.cpp?");
     }
 }
