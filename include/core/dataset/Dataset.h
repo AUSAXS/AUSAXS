@@ -25,16 +25,6 @@ namespace ausaxs {
             /**
              * @brief Create a new dataset with the given columns.
              */
-            Dataset(const std::vector<std::string>& col_names);
-
-            /**
-             * @brief Create a new dataset with the given columns.
-             */
-            Dataset(const std::vector<std::vector<double>>& cols, const std::vector<std::string>& col_names);
-
-            /**
-             * @brief Create a new dataset with the given columns.
-             */
             Dataset(const std::vector<std::vector<double>>& cols);
 
             /**
@@ -46,16 +36,6 @@ namespace ausaxs {
              * @brief Create a new dataset from a data file.
              */
             Dataset(const io::ExistingFile& path);
-
-            /**
-             * @brief Get a column based on its name. 
-             */
-            [[nodiscard]] MutableColumn<double> col(std::string_view column);
-
-            /**
-             * @brief Get a column based on its name. 
-             */
-            [[nodiscard]] const ConstColumn<double> col(std::string_view column) const;
 
             /**
              * @brief Get a column based on its index.
@@ -109,36 +89,6 @@ namespace ausaxs {
             * @brief Create a new dataset with the specified columns.
             */
             Dataset select_columns(const std::vector<unsigned int>& cols) const;
-
-            /**
-            * @brief Create a new dataset with the specified columns.
-            */
-            Dataset select_columns(const std::vector<std::string>& cols) const;
-
-            /**
-            * @brief Set the column names. 
-            */
-            void set_col_names(const std::vector<std::string>& names);
-
-            /**
-             * @brief Set a column name. 
-             */
-            void set_col_names(unsigned int i, const std::string& name);
-
-            /**
-             * @brief Check if this dataset has named columns.
-             */
-            bool is_named() const noexcept;
-
-            /**
-             * @brief Get the column names. 
-             */
-            [[nodiscard]] std::vector<std::string> get_col_names();
-
-            /**
-             * @brief Get a column name. 
-             */
-            [[nodiscard]] std::string get_col_names(unsigned int i);
 
             /**
              * @brief Interpolate @a num points between each pair of points in the dataset.
@@ -276,8 +226,7 @@ namespace ausaxs {
             void set_default_names();
 
             Matrix<double> data;
-            std::vector<std::string> names;
-
+ 
         protected:
             /**
              * @brief Load a dataset from the specified file. 

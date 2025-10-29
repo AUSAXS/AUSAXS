@@ -38,24 +38,13 @@ namespace ausaxs {
 
             /**
              * @brief Construct a new dataset from two vectors.
-             * 
-             * Complexity: O(N + M)
              */
             SimpleDataset(const std::vector<double>& x, const std::vector<double>& y);
 
             /**
              * @brief Construct a new dataset from three vectors.
-             * 
-             * Complexity: O(N + M + P)
              */
             SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr);
-
-            /**
-             * @brief Construct a new named dataset from two vectors.
-             * 
-             * Complexity: O(N + M)
-             */
-            SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel);
 
             /**
              * @brief Construct a new dataset from an input file.

@@ -40,11 +40,6 @@ SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<dou
 
 SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y) : SimpleDataset(x.size()) {initialize(x, y);}
 
-SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel) : SimpleDataset(x.size()) {
-    initialize(x, y);
-    set_col_names({std::move(xlabel), ylabel, std::move(ylabel)+"err"});
-}
-
 SimpleDataset::SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
 
 SimpleDataset::SimpleDataset(unsigned int rows) noexcept : Dataset(rows, 3) {}
@@ -305,7 +300,6 @@ void SimpleDataset::rebin() noexcept {
 
 void SimpleDataset::load(const io::ExistingFile& path) {
     Dataset::load(path);
-    names = {"q", "I", "Ierr", "qerr"}; // set column names
 }
 
 void SimpleDataset::remove_consecutive_duplicates() {
