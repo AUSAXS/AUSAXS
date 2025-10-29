@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <io/IOFwd.h>
 #include <dataset/SimpleDataset.h>
 
 namespace ausaxs {
@@ -27,11 +28,6 @@ namespace ausaxs {
             Dataset2D(std::vector<double> x, std::vector<double> y) noexcept;
 
             /**
-             * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
-             */
-            Dataset2D(std::vector<double> x, std::vector<double> y, std::string_view xlabel, std::string_view ylabel);
-
-            /**
              * @brief Construct a new dataset with x, y, and yerr values. The xerr column will be initialized to 0. 
              */
             Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept;
@@ -46,7 +42,7 @@ namespace ausaxs {
             /**
              * @brief Construct a new dataset from an input file.
              */
-            Dataset2D(std::string_view path);
+            Dataset2D(const io::ExistingFile& path);
 
             /**
              * @brief Destructor.

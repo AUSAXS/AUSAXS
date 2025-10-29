@@ -71,8 +71,9 @@ namespace ausaxs::em {
 
             /**
              * @brief Get the fitted water scaling factors as a dataset.
+             * @returns A dataset with two columns: iteration index and fitted scaling factor.
              */
-            SimpleDataset get_fitted_water_factors_dataset() const;
+            Dataset get_fitted_water_factors_dataset() const;
 
             /**
              * @brief Get a new progress observer.

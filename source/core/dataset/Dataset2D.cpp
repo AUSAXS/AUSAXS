@@ -6,7 +6,6 @@
 #include <dataset/DatasetFactory.h>
 
 #include <vector>
-#include <string>
 
 using namespace ausaxs;
 
@@ -18,10 +17,6 @@ Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y) noexcept : Da
     for (unsigned int i = 0; i < x.size(); i++) {
         row(i) = {x[i], y[i], 0, 0};
     }
-}
-
-Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::string_view xlabel, std::string_view ylabel) : Dataset2D(std::move(x), std::move(y)) {
-    set_col_names({std::string(xlabel), std::string(ylabel), std::string(ylabel)+"err", std::string(xlabel)+"err"});
 }
 
 Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
@@ -42,7 +37,7 @@ Dataset2D::Dataset2D(const SimpleDataset& data) : Dataset2D(data.size()) {
     }
 }
 
-Dataset2D::Dataset2D(std::string_view path) : Dataset2D() {
+Dataset2D::Dataset2D(const io::ExistingFile& path) : Dataset2D() {
     auto dataset = factory::DatasetFactory::construct(path, 4);
     this->data = std::move(dataset->data);
     data.N = dataset->data.N;

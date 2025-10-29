@@ -24,25 +24,8 @@ Dataset::Dataset(Dataset&& d) = default;
 Dataset& Dataset::operator=(const Dataset& other) = default;
 Dataset& Dataset::operator=(Dataset&& other) = default;
 
-Dataset::Dataset(Matrix<double>&& m) : data(std::move(m)) {
-    set_default_names();
-}
-
-Dataset::Dataset(const std::vector<std::string>& col_names) : data(0, col_names.size()), names(col_names) {}
-
-Dataset::Dataset(const std::vector<std::vector<double>>& cols, const std::vector<std::string>& col_names) : data(cols), names(col_names) {}
-
-Dataset::Dataset(unsigned int rows, unsigned int cols) : data(rows, cols) {
-    set_default_names();
-}
-
-Dataset::Dataset(const std::vector<std::vector<double>>& cols) : data(cols) {
-    set_default_names();
-}
-
 Dataset::Dataset(const io::ExistingFile& path) : Dataset() {
     *this = std::move(*factory::DatasetFactory::construct(path));
-    set_default_names();
 }
 
 Dataset::~Dataset() = default;
@@ -94,24 +77,6 @@ void Dataset::limit_y(const Limit& limits) {
 void Dataset::limit_x(double min, double max) {limit_x({min, max});}
 void Dataset::limit_y(double min, double max) {limit_y({min, max});}
 
-MutableColumn<double> Dataset::col(std::string_view column) {
-    for (unsigned int i = 0; i < names.size(); ++i) {
-        if (names[i] == column) {
-            return col(i);
-        }
-    }
-    throw except::invalid_operation("Dataset::col: Column \"" + std::string(column) + "\" not found. Available columns:\n\t" + utility::join(names, "\n\t"));
-}
-
-const ConstColumn<double> Dataset::col(std::string_view column) const {
-    for (unsigned int i = 0; i < names.size(); ++i) {
-        if (names[i] == column) {
-            return col(i);
-        }
-    }
-    throw except::invalid_operation("Dataset::col: Column \"" + std::string(column) + "\" not found. Available columns: " + utility::join(names, "\n"));
-}
-
 MutableColumn<double> Dataset::col(unsigned int index) {
     return data.col(index);
 }
@@ -128,49 +93,13 @@ const ConstRow<double> Dataset::row(unsigned int index) const {
     return data.row(index);
 }
 
-void Dataset::set_col_names(const std::vector<std::string>& names) {
-    if (names.size() != data.M) {
-        throw except::invalid_operation(
-            "Dataset::set_col_names: Number of names does not match number of columns. "
-            "(" + std::to_string(names.size()) + " != " + std::to_string(data.M) + ")"
-        );
-    }
-    this->names = names;
-}
-
-void Dataset::set_col_names(unsigned int i, const std::string& name) {
-    names[i] = name;
-}
-
-std::vector<std::string> Dataset::get_col_names() {
-    return names;
-}
-
-std::string Dataset::get_col_names(unsigned int i) {
-    return names[i];
-}
-
 Dataset Dataset::select_columns(const std::vector<unsigned int>& cols) const {
     if (cols.size() == 0) {throw except::invalid_argument("Dataset::select_columns: No columns selected.");}
     Dataset data(this->data.N, cols.size());
-    std::vector<std::string> col_names(cols.size());
     for (unsigned int i = 0; i < cols.size(); i++) {
         data.col(i) = col(cols[i]);
-        col_names[i] = names[cols[i]];
     }
-    data.set_col_names(col_names);
     return data;
-}
-
-Dataset Dataset::select_columns(const std::vector<std::string>& cols) const {
-    std::vector<unsigned int> indices(cols.size());
-    std::transform(cols.begin(), cols.end(), indices.begin(), [this](const std::string& name) {
-        for (unsigned int i = 0; i < names.size(); i++) {
-            if (names[i] == name) {return i;}
-        }
-        throw except::invalid_argument("Dataset::select_columns: Column \"" + name + "\" not found.");
-    });
-    return select_columns(indices);
 }
 
 void Dataset::save(const io::File& path, const std::string& header) const {
@@ -183,17 +112,6 @@ void Dataset::save(const io::File& path, const std::string& header) const {
     // write header
     if (!header.empty()) {
         output << header << std::endl;
-    }
-
-    // write column titles
-    if (names.size() < data.M) {
-        throw except::unexpected(
-            "Dataset::save: Number of column names (" + std::to_string(names.size()) + ") "
-            "does not match number of columns (" + std::to_string(data.M) + ")."
-        );
-    }
-    for (unsigned int j = 0; j < data.M; j++) {
-        output << std::left << std::setw(16) << names[j] << "\t";
     }
     output << std::endl;
 
@@ -216,14 +134,6 @@ void Dataset::load(const io::ExistingFile& path) {
         );
     }
     *this = std::move(*dataset);
-    set_default_names();
-}
-
-void Dataset::set_default_names() {
-    names.resize(data.M);
-    for (unsigned int i = 0; i < data.M; i++) {
-        names[i] = "col_" + std::to_string(i);
-    }
 }
 
 Dataset Dataset::rolling_average(unsigned int window_size) const {
@@ -351,15 +261,6 @@ std::vector<unsigned int> Dataset::find_minima(unsigned int min_spacing, double 
 
 std::vector<unsigned int> Dataset::find_maxima(unsigned int min_spacing, double min_prominence) const {
     return math::find_minima(x(), -y(), min_spacing, min_prominence);
-}
-
-bool Dataset::is_named() const noexcept {
-    for (unsigned int i = 0; i < data.M; i++) {
-        if (names[i] != "col_" + std::to_string(i)) {
-            return true;
-        }
-    }
-    return false;
 }
 
 unsigned int Dataset::size() const noexcept {

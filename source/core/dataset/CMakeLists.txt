@@ -3,6 +3,7 @@ target_sources(ausaxs_core PRIVATE
 	"Dataset2D.cpp"
 	"DatasetFactory.cpp"
 	"Multiset.cpp"
+	"NamedWrapper.cpp"
 	"PointSet.cpp"
 	"SimpleDataset.cpp"
 

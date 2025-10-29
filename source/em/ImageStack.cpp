@@ -177,7 +177,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     //##########################################################//
     //###         AVERAGE & INTERPLATE MORE POINTS           ###//
     //##########################################################//
-    Dataset data_avg_int; // cutoff, chi2, mass
+    NamedDataset data_avg_int; // cutoff, chi2, mass
     {
         auto ra = chi2_data.rolling_average(7).interpolate(5); // impose a moving average filter
         data_avg_int = Dataset(ra.size(), 3);
@@ -478,13 +478,13 @@ const std::vector<mini::FittedParameter>& ImageStack::get_fitted_water_factors()
     return water_factors;
 }
 
-SimpleDataset ImageStack::get_fitted_water_factors_dataset() const {
+Dataset ImageStack::get_fitted_water_factors_dataset() const {
     std::vector<double> x(water_factors.size()), y(water_factors.size());
     for (unsigned int i = 0; i < water_factors.size(); i++) {
         x[i] = i;
         y[i] = water_factors[i].value;
     }
-    return SimpleDataset(x, y, "Iteration", "Scaling factor");
+    return Dataset({std::move(x), std::move(y)});
 }
 
 void ImageStack::update_charge_levels(const Limit& limit) const noexcept {

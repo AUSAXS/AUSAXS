@@ -29,7 +29,7 @@ SimpleDataset mini::Landscape::as_dataset() const {
 
         if (i > 0 && x[i] < x[i - 1]) {ordered = false;}
     }
-    auto ds = SimpleDataset(x, y, "x", "f(x)");
+    auto ds = SimpleDataset(x, y);
     if (!ordered) {ds.sort_x();}
     return ds;
 }
