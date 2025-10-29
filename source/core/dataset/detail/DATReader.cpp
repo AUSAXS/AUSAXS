@@ -121,9 +121,6 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
             dataset->push_back(data_cols[i]);
         }
     }
-    std::vector<std::string> col_names = {"q", "I", "Ierr", "qerr"};
-    col_names.resize(mode);
-    dataset->set_col_names(col_names);
 
     // skip the first few rows if requested
     if (settings::axes::skip != 0) {
