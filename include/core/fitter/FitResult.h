@@ -7,7 +7,7 @@
 
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Result.h>
-#include <dataset/SimpleDataset.h>
+#include <dataset/NamedDataset.h>
 #include <utility/observer_ptr.h>
 
 #include <string>
@@ -32,7 +32,7 @@ namespace ausaxs::fitter {
              *
              * @throw std::invalid_argument If the number of columns is not 5 or the column names are not as expected. 
              */
-            void set_data_curves(Dataset&& curves);
+            void set_data_curves(NamedDataset&& curves);
 
             /**
              * @brief Set the data curves for this fit. 
@@ -44,7 +44,7 @@ namespace ausaxs::fitter {
              */
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
-            Dataset curves; // | q | data | data_err | interpolated model | residuals |
+            NamedDataset curves; // | q | data | data_err | interpolated model | residuals |
             mini::Landscape evaluated_points;
             unsigned int dof;
     };

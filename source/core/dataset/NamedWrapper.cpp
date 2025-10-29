@@ -15,18 +15,18 @@ using namespace ausaxs;
 
 template<typename T>
 void NamedWrapper<T>::set_default_names() {
-    names.resize(dataset.size_cols());
-    for (unsigned int i = 0; i < dataset.size_cols(); i++) {
+    names.resize(this->size_cols());
+    for (unsigned int i = 0; i < this->size_cols(); i++) {
         names[i] = "col_" + std::to_string(i);
     }
 }
 
 template<typename T>
 void NamedWrapper<T>::set_col_names(const std::vector<std::string>& new_names) {
-    if (new_names.size() != dataset.size_cols()) {
+    if (new_names.size() != this->size_cols()) {
         throw except::invalid_operation(
             "NamedWrapper::set_col_names: Number of names does not match number of columns. "
-            "(" + std::to_string(new_names.size()) + " != " + std::to_string(dataset.size_cols()) + ")"
+            "(" + std::to_string(new_names.size()) + " != " + std::to_string(this->size_cols()) + ")"
         );
     }
     names = new_names;
@@ -49,7 +49,7 @@ std::string NamedWrapper<T>::get_col_names(unsigned int i) const {
 
 template<typename T>
 bool NamedWrapper<T>::is_named() const noexcept {
-    for (unsigned int i = 0; i < dataset.size_cols(); i++) {
+    for (unsigned int i = 0; i < this->size_cols(); i++) {
         if (names[i] != "col_" + std::to_string(i)) {
             return true;
         }
@@ -61,7 +61,7 @@ template<typename T>
 MutableColumn<double> NamedWrapper<T>::col(std::string_view column) {
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
-            return dataset.col(i);
+            return this->col(i);
         }
     }
     throw except::invalid_argument("NamedWrapper::col: Column \"" + std::string(column) + "\" not found.");
@@ -71,28 +71,29 @@ template<typename T>
 const ConstColumn<double> NamedWrapper<T>::col(std::string_view column) const {
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
-            return dataset.col(i);
+            return this->col(i);
         }
     }
     throw except::invalid_argument("NamedWrapper::col: Column \"" + std::string(column) + "\" not found.");
 }
 
 template<typename T>
-NamedWrapper<Dataset> NamedWrapper<T>::select_columns(const std::vector<std::string>& cols) const {
+NamedWrapper<Dataset> NamedWrapper<T>::select_columns(std::initializer_list<std::string_view> cols) const {
     std::vector<unsigned int> indices(cols.size());
-    std::transform(cols.begin(), cols.end(), indices.begin(), [this](const std::string& name) {
+    std::transform(cols.begin(), cols.end(), indices.begin(), [this](std::string_view name) {
         for (unsigned int i = 0; i < names.size(); i++) {
             if (names[i] == name) {return i;}
         }
-        throw except::invalid_argument("NamedWrapper::select_columns: Column \"" + name + "\" not found.");
+        throw except::invalid_argument("NamedWrapper::select_columns: Column \"" + std::string(name) + "\" not found.");
     });
     
-    Dataset new_dataset = dataset.select_columns(indices);
+    NamedWrapper<Dataset> new_dataset = this->select_columns(indices);
     std::vector<std::string> col_names(cols.size());
     for (unsigned int i = 0; i < cols.size(); i++) {
         col_names[i] = names[indices[i]];
     }
-    return NamedWrapper<Dataset>(std::move(new_dataset), col_names);
+    new_dataset.names = std::move(col_names);
+    return new_dataset;
 }
 
 template<typename T>
@@ -110,32 +111,26 @@ void NamedWrapper<T>::save(const io::File& path, const std::string& header) cons
     }
 
     // write column titles
-    if (names.size() < dataset.size_cols()) {
+    if (names.size() < this->size_cols()) {
         throw except::unexpected(
             "NamedWrapper::save: Number of column names (" + std::to_string(names.size()) + ") "
-            "does not match number of columns (" + std::to_string(dataset.size_cols()) + ")."
+            "does not match number of columns (" + std::to_string(this->size_cols()) + ")."
         );
     }
-    for (unsigned int j = 0; j < dataset.size_cols(); j++) {
+    for (unsigned int j = 0; j < this->size_cols(); j++) {
         output << std::left << std::setw(16) << names[j] << "\t";
     }
     output << std::endl;
 
     // write data
-    for (unsigned int i = 0; i < dataset.size_rows(); i++) {
-        for (unsigned int j = 0; j < dataset.size_cols()-1; j++) {
-            output << std::left << std::setw(16) << std::setprecision(8) << std::scientific << dataset.index(i, j) << "\t";
+    for (unsigned int i = 0; i < this->size_rows(); i++) {
+        for (unsigned int j = 0; j < this->size_cols()-1; j++) {
+            output << std::left << std::setw(16) << std::setprecision(8) << std::scientific << this->index(i, j) << "\t";
         }
-        output << dataset.index(i, dataset.size_cols()-1) << "\n";
+        output << this->index(i, this->size_cols()-1) << "\n";
     }
     output.close();
 }
-
-template<typename T>
-const T& NamedWrapper<T>::get_dataset() const noexcept {return dataset;}
-
-template<typename T>
-T& NamedWrapper<T>::get_dataset() noexcept {return dataset;}
 
 template struct ausaxs::NamedWrapper<Dataset>;
 template struct ausaxs::NamedWrapper<Dataset2D>;

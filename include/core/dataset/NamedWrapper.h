@@ -15,16 +15,13 @@ namespace ausaxs {
      * @brief A template wrapper that adds NamedWrapper column functionality to any Dataset class.
      */
     template<typename T>
-    struct NamedWrapper {
-        T dataset;
+    struct NamedWrapper : public T {
         std::vector<std::string> names;
 
         NamedWrapper() = default;
 
-        template<typename... Args> requires std::is_constructible_v<T, Args...>
-        NamedWrapper(Args... args, const std::vector<std::string>& names) : dataset(std::forward<Args>(args)...), names(names) {}
-        NamedWrapper(T&& d) : dataset(std::forward<T>(d)) {set_default_names();}
-        NamedWrapper(T&& d, const std::vector<std::string>& names) : dataset(std::forward<T>(d)), names(names) {}
+        NamedWrapper(T&& d) : T(std::forward<T>(d)) {set_default_names();}
+        NamedWrapper(T&& d, const std::vector<std::string>& names) : T(std::forward<T>(d)), names(names) {}
 
         /**
          * @brief Set default column names (col_0, col_1, ...).
@@ -65,25 +62,19 @@ namespace ausaxs {
          * @brief Get a column based on its name.
          */
         [[nodiscard]] const ConstColumn<double> col(std::string_view column) const;
+        using T::col; // bring base class overloads into scope
 
         /**
          * @brief Create a new dataset with the specified columns.
          */
-        NamedWrapper<Dataset> select_columns(const std::vector<std::string>& cols) const;
-
-        /**
-         * @brief Get the underlying dataset.
-         */
-        const T& get_dataset() const noexcept;
-
-        /**
-         * @brief Get the underlying dataset.
-         */
-        T& get_dataset() noexcept;
+        NamedWrapper<Dataset> select_columns(std::initializer_list<std::string_view> cols) const;
+        using T::select_columns; // bring base class overloads into scope
 
         /**
          * @brief Write this dataset to the specified file with column names.
          */
         void save(const io::File& path, const std::string& header = "") const;
+
+        static_assert(std::is_base_of_v<Dataset, T>, "NamedWrapper can only be used with Dataset types.");
     };
 }

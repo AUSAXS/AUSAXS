@@ -20,17 +20,9 @@ namespace ausaxs {
             Dataset& operator=(Dataset&& other);
             virtual ~Dataset();
 
-            Dataset(Matrix<double>&& m);
-
-            /**
-             * @brief Create a new dataset with the given columns.
-             */
-            Dataset(const std::vector<std::vector<double>>& cols);
-
-            /**
-             * @brief Create a new dataset with the specified dimensions. 
-             */
-            Dataset(unsigned int rows, unsigned int cols);
+            template<typename ...Args> requires std::constructible_from<Matrix<double>, Args...>
+            Dataset(Args&&... args) : data(std::forward<Args>(args)...) {}
+            Dataset(std::initializer_list<std::vector<double>> lists) : data(lists) {}
 
             /**
              * @brief Create a new dataset from a data file.
@@ -219,11 +211,6 @@ namespace ausaxs {
 
             // Get the ith value in the second column.
             [[nodiscard]] double& y(unsigned int i) {return data.index(i, 1);}
-
-            /**
-             * @brief Define default column names.
-             */
-            void set_default_names();
 
             Matrix<double> data;
  

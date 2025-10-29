@@ -24,21 +24,8 @@ Dataset::Dataset(Dataset&& d) = default;
 Dataset& Dataset::operator=(const Dataset& other) = default;
 Dataset& Dataset::operator=(Dataset&& other) = default;
 
-Dataset::Dataset(Matrix<double>&& m) : data(std::move(m)) {
-    set_default_names();
-}
-
-Dataset::Dataset(unsigned int rows, unsigned int cols) : data(rows, cols) {
-    set_default_names();
-}
-
-Dataset::Dataset(const std::vector<std::vector<double>>& cols) : data(cols) {
-    set_default_names();
-}
-
 Dataset::Dataset(const io::ExistingFile& path) : Dataset() {
     *this = std::move(*factory::DatasetFactory::construct(path));
-    set_default_names();
 }
 
 Dataset::~Dataset() = default;
@@ -147,7 +134,6 @@ void Dataset::load(const io::ExistingFile& path) {
         );
     }
     *this = std::move(*dataset);
-    set_default_names();
 }
 
 Dataset Dataset::rolling_average(unsigned int window_size) const {
