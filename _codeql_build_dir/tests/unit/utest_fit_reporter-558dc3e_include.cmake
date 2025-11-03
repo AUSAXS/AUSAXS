@@ -1,5 +1,0 @@
-if(EXISTS "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/unit/utest_fit_reporter-558dc3e_tests.cmake")
-  include("/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/unit/utest_fit_reporter-558dc3e_tests.cmake")
-else()
-  add_test(utest_fit_reporter_NOT_BUILT-558dc3e utest_fit_reporter_NOT_BUILT-558dc3e)
-endif()

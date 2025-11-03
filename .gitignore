@@ -4,6 +4,10 @@
 /data
 temp
 
+# CodeQL artifacts
+_codeql_build_dir/
+_codeql_detected_source_root
+
 # developer stuff
 **/__pycache__
 tests/benchmarks
