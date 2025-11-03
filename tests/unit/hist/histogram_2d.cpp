@@ -15,6 +15,8 @@ TEST_CASE("Histogram2D::Histogram2D") {
         hist::Histogram2D hist(10, 10);
         CHECK(hist.x_axis.bins == 10);
         CHECK(hist.y_axis.bins == 10);
+        CHECK(hist.data.N == 10);
+        CHECK(hist.data.M == 10);
     }
 
     SECTION("Axis&, Axis&") {
@@ -23,5 +25,7 @@ TEST_CASE("Histogram2D::Histogram2D") {
         hist::Histogram2D hist(x_axis, y_axis);
         CHECK(hist.x_axis == x_axis);
         CHECK(hist.y_axis == y_axis);
+        CHECK(hist.data.N == 2);
+        CHECK(hist.data.M == 5);
     }
 }

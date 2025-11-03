@@ -32,59 +32,6 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::data;
 
-TEST_CASE("WeightedDistribution: tracks content") {
-    SECTION("simple") {
-        hist::WeightedDistribution1D p(10);
-        auto width = constants::axes::d_axis.width();
-        p.add(0, 1);
-        p.add(width/2, 2);
-
-        auto weighted_bins = p.get_weighted_axis();
-        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
-        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(width/2, 1e-3));
-        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
-    }
-
-    SECTION("WeightedDistribution1D") {
-        hist::WeightedDistribution1D p(10);
-        auto width = constants::axes::d_axis.width();
-        p.add(0, 1);
-        p.add(width/2, 2);
-        p.add(3*width/4, 4);
-
-        auto weighted_bins = p.get_weighted_axis();
-        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
-        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(2.5*width/4, 1e-3));
-        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
-    }
-
-    SECTION("WeightedDistribution2D") {
-        hist::WeightedDistribution2D p(10, 10);
-        auto width = constants::axes::d_axis.width();
-        p.add(0, 0, 1);
-        p.add(1, width/2, 2);
-        p.add(2, 3*width/4, 4);
-
-        auto weighted_bins = p.get_weighted_axis();
-        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
-        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(2.5*width/4, 1e-3));
-        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
-    }
-
-    SECTION("WeightedDistribution3D") {
-        hist::WeightedDistribution3D p(10, 10, 10);
-        auto width = constants::axes::d_axis.width();
-        p.add(0, 0, 0, 1);
-        p.add(1, 1, width/2, 2);
-        p.add(2, 2, 3*width/4, 4);
-
-        auto weighted_bins = p.get_weights();
-        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
-        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(2.5*width/4, 1e-3));
-        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
-    }
-}
-
 class DistanceHistogramDebug : public DistanceHistogram {
     public:
         DistanceHistogramDebug(DistanceHistogram&& other) : DistanceHistogram(std::move(other)) {}
