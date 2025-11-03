@@ -29,15 +29,6 @@ TEST_CASE("Dataset2D::Dataset2D") {
         CHECK(dataset.xerr() == std::vector{0, 0, 0});
     }
 
-    SECTION("vector<double>, vector<double>, string, string") {
-        Dataset2D dataset({1, 2, 3}, {4, 5, 6}, "xlabel", "ylabel");
-        CHECK(dataset.size() == 3);
-        CHECK(dataset.x() == std::vector{1, 2, 3});
-        CHECK(dataset.y() == std::vector{4, 5, 6});
-        CHECK(dataset.get_col_names()[0] == "xlabel");
-        CHECK(dataset.get_col_names()[1] == "ylabel");
-    }
-
     SECTION("vector<double>, vector<double>, vector<double>") {
         Dataset2D dataset({1, 2, 3}, {4, 5, 6}, {7, 8, 9});
         CHECK(dataset.size() == 3);

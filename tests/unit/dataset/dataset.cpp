@@ -17,23 +17,22 @@ TEST_CASE("Dataset::Dataset") {
 
     SECTION("copy constructor") {
         std::vector<std::vector<double>> cols = {{1, 2, 3}, {4, 5, 6}};
-        std::vector<std::string> col_names = {"a", "b"};
-        Dataset dataset(cols, col_names);
+        Dataset dataset(cols);
         Dataset dataset2(dataset);
         CHECK(dataset == dataset2);
+        CHECK(dataset2.col(0) == Vector<double>{1, 2, 3});
+        CHECK(dataset2.col(1) == Vector<double>{4, 5, 6});
     }
 
     SECTION("move constructor") {
         std::vector<std::vector<double>> cols = {{1, 2, 3}, {4, 5, 6}};
-        std::vector<std::string> col_names = {"a", "b"};
-        Dataset dataset(cols, col_names);
+        Dataset dataset(cols);
         Dataset dataset2(std::move(dataset));
         REQUIRE(dataset2.size() == 3);
         REQUIRE(dataset2.size_rows() == 3);
         REQUIRE(dataset2.size_cols() == 2);
-        CHECK(dataset2.get_col_names() == col_names);
-        CHECK(dataset2.col("a") == Vector<double>{1, 2, 3});
-        CHECK(dataset2.col("b") == Vector<double>{4, 5, 6});
+        CHECK(dataset2.col(0) == Vector<double>{1, 2, 3});
+        CHECK(dataset2.col(1) == Vector<double>{4, 5, 6});
     }
 
     SECTION("Matrix&&") {
@@ -44,25 +43,14 @@ TEST_CASE("Dataset::Dataset") {
         CHECK(dataset.size_cols() == 2);
     }
 
-    SECTION("vector<string>&") {
-        std::vector<std::string> col_names = {"a", "b", "c"};
-        Dataset dataset(col_names);
-        CHECK(dataset.size() == 0);
-        CHECK(dataset.size_rows() == 0);
-        CHECK(dataset.size_cols() == 3);
-        CHECK(dataset.get_col_names() == col_names);
-    }
-
     SECTION("vector<vector<double>>&, vector<string>&") {
         std::vector<std::vector<double>> cols = {{1, 2, 3}, {4, 5, 6}};
-        std::vector<std::string> col_names = {"a", "b"};
-        Dataset dataset(cols, col_names);
+        Dataset dataset(cols);
         CHECK(dataset.size() == 3);
         CHECK(dataset.size_rows() == 3);
         CHECK(dataset.size_cols() == 2);
-        CHECK(dataset.get_col_names() == col_names);
-        CHECK(dataset.col("a") == Vector<double>{1, 2, 3});
-        CHECK(dataset.col("b") == Vector<double>{4, 5, 6});
+        CHECK(dataset.col(0) == Vector<double>{1, 2, 3});
+        CHECK(dataset.col(1) == Vector<double>{4, 5, 6});
     }
 
     SECTION("vector<vector<double>>&") {
@@ -91,13 +79,6 @@ TEST_CASE("Dataset::col") {
     SECTION("by index") {
         CHECK(dataset.col(0) == Vector<double>{1, 2, 3, 4, 5});
         CHECK(dataset.col(1) == Vector<double>{6, 7, 8, 9, 10});
-    }
-
-    SECTION("by name") {
-        std::vector<std::string> col_names = {"col1", "col2"};
-        dataset.set_col_names(col_names);
-        CHECK(dataset.col("col1") == Vector<double>{1, 2, 3, 4, 5});
-        CHECK(dataset.col("col2") == Vector<double>{6, 7, 8, 9, 10});
     }
 }
 
@@ -171,7 +152,7 @@ TEST_CASE("Dataset::empty") {
 }
 
 TEST_CASE("Dataset::push_back") {
-    Dataset dataset(std::vector<std::string>{"a", "b", "c"});
+    Dataset dataset(0, 3);
     CHECK(dataset.size() == 0);
 
     dataset.push_back({1, 2, 3});
@@ -181,38 +162,6 @@ TEST_CASE("Dataset::push_back") {
     dataset.push_back({4, 5, 6});
     CHECK(dataset.size() == 2);
     CHECK(dataset.row(1) == Vector<double>{4, 5, 6});
-}
-
-TEST_CASE("Dataset::set_col_names") {
-    Dataset dataset(3, 3);
-
-    SECTION("set all names") {
-        std::vector<std::string> names = {"x", "y", "z"};
-        dataset.set_col_names(names);
-        CHECK(dataset.get_col_names() == names);
-    }
-
-    SECTION("set individual name") {
-        dataset.set_col_names(0, "first");
-        dataset.set_col_names(1, "second");
-        dataset.set_col_names(2, "third");
-        CHECK(dataset.get_col_names(0) == "first");
-        CHECK(dataset.get_col_names(1) == "second");
-        CHECK(dataset.get_col_names(2) == "third");
-    }
-}
-
-TEST_CASE("Dataset::is_named") {
-    SECTION("unnamed") {
-        Dataset dataset(3, 3);
-        CHECK_FALSE(dataset.is_named());
-    }
-
-    SECTION("named") {
-        std::vector<std::string> names = {"x", "y", "z"};
-        Dataset dataset(names);
-        CHECK(dataset.is_named());
-    }
 }
 
 TEST_CASE("Dataset::operator==") {
@@ -242,19 +191,10 @@ TEST_CASE("Dataset::index") {
 
 TEST_CASE("Dataset::select_columns") {
     std::vector<std::vector<double>> cols = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    std::vector<std::string> names = {"a", "b", "c"};
-    Dataset dataset(cols, names);
+    Dataset dataset(cols);
 
     SECTION("by index") {
         Dataset selected = dataset.select_columns({0, 2});
-        CHECK(selected.size_cols() == 2);
-        CHECK(selected.col(0) == Vector<double>{1, 2, 3});
-        CHECK(selected.col(1) == Vector<double>{7, 8, 9});
-    }
-
-    SECTION("by name") {
-        std::vector<std::string> cols = {"a", "c"};
-        Dataset selected = dataset.select_columns(cols);
         CHECK(selected.size_cols() == 2);
         CHECK(selected.col(0) == Vector<double>{1, 2, 3});
         CHECK(selected.col(1) == Vector<double>{7, 8, 9});
