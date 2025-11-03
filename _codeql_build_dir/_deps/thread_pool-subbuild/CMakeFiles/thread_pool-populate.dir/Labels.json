@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/CMakeFiles/thread_pool-populate"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/CMakeFiles/thread_pool-populate.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/CMakeFiles/thread_pool-populate-complete.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/thread_pool-populate-prefix/src/thread_pool-populate-stamp/thread_pool-populate-build.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/thread_pool-populate-prefix/src/thread_pool-populate-stamp/thread_pool-populate-configure.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/thread_pool-populate-prefix/src/thread_pool-populate-stamp/thread_pool-populate-download.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/thread_pool-populate-prefix/src/thread_pool-populate-stamp/thread_pool-populate-install.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/thread_pool-populate-prefix/src/thread_pool-populate-stamp/thread_pool-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/thread_pool-populate-prefix/src/thread_pool-populate-stamp/thread_pool-populate-patch_disconnected.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/thread_pool-populate-prefix/src/thread_pool-populate-stamp/thread_pool-populate-test.rule"
+		},
+		{
+			"file" : "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/_deps/thread_pool-subbuild/thread_pool-populate-prefix/src/thread_pool-populate-stamp/thread_pool-populate-update_disconnected.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"thread_pool-populate"
+		],
+		"name" : "thread_pool-populate"
+	}
+}

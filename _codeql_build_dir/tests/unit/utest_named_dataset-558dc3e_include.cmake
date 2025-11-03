@@ -1,0 +1,5 @@
+if(EXISTS "/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/unit/utest_named_dataset-558dc3e_tests.cmake")
+  include("/home/runner/work/AUSAXS/AUSAXS/_codeql_build_dir/tests/unit/utest_named_dataset-558dc3e_tests.cmake")
+else()
+  add_test(utest_named_dataset_NOT_BUILT-558dc3e utest_named_dataset_NOT_BUILT-558dc3e)
+endif()
