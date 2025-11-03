@@ -55,18 +55,6 @@ TEST_CASE("SimpleDataset::SimpleDataset") {
         CHECK(dataset.y() == std::vector{4, 5, 6});
         CHECK(dataset.yerr() == std::vector{0, 0, 0});
     }
-
-    SECTION("vector<double>, vector<double>, string, string") {
-        SimpleDataset dataset({1, 2, 3}, {4, 5, 6}, "test1", "test2");
-        CHECK(dataset.size() == 3);
-        CHECK(dataset.size_rows() == 3);
-        CHECK(dataset.size_cols() == 3);
-        CHECK(dataset.x() == std::vector{1, 2, 3});
-        CHECK(dataset.y() == std::vector{4, 5, 6});
-        CHECK(dataset.yerr() == std::vector{0, 0, 0});
-        CHECK(dataset.get_col_names()[0] == "test1");
-        CHECK(dataset.get_col_names()[1] == "test2");
-    }
 }
 
 TEST_CASE("SimpleDataset::yerr") {

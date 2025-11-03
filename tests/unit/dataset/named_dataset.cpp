@@ -158,11 +158,7 @@ TEST_CASE("NamedDataset::save") {
     SECTION("save to file") {
         io::File path("/tmp/named_dataset_test.dat");
         named.save(path, "# Test header");
-        
-        // Verify file was created
         CHECK(path.exists());
-        
-        // Clean up
         std::remove(path.str().c_str());
     }
 }
