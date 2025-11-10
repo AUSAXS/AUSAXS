@@ -197,8 +197,8 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
     }
 }
 
-#include <form_factor/ExvFormFactor.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/xray/ExvFormFactor.h>
+#include <form_factor/xray/FormFactor.h>
 TEST_CASE("6lyz_exv", "[manual]") {
     auto exact = [] (const data::Molecule& molecule, double exv_radius) {
         container::Container2D<double> distances(molecule.get_atoms().size(), molecule.get_atoms().size());

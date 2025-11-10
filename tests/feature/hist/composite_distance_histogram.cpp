@@ -10,7 +10,7 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/xray/FormFactor.h>
 #include <dataset/SimpleDataset.h>
 #include <data/Molecule.h>
 #include <data/Body.h>

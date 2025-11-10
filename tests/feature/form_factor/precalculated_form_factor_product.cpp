@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/FormFactor.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
 
 using namespace ausaxs;
 using namespace form_factor;
