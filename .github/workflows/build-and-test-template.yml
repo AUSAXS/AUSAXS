@@ -1,13 +1,17 @@
-name: Compile & test
+name: Build & test template
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches: [master]
+on: 
+  workflow_call:
+    inputs:
+      package_permission:
+        required: false
+        type: boolean
+        default: false
 
-permissions:
-  checks: write
-  packages: write
+# on:
+#   pull_request:
+#     types: [opened, synchronize, reopened, ready_for_review]
+#     branches: [master]
 
 env:
   BUILD_TYPE: Release
@@ -121,7 +125,7 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12  
 
-      - name: Configure output folders for upload
+      - name: Configure build output folders for upload
         shell: bash
         run: |
           rm -rf build/lib/*.a
@@ -141,12 +145,13 @@ jobs:
           ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/unit
           ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/feature
 
-      - name: Generate test report
-        uses: mikepenz/action-junit-report@v4
-        if: (success() || failure())
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        if: always()
         with:
-          check_name: "MacOS test report"
-          report_paths: build/tests/reports/*.xml
+          name: "junit-test-results-macos"
+          path: build/tests/reports/*.xml
+          retention-days: 1
 
   build-mac-gui:
     name: "${{ matrix.name }}"
@@ -330,9 +335,10 @@ jobs:
           ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/unit
           ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/feature
 
-      - name: Generate test report
-        uses: mikepenz/action-junit-report@v4
-        if: matrix.os == 'ubuntu-latest' && (success() || failure())
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        if: matrix.os == 'ubuntu-latest' && always()
         with:
-          check_name: "Ubuntu test report"
-          report_paths: build/tests/reports/*.xml
+          name: "junit-test-results-ubuntu"
+          path: build/tests/reports/*.xml
+          retention-days: 1
