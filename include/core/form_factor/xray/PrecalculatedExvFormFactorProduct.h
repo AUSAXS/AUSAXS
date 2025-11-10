@@ -5,8 +5,8 @@
 
 #include <container/ContainerFwd.h>
 #include <constants/Constants.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/ExvFormFactor.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/ExvFormFactor.h>
 #include <container/ArrayContainer2D.h>
 
 namespace ausaxs::form_factor::storage::exv {

@@ -6,7 +6,7 @@
 #include <container/ContainerFwd.h>
 #include <constants/Constants.h>
 #include <container/ArrayContainer2D.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/xray/FormFactor.h>
 #include <form_factor/FormFactorConcepts.h>
 
 namespace ausaxs::form_factor {
