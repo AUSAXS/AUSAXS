@@ -4,25 +4,12 @@
 #pragma once
 
 #include <constants/Constants.h>
+#include <form_factor/tables/FormFactorTableHelper.h>
 
 #include <array>
 
 // Five-Gaussian form factor table values. See each nested namespace for the source.
-namespace ausaxs::constants::form_factor {
-    namespace {
-        constexpr double s_to_q_factor = 1./(4*4*std::numbers::pi*std::numbers::pi); // q = 4πs --> s = q/(4pi)
-
-        /**
-         * @brief Convert a Gaussian form factor from s to q.
-         *        This is purely for convenience, such that the tabulated values are easier to read.
-         */
-        constexpr std::array<double, 5> s_to_q(std::array<double, 5> a) {
-            for (unsigned int i = 0; i < 5; ++i) {
-                a[i] *= s_to_q_factor;
-            }
-            return a;
-        }
-    }
+namespace ausaxs::constants::form_factor::xray {
 
     // International Tables for Crystallography, https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php        
     namespace H {
