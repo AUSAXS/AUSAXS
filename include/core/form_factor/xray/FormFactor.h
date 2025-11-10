@@ -19,7 +19,9 @@ namespace ausaxs::form_factor {
             /**
              * @brief Initialize a vacuum form factor based on a 5-Gaussian approximation.
              */
-            constexpr FormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : a(a), b(b), c(c) {}
+            constexpr FormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : a(a), b(b), c(c) {
+                this->f0 = 1./I0();
+            }
 
             /**
              * @brief Initialize an excluded volume form factor.
