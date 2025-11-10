@@ -5,7 +5,7 @@
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicitBase.h>
 #include <hist/intensity_calculator/foxs/FormFactorFoXS.h>
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedExvFormFactorProduct.h>
 
 namespace ausaxs::hist {
     /**

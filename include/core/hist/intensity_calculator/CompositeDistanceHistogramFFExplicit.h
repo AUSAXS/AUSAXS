@@ -4,7 +4,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicitBase.h>
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedExvFormFactorProduct.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {

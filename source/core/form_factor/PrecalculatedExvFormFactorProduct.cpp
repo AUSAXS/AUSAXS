@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedExvFormFactorProduct.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
 

@@ -4,9 +4,9 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicitBase.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
-#include <form_factor/FormFactor.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedExvFormFactorProduct.h>
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
 

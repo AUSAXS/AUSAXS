@@ -4,7 +4,7 @@
 #pragma once
 
 #include <form_factor/FormFactorType.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
 #include <container/ArrayContainer2D.h>
 
 #include <cmath>

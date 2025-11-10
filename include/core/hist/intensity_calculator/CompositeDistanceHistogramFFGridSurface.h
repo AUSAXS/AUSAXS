@@ -4,7 +4,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
 #include <table/VectorDebyeTable.h>
 #include <utility/TypeTraits.h>
 

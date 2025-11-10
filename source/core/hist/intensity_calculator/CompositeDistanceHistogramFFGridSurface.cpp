@@ -2,8 +2,8 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/ExvFormFactor.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/ExvFormFactor.h>
 #include <table/ArrayDebyeTable.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>

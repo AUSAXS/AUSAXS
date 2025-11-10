@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <form_factor/ExvTable.h>
+#include <form_factor/tables/ExvTable.h>
 #include <settings/MoleculeSettings.h>
 
 #include <stdexcept>

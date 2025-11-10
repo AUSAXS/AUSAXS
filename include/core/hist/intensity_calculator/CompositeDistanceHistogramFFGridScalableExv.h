@@ -4,8 +4,6 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <table/VectorDebyeTable.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {

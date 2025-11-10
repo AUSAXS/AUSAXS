@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
 #include <constants/Constants.h>
 
 #if CONSTEXPR_TABLES

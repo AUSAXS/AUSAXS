@@ -6,7 +6,7 @@
 #include <constants/Constants.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/tables/FormFactorTableXray.h>
-#include <form_factor/xray/ExvTable.h>
+#include <form_factor/tables/ExvTable.h>
 #include <math/ConstexprMath.h>
 
 namespace ausaxs::form_factor {

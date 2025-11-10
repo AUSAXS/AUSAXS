@@ -5,8 +5,8 @@
 #include <hist/Histogram.h>
 #include <dataset/SimpleDataset.h>
 #include <table/ArrayDebyeTable.h>
-#include <form_factor/FormFactor.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
 #include <utility/MultiThreading.h>
 #include <settings/HistogramSettings.h>
 

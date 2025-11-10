@@ -4,7 +4,7 @@
 #include <grid/exv/ExvVolume.h>
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedExvFormFactorProduct.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>

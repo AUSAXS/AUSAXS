@@ -5,10 +5,10 @@
 
 #include <constants/Constants.h>
 #include <form_factor/FormFactorType.h>
-#include <form_factor/FormFactorTable.h>
-#include <form_factor/ExvTable.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/tables/FormFactorTableXray.h>
+#include <form_factor/tables/ExvTable.h>
+#include <form_factor/xray/PrecalculatedFormFactorProduct.h>
+#include <form_factor/xray/PrecalculatedExvFormFactorProduct.h>
 #include <container/ArrayContainer2D.h>
 #include <math/ConstexprMath.h>
 
