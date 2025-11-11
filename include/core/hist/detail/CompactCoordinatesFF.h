@@ -4,7 +4,7 @@
 #pragma once
 
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/detail/CompactCoordinatesData.h>
+#include <hist/detail/data/CompactCoordinatesXYZFF.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/Concepts.h>
 #include <data/Body.h>
