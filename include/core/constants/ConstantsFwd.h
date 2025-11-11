@@ -11,7 +11,7 @@ namespace ausaxs::constants {
         Na, Mg, Al, Si, P, S, Cl, Ar, 
         K, Ca, Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Cu, Zn, Ga, Ge, As, Se, Br, Kr,
         Rb, Sr, Y, Zr, Nb, Mo, Tc, Ru, Rh, Pd, Ag, Cd, In, Sn, Sb, Te, I, Xe,
-        W, 
+        Cs, Ba, Hf, Ta, W, Re, Os, Ir, Pt, Au, Tl, Pb, Bi, Po,
         M,      // This fake element is for compatibility with the GROMACS tip4p water model.
         dummy,  // Fake element for dummy atoms with variable properties. 
         unknown

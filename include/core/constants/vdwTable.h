@@ -65,5 +65,19 @@ namespace ausaxs::constants::radius::vdw {
     constexpr double Te = 2.36;
     constexpr double I  = 2.22;
 
+    constexpr double Cs = 3.30;
+    constexpr double Ba = 3.05;
+    constexpr double La = 2.81;
+    constexpr double Hf = 2.52;
+    constexpr double Ta = 2.42;
     constexpr double W  = 2.36;
+    constexpr double Re = 2.35;
+    constexpr double Os = 2.33;
+    constexpr double Ir = 2.34;
+    constexpr double Pt = 2.37;
+    constexpr double Au = 2.41;
+    constexpr double Hg = 2.25;
+    constexpr double Tl = 2.53;
+    constexpr double Pb = 2.53;
+    constexpr double Bi = 3.52;
 }

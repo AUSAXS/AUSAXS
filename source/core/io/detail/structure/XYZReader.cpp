@@ -4,6 +4,7 @@
 #include <io/detail/structure/XYZReader.h>
 #include <io/ExistingFile.h>
 #include <utility/Console.h>
+#include <settings/MoleculeSettings.h>
 
 #include <fstream>
 
@@ -13,6 +14,10 @@ using namespace ausaxs::io::pdb;
 io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
     console::print_info("Reading XYZ structure file from \"" + path.str() + "\"");
     console::indent();
+    if (settings::molecule::implicit_hydrogens) {
+        console::print_text("Note: implicit hydrogens setting is enabled, but XYZ files do not contain enough information to assign hydrogens. Disabling.");
+        settings::molecule::implicit_hydrogens = false;
+    }
 
     io::pdb::PDBStructure res;
     std::ifstream input(path);
