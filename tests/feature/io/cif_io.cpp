@@ -5,8 +5,8 @@
 #include <data/Body.h>
 #include <utility/Console.h>
 #include <settings/All.h>
-#include <io/detail/CIFReader.h>
-#include <io/detail/PDBReader.h>
+#include <io/detail/structure/CIFReader.h>
+#include <io/detail/structure/PDBReader.h>
 #include <residue/detail/Residue.h>
 #include <constants/Constants.h>
 
