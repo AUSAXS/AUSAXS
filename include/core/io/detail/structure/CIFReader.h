@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <io/File.h>
+#include <io/IOFwd.h>
 #include <io/pdb/PDBStructure.h>
 #include <residue/ResidueFwd.h>
 

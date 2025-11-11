@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <io/pdb/PDBStructure.h>
+#include <io/IOFwd.h>
+#include <io/pdb/PDBFwd.h>
 
 namespace ausaxs::io::detail::pdb {
-    io::pdb::PDBStructure read(const io::File& path);
+    void write(const io::pdb::PDBStructure& data, const io::File& path);
 }

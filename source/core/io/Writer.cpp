@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <io/Writer.h>
-#include <io/detail/PDBWriter.h>
+#include <io/detail/structure/PDBWriter.h>
 #include <io/File.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>

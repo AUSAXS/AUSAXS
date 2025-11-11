@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <io/detail/CIFReader.h>
+#include <io/detail/structure/CIFReader.h>
 #include <io/File.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>

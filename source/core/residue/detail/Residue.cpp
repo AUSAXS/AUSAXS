@@ -7,7 +7,7 @@
 #include <utility/StringUtils.h>
 #include <constants/Constants.h>
 #include <io/ExistingFile.h>
-#include <io/detail/CIFReader.h>
+#include <io/detail/structure/CIFReader.h>
 
 #include <sstream>
 

@@ -3,7 +3,6 @@
 
 #include <api/api_pyausaxs.h>
 #include <api/ObjectStorage.h>
-#include <io/detail/PDBReader.h>
 #include <io/Reader.h>
 #include <dataset/SimpleDataset.h>
 #include <data/Molecule.h>
@@ -17,15 +16,6 @@
 
 using namespace ausaxs;
 using namespace ausaxs::data;
-
-int read_pdb(
-    const char* filename,
-    int* status
-) {return execute_with_catch([&]() {
-    auto pdb = io::detail::pdb::read(std::string(filename));
-    auto pdb_id = api::ObjectStorage::register_object(std::move(pdb));
-    return pdb_id;
-}, status);}
 
 int pdb_read(
     const char* filename,

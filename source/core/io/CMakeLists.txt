@@ -1,8 +1,9 @@
 target_sources(ausaxs_core PRIVATE 
-	"detail/CIFReader.cpp"
-	"detail/PDBReader.cpp"
-	"detail/PDBWriter.cpp"
-	"detail/XYZWriter.cpp"
+	"detail/structure/CIFReader.cpp"
+	"detail/structure/PDBReader.cpp"
+	"detail/structure/XYZReader.cpp"
+	"detail/structure/PDBWriter.cpp"
+	"detail/trajectory/XYZWriter.cpp"
 
 	"pdb/Footer.cpp"
 	"pdb/Header.cpp"

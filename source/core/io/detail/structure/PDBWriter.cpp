@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <io/detail/PDBWriter.h>
+#include <io/detail/structure/PDBWriter.h>
 #include <io/pdb/PDBStructure.h>
 #include <io/File.h>
 #include <io/pdb/Terminate.h>
