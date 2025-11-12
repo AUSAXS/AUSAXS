@@ -9,7 +9,7 @@
 
 namespace ausaxs::utility {
     /**
-     * @brief Remove spaces from both ends of a string. 
+     * @brief Remove all spaces from the string.
      */
     std::string remove_spaces(std::string s);
 
@@ -50,6 +50,21 @@ namespace ausaxs::utility {
      * @brief Remove all occurrences of the characters in 'remove' from the string. 
      */
     std::string remove_all(std::string_view s, std::string_view remove);
+
+    /**
+     * @brief Remove all leading occurrences of the characters in 'remove' from the string. 
+     */
+    std::string_view remove_leading(std::string_view s, std::string_view remove);
+
+    /**
+     * @brief Remove all trailing occurrences of the characters in 'remove' from the string. 
+     */
+    std::string_view remove_trailing(std::string_view s, std::string_view remove);
+
+    /**
+     * @brief Remove all leading and trailing occurrences of the characters in 'remove' from the string. 
+     */
+    std::string_view remove_leading_and_trailing(std::string_view s, std::string_view remove);
 
     /**
      * @brief Parse a string as a boolean value.

@@ -4,8 +4,8 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <io/pdb/PDBStructure.h>
-#include <io/detail/PDBReader.h>
-#include <io/detail/PDBWriter.h>
+#include <io/detail/structure/PDBReader.h>
+#include <io/detail/structure/PDBWriter.h>
 #include <utility/Console.h>
 #include <settings/All.h>
 

@@ -5,7 +5,7 @@
 #include <rigidbody/sequencer/LoopElement.h>
 #include <rigidbody/RigidBody.h>
 #include <settings/GeneralSettings.h>
-#include <io/detail/XYZWriter.h>
+#include <io/detail/trajectory/XYZWriter.h>
 
 #include <unordered_map>
 

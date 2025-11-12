@@ -5,8 +5,8 @@
 #include <data/Body.h>
 #include <utility/Console.h>
 #include <settings/All.h>
-#include <io/detail/CIFReader.h>
-#include <io/detail/PDBReader.h>
+#include <io/detail/structure/CIFReader.h>
+#include <io/detail/structure/PDBReader.h>
 #include <residue/detail/Residue.h>
 #include <constants/Constants.h>
 
@@ -137,6 +137,26 @@ TEST_CASE("CIFReader: file residues agrees with PDB") {
             REQUIRE(loaded.get(atom) == num);
         }
     }
+}
+
+TEST_CASE("CIFReader::read: crystal file") {
+    settings::general::verbose = false;
+
+    io::ExistingFile path("tests/files/Ag_crystal.cif");
+    auto crystal = io::detail::cif::read(path);
+    auto atoms = crystal.atoms;
+    REQUIRE(atoms.size() == 201);
+
+    double a = 26.3448, b = 26.3448, c = 26.3448;
+    REQUIRE(atoms[0].element == constants::atom_t::Ag);
+    REQUIRE_THAT(atoms[0].coordinates().x(), Catch::Matchers::WithinAbsMatcher(0.194097*a, 1e-3));
+    REQUIRE_THAT(atoms[0].coordinates().y(), Catch::Matchers::WithinAbsMatcher(0.424123*b, 1e-3));
+    REQUIRE_THAT(atoms[0].coordinates().z(), Catch::Matchers::WithinAbsMatcher(0.424123*c, 1e-3));
+
+    REQUIRE(atoms[1].element == constants::atom_t::Ag);
+    REQUIRE_THAT(atoms[1].coordinates().x(), Catch::Matchers::WithinAbsMatcher(0.269368*a, 1e-3));
+    REQUIRE_THAT(atoms[1].coordinates().y(), Catch::Matchers::WithinAbsMatcher(0.346183*b, 1e-3));
+    REQUIRE_THAT(atoms[1].coordinates().z(), Catch::Matchers::WithinAbsMatcher(0.422698*c, 1e-3));
 }
 
 TEST_CASE("CIFReader: compare with PDB", "[files]") {

@@ -12,7 +12,7 @@
 #include <mini/detail/Evaluation.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
-#include <io/detail/XYZWriter.h>
+#include <io/detail/trajectory/XYZWriter.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/LinearFitter.h>
 #include <grid/Grid.h>

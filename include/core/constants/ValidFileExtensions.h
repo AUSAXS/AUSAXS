@@ -24,7 +24,7 @@ namespace ausaxs::constants::filetypes {
         };
     }
 
-    constexpr detail::FileType structure = {std::array{".pdb",    ".ent",  ".cif"         }};
+    constexpr detail::FileType structure = {std::array{".pdb",    ".ent",  ".cif", ".xyz" }};
     constexpr detail::FileType saxs_data = {std::array{".dat",    ".rsr",  ".xvg"         }};
     constexpr detail::FileType em_map    = {std::array{".map",    ".ccp4", ".mrc", ".rec" }};
     constexpr detail::FileType unit_cell = {std::array{".cell",   ".uc"                   }};

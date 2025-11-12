@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <io/detail/CIFReader.h>
+#include <io/detail/structure/CIFReader.h>
 #include <io/File.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
@@ -155,7 +155,7 @@ void parse_chem_comp_section(CIFSection& atom, CIFSection& bond) {
     }
 }
 
-void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection) {
+void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection, bool allow_fractional_coords = false) {
     if (atom.data.empty()) {throw except::io_error("CIFReader::parse_atom_site_section: Empty data section");}
     auto labels = atom.get_label_map();
 
@@ -182,21 +182,45 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
     //   Charge           	_atom_site.pdbx_formal_charge   	 
 
     std::string s_residue_name = "auth_comp_id";
+    std::string s_coords_x = "Cartn_x";
+    std::string s_coords_y = "Cartn_y";
+    std::string s_coords_z = "Cartn_z";
+    std::string default_to_ATOM = "";
+    std::string default_to_UNK = ""; // residue
     {   // mandatory data 
 
         // prefer author labels
         if (!labels.contains(s_residue_name)) {s_residue_name = "label_comp_id";}
 
         if (!labels.contains("group_PDB")) {        // HETATM or ATOM
-            throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"group_PDB\"");
+            console::print_text("CIFReader::parse_atom_site_section: Warning: Missing required label \"group_PDB\". Assuming all atoms are standard ATOM records.");
+            default_to_ATOM = "ATOM";
         } if (!labels.contains(s_residue_name)) {   // residue name
-            throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"comp_id\"");
-        } if (!labels.contains("Cartn_x")) {        // x-coordinate
-            throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_x\"");
-        } if (!labels.contains("Cartn_y")) {        // y-coordinate
-            throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_y\"");
-        } if (!labels.contains("Cartn_z")) {        // z-coordinate
-            throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_z\"");
+            console::print_text("CIFReader::parse_atom_site_section: Warning: Missing required label \"" + s_residue_name + "\". No residue information will be used.");
+            console::print_text_minor("\tDisabling implicit hydrogens.");
+            settings::molecule::implicit_hydrogens = false;
+            default_to_UNK = "UNK";
+        } if (!labels.contains(s_coords_x)) {        // x-coordinate
+            if (allow_fractional_coords) {
+                s_coords_x = "fract_x";
+                if (!labels.contains(s_coords_x)) {
+                    throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_x\"");
+                }
+            }
+        } if (!labels.contains(s_coords_y)) {        // y-coordinate
+            if (allow_fractional_coords) {
+                s_coords_y = "fract_y";
+                if (!labels.contains(s_coords_y)) {
+                    throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_y\"");
+                }
+            }
+        } if (!labels.contains(s_coords_z)) {        // z-coordinate
+            if (allow_fractional_coords) {
+                s_coords_z = "fract_z";
+                if (!labels.contains(s_coords_z)) {
+                    throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"Cartn_z\"");
+                }
+            }
         } if (!labels.contains("type_symbol")) {    // atomic element
             throw except::io_error("CIFReader::parse_atom_site_section: Missing required label \"type_symbol\"");
         }
@@ -224,16 +248,16 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
             labels.contains("B_iso_or_equiv") &&            // temperature factor
             labels.contains("pdbx_formal_charge")           // charge
         )) {
-            console::print_warning("CIFReader::parse_atom_site_section: Missing optional labels in \"_atom_site\" section. Non-critical data will not be loaded.");
+            console::print_text("CIFReader::parse_atom_site_section: Missing optional labels in \"_atom_site\" section. Non-critical data will not be loaded.");
             optional_data = false;
         }
     }
 
-    int i_group_PDB = labels.at("group_PDB");
-    int i_label_comp_id = labels.at(s_residue_name);
-    int i_Cartn_x = labels.at("Cartn_x");
-    int i_Cartn_y = labels.at("Cartn_y");
-    int i_Cartn_z = labels.at("Cartn_z");
+    int i_group_PDB = default_to_ATOM.empty() ? labels.at("group_PDB") : -1;
+    int i_label_comp_id = default_to_UNK.empty() ? labels.at(s_residue_name) : -1;
+    int i_coord_x = labels.at(s_coords_x);
+    int i_coord_y = labels.at(s_coords_y);
+    int i_coord_z = labels.at(s_coords_z);
     int i_type_symbol = labels.at("type_symbol");
 
     int i_id = 0, i_label_alt_id = 0, i_label_atom_id = 0, i_label_asym_id = 0, i_label_seq_id = 0, 
@@ -250,13 +274,14 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
         i_pdbx_formal_charge = labels.at("pdbx_formal_charge");
     }
 
+    //? not sure what the purpose of this guy is - truncating long input strings?
     auto shorten = [] (const std::string& s) -> std::string {
         return s.size() < 6 ? s : s.substr(0, 7);
     };
 
     int discarded_hydrogens = 0;
     for (size_t i = 0; i < atom.data.size(); ++i) {
-        auto& group_PDB = atom.data[i][i_group_PDB];
+        auto& group_PDB = default_to_ATOM.empty() ? atom.data[i][i_group_PDB] : default_to_ATOM;
         if (io::pdb::Record::get_type(group_PDB) != io::pdb::RecordType::ATOM) {
             throw except::io_error("CIFReader::parse_atom_site_section: Unrecognized group_PDB \"" + group_PDB + "\"");
         }
@@ -271,11 +296,11 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
         // load mandatory data
         try {
             name = atom.data[i][i_label_atom_id];
-            resName = atom.data[i][i_label_comp_id];
+            resName = default_to_UNK.empty() ? atom.data[i][i_label_comp_id] : default_to_UNK;
             coords = {
-                std::stod(shorten(atom.data[i][i_Cartn_x])), 
-                std::stod(shorten(atom.data[i][i_Cartn_y])), 
-                std::stod(shorten(atom.data[i][i_Cartn_z])),
+                std::stod(shorten(atom.data[i][i_coord_x])), 
+                std::stod(shorten(atom.data[i][i_coord_y])), 
+                std::stod(shorten(atom.data[i][i_coord_z])),
             };
             element = constants::symbols::parse_element_string(atom.data[i][i_type_symbol]);
             if (optional_data) {
@@ -319,32 +344,58 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
     }
 }
 
-// Extract the current section from the file. This also advances the input stream to the next section
-CIFSection extract_section(std::string line, std::ifstream& input) {
+/**
+ * @brief Extract all consecutive labels matching a given pattern, including associated data.
+ *        The input stream will be advanced to the end of the block. 
+ * 
+ * @param pattern The label pattern to match.
+ * @param first_match The first line that matched the pattern. This is necessary since the line has already been read.
+ * @param input The input stream to read from.
+ */
+CIFSection extract_section(std::string_view pattern, std::string_view first_match, std::ifstream& input) {
     std::vector<std::string> labels;
     std::vector<std::vector<std::string>> data;
 
     // read labels
+    std::string line = std::string(first_match);
+    int full_line_size;
     data.push_back({}); // add an empty data entry in case the labels also contains data
     do {
-        line = utility::remove_all(line, "\n\r");
-        if (line.starts_with('#')) {continue;}
-        if (line.starts_with('_')) {
+        full_line_size = static_cast<int>(line.size());
+        line = utility::remove_leading(utility::remove_trailing(line, "\n\r"), " ");
+        if (line.empty()) {continue;}
+        if (line.starts_with('_')) { // label line
             auto tokens = utility::split(line, ' ');
-            labels.emplace_back(utility::split(tokens[0], '.').back());
+
+            // remove the pattern (and the following . or _) from the label
+            if (!tokens[0].starts_with(pattern)) {
+                // end of section, and no data will follow
+                if (data[0].empty()) {throw except::io_error(
+                    "CIFReader::read: Label group matching \"" + std::string(pattern) + "\""
+                    " do not have inline data and is followed by more labels. This appears to be a bug. "
+                );}
+                input.seekg(-full_line_size-1, std::ios_base::cur); // rewind the last read line in the input stream
+                return CIFSection{std::move(labels), std::move(data)};
+            }
+            labels.emplace_back(tokens[0].substr(pattern.size()+1));
 
             // if the label is followed by a value, add it to the data
             if (tokens.size() == 2) {data[0].emplace_back(std::move(tokens[1]));}
             continue;
+        } else {
+            break;
         }
-    } while(input.peek() == '_' && getline(input, line));
-
-    // read data
+    } while(getline(input, line));
     if (data[0].empty()) {data.pop_back();} // remove the dummy data if empty
-    while(input.peek() != '_' && getline(input, line) && !line.starts_with("loop_")) {
-        if (line.starts_with('#')) {continue;}
+
+    // read data. note that the first iteration is working on the last read line from the previous loop
+    do {
+        full_line_size = static_cast<int>(line.size());
+        line = utility::remove_leading(utility::remove_trailing(line, "\n\r"), " ");
+        if (line.starts_with('#') || line.starts_with('_')) {break;} // end of loop section
+        if (line.empty()) {continue;}
         auto values = utility::split(line, " ");
-        
+
         int concatenated = 0;
         for (size_t i = 0; i < values.size(); i++) {
             if (values[i].starts_with('"')) {
@@ -373,7 +424,10 @@ CIFSection extract_section(std::string line, std::ifstream& input) {
         }
 
         data.emplace_back(std::move(values));
-    };
+    } while(getline(input, line) && !line.starts_with("loop_"));
+
+    // rewind the last read line in the input stream
+    input.seekg(-static_cast<int>(full_line_size)-1, std::ios_base::cur);
 
     return CIFSection{std::move(labels), std::move(data)};
 }
@@ -385,12 +439,12 @@ std::vector<residue::detail::Residue> io::detail::cif::read_residue(const io::Fi
     std::string line;
     CIFSection chem_comp_atom, chem_comp_bond;
     while(getline(input, line)) {
-        if (line.find("_chem_comp_atom.") != std::string::npos) {
-            chem_comp_atom = extract_section(line, input);
+        if (line.find("_chem_comp_atom") != std::string::npos) {
+            chem_comp_atom = extract_section("_chem_comp_atom", line, input);
         }
 
-        if (line.find("_chem_comp_bond.") != std::string::npos) {
-            chem_comp_bond = extract_section(line, input);
+        if (line.find("_chem_comp_bond") != std::string::npos) {
+            chem_comp_bond = extract_section("_chem_comp_bond", line, input);
         }
     }
 
@@ -402,33 +456,11 @@ std::vector<residue::detail::Residue> io::detail::cif::read_residue(const io::Fi
     }
 }
 
-io::pdb::PDBStructure io::detail::cif::read(const io::File& path) {
-    console::print_info("Reading CIF file from \"" + path.str() + "\"");
-    console::indent();
+io::pdb::PDBStructure read_pdbx(CIFSection&& chem_comp_atom, CIFSection&& chem_comp_bond, CIFSection&& atom_site, const std::string& path) {
+    if (atom_site.empty()) {throw except::io_error("CIFReader::read: Could not find any atomic data section in file \"" + path + "\"");}
+    if (!chem_comp_atom.empty() && !chem_comp_bond.empty()) {parse_chem_comp_section(chem_comp_atom, chem_comp_bond);}
 
     io::pdb::PDBStructure file;
-
-    std::ifstream input(path);
-    if (!input.is_open()) {throw except::io_error("CIFReader::read: Could not open file \"" + path.str() + "\"");}
-
-    std::string line;
-    CIFSection chem_comp_atom, chem_comp_bond, atom_site;
-    while(getline(input, line)) {
-        if (line.find("_chem_comp_atom.") != std::string::npos) {
-            chem_comp_atom = extract_section(line, input);
-        }
-
-        if (line.find("_chem_comp_bond.") != std::string::npos) {
-            chem_comp_bond = extract_section(line, input);
-        }
-
-        if (line.find("_atom_site.") != std::string::npos) {
-            atom_site = extract_section(line, input);
-        }
-    }
-
-    if (atom_site.empty()) {throw except::io_error("CIFReader::read: Could not find any atomic data section in file \"" + path.str() + "\"");}
-    if (!chem_comp_atom.empty() && !chem_comp_bond.empty()) {parse_chem_comp_section(chem_comp_atom, chem_comp_bond);}
     parse_atom_site_section(atom_site, file);
 
     unsigned int n_pa = file.atoms.size();
@@ -438,4 +470,79 @@ io::pdb::PDBStructure io::detail::cif::read(const io::File& path) {
     if (n_ha != 0) {console::print_text("\t" + std::to_string(file.waters.size()) + " of these are hydration atoms.");}
     console::unindent();
     return file;
+}
+
+io::pdb::PDBStructure read_crystal(CIFSection&& cell_, CIFSection&& atom_site, const std::string& path) {
+    io::pdb::PDBStructure file;
+
+    double a, b, c;
+    double alpha = 90, beta = 90, gamma = 90;
+    {
+        auto labels = cell_.get_label_map();
+        if (!labels.contains("length_a") || !labels.contains("length_b") || !labels.contains("length_c")){
+            throw except::io_error("CIFReader::read_crystal: Missing required cell size labels in \"_cell\" section");
+        }
+        if (!labels.contains("angle_alpha") || !labels.contains("angle_beta") || !labels.contains("angle_gamma")) {
+            console::print_text("CIFReader::read_crystal: Missing optional cell angle labels in \"_cell\" section. Assuming 90 degree angles.");
+        } else {
+            alpha = std::stod(cell_.data[0][labels.at("angle_alpha")]) * std::numbers::pi / 180.0;
+            beta  = std::stod(cell_.data[0][labels.at("angle_beta")])  * std::numbers::pi / 180.0;
+            gamma = std::stod(cell_.data[0][labels.at("angle_gamma")]) * std::numbers::pi / 180.0;
+        }
+        a = std::stod(cell_.data[0][labels.at("length_a")]);
+        b = std::stod(cell_.data[0][labels.at("length_b")]);
+        c = std::stod(cell_.data[0][labels.at("length_c")]);
+    }
+
+    if (alpha != 90 || beta != 90 || gamma != 90) {
+        console::print_warning("CIFReader::read_crystal: Non-orthogonal unit cells are currently not supported.");
+    }
+    parse_atom_site_section(atom_site, file, true);
+    for (auto& atom : file.atoms) {
+        atom.coords.x() *= a;
+        atom.coords.y() *= b;
+        atom.coords.z() *= c;
+    }
+
+    return file;
+}
+
+io::pdb::PDBStructure io::detail::cif::read(const io::File& path) {
+    console::print_info("Reading CIF file from \"" + path.str() + "\"");
+    console::indent();
+
+    std::ifstream input(path);
+    if (!input.is_open()) {throw except::io_error("CIFReader::read: Could not open file \"" + path.str() + "\"");}
+
+    std::string line;
+    CIFSection chem_comp_atom, chem_comp_bond, atom_site, cell_;
+    while(getline(input, line)) {
+        line = utility::remove_leading(utility::remove_all(line, "\n\r"), " ");
+        if (line.starts_with("_chem_comp_atom")) {
+            chem_comp_atom = extract_section("_chem_comp_atom", line, input);
+        }
+
+        if (line.starts_with("_chem_comp_bond")) {
+            chem_comp_bond = extract_section("_chem_comp_bond", line, input);
+        }
+
+        if (line.starts_with("_atom_site")) {
+            // we have to be a little careful since there may be multiple sections matching "_atom_site*"
+            // the main one will probably contain "type_symbol", however, so we use that to identify it
+            auto sec = extract_section("_atom_site", line, input);
+            if (sec.get_label_map().contains("type_symbol")) {
+                atom_site = std::move(sec);
+            }
+        }
+
+        if (line.starts_with("_cell")) {
+            cell_ = extract_section("_cell", line, input);
+        }
+    }
+    if (!cell_.empty() && chem_comp_atom.empty() && chem_comp_bond.empty()) {
+        // this is likely a crystal structure file
+        return read_crystal(std::move(cell_), std::move(atom_site), path.str());
+    } else {
+        return read_pdbx(std::move(chem_comp_atom), std::move(chem_comp_bond), std::move(atom_site), path.str());
+    }
 }

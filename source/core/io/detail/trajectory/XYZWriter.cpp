@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <io/detail/XYZWriter.h>
+#include <io/detail/trajectory/XYZWriter.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <io/File.h>

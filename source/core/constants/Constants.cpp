@@ -49,7 +49,9 @@ namespace ausaxs::constants {
         {"Rb", atom_t::Rb}, {"Sr", atom_t::Sr}, {"Y",  atom_t::Y},  {"Zr", atom_t::Zr}, {"Nb", atom_t::Nb}, {"Mo", atom_t::Mo}, {"Tc", atom_t::Tc}, {"Ru", atom_t::Ru}, 
         {"Rh", atom_t::Rh}, {"Pd", atom_t::Pd}, {"Ag", atom_t::Ag}, {"Cd", atom_t::Cd}, {"In", atom_t::In}, {"Sn", atom_t::Sn}, {"Sb", atom_t::Sb}, {"Te", atom_t::Te},
         {"I",  atom_t::I},  {"Xe", atom_t::Xe}, 
-        {"W",  atom_t::W},  {"M", atom_t::M}
+        {"Cs", atom_t::Cs}, {"Ba", atom_t::Ba}, {"Hf", atom_t::Hf}, {"Ta", atom_t::Ta}, {"W", atom_t::W},  {"Re", atom_t::Re}, {"Os", atom_t::Os}, {"Ir", atom_t::Ir}, 
+        {"Pt", atom_t::Pt}, {"Au", atom_t::Au}, {"Tl", atom_t::Tl}, {"Pb", atom_t::Pb}, {"Bi", atom_t::Bi}, {"Po", atom_t::Po},
+        {"M", atom_t::M}
     };
 
     residue::ResidueStorage hydrogen_atoms::residues;
@@ -160,7 +162,21 @@ unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
         case atom_t::I:  return 53;
         case atom_t::Xe: return 54;
 
+        case atom_t::Cs: return 55;
+        case atom_t::Ba: return 56;
+        case atom_t::Hf: return 72;
+        case atom_t::Ta: return 73;
         case atom_t::W:  return 74;
+        case atom_t::Re: return 75;
+        case atom_t::Os: return 76;
+        case atom_t::Ir: return 77;
+        case atom_t::Pt: return 78;
+        case atom_t::Au: return 79;
+        case atom_t::Tl: return 81;
+        case atom_t::Pb: return 82;
+        case atom_t::Bi: return 83;
+        case atom_t::Po: return 84;
+
         case atom_t::M:  return 0;
         case atom_t::dummy: return 1;
         default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
@@ -253,7 +269,19 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::Te: return vdw::Te;
         case atom_t::I:  return vdw::I;
 
+        case atom_t::Cs: return vdw::Cs;
+        case atom_t::Ba: return vdw::Ba;
+        case atom_t::Hf: return vdw::Hf;
+        case atom_t::Ta: return vdw::Ta;
         case atom_t::W:  return vdw::W;
+        case atom_t::Re: return vdw::Re;
+        case atom_t::Os: return vdw::Os;
+        case atom_t::Ir: return vdw::Ir;
+        case atom_t::Pt: return vdw::Pt;
+        case atom_t::Au: return vdw::Au;
+        case atom_t::Tl: return vdw::Tl;
+        case atom_t::Pb: return vdw::Pb;
+        case atom_t::Bi: return vdw::Bi;
 
         // fake elements
         case atom_t::M: return 0;
@@ -322,7 +350,21 @@ std::string ausaxs::constants::symbols::to_string(atom_t atom) {
         case atom_t::I:  return "I";
         case atom_t::Xe: return "Xe";
 
+        case atom_t::Cs: return "Cs";
+        case atom_t::Ba: return "Ba";
+        case atom_t::Hf: return "Hf";
+        case atom_t::Ta: return "Ta";
         case atom_t::W:  return "W";
+        case atom_t::Re: return "Re";
+        case atom_t::Os: return "Os";
+        case atom_t::Ir: return "Ir";
+        case atom_t::Pt: return "Pt";
+        case atom_t::Au: return "Au";
+        case atom_t::Tl: return "Tl";
+        case atom_t::Pb: return "Pb";
+        case atom_t::Bi: return "Bi";
+        case atom_t::Po: return "Po";
+
         case atom_t::M:  return "M";
         case atom_t::dummy: return "#";
         default: throw std::runtime_error("constants::symbols::to_string: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");

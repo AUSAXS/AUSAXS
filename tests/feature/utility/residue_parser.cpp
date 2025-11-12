@@ -1,8 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <constants/Constants.h>
+#include <io/detail/structure/CIFReader.h>
+#include <io/File.h>
 #include <utility/Curl.h>
+#include <constants/Constants.h>
+#include <settings/GeneralSettings.h>
 
 #include <map>
 #include <string>
@@ -319,8 +322,6 @@ TEST_CASE("ResidueParser: parse_all") {
     }
 }
 
-#include <io/detail/CIFReader.h>
-#include <settings/GeneralSettings.h>
 TEST_CASE("ResidueParser: cif_reader_single") {
     if (auto folder = io::Folder("temp/residues"); !folder.exists()) {
         folder.create();
