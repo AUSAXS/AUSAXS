@@ -96,4 +96,17 @@ TEST_CASE("BodySplitter::split") {
             REQUIRE(protein.get_body(1).size_atom() == 2367);
         }
     }
+
+    SECTION("split at beginning & end") {
+        data::Molecule protein = rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1, 307});
+        REQUIRE(protein.size_body() == 3);
+        REQUIRE(protein.get_body(0).size_atom() == 0);
+        REQUIRE(protein.get_body(1).size_atom() == 2*2367);
+        REQUIRE(protein.get_body(2).size_atom() == 0);
+    }
+
+    SECTION("throws for smaller & larger splits than min/max res id") {
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {-1}));
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1000}));
+    }
 }

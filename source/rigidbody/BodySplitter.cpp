@@ -22,15 +22,30 @@ Molecule BodySplitter::split(const io::File& input, const std::vector<int>& spli
     std::vector<PDBAtom>& atoms = data.atoms;
 
     // we define a boolean vector with one entry for each residue sequence id
-    int max_id = 0;
-    for (const auto& a : atoms) {max_id = std::max(max_id, a.resSeq);}
-    std::vector<bool> split_at(max_id, false);
+    int max_id = std::numeric_limits<int>::min(), min_id = std::numeric_limits<int>::max();
+    for (const auto& a : atoms) {
+        min_id = std::min(min_id, a.resSeq);
+        max_id = std::max(max_id, a.resSeq);
+    }
+    if (1e5 < max_id) {
+        throw except::parse_error(
+            "BodySplitter::split: Maximum residue sequence id (" + std::to_string(max_id) + ") "
+            "exceeds reasonable limit (1e5). Aborting to avoid excessive memory allocation."
+        );
+    }
+
+    // 1 extra to allow splitting after the last residue, another for 0-based indexing
+    std::vector<bool> split_at(max_id+2, false); 
 
     // we then mark the ids where we want to split as true
-    std::for_each(splits.begin(), splits.end(), [&split_at] (unsigned int id) {
-        if (id > split_at.size()) {throw except::parse_error(
-            "BodySplitter::split: Split index (" + std::to_string(id) + ") "
-            "larger than highest residue sequence id (" + std::to_string(split_at.size()) + ")."
+    std::for_each(splits.begin(), splits.end(), [&split_at, &min_id, &max_id] (int id) {
+        if (id < 0 || id < min_id) {throw except::parse_error(
+            "BodySplitter::split: Split " + std::to_string(id) + " "
+            "smaller than lowest residue sequence id (" + std::to_string(min_id) + ")."
+        );}
+        if (id > max_id+1) {throw except::parse_error(
+            "BodySplitter::split: Split " + std::to_string(id) + " "
+            "larger than highest residue sequence id (" + std::to_string(max_id) + ")."
         );}
         split_at[id] = true;
     });
