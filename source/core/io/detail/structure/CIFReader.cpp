@@ -363,7 +363,7 @@ CIFSection extract_section(std::string_view pattern, std::string_view first_matc
     do {
         full_line_size = static_cast<int>(line.size());
         line = utility::remove_leading(utility::remove_trailing(line, "\n\r"), " ");
-        if (line.empty() || line.starts_with('#')) {continue;}
+        if (line.empty()) {continue;}
         if (line.starts_with('_')) { // label line
             auto tokens = utility::split(line, ' ');
 
@@ -392,7 +392,8 @@ CIFSection extract_section(std::string_view pattern, std::string_view first_matc
     do {
         full_line_size = static_cast<int>(line.size());
         line = utility::remove_leading(utility::remove_trailing(line, "\n\r"), " ");
-        if (line.empty() || line.starts_with('#')) {continue;}
+        if (line.starts_with('#') || line.starts_with('_')) {break;} // end of loop section
+        if (line.empty()) {continue;}
         auto values = utility::split(line, " ");
 
         int concatenated = 0;
@@ -526,7 +527,12 @@ io::pdb::PDBStructure io::detail::cif::read(const io::File& path) {
         }
 
         if (line.starts_with("_atom_site")) {
-            atom_site = extract_section("_atom_site", line, input);
+            // we have to be a little careful since there may be multiple sections matching "_atom_site*"
+            // the main one will probably contain "type_symbol", however, so we use that to identify it
+            auto sec = extract_section("_atom_site", line, input);
+            if (sec.get_label_map().contains("type_symbol")) {
+                atom_site = std::move(sec);
+            }
         }
 
         if (line.starts_with("_cell")) {
