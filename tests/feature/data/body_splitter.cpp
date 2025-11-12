@@ -22,7 +22,7 @@ TEST_CASE("BodySplitter::split") {
         int count = 0;
         for (int split = 0, i = 0; i < static_cast<int>(protein.size_atom()); ++i) {
             auto& ap = data.atoms[i];
-            if (ap.resSeq == splits[split]) {
+            if (split < static_cast<int>(splits.size()) && ap.resSeq == splits[split]) {
                 expected_sizes.push_back(count);
                 ++split;
                 count = 1;

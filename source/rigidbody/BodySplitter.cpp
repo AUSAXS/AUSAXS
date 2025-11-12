@@ -17,7 +17,7 @@ using namespace ausaxs::rigidbody;
 using namespace ausaxs::data;
 using namespace ausaxs::io::pdb;
 
-Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
+Molecule BodySplitter::split(const io::File& input, const std::vector<int>& splits) {
     io::pdb::PDBStructure data = io::Reader::read(input);
     std::vector<PDBAtom>& atoms = data.atoms;
 
@@ -28,7 +28,10 @@ Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
 
     // we then mark the ids where we want to split as true
     std::for_each(splits.begin(), splits.end(), [&split_at] (unsigned int id) {
-        if (id > split_at.size()) {throw except::parse_error("BodySplitter::split: Split index (" + std::to_string(id) + ") larger than highest residue sequence id (" + std::to_string(split_at.size()) + ").");}
+        if (id > split_at.size()) {throw except::parse_error(
+            "BodySplitter::split: Split index (" + std::to_string(id) + ") "
+            "larger than highest residue sequence id (" + std::to_string(split_at.size()) + ")."
+        );}
         split_at[id] = true;
     });
 
