@@ -159,6 +159,16 @@ TEST_CASE("CIFReader::read: crystal file") {
     REQUIRE_THAT(atoms[1].coordinates().z(), Catch::Matchers::WithinAbsMatcher(0.422698*c, 1e-3));
 }
 
+TEST_CASE("CIFReader::read: previously broken files") {
+    settings::general::verbose = false;
+
+    SECTION("6LYZ.cif") {
+        io::ExistingFile path("tests/files/6LYZ.cif");
+        auto structure = io::detail::cif::read(path);
+        REQUIRE(structure.atoms.size() == 1001);
+    }
+}
+
 TEST_CASE("CIFReader: compare with PDB", "[files]") {
     settings::general::verbose = false;
 
