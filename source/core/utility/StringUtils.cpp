@@ -3,9 +3,11 @@
 
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
+#include <math/ConstexprMath.h>
 
 #include <algorithm>
 #include <cmath>
+#include <array>
 
 using namespace ausaxs;
 
@@ -50,43 +52,36 @@ std::vector<std::string> utility::split(std::string_view str, char delimiter) {
     return tokens;
 }
 
-std::vector<std::string> utility::split(std::string_view str, std::string_view delimiters) {
+std::vector<std::string> utility::split(std::string_view s, std::string_view delimiters) {
     std::vector<std::string> tokens;
 
-    auto is_delimiter = [&delimiters] (char c) {
-        return delimiters.find(c) != std::string::npos;
-    };
+    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
+    std::array<bool, 256> table{};
+    for (auto c : delimiters) {table[c] = true;}
 
     // skip leading delimiters
     unsigned int start = 0;
-    for (; start < str.size(); start++) {
-        if (!is_delimiter(str[start])) {
-            break;
-        }
+    while (start < s.size() && table[s[start]]) {
+        ++start;
     }
 
     // iterate through the rest of the string
-    for (unsigned int i = start; i < str.size(); i++) {
-        if (!is_delimiter(str[i])) {
-            continue;
-        }
+    for (unsigned int i = start; i < s.size(); ++i) {
+        if (!table[s[i]]) {continue;}
 
         // add token to vector
-        tokens.push_back(std::string(str.substr(start, i-start)));
-        start = ++i;
+        tokens.push_back(std::string(s.substr(start, i-start)));
 
-        // skip consecutive delimiters
-        for (; start < str.size(); start++) {
-            if (!is_delimiter(str[start])) {
-                break;
-            }
+        ++i; // start from next char
+        while (i < s.size() && table[s[i]]) {
+            ++i;
         }
-        i = start;
+        start = i;
     }
 
     // add last token to vector
-    if (start < str.size()) {
-        tokens.push_back(std::string(str.substr(start)));
+    if (start < s.size()) {
+        tokens.push_back(std::string(s.substr(start)));
     }
     return tokens;
 }
@@ -103,13 +98,60 @@ std::string utility::join(std::vector<std::string> v, std::string_view separator
 }
 
 std::string utility::remove_all(std::string_view s, std::string_view remove) {
+    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
+    std::array<bool, 256> table{};
+    for (auto c : remove) {table[c] = true;}
+
     std::string new_s;
+    new_s.reserve(s.size());
     for (auto c : s) {
-        if (remove.find(c) == std::string::npos) {
-            new_s += c;
+        if (!table[c]) {
+            new_s.push_back(static_cast<char>(c));
         }
     }
     return new_s;
+}
+
+std::string_view utility::remove_leading(std::string_view s, std::string_view remove) {
+    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
+    std::array<bool, 256> table{};
+    for (auto c : remove) {table[c] = true;}
+
+    unsigned int start = 0;
+    while (start < s.size() && table[s[start]]) {
+        ++start;
+    }
+    return s.substr(start);
+}
+
+std::string_view utility::remove_trailing(std::string_view s, std::string_view remove) {
+    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
+    std::array<bool, 256> table{};
+    for (auto c : remove) {table[c] = true;}
+
+    unsigned int end = s.size();
+    while (end > 0 && table[s[end-1]]) {
+        --end;
+    }
+    return s.substr(0, end);
+}
+
+std::string_view utility::remove_leading_and_trailing(std::string_view s, std::string_view remove) {
+    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
+    std::array<bool, 256> table{};
+    for (auto c : remove) {table[c] = true;}
+
+    unsigned int start = 0;
+    while (start < s.size() && table[s[start]]) {
+        ++start;
+    }
+    if (start == s.size()) {return s;}
+
+    unsigned int end = s.size();
+    while (end > start && table[s[end-1]]) {
+        --end;
+    }
+    return s.substr(start, end-start);
 }
 
 std::string utility::to_lowercase(std::string_view s) {
