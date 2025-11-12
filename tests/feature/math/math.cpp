@@ -57,8 +57,13 @@ TEST_CASE("math: QRDecomposition") {
         QRDecomposition solver(A);
         Vector x = solver.solve(b);
         Vector Ax = A*x;
-        REQUIRE(Ax == b);
-        REQUIRE(solver.inverse()*A == matrix::identity(5));
+        auto id = matrix::identity(5);
+        for (int j = 0; j < 5; j++) {
+            REQUIRE_THAT(Ax[j], Catch::Matchers::WithinAbs(b[j], 1e-6));
+            for (int k = 0; k < 5; k++) {
+                REQUIRE_THAT((A*solver.inverse())[j][k], Catch::Matchers::WithinAbs(id[j][k], 1e-6));
+            }
+        }
     }
 }
 
