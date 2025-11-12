@@ -495,7 +495,7 @@ io::pdb::PDBStructure read_pdbx(CIFSection&& chem_comp_atom, CIFSection&& chem_c
     return file;
 }
 
-io::pdb::PDBStructure read_crystal(CIFSection&& cell_, CIFSection&& atom_site, const std::string& path) {
+io::pdb::PDBStructure read_crystal(CIFSection&& cell_, CIFSection&& atom_site, const std::string&) {
     io::pdb::PDBStructure file;
 
     double a, b, c;
@@ -508,9 +508,9 @@ io::pdb::PDBStructure read_crystal(CIFSection&& cell_, CIFSection&& atom_site, c
         if (!labels.contains("angle_alpha") || !labels.contains("angle_beta") || !labels.contains("angle_gamma")) {
             console::print_text("CIFReader::read_crystal: Missing optional cell angle labels in \"_cell\" section. Assuming 90 degree angles.");
         } else {
-            alpha = std::stod(cell_.data[0][labels.at("angle_alpha")]) * std::numbers::pi / 180.0;
-            beta  = std::stod(cell_.data[0][labels.at("angle_beta")])  * std::numbers::pi / 180.0;
-            gamma = std::stod(cell_.data[0][labels.at("angle_gamma")]) * std::numbers::pi / 180.0;
+            alpha = std::stod(cell_.data[0][labels.at("angle_alpha")]);
+            beta  = std::stod(cell_.data[0][labels.at("angle_beta")]);
+            gamma = std::stod(cell_.data[0][labels.at("angle_gamma")]);
         }
         a = std::stod(cell_.data[0][labels.at("length_a")]);
         b = std::stod(cell_.data[0][labels.at("length_b")]);
