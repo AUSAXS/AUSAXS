@@ -67,7 +67,7 @@ SymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transformed_
             [t=std::move(t)] (const CompactCoordinatesData<variable_bin_width>& v) -> CompactCoordinatesData<variable_bin_width> {return {t(v.value.pos), v.value.w}; }
         );
     }
-    return {std::move(sym_atomic)};
+    return {std::move(sym_atomic)}; 
 }
 template SymmetryData<true> ausaxs::symmetry::detail::generate_transformed_data<true>(const data::Body& body, int isym);
 template SymmetryData<false> ausaxs::symmetry::detail::generate_transformed_data<false>(const data::Body& body, int isym);
