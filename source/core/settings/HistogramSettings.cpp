@@ -2,12 +2,15 @@
 // Author: Kristian Lytje
 
 #include <hist/detail/SimpleExvModel.h>
+#include <hist/detail/CompactCoordinatesData.h>
 #include <utility/Exceptions.h>
+#include <utility/Console.h>
 #include <constants/Constants.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/ExvSettings.h>
 #include <settings/FitSettings.h>
+#include <settings/Flags.h>
 #include <settings/SettingsIORegistry.h>
 
 using namespace ausaxs;
@@ -16,6 +19,32 @@ double settings::axes::qmin = constants::axes::q_axis.min;
 double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;
 bool settings::hist::weighted_bins = true;
+
+auto small_d_range_warning = [] (double bin_width, unsigned int bin_count) {
+    console::print_warning(
+        "settings::axes::bin_width: The specified bin width (" + std::to_string(bin_width) + ") and bin count (" + std::to_string(bin_count) + ") "
+        "result in a maximum d-value of less than the recommended " + std::to_string(constants::axes::d_axis.max) + ". "
+        "Consider increasing the bin count or decreasing the bin width to cover a longer range."
+    );
+};
+settings::detail::Setting<double> settings::axes::bin_width = {
+    constants::axes::d_axis.width(),
+    [](double& new_width) {
+        if (new_width*settings::axes::bin_count < constants::axes::d_axis.max) {small_d_range_warning(new_width, settings::axes::bin_count);}
+        if (std::abs(constants::axes::d_axis.width() - new_width) < 1e-6) {
+            settings::flags::custom_bin_width = false;
+        } else {
+            settings::flags::custom_bin_width = true;
+        }
+        ::hist::detail::CompactCoordinatesData<true>::set_bin_width(new_width);
+    }
+};
+settings::detail::Setting<unsigned int> settings::axes::bin_count = {
+    constants::axes::d_axis.bins,
+    [](unsigned int& new_count) {
+        if (new_count*settings::axes::bin_width < constants::axes::d_axis.max) {small_d_range_warning(settings::axes::bin_width, new_count);}
+    }
+};
 
 namespace ausaxs::settings::io {
     settings::io::SettingSection axes_section("Axes", {
