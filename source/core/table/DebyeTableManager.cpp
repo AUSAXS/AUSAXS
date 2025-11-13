@@ -4,6 +4,7 @@
 #include <table/DebyeTableManager.h>
 #include <table/ArrayDebyeTable.h>
 
+#include <stdexcept>
 #include <numeric>
 #include <cassert>
 
