@@ -32,9 +32,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     logging::log("HistogramManager::calculate: starting calculation");
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-    GenericDistribution1D_t p_aa(constants::axes::d_axis.bins);
-    GenericDistribution1D_t p_ww(constants::axes::d_axis.bins);
-    GenericDistribution1D_t p_aw(constants::axes::d_axis.bins);
+    GenericDistribution1D_t p_aa(settings::axes::bin_count);
+    GenericDistribution1D_t p_ww(settings::axes::bin_count);
+    GenericDistribution1D_t p_aw(settings::axes::bin_count);
 
     hist::detail::CompactCoordinates<variable_bin_width> data_a(protein->get_bodies());
     hist::detail::CompactCoordinates<variable_bin_width> data_w(protein->get_waters());
@@ -95,7 +95,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<variable_bin_width>& val) {return sum + std::pow(val.value.w, 2);}));
 
     // calculate p_tot
-    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
+    GenericDistribution1D_t p_tot(settings::axes::bin_count);
     for (int i = 0; i < (int) p_aa.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area

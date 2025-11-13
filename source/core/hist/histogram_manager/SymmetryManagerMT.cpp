@@ -154,7 +154,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     }
 
     // calculate p_tot
-    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
+    GenericDistribution1D_t p_tot(settings::axes::bin_count);
     for (int i = 0; i < static_cast<int>(p_tot.size()); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area

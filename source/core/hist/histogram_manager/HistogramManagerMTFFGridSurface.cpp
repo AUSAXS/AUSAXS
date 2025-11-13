@@ -91,7 +91,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<XXContainer> p_xx_all(constants::axes::d_axis.bins);
+    container::ThreadLocalWrapper<XXContainer> p_xx_all(settings::axes::bin_count);
     auto calc_xx_ii = [&data_x_i, &p_xx_all, data_x_i_size] (int imin, int imax) {
         auto& p_xx = p_xx_all.get();
         for (int i = imin; i < imax; ++i) { // exv interior
@@ -149,7 +149,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         return p_xx;
     };
 
-    container::ThreadLocalWrapper<AXContainer> p_ax_all(form_factor::get_count(), constants::axes::d_axis.bins);
+    container::ThreadLocalWrapper<AXContainer> p_ax_all(form_factor::get_count(), settings::axes::bin_count);
     auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
         auto& p_ax = p_ax_all.get();
         for (int i = imin; i < imax; ++i) { // atoms
@@ -182,7 +182,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         return p_ax;
     };
 
-    container::ThreadLocalWrapper<WXContainer> p_wx_all(constants::axes::d_axis.bins);
+    container::ThreadLocalWrapper<WXContainer> p_wx_all(settings::axes::bin_count);
     auto calc_wx = [&data_w, &data_x_i, &data_x_s, &p_wx_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
         auto& p_wx = p_wx_all.get();
         for (int i = imin; i < imax; ++i) { // waters

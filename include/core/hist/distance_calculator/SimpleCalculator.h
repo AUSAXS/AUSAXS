@@ -9,6 +9,7 @@
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <container/ThreadLocalWrapper.h>
 #include <utility/MultiThreading.h>
+#include <settings/HistogramSettings.h>
 
 #include <vector>
 #include <unordered_map>
@@ -91,10 +92,10 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
         res_idx = self_results.size();
         merge_id = merge_id == -1 ? res_idx : merge_id;
         self_merge_ids[merge_id] = res_idx;
-        self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(constants::axes::d_axis.bins));
+        self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(settings::axes::bin_count));
     } else {
         res_idx = self_merge_ids[merge_id];
-        assert(self_results[res_idx]->get().size() == constants::axes::d_axis.bins && "The result vector has the wrong size.");
+        assert(self_results[res_idx]->get().size() == settings::axes::bin_count && "The result vector has the wrong size.");
     }
 
     auto res_ptr = self_results[res_idx].get();
@@ -153,10 +154,10 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_
         res_idx = cross_results.size();
         merge_id = merge_id == -1 ? res_idx : merge_id;
         cross_merge_ids[merge_id] = res_idx;
-        cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(constants::axes::d_axis.bins));
+        cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(settings::axes::bin_count));
     } else {
         res_idx = cross_merge_ids[merge_id];
-        assert(cross_results[res_idx]->get().size() == constants::axes::d_axis.bins && "The result vector has the wrong size.");
+        assert(cross_results[res_idx]->get().size() == settings::axes::bin_count && "The result vector has the wrong size.");
     }
 
     auto res_ptr = cross_results[res_idx].get();

@@ -45,15 +45,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     auto pool = utility::multi_threading::get_global_pool();
 
     container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(
-        form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins
+        form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), settings::axes::bin_count
     ); // ff_type1, ff_type2, distance
 
     container::ThreadLocalWrapper<GenericDistribution3D_t> p_ax_all(
-        form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins
+        form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), settings::axes::bin_count
     ); // ff_type1, ff_type2, distance
 
     container::ThreadLocalWrapper<GenericDistribution3D_t> p_xx_all(
-        form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins
+        form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), settings::axes::bin_count
     ); // ff_type1, ff_type2, distance
 
     auto calc_aa = [&data_a, &p_aa_all, &p_ax_all, &p_xx_all, data_a_size] (int imin, int imax) {
@@ -76,8 +76,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_wa_all(form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins); // ff_type, distance
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_wx_all(form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins); // ff_type, distance
+    container::ThreadLocalWrapper<GenericDistribution2D_t> p_wa_all(form_factor::get_count_without_excluded_volume(), settings::axes::bin_count); // ff_type, distance
+    container::ThreadLocalWrapper<GenericDistribution2D_t> p_wx_all(form_factor::get_count_without_excluded_volume(), settings::axes::bin_count); // ff_type, distance
     auto calc_wa = [&data_w, &data_a, &p_wa_all, &p_wx_all, data_w_size] (int imin, int imax) {
         auto& p_wa = p_wa_all.get();
         auto& p_wx = p_wx_all.get();
@@ -97,7 +97,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(constants::axes::d_axis.bins); // distance
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(settings::axes::bin_count); // distance
     auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
         auto& p_ww = p_ww_all.get();
         for (int i = imin; i < imax; ++i) { // water
@@ -154,7 +154,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<vbw>& data) {return sum + std::pow(data.value.w, 2);}));
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
-    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
+    GenericDistribution1D_t p_tot(settings::axes::bin_count);
     {   // sum all elements to the total
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {

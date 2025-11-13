@@ -80,7 +80,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(constants::axes::d_axis.bins);
+    container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(settings::axes::bin_count);
     auto calc_xx = [&data_x, &p_xx_all, data_x_size] (int imin, int imax) {
         auto& p_xx = p_xx_all.get();
         for (int i = imin; i < imax; ++i) { // exv
@@ -100,7 +100,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         return p_xx;
     };
 
-    container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_count(), constants::axes::d_axis.bins);
+    container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_count(), settings::axes::bin_count);
     auto calc_ax = [&data_a, &data_x, &p_ax_all, data_x_size] (int imin, int imax) {
         auto& p_ax = p_ax_all.get();
         for (int i = imin; i < imax; ++i) { // atoms
@@ -120,7 +120,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         return p_ax;
     };
 
-    container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(constants::axes::d_axis.bins);
+    container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(settings::axes::bin_count);
     auto calc_wx = [&data_w, &data_x, &p_wx_all, data_x_size] (int imin, int imax) {
         auto& p_wx = p_wx_all.get();
         for (int i = imin; i < imax; ++i) { // waters

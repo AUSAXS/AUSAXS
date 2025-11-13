@@ -45,7 +45,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(form_factor::get_count(), form_factor::get_count(), constants::axes::d_axis.bins); // ff_type1, ff_type2, distance
+    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(form_factor::get_count(), form_factor::get_count(), settings::axes::bin_count); // ff_type1, ff_type2, distance
     auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
         auto& p_aa = p_aa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -64,7 +64,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(form_factor::get_count(), constants::axes::d_axis.bins); // ff_type, distance
+    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(form_factor::get_count(), settings::axes::bin_count); // ff_type, distance
     auto calc_aw = [&data_w, &data_a, &p_aw_all, data_w_size] (int imin, int imax) {
         auto& p_aw = p_aw_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -83,7 +83,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(constants::axes::d_axis.bins); // distance
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(settings::axes::bin_count); // distance
     auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
         auto& p_ww = p_ww_all.get();
         for (int i = imin; i < imax; ++i) { // water
@@ -137,7 +137,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
     p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<vbw>& data) {return sum + std::pow(data.value.w, 2);}));
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
-    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
+    GenericDistribution1D_t p_tot(settings::axes::bin_count);
     {   // sum all elements to the total
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
