@@ -26,21 +26,11 @@ DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram(s
 
 DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot) : Histogram(p_tot.get_content(), Axis(0, p_tot.size()*constants::axes::d_axis.width(), p_tot.size())) {
     initialize(p_tot.get_weighted_axis());
-    use_weighted_sinc_table();
+    sinc_table.set_d_axis(d_axis);
 }
 
 DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh) : Histogram(std::move(cdh->get_counts()), cdh->get_axis()) {
     initialize();
-}
-
-observer_ptr<const table::DebyeTable> DistanceHistogram::get_sinc_table() const {
-    if (use_weighted_table) {return weighted_sinc_table.get();}
-    return &table::ArrayDebyeTable::get_default_table();
-}
-
-void DistanceHistogram::use_weighted_sinc_table() {
-    weighted_sinc_table = std::make_unique<table::VectorDebyeTable>(d_axis);
-    use_weighted_table = true;
 }
 
 DistanceHistogram::~DistanceHistogram() = default;
@@ -60,7 +50,7 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
     const auto& q_axis = constants::axes::q_vals;
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    const auto& sinqd_table = get_sinc_table();
+    const auto& sinqd_table = sinc_table.get_sinc_table();
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
@@ -77,13 +67,13 @@ SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) c
     if (constants::axes::q_axis.min < q.front() && q.back() < constants::axes::q_axis.max) {
         return debye_transform().as_dataset().interpolate(q);
     }
-
-    auto sinqd_table = table::VectorDebyeTable(d_axis, q);
+    sinc_table.set_q_axis(q);
+    const auto& sinqd_table = sinc_table.get_sinc_table();
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(q.size(), 0);
     for (int i = 0; i < static_cast<int>(q.size()); ++i) { // iterate through all q values
-        Iq[i] = std::inner_product(p.begin(), p.end(), sinqd_table.begin(i), 0.0);
+        Iq[i] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(i), 0.0);
         Iq[i] *= std::exp(-q[i]*q[i]); // form factor
     }
     return SimpleDataset(q, Iq);

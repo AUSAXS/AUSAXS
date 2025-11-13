@@ -77,9 +77,9 @@ template form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid:
 
 void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
     auto pool = utility::multi_threading::get_global_pool();
-    auto sinqd_table_aa = get_sinc_table();
-    auto sinqd_table_ax = get_sinc_table_ax();
-    auto sinqd_table_xx = get_sinc_table_xx();
+    const auto& sinqd_table_aa = sinc_table.get_sinc_table();
+    const auto& sinqd_table_ax = get_sinc_table_ax();
+    const auto& sinqd_table_xx = get_sinc_table_xx();
 
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
@@ -120,13 +120,11 @@ void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
 }
 
 observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGrid::get_sinc_table_ax() const {
-    if (use_weighted_table) {return sinc_tables.ax.get();}
-    return &table::ArrayDebyeTable::get_default_table();
+    return sinc_tables.ax.get_sinc_table();
 }
 
 observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGrid::get_sinc_table_xx() const {
-    if (use_weighted_table) {return sinc_tables.xx.get();}
-    return &table::ArrayDebyeTable::get_default_table();
+    return sinc_tables.xx.get_sinc_table();
 }
 
 void CompositeDistanceHistogramFFGrid::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
@@ -137,5 +135,6 @@ void CompositeDistanceHistogramFFGrid::initialize(std::vector<double>&& d_axis_a
     }
 
     this->distance_axes = {.xx=std::move(d_axis_xx), .ax=std::move(d_axis_ax)};
-    sinc_tables = {.xx=std::make_unique<table::VectorDebyeTable>(this->distance_axes.xx), .ax=std::make_unique<table::VectorDebyeTable>(this->distance_axes.ax)};
+    sinc_tables.ax.set_d_axis(this->distance_axes.ax);
+    sinc_tables.xx.set_d_axis(this->distance_axes.xx);
 }

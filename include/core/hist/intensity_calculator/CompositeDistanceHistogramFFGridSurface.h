@@ -105,7 +105,7 @@ namespace ausaxs::hist {
             double exv_factor(double q) const override;
 
         private: 
-            struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
+            struct {table::DebyeTableManager xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
             struct {hist::Distribution1D xx_i, xx_s, xx_c, wx_i, wx_s; hist::Distribution2D ax_i, ax_s;} exv_distance_profiles;
 
