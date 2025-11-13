@@ -48,7 +48,7 @@ TEST_CASE("WeightedDistribution: sinc_table") {
     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
     Molecule protein(a);
 
-    auto hist = hist::HistogramManagerMT<true>(&protein).calculate_all();
+    auto hist = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
     auto Iq = hist->debye_transform();
 
     const auto& bins = constants::axes::d_vals;
@@ -80,32 +80,32 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
     Molecule protein(a);
 
     { // hm
-        CHECK(SimpleCube::check_default(hist::HistogramManager<false>(&protein).calculate_all()->get_d_axis()));
-        CHECK(SimpleCube::check_exact(hist::HistogramManager<true>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_default(hist::HistogramManager<false, false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManager<true, false>(&protein).calculate_all()->get_d_axis()));
     }
     { // hm_mt
-        CHECK(SimpleCube::check_default(hist::HistogramManagerMT<false>(&protein).calculate_all()->get_d_axis()));
-        CHECK(SimpleCube::check_exact(hist::HistogramManagerMT<true>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_default(hist::HistogramManagerMT<false, false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_d_axis()));
     }
     { // hm_mt_ff_avg
-        CHECK(SimpleCube::check_default(hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->get_d_axis()));
-        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_default(hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFAvg<true, false>(&protein).calculate_all()->get_d_axis()));
     }
     { // hm_mt_ff_explicit
-        CHECK(SimpleCube::check_default(hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->get_d_axis()));
-        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_default(hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFExplicit<true, false>(&protein).calculate_all()->get_d_axis()));
     }
     { // hm_mt_ff_grid
-        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFGrid(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()->get_d_axis()));
         // CHECK(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all())); // exv cells dominates bin locs in this case
     }
     { // phm
-        CHECK(SimpleCube::check_default(hist::PartialHistogramManager<false>(&protein).calculate_all()->get_d_axis()));
-        CHECK(SimpleCube::check_exact(hist::PartialHistogramManager<true>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_default(hist::PartialHistogramManager<false, false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::PartialHistogramManager<true, false>(&protein).calculate_all()->get_d_axis()));
     }
     { // phm_mt
-        CHECK(SimpleCube::check_default(hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->get_d_axis()));
-        CHECK(SimpleCube::check_exact(hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_default(hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all()->get_d_axis()));
+        CHECK(SimpleCube::check_exact(hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all()->get_d_axis()));
     }
 }
 
@@ -144,11 +144,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
         }
 
         {
-            auto Iq = hist::HistogramManager<true>(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::HistogramManager<true, false>(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
     }
@@ -187,11 +187,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
         }
 
         {
-            auto Iq = hist::HistogramManager<true>(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::HistogramManager<true, false>(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
     }
@@ -241,7 +241,7 @@ TEST_CASE("6lyz_exv", "[manual]") {
 
     data::Molecule protein("tests/files/6lyz_exv.pdb");
     for (auto& b : protein.get_bodies()) {for (auto& a : b.get_atoms()){a.form_factor_type() = form_factor::form_factor_t::UNKNOWN;}}
-    auto Iq =  static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid(&protein).calculate_all().get())->get_profile_xx().as_dataset();
+    auto Iq =  static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all().get())->get_profile_xx().as_dataset();
     auto Iqexact = exact(protein, settings::grid::exv::width).as_dataset();
 
     Iq.normalize();
@@ -275,8 +275,8 @@ TEST_CASE("sphere_comparison", "[manual]") {
     grid.save(loc);
 
     Molecule protein(loc);
-    auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    auto Iq2 = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    auto Iq1 = hist::HistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform();
+    auto Iq2 = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->debye_transform();
 
     plots::PlotDataset()
         .plot(Iq1.as_dataset(), plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
@@ -299,8 +299,8 @@ TEST_CASE("real_comparison", "[manual]") {
     settings::axes::qmax = 1;
 
     data::Molecule protein("tests/files/LAR1-2.pdb");
-    auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    auto hist = hist::HistogramManagerMT<true>(&protein).calculate_all();
+    auto Iq1 = hist::HistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform();
+    auto hist = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
     auto Iq2 = hist->debye_transform();
 
     unsigned int counter = 0;

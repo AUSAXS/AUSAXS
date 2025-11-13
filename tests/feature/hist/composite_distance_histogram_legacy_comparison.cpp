@@ -687,7 +687,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
     SECTION(test_files + " full profile") {
         auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
 
-        auto hist_new = HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFAvg*>(hist_new.get());
         new_cast->apply_water_scaling_factor(params.first);
         new_cast->apply_excluded_volume_scaling_factor(params.second);
@@ -705,7 +705,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
     }
 
     SECTION(test_files + " individual profiles") {
-        auto hist_new = HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFAvg*>(hist_new.get());
         auto[_aa, _ax, _aw, _xx, _wx, _ww] = new_cast->cache_get_intensity_profiles();
 
@@ -744,7 +744,7 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
     SECTION(test_files + " full profile") {
         auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
 
-        auto hist_new = HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFExplicit*>(hist_new.get());
         new_cast->apply_water_scaling_factor(params.first);
         new_cast->apply_excluded_volume_scaling_factor(params.second);
@@ -762,7 +762,7 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
     }
 
     SECTION(test_files + " individual profiles") {
-        auto hist_new = HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFExplicit*>(hist_new.get());
         auto[_aa, _ax, _aw, _xx, _wx, _ww] = new_cast->cache_get_intensity_profiles();
 
@@ -801,7 +801,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
     SECTION(test_files + " full profile") {
         auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
 
-        auto hist_new = HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGrid*>(hist_new.get());
         new_cast->apply_water_scaling_factor(params.first);
         new_cast->apply_excluded_volume_scaling_factor(params.second);
@@ -819,7 +819,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
     }
 
     SECTION(test_files + " individual profiles") {
-        auto hist_new = HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGrid*>(hist_new.get());
         auto[_aa, _ax, _aw, _xx, _wx, _ww] = new_cast->cache_get_intensity_profiles();
 
@@ -858,7 +858,7 @@ TEST_CASE("CompositeDistanceHistogramFFGridSurface: legacy comparison") {
     SECTION(test_files + " full profile") {
         auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
 
-        auto hist_new = HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(hist_new.get());
         new_cast->apply_water_scaling_factor(params.first);
         new_cast->apply_excluded_volume_scaling_factor(params.second);
@@ -876,7 +876,7 @@ TEST_CASE("CompositeDistanceHistogramFFGridSurface: legacy comparison") {
     }
 
     SECTION(test_files + " individual profiles") {
-        auto hist_new = HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(hist_new.get());
         auto[_aa, _ax, _aw, _xx, _wx, _ww] = new_cast->cache_get_intensity_profiles();
 

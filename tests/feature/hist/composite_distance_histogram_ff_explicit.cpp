@@ -76,7 +76,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);
         }
 
-        auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -134,7 +134,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 }
             #endif
         }
-        auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -183,7 +183,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] -= 2*ZO*awsum*ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);     // -2wx
             Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                     // + ww
         }
-        auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -214,7 +214,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     settings::general::verbose = false;
 
     data::Molecule protein("tests/files/2epe.pdb");
-    auto hist_data = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+    auto hist_data = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
     auto hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());
     auto Iq = hist->debye_transform();
     auto profile_sum = 
@@ -245,8 +245,8 @@ TEST_CASE("plot_Gq", "[manual]") {
 TEST_CASE("plot_cmp", "[manual]") {
     data::Molecule protein("data/SASDJG5/SASDJG5.pdb");
     protein.generate_new_hydration();
-    auto h = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
-    auto hx = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+    auto h = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
+    auto hx = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
     auto hc = dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
     auto hcx = dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(hx.get());
 

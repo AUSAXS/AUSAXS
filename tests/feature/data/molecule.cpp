@@ -582,7 +582,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
 
         // generate the distance histograms
         auto d_p = protein.get_histogram();
-        auto d_b = hist::HistogramManager<false>(&protein).calculate_all();
+        auto d_b = hist::HistogramManager<false, false>(&protein).calculate_all();
 
         // direct access to the histogram data (only p is defined)
         const std::vector<double>& p = d_p->get_total_counts();

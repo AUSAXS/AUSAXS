@@ -32,17 +32,17 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
         {   // no hydration
             data::Molecule protein("tests/files/" + f + ".pdb");
             protein.clear_hydration();
-            auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+            auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
             {   // phm
-                auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->get_total_counts();
+                auto phm = hist::PartialHistogramManager<true, false>(&protein).calculate_all()->get_total_counts();
                 REQUIRE(compare_hist(p_exp, phm, 0, 1e-2));
             }
             {   // phm_mt
-                auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+                auto phm_mt = hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
                 REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
             }
             {   // pshm_mt
-                auto pshm_mt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+                auto pshm_mt = hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
                 REQUIRE(compare_hist(p_exp, pshm_mt, 0, 1e-2));
             }
         }
@@ -50,17 +50,17 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
         {   // with hydration
             data::Molecule protein("tests/files/" + f + ".pdb");
             protein.generate_new_hydration();
-            auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+            auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
             {   // phm
-                auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->get_total_counts();
+                auto phm = hist::PartialHistogramManager<true, false>(&protein).calculate_all()->get_total_counts();
                 REQUIRE(compare_hist(p_exp, phm, 0, 1e-2));
             }
             {   // phm_mt
-                auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+                auto phm_mt = hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
                 REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
             }
             {   // pshm_mt
-                auto pshm_mt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+                auto pshm_mt = hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
                 REQUIRE(compare_hist(p_exp, pshm_mt, 0, 1e-2));
             }
         }
@@ -69,32 +69,32 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
 
 auto test = [] (data::Molecule& protein, auto&& phm) {
     // no changes
-    auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     auto phm_res = phm(protein)->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // change hydration
     protein.generate_new_hydration();
-    p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     phm_res = phm(protein)->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // external change
     protein.get_body(1).translate({1, 1, 1});
-    p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     phm_res = phm(protein)->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // internal change
     protein.get_body(1).get_atom(0).weight() = 100;
     protein.get_body(1).get_signaller()->modified_internal();
-    p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     phm_res = phm(protein)->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 };
 
 auto test_random = [] (data::Molecule& protein, auto&& phm) {
-    auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     auto phm_res = phm(protein)->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
@@ -126,7 +126,7 @@ auto test_random = [] (data::Molecule& protein, auto&& phm) {
             protein.generate_new_hydration();
         }
 
-        auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_total_counts();
+        auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
         auto phm_res = phm(protein)->get_total_counts();
         REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
     }
@@ -144,12 +144,12 @@ TEST_CASE("PartialHistogramManager: subsequent calculations") {
     protein.generate_new_hydration();
 
     // deterministic
-    test(protein, [] (const Molecule& protein) {return hist::PartialHistogramManager<true>(&protein).calculate_all();});
-    test(protein, [] (const Molecule& protein) {return hist::PartialHistogramManagerMT<true>(&protein).calculate_all();});
-    test(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});    
+    test(protein, [] (const Molecule& protein) {return hist::PartialHistogramManager<true, false>(&protein).calculate_all();});
+    test(protein, [] (const Molecule& protein) {return hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all();});
+    test(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all();});    
 
     // random
-    test_random(protein, [] (const Molecule& protein) {return hist::PartialHistogramManager<true>(&protein).calculate_all();});
-    test_random(protein, [] (const Molecule& protein) {return hist::PartialHistogramManagerMT<true>(&protein).calculate_all();});
-    test_random(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});    
+    test_random(protein, [] (const Molecule& protein) {return hist::PartialHistogramManager<true, false>(&protein).calculate_all();});
+    test_random(protein, [] (const Molecule& protein) {return hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all();});
+    test_random(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all();});    
 }

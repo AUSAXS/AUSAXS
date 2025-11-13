@@ -83,71 +83,71 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             { // hm
-                auto hm = hist::HistogramManager<false>(&protein).calculate_all();
+                auto hm = hist::HistogramManager<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
 
-                hm = hist::HistogramManager<true>(&protein).calculate_all();
+                hm = hist::HistogramManager<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
             }
             { // hm_mt
-                auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
+                auto hm_mt = hist::HistogramManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
 
-                hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
+                hm_mt = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
             }
             { // hm_mt_ff_avg
-                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
 
-                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
             }
             { // hm_mt_ff_explicit
-                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
 
-                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
             }
             { // hm_mt_ff_grid
-                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
             }
             { // hm_mt_ff_grid_surface
-                auto hm_mt_ff_grid_surface = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+                auto hm_mt_ff_grid_surface = hist::HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid_surface->get_total_counts()));
             }
             { // hm_mt_ff_grid_scalable_exv
-                auto hm_mt_ff_grid_scalable_exv = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+                auto hm_mt_ff_grid_scalable_exv = hist::HistogramManagerMTFFGridScalableExv<false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid_scalable_exv->get_total_counts()));
             }
             { // hms_mt
-                auto hms_mt = hist::SymmetryManagerMT<false>(&protein).calculate_all();
+                auto hms_mt = hist::SymmetryManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hms_mt->get_total_counts()));
 
-                hms_mt = hist::SymmetryManagerMT<true>(&protein).calculate_all();
+                hms_mt = hist::SymmetryManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hms_mt->get_total_counts()));
             }
             { // phm
-                auto phm = hist::PartialHistogramManager<false>(&protein).calculate_all();
+                auto phm = hist::PartialHistogramManager<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
 
-                phm = hist::PartialHistogramManager<true>(&protein).calculate_all();
+                phm = hist::PartialHistogramManager<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
-                auto phm_mt = hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+                auto phm_mt = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
 
-                phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
+                phm_mt = hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
             { // phs_mt
-                auto phsmt = hist::PartialSymmetryManagerMT<false>(&protein).calculate_all();
+                auto phsmt = hist::PartialSymmetryManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phsmt->get_total_counts()));
 
-                phsmt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();
+                phsmt = hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phsmt->get_total_counts()));
             }
         }
@@ -163,38 +163,38 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             { // hm
-                auto hm = hist::HistogramManager<false>(&protein).calculate_all();
+                auto hm = hist::HistogramManager<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
 
-                hm = hist::HistogramManager<true>(&protein).calculate_all();
+                hm = hist::HistogramManager<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
             }
             { // hm_mt
-                auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
+                auto hm_mt = hist::HistogramManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
 
-                hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
+                hm_mt = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
             }
             { // hm_mt_ff_avg
-                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
 
-                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
             }
             { // hm_mt_ff_explicit
-                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
 
-                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
             }
             { // hsm_mt
-                auto hsm_mt = hist::SymmetryManagerMT<false>(&protein).calculate_all();
+                auto hsm_mt = hist::SymmetryManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hsm_mt->get_total_counts()));
 
-                hsm_mt = hist::SymmetryManagerMT<true>(&protein).calculate_all();
+                hsm_mt = hist::SymmetryManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hsm_mt->get_total_counts()));
             }
             // grid-based doesn't make sense for a water-only system and will throw an exception - excluded volume is based on atomic volumes
@@ -202,24 +202,24 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             // hm_mt_ff_grid_surface
             // hm_mt_ff_grid_scalable_exv
             { // phm
-                auto phm = hist::PartialHistogramManager<false>(&protein).calculate_all();
+                auto phm = hist::PartialHistogramManager<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
 
-                phm = hist::PartialHistogramManager<true>(&protein).calculate_all();
+                phm = hist::PartialHistogramManager<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
-                auto phm_mt = hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+                auto phm_mt = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
 
-                phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
+                phm_mt = hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
             { // phs_mt
-                auto phsmt = hist::PartialSymmetryManagerMT<false>(&protein).calculate_all();
+                auto phsmt = hist::PartialSymmetryManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phsmt->get_total_counts()));
 
-                phsmt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();
+                phsmt = hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phsmt->get_total_counts()));
             }
         }
@@ -235,71 +235,71 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             { // hm
-                auto hm = hist::HistogramManager<false>(&protein).calculate_all();
+                auto hm = hist::HistogramManager<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
 
-                hm = hist::HistogramManager<true>(&protein).calculate_all();
+                hm = hist::HistogramManager<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
             }
             { // hm_mt
-                auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
+                auto hm_mt = hist::HistogramManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
 
-                hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
+                hm_mt = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
             }
             { // hm_mt_ff_avg
-                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
 
-                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
             }
             { // hm_mt_ff_explicit
-                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
 
-                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
             }
             { // hm_mt_ff_grid
-                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
             }
             { // hm_mt_ff_grid_surface
-                auto hm_mt_ff_grid_surface = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+                auto hm_mt_ff_grid_surface = hist::HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid_surface->get_total_counts()));
             }
             { // hm_mt_ff_grid_scalable_exv
-                auto hm_mt_ff_grid_scalable_exv = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+                auto hm_mt_ff_grid_scalable_exv = hist::HistogramManagerMTFFGridScalableExv<false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid_scalable_exv->get_total_counts()));
             }
             { // hsm_mt
-                auto hsm_mt = hist::SymmetryManagerMT<false>(&protein).calculate_all();
+                auto hsm_mt = hist::SymmetryManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hsm_mt->get_total_counts()));
 
-                hsm_mt = hist::SymmetryManagerMT<true>(&protein).calculate_all();
+                hsm_mt = hist::SymmetryManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hsm_mt->get_total_counts()));
             }
             { // phm
-                auto phm = hist::PartialHistogramManager<false>(&protein).calculate_all();
+                auto phm = hist::PartialHistogramManager<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
 
-                phm = hist::PartialHistogramManager<true>(&protein).calculate_all();
+                phm = hist::PartialHistogramManager<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
-                auto phm_mt = hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+                auto phm_mt = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
 
-                phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
+                phm_mt = hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
             { // phs_mt
-                auto phsmt = hist::PartialSymmetryManagerMT<false>(&protein).calculate_all();
+                auto phsmt = hist::PartialSymmetryManagerMT<false, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phsmt->get_total_counts()));
 
-                phsmt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();
+                phsmt = hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phsmt->get_total_counts()));
             }
         }
@@ -312,71 +312,71 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
         auto p_exp = protein.get_histogram();
 
         { // hm
-            auto hm = hist::HistogramManager<false>(&protein).calculate_all();
+            auto hm = hist::HistogramManager<false, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm->get_total_counts()));
 
-            hm = hist::HistogramManager<true>(&protein).calculate_all();
+            hm = hist::HistogramManager<true, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm->get_total_counts()));
         }
         { // hm_mt
-            auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
+            auto hm_mt = hist::HistogramManagerMT<false, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt->get_total_counts()));
 
-            hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
+            hm_mt = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt->get_total_counts()));
         }
         { // hm_mt_ff_avg
-            auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+            auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_avg->get_total_counts()));
 
-            hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+            hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_avg->get_total_counts()));
         }
         { // hm_mt_ff_explicit
-            auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+            auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_explicit->get_total_counts()));
 
-            hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+            hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_explicit->get_total_counts()));
         }
         { // hm_mt_ff_grid
-            auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+            auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_grid->get_total_counts()));
         }
         { // hm_mt_ff_grid_surface
-            auto hm_mt_ff_grid_surface = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+            auto hm_mt_ff_grid_surface = hist::HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_grid_surface->get_total_counts()));
         }
         { // hm_mt_ff_grid_scalable_exv
-            auto hm_mt_ff_grid_scalable_exv = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+            auto hm_mt_ff_grid_scalable_exv = hist::HistogramManagerMTFFGridScalableExv<false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_grid_scalable_exv->get_total_counts()));
         }
         { // hsm_mt
-            auto hsm_mt = hist::SymmetryManagerMT<false>(&protein).calculate_all();
+            auto hsm_mt = hist::SymmetryManagerMT<false, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hsm_mt->get_total_counts()));
 
-            hsm_mt = hist::SymmetryManagerMT<true>(&protein).calculate_all();
+            hsm_mt = hist::SymmetryManagerMT<true, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hsm_mt->get_total_counts()));
         }
         { // phm
-            auto phm = hist::PartialHistogramManager<false>(&protein).calculate_all();
+            auto phm = hist::PartialHistogramManager<false, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), phm->get_total_counts()));
 
-            phm = hist::PartialHistogramManager<true>(&protein).calculate_all();
+            phm = hist::PartialHistogramManager<true, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), phm->get_total_counts()));
         }
         { // phm_mt
-            auto phm_mt = hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+            auto phm_mt = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), phm_mt->get_total_counts()));
 
-            phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
+            phm_mt = hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), phm_mt->get_total_counts()));
         }
         { // phs_mt
-            auto phsmt = hist::PartialSymmetryManagerMT<false>(&protein).calculate_all();
+            auto phsmt = hist::PartialSymmetryManagerMT<false, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), phsmt->get_total_counts()));
 
-            phsmt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();
+            phsmt = hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), phsmt->get_total_counts()));
         }
     }
@@ -385,7 +385,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 TEST_CASE("PartialHistogramManager::get_probe") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    auto phm = hist::PartialHistogramManager<false>(&protein);
+    auto phm = hist::PartialHistogramManager<false, false>(&protein);
     auto sm = phm.get_state_manager();
 
     // check the signalling object is correct
@@ -400,7 +400,7 @@ TEST_CASE("PartialHistogramManager::get_probe") {
 TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    auto phm = hist::PartialHistogramManager<false>(&protein);
+    auto phm = hist::PartialHistogramManager<false, false>(&protein);
     auto sm = phm.get_state_manager();
     sm->reset_to_false();
     phm.signal_modified_hydration_layer();
