@@ -35,7 +35,7 @@ using namespace ausaxs::data;
 class DistanceHistogramDebug : public DistanceHistogram {
     public:
         DistanceHistogramDebug(DistanceHistogram&& other) : DistanceHistogram(std::move(other)) {}
-        auto get_sinc_table() const {return DistanceHistogram::get_sinc_table();}
+        auto get_sinc_table() const {return sinc_table.get_sinc_table();}
 };
 
 TEST_CASE("WeightedDistribution: sinc_table") {
