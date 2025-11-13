@@ -66,6 +66,14 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
     return true;
 }
 
+template<template<bool> class MANAGER>
+void run_test(const Molecule& protein, const auto& target) {
+    auto h1 = MANAGER<false>(&protein).calculate_all();
+    REQUIRE(compare_hist(h1->get_total_counts(), target));
+    auto h2 = MANAGER<true>(&protein).calculate_all();
+    REQUIRE(compare_hist(h2->get_total_counts(), target));
+}
+
 template<template<bool, bool> class MANAGER>
 void run_test(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false, false>(&protein).calculate_all();
@@ -76,14 +84,6 @@ void run_test(const Molecule& protein, const auto& target) {
     REQUIRE(compare_hist(h3->get_total_counts(), target));
     auto h4 = MANAGER<true, true>(&protein).calculate_all();
     REQUIRE(compare_hist(h4->get_total_counts(), target));
-}
-
-template<template<bool> class MANAGER>
-void run_test(const Molecule& protein, const auto& target) {
-    auto h1 = MANAGER<false>(&protein).calculate_all();
-    REQUIRE(compare_hist(h1->get_total_counts(), target));
-    auto h2 = MANAGER<true>(&protein).calculate_all();
-    REQUIRE(compare_hist(h2->get_total_counts(), target));
 }
 
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
@@ -102,17 +102,15 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManager);
             set_unity_charge(protein);
 
-            run_test<hist::HistogramManager>(protein, p_exp);
-            run_test<hist::HistogramManagerMT>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFAvg>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFExplicit>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFGrid>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFGridSurface>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFGridScalableExv>(protein, p_exp);
-            run_test<hist::SymmetryManagerMT>(protein, p_exp);
-            run_test<hist::PartialHistogramManager>(protein, p_exp);
-            run_test<hist::PartialHistogramManagerMT>(protein, p_exp);
-            run_test<hist::PartialSymmetryManagerMT>(protein, p_exp);
+            invoke_for_all_histogram_manager_variants(
+                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                    run_test<MANAGER>(protein, target);
+                },
+                []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                    run_test<MANAGER>(protein, target);
+                },
+                protein, p_exp                
+            );
         }
 
         SECTION("waters only") {
@@ -127,14 +125,15 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             Molecule protein({Body{a, w}});
             set_unity_charge(protein);
 
-            run_test<hist::HistogramManager>(protein, p_exp);
-            run_test<hist::HistogramManagerMT>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFAvg>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFExplicit>(protein, p_exp);
-            run_test<hist::SymmetryManagerMT>(protein, p_exp);
-            run_test<hist::PartialHistogramManager>(protein, p_exp);
-            run_test<hist::PartialHistogramManagerMT>(protein, p_exp);
-            run_test<hist::PartialSymmetryManagerMT>(protein, p_exp);
+            invoke_for_all_nongrid_histogram_manager_variants(
+                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                    run_test<MANAGER>(protein, target);
+                },
+                []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                    run_test<MANAGER>(protein, target);
+                },
+                protein, p_exp
+            );
             // grid-based doesn't make sense for a water-only system and will throw an exception - excluded volume is based on atomic volumes
             // hm_mt_ff_grid 
             // hm_mt_ff_grid_surface
@@ -151,17 +150,15 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             Molecule protein(a);
             set_unity_charge(protein);
 
-            run_test<hist::HistogramManager>(protein, p_exp);
-            run_test<hist::HistogramManagerMT>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFAvg>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFExplicit>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFGrid>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFGridSurface>(protein, p_exp);
-            run_test<hist::HistogramManagerMTFFGridScalableExv>(protein, p_exp);
-            run_test<hist::SymmetryManagerMT>(protein, p_exp);
-            run_test<hist::PartialHistogramManager>(protein, p_exp);
-            run_test<hist::PartialHistogramManagerMT>(protein, p_exp);
-            run_test<hist::PartialSymmetryManagerMT>(protein, p_exp);
+            invoke_for_all_histogram_manager_variants(
+                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                    run_test<MANAGER>(protein, target);
+                },
+                []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                    run_test<MANAGER>(protein, target);
+                },
+                protein, p_exp                
+            );
         }
     }
 
@@ -171,17 +168,15 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
         protein.generate_new_hydration();
         auto p_exp = protein.get_histogram();
 
-        run_test<hist::HistogramManager>(protein, p_exp->get_total_counts());
-        run_test<hist::HistogramManagerMT>(protein, p_exp->get_total_counts());
-        run_test<hist::HistogramManagerMTFFAvg>(protein, p_exp->get_total_counts());
-        run_test<hist::HistogramManagerMTFFExplicit>(protein, p_exp->get_total_counts());
-        run_test<hist::HistogramManagerMTFFGrid>(protein, p_exp->get_total_counts());
-        run_test<hist::HistogramManagerMTFFGridSurface>(protein, p_exp->get_total_counts());
-        run_test<hist::HistogramManagerMTFFGridScalableExv>(protein, p_exp->get_total_counts());
-        run_test<hist::SymmetryManagerMT>(protein, p_exp->get_total_counts());
-        run_test<hist::PartialHistogramManager>(protein, p_exp->get_total_counts());
-        run_test<hist::PartialHistogramManagerMT>(protein, p_exp->get_total_counts());
-        run_test<hist::PartialSymmetryManagerMT>(protein, p_exp->get_total_counts());
+        invoke_for_all_histogram_manager_variants(
+            []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                run_test<MANAGER>(protein, target);
+            },
+            []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                run_test<MANAGER>(protein, target);
+            },
+            protein, p_exp->get_total_counts()
+        );
     }
 }
 
