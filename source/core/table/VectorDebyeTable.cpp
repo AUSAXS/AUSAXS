@@ -17,17 +17,8 @@ using namespace ausaxs::table;
 
 VectorDebyeTable::VectorDebyeTable() = default;
 
-VectorDebyeTable::VectorDebyeTable(const std::vector<constants::axes::d_type>& d) : Table(constants::axes::q_axis.bins, d.size()) {
-    initialize(constants::axes::q_vals, d);
-}
-
-VectorDebyeTable::VectorDebyeTable(const std::array<constants::axes::d_type, constants::axes::d_axis.bins>& d) : Table(constants::axes::q_axis.bins, d.size()) {
-    initialize(constants::axes::q_vals, d);
-}
-
-VectorDebyeTable::VectorDebyeTable(const std::vector<constants::axes::d_type>& d, const std::vector<double>& q) : Table(q.size(), d.size()) {
-    initialize(q, d);
-}
+template<container_type T1, container_type T2>
+VectorDebyeTable::VectorDebyeTable(const T1& d, const T2& q) : Table(q.size(), d.size()) {initialize(q, d);}
 
 template<container_type T1, container_type T2>
 void VectorDebyeTable::initialize(const T1& q, const T2& d) {
@@ -48,6 +39,11 @@ void VectorDebyeTable::initialize(const T1& q, const T2& d) {
         }
     }
 }
+
+template VectorDebyeTable::VectorDebyeTable(const std::vector<constants::axes::d_type>&, const std::vector<double>&);
+template VectorDebyeTable::VectorDebyeTable(const std::vector<constants::axes::d_type>&, const std::array<double, constants::axes::q_axis.bins>&);
+template VectorDebyeTable::VectorDebyeTable(const std::array<constants::axes::d_type, constants::axes::d_axis.bins>&, const std::vector<double>&);
+template VectorDebyeTable::VectorDebyeTable(const std::array<constants::axes::d_type, constants::axes::d_axis.bins>&, const std::array<double, constants::axes::q_axis.bins>&);
 
 bool VectorDebyeTable::is_empty() const {return N == 0 || M == 0;}
 
@@ -80,7 +76,7 @@ std::size_t VectorDebyeTable::size_d() const noexcept {
 }
 
 const VectorDebyeTable& VectorDebyeTable::get_default_table() {
-    static VectorDebyeTable default_table(constants::axes::d_vals);
+    static VectorDebyeTable default_table(constants::axes::d_vals, constants::axes::q_vals);
     return default_table;
 }
 

@@ -12,22 +12,8 @@ namespace ausaxs::table {
         public:
             VectorDebyeTable();
 
-            /**
-             * @brief Initialize a new runtime sinc lookup table for the given d-axis. 
-             *        The default q-axis from costants::axes::q_axis will be used.
-             */
-            VectorDebyeTable(const std::vector<constants::axes::d_type>& d);
-
-            /**
-             * @brief Initialize a new runtime sinc lookup table for the given d-axis. 
-             *        The default q-axis from costants::axes::q_axis will be used.
-             */
-            VectorDebyeTable(const std::array<constants::axes::d_type, constants::axes::d_axis.bins>& d);
-
-            /**
-             * @brief Initialize a new runtime sinc lookup table for the given d-axis and q-axis. 
-             */
-            VectorDebyeTable(const std::vector<constants::axes::d_type>& d, const std::vector<double>& q);
+            template<container_type T1, container_type T2>
+            VectorDebyeTable(const T1& d, const T2& q);
 
             /**
              * @brief Look up a value in the table based on indices. This is a constant-time operation. 

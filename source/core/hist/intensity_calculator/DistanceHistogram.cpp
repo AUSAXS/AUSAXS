@@ -50,7 +50,7 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
     const auto& q_axis = constants::axes::q_vals;
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    const auto& sinqd_table = sinc_table.get_sinc_table();
+    auto sinqd_table = sinc_table.get_sinc_table();
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
