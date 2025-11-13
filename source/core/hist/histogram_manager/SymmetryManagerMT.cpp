@@ -18,16 +18,16 @@ using namespace ausaxs;
 using namespace ausaxs::hist::detail;
 using namespace ausaxs::symmetry::detail;
 
-template<bool use_weighted_distribution>
-hist::SymmetryManagerMT<use_weighted_distribution>::SymmetryManagerMT(observer_ptr<const data::Molecule> protein) : protein(protein) {}
+template<bool weighted_bins, bool variable_bin_width>
+hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::SymmetryManagerMT(observer_ptr<const data::Molecule> protein) : protein(protein) {}
 
-template<bool use_weighted_distribution>
-std::unique_ptr<hist::DistanceHistogram> hist::SymmetryManagerMT<use_weighted_distribution>::calculate() {
+template<bool weighted_bins, bool variable_bin_width>
+std::unique_ptr<hist::DistanceHistogram> hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::calculate() {
     return calculate_all();
 }
 
-template<bool use_weighted_distribution>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_weighted_distribution>::calculate_all() {
+template<bool weighted_bins, bool variable_bin_width>
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::calculate_all() {
     if (protein->size_water() == 0) {
         return calculate<false>();
     } else {
@@ -35,16 +35,16 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
     }
 }
 
-template<bool use_weighted_distribution> template <bool contains_waters>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_weighted_distribution>::calculate() {
+template<bool weighted_bins, bool variable_bin_width> template <bool contains_waters>
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::calculate() {
     logging::log("SymmetryManagerMT::calculate: starting calculation");
 
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    hist::distance_calculator::SimpleCalculator<use_weighted_distribution> calculator;
+    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
+    hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator;
 
     // start by generating the transformed data
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
-    auto[data, data_w] = generate_transformed_data(*protein);
+    auto[data, data_w] = generate_transformed_data<variable_bin_width>(*protein);
 
     const auto& waters = data_w;
     int self_merge_id_aa = 0, self_merge_id_ww = 1;
@@ -170,7 +170,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
     p_aw.resize(max_bin);
     p_tot.resize(max_bin);
 
-    if constexpr (use_weighted_distribution) {
+    if constexpr (weighted_bins) {
         return std::make_unique<hist::CompositeDistanceHistogram>(
             hist::Distribution1D(std::move(p_aa)), 
             hist::Distribution1D(std::move(p_aw)), 
@@ -187,9 +187,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<use_w
     }
 }
 
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<true>::calculate<true>();
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<true>::calculate<false>();
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<false>::calculate<true>();
-template std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<false>::calculate<false>();
-template class hist::SymmetryManagerMT<true>;
-template class hist::SymmetryManagerMT<false>;
+template class hist::SymmetryManagerMT<false, false>;
+template class hist::SymmetryManagerMT<false, true>;
+template class hist::SymmetryManagerMT<true, false>;
+template class hist::SymmetryManagerMT<true, true>;

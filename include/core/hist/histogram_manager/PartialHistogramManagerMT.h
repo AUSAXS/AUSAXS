@@ -16,8 +16,8 @@ namespace ausaxs::hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator which efficiently calculates the simple distance histogram. 
 	 */
-    template<bool use_weighted_distribution> 
-	class PartialHistogramManagerMT : public PartialHistogramManager<use_weighted_distribution> {
+    template<bool weighted_bins, bool variable_bin_width> 
+	class PartialHistogramManagerMT : public PartialHistogramManager<weighted_bins, variable_bin_width> {
 		public:
 			PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein);
 			virtual ~PartialHistogramManagerMT() override;
@@ -33,8 +33,8 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		private:
-		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-			using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<use_weighted_distribution>>;
+		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
+			using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>;
 			std::mutex master_hist_mutex;
 
 			/**

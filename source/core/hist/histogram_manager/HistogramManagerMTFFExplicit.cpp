@@ -20,20 +20,20 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::container;
 
-template<bool use_weighted_distribution>
-HistogramManagerMTFFExplicit<use_weighted_distribution>::~HistogramManagerMTFFExplicit() = default;
+template<bool wb, bool vbw>
+HistogramManagerMTFFExplicit<wb, vbw>::~HistogramManagerMTFFExplicit() = default;
 
-template<bool use_weighted_distribution>
-std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit<use_weighted_distribution>::calculate() {return calculate_all();}
+template<bool wb, bool vbw>
+std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit<wb, vbw>::calculate() {return calculate_all();}
 
-template<bool use_weighted_distribution>
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_weighted_distribution>::calculate_all() {
+template<bool wb, bool vbw>
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vbw>::calculate_all() {
     logging::log("HistogramManagerMTFFExplicit::calculate: starting calculation");
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    using GenericDistribution2D_t = typename hist::GenericDistribution2D<use_weighted_distribution>::type;
-    using GenericDistribution3D_t = typename hist::GenericDistribution3D<use_weighted_distribution>::type;
-    data_a_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(this->protein->get_bodies());
-    data_w_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(this->protein->get_waters());
+    using GenericDistribution1D_t = typename hist::GenericDistribution1D<wb>::type;
+    using GenericDistribution2D_t = typename hist::GenericDistribution2D<wb>::type;
+    using GenericDistribution3D_t = typename hist::GenericDistribution3D<wb>::type;
+    data_a_ptr = std::make_unique<hist::detail::CompactCoordinatesFF<vbw>>(this->protein->get_bodies());
+    data_w_ptr = std::make_unique<hist::detail::CompactCoordinatesFF<vbw>>(this->protein->get_waters());
     auto& data_a = *data_a_ptr;
     auto& data_w = *data_w_ptr;
     int data_a_size = (int) data_a.size();
@@ -63,15 +63,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
         for (int i = imin; i < imax; ++i) { // atom
             int j = i+1;                    // atom
             for (; j+7 < data_a_size; j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
+                evaluate8<wb, vbw, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
             }
 
             for (; j+3 < data_a_size; j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
+                evaluate4<wb, vbw, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
             }
 
             for (; j < data_a_size; ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
+                evaluate1<wb, vbw, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
              }
         }
     };
@@ -84,15 +84,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
         for (int i = imin; i < imax; ++i) { // atom
             int j = 0;                      // water
             for (; j+7 < data_w_size; j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_wa, p_wx, data_a, data_w, i, j);
+                evaluate8<wb, vbw, 1>(p_wa, p_wx, data_a, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_wa, p_wx, data_a, data_w, i, j);
+                evaluate4<wb, vbw, 1>(p_wa, p_wx, data_a, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_wa, p_wx, data_a, data_w, i, j);
+                evaluate1<wb, vbw, 1>(p_wa, p_wx, data_a, data_w, i, j);
             }
         }
     };
@@ -103,15 +103,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
         for (int i = imin; i < imax; ++i) { // water
             int j = i+1;                    // water
             for (; j+7 < data_w_size; j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
+                evaluate8<wb, vbw, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
+                evaluate4<wb, vbw, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
+                evaluate1<wb, vbw, 2>(p_ww, data_w, data_w, i, j);
             }
         }
     };
@@ -151,7 +151,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
         p_aa.add(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, std::pow(data_a[i].value.w, 2));
         p_xx.add(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 1);
     }
-    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);}));
+    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<vbw>& data) {return sum + std::pow(data.value.w, 2);}));
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
     GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
@@ -258,5 +258,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
     }
 }
 
-template class hist::HistogramManagerMTFFExplicit<false>;
-template class hist::HistogramManagerMTFFExplicit<true>;
+template class hist::HistogramManagerMTFFExplicit<false, false>;
+template class hist::HistogramManagerMTFFExplicit<false, true>;
+template class hist::HistogramManagerMTFFExplicit<true, false>;
+template class hist::HistogramManagerMTFFExplicit<true, true>;

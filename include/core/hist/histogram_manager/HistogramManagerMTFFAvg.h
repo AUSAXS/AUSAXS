@@ -13,10 +13,10 @@ namespace ausaxs::hist {
 	 * This is equivalent to the CRYSOL implementation, but with a single average excluded volume for all atoms.
 	 * To use unique excluded volumes for each atom, see HistogramManagerMTFFExplicit. 
 	 */
-	template<bool use_weighted_distribution>
-	class HistogramManagerMTFFAvg : public HistogramManager<use_weighted_distribution> {
+	template<bool weighted_bins, bool variable_bin_width>
+	class HistogramManagerMTFFAvg : public HistogramManager<weighted_bins, variable_bin_width> {
 		public:
-			using HistogramManager<use_weighted_distribution>::HistogramManager;
+			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
 
 			virtual ~HistogramManagerMTFFAvg() override;
 
@@ -32,7 +32,7 @@ namespace ausaxs::hist {
 
 		protected:
 			// data stored for inheritance
-			std::unique_ptr<hist::detail::CompactCoordinatesFF> data_a_ptr;
-		    std::unique_ptr<hist::detail::CompactCoordinatesFF> data_w_ptr;
+			std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_a_ptr;
+		    std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_w_ptr;
 	};
 }

@@ -13,10 +13,10 @@ namespace ausaxs::hist {
 	 * This class does not account for the excluded volume in any way. 
 	 * To implicitly include it, subtract the average excluded volume charge from each atom. 
 	 */
-	template<bool use_weighted_distribution>
-	class HistogramManagerMT : public HistogramManager<use_weighted_distribution> {
+	template<bool weighted_bins, bool variable_bin_width>
+	class HistogramManagerMT : public HistogramManager<weighted_bins, variable_bin_width> {
 		public:
-			using HistogramManager<use_weighted_distribution>::HistogramManager;
+			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
 			virtual ~HistogramManagerMT() override;
 
 			/**

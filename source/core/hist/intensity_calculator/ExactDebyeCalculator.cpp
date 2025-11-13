@@ -10,7 +10,7 @@
 using namespace ausaxs;
 
 std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, const std::vector<double>& q_vals) {
-    auto data = hist::detail::CompactCoordinates(molecule.get_bodies());
+    auto data = hist::detail::CompactCoordinates<false>(molecule.get_bodies());
 
     auto contribution = [] (double qr, float w) -> double {
         if (qr < 1e-9) {

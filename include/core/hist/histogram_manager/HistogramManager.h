@@ -19,7 +19,7 @@ namespace ausaxs::hist {
 	 *
 	 * This class is not meant for production use. 
 	 */
-	template<bool use_weighted_distribution>
+	template<bool weighted_bins, bool variable_bin_width>
 	class HistogramManager : public IHistogramManager {
 		public:
 			HistogramManager(observer_ptr<const data::Molecule> protein); 
