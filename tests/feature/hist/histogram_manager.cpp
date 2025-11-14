@@ -48,24 +48,6 @@ struct analytical_histogram {
     std::vector<double> p_exp = calc_exp();
 };
 
-/**
- * @brief Compare two histograms. 
- *        Only indices [0, p1.size()] are checked.
- */
-bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    if (p2.size() < p1.size()) {
-        std::cout << "Failed: p2.size() < p1.size() (" << p2.size() << " < " << p1.size() << ")" << std::endl;
-        return false;
-    }
-    for (unsigned int i = 0; i < p1.size(); i++) {
-        if (!utility::approx(p1[i], p2[i])) {
-            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-            return false;
-        }
-    }
-    return true;
-}
-
 template<template<bool> class MANAGER>
 void run_test(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false>(&protein).calculate_all();

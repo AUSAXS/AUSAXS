@@ -15,8 +15,9 @@ namespace ausaxs::hist {
     class Distribution1D;
 
     /**
-     * @brief This is a small wrapper around the Container1D class, indicating that the data
-     *        is distributed along the constants::axes::d_vals axis.
+     * @brief This is a small wrapper around the Container1D class. Anything added to this
+     *        distribution will be tracked by the WeightedDistribution class, which may add
+     *        a significant overhead compared to a pure Distribution1D class.
      */
     class WeightedDistribution1D : public container::Container1D<detail::WeightedEntry> {
         public:

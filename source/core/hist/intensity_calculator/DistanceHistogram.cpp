@@ -22,16 +22,14 @@ DistanceHistogram& DistanceHistogram::operator=(const DistanceHistogram&) = defa
 
 DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram(
     std::move(p_tot.get_data()), 
-    Axis(0, p_tot.size()*settings::axes::bin_width, 
-    p_tot.size())
+    Axis(0, p_tot.size()*settings::axes::bin_width, p_tot.size())
 ) {
     initialize();
 }
 
 DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot) : Histogram(
     p_tot.get_content(), 
-    Axis(0, p_tot.size()*settings::axes::bin_width, 
-    p_tot.size())
+    Axis(0, p_tot.size()*settings::axes::bin_width, p_tot.size())
 ) {
     initialize(p_tot.get_weighted_axis());
     sinc_table.set_d_axis(d_axis);
@@ -51,7 +49,6 @@ void DistanceHistogram::initialize(std::vector<double>&& d_axis) {
 void DistanceHistogram::initialize() {
     d_axis = axis.as_vector();
     d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
-    table::ArrayDebyeTable::check_default(d_axis);
 }
 
 ScatteringProfile DistanceHistogram::debye_transform() const {

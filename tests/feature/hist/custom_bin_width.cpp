@@ -75,3 +75,78 @@ TEST_CASE("Custom bin count: respected by managers") {
         protein
     );
 }
+
+template<template<bool, bool> class MANAGER>
+void run_test2(const Molecule& protein) {
+    auto h1 = MANAGER<false, false>(&protein).calculate_all();
+    REQUIRE_THAT(h1->get_d_axis()[1] - h1->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
+    auto h2 = MANAGER<true, false>(&protein).calculate_all();
+    REQUIRE_THAT(h2->get_d_axis()[1] - h2->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
+    auto h3 = MANAGER<false, true>(&protein).calculate_all();
+    REQUIRE_THAT(h3->get_d_axis()[1] - h3->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
+    auto h4 = MANAGER<true, true>(&protein).calculate_all();
+    REQUIRE_THAT(h4->get_d_axis()[1] - h4->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
+}
+
+template<template<bool> class MANAGER>
+void run_test2(const Molecule& protein) {
+    auto h1 = MANAGER<false>(&protein).calculate_all();
+    REQUIRE_THAT(h1->get_d_axis()[1] - h1->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
+    auto h2 = MANAGER<true>(&protein).calculate_all();
+    REQUIRE_THAT(h2->get_d_axis()[1] - h2->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
+}
+
+TEST_CASE("Custom bin width: respected by managers") {
+    settings::general::verbose = false;
+    settings::axes::bin_width = GENERATE(0.1, 0.05, 0.02);
+
+    Molecule protein({Body{SimpleCube::get_atoms()}});
+    invoke_for_all_histogram_manager_variants(
+        []<template<bool> class MANAGER>(const Molecule& protein) {
+            run_test2<MANAGER>(protein);
+        },
+        []<template<bool, bool> class MANAGER>(const Molecule& protein) {
+            run_test2<MANAGER>(protein);
+        },
+        protein
+    );
+}
+
+template<template<bool> class MANAGER>
+void run_test3(const Molecule& protein, const auto& target) {
+    auto h2 = MANAGER<true>(&protein).calculate_all();
+    REQUIRE(compare_hist(h2->get_total_counts(), target));
+}
+template<template<bool, bool> class MANAGER>
+void run_test3(const Molecule& protein, const auto& target) {
+    auto h3 = MANAGER<false, true>(&protein).calculate_all();
+    REQUIRE(compare_hist(h3->get_total_counts(), target));
+    auto h4 = MANAGER<true, true>(&protein).calculate_all();
+    REQUIRE(compare_hist(h4->get_total_counts(), target));
+}
+TEST_CASE("Custom bin width: varying widths agree with analytical result") {
+    settings::general::verbose = false;
+
+    static auto calc_exp = [] (double width) {
+        std::vector<double> res(std::round(3.5/width)+1);
+        res[0] = 8;
+        res[std::round(2/width)] += 8*3;
+        res[std::round(std::sqrt(8)/width)] += 8*3;
+        res[std::round(std::sqrt(12)/width)] += 8*1;
+        return res;
+    };
+
+    settings::axes::bin_width = GENERATE(0.1, 0.05, 0.02);
+    Molecule protein({Body{SimpleCube::get_atoms()}});
+    set_unity_charge(protein);
+
+    invoke_for_all_histogram_manager_variants(
+        []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+            run_test3<MANAGER>(protein, target);
+        },
+        []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+            run_test3<MANAGER>(protein, target);
+        },
+        protein, calc_exp(settings::axes::bin_width)
+    );
+}

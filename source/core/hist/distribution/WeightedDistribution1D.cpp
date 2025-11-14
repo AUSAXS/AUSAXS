@@ -3,7 +3,7 @@
 
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/Distribution1D.h>
-#include <constants/Constants.h>
+#include <settings/HistogramSettings.h>
 
 #include <vector>
 #include <cassert>
@@ -49,9 +49,11 @@ void WeightedDistribution1D::set_content(int i, constants::axes::d_type value) {
 }
 
 std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
+    auto d_vals = Axis(0, size()*settings::axes::bin_width, size()).as_vector();
     Distribution1D weights(size());
     for (std::size_t i = 0; i < size(); i++) {
-        weights.index(i) = (!index(i).bin_center*constants::axes::d_vals[i] + index(i).bin_center)/(!index(i).count + index(i).count); // avoid division by zero
+        // this is a small optimization to both avoid dividing by zero and correctly handle the case where count is zero
+        weights.index(i) = (!index(i).bin_center*d_vals[i] + index(i).bin_center)/(!index(i).count + index(i).count);
     }
     return weights;
 }
