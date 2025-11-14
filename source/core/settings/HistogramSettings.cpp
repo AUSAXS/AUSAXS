@@ -21,6 +21,9 @@ unsigned int settings::axes::skip = 0;
 bool settings::hist::weighted_bins = true;
 
 auto small_d_range_warning = [] (double bin_width, unsigned int bin_count) {
+    static bool warned = false;
+    if (warned) {return;}
+    warned = true;
     console::print_warning(
         "settings::axes::bin_width: The specified bin width (" + std::to_string(bin_width) + ") and bin count (" + std::to_string(bin_count) + ") "
         "result in a maximum d-value of less than the recommended " + std::to_string(constants::axes::d_axis.max) + ". "

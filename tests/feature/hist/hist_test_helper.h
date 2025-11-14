@@ -178,11 +178,8 @@ struct SimpleCube {
 // This is PART ONE of a two-part function, where this part handles the histogram managers that only vary in one template parameter.
 template<typename F, typename ...Args>
 void invoke_for_all_histogram_manager_variants_one(F&& f, Args&&... args) {
-    std::cout << "MTFFGrid" << std::endl;
     SECTION("HistogramManagerMTFFGrid") {f.template operator()<hist::HistogramManagerMTFFGrid>((args)...);}
-    std::cout << "MTFFGridSurface" << std::endl;
     SECTION("HistogramManagerMTFFGridSurface") {f.template operator()<hist::HistogramManagerMTFFGridSurface>((args)...);}
-    std::cout << "MTFFGridScalableExv" << std::endl;
     SECTION("HistogramManagerMTFFGridScalableExv") {f.template operator()<hist::HistogramManagerMTFFGridScalableExv>((args)...);}
 }
 
@@ -190,21 +187,13 @@ void invoke_for_all_histogram_manager_variants_one(F&& f, Args&&... args) {
 // This is PART TWO of a two-part function, where this part handles the histogram managers that vary in two template parameters.
 template<typename F, typename ...Args>
 void invoke_for_all_histogram_manager_variants_two(F&& f, Args&&... args) {
-    std::cout << "base" << std::endl;
     SECTION("HistogramManager") {f.template operator()<hist::HistogramManager>((args)...);}
-    std::cout << "MT" << std::endl;
     SECTION("HistogramManagerMT") {f.template operator()<hist::HistogramManagerMT>((args)...);}
-    std::cout << "MTFFAvg" << std::endl;
     SECTION("HistogramManagerMTFFAvg") {f.template operator()<hist::HistogramManagerMTFFAvg>((args)...);}
-    std::cout << "MTFFExplicit" << std::endl;
     SECTION("HistogramManagerMTFFExplicit") {f.template operator()<hist::HistogramManagerMTFFExplicit>((args)...);}
-    std::cout << "SYMMT" << std::endl;
     SECTION("SymmetryManagerMT") {f.template operator()<hist::SymmetryManagerMT>((args)...);}
-    std::cout << "Pbase" << std::endl;
     SECTION("PartialHistogramManager") {f.template operator()<hist::PartialHistogramManager>((args)...);}
-    std::cout << "PMT" << std::endl;
     SECTION("PartialHistogramManagerMT") {f.template operator()<hist::PartialHistogramManagerMT>((args)...);}
-    std::cout << "PSYMMT" << std::endl;
     SECTION("PartialSymmetryManagerMT") {f.template operator()<hist::PartialSymmetryManagerMT>((args)...);}
 }
 

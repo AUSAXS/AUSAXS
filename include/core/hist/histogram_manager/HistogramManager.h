@@ -22,8 +22,8 @@ namespace ausaxs::hist {
 	template<bool weighted_bins, bool variable_bin_width>
 	class HistogramManager : public IHistogramManager {
 		public:
-			HistogramManager(observer_ptr<const data::Molecule> protein); 
 			virtual ~HistogramManager();
+			HistogramManager(observer_ptr<const data::Molecule> protein); 
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 

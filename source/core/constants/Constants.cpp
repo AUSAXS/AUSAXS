@@ -179,6 +179,7 @@ unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
 
         case atom_t::M:  return 0;
         case atom_t::dummy: return 1;
+        case atom_t::unknown: return 1;
         default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }

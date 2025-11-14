@@ -450,7 +450,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_b
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize() {
     auto pool = utility::multi_threading::get_global_pool();
-    const Axis& axis = constants::axes::d_axis; 
+    Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
     this->partials_ww = detail::PartialHistogram<weighted_bins>(axis.bins);
@@ -639,10 +639,11 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calcul
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
+        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
         std::cout << "combine_aa[" << ibody1 << isym1 << ", " << ibody2 << isym2 << "]" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+            std::cout << std::setw(4) << axis[i] << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {
@@ -666,10 +667,11 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aa(int
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aw(int ibody, int isym, GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
+        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
         std::cout << "combine_aw[" << ibody << isym << "]" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+            std::cout << std::setw(4) << axis[i] << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {
@@ -693,10 +695,11 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aw(int
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_ww(GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
+        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
         std::cout << "combine_ww" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+            std::cout << std::setw(4) << axis[i] << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {

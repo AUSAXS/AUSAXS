@@ -20,11 +20,19 @@ DistanceHistogram::DistanceHistogram(DistanceHistogram&&) noexcept = default;
 DistanceHistogram& DistanceHistogram::operator=(DistanceHistogram&&) noexcept = default;
 DistanceHistogram& DistanceHistogram::operator=(const DistanceHistogram&) = default;
 
-DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram(std::move(p_tot.get_data()), Axis(0, p_tot.size()*constants::axes::d_axis.width(), p_tot.size())) {
+DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram(
+    std::move(p_tot.get_data()), 
+    Axis(0, p_tot.size()*settings::axes::bin_width, 
+    p_tot.size())
+) {
     initialize();
 }
 
-DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot) : Histogram(p_tot.get_content(), Axis(0, p_tot.size()*constants::axes::d_axis.width(), p_tot.size())) {
+DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot) : Histogram(
+    p_tot.get_content(), 
+    Axis(0, p_tot.size()*settings::axes::bin_width, 
+    p_tot.size())
+) {
     initialize(p_tot.get_weighted_axis());
     sinc_table.set_d_axis(d_axis);
 }

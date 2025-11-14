@@ -224,7 +224,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<weighted_
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::initialize(calculator_t calculator) {
     auto pool = utility::multi_threading::get_global_pool();
-    const Axis& axis = constants::axes::d_axis; 
+    Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
     this->partials_ww = detail::PartialHistogram<weighted_bins>(axis.bins);
