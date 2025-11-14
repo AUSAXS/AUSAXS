@@ -91,7 +91,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
                     run_test<MANAGER>(protein, target);
                 },
-                protein, p_exp                
+                protein, p_exp
             );
         }
 
@@ -108,9 +108,6 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             invoke_for_all_nongrid_histogram_manager_variants(
-                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
-                    run_test<MANAGER>(protein, target);
-                },
                 []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
                     run_test<MANAGER>(protein, target);
                 },

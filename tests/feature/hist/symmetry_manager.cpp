@@ -20,7 +20,7 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 struct RES {
-    RES(double d, int v) : index(std::round(d*constants::axes::d_inv_width)), val(v) {}
+    RES(double d, int v) : index(std::round(d*settings::flags::inv_bin_width)), val(v) {}
     int index;
     int val;
 };
@@ -218,7 +218,7 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
             auto haw = h->get_aw_counts();
             auto hww = h->get_ww_counts();
 
-            int bin1 = std::round(1*constants::axes::d_inv_width);
+            int bin1 = std::round(1*settings::flags::inv_bin_width);
             REQUIRE(bin1 < static_cast<int>(htot.size()));
             CHECK(htot[0] == 2);
             CHECK(haa[0] == 1);
@@ -245,8 +245,8 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
             auto haw = h->get_aw_counts();
             auto hww = h->get_ww_counts();
 
-            int bin1 = std::round(1*constants::axes::d_inv_width);
-            int bin2 = std::round(std::sqrt(2)*constants::axes::d_inv_width);
+            int bin1 = std::round(1*settings::flags::inv_bin_width);
+            int bin2 = std::round(std::sqrt(2)*settings::flags::inv_bin_width);
             REQUIRE(bin1 < static_cast<int>(htot.size()));
             CHECK(htot[0] == 3);
             CHECK(haa[0] == 2);
