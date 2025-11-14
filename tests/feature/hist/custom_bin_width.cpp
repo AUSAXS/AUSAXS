@@ -11,10 +11,10 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
+#include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <settings/HistogramSettings.h>
-#include <settings/GridSettings.h>
+#include <settings/All.h>
 
 #include "hist/hist_test_helper.h"
 
@@ -41,7 +41,6 @@ void run_grid_test1(const Molecule& protein) {
     auto h2 = MANAGER<true>(&protein).calculate_all();
     REQUIRE(h2->get_d_axis().size() > 0.95*settings::axes::bin_count);
 }
-
 TEST_CASE("Custom bin count: respected by managers") {
     settings::general::verbose = false;
     settings::axes::bin_count = GENERATE(4000, 5000, 6000);
@@ -95,7 +94,6 @@ void run_test2(const Molecule& protein) {
     auto h2 = MANAGER<true>(&protein).calculate_all();
     REQUIRE_THAT(h2->get_d_axis()[1] - h2->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
 }
-
 TEST_CASE("Custom bin width: respected by managers") {
     settings::general::verbose = false;
     settings::axes::bin_width = GENERATE(0.1, 0.05, 0.02);
@@ -148,5 +146,76 @@ TEST_CASE("Custom bin width: varying widths agree with analytical result") {
             run_test3<MANAGER>(protein, target);
         },
         protein, calc_exp(settings::axes::bin_width)
+    );
+}
+
+template<template<bool> class MANAGER>
+void run_test4(const Molecule& protein) {
+    auto iq = MANAGER<false>(&protein).calculate_all()->debye_transform();
+    settings::axes::bin_width = constants::axes::d_axis.width();
+    settings::axes::bin_count = 8000/settings::axes::bin_width;
+    auto iq2 = MANAGER<true>(&protein).calculate_all()->debye_transform();
+    REQUIRE(compare_hist(iq, iq2, 1e-6, 0.005));
+}
+template<template<bool, bool> class MANAGER>
+void run_test4(const Molecule& protein) {
+    settings::axes::bin_width = constants::axes::d_axis.width();
+    settings::axes::bin_count = 8000/settings::axes::bin_width;
+
+    auto iq = MANAGER<false, false>(&protein).calculate_all()->debye_transform();
+    auto iq2 = MANAGER<false, true>(&protein).calculate_all()->debye_transform();
+    REQUIRE(compare_hist(iq, iq2, 1e-6, 0.005));
+
+    iq = MANAGER<true, false>(&protein).calculate_all()->debye_transform();
+    iq2 = MANAGER<true, true>(&protein).calculate_all()->debye_transform();
+    REQUIRE(compare_hist(iq, iq2, 1e-6, 0.005));
+}
+TEST_CASE("Custom bin width: fixed and variable widths agree") {
+    settings::general::verbose = false;
+    Molecule protein("tests/files/2epe.pdb");
+    invoke_for_all_histogram_manager_variants(
+        []<template<bool> class MANAGER>(const Molecule& protein) {
+            run_test4<MANAGER>(protein);
+        },
+        []<template<bool, bool> class MANAGER>(const Molecule& protein) {
+            run_test4<MANAGER>(protein);
+        },
+        protein
+    );
+}
+
+auto avg_deviation = [] (const std::vector<double>& a, const std::vector<double>& b) {
+    double total_dev = 0;
+    for (std::size_t i = 0; i < a.size(); ++i) {
+        total_dev += std::abs(a[i]-b[i])/b[i];
+    }
+    return total_dev/a.size();
+};
+template<template<bool, bool> class MANAGER>
+void run_test5(const Molecule& protein, const std::vector<double>& exact) {
+    settings::axes::bin_width = 0.5;
+    settings::axes::bin_count = 8000/settings::axes::bin_width;
+    auto target_dev = avg_deviation(
+        MANAGER<true, false>(&protein).calculate_all()->debye_transform().get_counts(),
+        exact
+    );
+    for (auto width : {0.25, 0.15, 0.1}) {
+        settings::axes::bin_width = width;
+        settings::axes::bin_count = 8000/settings::axes::bin_width;
+        auto iq = MANAGER<true, true>(&protein).calculate_all()->debye_transform().get_counts();
+        REQUIRE(avg_deviation(iq, exact) <= target_dev);
+    }
+}
+TEST_CASE("Custom bin width: smaller widths increase accuracy") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+
+    Molecule protein("tests/files/c60.pdb");
+    auto exact = hist::exact_debye_transform(protein, constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector());
+    invoke_for_all_nongrid_histogram_manager_variants(
+        []<template<bool, bool> class MANAGER>(const Molecule& protein, const std::vector<double>& exact) {
+            run_test5<MANAGER>(protein, exact);
+        },
+        protein, exact
     );
 }
