@@ -388,27 +388,50 @@ CIFSection extract_section(std::string_view pattern, std::string_view first_matc
     } while(getline(input, line));
     if (data[0].empty()) {data.pop_back();} // remove the dummy data if empty
 
+    static auto starts_with_quotation = [] (std::string_view s) -> bool {
+        return s.starts_with('"') || s.starts_with('\'');
+    };
+    static auto ends_with_quotation = [] (std::string_view s) -> bool {
+        return s.ends_with('"') || s.ends_with('\'');
+    };
+
     // read data. note that the first iteration is working on the last read line from the previous loop
     do {
         full_line_size = static_cast<int>(line.size());
-        line = utility::remove_leading(utility::remove_trailing(line, "\n\r"), " ");
+        line = utility::remove_leading_and_trailing(utility::remove_trailing(line, "\n\r"), " ");
         if (line.starts_with('#') || line.starts_with('_')) {break;} // end of loop section
         if (line.empty()) {continue;}
         auto values = utility::split(line, " ");
 
         int concatenated = 0;
         for (size_t i = 0; i < values.size(); i++) {
-            if (values[i].starts_with('"')) {
-                if (values[i].ends_with('"')) {
+            if (starts_with_quotation(values[i])) {
+                if (ends_with_quotation(values[i])) {
+                    // single-word quoted value
                     values[i] = values[i].substr(1, values[i].size()-2);
                 } else {
-                    if (i < values.size() && values[i+1].ends_with('"')) {
-                        values[i] = values[i].substr(1) + " " + values[i+1].substr(0, values[i+1].size()-1);
-                    } else {
-                        throw except::io_error("CIFReader::read: Unterminated quote in data section: \n\"" + line + "\"");
+                    // search for the terminating quote
+                    bool found_termination = false;
+                    for (size_t j = i+1; j < values.size(); j++) {
+                        if (ends_with_quotation(values[j])) {
+                            // build concatenated value from values[i]..values[j], stripping quotes
+                            std::string concatenated_value = std::string(values[i].substr(1)); // remove starting quote
+                            for (size_t k = i+1; k < j; k++) {
+                                concatenated_value += " " + values[k];
+                            }
+                            concatenated_value += " " + std::string(values[j].substr(0, values[j].size()-1)); // remove ending quote
+
+                            // compute how many slots we will remove (number of tokens merged)
+                            size_t shift = j - i;
+                            values[i - concatenated] = std::move(concatenated_value);
+                            concatenated += static_cast<int>(shift);
+                            i = j; // skip to the end of the quoted value (outer loop will advance i++ to j+1)
+                            found_termination = true;
+                            break;
+                        }
                     }
-                    ++concatenated;
-                    continue;
+                    if (found_termination) {continue;}
+                    throw except::io_error("CIFReader::read: Unterminated quote in data section: \n\"" + line + "\"");
                 }
             }
             values[i-concatenated] = values[i];
@@ -472,7 +495,7 @@ io::pdb::PDBStructure read_pdbx(CIFSection&& chem_comp_atom, CIFSection&& chem_c
     return file;
 }
 
-io::pdb::PDBStructure read_crystal(CIFSection&& cell_, CIFSection&& atom_site, const std::string& path) {
+io::pdb::PDBStructure read_crystal(CIFSection&& cell_, CIFSection&& atom_site, const std::string&) {
     io::pdb::PDBStructure file;
 
     double a, b, c;
@@ -485,9 +508,9 @@ io::pdb::PDBStructure read_crystal(CIFSection&& cell_, CIFSection&& atom_site, c
         if (!labels.contains("angle_alpha") || !labels.contains("angle_beta") || !labels.contains("angle_gamma")) {
             console::print_text("CIFReader::read_crystal: Missing optional cell angle labels in \"_cell\" section. Assuming 90 degree angles.");
         } else {
-            alpha = std::stod(cell_.data[0][labels.at("angle_alpha")]) * std::numbers::pi / 180.0;
-            beta  = std::stod(cell_.data[0][labels.at("angle_beta")])  * std::numbers::pi / 180.0;
-            gamma = std::stod(cell_.data[0][labels.at("angle_gamma")]) * std::numbers::pi / 180.0;
+            alpha = std::stod(cell_.data[0][labels.at("angle_alpha")]);
+            beta  = std::stod(cell_.data[0][labels.at("angle_beta")]);
+            gamma = std::stod(cell_.data[0][labels.at("angle_gamma")]);
         }
         a = std::stod(cell_.data[0][labels.at("length_a")]);
         b = std::stod(cell_.data[0][labels.at("length_b")]);
