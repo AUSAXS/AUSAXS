@@ -14,8 +14,8 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <settings/HistogramSettings.h>
+#include <settings/GridSettings.h>
 
-#include "hist/intensity_calculator/DistanceHistogram.h"
 #include "hist/hist_test_helper.h"
 
 using namespace ausaxs;
@@ -37,12 +37,11 @@ void run_nongrid_test1(const Molecule& protein) {
 template<template<bool> class MANAGER>
 void run_grid_test1(const Molecule& protein) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
-    REQUIRE(h1->get_d_axis().size() >= 0.95*settings::axes::bin_count);
+    REQUIRE(h1->get_d_axis().size() > 0.95*settings::axes::bin_count);
     auto h2 = MANAGER<true>(&protein).calculate_all();
-    REQUIRE(h2->get_d_axis().size() >= 0.95*settings::axes::bin_count);
+    REQUIRE(h2->get_d_axis().size() > 0.95*settings::axes::bin_count);
 }
 
-#include <settings/GridSettings.h>
 TEST_CASE("Custom bin count: respected by managers") {
     settings::general::verbose = false;
     settings::axes::bin_count = GENERATE(4000, 5000, 6000);
@@ -63,15 +62,16 @@ TEST_CASE("Custom bin count: respected by managers") {
     );
 
     // have to be careful with the expanded exv in grid-based managers
-    // max_dist = 0.8*settings::axes::bin_width*(settings::axes::bin_count);
-    // atoms = {
-    //     data::AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
-    //     data::AtomFF({max_dist, 0, 0}, form_factor::form_factor_t::C)
-    // };
-    // invoke_for_all_grid_histogram_manager_variants(
-    //     []<template<bool> class MANAGER>(const Molecule& protein) {
-    //         run_grid_test1<MANAGER>(protein);
-    //     },
-    //     protein
-    // );
+    max_dist = 0.95*settings::axes::bin_width*(settings::axes::bin_count-1);
+    atoms = {
+        data::AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
+        data::AtomFF({max_dist, 0, 0}, form_factor::form_factor_t::C)
+    };
+    protein = Molecule({Body{atoms}});
+    invoke_for_all_grid_histogram_manager_variants(
+        []<template<bool> class MANAGER>(const Molecule& protein) {
+            run_grid_test1<MANAGER>(protein);
+        },
+        protein
+    );
 }

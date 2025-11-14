@@ -7,6 +7,7 @@
 #include <constants/ConstantsAxes.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <utility/TypeTraits.h>
+#include <settings/Flags.h>
 
 #include <cmath>
 
@@ -35,7 +36,7 @@ namespace ausaxs::hist {
              */
             template<int N = 1>
             void add(unsigned int x, float distance, constants::axes::d_type value) {
-                int i = std::round(distance*constants::axes::d_inv_width);
+                int i = std::round(distance*settings::flags::inv_bin_width);
                 index(x, i).add<N>(distance, value);
             }
 

@@ -39,7 +39,7 @@ settings::detail::Setting<double> settings::axes::bin_width = {
         } else {
             settings::flags::custom_bin_width = true;
         }
-        ::hist::detail::CompactCoordinatesData<true>::set_bin_width(new_width);
+        settings::flags::inv_bin_width = 1./new_width;
     }
 };
 settings::detail::Setting<unsigned int> settings::axes::bin_count = {

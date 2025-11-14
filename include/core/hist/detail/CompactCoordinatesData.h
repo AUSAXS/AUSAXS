@@ -5,6 +5,7 @@
 
 #include <math/Vector3.h>
 #include <constants/Constants.h>
+#include <settings/Flags.h>
 
 #include <array>
 #include <cstdint>
@@ -138,13 +139,11 @@ namespace ausaxs::hist::detail {
     static_assert(std::is_standard_layout_v<OctoEvaluatedResultRounded>, "hist::detail::OctoEvaluatedResultRounded is not trivial");
 
     struct ConstantWidth {
-        static consteval float get() {return ausaxs::constants::axes::d_inv_width;}
+        static consteval float get() {return 1./ausaxs::constants::axes::d_axis.width();}
     };
 
     struct VariableWidth {
-        inline static float inv_width = ausaxs::constants::axes::d_inv_width;
-        static float get() {return inv_width;}
-        static void set(float v) {inv_width = v;}
+        static float get() {return settings::flags::inv_bin_width;}
     };
 
     template<bool variable_bin_width>
@@ -155,11 +154,6 @@ namespace ausaxs::hist::detail {
             template<numeric T, numeric V>
             CompactCoordinatesData(const Vector3<T>& v, V w) : value{.pos={static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z())}, .w=static_cast<float>(w)} {}
             CompactCoordinatesData(const Vector3<float>& v, float w) : value{.pos=v, .w=w} {}
-
-            template<typename = std::enable_if<variable_bin_width>>
-            static void set_bin_width(double bin_width) {
-                VariableWidth::set(1./bin_width);
-            }
 
             constexpr static float get_inv_width() {
                 if constexpr (variable_bin_width) {

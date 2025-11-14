@@ -56,11 +56,6 @@ namespace ausaxs::hist::detail {
 
             std::size_t size() const;
 
-            template<typename = std::enable_if<variable_bin_width>>
-            static void set_bin_width(double bin_width) {
-                CompactCoordinatesData<true>::set_bin_width(bin_width);
-            }
-
             std::vector<CompactCoordinatesData<variable_bin_width>>& get_data();
             const std::vector<CompactCoordinatesData<variable_bin_width>>& get_data() const;
 
