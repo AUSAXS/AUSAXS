@@ -53,7 +53,7 @@ void DebyeTableManager::reset_to_default() {
 
 bool appears_identical(const std::vector<double>& a, const std::vector<double>& b) {
     if (a.size() != b.size()) {return false;}
-    if (a.size() > 10 && b.size() > 10) {
+    if (a.size() > 10) {
         for (size_t i = 0; i < 5; ++i) {
             if (a[i] != b[i]) {return false;}
         }
