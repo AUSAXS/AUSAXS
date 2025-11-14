@@ -101,13 +101,11 @@ hist::Distribution2D CompositeDistanceHistogramFFGridSurface::evaluate_ax_distan
 }
 
 observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGridSurface::get_sinc_table_ax() const {
-    if (use_weighted_table) {return sinc_tables.ax.get();}
-    return &table::ArrayDebyeTable::get_default_table();
+    return sinc_tables.ax.get_sinc_table();
 }
 
 observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGridSurface::get_sinc_table_xx() const {
-    if (use_weighted_table) {return sinc_tables.xx.get();}
-    return &table::ArrayDebyeTable::get_default_table();
+    return sinc_tables.xx.get_sinc_table();
 }
 
 void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
@@ -118,7 +116,8 @@ void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d
     }
 
     this->distance_axes = {.xx=std::move(d_axis_xx), .ax=std::move(d_axis_ax)};
-    sinc_tables = {.xx=std::make_unique<table::VectorDebyeTable>(this->distance_axes.xx), .ax=std::make_unique<table::VectorDebyeTable>(this->distance_axes.ax)};
+    sinc_tables.ax.set_d_axis(this->distance_axes.ax);
+    sinc_tables.xx.set_d_axis(this->distance_axes.xx);
 
     // fix the aa counts to also contain the exv contributions
     auto xx = evaluate_xx_distance_profile(1);
@@ -137,7 +136,7 @@ void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d
 
 void CompositeDistanceHistogramFFGridSurface::cache_refresh_sinqd() const {
     auto pool = utility::multi_threading::get_global_pool();
-    auto sinqd_table = get_sinc_table();
+    const auto& sinqd_table = sinc_table.get_sinc_table();
 
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);

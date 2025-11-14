@@ -41,9 +41,10 @@ class GridDebug : public grid::Grid {
 /**
  * @brief Debug version of the HistogramManagerMTFFGrid class, which uses a predictable excluded volume.
  */
- class DebugHistogramManagerMTFFGrid : public hist::HistogramManagerMTFFGrid {
+ template<bool vbw>
+ class DebugHistogramManagerMTFFGrid : public hist::HistogramManagerMTFFGrid<vbw> {
     public:
-        using HistogramManagerMTFFGrid::HistogramManagerMTFFGrid;
+        using hist::HistogramManagerMTFFGrid<vbw>::HistogramManagerMTFFGrid;
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return {
@@ -60,9 +61,10 @@ class GridDebug : public grid::Grid {
 /**
  * @brief Debug version of the HistogramManagerMTFFGridScalableExv class, which uses a predictable excluded volume.
  */
-class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMTFFGridScalableExv {
+template<bool vbw>
+class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMTFFGridScalableExv<vbw> {
     public:
-        using HistogramManagerMTFFGridScalableExv::HistogramManagerMTFFGridScalableExv;
+        using hist::HistogramManagerMTFFGridScalableExv<vbw>::HistogramManagerMTFFGridScalableExv;
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return {
@@ -79,9 +81,10 @@ class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMT
 /**
  * @brief Debug version of the HistogramManagerMTFFGridSurface class, which uses a predictable excluded volume.
  */
- class DebugHistogramManagerMTFFGridSurface : public hist::HistogramManagerMTFFGridSurface {
+template<bool vbw>
+class DebugHistogramManagerMTFFGridSurface : public hist::HistogramManagerMTFFGridSurface<vbw> {
     public:
-        using HistogramManagerMTFFGridSurface::HistogramManagerMTFFGridSurface;
+        using hist::HistogramManagerMTFFGridSurface<vbw>::HistogramManagerMTFFGridSurface;
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return {

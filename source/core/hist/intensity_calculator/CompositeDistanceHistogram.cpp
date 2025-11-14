@@ -71,13 +71,13 @@ auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::De
 };
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
-    return partial_profile(get_aa_counts(), get_sinc_table());
+    return partial_profile(get_aa_counts(), sinc_table.get_sinc_table());
 }
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_aw() const {
-    return partial_profile(get_aw_counts(), get_sinc_table());
+    return partial_profile(get_aw_counts(), sinc_table.get_sinc_table());
 }
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_ww() const {
-    return partial_profile(get_ww_counts(), get_sinc_table());
+    return partial_profile(get_ww_counts(), sinc_table.get_sinc_table());
 }

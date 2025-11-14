@@ -6,7 +6,7 @@
 #include <hist/Histogram.h>
 #include <hist/HistFwd.h>
 #include <hist/distribution/DistributionFwd.h>
-#include <table/DebyeTable.h>
+#include <table/DebyeTableManager.h>
 #include <dataset/DatasetFwd.h>
 #include <constants/Constants.h>
 #include <utility/observer_ptr.h>
@@ -85,20 +85,8 @@ namespace ausaxs::hist {
             bool is_highly_ordered() const;
 
         protected:
-            std::vector<double> d_axis;                             // The distance axis.
-            std::shared_ptr<table::DebyeTable> weighted_sinc_table; // The weighted sinc table
-            bool use_weighted_table = false;                        // Whether to use the weighted sinc table
-
-            /**
-             * @brief Get the sinc(x) lookup table for the Debye transform.
-             */
-            observer_ptr<const table::DebyeTable> get_sinc_table() const;
-
-            /**
-             * @brief Use a weighted sinc table for the Debye transform.
-             *        This defines the weighted_sinc_table member based on the current d_axis and sets use_weighted_table to true.
-             */
-            void use_weighted_sinc_table();
+            std::vector<double> d_axis;                     // The distance axis.
+            mutable table::DebyeTableManager sinc_table;    // The sinc(x) lookup table manager for the Debye transform.
 
         private:
             void initialize();

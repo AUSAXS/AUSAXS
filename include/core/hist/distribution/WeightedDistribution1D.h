@@ -7,6 +7,7 @@
 #include <constants/ConstantsAxes.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <utility/TypeTraits.h>
+#include <settings/Flags.h>
 
 #include <cmath>
 
@@ -14,8 +15,9 @@ namespace ausaxs::hist {
     class Distribution1D;
 
     /**
-     * @brief This is a small wrapper around the Container1D class, indicating that the data
-     *        is distributed along the constants::axes::d_vals axis.
+     * @brief This is a small wrapper around the Container1D class. Anything added to this
+     *        distribution will be tracked by the WeightedDistribution class, which may add
+     *        a significant overhead compared to a pure Distribution1D class.
      */
     class WeightedDistribution1D : public container::Container1D<detail::WeightedEntry> {
         public:
@@ -65,7 +67,7 @@ namespace ausaxs::hist {
              */
             template<int N = 1>
             void add(float distance, constants::axes::d_type value) {
-                int i = std::round(distance*constants::axes::d_inv_width);
+                int i = std::round(distance*settings::flags::inv_bin_width);
                 index(i).add<N>(distance, value);
             }
 

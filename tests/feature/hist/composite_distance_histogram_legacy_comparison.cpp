@@ -17,7 +17,6 @@
 #include <settings/All.h>
 
 #include "hist/hist_test_helper.h"
-#include "grid/grid_debug.h"
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -41,7 +40,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_aa() const override  {
         called_aa = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -60,7 +59,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_ax() const override  {
         called_ax = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -78,7 +77,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_xx() const override  {
         called_xx = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -94,7 +93,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_wx() const override  {
         called_wx = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -110,7 +109,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_aw() const override  {
         called_aw = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -127,7 +126,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_ww() const override  {
         called_ww = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -142,7 +141,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile debye_transform() const override {
         called_debye = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
 
         // calculate the Debye scattering intensity
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -198,7 +197,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
     ScatteringProfile get_profile_aa() const override  {
         called_aa = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -217,7 +216,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
     ScatteringProfile get_profile_aw() const override  {
         called_aw = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -234,7 +233,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
     ScatteringProfile get_profile_ww() const override  {
         called_ww = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -249,7 +248,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
     ScatteringProfile get_profile_ax() const override  {
         called_ax = true;
         const auto& ff_ax_table = get_ffax_table();
-        auto sinqd_table = this->get_sinc_table();
+        auto sinqd_table = this->sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -269,7 +268,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
     ScatteringProfile get_profile_xx() const override  {
         called_xx = true;
         const auto& ff_xx_table = get_ffxx_table();
-        auto sinqd_table = this->get_sinc_table();
+        auto sinqd_table = this->sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -289,7 +288,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
     ScatteringProfile get_profile_wx() const override  {
         called_wx = true;
         const auto& ff_ax_table = get_ffax_table();
-        auto sinqd_table = this->get_sinc_table();
+        auto sinqd_table = this->sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -310,7 +309,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
         const auto& ff_aa_table = get_ffaa_table();
         const auto& ff_ax_table = get_ffax_table();
         const auto& ff_xx_table = get_ffxx_table();
-        auto sinqd_table = this->get_sinc_table();
+        auto sinqd_table = this->sinc_table.get_sinc_table();
 
         // calculate the Debye scattering intensity
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -366,7 +365,7 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
     ScatteringProfile get_profile_aa() const override  {
         called_aa = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -385,7 +384,7 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
     ScatteringProfile get_profile_aw() const override  {
         called_aw = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -402,7 +401,7 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
     ScatteringProfile get_profile_ww() const override  {
         called_ww = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -467,7 +466,7 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
     ScatteringProfile debye_transform() const override  {
         called_debye = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table_aa = get_sinc_table();
+        auto sinqd_table_aa = sinc_table.get_sinc_table();
         auto sinqd_table_ax = get_sinc_table_ax();
         auto sinqd_table_xx = get_sinc_table_xx();
 
@@ -525,7 +524,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
     ScatteringProfile get_profile_aa() const override {
         called_aa = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -544,7 +543,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
     ScatteringProfile get_profile_aw() const override {
         called_aw = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -561,7 +560,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
     ScatteringProfile get_profile_ww() const override  {
         called_ww = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = get_sinc_table();
+        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -629,7 +628,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
     ScatteringProfile debye_transform() const override {
         called_debye = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table_aa = get_sinc_table();
+        auto sinqd_table_aa = sinc_table.get_sinc_table();
         auto sinqd_table_ax = get_sinc_table_ax();
         auto sinqd_table_xx = get_sinc_table_xx();
 
@@ -687,7 +686,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
     SECTION(test_files + " full profile") {
         auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
 
-        auto hist_new = HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFAvg*>(hist_new.get());
         new_cast->apply_water_scaling_factor(params.first);
         new_cast->apply_excluded_volume_scaling_factor(params.second);
@@ -705,7 +704,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: legacy comparison") {
     }
 
     SECTION(test_files + " individual profiles") {
-        auto hist_new = HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFAvg*>(hist_new.get());
         auto[_aa, _ax, _aw, _xx, _wx, _ww] = new_cast->cache_get_intensity_profiles();
 
@@ -744,7 +743,7 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
     SECTION(test_files + " full profile") {
         auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
 
-        auto hist_new = HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFExplicit*>(hist_new.get());
         new_cast->apply_water_scaling_factor(params.first);
         new_cast->apply_excluded_volume_scaling_factor(params.second);
@@ -762,7 +761,7 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit: legacy comparison") {
     }
 
     SECTION(test_files + " individual profiles") {
-        auto hist_new = HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFExplicit*>(hist_new.get());
         auto[_aa, _ax, _aw, _xx, _wx, _ww] = new_cast->cache_get_intensity_profiles();
 
@@ -801,7 +800,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
     SECTION(test_files + " full profile") {
         auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
 
-        auto hist_new = HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGrid*>(hist_new.get());
         new_cast->apply_water_scaling_factor(params.first);
         new_cast->apply_excluded_volume_scaling_factor(params.second);
@@ -819,7 +818,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid: legacy comparison") {
     }
 
     SECTION(test_files + " individual profiles") {
-        auto hist_new = HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGrid*>(hist_new.get());
         auto[_aa, _ax, _aw, _xx, _wx, _ww] = new_cast->cache_get_intensity_profiles();
 
@@ -858,7 +857,7 @@ TEST_CASE("CompositeDistanceHistogramFFGridSurface: legacy comparison") {
     SECTION(test_files + " full profile") {
         auto params = GENERATE(std::pair{1, 1}, std::pair{1, 2}, std::pair{2, 1}, std::pair{2, 2});
 
-        auto hist_new = HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(hist_new.get());
         new_cast->apply_water_scaling_factor(params.first);
         new_cast->apply_excluded_volume_scaling_factor(params.second);
@@ -876,7 +875,7 @@ TEST_CASE("CompositeDistanceHistogramFFGridSurface: legacy comparison") {
     }
 
     SECTION(test_files + " individual profiles") {
-        auto hist_new = HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto hist_new = HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
         auto new_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(hist_new.get());
         auto[_aa, _ax, _aw, _xx, _wx, _ww] = new_cast->cache_get_intensity_profiles();
 

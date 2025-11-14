@@ -9,6 +9,7 @@
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <container/ThreadLocalWrapper.h>
 #include <utility/MultiThreading.h>
+#include <settings/HistogramSettings.h>
 
 #include <vector>
 #include <unordered_map>
@@ -21,7 +22,7 @@ namespace ausaxs::hist::distance_calculator {
      *        Submit the data and then call calculate to get the result.
      *        The caller must guarantee the lifetime of all submitted data.
      */
-    template<bool weighted_bins>
+    template<bool weighted_bins, bool variable_bin_width>
     class SimpleCalculator {
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
         public:
@@ -40,7 +41,7 @@ namespace ausaxs::hist::distance_calculator {
              *
              * @return The index of the data in the result vector.
              */
-            int enqueue_calculate_self(const hist::detail::CompactCoordinates& a, int scaling = 1, int merge_id = -1);
+            int enqueue_calculate_self(const hist::detail::CompactCoordinates<variable_bin_width>& a, int scaling = 1, int merge_id = -1);
 
             /**
              * @brief Queue a cross-correlation calculation. 
@@ -51,7 +52,7 @@ namespace ausaxs::hist::distance_calculator {
              * @param scaling The scaling factor to apply to the result.
              * @return The index of the data in the result vector.
              */
-            int enqueue_calculate_cross(const hist::detail::CompactCoordinates& a1, const hist::detail::CompactCoordinates& a2, int scaling = 1, int merge_id = -1);
+            int enqueue_calculate_cross(const hist::detail::CompactCoordinates<variable_bin_width>& a1, const hist::detail::CompactCoordinates<variable_bin_width>& a2, int scaling = 1, int merge_id = -1);
 
             /**
              * @brief Get the current size of the result vector. 
@@ -72,16 +73,16 @@ namespace ausaxs::hist::distance_calculator {
             std::unordered_map<int, int> self_merge_ids, cross_merge_ids;
 
             template<int scaling>
-            int enqueue_calculate_self(const hist::detail::CompactCoordinates& data, int merge_id);
+            int enqueue_calculate_self(const hist::detail::CompactCoordinates<variable_bin_width>& data, int merge_id);
 
             template<int scaling>
-            int enqueue_calculate_cross(const hist::detail::CompactCoordinates& data_1, const hist::detail::CompactCoordinates& data_2, int merge_id);
+            int enqueue_calculate_cross(const hist::detail::CompactCoordinates<variable_bin_width>& data_1, const hist::detail::CompactCoordinates<variable_bin_width>& data_2, int merge_id);
     };
 }
 
-template<bool weighted_bins> template<int scaling>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_self(
-    const hist::detail::CompactCoordinates& data, 
+template<bool weighted_bins, bool variable_bin_width> template<int scaling>
+inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::enqueue_calculate_self(
+    const hist::detail::CompactCoordinates<variable_bin_width>& data, 
     int merge_id
 ) {
     auto pool = utility::multi_threading::get_global_pool();
@@ -91,10 +92,10 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
         res_idx = self_results.size();
         merge_id = merge_id == -1 ? res_idx : merge_id;
         self_merge_ids[merge_id] = res_idx;
-        self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(constants::axes::d_axis.bins));
+        self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(settings::axes::bin_count));
     } else {
         res_idx = self_merge_ids[merge_id];
-        assert(self_results[res_idx]->get().size() == constants::axes::d_axis.bins && "The result vector has the wrong size.");
+        assert(self_results[res_idx]->get().size() == settings::axes::bin_count && "The result vector has the wrong size.");
     }
 
     auto res_ptr = self_results[res_idx].get();
@@ -109,15 +110,15 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
                 for (int i = imin; i < imax; ++i) { // atom
                     int j = i+1;                    // atom
                     for (; j+7 < data_size; j+=8) {
-                        evaluate8<weighted_bins, 2*scaling>(p_aa, data, data, i, j);
+                        evaluate8<weighted_bins, variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
                     }
 
                     for (; j+3 < data_size; j+=4) {
-                        evaluate4<weighted_bins, 2*scaling>(p_aa, data, data, i, j);
+                        evaluate4<weighted_bins, variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
                     }
 
                     for (; j < data_size; ++j) {
-                        evaluate1<weighted_bins, 2*scaling>(p_aa, data, data, i, j);
+                        evaluate1<weighted_bins, variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
                     }
                 }
             }
@@ -132,7 +133,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
                 data.get_data().begin(), 
                 data.get_data().end(), 
                 0.0, 
-                [] (double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}
+                [] (double sum, const hist::detail::CompactCoordinatesData<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
             ));
         }
     );
@@ -140,10 +141,10 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
     return res_idx;
 }
 
-template<bool weighted_bins> template<int scaling>
-int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_cross(
-    const hist::detail::CompactCoordinates& data_1, 
-    const hist::detail::CompactCoordinates& data_2, 
+template<bool weighted_bins, bool variable_bin_width> template<int scaling>
+int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::enqueue_calculate_cross(
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_1, 
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_2, 
     int merge_id
 ) {
     auto pool = utility::multi_threading::get_global_pool();
@@ -153,10 +154,10 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_
         res_idx = cross_results.size();
         merge_id = merge_id == -1 ? res_idx : merge_id;
         cross_merge_ids[merge_id] = res_idx;
-        cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(constants::axes::d_axis.bins));
+        cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(settings::axes::bin_count));
     } else {
         res_idx = cross_merge_ids[merge_id];
-        assert(cross_results[res_idx]->get().size() == constants::axes::d_axis.bins && "The result vector has the wrong size.");
+        assert(cross_results[res_idx]->get().size() == settings::axes::bin_count && "The result vector has the wrong size.");
     }
 
     auto res_ptr = cross_results[res_idx].get();
@@ -171,15 +172,15 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_
                 for (int i = imin; i < imax; ++i) { // b
                     int j = 0;                      // a
                     for (; j+7 < data_1_size; j+=8) {
-                        evaluate8<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
+                        evaluate8<weighted_bins, variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
                     }
 
                     for (; j+3 < data_1_size; j+=4) {
-                        evaluate4<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
+                        evaluate4<weighted_bins, variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
                     }
 
                     for (; j < data_1_size; ++j) {
-                        evaluate1<weighted_bins, 2*scaling>(p_ab, data_2, data_1, i, j);
+                        evaluate1<weighted_bins, variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
                     }
                 }
             }
@@ -189,18 +190,18 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_
     return res_idx;
 }
 
-template<bool weighted_bins>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::size_self_result() const {
+template<bool weighted_bins, bool variable_bin_width>
+inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::size_self_result() const {
     return self_results.size();
 }
 
-template<bool weighted_bins>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::size_cross_result() const {
+template<bool weighted_bins, bool variable_bin_width>
+inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::size_cross_result() const {
     return cross_results.size();
 }
 
-template<bool weighted_bins>
-inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run_result ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::run() {
+template<bool weighted_bins, bool variable_bin_width>
+inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::run_result ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::run() {
     auto pool = utility::multi_threading::get_global_pool();
     pool->wait();
     run_result result;
@@ -261,9 +262,9 @@ inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bin
 // this approach is not sustainable
 // should higher scaling factors be needed, new add1, add4, and add8 functions should be created which accepts the scaling factor as a parameter
 // for now, this is primarily meant for rigidbody optimizations, where larger symmetries are not expected
-template<bool weighted_bins>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_self(
-    const hist::detail::CompactCoordinates& data, 
+template<bool weighted_bins, bool variable_bin_width>
+inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::enqueue_calculate_self(
+    const hist::detail::CompactCoordinates<variable_bin_width>& data, 
     int scaling,
     int merge_id
 ) {
@@ -305,10 +306,10 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::e
 // this approach is not sustainable
 // should higher scaling factors be needed, new add1, add4, and add8 functions should be created which accepts the scaling factor as a parameter
 // for now, this is primarily meant for rigidbody optimizations, where larger symmetries are not expected
-template<bool weighted_bins>
-inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins>::enqueue_calculate_cross(
-    const hist::detail::CompactCoordinates& data_1, 
-    const hist::detail::CompactCoordinates& data_2, 
+template<bool weighted_bins, bool variable_bin_width>
+inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::enqueue_calculate_cross(
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_1, 
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_2, 
     int scaling,
     int merge_id
 ) {

@@ -3,7 +3,7 @@
 
 #include <hist/distribution/WeightedDistribution3D.h>
 #include <hist/distribution/Distribution3D.h>
-#include <constants/Constants.h>
+#include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -20,6 +20,7 @@ WeightedDistribution3D::WeightedDistribution3D(const Distribution3D& other) : Co
 }
 
 std::vector<double> WeightedDistribution3D::get_weights() const {
+    auto d_vals = Axis(0, size_z()*settings::axes::bin_width, size_z()).as_vector();
     std::vector<double> weights(size_z());
     for (std::size_t z = 0; z < size_z(); z++) {
         unsigned int count = 0;
@@ -29,7 +30,8 @@ std::vector<double> WeightedDistribution3D::get_weights() const {
                 count += index(x, y, z).count;
             }
         }
-        weights[z] = !weights[z]*constants::axes::d_vals[z] + weights[z]/(!count + count); // avoid division by zero
+        // this is a small optimization to both avoid dividing by zero and correctly handle the case where count is zero
+        weights[z] = !weights[z]*d_vals[z] + weights[z]/(!count + count);
     }
     return weights;
 }

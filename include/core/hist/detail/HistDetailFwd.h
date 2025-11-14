@@ -4,7 +4,7 @@
 #pragma once
 
 namespace ausaxs::hist::detail {
-    class CompactCoordinates;
-    class CompactCoordinatesData;
-    class CompactCoordinatesFF;
+    template<bool variable_bin_width> class CompactCoordinates;
+    template<bool variable_bin_width> class CompactCoordinatesData;
+    template<bool variable_bin_width> class CompactCoordinatesFF;
 }

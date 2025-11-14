@@ -161,3 +161,54 @@ struct SimpleCube {
         return true;
     };
 };
+
+#include <hist/histogram_manager/HistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
+#include <hist/histogram_manager/SymmetryManagerMT.h>
+#include <hist/histogram_manager/PartialHistogramManager.h>
+#include <hist/histogram_manager/PartialHistogramManagerMT.h>
+#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <catch2/catch_test_macros.hpp>
+
+// This function uses template magic to invoke a given function template for all histogram manager variants, including weighted/unweighted and variable/fixed bin width versions.
+// This is PART ONE of a two-part function, where this part handles the histogram managers that only vary in one template parameter.
+template<typename F, typename ...Args>
+void invoke_for_all_histogram_manager_variants_one(F&& f, Args&&... args) {
+    SECTION("HistogramManagerMTFFGrid") {f.template operator()<hist::HistogramManagerMTFFGrid>((args)...);}
+    SECTION("HistogramManagerMTFFGridSurface") {f.template operator()<hist::HistogramManagerMTFFGridSurface>((args)...);}
+    SECTION("HistogramManagerMTFFGridScalableExv") {f.template operator()<hist::HistogramManagerMTFFGridScalableExv>((args)...);}
+}
+
+// This function uses template magic to invoke a given function template for all histogram manager variants, including weighted/unweighted and variable/fixed bin width versions.
+// This is PART TWO of a two-part function, where this part handles the histogram managers that vary in two template parameters.
+template<typename F, typename ...Args>
+void invoke_for_all_histogram_manager_variants_two(F&& f, Args&&... args) {
+    SECTION("HistogramManager") {f.template operator()<hist::HistogramManager>((args)...);}
+    SECTION("HistogramManagerMT") {f.template operator()<hist::HistogramManagerMT>((args)...);}
+    SECTION("HistogramManagerMTFFAvg") {f.template operator()<hist::HistogramManagerMTFFAvg>((args)...);}
+    SECTION("HistogramManagerMTFFExplicit") {f.template operator()<hist::HistogramManagerMTFFExplicit>((args)...);}
+    SECTION("SymmetryManagerMT") {f.template operator()<hist::SymmetryManagerMT>((args)...);}
+    SECTION("PartialHistogramManager") {f.template operator()<hist::PartialHistogramManager>((args)...);}
+    SECTION("PartialHistogramManagerMT") {f.template operator()<hist::PartialHistogramManagerMT>((args)...);}
+    SECTION("PartialSymmetryManagerMT") {f.template operator()<hist::PartialSymmetryManagerMT>((args)...);}
+}
+
+template<typename F1, typename F2, typename ...Args>
+void invoke_for_all_histogram_manager_variants(F1&& f1, F2&& f2, Args&&... args) {
+    invoke_for_all_histogram_manager_variants_one(std::forward<F1>(f1), (args)...);
+    invoke_for_all_histogram_manager_variants_two(std::forward<F2>(f2), (args)...);
+}
+
+template<typename F2, typename ...Args>
+void invoke_for_all_nongrid_histogram_manager_variants(F2&& f2, Args&&... args) {
+    invoke_for_all_histogram_manager_variants_two(std::forward<F2>(f2), (args)...);
+}
+
+template<typename F1, typename ...Args>
+void invoke_for_all_grid_histogram_manager_variants(F1&& f1, Args&&... args) {
+    invoke_for_all_histogram_manager_variants_one(std::forward<F1>(f1), (args)...);
+}

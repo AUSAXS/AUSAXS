@@ -41,7 +41,7 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
     grid.save(loc);
 
     data::Molecule protein(loc);
-    auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    auto Iq = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->debye_transform();
     Iq.as_dataset().save("temp/tests/em/sphere_Iq.dat");
 
     std::unique_ptr<em::detail::header::MRCHeader> header = std::make_unique<em::detail::header::MRCHeader>();

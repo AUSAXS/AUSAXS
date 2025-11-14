@@ -23,39 +23,52 @@ using namespace ausaxs::hist;
 
 // custom evaluates for the grid since we don't want to account for the excluded volume
 namespace ausaxs::grid {
-    template<bool use_weighted_distribution, int factor>
-    inline void evaluate8(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-        auto res = ausaxs::detail::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+    template<bool weighted_bins, bool variable_bin_width, int factor>
+    inline void evaluate8(
+        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
+        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
+    ) {
+        auto res = ausaxs::detail::add8::evaluate<weighted_bins>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 8; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
     }
 
-    template<bool use_weighted_distribution, int factor>
-    inline void evaluate4(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-        auto res = ausaxs::detail::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+    template<bool weighted_bins, bool variable_bin_width, int factor>
+    inline void evaluate4(
+        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
+        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
+    ) {
+        auto res = ausaxs::detail::add4::evaluate<weighted_bins>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 4; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
     }
 
-    template<bool use_weighted_distribution, int factor>
-    inline void evaluate1(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-        auto res = ausaxs::detail::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+    template<bool weighted_bins, bool variable_bin_width, int factor>
+    inline void evaluate1(
+        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
+        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
+    ) {
+        auto res = ausaxs::detail::add1::evaluate<weighted_bins>(data_i, data_j, i, j);
         p.add(data_i.get_ff_type(i), res.distance, factor*res.weight);
     }
 }
 
-HistogramManagerMTFFGridScalableExv::~HistogramManagerMTFFGridScalableExv() = default;
+template<bool variable_bin_width>
+HistogramManagerMTFFGridScalableExv<variable_bin_width>::~HistogramManagerMTFFGridScalableExv() = default;
 
-std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridScalableExv::calculate() {
+template<bool variable_bin_width>
+std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridScalableExv<variable_bin_width>::calculate() {
     return calculate_all();
 }
 
-grid::exv::GridExcludedVolume HistogramManagerMTFFGridScalableExv::get_exv() const {
+template<bool variable_bin_width>
+grid::exv::GridExcludedVolume HistogramManagerMTFFGridScalableExv<variable_bin_width>::get_exv() const {
     return grid::exv::RawGridExv::create(this->protein->get_grid());
 }
 
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv::calculate_all() {
+template<bool variable_bin_width>
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv<variable_bin_width>::calculate_all() {
     logging::log("HistogramManagerMTFFGridScalableExv::calculate: starting calculation");
     auto pool = utility::multi_threading::get_global_pool();
-    auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
+    auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
 
     // ensure that our new vectors are compatible with those from the base class
     // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
@@ -71,7 +84,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         p_ww = std::move(cast_res->get_ww_counts_by_ff()),
         data_a = *this->data_a_ptr, 
         data_w = *this->data_w_ptr, 
-        data_x = hist::detail::CompactCoordinates(std::move(get_exv().interior), 1),
+        data_x = hist::detail::CompactCoordinates<variable_bin_width>(std::move(get_exv().interior), 1),
         pool] 
         (double scale) 
     {
@@ -90,61 +103,61 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         //########################//
         // PREPARE MULTITHREADING //
         //########################//
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(constants::axes::d_axis.bins);
+        container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(settings::axes::bin_count);
         auto calc_xx = [&scaled_data_x, &p_xx_all, data_x_size] (int imin, int imax) {
             auto& p_xx = p_xx_all.get();
             for (int i = imin; i < imax; ++i) { // exv
                 int j = i+1;                    // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<true, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate8<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<true, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate4<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    evaluate1<true, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate1<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
             }
             return p_xx;
         };
 
-        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_count(), constants::axes::d_axis.bins);
+        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_count(), settings::axes::bin_count);
         auto calc_ax = [&data_a, &scaled_data_x, &p_ax_all, data_x_size] (int imin, int imax) {
             auto& p_ax = p_ax_all.get();
             for (int i = imin; i < imax; ++i) { // atoms
                 int j = 0;                      // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    grid::evaluate8<true, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    grid::evaluate8<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    grid::evaluate4<true, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    grid::evaluate4<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    grid::evaluate1<true, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    grid::evaluate1<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
             }
             return p_ax;
         };
 
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(constants::axes::d_axis.bins);
+        container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(settings::axes::bin_count);
         auto calc_wx = [&data_w, &scaled_data_x, &p_wx_all, data_x_size] (int imin, int imax) {
             auto& p_wx = p_wx_all.get();
             for (int i = imin; i < imax; ++i) { // waters
                 int j = 0;                      // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<true, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate8<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<true, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate4<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    evaluate1<true, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate1<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
             }
             return p_wx;
@@ -237,3 +250,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
 
     return std::make_unique<CompositeDistanceHistogramFFGridScalableExv>(std::move(*eval_scaled_exv(1)), std::move(eval_scaled_exv));
 }
+
+template class ausaxs::hist::HistogramManagerMTFFGridScalableExv<true>;
+template class ausaxs::hist::HistogramManagerMTFFGridScalableExv<false>;

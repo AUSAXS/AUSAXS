@@ -3,20 +3,18 @@
 
 #pragma once
 
+#include <hist/HistFwd.h>
 #include <hist/histogram_manager/HistogramManager.h>
 
 namespace ausaxs::hist {
-	class CompositeDistanceHistogram;
-	namespace detail {class CompactCoordinatesFF;}
-
 	/**
 	 * @brief A histogram manager using explicit excluded volume form factors for each atomic type.
 	 *		  This is equivalent to the CRYSOL implementation. 
 	 */
-	template<bool use_weighted_distribution>
-	class HistogramManagerMTFFExplicit : public HistogramManager<use_weighted_distribution> {
+	template<bool weighted_bins, bool variable_bin_width>
+	class HistogramManagerMTFFExplicit : public HistogramManager<weighted_bins, variable_bin_width> {
 		public:
-			using HistogramManager<use_weighted_distribution>::HistogramManager;
+			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
 
 			virtual ~HistogramManagerMTFFExplicit() override;
 
@@ -31,7 +29,7 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
-			std::unique_ptr<hist::detail::CompactCoordinatesFF> data_a_ptr;
-		    std::unique_ptr<hist::detail::CompactCoordinatesFF> data_w_ptr;
+			std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_a_ptr;
+		    std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_w_ptr;
 	};
 }

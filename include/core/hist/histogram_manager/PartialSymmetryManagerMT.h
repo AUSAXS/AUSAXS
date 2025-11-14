@@ -17,10 +17,10 @@ namespace ausaxs::hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator which efficiently calculates the simple distance histogram. 
 	 */
-    template<bool use_weighted_distribution> 
+    template<bool weighted_bins, bool variable_bin_width> 
 	class PartialSymmetryManagerMT : public IPartialHistogramManager {
-		using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-		using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<use_weighted_distribution>>;
+		using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
+		using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>;
 
 		template<typename T> using BodyIndexer2D = typename container::Container2D<T>;
 		template<typename T> using BodyIndexer1D = typename container::Container1D<T>;
@@ -58,17 +58,17 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		private:
-			observer_ptr<const data::Molecule> protein;					// the molecule we are calculating the histogram for
-            detail::MasterHistogram<use_weighted_distribution> master;	// the current total histogram
-			std::vector<symmetry::detail::BodySymmetryData> coords;		// a compact representation of the relevant data from the managed bodies
-			hist::detail::CompactCoordinates coords_w;					// a compact representation of the relevant data from the hydration layer
-			std::unordered_map<int, int> res_self_index_map;			// a map to keep track of result indexes in the self-correlation results
-			std::unordered_map<int, int> res_cross_index_map;			// a map to keep track of result indexes in the cross-correlation results
+			observer_ptr<const data::Molecule> protein;									// the molecule we are calculating the histogram for
+            detail::MasterHistogram<weighted_bins> master;								// the current total histogram
+			std::vector<symmetry::detail::BodySymmetryData<variable_bin_width>> coords;	// a compact representation of the relevant data from the managed bodies
+			hist::detail::CompactCoordinates<variable_bin_width> coords_w;				// a compact representation of the relevant data from the hydration layer
+			std::unordered_map<int, int> res_self_index_map;							// a map to keep track of result indexes in the self-correlation results
+			std::unordered_map<int, int> res_cross_index_map;							// a map to keep track of result indexes in the cross-correlation results
 
 			// partial histograms - the types are quite complex since we must track both bodies and symmetries
-			BodyIndexer2D<SymmetryIndexer2D<detail::PartialHistogram<use_weighted_distribution>>> partials_aa;
-			BodyIndexer1D<SymmetryIndexer1D<detail::HydrationHistogram<use_weighted_distribution>>> partials_aw;
-			detail::HydrationHistogram<use_weighted_distribution> partials_ww;
+			BodyIndexer2D<SymmetryIndexer2D<detail::PartialHistogram<weighted_bins>>> partials_aa;
+			BodyIndexer1D<SymmetryIndexer1D<detail::HydrationHistogram<weighted_bins>>> partials_aw;
+			detail::HydrationHistogram<weighted_bins> partials_ww;
 			std::mutex master_hist_mutex;
 
 			/**

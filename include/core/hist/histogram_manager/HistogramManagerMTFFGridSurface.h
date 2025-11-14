@@ -12,9 +12,10 @@ namespace ausaxs::hist {
      *        Due to the highly ordered grid structure, weighted bins is required to use this class. 
      *        This class is equivalent to HistogramManagerMTFFGrid, except the excluded volume is separated into an interior and surface component.
      */
-    class HistogramManagerMTFFGridSurface : public HistogramManagerMTFFAvg<true> {
+    template<bool variable_bin_width>
+    class HistogramManagerMTFFGridSurface : public HistogramManagerMTFFAvg<true, variable_bin_width> {
         public:
-            using HistogramManagerMTFFAvg::HistogramManagerMTFFAvg;
+            using HistogramManagerMTFFAvg<true, variable_bin_width>::HistogramManagerMTFFAvg;
 
             virtual ~HistogramManagerMTFFGridSurface() override;
 

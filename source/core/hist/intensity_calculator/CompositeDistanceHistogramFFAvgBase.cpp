@@ -344,7 +344,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_dis
 template<typename FormFactorTableType>
 void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sinqd() const {
     auto pool = utility::multi_threading::get_global_pool();
-    auto sinqd_table = get_sinc_table();
+    const auto& sinqd_table = sinc_table.get_sinc_table();
 
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);

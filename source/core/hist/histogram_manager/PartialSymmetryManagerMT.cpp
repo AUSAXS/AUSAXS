@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include "constants/ConstantsAxes.h"
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
@@ -9,13 +8,15 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <settings/GeneralSettings.h>
-#include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <utility/MultiThreading.h>
 #include <utility/Logging.h>
+#include <constants/ConstantsAxes.h>
+#include <settings/GeneralSettings.h>
+#include <settings/HistogramSettings.h>
 
 #include <list>
 #include <functional>
@@ -34,8 +35,8 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
-template<bool use_weighted_distribution> 
-PartialSymmetryManagerMT<use_weighted_distribution>::PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein) 
+template<bool weighted_bins, bool variable_bin_width> 
+PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein) 
     : IPartialHistogramManager(protein), 
       protein(protein),
       coords(this->body_size), 
@@ -43,8 +44,8 @@ PartialSymmetryManagerMT<use_weighted_distribution>::PartialSymmetryManagerMT(ob
       partials_aw(this->body_size)
 {}
 
-template<bool use_weighted_distribution> 
-PartialSymmetryManagerMT<use_weighted_distribution>::~PartialSymmetryManagerMT() = default;
+template<bool weighted_bins, bool variable_bin_width> 
+PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::~PartialSymmetryManagerMT() = default;
 
 namespace {
     int water_res_index = 1.31e8;
@@ -61,8 +62,8 @@ namespace {
     }    
 }
 
-template<bool use_weighted_distribution>
-std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::calculate() {
+template<bool weighted_bins, bool variable_bin_width>
+std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calculate() {
     logging::log("PartialSymmetryManagerMT::calculate: starting calculation");
     if (protein->size_water() == 0) {
         return _calculate<false>();
@@ -71,14 +72,14 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     }
 }
 
-template<bool use_weighted_distribution> template<bool hydration_enabled>
-std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::_calculate() {
+template<bool weighted_bins, bool variable_bin_width> template<bool hydration_enabled>
+std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::_calculate() {
     auto externally_modified = this->statemanager->get_externally_modified_bodies();
     auto internally_modified = this->statemanager->get_internally_modified_bodies();
     auto symmetry_modified = this->statemanager->get_symmetry_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
-    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<use_weighted_distribution>>();
+    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>();
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -150,7 +151,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
 
     // prepare a list of tasks to be run after the calculations are done
     // this way we avoid having to maintain two identical but separate loops for calculations and combining
-    using res_t = distance_calculator::SimpleCalculator<use_weighted_distribution>::run_result;
+    using res_t = distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::run_result;
     std::list<std::function<void()>> combine_tasks;
     res_t res; // placeholder for future results
 
@@ -374,9 +375,9 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<use_weighted_distrib
     return std::make_unique<DistanceHistogram>(std::move(p_tot));
 }
 
-template<bool use_weighted_distribution>
-void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_representation_body(int ibody) {
-    coords[ibody] = symmetry::detail::generate_transformed_data(this->protein->get_body(ibody));
+template<bool weighted_bins, bool variable_bin_width>
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact_representation_body(int ibody) {
+    coords[ibody] = symmetry::detail::generate_transformed_data<variable_bin_width>(this->protein->get_body(ibody));
     for (auto& c : coords[ibody].atomic) {
         for (auto& sym : c) {
             hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
@@ -384,21 +385,21 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_represe
     }
 }
 
-template<bool use_weighted_distribution>
-void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_representation_symmetry(int ibody, int isym) {
-    coords[ibody].atomic[isym] = symmetry::detail::generate_transformed_data(this->protein->get_body(ibody), isym-1).data;
+template<bool weighted_bins, bool variable_bin_width>
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact_representation_symmetry(int ibody, int isym) {
+    coords[ibody].atomic[isym] = symmetry::detail::generate_transformed_data<variable_bin_width>(this->protein->get_body(ibody), isym-1).data;
     for (auto& sym : coords[ibody].atomic[isym]) {
         hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
     }
 }
 
-template<bool use_weighted_distribution>
-void PartialSymmetryManagerMT<use_weighted_distribution>::update_compact_representation_water() {
-    coords_w = CompactCoordinates(this->protein->get_waters());
+template<bool weighted_bins, bool variable_bin_width>
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact_representation_water() {
+    coords_w = CompactCoordinates<variable_bin_width>(this->protein->get_waters());
 }
 
-template<bool use_weighted_distribution>
-std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<use_weighted_distribution>::calculate_all() {
+template<bool weighted_bins, bool variable_bin_width>
+std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calculate_all() {
     auto total = calculate();
     int bins = total->get_total_counts().size();
 
@@ -429,7 +430,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<use_weight
         }
     }
 
-    if constexpr (use_weighted_distribution) {
+    if constexpr (weighted_bins) {
         return std::make_unique<CompositeDistanceHistogram>(
             std::move(Distribution1D(p_aa)), 
             std::move(Distribution1D(p_aw)), 
@@ -446,23 +447,23 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<use_weight
     }
 }
 
-template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::initialize() {
+template<bool weighted_bins, bool variable_bin_width> 
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize() {
     auto pool = utility::multi_threading::get_global_pool();
-    const Axis& axis = constants::axes::d_axis; 
+    Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
     std::vector<double> p_base(axis.bins, 0);
-    this->master = detail::MasterHistogram<use_weighted_distribution>(p_base, axis);
-    this->partials_ww = detail::PartialHistogram<use_weighted_distribution>(axis.bins);
+    this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
+    this->partials_ww = detail::PartialHistogram<weighted_bins>(axis.bins);
     for (int ibody = 0; ibody < static_cast<int>(this->body_size); ++ibody) {
         auto& body = this->protein->get_body(ibody);
-        this->partials_aw.index(ibody) = SymmetryIndexer1D<detail::PartialHistogram<use_weighted_distribution>>(
+        this->partials_aw.index(ibody) = SymmetryIndexer1D<detail::PartialHistogram<weighted_bins>>(
             body.size_symmetry()+1,
-            detail::PartialHistogram<use_weighted_distribution>(axis.bins)
+            detail::PartialHistogram<weighted_bins>(axis.bins)
         );
 
         // initialize body diagonal
         this->partials_aa.index(ibody, ibody) = 
-            SymmetryIndexer2D<detail::PartialHistogram<use_weighted_distribution>>(
+            SymmetryIndexer2D<detail::PartialHistogram<weighted_bins>>(
                 body.size_symmetry()+1, 
                 axis.bins
             )
@@ -472,7 +473,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::initialize() {
         for (int ibody2 = 0; ibody2 < ibody; ++ibody2) {
             auto& body2 = this->protein->get_body(ibody2);
             this->partials_aa.index(ibody, ibody2) = 
-                SymmetryIndexer2D<detail::PartialHistogram<use_weighted_distribution>>(
+                SymmetryIndexer2D<detail::PartialHistogram<weighted_bins>>(
                     body.size_symmetry()+1, 
                     body2.size_symmetry()+1, 
                     axis.bins
@@ -486,8 +487,8 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::initialize() {
     pool->wait();
 }
 
-template<bool use_weighted_distribution>
-void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculator_t calculator, int ibody) const {
+template<bool weighted_bins, bool variable_bin_width>
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa_self(calculator_t calculator, int ibody) const {
     const auto& body = protein->get_body(ibody);
     #if DEBUG_INFO_PSMMT
         std::cout << "calc_aa_self[" << ibody << "]" << std::endl;
@@ -498,8 +499,8 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa_self(calculato
     calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], 1+body.size_symmetry_total(), to_res_index_self(ibody, 0));
 }
 
-template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::calc_ww(calculator_t calculator) const {
+template<bool weighted_bins, bool variable_bin_width> 
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_ww(calculator_t calculator) const {
     #if DEBUG_INFO_PSMMT
         std::cout << "calc_ww" << std::endl;
         std::cout << "\tstored at self index " << water_res_index << std::endl;
@@ -507,8 +508,8 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_ww(calculator_t c
     calculator->enqueue_calculate_self(coords_w, 1, water_res_index);
 }
 
-template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) const {
+template<bool weighted_bins, bool variable_bin_width> 
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) const {
     const auto& body1 = protein->get_body(ibody1);
     const auto& body2 = protein->get_body(ibody2);
     int res_index = to_res_index(ibody1, isym1, ibody2, isym2);
@@ -599,8 +600,8 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aa(calculator_t c
     }
 }
 
-template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aw(calculator_t calculator, int ibody, int isym) const {
+template<bool weighted_bins, bool variable_bin_width> 
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calculator_t calculator, int ibody, int isym) const {
     const auto& body = protein->get_body(ibody);
     const auto& waters = coords_w;
     int res_index = to_res_index_water(ibody, isym);
@@ -635,13 +636,14 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::calc_aw(calculator_t c
 #if DEBUG_INFO_PSMMT_EXTENDED
     #include <iomanip>
 #endif
-template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res) {
+template<bool weighted_bins, bool variable_bin_width> 
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
+        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
         std::cout << "combine_aa[" << ibody1 << isym1 << ", " << ibody2 << isym2 << "]" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+            std::cout << std::setw(4) << axis[i] << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {
@@ -662,13 +664,14 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aa(int ibody1,
     master_hist_mutex.unlock();
 }
 
-template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aw(int ibody, int isym, GenericDistribution1D_t&& res) {
+template<bool weighted_bins, bool variable_bin_width> 
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aw(int ibody, int isym, GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
+        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
         std::cout << "combine_aw[" << ibody << isym << "]" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+            std::cout << std::setw(4) << axis[i] << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {
@@ -689,13 +692,14 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_aw(int ibody, 
     master_hist_mutex.unlock();
 }
 
-template<bool use_weighted_distribution> 
-void PartialSymmetryManagerMT<use_weighted_distribution>::combine_ww(GenericDistribution1D_t&& res) {
+template<bool weighted_bins, bool variable_bin_width> 
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_ww(GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
+        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
         std::cout << "combine_ww" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << constants::axes::d_vals[i] << " ";
+            std::cout << std::setw(4) << axis[i] << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {
@@ -716,9 +720,7 @@ void PartialSymmetryManagerMT<use_weighted_distribution>::combine_ww(GenericDist
     master_hist_mutex.unlock();
 }
 
-template std::unique_ptr<hist::DistanceHistogram> hist::PartialSymmetryManagerMT<true>::_calculate<true>();
-template std::unique_ptr<hist::DistanceHistogram> hist::PartialSymmetryManagerMT<true>::_calculate<false>();
-template std::unique_ptr<hist::DistanceHistogram> hist::PartialSymmetryManagerMT<false>::_calculate<true>();
-template std::unique_ptr<hist::DistanceHistogram> hist::PartialSymmetryManagerMT<false>::_calculate<false>();
-template class hist::PartialSymmetryManagerMT<true>;
-template class hist::PartialSymmetryManagerMT<false>;
+template class hist::PartialSymmetryManagerMT<false, false>;
+template class hist::PartialSymmetryManagerMT<false, true>;
+template class hist::PartialSymmetryManagerMT<true, false>;
+template class hist::PartialSymmetryManagerMT<true, true>;

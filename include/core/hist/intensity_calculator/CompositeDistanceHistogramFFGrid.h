@@ -5,7 +5,6 @@
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <table/VectorDebyeTable.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
@@ -88,7 +87,7 @@ namespace ausaxs::hist {
 
         private: 
             inline static form_factor::storage::atomic::table_t ff_table;
-            struct {std::unique_ptr<table::VectorDebyeTable> xx, ax;} sinc_tables;
+            struct {table::DebyeTableManager xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
 
             void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);

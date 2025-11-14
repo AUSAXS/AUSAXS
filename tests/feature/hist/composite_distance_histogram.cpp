@@ -153,19 +153,19 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
         SECTION("default q-axis") {
             auto Iq_exp = test_func(constants::axes::q_vals);
             {
-                auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
+                auto Iq = hist::HistogramManager<false, false>(&protein).calculate_all()->debye_transform();
                 REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
-                auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+                auto Iq = hist::HistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform();
                 REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
-                auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
+                auto Iq = hist::PartialHistogramManager<false, false>(&protein).calculate_all()->debye_transform();
                 REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
-                auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+                auto Iq = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform();
                 REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
             }
         }
@@ -178,19 +178,19 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
             auto Iq_exp = test_func(q_axis);
 
             {
-                auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
+                auto Iq = hist::HistogramManager<false, false>(&protein).calculate_all()->debye_transform(q_axis);
                 REQUIRE(compare_hist(Iq_exp, Iq.y()));
             }
             {
-                auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
+                auto Iq = hist::HistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform(q_axis);
                 REQUIRE(compare_hist(Iq_exp, Iq.y()));
             }
             {
-                auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
+                auto Iq = hist::PartialHistogramManager<false, false>(&protein).calculate_all()->debye_transform(q_axis);
                 REQUIRE(compare_hist(Iq_exp, Iq.y()));
             }
             {
-                auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
+                auto Iq = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform(q_axis);
                 REQUIRE(compare_hist(Iq_exp, Iq.y()));
             }
         }
@@ -231,19 +231,19 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
         SECTION("default q-axis") {
             auto Iq_exp = test_func(constants::axes::q_vals);
             {
-                auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
+                auto Iq = hist::HistogramManager<false, false>(&protein).calculate_all()->debye_transform();
                 CHECK(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
-                auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+                auto Iq = hist::HistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform();
                 CHECK(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
-                auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
+                auto Iq = hist::PartialHistogramManager<false, false>(&protein).calculate_all()->debye_transform();
                 CHECK(compare_hist(Iq_exp, Iq.get_counts()));
             }
             {
-                auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+                auto Iq = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform();
                 CHECK(compare_hist(Iq_exp, Iq.get_counts()));
             }
         }
@@ -256,19 +256,19 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
             auto Iq_exp = test_func(q_axis);
 
             {
-                auto Iq = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
+                auto Iq = hist::HistogramManager<false, false>(&protein).calculate_all()->debye_transform(q_axis);
                 CHECK(compare_hist(Iq_exp, Iq.y()));
             }
             {
-                auto Iq = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
+                auto Iq = hist::HistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform(q_axis);
                 CHECK(compare_hist(Iq_exp, Iq.y()));
             }
             {
-                auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform(q_axis);
+                auto Iq = hist::PartialHistogramManager<false, false>(&protein).calculate_all()->debye_transform(q_axis);
                 CHECK(compare_hist(Iq_exp, Iq.y()));
             }
             {
-                auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform(q_axis);
+                auto Iq = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all()->debye_transform(q_axis);
                 CHECK(compare_hist(Iq_exp, Iq.y()));
             }
         }
@@ -296,19 +296,19 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
             auto exact = exact_aa_carbon(protein);
             auto ff = form_factor::storage::atomic::C;
             { // hm
-                auto hm = hist::HistogramManager<true>(&protein).calculate_all()->get_profile_aa();
+                auto hm = hist::HistogramManager<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm.get_axis().as_vector();
                 std::transform(hm.get_counts().begin(), hm.get_counts().end(), axis.begin(), hm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
                 REQUIRE(compare_hist(exact, hm, 0, 1e-2)); // 1% error allowed
             }
             { // hm_mt
-                auto hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_profile_aa();
+                auto hm_mt = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt.get_axis().as_vector();
                 std::transform(hm_mt.get_counts().begin(), hm_mt.get_counts().end(), axis.begin(), hm_mt.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
                 REQUIRE(compare_hist(exact, hm_mt, 0, 1e-2));
             }
             { // hm_mt_ff_avg
-                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()->get_profile_aa();
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt_ff_avg.get_axis().as_vector();
                 std::transform(hm_mt_ff_avg.get_counts().begin(), hm_mt_ff_avg.get_counts().end(), axis.begin(), hm_mt_ff_avg.get_counts().begin(), 
                     [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
@@ -316,7 +316,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
                 REQUIRE(compare_hist(exact, hm_mt_ff_avg, 0, 1e-2));
             }
             { // hm_mt_ff_explicit
-                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()->get_profile_aa();
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt_ff_explicit.get_axis().as_vector();
                 std::transform(hm_mt_ff_explicit.get_counts().begin(), hm_mt_ff_explicit.get_counts().end(), axis.begin(), hm_mt_ff_explicit.get_counts().begin(), 
                     [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
@@ -324,7 +324,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
                 REQUIRE(compare_hist(exact, hm_mt_ff_explicit, 0, 1e-2));
             }
             { // hm_mt_ff_grid
-                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all()->get_profile_aa();
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt_ff_grid.get_axis().as_vector();
                 std::transform(hm_mt_ff_grid.get_counts().begin(), hm_mt_ff_grid.get_counts().end(), axis.begin(), hm_mt_ff_grid.get_counts().begin(), 
                     [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
@@ -332,14 +332,14 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
                 REQUIRE(compare_hist(exact, hm_mt_ff_grid, 0, 1e-2));
             }
             { // phm
-                auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->get_profile_aa();
+                auto phm = hist::PartialHistogramManager<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = phm.get_axis().as_vector();
                 std::transform(phm.get_counts().begin(), phm.get_counts().end(), axis.begin(), phm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
                 REQUIRE(compare_hist(exact, phm, 0, 1e-2));
             }
             { // phm_mt
                 settings::general::threads = 1;
-                auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_profile_aa();
+                auto phm_mt = hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = phm_mt.get_axis().as_vector();
                 std::transform(phm_mt.get_counts().begin(), phm_mt.get_counts().end(), axis.begin(), phm_mt.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
                 REQUIRE(compare_hist(exact, phm_mt, 0, 1e-2));
@@ -351,10 +351,10 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
 TEST_CASE("CompositeDistanceHistogram: qmin & qmax") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    auto Iqf = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
+    auto Iqf = hist::HistogramManager<false, false>(&protein).calculate_all()->debye_transform();
     settings::axes::qmin = 1e-2;
     settings::axes::qmax = 0.7;
-    auto Iqr = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
+    auto Iqr = hist::HistogramManager<false, false>(&protein).calculate_all()->debye_transform();
 
     auto start = Iqf.get_axis().get_bin(settings::axes::qmin);
     auto end = Iqf.get_axis().get_bin(settings::axes::qmax);
@@ -365,7 +365,7 @@ TEST_CASE("CompositeDistanceHistogram: qmin & qmax") {
 TEST_CASE("CompositeDistanceHistogram::get_profile") {
     settings::general::verbose = false;
     data::Molecule protein("tests/files/2epe.pdb");
-    auto hist = hist::HistogramManager<false>(&protein).calculate_all();
+    auto hist = hist::HistogramManager<false, false>(&protein).calculate_all();
     auto Iq = hist->debye_transform();
     auto profile_sum = hist->get_profile_aa() + hist->get_profile_aw() + hist->get_profile_ww();
     REQUIRE(Iq.size() == profile_sum.size());

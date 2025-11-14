@@ -21,7 +21,7 @@ using namespace ausaxs::data;
 
 auto test = [] (data::Molecule& protein) {
     // no changes
-    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     auto phm_res = protein.get_histogram()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
@@ -34,7 +34,7 @@ auto test = [] (data::Molecule& protein) {
     // modify symmetry
     protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, 1, 0};
     phm_res = protein.get_histogram()->get_total_counts();
-    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & hydration simultanously
@@ -42,14 +42,14 @@ auto test = [] (data::Molecule& protein) {
     protein.get_waters().clear();
     protein.signal_modified_hydration_layer();
     phm_res = protein.get_histogram()->get_total_counts();
-    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & external simultanously
     protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, 1, 0};
     protein.get_body(0).translate({2, 0, 0});
     phm_res = protein.get_histogram()->get_total_counts();
-    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & internal simultanously
@@ -57,12 +57,12 @@ auto test = [] (data::Molecule& protein) {
     protein.get_body(0).get_atom(0).weight() = 2;
     protein.get_body(0).get_signaller()->modified_internal();
     phm_res = protein.get_histogram()->get_total_counts();
-    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 };
 
 auto test_random = [] (data::Molecule& protein) {
-    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+    auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     auto phm_res = protein.get_histogram()->get_total_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
@@ -103,7 +103,7 @@ auto test_random = [] (data::Molecule& protein) {
             protein.generate_new_hydration();
         }
 
-        auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_total_counts();
+        auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
         auto phm_res = protein.get_histogram()->get_total_counts();
         REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
     }
