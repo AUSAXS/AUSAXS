@@ -5,7 +5,6 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
-#include <rigidbody/parameters/Parameter.h>
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
 #include <utility/observer_ptr.h>
@@ -32,7 +31,7 @@ namespace ausaxs::rigidbody::transform {
              * @param par The parameters to apply.
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) = 0;
+            virtual void apply(parameter::BodyTransformParameters&& par, constraints::DistanceConstraint& constraint) = 0;
 
             /**
              * @brief Apply a transformation to a body. 
@@ -42,7 +41,7 @@ namespace ausaxs::rigidbody::transform {
              * @param par The parameters to apply.
              * @param ibody The index of the body to transform.
              */
-            virtual void apply(parameter::Parameter&& par, unsigned int ibody);
+            virtual void apply(parameter::BodyTransformParameters&& par, unsigned int ibody);
 
             /**
              * @brief Undo the previous transformation. 
@@ -86,6 +85,6 @@ namespace ausaxs::rigidbody::transform {
             /**
              * @brief Apply symmetry transformations to a body.
              */
-            virtual void symmetry(std::vector<parameter::Parameter::SymmetryParameter>&& symmetry_pars, data::Body& body);
+            virtual void symmetry(std::vector<symmetry::Symmetry>&& symmetry_pars, data::Body& body);
     };
 }

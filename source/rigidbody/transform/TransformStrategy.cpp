@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include "data/symmetry/Symmetry.h"
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
-#include <rigidbody/parameters/Parameter.h>
+#include <rigidbody/parameters/BodyTransformParameters.h>
 #include <rigidbody/detail/Conformation.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
@@ -34,16 +35,15 @@ void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vect
     std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (observer_ptr<data::Body> body) {body->translate(group.pivot+t);});
 }
 
-void TransformStrategy::symmetry(std::vector<parameter::Parameter::SymmetryParameter>&& symmetry_pars, data::Body& body) {
+void TransformStrategy::symmetry(std::vector<symmetry::Symmetry>&& symmetry_pars, data::Body& body) {
+    std::cout << "Size of symmetry pars: " << symmetry_pars.size() << ", body.size_symmetry(): " << body.size_symmetry() << std::endl;
     assert(symmetry_pars.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
-        body.symmetry().get(i).initial_relation.translation += symmetry_pars[i].rotation_cm;
-        body.symmetry().get(i).initial_relation.orientation += symmetry_pars[i].rotation_angle;
-        body.symmetry().get(i).repeat_relation.translate += symmetry_pars[i].translation;
+        body.symmetry().get(i) = symmetry_pars[i];
     }
 }
 
-void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
+void TransformStrategy::apply(parameter::BodyTransformParameters&& par, unsigned int ibody) {
     auto grid = rigidbody->molecule.get_grid();
 
     {   // remove old body

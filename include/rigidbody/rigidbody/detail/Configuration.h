@@ -4,7 +4,7 @@
 #pragma once
 
 #include <rigidbody/RigidbodyFwd.h>
-#include <rigidbody/parameters/Parameter.h>
+#include <rigidbody/parameters/BodyTransformParameters.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::detail {
@@ -14,7 +14,7 @@ namespace ausaxs::rigidbody::detail {
         Configuration(observer_ptr<const Rigidbody> rigidbody, double chi2) noexcept;
         ~Configuration();
 
-        std::vector<parameter::Parameter> parameters;
+        std::vector<parameter::BodyTransformParameters> parameters;
         double chi2;
     };
 }

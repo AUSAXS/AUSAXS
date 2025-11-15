@@ -5,7 +5,7 @@
 
 #include <math/MathFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
-#include <rigidbody/parameters/Parameter.h>
+#include <rigidbody/parameters/BodyTransformParameters.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
 
@@ -40,7 +40,7 @@ namespace ausaxs::rigidbody::parameter {
             /**
              * @brief Get the next parameter in the sequence for the given body.
              */
-            virtual Parameter next(int ibody) = 0;
+            virtual BodyTransformParameters next(int ibody) = 0;
 
             /**
              * @brief Set the decay strategy.

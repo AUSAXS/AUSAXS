@@ -6,6 +6,7 @@
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/parameters/BodyTransformParameters.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
@@ -21,7 +22,7 @@ RigidTransform::RigidTransform(observer_ptr<Rigidbody> rigidbody) : TransformStr
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) {
+void RigidTransform::apply(parameter::BodyTransformParameters&& par, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
 

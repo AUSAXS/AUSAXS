@@ -2,7 +2,6 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/detail/Configuration.h>
-#include <rigidbody/parameters/Parameter.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
 

@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/detail/Configuration.h>
+#include <rigidbody/parameters/BodyTransformParameters.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
@@ -40,7 +44,9 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         // place the symmetry body at a sane distance from the original
         double Rg = owner->_get_molecule()->get_Rg();
         owner->_get_molecule()->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
-
+        owner->_get_rigidbody()->conformation->configuration.parameters[ibody].symmetry_pars.emplace_back(
+            owner->_get_molecule()->get_body(ibody).symmetry().get(0)
+        );
         std::cout << "SymmetryElement::SymmetryElement: Added symmetry to body " << names[i] << std::endl;
         std::cout << "\tIt now has " << owner->_get_molecule()->get_body(ibody).size_symmetry() << " symmetries." << std::endl;
     }
