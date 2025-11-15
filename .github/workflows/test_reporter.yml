@@ -1,0 +1,40 @@
+name: report
+on:
+  workflow_run:
+    workflows: [Build & test template]
+    types: [completed]
+
+jobs:
+  report_tests:
+    permissions:
+      checks: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download test report macos
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          name: junit-test-results-macos
+          path: macos
+          workflow: ${{ github.event.workflow.id }}
+          run_id: ${{ github.event.workflow_run.id }}
+
+      - name: Publish test report macos
+        uses: mikepenz/action-junit-report@v4
+        with:
+          commit: ${{github.event.workflow_run.head_sha}}
+          report_paths: 'macos/build/test-results/test/TEST-*.xml'
+
+      - name: Download test report ubuntu
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          name: junit-test-results-ubuntu
+          path: ubuntu
+          workflow: ${{ github.event.workflow.id }}
+          run_id: ${{ github.event.workflow_run.id }}
+
+      - name: Publish test report ubuntu
+        uses: mikepenz/action-junit-report@v4
+        with:
+          commit: ${{github.event.workflow_run.head_sha}}
+          report_paths: 'ubuntu/build/test-results/test/TEST-*.xml'
