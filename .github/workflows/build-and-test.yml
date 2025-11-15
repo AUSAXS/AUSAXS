@@ -1,4 +1,4 @@
-name: Build & test (external)
+name: Build & test (internal)
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     branches: [master]
 
 jobs:
-  build-and-test-external:
+  build-and-test-internal:
     permissions:
       packages: write
 
