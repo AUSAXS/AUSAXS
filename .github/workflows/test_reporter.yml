@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download test report macos
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
         with:
           name: junit-test-results-macos
@@ -28,7 +28,7 @@ jobs:
           report_paths: 'macos/TEST-*.xml'
 
       - name: Download test report ubuntu
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
         with:
           name: junit-test-results-ubuntu
