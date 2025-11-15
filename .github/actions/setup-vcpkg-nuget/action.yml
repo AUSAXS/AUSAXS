@@ -1,0 +1,42 @@
+name: "setup-vcpkg-nuget"
+description: "Add vcpkg nuget feed"
+inputs:
+  package_permission:
+    required: true
+    description: "Whether to configure publish-capable credentials"
+  nuget_cmd:
+    required: true
+    description: "Path to nuget.exe"
+  github_token:
+    required: true
+    description: "GitHub token with appropriate permissions"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Add vcpkg nuget feed (consume-only)
+      if: ${{ inputs.package_permission == 'false' }}
+      shell: bash
+      run: |
+        ${{ inputs.nuget_cmd }} \
+          sources add \
+          -Source "https://nuget.pkg.github.com/AUSAXS/index.json" \
+          -StorePasswordInClearText \
+          -Name GitHubPackages \
+          -UserName "AUSAXS" \
+          -Password "${{ inputs.github_token }}"
+
+    - name: Configure vcpkg nuget credentials (publish only)
+      if: ${{ inputs.package_permission == 'true' }}
+      shell: bash
+      run: |
+        ${{ inputs.nuget_cmd }} \
+          sources add \
+          -Source "https://nuget.pkg.github.com/AUSAXS/index.json" \
+          -StorePasswordInClearText \
+          -Name GitHubPackages \
+          -UserName "AUSAXS" \
+          -Password "${{ inputs.github_token }}"
+        ${{ inputs.nuget_cmd }} \
+        setapikey "${{ inputs.github_token }}" \
+        -Source "https://nuget.pkg.github.com/AUSAXS/index.json"

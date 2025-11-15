@@ -44,9 +44,7 @@ jobs:
     needs: check-headers
     runs-on: windows-latest
     env:
-      USERNAME: AUSAXS
-      FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
-      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json${{ inputs.package_permission == true && ',readwrite' || '' }}"
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,${{ inputs.package_permission && 'readwrite' || 'read' }}"
     steps:
       - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
@@ -55,9 +53,8 @@ jobs:
       - uses: ./.github/actions/setup-vcpkg-nuget
         with:
           package_permission: ${{ inputs.package_permission }}
-          feed_url: ${{ env.FEED_URL }}
           nuget_cmd: "$(vcpkg fetch nuget)"
-          username: ${{ env.USERNAME }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: |
@@ -133,7 +130,7 @@ jobs:
           ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/feature
 
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: "junit-test-results-macos"
@@ -168,9 +165,7 @@ jobs:
             # CXX: $(brew --prefix llvm@18)/bin/clang++
             XCODE_VER: 15.0.1
     env:
-      USERNAME: AUSAXS
-      FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
-      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json${{ inputs.package_permission == true && ',readwrite' || '' }}"
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,${{ inputs.package_permission && 'readwrite' || 'read' }}"
 
     steps:
       - uses: actions/checkout@v4
@@ -187,17 +182,16 @@ jobs:
         if: matrix.arch == 'arm64'
         with:
           package_permission: ${{ inputs.package_permission }}
-          feed_url: ${{ env.FEED_URL }}
           nuget_cmd: $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
-          username: ${{ env.USERNAME }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       
       - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'x86_64'
         with:
           package_permission: ${{ inputs.package_permission }}
-          feed_url: ${{ env.FEED_URL }}
           nuget_cmd: 'mono $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)'
-          username: ${{ env.USERNAME }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Install dependencies
         run: |
@@ -313,7 +307,7 @@ jobs:
           ctest --output-on-failure --parallel 6 --repeat until-pass:3 --test-dir build/tests/feature
 
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-latest' && always()
         with:
           name: "junit-test-results-ubuntu"

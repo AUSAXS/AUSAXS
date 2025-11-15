@@ -1,4 +1,4 @@
-name: Build & test (internal)
+name: Build & test
 
 on:
   pull_request:
@@ -7,10 +7,18 @@ on:
 
 jobs:
   build-and-test-internal:
+    if: github.event.pull_request.head.repo.full_name == 'AUSAXS/AUSAXS'
     permissions:
       packages: write
 
-    if: github.event.pull_request.head.repo.full_name == github.repository
     uses: ./.github/workflows/build-and-test-template.yml
     with:
       package_permission: true
+
+  build-and-test-external:
+    if: github.event.pull_request.head.repo.full_name != 'AUSAXS/AUSAXS'
+    permissions:
+      packages: read
+    uses: ./.github/workflows/build-and-test-template.yml
+    with:
+      package_permission: false

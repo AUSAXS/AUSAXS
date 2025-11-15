@@ -1,7 +1,7 @@
 name: report
 on:
   workflow_run:
-    workflows: [Build & test template]
+    workflows: [Build & test]
     types: [completed]
 
 jobs:
@@ -13,28 +13,38 @@ jobs:
     steps:
       - name: Download test report macos
         uses: dawidd6/action-download-artifact@v2
+        continue-on-error: true
         with:
           name: junit-test-results-macos
           path: macos
-          workflow: ${{ github.event.workflow.id }}
+          workflow: ${{ github.event.workflow_run.name }}
           run_id: ${{ github.event.workflow_run.id }}
 
       - name: Publish test report macos
+        if: ${{ hashFiles('macos/TEST-*.xml') != '' }}
         uses: mikepenz/action-junit-report@v4
         with:
           commit: ${{github.event.workflow_run.head_sha}}
-          report_paths: 'macos/build/test-results/test/TEST-*.xml'
+          report_paths: 'macos/TEST-*.xml'
 
       - name: Download test report ubuntu
         uses: dawidd6/action-download-artifact@v2
+        continue-on-error: true
         with:
           name: junit-test-results-ubuntu
           path: ubuntu
-          workflow: ${{ github.event.workflow.id }}
+          workflow: ${{ github.event.workflow_run.name }}
           run_id: ${{ github.event.workflow_run.id }}
 
       - name: Publish test report ubuntu
+        if: ${{ hashFiles('ubuntu/TEST-*.xml') != '' }}
         uses: mikepenz/action-junit-report@v4
         with:
           commit: ${{github.event.workflow_run.head_sha}}
-          report_paths: 'ubuntu/build/test-results/test/TEST-*.xml'
+          report_paths: 'ubuntu/TEST-*.xml'
+
+      - name: Post summary if no reports found
+        if: ${{ hashFiles('macos/TEST-*.xml') == '' && hashFiles('ubuntu/TEST-*.xml') == '' }}
+        run: |
+          echo "### Test Report Summary" >> $GITHUB_STEP_SUMMARY
+          echo "No test reports were found for this workflow run. This may be because the PR is a draft or tests were skipped." >> $GITHUB_STEP_SUMMARY
