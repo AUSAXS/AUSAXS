@@ -4,14 +4,9 @@ on:
   workflow_call:
     inputs:
       package_permission:
-        required: false
+        required: true
         type: boolean
         default: false
-
-# on:
-#   pull_request:
-#     types: [opened, synchronize, reopened, ready_for_review]
-#     branches: [master]
 
 env:
   BUILD_TYPE: Release
@@ -51,26 +46,18 @@ jobs:
     env:
       USERNAME: AUSAXS
       FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
-      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
-
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json${{ inputs.package_permission == true && ',readwrite' || '' }}"
     steps:
       - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: actions/setup-python@v5
 
-      - name: Set up vcpkg nuget caching
-        shell: pwsh
-        run: |
-          .$(vcpkg fetch nuget) `
-            sources add `
-            -Source "${{ env.FEED_URL }}" `
-            -StorePasswordInClearText `
-            -Name GitHubPackages `
-            -UserName "${{ env.USERNAME }}" `
-            -Password "${{ secrets.PACKAGEACCESS }}"
-          .$(vcpkg fetch nuget) `
-          setapikey "${{ secrets.PACKAGEACCESS }}" `
-          -Source "${{ env.FEED_URL }}"
+      - uses: ./.github/actions/setup-vcpkg-nuget
+        with:
+          package_permission: ${{ inputs.package_permission }}
+          feed_url: ${{ env.FEED_URL }}
+          nuget_cmd: "$(vcpkg fetch nuget)"
+          username: ${{ env.USERNAME }}
 
       - name: Install dependencies
         run: |
@@ -123,7 +110,7 @@ jobs:
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12  
+          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
 
       - name: Configure build output folders for upload
         shell: bash
@@ -183,7 +170,7 @@ jobs:
     env:
       USERNAME: AUSAXS
       FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
-      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json${{ inputs.package_permission == true && ',readwrite' || '' }}"
 
     steps:
       - uses: actions/checkout@v4
@@ -196,31 +183,21 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
-      - name: Set up vcpkg nuget caching (arm64)
+      - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'arm64'
-        run: |
-          nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
-          "$nuget" sources add \
-            -Source "${{ env.FEED_URL }}" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.PACKAGEACCESS }}"
-          "$nuget" setapikey "${{ secrets.PACKAGEACCESS }}" \
-            -Source "${{ env.FEED_URL }}"
-
-      - name: Set up vcpkg nuget caching (x86_64)
+        with:
+          package_permission: ${{ inputs.package_permission }}
+          feed_url: ${{ env.FEED_URL }}
+          nuget_cmd: $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
+          username: ${{ env.USERNAME }}
+      
+      - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'x86_64'
-        run: |
-          nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
-          mono "$nuget" sources add \
-            -Source "${{ env.FEED_URL }}" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.PACKAGEACCESS }}"
-          mono "$nuget" setapikey "${{ secrets.PACKAGEACCESS }}" \
-            -Source "${{ env.FEED_URL }}"
+        with:
+          package_permission: ${{ inputs.package_permission }}
+          feed_url: ${{ env.FEED_URL }}
+          nuget_cmd: 'mono $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)'
+          username: ${{ env.USERNAME }}
   
       - name: Install dependencies
         run: |
@@ -324,7 +301,7 @@ jobs:
           path: |
             build/lib/*
             build/bin/*
- 
+
       - name: Build tests
         if: matrix.os == 'ubuntu-latest'
         run: cmake --build build --target tests -j12

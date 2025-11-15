@@ -4,11 +4,11 @@ on:
     workflows: [Build & test template]
     types: [completed]
 
-permissions:
-  checks: write
-
 jobs:
   report_tests:
+    permissions:
+      checks: write
+
     runs-on: ubuntu-latest
     steps:
       - name: Download test report macos

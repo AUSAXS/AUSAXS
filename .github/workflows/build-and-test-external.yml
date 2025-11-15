@@ -7,6 +7,7 @@ on:
 
 jobs:
   build-and-test-external:
-    uses: ./.github/workflows/build-and-test.yml
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    uses: ./.github/workflows/build-and-test-template.yml
     with:
-      package_permission: read
+      package_permission: false
