@@ -15,21 +15,52 @@
 
 using namespace ausaxs;
 
-double settings::axes::qmin = constants::axes::q_axis.min;
-double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;
 bool settings::hist::weighted_bins = true;
+
+// qmin
+settings::detail::Setting<double> settings::axes::qmin = {
+    constants::axes::q_axis.min,
+    [](double& new_qmin) {
+        if (new_qmin < 0. || new_qmin > constants::axes::q_axis.max) {
+            console::print_warning(
+                "settings::axes::qmin: qmin must be in the range "
+                "[" + std::to_string(constants::axes::q_axis.min) + ", " + std::to_string(settings::axes::qmax) + "]. "
+                "Clamping to closest value."
+            );
+            new_qmin = std::clamp(new_qmin, constants::axes::q_axis.min, settings::axes::qmax.value);
+        }
+    }
+};
+
+// qmax
+settings::detail::Setting<double> settings::axes::qmax = {
+    0.5,
+    [](double& new_qmax) {
+        if (new_qmax < 0. || new_qmax > constants::axes::q_axis.max) {
+            console::print_warning(
+                "settings::axes::qmax: qmax must be in the range" 
+                "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(constants::axes::q_axis.max) + "]. "
+                "Clamping to closest value."
+            );
+            new_qmax = std::clamp(new_qmax, settings::axes::qmin.value, constants::axes::q_axis.max);
+        }
+    }
+};
 
 auto small_d_range_warning = [] (double bin_width, unsigned int bin_count) {
     static bool warned = false;
     if (warned) {return;}
     warned = true;
     console::print_warning(
-        "settings::axes::bin_width: The specified bin width (" + std::to_string(bin_width) + ") and bin count (" + std::to_string(bin_count) + ") "
-        "result in a maximum d-value of less than the recommended " + std::to_string(constants::axes::d_axis.max) + ". "
-        "Consider increasing the bin count or decreasing the bin width to cover a longer range."
+        "settings::axes::bin_width: The specified bin width (" + std::to_string(bin_width) + "\u212B) and bin count (" + std::to_string(bin_count) + ") "
+        "result in a maximum d-value of less than the recommended " + std::to_string(int(constants::axes::d_axis.max)) + "\u212B. "
+        "Structures larger than the new minimum of " + std::to_string(int(bin_width*bin_count)) + "\u212B will trigger segmentation faults. "
+        "Consider increasing the bin count or bin width to cover a longer range."
     );
 };
+
+// bin_width
 settings::detail::Setting<double> settings::axes::bin_width = {
     constants::axes::d_axis.width(),
     [](double& new_width) {
@@ -42,6 +73,8 @@ settings::detail::Setting<double> settings::axes::bin_width = {
         settings::flags::inv_bin_width = 1./new_width;
     }
 };
+
+// bin_count
 settings::detail::Setting<unsigned int> settings::axes::bin_count = {
     constants::axes::d_axis.bins,
     [](unsigned int& new_count) {

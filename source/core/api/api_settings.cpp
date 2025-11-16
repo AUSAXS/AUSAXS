@@ -54,7 +54,7 @@ void set_hist_settings(
     double qmax,
     bool weighted_bins,
     double bin_width,
-    double bin_count,
+    unsigned int bin_count,
     int* status
 ) {return execute_with_catch([&]() {
     settings::axes::skip = skip;

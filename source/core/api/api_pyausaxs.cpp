@@ -237,7 +237,7 @@ int molecule_distance_histogram(
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     auto hist = molecule->get_histogram();
-    _molecule_distance_histogram_obj data(constants::axes::q_axis.bins);
+    _molecule_distance_histogram_obj data(settings::axes::bin_count);
     data.aa = hist->get_aa_counts();
     data.aw = hist->get_aw_counts();
     data.ww = hist->get_ww_counts();
@@ -246,8 +246,8 @@ int molecule_distance_histogram(
     *aa = ref->aa.data();
     *aw = ref->aw.data();
     *ww = ref->ww.data();
-    *n_bins = static_cast<int>(constants::axes::q_axis.bins);
-    *delta_r = constants::axes::d_axis.step();
+    *n_bins = static_cast<int>(settings::axes::bin_count);
+    *delta_r = settings::axes::bin_width;
     return data_id;
 }, status);}
 
