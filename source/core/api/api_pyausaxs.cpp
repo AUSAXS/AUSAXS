@@ -8,9 +8,12 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/histogram_manager/HistogramManagerFactory.h>
+#include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/distribution/Distribution1D.h>
+#include <hist/detail/SimpleExvModel.h>
 #include <fitter/SmartFitter.h>
-#include <settings/MoleculeSettings.h>
+#include <settings/All.h>
 
 #include <string>
 
@@ -304,6 +307,51 @@ void molecule_debye_userq(
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i);
     }
+}, status);}
+
+int molecule_debye_raw(
+    int molecule_id,
+    double** q, double** I, int* n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
+
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return -1;}
+    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    auto debye_I = hist->debye_transform();
+    _molecule_debye_obj data(debye_I.size());
+    for (unsigned int i = 0; i < debye_I.size(); ++i) {
+        data.q[i] = constants::axes::q_vals[i];
+        data.I[i] = debye_I[i];
+    }
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
+    *q = ref->q.data();
+    *I = ref->I.data();
+    *n_points = static_cast<int>(debye_I.size());
+
+    hist::detail::SimpleExvModel::enable(); // re-enable exv contributions to ensure consistency elsewhere
+    return data_id;
+}, status);}
+
+void molecule_debye_raw_userq(
+    int molecule_id, 
+    double* q, double* I, int n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
+
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return;}
+    std::vector<double> q_vals(q, q + n_points);
+    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    auto debye_I = hist->debye_transform(q_vals);
+    if (static_cast<int>(debye_I.size()) != n_points) {*status = 3; return;}
+    for (int i = 0; i < n_points; ++i) {
+        I[i] = debye_I.y(i);
+    }
+    hist::detail::SimpleExvModel::enable(); // re-enable exv contributions to ensure consistency elsewhere
 }, status);}
 
 int molecule_debye_fit(
