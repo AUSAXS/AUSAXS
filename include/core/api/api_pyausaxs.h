@@ -86,6 +86,18 @@ extern "C" void molecule_debye_raw_userq(
     int* status
 );
 
+extern "C" API int molecule_debye_exact(
+    int molecule_id,
+    double** q, double** I, int* n_points,
+    int* status
+);
+
+extern "C" API void molecule_debye_exact_userq(
+    int molecule_id, 
+    double* q, double* I, int n_points,
+    int* status
+);
+
 extern "C" API int molecule_debye_fit(
     int molecule_id, int data_id,
     int* status

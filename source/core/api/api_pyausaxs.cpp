@@ -8,6 +8,7 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/distribution/Distribution1D.h>
@@ -352,6 +353,43 @@ void molecule_debye_raw_userq(
         I[i] = debye_I.y(i);
     }
     hist::detail::SimpleExvModel::enable(); // re-enable exv contributions to ensure consistency elsewhere
+}, status);}
+
+int molecule_debye_exact(
+    int molecule_id,
+    double** q, double** I, int* n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    auto qv = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+    auto Iq = hist::exact_debye_transform(*molecule, qv);
+    _molecule_debye_obj data(Iq.size());
+    for (unsigned int i = 0; i < Iq.size(); ++i) {
+        data.q[i] = qv[i];
+        data.I[i] = Iq[i]*std::exp(qv[i]*qv[i]); // remove form factor added by exact_debye
+    }
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
+    *q = ref->q.data();
+    *I = ref->I.data();
+    *n_points = static_cast<int>(Iq.size());
+    return data_id;
+}, status);}
+
+void molecule_debye_exact_userq(
+    int molecule_id, 
+    double* q, double* I, int n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    std::vector<double> q_vals(q, q + n_points);
+    auto Iq = hist::exact_debye_transform(*molecule, q_vals);
+    if (static_cast<int>(Iq.size()) != n_points) {*status = 3; return;}
+    for (int i = 0; i < n_points; ++i) {
+        I[i] = Iq[i]*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by exact_debye
+    }
 }, status);}
 
 int molecule_debye_fit(
