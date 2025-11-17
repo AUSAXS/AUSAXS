@@ -52,40 +52,34 @@ TEST_CASE("ExactDebyeCalculator: works") {
         auto I_exact = exact(protein, qaxis);
         auto Iq = hist::exact_debye_transform(protein, qaxis);
 
-        for (unsigned int i = 0; i < I_exact.size(); ++i) {
-            REQUIRE_THAT(Iq[i], Catch::Matchers::WithinRel(I_exact[i], 1e-6));
-        }
-
-        REQUIRE(compare_hist(I_exact, Iq, 1e-6, 1e-3));
+        REQUIRE(compare_hist(I_exact, Iq, 1e-6, 1e-6));
     }
 }
 
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+// Test that the ExactDebyeCalculator agrees exactly with the analytical result for a simple system
 TEST_CASE("ExactDebyeCalculator: agrees with analytical result") {
-    auto d = SimpleCube::d;
-    auto test_func = [&] (const auto& q_axis) {
+    auto d = SimpleCube::d_exact;
+    static auto test_func = [&] (const auto& q_axis) {
         std::vector<double> Iq_exp;
         Iq_exp.resize(q_axis.size(), 0);
-        auto ff = [] (double q) {return std::pow(form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C).evaluate(q), 2);};
-
         for (unsigned int q = 0; q < q_axis.size(); ++q) {
-            double dsum = 
-                9 + 
-                16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
-                24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-                24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+            double dsum =
+                8 +
+                24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) +
+                24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) +
                 8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-            Iq_exp[q] += dsum*std::pow(ff(q_axis[q]), 2);
+            Iq_exp[q] += dsum*std::exp(-q_axis[q]*q_axis[q])*std::pow(constants::charge::nuclear::get_charge(constants::atom_t::C), 2);
         }
         return Iq_exp;
     };
 
     settings::molecule::implicit_hydrogens = false;
     auto protein = Molecule({Body{SimpleCube::get_atoms()}});
+
     SECTION("default q-axis") {
         auto Iq_exp = test_func(constants::axes::q_vals);
         auto Iq = hist::exact_debye_transform(protein, constants::axes::q_axis.as_vector());
-        REQUIRE(compare_hist(Iq_exp, Iq));
+        REQUIRE(compare_hist(Iq_exp, Iq, 1e-6, 1e-6));
     }
 
     SECTION("custom q-axis") {
@@ -95,6 +89,6 @@ TEST_CASE("ExactDebyeCalculator: agrees with analytical result") {
         }
         auto Iq_exp = test_func(q_axis);
         auto Iq = hist::exact_debye_transform(protein, q_axis);
-        REQUIRE(compare_hist(Iq_exp, Iq));
+        REQUIRE(compare_hist(Iq_exp, Iq, 1e-6, 1e-6));
     }
 }
