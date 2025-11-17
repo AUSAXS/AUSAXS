@@ -18,7 +18,6 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 void test_integration(int* test_value) {
-    std::cout << "AUSAXS: Starting method \"test_integration\"." << std::endl;
     *test_value += 1;
 }
 
