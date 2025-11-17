@@ -324,7 +324,7 @@ int molecule_debye_raw(
     _molecule_debye_obj data(debye_I.size());
     for (unsigned int i = 0; i < debye_I.size(); ++i) {
         data.q[i] = constants::axes::q_vals[i];
-        data.I[i] = debye_I[i];
+        data.I[i] = debye_I[i]*std::exp(data.q[i]*data.q[i]); // remove form factor added by debye transform
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
@@ -350,7 +350,7 @@ void molecule_debye_raw_userq(
     auto debye_I = hist->debye_transform(q_vals);
     if (static_cast<int>(debye_I.size()) != n_points) {*status = 3; return;}
     for (int i = 0; i < n_points; ++i) {
-        I[i] = debye_I.y(i);
+        I[i] = debye_I.y(i)*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by debye transform
     }
     hist::detail::SimpleExvModel::enable(); // re-enable exv contributions to ensure consistency elsewhere
 }, status);}
