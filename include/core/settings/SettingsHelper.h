@@ -10,9 +10,9 @@ namespace ausaxs::settings::detail {
     struct Setting {
         T value;
         std::function<void(T&)> on_change;
-        T& operator=(const T& other) {
-            if (on_change) {on_change(value);}
-            value = other;
+        T& operator=(T other) {
+            if (on_change) {on_change(other);}
+            value = std::move(other);
             return value;
         }
         operator T() const {return value;}
