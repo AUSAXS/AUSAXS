@@ -555,7 +555,7 @@ void iterative_fit_step(
 
     auto debye_I = hist->debye_transform(iterative_fit_state->data->x());
     std::vector<double> debye_I_y = debye_I.y();
-    return_I = debye_I_y.data();
+    std::copy(debye_I_y.begin(), debye_I_y.end(), return_I);
 }, status);}
 
 // #include <em/ImageStack.h>
