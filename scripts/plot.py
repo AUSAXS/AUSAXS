@@ -5,7 +5,6 @@ from multiprocessing import freeze_support
 import matplotlib.pyplot as plt
 import concurrent.futures
 import argparse
-import sys
 import os
 
 from plot_helper import *
