@@ -7,7 +7,7 @@ import concurrent.futures
 import argparse
 import os
 
-from plot_helper import *
+from plot_helper import plot_file, plot_fits
 
 def parse_args():
     parser = argparse.ArgumentParser(prog="plot", description="AUSAXS plotting utility.")
