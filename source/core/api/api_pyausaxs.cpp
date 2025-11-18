@@ -8,9 +8,13 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/intensity_calculator/ExactDebyeCalculator.h>
+#include <hist/histogram_manager/HistogramManagerFactory.h>
+#include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/distribution/Distribution1D.h>
+#include <hist/detail/SimpleExvModel.h>
 #include <fitter/SmartFitter.h>
-#include <settings/MoleculeSettings.h>
+#include <settings/All.h>
 
 #include <string>
 
@@ -237,17 +241,26 @@ int molecule_distance_histogram(
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     auto hist = molecule->get_histogram();
-    _molecule_distance_histogram_obj data(constants::axes::q_axis.bins);
-    data.aa = hist->get_aa_counts();
-    data.aw = hist->get_aw_counts();
-    data.ww = hist->get_ww_counts();
+    _molecule_distance_histogram_obj data(settings::axes::bin_count);
+    {   // copy to avoid resizing issues
+        auto aa_dist = hist->get_aa_counts();
+        auto aw_dist = hist->get_aw_counts();
+        auto ww_dist = hist->get_ww_counts();
+        std::copy(aa_dist.get_content().begin(), aa_dist.get_content().end(), data.aa.begin());
+        std::copy(aw_dist.get_content().begin(), aw_dist.get_content().end(), data.aw.begin());
+        std::copy(ww_dist.get_content().begin(), ww_dist.get_content().end(), data.ww.begin());
+    }
+    assert(data.aa.size() == settings::axes::bin_count);
+    assert(data.aw.size() == settings::axes::bin_count);
+    assert(data.ww.size() == settings::axes::bin_count);
+
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto ref = api::ObjectStorage::get_object<_molecule_distance_histogram_obj>(data_id);
     *aa = ref->aa.data();
     *aw = ref->aw.data();
     *ww = ref->ww.data();
-    *n_bins = static_cast<int>(constants::axes::q_axis.bins);
-    *delta_r = constants::axes::d_axis.step();
+    *n_bins = static_cast<int>(settings::axes::bin_count);
+    *delta_r = settings::axes::bin_width;
     return data_id;
 }, status);}
 
@@ -294,6 +307,88 @@ void molecule_debye_userq(
     if (static_cast<int>(debye_I.size()) != n_points) {*status = 3; return;}
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i);
+    }
+}, status);}
+
+int molecule_debye_raw(
+    int molecule_id,
+    double** q, double** I, int* n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
+
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return -1;}
+    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    auto debye_I = hist->debye_transform();
+    _molecule_debye_obj data(debye_I.size());
+    for (unsigned int i = 0; i < debye_I.size(); ++i) {
+        data.q[i] = constants::axes::q_vals[i];
+        data.I[i] = debye_I[i]*std::exp(data.q[i]*data.q[i]); // remove form factor added by debye transform
+    }
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
+    *q = ref->q.data();
+    *I = ref->I.data();
+    *n_points = static_cast<int>(debye_I.size());
+
+    hist::detail::SimpleExvModel::enable(); // re-enable exv contributions to ensure consistency elsewhere
+    return data_id;
+}, status);}
+
+void molecule_debye_raw_userq(
+    int molecule_id, 
+    double* q, double* I, int n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
+
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {*status = 2; return;}
+    std::vector<double> q_vals(q, q + n_points);
+    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    auto debye_I = hist->debye_transform(q_vals);
+    if (static_cast<int>(debye_I.size()) != n_points) {*status = 3; return;}
+    for (int i = 0; i < n_points; ++i) {
+        I[i] = debye_I.y(i)*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by debye transform
+    }
+    hist::detail::SimpleExvModel::enable(); // re-enable exv contributions to ensure consistency elsewhere
+}, status);}
+
+int molecule_debye_exact(
+    int molecule_id,
+    double** q, double** I, int* n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    auto qv = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+    auto Iq = hist::exact_debye_transform(*molecule, qv);
+    _molecule_debye_obj data(Iq.size());
+    for (unsigned int i = 0; i < Iq.size(); ++i) {
+        data.q[i] = qv[i];
+        data.I[i] = Iq[i]*std::exp(qv[i]*qv[i]); // remove form factor added by exact_debye
+    }
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
+    *q = ref->q.data();
+    *I = ref->I.data();
+    *n_points = static_cast<int>(Iq.size());
+    return data_id;
+}, status);}
+
+void molecule_debye_exact_userq(
+    int molecule_id, 
+    double* q, double* I, int n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    std::vector<double> q_vals(q, q + n_points);
+    auto Iq = hist::exact_debye_transform(*molecule, q_vals);
+    if (static_cast<int>(Iq.size()) != n_points) {*status = 3; return;}
+    for (int i = 0; i < n_points; ++i) {
+        I[i] = Iq[i]*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by exact_debye
     }
 }, status);}
 

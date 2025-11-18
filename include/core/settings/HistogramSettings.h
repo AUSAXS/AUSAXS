@@ -9,8 +9,8 @@
 namespace ausaxs::settings {
     struct EXPORT axes {
         static unsigned int skip;                       // The number of points to skip from the top of the scattering curve.
-        static double qmin;                             // Lower limit on the used q-values
-        static double qmax;                             // Upper limit on the used q-values
+        static detail::Setting<double> qmin;            // Lower limit on the used q-values
+        static detail::Setting<double> qmax;            // Upper limit on the used q-values
         static detail::Setting<double> bin_width;       // The bin width to use for the distance histogram.
         static detail::Setting<unsigned int> bin_count; // The number of bins to use for the distance histogram. 
     };

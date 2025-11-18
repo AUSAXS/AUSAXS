@@ -64,22 +64,4 @@ void settings::validate_settings() {
             settings::molecule::implicit_hydrogens = true;
         }
     }
-
-    {   // check for q-range compatibility
-        if (settings::axes::qmin < constants::axes::q_axis.min) {
-            console::print_warning("Warning: qmin is smaller than the minimum q value. Setting qmin to the minimum q value (" + std::to_string(constants::axes::q_axis.min) + ").");
-            settings::axes::qmin = constants::axes::q_axis.min;
-        }
-
-        if (constants::axes::q_axis.max < settings::axes::qmax) {
-            console::print_warning("Warning: qmax is larger than the maximum q value. Setting qmax to the maximum q value (" + std::to_string(constants::axes::q_axis.max) + ").");
-            settings::axes::qmax = constants::axes::q_axis.max;
-        }
-
-        if (settings::axes::qmax < settings::axes::qmin) {
-            console::print_warning("Warning: qmax is smaller than qmin. Resetting to default values (0, 0.5).");
-            settings::axes::qmin = 0;
-            settings::axes::qmax = 0.5;
-        }
-    }
 }

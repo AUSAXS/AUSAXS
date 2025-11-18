@@ -53,11 +53,15 @@ void set_hist_settings(
     double qmin,
     double qmax,
     bool weighted_bins,
+    double bin_width,
+    unsigned int bin_count,
     int* status
 ) {return execute_with_catch([&]() {
     settings::axes::skip = skip;
     settings::axes::qmin = qmin;
     settings::axes::qmax = qmax;
+    settings::axes::bin_width = bin_width;
+    settings::axes::bin_count = bin_count;
     settings::hist::weighted_bins = weighted_bins;
 }, status);}
 

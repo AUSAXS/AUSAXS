@@ -43,6 +43,8 @@ extern "C" API void set_hist_settings(
     double qmin,
     double qmax,
     bool weighted_bins,
+    double bin_width,
+    unsigned int bin_count,
     int* status
 );
 
