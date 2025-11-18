@@ -13,8 +13,7 @@
 User-guides to all of these programs can be found in the [wiki](https://github.com/klytje/AUSAXS/wiki).
 
 # Installation
-## New
-You can now use most of `AUSAXS` through our easy-to-use Python wrapper! 
+**New**: You can now use most of `AUSAXS` through our easy-to-use Python wrapper! 
 ```bash
     pip install pyausaxs
 ```
