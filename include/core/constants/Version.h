@@ -4,7 +4,7 @@
 #pragma once
 
 namespace ausaxs::constants {
-    inline constexpr char version[] = "v1.1.5";
+    inline constexpr char version[] = "v1.1.6";
     inline constexpr char licence[] = 
         "Copyright (C) 2025 Kristian Lytje & Jan Skov Pedersen.\n"
         "This program comes with ABSOLUTELY NO WARRANTY.\n"
