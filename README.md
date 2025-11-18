@@ -13,6 +13,14 @@
 User-guides to all of these programs can be found in the [wiki](https://github.com/klytje/AUSAXS/wiki).
 
 # Installation
+**New**: You can now use most of `AUSAXS` through our easy-to-use Python wrapper! 
+```bash
+    pip install pyausaxs
+```
+See more information at the [pyausaxs](https://github.com/AUSAXS/pyAUSAXS) repository. 
+
+------
+
 The fastest way to get started is using the most recent precompiled binaries available in the [releases](https://github.com/klytje/AUSAXS/releases).  
 
 Alternatively you can follow the [compilation guide](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) to compile it yourself in just a few simple steps. 
@@ -27,4 +35,4 @@ Are you encountering problems, have feedback or suggestions, or are you consider
 
 Another article documenting the rigidbody optimizer is currently under development. 
 
-_This project is licenced under the GNU Lesser General Public Licence v3.0. Alternative licencing arrangements can be discussed upon request. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
+_This project is licenced under the GNU Lesser General Public Licence v3.0. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
