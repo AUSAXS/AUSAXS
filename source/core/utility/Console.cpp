@@ -17,7 +17,7 @@ void console::unindent(int level) {
     if (indentation.empty()) {
         throw std::runtime_error("Cannot unindent console output below 0.");
     }
-    indentation = indentation.substr(0, indentation.size() - level);
+    indentation.resize(indentation.size() - level);
 }
 
 void console::print_critical(std::string_view text) {

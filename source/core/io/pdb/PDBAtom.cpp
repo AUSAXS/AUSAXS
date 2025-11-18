@@ -129,9 +129,9 @@ void PDBAtom::parse_pdb(const std::string& str) {
             set_element(element);
         }
         this->charge = std::move(charge);
-    } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
+    } catch (const except::base&) { // catch conversion errors and output a more meaningful error message
         console::print_warning("PDBAtom::parse_pdb: Invalid field values in line \"" + s + "\".");
-        throw e;
+        throw;
     }
 
     effective_charge = constants::charge::nuclear::get_charge(this->element);
