@@ -1,5 +1,4 @@
 import os
-import sys
 
 directories = ["source", "include", "executable", "scripts"]
 suffixes = (".cpp", ".h", ".py")
