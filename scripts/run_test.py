@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Author: Kristian Lytje
+
 """
 Script to build and run AUSAXS tests.
 
@@ -195,7 +197,9 @@ Examples:
     
     if len(args.args) == 0:
         # No arguments: run all unit tests
-        test_type = 'utest'
+        print("Error: No arguments provided. Please specify test type or name.")
+        parser.print_help()
+        return 1
     elif len(args.args) == 1:
         arg = args.args[0]
         if arg in ['utest', 'ftest']:
