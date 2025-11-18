@@ -17,10 +17,10 @@ void LUPDecomposition::decompose() {
     for (unsigned int i = 0; i < A.N; ++i) {P[i] = i;}
     permutations = 0;
 
-    unsigned int i_max, j, k;
+    unsigned int j, k;
     for (unsigned int i = 0; i < A.N; ++i) {
         // find pivot point
-        double A_max = 0; i_max = 0;
+        double A_max = 0, i_max = 0;
         for (k = i; k < A.N; ++k) {
             if (abs(A[k][i]) > A_max) {
                 A_max = abs(A[k][i]);

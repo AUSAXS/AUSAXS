@@ -1,5 +1,4 @@
 import os
-import sys
 
 directories = ["source", "include", "executable", "scripts"]
 suffixes = (".cpp", ".h", ".py")
@@ -16,13 +15,13 @@ for directory in directories:
                     if not "SPDX-License-Identifier: LGPL-3.0-or-later" in line:
                         flag_fail = True
                         this_fail = True
-                    
+
                     line = f.readline()
                     tokens = line.split()
                     if len(tokens) < 3 or tokens[0] not in ["//", "#"] or tokens[1] != "Author:":
                         flag_fail = True
                         this_fail = True
-                    
+
                     if this_fail:
                         print(f"Check license header and author line in {file_path}")
 

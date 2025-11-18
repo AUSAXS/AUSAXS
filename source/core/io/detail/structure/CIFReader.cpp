@@ -313,14 +313,14 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
                 if (!atom.data[i][i_occupancy].starts_with('.')) {occupancy = std::stod(shorten(atom.data[i][i_occupancy]));}
                 if (!atom.data[i][i_B_iso_or_equiv].starts_with('.')) {tempFactor = std::stod(shorten(atom.data[i][i_B_iso_or_equiv]));}
             }
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
             console::print_warning(
                 "CIFReader::parse_atom_site_section: Invalid field values in line: \n\"" + 
                 std::accumulate(
                     atom.data[i].begin(), atom.data[i].end(), std::string(), 
                     [] (const std::string& a, const std::string& b) {return a + " " + b;}
                 ) + "\".");
-            throw e;
+            throw;
         }
         io::pdb::PDBAtom a(serial, name, altLoc, resName, chainID, resSeq, iCode, coords, occupancy, tempFactor, element, charge);
 

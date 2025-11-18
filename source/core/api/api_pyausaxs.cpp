@@ -31,7 +31,7 @@ int pdb_read(
 }, status);}
 
 struct _pdb_get_data_obj {
-    _pdb_get_data_obj(unsigned int size) :
+    explicit _pdb_get_data_obj(unsigned int size) :
         serial(size), resSeq(size), name(size), altLoc(size), resName(size), iCode(size), element(size), charge(size), 
         name_ptr(size), altLoc_ptr(size), resName_ptr(size), iCode_ptr(size), element_ptr(size), charge_ptr(size),
         chainID(size), x(size), y(size), z(size), occupancy(size), tempFactor(size) 
@@ -107,7 +107,7 @@ int data_read(
 }, status);}
 
 struct _data_get_data_obj {
-    _data_get_data_obj(unsigned int size) :
+    explicit _data_get_data_obj(unsigned int size) :
         q(size), I(size), Ierr(size)
     {}
     std::vector<double> q, I, Ierr;
@@ -230,7 +230,7 @@ void molecule_hydrate(
 }, status);}
 
 struct _molecule_distance_histogram_obj {
-    _molecule_distance_histogram_obj(unsigned int n_bins) : aa(n_bins), aw(n_bins), ww(n_bins) {}
+    explicit _molecule_distance_histogram_obj(unsigned int n_bins) : aa(n_bins), aw(n_bins), ww(n_bins) {}
     std::vector<double> aa, aw, ww;
 };
 int molecule_distance_histogram(
@@ -265,7 +265,7 @@ int molecule_distance_histogram(
 }, status);}
 
 struct _molecule_debye_obj {
-    _molecule_debye_obj(unsigned int size) :
+    explicit _molecule_debye_obj(unsigned int size) :
         q(size), I(size)
     {}
     std::vector<double> q, I;
@@ -446,7 +446,7 @@ int pdb_debye_fit(
 }, status);}
 
 struct _fit_get_fit_info_obj {
-    _fit_get_fit_info_obj(unsigned int n_pars) : 
+    explicit _fit_get_fit_info_obj(unsigned int n_pars) : 
         pars(n_pars), pars_ptr(n_pars), pvals(n_pars), perr_n(n_pars), perr_p(n_pars)
     {}
     std::vector<std::string> pars;
@@ -485,7 +485,7 @@ int fit_get_fit_info(
 }, status);}
 
 struct _fit_get_fit_curves_obj {
-    _fit_get_fit_curves_obj(unsigned int size) :
+    explicit _fit_get_fit_curves_obj(unsigned int size) :
         q(size), I_data(size), I_err(size), I_model(size)
     {}
     std::size_t size() const {return q.size();}
@@ -555,7 +555,7 @@ void iterative_fit_step(
 
     auto debye_I = hist->debye_transform(iterative_fit_state->data->x());
     std::vector<double> debye_I_y = debye_I.y();
-    return_I = debye_I_y.data();
+    std::copy(debye_I_y.begin(), debye_I_y.end(), return_I);
 }, status);}
 
 // #include <em/ImageStack.h>

@@ -157,11 +157,9 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
             if (1 < dataset->x().back()) {
                 console::print_text("Detected q-values larger than 1. Assuming the unit is [nm].");
                 unit = settings::general::QUnit::NM;
-                found = true;
             } else if (dataset->x().front() < 1e-3) {
                 console::print_text("Detected q-values smaller than 1e-3. Assuming the unit is [A].");
                 unit = settings::general::QUnit::A;
-                found = true;
             } else {
                 console::print_warning("Warning: The q-value unit is ambiguous. Assuming [A].");
             }

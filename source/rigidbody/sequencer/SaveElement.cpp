@@ -15,11 +15,11 @@ SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, 
 SaveElement::~SaveElement() = default;
 
 void SaveElement::run() {
-    static int counter = 0;
-    static std::unordered_map<std::string, io::detail::xyz::XYZWriter> writers;
     if (const auto& ext = path.extension(); ext == ".pdb") {
+        static int counter = 0;
         owner->_get_rigidbody()->save(path.append(std::to_string(counter++)));
     } else if (ext == ".xyz") {
+        static std::unordered_map<std::string, io::detail::xyz::XYZWriter> writers;
         auto p = path.path(); 
         if (!writers.contains(p)) {
             writers.emplace(p, path);
