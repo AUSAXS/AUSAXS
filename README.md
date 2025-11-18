@@ -19,6 +19,8 @@ User-guides to all of these programs can be found in the [wiki](https://github.c
 ```
 See more information at the [pyausaxs](https://github.com/AUSAXS/pyAUSAXS) repository. 
 
+------
+
 The fastest way to get started is using the most recent precompiled binaries available in the [releases](https://github.com/klytje/AUSAXS/releases).  
 
 Alternatively you can follow the [compilation guide](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) to compile it yourself in just a few simple steps. 
