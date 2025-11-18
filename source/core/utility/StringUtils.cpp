@@ -34,9 +34,9 @@ std::string utility::round_double(double d, int decimals) {
 }
 
 std::vector<std::string> utility::split(std::string_view str, char delimiter) {
-    size_t start = 0;
     std::vector<std::string> tokens;
-    size_t i = 0; 
+    size_t start;
+    size_t i = 0;
     while (i < str.size()) {
         while (i < str.size() && str[i] == delimiter) {
             ++i;
