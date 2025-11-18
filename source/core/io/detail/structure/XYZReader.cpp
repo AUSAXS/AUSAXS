@@ -31,11 +31,8 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
 
         // skip header
         if (tokens.size() != 4 && section_id == 0) {continue;}
-        section_id = 1;
-        if (tokens.size() != 4 && section_id == 1) {section_id = 2; continue;}
-        if (tokens.size() != 4) {
-            throw except::io_error("XYZReader::read: Invalid number of tokens in line: \"" + line + "\"");
-        }
+        else {section_id = 1;}                              // progress to main data section
+        if (tokens.size() != 4 && section_id == 1) {break;} // progress to footer
 
         PDBAtom atom;
         atom.element = constants::symbols::parse_element_string(tokens[0]);
