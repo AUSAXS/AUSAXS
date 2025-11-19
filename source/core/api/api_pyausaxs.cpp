@@ -516,26 +516,27 @@ int fit_get_fit_curves(
 }, status);}
 
 struct _iterative_fit_state_obj {
+    explicit _iterative_fit_state_obj(Molecule* protein, unsigned int n) : protein(protein), q(n), I(n) {}
     Molecule* protein;
-    SimpleDataset* data;
+    std::vector<double> q, I;
 };
-int iterative_fit_start(
-    int molecule_id, int data_id,
+int iterative_fit_init(
+    int molecule_id, 
+    double* q, int n_points,
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     molecule->reset_histogram_manager();
     fitter::SmartFitter::EnabledFitParameters().validate_model(molecule->get_histogram().get());
-    auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
-    if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}
-    _iterative_fit_state_obj obj{.protein=molecule, .data=dataset};
+    auto obj = _iterative_fit_state_obj(molecule, n_points);
+    obj.q = std::vector<double>(q, q + n_points);
     return api::ObjectStorage::register_object(std::move(obj));
 }, status);}
 
 void iterative_fit_step(
     int iterative_fit_id, 
-    double* pars, int n_pars, double* return_I,
+    double* pars, int n_pars, double** return_I,
     int* status
 ) {return execute_with_catch([&]() {
     auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
@@ -552,10 +553,8 @@ void iterative_fit_step(
         std::vector<double>(pars, pars+n_pars),
         hist.get()
     );
-
-    auto debye_I = hist->debye_transform(iterative_fit_state->data->x());
-    std::vector<double> debye_I_y = debye_I.y();
-    std::copy(debye_I_y.begin(), debye_I_y.end(), return_I);
+    iterative_fit_state->I = hist->debye_transform(iterative_fit_state->q).y();
+    *return_I = iterative_fit_state->I.data();
 }, status);}
 
 // #include <em/ImageStack.h>
