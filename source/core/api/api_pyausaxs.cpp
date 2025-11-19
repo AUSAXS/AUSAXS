@@ -519,6 +519,7 @@ struct _iterative_fit_state_obj {
     explicit _iterative_fit_state_obj(Molecule* protein, unsigned int n) : protein(protein), q(n), I(n) {}
     Molecule* protein;
     std::vector<double> q, I;
+    std::unique_ptr<hist::ICompositeDistanceHistogram> hist; 
     fitter::SmartFitter::EnabledFitParameters enabled_pars = fitter::SmartFitter::EnabledFitParameters::initialize_from_settings();
 };
 int iterative_fit_init(
@@ -533,6 +534,7 @@ int iterative_fit_init(
     auto obj = _iterative_fit_state_obj(molecule, qvals.size());
     obj.enabled_pars.validate_model(molecule->get_histogram().get());
     obj.q = std::move(qvals);
+    obj.hist = molecule->get_histogram();
     *n_points = static_cast<int>(qvals.size());
     return api::ObjectStorage::register_object(std::move(obj));
 }, status);}
@@ -548,6 +550,7 @@ int iterative_fit_init_userq(
     auto obj = _iterative_fit_state_obj(molecule, n_points);
     obj.enabled_pars.validate_model(molecule->get_histogram().get());
     obj.q = std::vector<double>(q, q + n_points);
+    obj.hist = molecule->get_histogram();
     return api::ObjectStorage::register_object(std::move(obj));
 }, status);}
 
@@ -558,7 +561,6 @@ void iterative_fit_evaluate(
 ) {return execute_with_catch([&]() {
     auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
     if (!iterative_fit_state) {ErrorMessage::last_error = "Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\""; return;}
-    auto hist = iterative_fit_state->protein->get_histogram();
 
     auto& enabled_pars = iterative_fit_state->enabled_pars;
     if (n_pars != static_cast<int>(enabled_pars.get_enabled_pars_count())) {
@@ -569,10 +571,10 @@ void iterative_fit_evaluate(
     }
     enabled_pars.apply_pars(
         std::vector<double>(pars, pars+n_pars),
-        hist.get()
+        iterative_fit_state->hist.get()
     );
 
-    iterative_fit_state->I = hist->debye_transform(iterative_fit_state->q).y();
+    iterative_fit_state->I = iterative_fit_state->hist->debye_transform(iterative_fit_state->q).y();
     *return_I = iterative_fit_state->I.data();
 }, status);}
 
