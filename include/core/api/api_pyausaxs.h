@@ -134,11 +134,17 @@ extern "C" API int fit_get_fit_curves(
 
 extern "C" API int iterative_fit_init(
     int molecule_id, 
+    int* n_points,
+    int* status
+);
+
+extern "C" API int iterative_fit_init_userq(
+    int molecule_id, 
     double* q, int n_points,
     int* status
 );
 
-extern "C" API void iterative_fit_step(
+extern "C" API void iterative_fit_evaluate(
     int iterative_fit_id, 
     double* pars, int n_pars, double** return_I,
     int* status

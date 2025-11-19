@@ -519,8 +519,25 @@ struct _iterative_fit_state_obj {
     explicit _iterative_fit_state_obj(Molecule* protein, unsigned int n) : protein(protein), q(n), I(n) {}
     Molecule* protein;
     std::vector<double> q, I;
+    fitter::SmartFitter::EnabledFitParameters enabled_pars = fitter::SmartFitter::EnabledFitParameters::initialize_from_settings();
 };
 int iterative_fit_init(
+    int molecule_id, 
+    int* n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    molecule->reset_histogram_manager();
+    auto qvals = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+    auto obj = _iterative_fit_state_obj(molecule, qvals.size());
+    obj.enabled_pars.validate_model(molecule->get_histogram().get());
+    obj.q = std::move(qvals);
+    *n_points = static_cast<int>(qvals.size());
+    return api::ObjectStorage::register_object(std::move(obj));
+}, status);}
+
+int iterative_fit_init_userq(
     int molecule_id, 
     double* q, int n_points,
     int* status
@@ -528,13 +545,13 @@ int iterative_fit_init(
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     molecule->reset_histogram_manager();
-    fitter::SmartFitter::EnabledFitParameters().validate_model(molecule->get_histogram().get());
     auto obj = _iterative_fit_state_obj(molecule, n_points);
+    obj.enabled_pars.validate_model(molecule->get_histogram().get());
     obj.q = std::vector<double>(q, q + n_points);
     return api::ObjectStorage::register_object(std::move(obj));
 }, status);}
 
-void iterative_fit_step(
+void iterative_fit_evaluate(
     int iterative_fit_id, 
     double* pars, int n_pars, double** return_I,
     int* status
@@ -543,16 +560,18 @@ void iterative_fit_step(
     if (!iterative_fit_state) {ErrorMessage::last_error = "Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\""; return;}
     auto hist = iterative_fit_state->protein->get_histogram();
 
-    fitter::SmartFitter::EnabledFitParameters enabled_pars{};
+    auto& enabled_pars = iterative_fit_state->enabled_pars;
     if (n_pars != static_cast<int>(enabled_pars.get_enabled_pars_count())) {
-        ErrorMessage::last_error = "Number of provided parameters (" + std::to_string(n_pars) + 
-            ") does not match number of enabled fit parameters (" + std::to_string(enabled_pars.get_enabled_pars_count()) + ")";
-        return;
+        throw std::runtime_error(
+            "Number of provided parameters (" + std::to_string(n_pars) + ") " 
+            "does not match number of enabled fit parameters (" + std::to_string(enabled_pars.get_enabled_pars_count()) + ")"
+        );
     }
     enabled_pars.apply_pars(
         std::vector<double>(pars, pars+n_pars),
         hist.get()
     );
+
     iterative_fit_state->I = hist->debye_transform(iterative_fit_state->q).y();
     *return_I = iterative_fit_state->I.data();
 }, status);}
