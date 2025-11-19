@@ -111,9 +111,9 @@ class Options:
                     return
                 self.yrange = [float(words[1]), float(words[2])]
             case "logx":
-                self.xlog = int(words[1])
+                self.xlog = words[1]
             case "logy":
-               self.ylog = int(words[1])
+               self.ylog = words[1]
             case "xshift":
                 self.xshift = float(words[1])
 
@@ -298,6 +298,7 @@ def plot_dataset(d: Dataset):
     if d.options.xshift != 0:
         d.data[:,0] += d.options.xshift
 
+    added_legend = False
     if d.options.drawerror:
         if (d.data.shape[1] < 3):
             print("plot_dataset: Not enough columns for error bars.")
@@ -311,6 +312,7 @@ def plot_dataset(d: Dataset):
             capsize=2*marker_scaling,
             zorder=5
         )
+        added_legend = True
 
     if d.options.drawmarker and d.options.drawline:
         plt.plot(d.data[:,0], d.data[:,1],
@@ -319,9 +321,10 @@ def plot_dataset(d: Dataset):
             linewidth=d.options.linewidth*marker_scaling,
             marker=d.options.markerstyle,
             markersize=d.options.markersize*marker_scaling,
-            label=d.options.legend,
+            label=d.options.legend if not added_legend else None,
             zorder=d.options.zorder
         )
+        added_legend = True
 
     elif d.options.drawmarker:
         plt.plot(d.data[:,0], d.data[:,1],
@@ -329,18 +332,20 @@ def plot_dataset(d: Dataset):
             linestyle="none",
             marker=d.options.markerstyle,
             markersize=d.options.markersize*marker_scaling,
-            label=d.options.legend,
+            label=d.options.legend if not added_legend else None,
             zorder=d.options.zorder
         )
+        added_legend = True
 
     elif d.options.drawline:
         plt.plot(d.data[:,0], d.data[:,1],
             color=d.options.color,
             linestyle=d.options.linestyle,
             linewidth=d.options.linewidth*marker_scaling,
-            label=d.options.legend,
+            label=d.options.legend if not added_legend else None,
             zorder=d.options.zorder
         )
+        added_legend = True
 
     global first_plot
     if (first_plot):
@@ -354,9 +359,17 @@ def plot_dataset(d: Dataset):
         if (d.options.yrange != []):
             plt.ylim(d.options.yrange)
         if (d.options.xlog):
-            plt.xscale("log")
+            if isfloat(d.options.xlog):
+                v = float(d.options.xlog)
+                plt.xscale("linear" if v == 0 else "log")
+            else:
+                plt.xscale(d.options.xlog)
         if (d.options.ylog):
-            plt.yscale("log")
+            if isfloat(d.options.ylog):
+                v = float(d.options.ylog)
+                plt.yscale("linear" if v == 0 else "log")
+            else:
+                plt.yscale(d.options.ylog)
     if (d.options.legend):
         plt.legend()
     return
