@@ -599,7 +599,7 @@ void iterative_fit_evaluate_userq(
     );
 
     std::vector<double> q_vals(q, q + n_points);
-    auto I_vals = iterative_fit_state->hist->debye_transform(q_vals).y();
+    std::vector<double> I_vals = iterative_fit_state->hist->debye_transform(q_vals).y();
     std::copy(I_vals.begin(), I_vals.end(), I);
 }, status);}
 
