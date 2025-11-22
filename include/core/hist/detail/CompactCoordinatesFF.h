@@ -54,12 +54,26 @@ namespace ausaxs::hist::detail {
 // implementation defined in header to support efficient inlining
 
 template<bool vbw>
+void validate_ff_info(const ausaxs::hist::detail::CompactCoordinatesFF<vbw>& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        unsigned int ff_type = data.ff_types[i];
+        if (ff_type == static_cast<unsigned int>(ausaxs::form_factor::form_factor_t::UNKNOWN)) {
+            throw std::runtime_error(
+                "CompactCoordinatesFF: Attempted to use an atom with UNKNOWN form factor type.\n"
+                "Form factor information is required for the selected excluded volume model."
+            );
+        }
+    }
+}
+
+template<bool vbw>
 inline ausaxs::hist::detail::CompactCoordinatesFF<vbw>::CompactCoordinatesFF(const data::Body& body) : CompactCoordinates<vbw>(body.size_atom()), ff_types(body.size_atom()) {
     for (unsigned int i = 0; i < this->size(); ++i) {
         const auto& a = body.get_atom(i); 
         this->data[i] = hist::detail::CompactCoordinatesData<vbw>(a.coordinates(), a.weight());
         ff_types[i] = static_cast<int>(a.form_factor_type());
     }
+    validate_ff_info(*this);
 }
 
 template<bool vbw>
@@ -74,6 +88,7 @@ inline ausaxs::hist::detail::CompactCoordinatesFF<vbw>::CompactCoordinatesFF(con
             ff_types[i++] = static_cast<int>(a.form_factor_type());
         }
     }
+    validate_ff_info(*this);
 }
 
 template<bool vbw>
@@ -83,6 +98,7 @@ inline ausaxs::hist::detail::CompactCoordinatesFF<vbw>::CompactCoordinatesFF(con
         this->data[i] = hist::detail::CompactCoordinatesData<vbw>(a.coordinates(), a.weight());
         ff_types[i] = static_cast<int>(a.form_factor_type());
     }
+    validate_ff_info(*this);
 }
 
 template<bool vbw>
