@@ -21,6 +21,7 @@ namespace ausaxs::fitter {
                 unsigned int get_enabled_pars_count() const;
                 void apply_pars(const std::vector<double>& params, observer_ptr<hist::DistanceHistogram> model);
                 void validate_model(observer_ptr<hist::DistanceHistogram> h);
+                static EnabledFitParameters initialize_from_settings();
             } enabled_fit_parameters;
 
             virtual ~SmartFitter() override;

@@ -20,7 +20,7 @@ SmartFitter::~SmartFitter() = default;
 SmartFitter::SmartFitter(SmartFitter&&) noexcept = default;
 SmartFitter& SmartFitter::operator=(SmartFitter&&) noexcept = default;
 
-SmartFitter::EnabledFitParameters initialize_parameters() {
+SmartFitter::EnabledFitParameters SmartFitter::EnabledFitParameters::initialize_from_settings() {
     return {
         .hydration = settings::fit::fit_hydration,
         .excluded_volume = settings::fit::fit_excluded_volume,
@@ -64,10 +64,10 @@ void SmartFitter::EnabledFitParameters::validate_model(observer_ptr<hist::Distan
     }
 }
 
-SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {enabled_fit_parameters = initialize_parameters();}
+SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();}
 
 SmartFitter::SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::DistanceHistogram> h) : SmartFitter(saxs) {
-    enabled_fit_parameters = initialize_parameters();
+    enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();
     set_model(std::move(h));
 }
 
@@ -143,7 +143,7 @@ fitter::detail::LinearLeastSquares SmartFitter::prepare_linear_fitter(const std:
 }
 
 std::unique_ptr<FitResult> SmartFitter::fit() {
-    enabled_fit_parameters = initialize_parameters();
+    enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();
     enabled_fit_parameters.validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
@@ -174,7 +174,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
 }
 
 std::vector<double> SmartFitter::fit_params_only() {
-    enabled_fit_parameters = initialize_parameters();
+    enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();
     enabled_fit_parameters.validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
