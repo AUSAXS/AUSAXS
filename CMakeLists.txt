@@ -2,7 +2,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_minimum_required(VERSION 3.15)
-project(AUSAXS VERSION 1.1.6)
+project(AUSAXS VERSION 1.1.7)
 option(GUI "Enable GUI executables" OFF)
 option(DLIB "Download and use the dlib minimizers" ON)
 option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" OFF)
