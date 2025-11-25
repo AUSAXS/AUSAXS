@@ -2,6 +2,9 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/distance_calculator/detail/TemplateHelpers.h> // For ausaxs::detail::add8/4/1::evaluate
+#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/distribution/GenericDistribution2D.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
@@ -13,43 +16,86 @@
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
-#include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
+using namespace ausaxs::container;
 
-// custom evaluates for the grid since we don't want to account for the excluded volume
-namespace ausaxs::grid {
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate8(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add8::evaluate<weighted_bins>(data_i, data_j, i, j);
-        for (unsigned int k = 0; k < 8; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
-    }
-
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate4(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add4::evaluate<weighted_bins>(data_i, data_j, i, j);
-        for (unsigned int k = 0; k < 4; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
-    }
-
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate1(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add1::evaluate<weighted_bins>(data_i, data_j, i, j);
-        p.add(data_i.get_ff_type(i), res.distance, factor*res.weight);
-    }
+// Atom-excluded volume (2D: ff, distance)
+// Extract FF before calling evaluate, then use distances only (FF info comes from atom)
+namespace ff2d {
+template<bool weighted_bins, bool variable_bin_width, int factor>
+void evaluate8(
+    typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_a, 
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_x, int i, int j
+) {
+    int ff_i = data_a.get_ff_type(i);
+    // Create temporary CompactCoordinates views to use existing evaluate infrastructure
+    // CompactCoordinatesTemplate::get_data() returns the underlying vector
+    // We evaluate using CompactCoordinatesXYZW (from data_a template) with CompactCoordinatesXYZW (from data_x)
+    auto& data_a_base = reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_width>&>(data_a);
+    auto res = ausaxs::detail::add8::evaluate<weighted_bins>(data_a_base, data_x, i, j);
+    for (unsigned int k = 0; k < 8; ++k) {p.add(ff_i, res.distances[k], factor*res.weights[k]);}
 }
+
+template<bool weighted_bins, bool variable_bin_width, int factor>
+void evaluate4(
+    typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_a, 
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_x, int i, int j
+) {
+    int ff_i = data_a.get_ff_type(i);
+    auto& data_a_base = reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_width>&>(data_a);
+    auto res = ausaxs::detail::add4::evaluate<weighted_bins>(data_a_base, data_x, i, j);
+    for (unsigned int k = 0; k < 4; ++k) {p.add(ff_i, res.distances[k], factor*res.weights[k]);}
+}
+
+template<bool weighted_bins, bool variable_bin_width, int factor>
+void evaluate1(
+    typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_a, 
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_x, int i, int j
+) {
+    int ff_i = data_a.get_ff_type(i);
+    auto& data_a_base = reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_width>&>(data_a);
+    auto res = ausaxs::detail::add1::evaluate<weighted_bins>(data_a_base, data_x, i, j);
+    p.add(ff_i, res.distance, factor*res.weight);
+}
+} // namespace ff2d
+
+// Water-excluded volume (1D: distance) - water has constant FF, cast to base and ignore FF info
+namespace ff1d {
+template<bool weighted_bins, bool variable_bin_width, int factor>
+void evaluate8(
+    typename hist::GenericDistribution1D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_w,
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_x, int i, int j
+) {
+    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_width>&>(data_w);
+    auto res = ausaxs::detail::add8::evaluate<weighted_bins>(data_w_base, data_x, i, j);
+    for (unsigned int k = 0; k < 8; ++k) {p.template add<factor>(res.distances[k], res.weights[k]);}
+}
+
+template<bool weighted_bins, bool variable_bin_width, int factor>
+void evaluate4(
+    typename hist::GenericDistribution1D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_w,
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_x, int i, int j
+) {
+    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_width>&>(data_w);
+    auto res = ausaxs::detail::add4::evaluate<weighted_bins>(data_w_base, data_x, i, j);
+    for (unsigned int k = 0; k < 4; ++k) {p.template add<factor>(res.distances[k], res.weights[k]);}
+}
+
+template<bool weighted_bins, bool variable_bin_width, int factor>
+void evaluate1(
+    typename hist::GenericDistribution1D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_w,
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_x, int i, int j
+) {
+    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_width>&>(data_w);
+    auto res = ausaxs::detail::add1::evaluate<weighted_bins>(data_w_base, data_x, i, j);
+    p.template add<factor>(res.distance, res.weight);
+}
+} // namespace ff1d
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGrid<variable_bin_width>::~HistogramManagerMTFFGrid() = default;
@@ -106,15 +152,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         for (int i = imin; i < imax; ++i) { // atoms
             int j = 0;                      // exv
             for (; j+7 < data_x_size; j+=8) {
-                grid::evaluate8<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
+                ff2d::evaluate8<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
             }
 
             for (; j+3 < data_x_size; j+=4) {
-                grid::evaluate4<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
+                ff2d::evaluate4<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
             }
 
             for (; j < data_x_size; ++j) {
-                grid::evaluate1<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
+                ff2d::evaluate1<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
             }
         }
         return p_ax;
@@ -126,15 +172,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         for (int i = imin; i < imax; ++i) { // waters
             int j = 0;                      // exv
             for (; j+7 < data_x_size; j+=8) {
-                evaluate8<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
+                ff1d::evaluate8<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
             }
 
             for (; j+3 < data_x_size; j+=4) {
-                evaluate4<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
+                ff1d::evaluate4<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
             }
 
             for (; j < data_x_size; ++j) {
-                evaluate1<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
+                ff1d::evaluate1<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
             }
         }
         return p_wx;

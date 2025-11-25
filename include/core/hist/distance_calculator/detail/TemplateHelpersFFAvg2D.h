@@ -5,7 +5,7 @@
 
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution2D.h>
-#include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>
 
 namespace ausaxs {
@@ -25,11 +25,11 @@ namespace ausaxs {
         auto res = detail::add8::evaluate<weighted_bins>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 8; ++k) {
             if constexpr (factor == 1) {
-                p.template add<1>(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
-                p.template add<1>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distances[k], data_j[j].value.w);
+                p.template increment<1>(res.ff_bins[k], res.distances[k]);
+                p.template increment<1>(exv_bin, res.distances[k]);
             } else {
-                p.template add<2>(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
-                p.template add<2>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distances[k], data_j[j].value.w);
+                p.template increment<2>(res.ff_bins[k], res.distances[k]);
+                p.template increment<2>(exv_bin, res.distances[k]);
             }
         }
     }
@@ -50,11 +50,11 @@ namespace ausaxs {
         auto res = detail::add4::evaluate<weighted_bins>(data_i, data_j, i, j);
         for (unsigned int k = 0; k < 4; ++k) {
             if constexpr (factor == 1) {
-                p.template add<1>(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
-                p.template add<1>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distances[k], data_j[j].value.w);
+                p.template increment<1>(res.ff_bins[k], res.distances[k]);
+                p.template increment<1>(exv_bin, res.distances[k]);
             } else {
-                p.template add<2>(data_i.get_ff_type(i), res.distances[k], res.weights[k]);
-                p.template add<2>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distances[k], data_j[j].value.w);
+                p.template increment<2>(res.ff_bins[k], res.distances[k]);
+                p.template increment<2>(exv_bin, res.distances[k]);
             }
         }
     }
@@ -74,11 +74,11 @@ namespace ausaxs {
     inline void evaluate1(typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_i, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
         auto res = detail::add1::evaluate<weighted_bins>(data_i, data_j, i, j);
         if constexpr (factor == 1) {
-            p.template add<1>(data_i.get_ff_type(i), res.distance, res.weight);
-            p.template add<1>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distance, data_j[j].value.w);
+            p.template increment<1>(res.ff_bin, res.distance);
+            p.template increment<1>(exv_bin, res.distance);
         } else {
-            p.template add<2>(data_i.get_ff_type(i), res.distance, res.weight);
-            p.template add<2>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distance, data_j[j].value.w);
+            p.template increment<2>(res.ff_bin, res.distance);
+            p.template increment<2>(exv_bin, res.distance);
         }
     }
 }

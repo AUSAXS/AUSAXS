@@ -5,7 +5,7 @@
 
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution3D.h>
-#include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>
 
 namespace ausaxs {
@@ -20,13 +20,15 @@ namespace ausaxs {
      * @param i The index of the first atom.
      * @param j The index of the second atom.
      */
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate8(typename hist::GenericDistribution3D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j) {
+    template<bool weighted_bins, bool variable_bin_widths, int factor>
+    inline void evaluate8(typename hist::GenericDistribution3D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_i, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
         auto res = detail::add8::evaluate<weighted_bins>(data_i, data_j, i, j);
+        int ff_i = data_i.get_ff_type(i);
         for (unsigned int k = 0; k < 8; ++k) {
-                p.template add<factor>(data_i.get_ff_type(i), data_j.get_ff_type(j+k), res.distances[k], res.weights[k]);
-                p.template add<factor>(data_i.get_ff_type(i), static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distances[k], data_j[j+k].value.w);
-                p.template add<factor>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distances[k], 1);
+            int ff_j = data_j.get_ff_type(j+k);
+            p.add(ff_i, ff_j, res.distances[k], factor);
+            p.add(ff_i, exv_bin, res.distances[k], factor);
+            p.add(exv_bin, exv_bin, res.distances[k], factor);
         }
     }
 
@@ -41,13 +43,21 @@ namespace ausaxs {
      * @param i The index of the first atom.
      * @param j The index of the second atom.
      */
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate4(typename hist::GenericDistribution3D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j) {
+    template<bool weighted_bins, bool variable_bin_widths, int factor>
+    inline void evaluate4(typename hist::GenericDistribution3D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_i, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
         auto res = detail::add4::evaluate<weighted_bins>(data_i, data_j, i, j);
+        int ff_i = data_i.get_ff_type(i);
         for (unsigned int k = 0; k < 4; ++k) {
-            p.template add<factor>(data_i.get_ff_type(i), data_j.get_ff_type(j+k), res.distances[k], res.weights[k]);
-            p.template add<factor>(data_i.get_ff_type(i), static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distances[k], data_j[j+k].value.w);
-            p.template add<factor>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distances[k], 1);
+            int ff_j = data_j.get_ff_type(j+k);
+            if constexpr (factor == 1) {
+                p.template increment<1>(ff_i, ff_j, res.distances[k]);
+                p.template increment<1>(ff_i, exv_bin, res.distances[k]);
+                p.template increment<1>(exv_bin, exv_bin, res.distances[k]);
+            } else {
+                p.template increment<2>(ff_i, ff_j, res.distances[k]);
+                p.template increment<2>(ff_i, exv_bin, res.distances[k]);
+                p.template increment<2>(exv_bin, exv_bin, res.distances[k]);
+            }
         }
     }
 
@@ -62,11 +72,19 @@ namespace ausaxs {
      * @param i The index of the first atom.
      * @param j The index of the second atom.
      */
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate1(typename hist::GenericDistribution3D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j) {
+    template<bool weighted_bins, bool variable_bin_widths, int factor>
+    inline void evaluate1(typename hist::GenericDistribution3D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_i, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
         auto res = detail::add1::evaluate<weighted_bins>(data_i, data_j, i, j);
-        p.template add<factor>(data_i.get_ff_type(i), data_j.get_ff_type(j), res.distance, res.weight);
-        p.template add<factor>(data_i.get_ff_type(i), static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distance, data_j[j].value.w);
-        p.template add<factor>(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distance, 1);
+        int ff_i = data_i.get_ff_type(i);
+        int ff_j = data_j.get_ff_type(j);
+        if constexpr (factor == 1) {
+            p.template increment<1>(ff_i, ff_j, res.distance);
+            p.template increment<1>(ff_i, exv_bin, res.distance);
+            p.template increment<1>(exv_bin, exv_bin, res.distance);
+        } else {
+            p.template increment<2>(ff_i, ff_j, res.distance);
+            p.template increment<2>(ff_i, exv_bin, res.distance);
+            p.template increment<2>(exv_bin, exv_bin, res.distance);
+        }
     }
 }
