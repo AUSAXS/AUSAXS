@@ -31,7 +31,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void add(unsigned int x, unsigned int y, float distance, constants::axes::d_type value) {
+            void add(int x, int y, float distance, constants::axes::d_type value) {
                 index(x, y, std::round(distance)) += N*value;
             }
 
@@ -46,8 +46,34 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void add_index(unsigned int x, unsigned int y, int32_t i, constants::axes::d_type value) {
+            void add_index(int x, int y, int32_t i, constants::axes::d_type value) {
                 index(x, y, i) += N*value;
+            }
+
+            /**
+             * @brief Increment the value for a given distance.
+             * 
+             * @param x The form factor index. 
+             * @param distance The distance to increment.
+             *
+             * @tparam N A multiplicative factor for the value.
+             */
+            template<int N = 1>
+            void increment(int x, int y, float distance) {
+                index(x, y, std::round(distance)) += N;
+            }
+
+            /**
+             * @brief Increment the value for a given index.
+             * 
+             * @param x The form factor index. 
+             * @param i The index to increment.
+             *
+             * @tparam N A multiplicative factor for the value.
+             */
+            template<int N = 1>
+            void increment_index(int x, int y, int32_t i) {
+                index(x, y, i) += N;
             }
     };
     static_assert(supports_nothrow_move_v<Distribution3D>, "Distribution3D should support nothrow move semantics.");
