@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
-#include <hist/detail/CompactCoordinatesFF.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
