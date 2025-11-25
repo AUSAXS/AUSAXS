@@ -157,6 +157,10 @@ namespace ausaxs::hist::detail {
         public:
             using WidthController<variable_bin_width>::get_inv_width;
             CompactCoordinatesXYZFF() noexcept = default;
+            CompactCoordinatesXYZFF(const CompactCoordinatesXYZFF& other) noexcept = default;
+            CompactCoordinatesXYZFF(CompactCoordinatesXYZFF&& other) noexcept = default;
+            CompactCoordinatesXYZFF& operator= (const CompactCoordinatesXYZFF& other) noexcept = default;
+            CompactCoordinatesXYZFF& operator= (CompactCoordinatesXYZFF&& other) noexcept = default;
 
             template<numeric T>
             CompactCoordinatesXYZFF(const Vector3<T>& v, int32_t ff) noexcept : value{.pos={static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z())}, .ff=ff} {}
@@ -279,19 +283,6 @@ namespace ausaxs::hist::detail {
     #undef __SSE2__
     #undef __SSE4_2__
 #endif
-
-namespace ausaxs::hist::detail::xyzff {
-    inline static int32_t ff_bin_index(int32_t ff1, int32_t ff2) noexcept {
-        return ff2 + ff1*ausaxs::form_factor::get_count();
-    }
-
-    static inline float squared_dot_product(const float* v1, const float* v2) noexcept {
-        float dx = v1[0] - v2[0];
-        float dy = v1[1] - v2[1];
-        float dz = v1[2] - v2[2];
-        return dx*dx + dy*dy + dz*dz;
-    }
-}
 
 template<bool vbw>
 inline ausaxs::hist::detail::xyzff::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate(const CompactCoordinatesXYZFF& other) const  noexcept{

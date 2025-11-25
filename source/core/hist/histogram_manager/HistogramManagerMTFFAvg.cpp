@@ -134,7 +134,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         p_aa.add(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, std::pow(data_a[i].value.w, 2));
     }
     p_aa.add(form_factor::exv_bin, form_factor::exv_bin, 0, data_a_size);
-    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<vbw>& data) {return sum + std::pow(data.value.w, 2);}));
+    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesXYZW<vbw>& data) {return sum + std::pow(data.value.w, 2);}));
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
     GenericDistribution1D_t p_tot(settings::axes::bin_count);

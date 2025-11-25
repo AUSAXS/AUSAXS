@@ -91,8 +91,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     }
 
     // add self-correlation
-    p_aa.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<variable_bin_width>& val) {return sum + std::pow(val.value.w, 2);}));
-    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<variable_bin_width>& val) {return sum + std::pow(val.value.w, 2);}));
+    p_aa.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + std::pow(val.value.w, 2);}));
+    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + std::pow(val.value.w, 2);}));
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(settings::axes::bin_count);
