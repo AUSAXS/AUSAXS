@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
-#include <hist/distance_calculator/detail/TemplateHelpers.h> // For ausaxs::detail::add8/4/1::evaluate
+#include <hist/distance_calculator/detail/TemplateHelperBase.h> // For ausaxs::detail::add8/4/1::evaluate
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
