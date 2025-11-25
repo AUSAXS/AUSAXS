@@ -2,7 +2,8 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
-#include <hist/distance_calculator/detail/TemplateHelpers.h> // For ausaxs::detail::add8/4/1::evaluate
+#include <hist/distance_calculator/detail/TemplateHelperBase.h> // For ausaxs::detail::add8/4/1::evaluate
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h> // For ausaxs::evaluate8/4/1 with factor
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/detail/CompactCoordinates.h>

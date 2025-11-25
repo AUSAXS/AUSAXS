@@ -13,43 +13,13 @@
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
-#include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
+#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
-
-// custom evaluates for the grid since we don't want to account for the excluded volume
-namespace ausaxs::grid {
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate8(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add8::evaluate<weighted_bins>(data_i, data_j, i, j);
-        for (unsigned int k = 0; k < 8; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
-    }
-
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate4(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add4::evaluate<weighted_bins>(data_i, data_j, i, j);
-        for (unsigned int k = 0; k < 4; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
-    }
-
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate1(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add1::evaluate<weighted_bins>(data_i, data_j, i, j);
-        p.add(data_i.get_ff_type(i), res.distance, factor*res.weight);
-    }
-}
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGridScalableExv<variable_bin_width>::~HistogramManagerMTFFGridScalableExv() = default;
