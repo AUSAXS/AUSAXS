@@ -15,6 +15,7 @@
  #pragma once
 
 #include <hist/detail/data/WidthControllers.h>
+#include <hist/detail/data/IntrinsicHelpers.h>
 #include <math/Vector3.h>
 #include <constants/Constants.h>
 #include <settings/Flags.h>
@@ -149,7 +150,9 @@ namespace ausaxs::hist::detail::xyzw {
     static_assert(std::is_standard_layout_v<QuadEvaluatedResultRounded>, "hist::detail::QuadEvaluatedResultRounded is not trivial");
     static_assert(std::is_standard_layout_v<OctoEvaluatedResult>,        "hist::detail::OctoEvaluatedResult is not trivial");
     static_assert(std::is_standard_layout_v<OctoEvaluatedResultRounded>, "hist::detail::OctoEvaluatedResultRounded is not trivial");
+}
 
+namespace ausaxs::hist::detail {
     template<bool variable_bin_width>
     class CompactCoordinatesXYZW : public WidthController<variable_bin_width> {
         public:
@@ -163,30 +166,30 @@ namespace ausaxs::hist::detail::xyzw {
             /**
              * @brief Calculate the @a binned distance and combined weight between this and a single other CompactCoordinatesXYZW.
              */
-            EvaluatedResultRounded evaluate_rounded(const CompactCoordinatesXYZW& other) const noexcept;
+            xyzw::EvaluatedResultRounded evaluate_rounded(const CompactCoordinatesXYZW& other) const noexcept;
 
             /**
              * @brief Calculate the distance and combined weight between this and a single other CompactCoordinatesXYZW.
              */
-            EvaluatedResult evaluate(const CompactCoordinatesXYZW& other) const noexcept;
+            xyzw::EvaluatedResult evaluate(const CompactCoordinatesXYZW& other) const noexcept;
 
             /**
              * @brief Calculate the @a binned distance and combined weight between this and four other CompactCoordinatesXYZW.
              *        This leverages more efficient SIMD instructions by using a 128-bit registers (SSE).
              */
-            QuadEvaluatedResultRounded evaluate_rounded(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+            xyzw::QuadEvaluatedResultRounded evaluate_rounded(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
 
             /**
              * @brief Calculate the distance and combined weight between this and four other CompactCoordinatesXYZW.
              *        This leverages more efficient SIMD instructions by using a 128-bit registers (SSE).
              */
-            QuadEvaluatedResult evaluate(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+            xyzw::QuadEvaluatedResult evaluate(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
 
             /**
              * @brief Calculate the @a binned distance and combined weight between this and four other CompactCoordinatesXYZW.
              *        This leverages more efficient SIMD instructions by using either two 128-bit registers (SSE) or one 256-bit register (AVX).
              */
-            OctoEvaluatedResultRounded evaluate_rounded(
+            xyzw::OctoEvaluatedResultRounded evaluate_rounded(
                 const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
                 const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
             ) const noexcept;
@@ -195,7 +198,7 @@ namespace ausaxs::hist::detail::xyzw {
              * @brief Calculate the distance and combined weight between this and four other CompactCoordinatesXYZW.
              *        This leverages more efficient SIMD instructions by using either two 128-bit registers (SSE) or one 256-bit register (AVX).
              */
-            OctoEvaluatedResult evaluate(
+            xyzw::OctoEvaluatedResult evaluate(
                 const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
                 const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
             ) const noexcept;
@@ -206,33 +209,33 @@ namespace ausaxs::hist::detail::xyzw {
             };
 
         protected:
-            EvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZW& other) const noexcept;
-            EvaluatedResult evaluate_scalar(const CompactCoordinatesXYZW& other) const noexcept;
+            xyzw::EvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZW& other) const noexcept;
+            xyzw::EvaluatedResult evaluate_scalar(const CompactCoordinatesXYZW& other) const noexcept;
 
-            QuadEvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
-            QuadEvaluatedResult evaluate_scalar(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+            xyzw::QuadEvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+            xyzw::QuadEvaluatedResult evaluate_scalar(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
 
-            OctoEvaluatedResultRounded evaluate_rounded_scalar(
+            xyzw::OctoEvaluatedResultRounded evaluate_rounded_scalar(
                 const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
                 const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
             ) const noexcept;
-            OctoEvaluatedResult evaluate_scalar(
+            xyzw::OctoEvaluatedResult evaluate_scalar(
                 const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
                 const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
             ) const noexcept;
 
             #if defined __SSE2__
-                EvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZW& other) const noexcept;
-                EvaluatedResult evaluate_sse(const CompactCoordinatesXYZW& other) const noexcept;
+                xyzw::EvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZW& other) const noexcept;
+                xyzw::EvaluatedResult evaluate_sse(const CompactCoordinatesXYZW& other) const noexcept;
 
-                QuadEvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
-                QuadEvaluatedResult evaluate_sse(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+                xyzw::QuadEvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+                xyzw::QuadEvaluatedResult evaluate_sse(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
 
-                OctoEvaluatedResultRounded evaluate_rounded_sse(
+                xyzw::OctoEvaluatedResultRounded evaluate_rounded_sse(
                     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
                     const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
                 ) const noexcept;
-                OctoEvaluatedResult evaluate_sse(
+                xyzw::OctoEvaluatedResult evaluate_sse(
                     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
                     const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
                 ) const noexcept;
@@ -288,7 +291,7 @@ namespace ausaxs::hist::detail::xyzw {
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate(const CompactCoordinatesXYZW& other) const noexcept {
+inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate(const CompactCoordinatesXYZW& other) const noexcept {
     #if defined __SSE2__
         return evaluate_sse(other);
     #else
@@ -297,7 +300,7 @@ inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::xyzw::C
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded(const CompactCoordinatesXYZW& other) const noexcept {
+inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded(const CompactCoordinatesXYZW& other) const noexcept {
     #if defined __SSE2__
         return evaluate_rounded_sse(other);
     #else
@@ -306,7 +309,7 @@ inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate(
+inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
 ) const noexcept {
     #if defined __AVX__
@@ -319,7 +322,7 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::xyz
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded(
+inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
 ) const noexcept {
     #if defined __AVX__
@@ -332,7 +335,7 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate(
+inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
     const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
 ) const noexcept {
@@ -346,7 +349,7 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::xyz
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded(
+inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
     const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
 ) const noexcept {
@@ -360,13 +363,13 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_scalar(const CompactCoordinatesXYZW& other) const noexcept {
+inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_scalar(const CompactCoordinatesXYZW& other) const noexcept {
     float dist = std::sqrt(squared_dot_product(this->data.data(), other.data.data()));
     return EvaluatedResult(dist, value.w*other.value.w);
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_scalar(
+inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_scalar(
     const CompactCoordinatesXYZW& other
 ) const noexcept {
     int32_t dist = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), other.data.data())));
@@ -374,35 +377,35 @@ inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_scalar(
+inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_scalar(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
 ) const noexcept {
     float dx1 = std::sqrt(squared_dot_product(this->data.data(), v1.data.data()));
     float dx2 = std::sqrt(squared_dot_product(this->data.data(), v2.data.data()));
     float dx3 = std::sqrt(squared_dot_product(this->data.data(), v3.data.data()));
     float dx4 = std::sqrt(squared_dot_product(this->data.data(), v4.data.data()));
-    return QuadEvaluatedResult(
+    return xyzw::QuadEvaluatedResult(
         std::array<float, 4>{dx1, dx2, dx3, dx4},
         std::array<float, 4>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w}
     );
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_scalar(
+inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_scalar(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
 ) const noexcept {
     int32_t dx1 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v1.data.data())));
     int32_t dx2 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v2.data.data())));
     int32_t dx3 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v3.data.data())));
     int32_t dx4 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v4.data.data())));
-    return QuadEvaluatedResultRounded(
+    return xyzw::QuadEvaluatedResultRounded(
         std::array<int32_t, 4>{dx1, dx2, dx3, dx4},
         std::array<float, 4>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w}
     );
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_scalar(
+inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_scalar(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
     const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
 ) const noexcept {
@@ -414,14 +417,14 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::xyz
     float dx6 = std::sqrt(squared_dot_product(this->data.data(), v6.data.data()));
     float dx7 = std::sqrt(squared_dot_product(this->data.data(), v7.data.data()));
     float dx8 = std::sqrt(squared_dot_product(this->data.data(), v8.data.data()));
-    return OctoEvaluatedResult(
+    return xyzw::OctoEvaluatedResult(
         std::array<float, 8>{dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8},
         std::array<float, 8>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w, value.w*v5.value.w, value.w*v6.value.w, value.w*v7.value.w, value.w*v8.value.w}
     );
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_scalar(
+inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_scalar(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
     const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
 ) const noexcept {
@@ -433,72 +436,35 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     int32_t dx6 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v6.data.data())));
     int32_t dx7 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v7.data.data())));
     int32_t dx8 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v8.data.data())));
-    return OctoEvaluatedResultRounded(
+    return xyzw::OctoEvaluatedResultRounded(
         std::array<int32_t, 8>{dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8},
         std::array<float, 8>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w, value.w*v5.value.w, value.w*v6.value.w, value.w*v7.value.w, value.w*v8.value.w}
     );
 }
 
 #if defined __SSE2__
-    #include <nmmintrin.h>
-    namespace ausaxs::hist::detail {
-        enum OutputControl : int8_t {
-            ALL =    0b01111111,
-            FIRST =  0b01110001,
-            SECOND = 0b01110010,
-            THIRD =  0b01110100,
-            FOURTH = 0b01111000
-        };
-
-        /**
-        * @brief Calculate the squared distance between two CompactCoordinatesXYZW using 128-bit SSE2 instructions.
-        */
-        static inline __m128 squared_dot_product(const float* v1, const float* v2, OutputControl control) {
-            // load data into SSE registers
-            __m128 sv1 = _mm_load_ps(v1);
-            __m128 sv2 = _mm_load_ps(v2);
-            #if defined __SSE4_1__
-                // slightly more efficient intrinsic. the weird switch is required with Clang
-                __m128 diff = _mm_sub_ps(sv1, sv2);
-                switch (control) {
-                    case OutputControl::ALL:    return _mm_dp_ps(diff, diff, OutputControl::ALL);
-                    case OutputControl::FIRST:  return _mm_dp_ps(diff, diff, OutputControl::FIRST);
-                    case OutputControl::SECOND: return _mm_dp_ps(diff, diff, OutputControl::SECOND);
-                    case OutputControl::THIRD:  return _mm_dp_ps(diff, diff, OutputControl::THIRD);
-                    case OutputControl::FOURTH: return _mm_dp_ps(diff, diff, OutputControl::FOURTH);
-                    default: throw std::runtime_error("Invalid OutputControl");
-                }
-            #else
-                sv1[3] = sv2[3] = 0;                        // zero out the weights
-                __m128 diff = _mm_sub_ps(sv1, sv2);         // calculate the difference
-                __m128 multiplied = _mm_mul_ps(diff, diff); // square the difference
-                return _mm_hadd_ps(multiplied, multiplied); // sum the components
-            #endif
-        }
-    }
-
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_sse(
+    inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_sse(
         const CompactCoordinatesXYZW& other
     ) const noexcept {
         __m128 dist2 = squared_dot_product(this->data.data(), other.data.data(), OutputControl::ALL);
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         float dist = _mm_cvtss_f32(dist_sqrt);
-        return EvaluatedResult(dist, this->value.w*other.value.w);
+        return xyzw::EvaluatedResult(dist, this->value.w*other.value.w);
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
+    inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
         const CompactCoordinatesXYZW& other
     ) const noexcept {
         __m128 dist2 = squared_dot_product(this->data.data(), other.data.data(), OutputControl::ALL);
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         int32_t dist_bin = std::round(get_inv_width()*_mm_cvtss_f32(dist_sqrt));
-        return EvaluatedResultRounded(dist_bin, this->value.w*other.value.w);
+        return xyzw::EvaluatedResultRounded(dist_bin, this->value.w*other.value.w);
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_sse(
+    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_sse(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
         __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
@@ -517,14 +483,14 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
-        QuadEvaluatedResult result;
+        xyzw::QuadEvaluatedResult result;
         _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // efficient store of distances
         _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);             // efficient store of weights
         return result;
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
+    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
         __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
@@ -545,18 +511,18 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
-        QuadEvaluatedResultRounded result;
+        xyzw::QuadEvaluatedResultRounded result;
         _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin); // efficient store of bins
         _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);         // efficient store of weights
         return result;
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_sse(
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_sse(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
-        OctoEvaluatedResult result;
+        xyzw::OctoEvaluatedResult result;
         {   // first four
             __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
             __m128 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), OutputControl::SECOND);
@@ -597,11 +563,11 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
-        OctoEvaluatedResultRounded result;
+        xyzw::OctoEvaluatedResultRounded result;
         {   // first four
             __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
             __m128 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), OutputControl::SECOND);
@@ -647,48 +613,22 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
 #endif
 
 #if defined __AVX__
-    #include <immintrin.h>
-
-    namespace ausaxs::hist::detail {
-        /**
-        * @brief Calculate the squared distance between three CompactCoordinatesXYZW using AVX instructions.
-        */
-        static inline __m256 squared_dot_product(const float* v, const float* v1, const float* v2, OutputControl control) {
-            // load data into the 256 bit registers
-            __m128 sv = _mm_load_ps(v);
-            __m128 sv1 = _mm_load_ps(v1);
-            __m128 sv2 = _mm_load_ps(v2);
-
-            __m256 svv = _mm256_broadcast_ps(&sv);      // copy the first 128 bits to the second 128 bits
-            __m256 sv12 = _mm256_set_m128(sv2, sv1);    // combine the two 128 bit registers
-            __m256 diff = _mm256_sub_ps(svv, sv12);     // calculate the difference
-            switch (control) {
-                case OutputControl::ALL:    return _mm256_dp_ps(diff, diff, OutputControl::ALL);
-                case OutputControl::FIRST:  return _mm256_dp_ps(diff, diff, OutputControl::FIRST);
-                case OutputControl::SECOND: return _mm256_dp_ps(diff, diff, OutputControl::SECOND);
-                case OutputControl::THIRD:  return _mm256_dp_ps(diff, diff, OutputControl::THIRD);
-                case OutputControl::FOURTH: return _mm256_dp_ps(diff, diff, OutputControl::FOURTH);
-                default: throw std::runtime_error("Invalid OutputControl");
-            }
-        }
-    }
-
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_avx(
+    inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx(
         const CompactCoordinatesXYZW& other
     ) const noexcept {
         return evaluate_sse(other); // no way to optimize a single evaluation with AVX
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
+    inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
         const CompactCoordinatesXYZW& other
     ) const noexcept {
         return evaluate_rounded_sse(other); // no way to optimize a single evaluation with AVX
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_avx(
+    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
         __m256 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), v3.data.data(), OutputControl::FIRST); // |Δx1^2|0    |0    |0    |Δx3^2|0    |0    |0    |
@@ -705,14 +645,14 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
-        QuadEvaluatedResult result;
+        xyzw::QuadEvaluatedResult result;
         _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // efficient store of distances
         _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);             // efficient store of weights
         return result;
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
+    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
         __m256 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), v3.data.data(), OutputControl::FIRST); // |Δx1^2|0    |0    |0    |Δx3^2|0    |0    |0    |
@@ -731,14 +671,14 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
-        QuadEvaluatedResultRounded result;
+        xyzw::QuadEvaluatedResultRounded result;
         _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin);  // efficient store of bins
         _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);          // efficient store of weights
         return result;
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_avx(
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
@@ -756,14 +696,14 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m256 w2 = _mm256_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w, v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m256 weights = _mm256_mul_ps(w1, w2);
 
-        OctoEvaluatedResult result;
+        xyzw::OctoEvaluatedResult result;
         _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);          // efficient store of distances
         _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);              // efficient store of weights
         return result;
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::xyzw::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
@@ -783,7 +723,7 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m256 w2 = _mm256_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w, v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m256 weights = _mm256_mul_ps(w1, w2);
 
-        OctoEvaluatedResultRounded result;
+        xyzw::OctoEvaluatedResultRounded result;
         _mm256_store_si256(reinterpret_cast<__m256i*>(result.distances.data()), dist_bin);   // efficient store of bins
         _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);           // efficient store of weights
         return result;

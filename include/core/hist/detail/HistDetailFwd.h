@@ -5,6 +5,5 @@
 
 namespace ausaxs::hist::detail {
     template<bool variable_bin_width> class CompactCoordinates;
-    template<bool variable_bin_width> class CompactCoordinatesData;
     template<bool variable_bin_width> class CompactCoordinatesFF;
 }

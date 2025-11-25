@@ -27,12 +27,12 @@ namespace ausaxs::hist::detail {
 
     template<bool vbw>
     struct CoordinateTypeMapper<CoordinateTypeXYZW, vbw> {
-        using type = xyzw::CompactCoordinatesXYZW<vbw>;
+        using type = CompactCoordinatesXYZW<vbw>;
     };
 
     template<bool vbw>
     struct CoordinateTypeMapper<CoordinateTypeXYZFF, vbw> {
-        using type = xyzff::CompactCoordinatesXYZFF<vbw>;
+        using type = CompactCoordinatesXYZFF<vbw>;
     };
 
     /**
