@@ -39,7 +39,7 @@ BodySymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transfor
                 sym_atomic[i_repeat].get_data().begin(), 
                 sym_atomic[i_repeat].get_data().end(), 
                 sym_atomic[i_repeat].get_data().begin(), 
-                [t=std::move(t)] (const CompactCoordinatesData<variable_bin_width>& v) -> CompactCoordinatesData<variable_bin_width> {return {t(v.value.pos), v.value.w}; }
+                [t=std::move(t)] (const CompactCoordinatesXYZW<variable_bin_width>& v) -> CompactCoordinatesXYZW<variable_bin_width> {return {t(v.value.pos), v.value.w}; }
             );
         }
         atomic[1+i_sym_1] = std::move(sym_atomic);
@@ -64,7 +64,7 @@ SymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transformed_
             sym_atomic[i_repeat].get_data().begin(), 
             sym_atomic[i_repeat].get_data().end(), 
             sym_atomic[i_repeat].get_data().begin(), 
-            [t=std::move(t)] (const CompactCoordinatesData<variable_bin_width>& v) -> CompactCoordinatesData<variable_bin_width> {return {t(v.value.pos), v.value.w}; }
+            [t=std::move(t)] (const CompactCoordinatesXYZW<variable_bin_width>& v) -> CompactCoordinatesXYZW<variable_bin_width> {return {t(v.value.pos), v.value.w}; }
         );
     }
     return {std::move(sym_atomic)}; 

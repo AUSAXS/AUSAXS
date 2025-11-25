@@ -151,7 +151,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         p_aa.add(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, std::pow(data_a[i].value.w, 2));
         p_xx.add(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 1);
     }
-    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<vbw>& data) {return sum + std::pow(data.value.w, 2);}));
+    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesXYZW<vbw>& data) {return sum + std::pow(data.value.w, 2);}));
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
     GenericDistribution1D_t p_tot(settings::axes::bin_count);
