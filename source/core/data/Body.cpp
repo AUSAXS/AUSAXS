@@ -44,6 +44,8 @@ auto convert_atom_atomff = [] (const std::vector<data::Atom>& atoms) {
     std::vector<data::AtomFF> atoms_ff;
     atoms_ff.reserve(atoms.size());
     for (auto& a : atoms) {
+        // Assign UNKNOWN form factor when no form factor information is available
+        // This will trigger an error if the form factor is actually used in calculations
         atoms_ff.emplace_back(a, form_factor::form_factor_t::UNKNOWN);
     }
     return atoms_ff;
