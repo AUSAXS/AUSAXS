@@ -70,7 +70,7 @@ template<bool vbw>
 inline ausaxs::hist::detail::CompactCoordinatesFF<vbw>::CompactCoordinatesFF(const data::Body& body) : CompactCoordinates<vbw>(body.size_atom()), ff_types(body.size_atom()) {
     for (unsigned int i = 0; i < this->size(); ++i) {
         const auto& a = body.get_atom(i); 
-        this->data[i] = hist::detail::xyzff::CompactCoordinatesXYZFF<vbw>(a.coordinates(), a.weight());
+        this->data[i] = CompactCoordinatesXYZFF<vbw>(a.coordinates(), a.weight());
         ff_types[i] = static_cast<int>(a.form_factor_type());
     }
     validate_ff_info(*this);
@@ -84,7 +84,7 @@ inline ausaxs::hist::detail::CompactCoordinatesFF<vbw>::CompactCoordinatesFF(con
     unsigned int i = 0;
     for (const auto& body : bodies) {
         for (const auto& a : body.get_atoms()) {
-            this->data[i] = hist::detail::xyzff::CompactCoordinatesXYZFF<vbw>(a.coordinates(), a.weight());
+            this->data[i] = CompactCoordinatesXYZFF<vbw>(a.coordinates(), a.weight());
             ff_types[i++] = static_cast<int>(a.form_factor_type());
         }
     }
@@ -95,7 +95,7 @@ template<bool vbw>
 inline ausaxs::hist::detail::CompactCoordinatesFF<vbw>::CompactCoordinatesFF(const std::vector<data::Water>& atoms) : CompactCoordinates<vbw>(atoms.size()), ff_types(atoms.size()) {
     for (unsigned int i = 0; i < this->size(); ++i) {
         const auto& a = atoms[i]; 
-        this->data[i] = hist::detail::xyzff::CompactCoordinatesXYZFF<vbw>(a.coordinates(), a.weight());
+        this->data[i] = CompactCoordinatesXYZFF<vbw>(a.coordinates(), a.weight());
         ff_types[i] = static_cast<int>(a.form_factor_type());
     }
     validate_ff_info(*this);

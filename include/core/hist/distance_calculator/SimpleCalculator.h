@@ -133,7 +133,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
                 data.get_data().begin(), 
                 data.get_data().end(), 
                 0.0, 
-                [] (double sum, const hist::detail::CompactCoordinatesData<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
+                [] (double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
             ));
         }
     );
