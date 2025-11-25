@@ -4,7 +4,7 @@
 #pragma once
 
 #include <hist/histogram_manager/HistogramManager.h>
-#include <hist/detail/CompactCoordinatesFF.h>
+#include <hist/detail/CompactCoordinates.h>
 
 namespace ausaxs::hist {
 	/**

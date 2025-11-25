@@ -7,7 +7,7 @@
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
-#include <hist/detail/CompactCoordinatesFF.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
 #include <settings/ExvSettings.h>

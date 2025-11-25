@@ -43,8 +43,12 @@ namespace ausaxs::hist::detail {
      */
     template<CompactCoordinatesType CoordType, bool variable_bin_width>
     class CompactCoordinatesTemplate {
-        public:
-            using DataType = typename CoordinateTypeMapper<CoordType, variable_bin_width>::type;
+        using DataType = typename CoordinateTypeMapper<CoordType, variable_bin_width>::type;
+        using NonCoordinateType = typename std::conditional_t<std::is_same_v<CoordType, CoordinateTypeXYZW>,
+            float,
+            int32_t
+        >;
+
         public:
             CompactCoordinatesTemplate() = default;
 
@@ -80,6 +84,11 @@ namespace ausaxs::hist::detail {
              */
             void implicit_excluded_volume(double volume_per_atom);
 
+            /**
+             * @brief Get the non-coordinate (fourth-column) value. 
+             */
+            NonCoordinateType get_non_coordinate_value(unsigned int i) const;
+
             std::size_t size() const;
 
             std::vector<DataType>& get_data();
@@ -91,21 +100,6 @@ namespace ausaxs::hist::detail {
         protected: 
             std::vector<DataType> data;
     };
-
-    // Type aliases for backward compatibility
-    // CompactCoordinates uses weight-based coordinates (XYZW)
-    template<bool variable_bin_width>
-    using CompactCoordinates = CompactCoordinatesTemplate<CoordinateTypeXYZW, variable_bin_width>;
-
-    // CompactCoordinatesFF uses form factor-based coordinates (XYZFF)
-    template<bool variable_bin_width>
-    using CompactCoordinatesFF = CompactCoordinatesTemplate<CoordinateTypeXYZFF, variable_bin_width>;
-
-    // Static assertions for concrete instantiations
-    static_assert(supports_nothrow_move_v<CompactCoordinates<true>>, "CompactCoordinates should support nothrow move semantics.");
-    static_assert(supports_nothrow_move_v<CompactCoordinates<false>>, "CompactCoordinates should support nothrow move semantics.");
-    static_assert(supports_nothrow_move_v<CompactCoordinatesFF<true>>, "CompactCoordinatesFF should support nothrow move semantics.");
-    static_assert(supports_nothrow_move_v<CompactCoordinatesFF<false>>, "CompactCoordinatesFF should support nothrow move semantics.");
 }
 
 //#########################################//
@@ -113,9 +107,6 @@ namespace ausaxs::hist::detail {
 //#########################################//
 
 // implementation defined in header to support efficient inlining
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(unsigned int size) : data(size) {}
-
 namespace ausaxs::hist::detail {
     template<CompactCoordinatesType CoordType, bool vbw>
     typename CoordinateTypeMapper<CoordType, vbw>::type GenericConstructor(const data::AtomFF& a) {
@@ -127,11 +118,29 @@ namespace ausaxs::hist::detail {
             return DataType(a.coordinates(), static_cast<int32_t>(a.form_factor_type()));
         }
     }
+
+    template<CompactCoordinatesType CoordType, bool vbw>
+    typename CoordinateTypeMapper<CoordType, vbw>::type GenericConstructor(const data::Water& a) {
+        using DataType = typename CoordinateTypeMapper<CoordType, vbw>::type;
+        if constexpr (std::is_same_v<CoordType, CoordinateTypeXYZW>) {
+            return DataType(a.coordinates(), a.weight());
+        } else {
+            static_assert(std::is_same_v<CoordType, CoordinateTypeXYZFF>, "Type must be CoordinateTypeXYZFF");
+            return DataType(a.coordinates(), static_cast<int32_t>(a.form_factor_type()));
+        }
+    }
+}
+
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(unsigned int size) : data(size) {}
+
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_non_coordinate_value(unsigned int i) const {
+    return data[i].data[3];
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
 inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(std::vector<Vector3<double>>&& coordinates, double weight) : data(coordinates.size()) {
-    using DataType = typename CoordinateTypeMapper<CoordType, vbw>::type;
     std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return DataType(v, weight);});
 }
 

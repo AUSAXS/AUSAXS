@@ -5,7 +5,7 @@
 
 #include <hist/distance_calculator/detail/TemplateHelpersFFAvg2D.h>
 #include <hist/distribution/GenericDistribution2D.h>
-#include <hist/detail/CompactCoordinatesFF.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <form_factor/FormFactorType.h>
 
 namespace ausaxs {
