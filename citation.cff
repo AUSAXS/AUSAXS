@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the article listed below."
+authors:
+- family-names: "Lytje"
+  given-names: "Kristian"
+  orcid: "https://orcid.org/0000-0001-8743-7990"
+title: "AUSAXS"
+url: "https://github.com/AUSAXS/AUSAXS"
+preferred-citation:
+  authors:
+  - family-names: "Lytje"
+    given-names: "Kristian"
+    orcid: "https://orcid.org/0000-0001-8743-7990"
+  - family-names: "Pedersen"
+    given-names: "Jan Skov"
+    orcid: "https://orcid.org/0000-0002-7768-0206"
+  title: "Small-angle X-ray scattering profile calculation for high-resolution models of biomacromolecules"
+  doi: 10.1107/S160057672500562X
+  date-released: "2025-07-16"
+  type: article
