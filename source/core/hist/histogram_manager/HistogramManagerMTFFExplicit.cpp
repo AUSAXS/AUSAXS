@@ -35,9 +35,9 @@ void evaluate_aa8(
     int ff_i = data_a.get_ff_type(i);
     for (unsigned int k = 0; k < 8; ++k) {
         int ff_j = data_a.get_ff_type(j+k);
-        p_aa.add(ff_i, ff_j, res.distances[k], factor);
-        p_ax.add(ff_i, ff_j, res.distances[k], factor);
-        p_xx.add(ff_i, ff_j, res.distances[k], factor);
+        p_aa.template increment<factor>(ff_i, ff_j, res.distances[k]);
+        p_ax.template increment<factor>(ff_i, ff_j, res.distances[k]);
+        p_xx.template increment<factor>(ff_i, ff_j, res.distances[k]);
     }
 }
 
@@ -52,9 +52,9 @@ void evaluate_aa4(
     int ff_i = data_a.get_ff_type(i);
     for (unsigned int k = 0; k < 4; ++k) {
         int ff_j = data_a.get_ff_type(j+k);
-        p_aa.add(ff_i, ff_j, res.distances[k], factor);
-        p_ax.add(ff_i, ff_j, res.distances[k], factor);
-        p_xx.add(ff_i, ff_j, res.distances[k], factor);
+        p_aa.template increment<factor>(ff_i, ff_j, res.distances[k]);
+        p_ax.template increment<factor>(ff_i, ff_j, res.distances[k]);
+        p_xx.template increment<factor>(ff_i, ff_j, res.distances[k]);
     }
 }
 
@@ -68,9 +68,9 @@ void evaluate_aa1(
     auto res = ausaxs::detail::add1::evaluate<wb>(data_a, data_a, i, j);
     int ff_i = data_a.get_ff_type(i);
     int ff_j = data_a.get_ff_type(j);
-    p_aa.add(ff_i, ff_j, res.distance, factor);
-    p_ax.add(ff_i, ff_j, res.distance, factor);
-    p_xx.add(ff_i, ff_j, res.distance, factor);
+    p_aa.template increment<factor>(ff_i, ff_j, res.distance);
+    p_ax.template increment<factor>(ff_i, ff_j, res.distance);
+    p_xx.template increment<factor>(ff_i, ff_j, res.distance);
 }
 
 // Local evaluation helpers for FFExplicit - atom-water (2 x 2D histograms: wa, wx)
@@ -84,8 +84,8 @@ void evaluate_wa8(
     auto res = ausaxs::detail::add8::evaluate<wb>(data_a, data_w, i, j);
     int ff_i = data_a.get_ff_type(i);
     for (unsigned int k = 0; k < 8; ++k) {
-        p_wa.add(ff_i, res.distances[k], factor);
-        p_wx.add(ff_i, res.distances[k], factor);
+        p_wa.template increment<factor>(ff_i, res.distances[k]);
+        p_wx.template increment<factor>(ff_i, res.distances[k]);
     }
 }
 
@@ -99,8 +99,8 @@ void evaluate_wa4(
     auto res = ausaxs::detail::add4::evaluate<wb>(data_a, data_w, i, j);
     int ff_i = data_a.get_ff_type(i);
     for (unsigned int k = 0; k < 4; ++k) {
-        p_wa.add(ff_i, res.distances[k], factor);
-        p_wx.add(ff_i, res.distances[k], factor);
+        p_wa.template increment<factor>(ff_i, res.distances[k]);
+        p_wx.template increment<factor>(ff_i, res.distances[k]);
     }
 }
 
@@ -113,34 +113,32 @@ void evaluate_wa1(
 ) {
     auto res = ausaxs::detail::add1::evaluate<wb>(data_a, data_w, i, j);
     int ff_i = data_a.get_ff_type(i);
-    p_wa.add(ff_i, res.distance, factor);
-    p_wx.add(ff_i, res.distance, factor);
+    p_wa.template increment<factor>(ff_i, res.distance);
+    p_wx.template increment<factor>(ff_i, res.distance);
 }
 
 // Local evaluation helpers for FFExplicit - water-water (1D: distance)
+// Water molecules all have the same form factor type, so we just need distances.
 template<bool wb, bool vbw, int factor>
 void evaluate_ww8(typename hist::GenericDistribution1D<wb>::type& p, const hist::detail::CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<vbw>&>(data_w);
-    auto res = ausaxs::detail::add8::evaluate<wb>(data_w_base, data_w_base, i, j);
+    auto res = ausaxs::detail::add8::evaluate<wb>(data_w, data_w, i, j);
     for (unsigned int k = 0; k < 8; ++k) {
-        p.template add<factor>(res.distances[k], res.weights[k]);
+        p.template increment<factor>(res.distances[k]);
     }
 }
 
 template<bool wb, bool vbw, int factor>
 void evaluate_ww4(typename hist::GenericDistribution1D<wb>::type& p, const hist::detail::CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<vbw>&>(data_w);
-    auto res = ausaxs::detail::add4::evaluate<wb>(data_w_base, data_w_base, i, j);
+    auto res = ausaxs::detail::add4::evaluate<wb>(data_w, data_w, i, j);
     for (unsigned int k = 0; k < 4; ++k) {
-        p.template add<factor>(res.distances[k], res.weights[k]);
+        p.template increment<factor>(res.distances[k]);
     }
 }
 
 template<bool wb, bool vbw, int factor>
 void evaluate_ww1(typename hist::GenericDistribution1D<wb>::type& p, const hist::detail::CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<vbw>&>(data_w);
-    auto res = ausaxs::detail::add1::evaluate<wb>(data_w_base, data_w_base, i, j);
-    p.template add<factor>(res.distance, res.weight);
+    auto res = ausaxs::detail::add1::evaluate<wb>(data_w, data_w, i, j);
+    p.template increment<factor>(res.distance);
 }
 
 template<bool wb, bool vbw>

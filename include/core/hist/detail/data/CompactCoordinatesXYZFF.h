@@ -529,8 +529,8 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         __m128 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
 
         xyzff::QuadEvaluatedResult result;
-        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt); // efficient store of distances
-        _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);     // efficient store of ff_bins
+        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);  // store distances
+        _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);      // store ff_bins (bit pattern is already int)
         return result;
     }
 
@@ -550,12 +550,12 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
 
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // cast to int
+        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // convert float distances to int bins
         __m128 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
 
         xyzff::QuadEvaluatedResultRounded result;
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin); // efficient store of bins
-        _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);         // efficient store of ff_bins
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin); // store distance bins
+        _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);         // store ff_bins (bit pattern is already int)
         return result;
     }
 
@@ -590,7 +590,7 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
             dist2 = _mm_add_ps(dist2, dist2_3);
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            __m128 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
+            __m128 ff_bins = xyzff::ff_bin_index(*this, v5, v6, v7, v8);
 
             _mm_store_ps(reinterpret_cast<float*>(result.distances.data()+4), dist_sqrt);
             _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()+4), ff_bins);
@@ -615,7 +615,7 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
             __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));   // multiply by the inverse width
-            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                            // cast to int
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                            // convert float distances to int bins
             __m128 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
 
             _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin);
@@ -632,8 +632,8 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
             __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));   // multiply by the inverse width
-            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                            // cast to int
-            __m128 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                            // convert float distances to int bins
+            __m128 ff_bins = xyzff::ff_bin_index(*this, v5, v6, v7, v8);
 
             _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()+4), dist_bin);
             _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()+4), ff_bins);
@@ -689,8 +689,8 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         __m128 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
 
         xyzff::QuadEvaluatedResult result;
-        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // efficient store of distances
-        _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);             // efficient store of ff_bins
+        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);  // store distances
+        _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);      // store ff_bins (bit pattern is already int)
         return result;
     }
 
@@ -708,12 +708,12 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         __m128 dist2 = _mm_add_ps(dist2_128_lower, dist2_128_upper);            // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));       // multiply by the inverse width
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                             // cast to int
+        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                             // convert float distances to int bins
         __m128 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
 
         xyzff::QuadEvaluatedResultRounded result;
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin);  // efficient store of bins
-        _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);          // efficient store of ff_bins
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin);  // store distance bins
+        _mm_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);          // store ff_bins (bit pattern is already int)
         return result;
     }
 
@@ -734,8 +734,8 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         __m256 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4, v5, v6, v7, v8);
 
         xyzff::OctoEvaluatedResult result;
-        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);          // efficient store of distances
-        _mm256_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);              // efficient store of ff_bins
+        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);  // store distances
+        _mm256_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);      // store ff_bins (bit pattern is already int)
         return result;
     }
 
@@ -754,12 +754,12 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         dist2_256 = _mm256_add_ps(dist2_256, dist2_4);                                                                 // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|Δx5^2|Δx6^2|Δx7^2|Δx8^2|
         __m256 dist_sqrt = _mm256_sqrt_ps(dist2_256);
         __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())); // multiply by the inverse width
-        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);                             // cast to int
+        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);                             // convert float distances to int bins
         __m256 ff_bins = xyzff::ff_bin_index(*this, v1, v2, v3, v4, v5, v6, v7, v8);
 
         xyzff::OctoEvaluatedResultRounded result;
-        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distances.data()), dist_bin);   // efficient store of bins
-        _mm256_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);           // efficient store of ff_bins
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distances.data()), dist_bin);  // store distance bins
+        _mm256_store_ps(reinterpret_cast<float*>(result.ff_bins.data()), ff_bins);          // store ff_bins (bit pattern is already int)
         return result;
     }
 #endif

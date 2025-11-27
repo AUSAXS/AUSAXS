@@ -136,7 +136,9 @@ inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::Compact
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
 inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_non_coordinate_value(unsigned int i) const {
-    return data[i].data[3];
+    // reinterpret the fourth element of the data as the non-coordinate type
+    // this must be done as the int32_t is stored as a float internally
+    return *reinterpret_cast<const ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType*>(&data[i].data[3]);
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
