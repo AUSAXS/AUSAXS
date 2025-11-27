@@ -57,6 +57,7 @@ template<int N>
 inline void ausaxs::hist::detail::WeightedEntry::increment(float distance) {
     count += N;
     bin_center += N*distance;
+    value += N;
 }
 
 template<int N>

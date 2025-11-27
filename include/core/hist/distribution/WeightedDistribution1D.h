@@ -93,7 +93,8 @@ namespace ausaxs::hist {
              */
             template<int N = 1>
             void increment(float distance) {
-                index(std::round(distance)).increment<N>(distance);
+                int i = std::round(distance*settings::flags::inv_bin_width);
+                index(i).increment<N>(distance);
             }
 
             /**

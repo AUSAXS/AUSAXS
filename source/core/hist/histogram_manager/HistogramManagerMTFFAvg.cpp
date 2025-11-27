@@ -84,31 +84,31 @@ void evaluate_aw1(typename hist::GenericDistribution2D<wb>::type& p, const hist:
 }
 
 // Local evaluation helpers for FFAvg - water-water (1D: distance)
-// Water has constant form factor, so cast to base CompactCoordinates and just compute distances
+// Water molecules all have the same form factor type, so we just need distances.
+// For weighted bins, all waters have effective weight 1.0.
 template<bool wb, bool vbw, int factor>
 void evaluate_ww8(typename hist::GenericDistribution1D<wb>::type& p, const hist::detail::CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-    // reinterpret_cast since CompactCoordinatesFF and CompactCoordinates are unrelated types
-    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<vbw>&>(data_w);
-    auto res = ausaxs::detail::add8::evaluate<wb>(data_w_base, data_w_base, i, j);
+    auto res = ausaxs::detail::add8::evaluate<wb>(data_w, data_w, i, j);
     for (unsigned int k = 0; k < 8; ++k) {
-        p.template add<factor>(res.distances[k], res.weights[k]);
+        if constexpr (wb) {p.template add<factor>(res.distances[k], 1.0f);}
+        else {p.template increment<factor>(res.distances[k]);}
     }
 }
 
 template<bool wb, bool vbw, int factor>
 void evaluate_ww4(typename hist::GenericDistribution1D<wb>::type& p, const hist::detail::CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<vbw>&>(data_w);
-    auto res = ausaxs::detail::add4::evaluate<wb>(data_w_base, data_w_base, i, j);
+    auto res = ausaxs::detail::add4::evaluate<wb>(data_w, data_w, i, j);
     for (unsigned int k = 0; k < 4; ++k) {
-        p.template add<factor>(res.distances[k], res.weights[k]);
+        if constexpr (wb) {p.template add<factor>(res.distances[k], 1.0f);}
+        else {p.template increment<factor>(res.distances[k]);}
     }
 }
 
 template<bool wb, bool vbw, int factor>
 void evaluate_ww1(typename hist::GenericDistribution1D<wb>::type& p, const hist::detail::CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-    auto& data_w_base = reinterpret_cast<const hist::detail::CompactCoordinates<vbw>&>(data_w);
-    auto res = ausaxs::detail::add1::evaluate<wb>(data_w_base, data_w_base, i, j);
-    p.template add<factor>(res.distance, res.weight);
+    auto res = ausaxs::detail::add1::evaluate<wb>(data_w, data_w, i, j);
+    if constexpr (wb) {p.template add<factor>(res.distance, 1.0f);}
+    else {p.template increment<factor>(res.distance);}
 }
 
 template<bool wb, bool vbw>
