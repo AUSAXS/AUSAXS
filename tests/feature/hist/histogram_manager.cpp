@@ -17,7 +17,7 @@
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <io/ExistingFile.h>
 #include <settings/All.h>
 #include <constants/Constants.h>

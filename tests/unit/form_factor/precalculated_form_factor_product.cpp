@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <constants/Constants.h>
 
@@ -10,16 +10,16 @@ using namespace ausaxs;
 using namespace form_factor;
 
 TEST_CASE("PrecalculatedFormFactorProduct::constructor") {
-    SECTION("from two FormFactors") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
-        const FormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
+    SECTION("from two NormalizedFormFactors") {
+        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
         
         PrecalculatedFormFactorProduct ff(C, H);
         CHECK(ff.evaluate(0) > 0);
     }
 
-    SECTION("from FormFactor and ExvFormFactor") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+    SECTION("from NormalizedFormFactor and ExvFormFactor") {
+        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
         const ExvFormFactor& exv = storage::exv::standard.get_form_factor(form_factor_t::C);
         
         PrecalculatedFormFactorProduct ff(C, exv);
@@ -37,8 +37,8 @@ TEST_CASE("PrecalculatedFormFactorProduct::constructor") {
 
 TEST_CASE("PrecalculatedFormFactorProduct::evaluate") {
     SECTION("matches manual calculation") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
-        const FormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
+        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
         
         PrecalculatedFormFactorProduct ff(C, H);
         for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -48,8 +48,8 @@ TEST_CASE("PrecalculatedFormFactorProduct::evaluate") {
     }
 
     SECTION("symmetric") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
-        const FormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
+        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
         
         PrecalculatedFormFactorProduct ff1(C, H);
         PrecalculatedFormFactorProduct ff2(H, C);
@@ -60,7 +60,7 @@ TEST_CASE("PrecalculatedFormFactorProduct::evaluate") {
     }
 
     SECTION("same form factor squared") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
         
         PrecalculatedFormFactorProduct ff(C, C);
         for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -74,8 +74,8 @@ TEST_CASE("PrecalculatedFormFactorProduct::all_pairs") {
     SECTION("all atomic form factor pairs") {
         for (unsigned int ff1 = 0; ff1 < get_count(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count(); ++ff2) {
-                const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
-                const FormFactor& ff2_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff2));
+                const NormalizedFormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
+                const NormalizedFormFactor& ff2_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff2));
                 PrecalculatedFormFactorProduct ff(ff1_obj, ff2_obj);
                 
                 for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -116,8 +116,8 @@ TEST_CASE("storage::atomic::get_precalculated_form_factor_table") {
     SECTION("table access") {
         const auto& table = storage::atomic::get_precalculated_form_factor_table();
         
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
-        const FormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
+        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
         
         const auto& ff = table.index(
             static_cast<unsigned int>(form_factor_t::C),
@@ -135,8 +135,8 @@ TEST_CASE("storage::atomic::get_precalculated_form_factor_table") {
         
         for (unsigned int ff1 = 0; ff1 < get_count(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count(); ++ff2) {
-                const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
-                const FormFactor& ff2_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff2));
+                const NormalizedFormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
+                const NormalizedFormFactor& ff2_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff2));
                 const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
                 
                 for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {

@@ -3,6 +3,7 @@
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <table/ArrayDebyeTable.h>
 #include <settings/GridSettings.h>
@@ -33,7 +34,7 @@ CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
 template<FormFactorType T>
 void CompositeDistanceHistogramFFGrid::regenerate_ff_table(T&& ffx) {ff_table = generate_ff_table(std::move(ffx));}
 template void CompositeDistanceHistogramFFGrid::regenerate_ff_table(ExvFormFactor&&);
-template void CompositeDistanceHistogramFFGrid::regenerate_ff_table(FormFactor&&);
+template void CompositeDistanceHistogramFFGrid::regenerate_ff_table(NormalizedFormFactor&&);
 
 double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
     return free_params.cx;
@@ -73,7 +74,7 @@ form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate
     return table;
 }
 template form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(ExvFormFactor&&);
-template form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(FormFactor&&);
+template form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(NormalizedFormFactor&&);
 
 void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
     auto pool = utility::multi_threading::get_global_pool();

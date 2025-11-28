@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
@@ -81,7 +81,7 @@ TEST_CASE("storage::cross::get_precalculated_form_factor_product") {
     }
 
     SECTION("matches manual calculation") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
         const ExvFormFactor& N_exv = storage::exv::standard.get_form_factor(form_factor_t::N);
         
         const auto& ff = storage::cross::get_precalculated_form_factor_product(
@@ -100,7 +100,7 @@ TEST_CASE("storage::cross::get_precalculated_form_factor_table") {
     SECTION("table access") {
         const auto& table = storage::cross::get_precalculated_form_factor_table();
         
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
         const ExvFormFactor& N_exv = storage::exv::standard.get_form_factor(form_factor_t::N);
         
         const auto& ff = table.index(
@@ -119,7 +119,7 @@ TEST_CASE("storage::cross::get_precalculated_form_factor_table") {
         
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
+                const NormalizedFormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = storage::exv::standard.get_form_factor(static_cast<form_factor_t>(ff2));
                 const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
                 
@@ -183,7 +183,7 @@ TEST_CASE("ExvSet switching") {
         
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
+                const NormalizedFormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = ffset.get_form_factor(static_cast<form_factor_t>(ff2));
                 const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
                 

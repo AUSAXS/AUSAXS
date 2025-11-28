@@ -198,7 +198,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
 }
 
 #include <form_factor/ExvFormFactor.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
 TEST_CASE("6lyz_exv", "[manual]") {
     auto exact = [] (const data::Molecule& molecule, double exv_radius) {
         container::Container2D<double> distances(molecule.get_atoms().size(), molecule.get_atoms().size());
@@ -211,7 +211,7 @@ TEST_CASE("6lyz_exv", "[manual]") {
 
         auto qaxis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         auto q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
-        form_factor::FormFactor ff = form_factor::ExvFormFactor(std::pow(2*exv_radius, 3));
+        form_factor::NormalizedFormFactor ff = form_factor::ExvFormFactor(std::pow(2*exv_radius, 3));
         hist::ScatteringProfile I(qaxis);
         for (unsigned int q = q0; q < q0+qaxis.bins; ++q) {
             double sum = 0;
