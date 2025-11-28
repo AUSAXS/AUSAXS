@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <constants/Constants.h>
 
 #if CONSTEXPR_TABLES

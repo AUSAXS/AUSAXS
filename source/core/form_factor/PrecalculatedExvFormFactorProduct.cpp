@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
 

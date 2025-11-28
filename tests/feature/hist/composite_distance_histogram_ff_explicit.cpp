@@ -5,7 +5,7 @@
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <data/Molecule.h>
 #include <data/Body.h>

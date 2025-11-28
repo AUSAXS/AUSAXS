@@ -26,7 +26,7 @@ TEST_CASE("PrecalculatedFormFactorProduct::evaluate") {
     SECTION("cross") {
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
+                const NormalizedFormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = storage::exv::standard.get_form_factor(static_cast<form_factor_t>(ff2));
                 PrecalculatedFormFactorProduct ff(ff1_obj, ff2_obj);
                 for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -56,7 +56,7 @@ TEST_CASE("PrecalculatedFormFactorProduct::table") {
         const auto& table = storage::cross::get_precalculated_form_factor_table();
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
+                const NormalizedFormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = storage::exv::standard.get_form_factor(static_cast<form_factor_t>(ff2));
                 const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
                 for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -89,7 +89,7 @@ TEST_CASE("ExvFormFactor: switch volumes") {
             auto ffset = form_factor::detail::ExvFormFactorSet(vols);
             for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                    const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
+                    const NormalizedFormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
                     const ExvFormFactor& ff2_obj = ffset.get_form_factor(static_cast<form_factor_t>(ff2));
                     const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
                     for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
