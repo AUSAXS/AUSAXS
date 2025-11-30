@@ -71,5 +71,17 @@ namespace ausaxs::hist {
              *        This is intended to be used by the fitter to set correct limits. 
              */
             virtual Limit get_debye_waller_factor_limits() const;
+
+            /**
+             * @brief Get the raw unweighted total counts histogram (i.e., without form factor weighting).
+             */
+            virtual const std::vector<double>& get_total_raw_counts() const = 0;
+            std::vector<double>& get_total_raw_counts(); // @copydoc get_total_counts() const
+
+            /**
+             * @brief Get the total raw counts. This is equivalent to get_total_raw_counts().
+             */
+            const std::vector<double>& get_raw_counts() const;
+            std::vector<double>& get_raw_counts(); // @copydoc get_counts() const
     };
 }

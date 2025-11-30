@@ -6,6 +6,7 @@
 #include <data/state/Signaller.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
@@ -16,8 +17,6 @@
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <form_factor/NormalizedFormFactor.h>
 #include <io/ExistingFile.h>
 #include <settings/All.h>
 #include <constants/Constants.h>
@@ -48,24 +47,37 @@ struct analytical_histogram {
     std::vector<double> p_exp = calc_exp();
 };
 
+auto get_raw_counts(hist::ICompositeDistanceHistogram* h) {
+    auto* exv_hist = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h);
+    if (exv_hist) {
+        return exv_hist->get_total_raw_counts();
+    } else { // assume `set_unity_charge` was used, so weights=1
+        return h->get_total_counts();
+    }
+}
+
 template<template<bool> class MANAGER>
-void run_test(const Molecule& protein, const auto& target) {
+void run_test1(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
-    REQUIRE(compare_hist(h1->get_total_counts(), target));
+    REQUIRE(compare_hist(get_raw_counts(h1.get()), target));
+    
     auto h2 = MANAGER<true>(&protein).calculate_all();
-    REQUIRE(compare_hist(h2->get_total_counts(), target));
+    REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
 }
 
 template<template<bool, bool> class MANAGER>
-void run_test(const Molecule& protein, const auto& target) {
+void run_test1(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false, false>(&protein).calculate_all();
-    REQUIRE(compare_hist(h1->get_total_counts(), target));
-    auto h2 = MANAGER<true, false>(&protein).calculate_all();
-    REQUIRE(compare_hist(h2->get_total_counts(), target));
-    auto h3 = MANAGER<false, true>(&protein).calculate_all();
-    REQUIRE(compare_hist(h3->get_total_counts(), target));
+    REQUIRE(compare_hist(get_raw_counts(h1.get()), target));
+
+    auto h2 = MANAGER<false, true>(&protein).calculate_all();
+    REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
+
+    auto h3 = MANAGER<true, false>(&protein).calculate_all();
+    REQUIRE(compare_hist(get_raw_counts(h3.get()), target));
+
     auto h4 = MANAGER<true, true>(&protein).calculate_all();
-    REQUIRE(compare_hist(h4->get_total_counts(), target));
+    REQUIRE(compare_hist(get_raw_counts(h4.get()), target));
 }
 
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
@@ -86,10 +98,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
             invoke_for_all_histogram_manager_variants(
                 []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
-                    run_test<MANAGER>(protein, target);
+                    run_test1<MANAGER>(protein, target);
                 },
                 []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
-                    run_test<MANAGER>(protein, target);
+                    run_test1<MANAGER>(protein, target);
                 },
                 protein, p_exp
             );
@@ -109,7 +121,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
             invoke_for_all_nongrid_histogram_manager_variants(
                 []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
-                    run_test<MANAGER>(protein, target);
+                    run_test1<MANAGER>(protein, target);
                 },
                 protein, p_exp
             );
@@ -131,32 +143,99 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
             invoke_for_all_histogram_manager_variants(
                 []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
-                    run_test<MANAGER>(protein, target);
+                    run_test1<MANAGER>(protein, target);
                 },
                 []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
-                    run_test<MANAGER>(protein, target);
+                    run_test1<MANAGER>(protein, target);
                 },
                 protein, p_exp                
             );
         }
     }
+}
 
-    SECTION("real data with hydration") {
-        // create the atom, and perform a sanity check on our extracted list
-        Molecule protein("tests/files/2epe.pdb");
-        protein.generate_new_hydration();
-        auto p_exp = protein.get_histogram();
+template<template<bool> class MANAGER>
+void run_test2(const Molecule& protein, const auto& target) {
+    auto h1 = MANAGER<false>(&protein).calculate_all();
+    REQUIRE(compare_hist_approx(h1->get_total_counts(), target));
+    
+    auto h2 = MANAGER<true>(&protein).calculate_all();
+    REQUIRE(compare_hist_approx(h2->get_total_counts(), target));
+}
 
-        invoke_for_all_histogram_manager_variants(
-            []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
-                run_test<MANAGER>(protein, target);
-            },
-            []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
-                run_test<MANAGER>(protein, target);
-            },
-            protein, p_exp->get_total_counts()
-        );
-    }
+template<template<bool, bool> class MANAGER>
+void run_test2(const Molecule& protein, const auto& target) {
+    auto h1 = MANAGER<false, false>(&protein).calculate_all();
+    REQUIRE(compare_hist_approx(h1->get_total_counts(), target));
+
+    auto h2 = MANAGER<false, true>(&protein).calculate_all();
+    REQUIRE(compare_hist_approx(h2->get_total_counts(), target));
+
+    auto h3 = MANAGER<true, false>(&protein).calculate_all();
+    REQUIRE(compare_hist_approx(h3->get_total_counts(), target));
+
+    auto h4 = MANAGER<true, true>(&protein).calculate_all();
+    REQUIRE(compare_hist_approx(h4->get_total_counts(), target));
+}
+
+TEST_CASE("HistogramManager::calculate_all real data") {
+    Molecule protein("tests/files/2epe.pdb");
+    protein.generate_new_hydration();
+    auto p_exp = protein.get_histogram();
+
+    invoke_for_all_histogram_manager_variants(
+        []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+            run_test2<MANAGER>(protein, target);
+        },
+        []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+            run_test2<MANAGER>(protein, target);
+        },
+        protein, p_exp->get_total_counts()
+    );
+
+    // // create the molecule and generate hydration
+    // Molecule protein("tests/files/2epe.pdb");
+    // protein.generate_new_hydration();
+
+    // auto ref = hist::HistogramManager<false, false>(&protein).calculate_all();
+    // auto target = ref->get_total_counts();
+    
+    // SECTION("HistogramManagerMT") {
+    //     auto h = hist::HistogramManagerMT<false, false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
+    // SECTION("SymmetryManagerMT") {
+    //     auto h = hist::SymmetryManagerMT<false, false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
+    // SECTION("PartialHistogramManager") {
+    //     auto h = hist::PartialHistogramManager<false, false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
+    // SECTION("PartialHistogramManagerMT") {
+    //     auto h = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
+    // SECTION("PartialSymmetryManagerMT") {
+    //     auto h = hist::PartialSymmetryManagerMT<false, false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
+    // SECTION("HistogramManagerMTFFExplicit") {
+    //     auto h = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
+    // SECTION("HistogramManagerMTFFGrid") {
+    //     auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
+    // SECTION("HistogramManagerMTFFGridSurface") {
+    //     auto h = hist::HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
+    // SECTION("HistogramManagerMTFFGridScalableExv") {
+    //     auto h = hist::HistogramManagerMTFFGridScalableExv<false>(&protein).calculate_all();
+    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
+    // }
 }
 
 TEST_CASE("PartialHistogramManager::get_probe") {

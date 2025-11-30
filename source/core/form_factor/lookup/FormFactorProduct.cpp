@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <form_factor/lookup/NormalizedFormFactorProduct.h>
-#include <form_factor/NormalizedFormFactor.h>
+#include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/FormFactor.h>
 #include <constants/Constants.h>
 
 #if CONSTEXPR_TABLES
@@ -19,13 +19,13 @@ namespace {
         form_factor::lookup::atomic::table_t table;
         for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
             for (unsigned int j = 0; j < i; ++j) {
-                table.index(i, j) = NormalizedFormFactorProduct(
+                table.index(i, j) = FormFactorProduct(
                     lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
                     lookup::atomic::raw::get(static_cast<form_factor_t>(j))
                 );
                 table.index(j, i) = table.index(i, j);
             }
-            table.index(i, i) = NormalizedFormFactorProduct(
+            table.index(i, i) = FormFactorProduct(
                 lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
                 lookup::atomic::raw::get(static_cast<form_factor_t>(i))
             );
@@ -36,7 +36,7 @@ namespace {
     auto ff_table = generate_table();
 }
 
-const NormalizedFormFactorProduct& form_factor::lookup::atomic::raw::get_product(unsigned int i, unsigned int j) noexcept {
+const FormFactorProduct& form_factor::lookup::atomic::raw::get_product(unsigned int i, unsigned int j) noexcept {
     return ff_table.index(i, j);
 }
 

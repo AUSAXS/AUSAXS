@@ -76,9 +76,42 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::deby
 
 template<typename FormFactorTableType>
 const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_counts() const {
+    // Return weighted counts: multiply each form factor pair by its product at q=0
+    const auto& ff_table = get_ff_table();
+    p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);
+    
+    // aa contribution: sum over all form factor pairs, weighted by ff_product(q=0)
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+            double weight = ff_table.index(ff1, ff2).evaluate(0);
+            for (unsigned int i = 0; i < p.size(); ++i) {
+                p[i] += distance_profiles.aa.index(ff1, ff2, i) * weight;
+            }
+        }
+    }
+    
+    // aw contribution: sum over all atom form factors, weighted by ff_product(atom, water, q=0)
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        double weight = 2 * free_params.cw * ff_table.index(ff1, form_factor::water_bin).evaluate(0);
+        for (unsigned int i = 0; i < p.size(); ++i) {
+            p[i] += distance_profiles.aw.index(ff1, i) * weight;
+        }
+    }
+    
+    // ww contribution: water-water, weighted by ff_product(water, water, q=0)
+    double ww_weight = free_params.cw * free_params.cw * ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(0);
+    for (unsigned int i = 0; i < p.size(); ++i) {
+        p[i] += distance_profiles.ww.index(i) * ww_weight;
+    }
+    
+    return p.data;
+}
+
+template<typename FormFactorTableType>
+const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_total_raw_counts() const {
     p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);
     auto[aa, aw, ww] = cache_get_distance_profiles();
-    assert(aa.size() == p.size() && aw.size() == p.size() && ww.size() == p.size() && "CompositeDistanceHistogramFFAvgBase::get_counts(): Count mismatch.");
+    assert(aa.size() == p.size() && aw.size() == p.size() && ww.size() == p.size() && "CompositeDistanceHistogramFFAvgBase::get_total_raw_counts(): Count mismatch.");
     for (unsigned int i = 0; i < p.size(); ++i) {
         p[i] = aa.index(i) + 2*free_params.cw*aw.index(i) + free_params.cw*free_params.cw*ww.index(i);
     }
