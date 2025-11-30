@@ -17,7 +17,7 @@ namespace ausaxs::form_factor {
     /**
      * This struct contains the form factors of the most common atomic elements encountered in SAXS. 
      */
-    namespace storage::atomic {
+    namespace lookup::atomic::normalized {
         // atomic
         constexpr NormalizedFormFactor H               = NormalizedFormFactor(               constants::form_factor::H::a,               constants::form_factor::H::b,               constants::form_factor::H::c);
         constexpr NormalizedFormFactor C               = NormalizedFormFactor(               constants::form_factor::C::a,               constants::form_factor::C::b,               constants::form_factor::C::c);
@@ -49,7 +49,7 @@ namespace ausaxs::form_factor {
         // all others; this is just the form factor of argon
         constexpr NormalizedFormFactor other           = NormalizedFormFactor(           constants::form_factor::other::a,           constants::form_factor::other::b,           constants::form_factor::other::c);
 
-        constexpr const NormalizedFormFactor& get_form_factor(form_factor_t type) {
+        constexpr const NormalizedFormFactor& get(form_factor_t type) {
             switch (type) {
                 case form_factor_t::H:                  return H;
                 case form_factor_t::C:                  return C;

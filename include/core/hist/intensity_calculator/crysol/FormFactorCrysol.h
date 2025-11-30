@@ -7,8 +7,8 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorTable.h>
 #include <form_factor/ExvTable.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/lookup/ExvFormFactorProduct.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <container/ArrayContainer2D.h>
 #include <math/ConstexprMath.h>
@@ -79,18 +79,18 @@ namespace ausaxs::form_factor::crysol {
                 }
             }
 
-            [[maybe_unused]] static form_factor::storage::exv::table_t generate_table(double average_displaced_V) {
+            [[maybe_unused]] static form_factor::lookup::exv::table_t generate_table(double average_displaced_V) {
                 auto ffx = form_factor::crysol::ExvFormFactorCrysol(average_displaced_V);
-                container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
+                container::ArrayContainer2D<FormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
                     for (unsigned int j = 0; j < i; ++j) {
-                        table.index(i, j) = PrecalculatedFormFactorProduct(
+                        table.index(i, j) = FormFactorProduct(
                             ffx, 
                             ffx
                         );
                         table.index(j, i) = table.index(i, j);
                     }
-                    table.index(i, i) = PrecalculatedFormFactorProduct(
+                    table.index(i, i) = FormFactorProduct(
                         ffx, 
                         ffx
                     );
@@ -98,17 +98,17 @@ namespace ausaxs::form_factor::crysol {
                 return table;
             }
 
-            [[maybe_unused]] static form_factor::storage::exv::table_t generate_table() {
-                container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
+            [[maybe_unused]] static form_factor::lookup::exv::table_t generate_table() {
+                container::ArrayContainer2D<FormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
                     for (unsigned int j = 0; j < i; ++j) {
-                        table.index(i, j) = PrecalculatedFormFactorProduct(
+                        table.index(i, j) = FormFactorProduct(
                             get_form_factor(static_cast<form_factor_t>(i)), 
                             get_form_factor(static_cast<form_factor_t>(j))
                         );
                         table.index(j, i) = table.index(i, j);
                     }
-                    table.index(i, i) = PrecalculatedFormFactorProduct(
+                    table.index(i, i) = FormFactorProduct(
                         get_form_factor(static_cast<form_factor_t>(i)), 
                         get_form_factor(static_cast<form_factor_t>(i))
                     );
@@ -118,36 +118,36 @@ namespace ausaxs::form_factor::crysol {
         };
 
         struct cross {
-            [[maybe_unused]] static form_factor::storage::cross::table_t generate_table(double average_displaced_V) {
+            [[maybe_unused]] static form_factor::lookup::cross::table_t generate_table(double average_displaced_V) {
                 auto ffx = form_factor::crysol::ExvFormFactorCrysol(average_displaced_V);
-                container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
+                container::ArrayContainer2D<FormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
                     for (unsigned int j = 0; j < i; ++j) {
-                        table.index(i, j) = PrecalculatedFormFactorProduct(
-                            form_factor::storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
+                        table.index(i, j) = FormFactorProduct(
+                            form_factor::lookup::atomic::normalized::get(static_cast<form_factor_t>(i)), 
                             ffx
                         );
                         table.index(j, i) = table.index(i, j);
                     }
-                    table.index(i, i) = PrecalculatedFormFactorProduct(
-                        form_factor::storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
+                    table.index(i, i) = FormFactorProduct(
+                        form_factor::lookup::atomic::normalized::get(static_cast<form_factor_t>(i)), 
                         ffx
                     );
                 }
                 return table;
             }
-            [[maybe_unused]] static form_factor::storage::cross::table_t generate_table() {
-                container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
+            [[maybe_unused]] static form_factor::lookup::cross::table_t generate_table() {
+                container::ArrayContainer2D<FormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
                     for (unsigned int j = 0; j < i; ++j) {
-                        table.index(i, j) = PrecalculatedFormFactorProduct(
-                            form_factor::storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
+                        table.index(i, j) = FormFactorProduct(
+                            form_factor::lookup::atomic::normalized::get(static_cast<form_factor_t>(i)), 
                             exv::get_form_factor(static_cast<form_factor_t>(j))
                         );
                         table.index(j, i) = table.index(i, j);
                     }
-                    table.index(i, i) = PrecalculatedFormFactorProduct(
-                        form_factor::storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
+                    table.index(i, i) = FormFactorProduct(
+                        form_factor::lookup::atomic::normalized::get(static_cast<form_factor_t>(i)), 
                         exv::get_form_factor(static_cast<form_factor_t>(i))
                     );
                 }

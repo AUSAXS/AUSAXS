@@ -3,18 +3,17 @@
 
 #pragma once
 
-#include <container/ContainerFwd.h>
-#include <container/ArrayContainer2D.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorConcepts.h>
+#include <container/ArrayContainer2D.h>
 
 namespace ausaxs::form_factor {
-    class PrecalculatedFormFactorProduct {
+    class FormFactorProduct {
         public:
-            constexpr PrecalculatedFormFactorProduct() noexcept = default;
+            constexpr FormFactorProduct() noexcept = default;
 
             template<FormFactorType T1, FormFactorType T2>
-            constexpr PrecalculatedFormFactorProduct(const T1& ff1, const T2& ff2) noexcept {
+            constexpr FormFactorProduct(const T1& ff1, const T2& ff2) noexcept {
                 std::array<double, constants::axes::q_axis.bins> res;
                 for (unsigned int i = 0; i < res.size(); ++i) {
                     res[i] = ff1.evaluate(constants::axes::q_vals[i])*ff2.evaluate(constants::axes::q_vals[i]);
@@ -34,22 +33,24 @@ namespace ausaxs::form_factor {
         private:
             std::array<double, constants::axes::q_axis.bins> precalculated_ff_q;
     };
+}
 
-    namespace storage::atomic {
-        using table_t = container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()>;
+namespace ausaxs::form_factor::lookup::atomic {
+    using table_t = container::ArrayContainer2D<FormFactorProduct, form_factor::get_count(), form_factor::get_count()>;
 
+    namespace raw {
         /**
          * @brief Get a precalculated atomic form factor product for a given pair of atomic form factors.
          * 
          * @param i The index of the first atomic form factor.
          * @param j The index of the second atomic form factor.
          */
-        const PrecalculatedFormFactorProduct& get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept;
+        const FormFactorProduct& get_product(unsigned int i, unsigned int j) noexcept;
 
         /**
          * @brief Get the precalculated atomic form factor product table.
          *        The table is symmetric. 
          */
-        const table_t& get_precalculated_form_factor_table() noexcept;
+        const table_t& get_table() noexcept;
     }
 }

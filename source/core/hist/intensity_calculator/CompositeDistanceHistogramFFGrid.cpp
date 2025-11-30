@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <table/ArrayDebyeTable.h>
@@ -40,41 +40,41 @@ double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
     return free_params.cx;
 }
 
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table() {
+form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table() {
     auto V = std::pow(settings::grid::exv::width, 3);
     return generate_ff_table(ExvFormFactor(V));
 }
 
 template<FormFactorType T>
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(T&& ffx) {
-    form_factor::storage::atomic::table_t table;
+form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(T&& ffx) {
+    form_factor::lookup::atomic::table_t table;
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
-            table.index(i, j) = PrecalculatedFormFactorProduct(
-                storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
-                storage::atomic::get_form_factor(static_cast<form_factor_t>(j))
+            table.index(i, j) = FormFactorProduct(
+                lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
+                lookup::atomic::raw::get(static_cast<form_factor_t>(j))
             );
             table.index(j, i) = table.index(i, j);
         }
-        table.index(i, i) = PrecalculatedFormFactorProduct(
-            storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
-            storage::atomic::get_form_factor(static_cast<form_factor_t>(i))
+        table.index(i, i) = FormFactorProduct(
+            lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
+            lookup::atomic::raw::get(static_cast<form_factor_t>(i))
         );
 
-        table.index(i, form_factor::exv_bin) = PrecalculatedFormFactorProduct(
-            storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
+        table.index(i, form_factor::exv_bin) = FormFactorProduct(
+            lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
             ffx
         );
         table.index(form_factor::exv_bin, i) = table.index(i, form_factor::exv_bin);
-        table.index(form_factor::exv_bin, form_factor::exv_bin) = PrecalculatedFormFactorProduct(
+        table.index(form_factor::exv_bin, form_factor::exv_bin) = FormFactorProduct(
             ffx, 
             ffx
         );
     }
     return table;
 }
-template form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(ExvFormFactor&&);
-template form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(NormalizedFormFactor&&);
+template form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(ExvFormFactor&&);
+template form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(NormalizedFormFactor&&);
 
 void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
     auto pool = utility::multi_threading::get_global_pool();

@@ -6,7 +6,7 @@
 #include <dataset/SimpleDataset.h>
 #include <table/ArrayDebyeTable.h>
 #include <form_factor/FormFactorType.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <utility/MultiThreading.h>
 #include <settings/HistogramSettings.h>
 
@@ -474,4 +474,4 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     cache.intensity_profiles.cached_cw = free_params.cw;
     pool->wait();
 }
-template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t>;
+template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::lookup::atomic::table_t>;

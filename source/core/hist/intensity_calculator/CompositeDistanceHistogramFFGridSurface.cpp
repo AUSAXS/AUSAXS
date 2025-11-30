@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/ExvFormFactor.h>
 #include <table/ArrayDebyeTable.h>
 #include <settings/GridSettings.h>
@@ -68,7 +68,7 @@ const std::vector<double>& CompositeDistanceHistogramFFGridSurface::get_d_axis_a
     return distance_axes.ax;
 }
 
-const form_factor::storage::atomic::table_t& CompositeDistanceHistogramFFGridSurface::get_ff_table() const {
+const form_factor::lookup::atomic::table_t& CompositeDistanceHistogramFFGridSurface::get_ff_table() const {
     return CompositeDistanceHistogramFFGrid::ff_table;
 }
 
