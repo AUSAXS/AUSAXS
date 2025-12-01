@@ -9,6 +9,7 @@
 
 namespace ausaxs::form_factor {
     struct NormalizedFormFactor : public FormFactor {
+        constexpr NormalizedFormFactor(ExvFormFactor&& ffx) : FormFactor(std::move(ffx)) {f0 = 1./I0();}
         constexpr NormalizedFormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : FormFactor(a, b, c) {f0 = 1./I0();}
         constexpr NormalizedFormFactor(FormFactor&& ff) : FormFactor(std::move(ff)) {f0 = 1./I0();}
         constexpr NormalizedFormFactor(const FormFactor& ff) : FormFactor(ff) {f0 = 1./I0();}

@@ -160,8 +160,8 @@ namespace ausaxs::hist::detail {
             CompactCoordinatesXYZW() noexcept = default;
             CompactCoordinatesXYZW(const CompactCoordinatesXYZW& other) noexcept = default;
             CompactCoordinatesXYZW(CompactCoordinatesXYZW&& other) noexcept = default;
-            CompactCoordinatesXYZW& operator= (const CompactCoordinatesXYZW& other) noexcept = default;
-            CompactCoordinatesXYZW& operator= (CompactCoordinatesXYZW&& other) noexcept = default;
+            CompactCoordinatesXYZW& operator=(const CompactCoordinatesXYZW& other) noexcept = default;
+            CompactCoordinatesXYZW& operator=(CompactCoordinatesXYZW&& other) noexcept = default;
 
             template<numeric T, numeric V>
             CompactCoordinatesXYZW(const Vector3<T>& v, V w) noexcept : value{.pos={static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z())}, .w=static_cast<float>(w)} {}
@@ -360,7 +360,7 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
 template<bool vbw>
 inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_scalar(const CompactCoordinatesXYZW& other) const noexcept {
     float dist = std::sqrt(squared_dot_product(this->data.data(), other.data.data()));
-    return EvaluatedResult(dist, value.w*other.value.w);
+    return xyzw::EvaluatedResult(dist, value.w*other.value.w);
 }
 
 template<bool vbw>
@@ -368,7 +368,7 @@ inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::
     const CompactCoordinatesXYZW& other
 ) const noexcept {
     int32_t dist = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), other.data.data())));
-    return EvaluatedResultRounded(dist, value.w*other.value.w);
+    return xyzw::EvaluatedResultRounded(dist, value.w*other.value.w);
 }
 
 template<bool vbw>

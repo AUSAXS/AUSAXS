@@ -146,34 +146,34 @@ TEST_CASE("ExvFormFactorSet::constructor") {
     }
 }
 
-TEST_CASE("ExvFormFactorSet::get_form_factor") {
+TEST_CASE("ExvFormFactorSet::get") {
     SECTION("all standard types") {
         auto set = detail::ExvFormFactorSet(constants::exv::standard);
         
-        CHECK(set.get_form_factor(form_factor_t::C).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::CH).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::CH2).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::CH3).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::N).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::NH).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::NH2).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::NH3).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::O).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::OH).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::S).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::SH).is_initialized());
-        CHECK(set.get_form_factor(form_factor_t::OTHER).is_initialized());
+        CHECK(set.get(form_factor_t::C).is_initialized());
+        CHECK(set.get(form_factor_t::CH).is_initialized());
+        CHECK(set.get(form_factor_t::CH2).is_initialized());
+        CHECK(set.get(form_factor_t::CH3).is_initialized());
+        CHECK(set.get(form_factor_t::N).is_initialized());
+        CHECK(set.get(form_factor_t::NH).is_initialized());
+        CHECK(set.get(form_factor_t::NH2).is_initialized());
+        CHECK(set.get(form_factor_t::NH3).is_initialized());
+        CHECK(set.get(form_factor_t::O).is_initialized());
+        CHECK(set.get(form_factor_t::OH).is_initialized());
+        CHECK(set.get(form_factor_t::S).is_initialized());
+        CHECK(set.get(form_factor_t::SH).is_initialized());
+        CHECK(set.get(form_factor_t::OTHER).is_initialized());
     }
 
     SECTION("invalid type throws") {
         auto set = detail::ExvFormFactorSet(constants::exv::standard);
-        CHECK_THROWS(set.get_form_factor(form_factor_t::EXCLUDED_VOLUME));
+        CHECK_THROWS(set.get(form_factor_t::EXCLUDED_VOLUME));
     }
 }
 
-TEST_CASE("storage::exv::standard") {
+TEST_CASE("lookup::exv::standard") {
     SECTION("standard set is accessible") {
-        const auto& set = storage::exv::standard;
+        const auto& set = lookup::exv::standard;
         CHECK(set.C.is_initialized());
         CHECK(set.N.is_initialized());
         CHECK(set.O.is_initialized());
@@ -181,9 +181,9 @@ TEST_CASE("storage::exv::standard") {
     }
 
     SECTION("all form factors evaluate properly") {
-        const auto& set = storage::exv::standard;
+        const auto& set = lookup::exv::standard;
         for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
-            const ExvFormFactor& exv = set.get_form_factor(static_cast<form_factor_t>(i));
+            const ExvFormFactor& exv = set.get(static_cast<form_factor_t>(i));
             if (exv.is_initialized()) {
                 CHECK_THAT(exv.evaluate_normalized(0), Catch::Matchers::WithinAbs(1.0, 1e-10));
             }

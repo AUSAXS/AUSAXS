@@ -22,9 +22,9 @@ using namespace data;
 // unsigned int qcheck = 0;
 TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
-    auto ff_carbon = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
-    auto ff_exv = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    auto ff_w = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::OH);
+    auto ff_carbon = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::C);
+    auto ff_exv = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
+    auto ff_w = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::OH);
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
     auto d = SimpleCube::d;

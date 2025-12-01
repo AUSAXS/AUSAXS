@@ -111,92 +111,92 @@ TEST_CASE("NormalizedFormFactor::set_normalization") {
 TEST_CASE("NormalizedFormFactor::storage::atomic") {
     SECTION("get_form_factor for all types") {
         for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
-            const NormalizedFormFactor& ff = storage::atomic::get_form_factor(static_cast<form_factor_t>(i));
+            const NormalizedFormFactor& ff = lookup::atomic::normalized::get(static_cast<form_factor_t>(i));
             CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
             CHECK(ff.I0() > 0);
         }
     }
 
     SECTION("hydrogen") {
-        const NormalizedFormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
+        const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
         CHECK_THAT(H.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("carbon") {
-        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
         CHECK_THAT(C.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("nitrogen") {
-        const NormalizedFormFactor& N = storage::atomic::get_form_factor(form_factor_t::N);
+        const NormalizedFormFactor& N = lookup::atomic::normalized::get(form_factor_t::N);
         CHECK_THAT(N.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("oxygen") {
-        const NormalizedFormFactor& O = storage::atomic::get_form_factor(form_factor_t::O);
+        const NormalizedFormFactor& O = lookup::atomic::normalized::get(form_factor_t::O);
         CHECK_THAT(O.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("sulfur") {
-        const NormalizedFormFactor& S = storage::atomic::get_form_factor(form_factor_t::S);
+        const NormalizedFormFactor& S = lookup::atomic::normalized::get(form_factor_t::S);
         CHECK_THAT(S.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("excluded_volume") {
-        const NormalizedFormFactor& exv = storage::atomic::get_form_factor(form_factor_t::EXCLUDED_VOLUME);
+        const NormalizedFormFactor& exv = lookup::atomic::normalized::get(form_factor_t::EXCLUDED_VOLUME);
         CHECK(exv.evaluate(0) > 0);
     }
 
     SECTION("invalid type throws") {
-        CHECK_THROWS(storage::atomic::get_form_factor(form_factor_t::UNKNOWN));
+        CHECK_THROWS(lookup::atomic::normalized::get(form_factor_t::UNKNOWN));
     }
 }
 
 TEST_CASE("NormalizedFormFactor::storage::atomic groups") {
     SECTION("CH_sp3") {
-        const NormalizedFormFactor& ff = storage::atomic::get_form_factor(form_factor_t::CH);
+        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::CH);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("CH2_sp3") {
-        const NormalizedFormFactor& ff = storage::atomic::get_form_factor(form_factor_t::CH2);
+        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::CH2);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("CH3_sp3") {
-        const NormalizedFormFactor& ff = storage::atomic::get_form_factor(form_factor_t::CH3);
+        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::CH3);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("NH") {
-        const NormalizedFormFactor& ff = storage::atomic::get_form_factor(form_factor_t::NH);
+        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::NH);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("NH2") {
-        const NormalizedFormFactor& ff = storage::atomic::get_form_factor(form_factor_t::NH2);
+        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::NH2);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("NH3") {
-        const NormalizedFormFactor& ff = storage::atomic::get_form_factor(form_factor_t::NH3);
+        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::NH3);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("OH") {
-        const NormalizedFormFactor& ff = storage::atomic::get_form_factor(form_factor_t::OH);
+        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::OH);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("SH") {
-        const NormalizedFormFactor& ff = storage::atomic::get_form_factor(form_factor_t::SH);
+        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::SH);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 }
 
 TEST_CASE("NormalizedFormFactor::consistency with q_axis") {
     SECTION("evaluate across q_axis") {
-        const NormalizedFormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
+        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
         for (const double& q : constants::axes::q_vals) {
             double val = C.evaluate(q);
             CHECK(val > 0);
