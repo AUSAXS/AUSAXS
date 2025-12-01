@@ -294,7 +294,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
             }
 
             auto exact = exact_aa_carbon(protein);
-            auto ff = form_factor::lookup::atomic::normalized::C;
+            auto ff = form_factor::lookup::atomic::raw::C;
             { // hm
                 auto hm = hist::HistogramManager<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm.get_axis().as_vector();

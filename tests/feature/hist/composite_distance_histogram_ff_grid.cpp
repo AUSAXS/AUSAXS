@@ -52,7 +52,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
 
 auto calc_scat = [] (double k) {
     const auto& q_axis = constants::axes::q_vals;
-    auto ff_C = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::C);
+    auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
 
     auto V = std::pow(settings::grid::exv::width, 3);
     form_factor::NormalizedFormFactor ffx = form_factor::ExvFormFactor(V);
@@ -125,8 +125,8 @@ auto calc_scat = [] (double k) {
 
 auto calc_scat_water = [] () {
     const auto& q_axis = constants::axes::q_vals;
-    auto ff_C = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::C);
-    auto ff_O = form_factor::lookup::atomic::normalized::get(static_cast<form_factor::form_factor_t>(form_factor::water_bin));
+    auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
+    auto ff_O = form_factor::lookup::atomic::raw::get(static_cast<form_factor::form_factor_t>(form_factor::water_bin));
     form_factor::NormalizedFormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width, 3));
     auto d = SimpleCube::d_exact;
 

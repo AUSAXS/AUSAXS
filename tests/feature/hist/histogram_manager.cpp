@@ -47,15 +47,6 @@ struct analytical_histogram {
     std::vector<double> p_exp = calc_exp();
 };
 
-auto get_raw_counts(hist::ICompositeDistanceHistogram* h) {
-    auto* exv_hist = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h);
-    if (exv_hist) {
-        return exv_hist->get_total_raw_counts();
-    } else { // assume `set_unity_charge` was used, so weights=1
-        return h->get_total_counts();
-    }
-}
-
 template<template<bool> class MANAGER>
 void run_test1(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false>(&protein).calculate_all();

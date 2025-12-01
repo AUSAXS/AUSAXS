@@ -25,10 +25,9 @@ using namespace ausaxs::data;
 unsigned int qcheck = 26;
 TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
-    auto ff_C = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::C);
-    auto ff_w = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::O);
+    auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
+    auto ff_w = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::OH);
     auto ff_Cx = form_factor::lookup::exv::standard.get(form_factor::form_factor_t::C);
-    // auto ff_wx = form_factor::storage::exv::get_form_factor(form_factor::form_factor_t::O);
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
     auto d = SimpleCube::d;
@@ -147,9 +146,6 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
         Molecule protein(a);
 
-        double ZC = constants::charge::nuclear::get_charge(form_factor::form_factor_t::C);
-        double ZO = constants::charge::nuclear::get_charge(form_factor::form_factor_t::OH);
-
         for (unsigned int q = 0; q < q_axis.size(); ++q) {
             double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
             double aasum = 
@@ -176,12 +172,12 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 }
             #endif
 
-            Iq_exp[q] += ZC*ZC*aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);                 // + aa
-            Iq_exp[q] -= 2*ZC*axsum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);     // -2ax
-            Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);                      // + xx
-            Iq_exp[q] += 2*ZC*ZO*awsum*ff_C.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);   // +2aw
-            Iq_exp[q] -= 2*ZO*awsum*ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);     // -2wx
-            Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                     // + ww
+            Iq_exp[q] += aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);                 // + aa
+            Iq_exp[q] -= 2*axsum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2ax
+            Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);                // + xx
+            Iq_exp[q] += 2*awsum*ff_C.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);   // +2aw
+            Iq_exp[q] -= 2*awsum*ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2wx
+            Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                     // + ww
         }
         auto Iq = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
@@ -226,82 +222,82 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     }
 }
 
-#include <dataset/SimpleDataset.h>
-#include <plots/PlotDataset.h>
-struct DummyCDHFFX : public hist::CompositeDistanceHistogramFFExplicit {
-    double Gq(double q) const {return exv_factor(q);}
-};
-TEST_CASE("plot_Gq", "[manual]") {
-    SimpleDataset Gq;
-    double r0 = 1.5;
-    DummyCDHFFX hist;
-    hist.apply_excluded_volume_scaling_factor(r0);
-    for (unsigned int i = 0; i < constants::axes::q_vals.size(); ++i) {
-        Gq.push_back(constants::axes::q_vals[i], hist.Gq(constants::axes::q_vals[i]));
-    }
-    plots::PlotDataset::quick_plot(Gq, plots::PlotOptions(), io::File("temp/tests/composite_distance_histogram_ff_explicit/Gq.png"));
-}
+// #include <dataset/SimpleDataset.h>
+// #include <plots/PlotDataset.h>
+// struct DummyCDHFFX : public hist::CompositeDistanceHistogramFFExplicit {
+//     double Gq(double q) const {return exv_factor(q);}
+// };
+// TEST_CASE("plot_Gq", "[manual]") {
+//     SimpleDataset Gq;
+//     double r0 = 1.5;
+//     DummyCDHFFX hist;
+//     hist.apply_excluded_volume_scaling_factor(r0);
+//     for (unsigned int i = 0; i < constants::axes::q_vals.size(); ++i) {
+//         Gq.push_back(constants::axes::q_vals[i], hist.Gq(constants::axes::q_vals[i]));
+//     }
+//     plots::PlotDataset::quick_plot(Gq, plots::PlotOptions(), io::File("temp/tests/composite_distance_histogram_ff_explicit/Gq.png"));
+// }
 
-TEST_CASE("plot_cmp", "[manual]") {
-    data::Molecule protein("data/SASDJG5/SASDJG5.pdb");
-    protein.generate_new_hydration();
-    auto h = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
-    auto hx = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
-    auto hc = dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
-    auto hcx = dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(hx.get());
+// TEST_CASE("plot_cmp", "[manual]") {
+//     data::Molecule protein("data/SASDJG5/SASDJG5.pdb");
+//     protein.generate_new_hydration();
+//     auto h = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
+//     auto hx = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
+//     auto hc = dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
+//     auto hcx = dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(hx.get());
 
-    auto aa = hc->get_profile_aa().as_dataset();
-    auto ax = hc->get_profile_ax().as_dataset();
-    auto xx = hc->get_profile_xx().as_dataset();
-    auto aw = hc->get_profile_aw().as_dataset();
-    auto wx = hc->get_profile_wx().as_dataset();
-    auto ww = hc->get_profile_ww().as_dataset();
+//     auto aa = hc->get_profile_aa().as_dataset();
+//     auto ax = hc->get_profile_ax().as_dataset();
+//     auto xx = hc->get_profile_xx().as_dataset();
+//     auto aw = hc->get_profile_aw().as_dataset();
+//     auto wx = hc->get_profile_wx().as_dataset();
+//     auto ww = hc->get_profile_ww().as_dataset();
 
-    auto aa_x = hcx->get_profile_aa().as_dataset();
-    auto ax_x = hcx->get_profile_ax().as_dataset();
-    auto xx_x = hcx->get_profile_xx().as_dataset();
-    auto aw_x = hcx->get_profile_aw().as_dataset();
-    auto wx_x = hcx->get_profile_wx().as_dataset();
-    auto ww_x = hcx->get_profile_ww().as_dataset();
+//     auto aa_x = hcx->get_profile_aa().as_dataset();
+//     auto ax_x = hcx->get_profile_ax().as_dataset();
+//     auto xx_x = hcx->get_profile_xx().as_dataset();
+//     auto aw_x = hcx->get_profile_aw().as_dataset();
+//     auto wx_x = hcx->get_profile_wx().as_dataset();
+//     auto ww_x = hcx->get_profile_ww().as_dataset();
 
-    for (unsigned int i = 0; i < aa.size(); ++i) {
-        aa.y(i) /= aa_x.y(i);
-        ax.y(i) /= ax_x.y(i);
-        xx.y(i) /= xx_x.y(i);
-        aw.y(i) /= aw_x.y(i);
-        wx.y(i) /= wx_x.y(i);
-        ww.y(i) /= ww_x.y(i);
-    }
+//     for (unsigned int i = 0; i < aa.size(); ++i) {
+//         aa.y(i) /= aa_x.y(i);
+//         ax.y(i) /= ax_x.y(i);
+//         xx.y(i) /= xx_x.y(i);
+//         aw.y(i) /= aw_x.y(i);
+//         wx.y(i) /= wx_x.y(i);
+//         ww.y(i) /= ww_x.y(i);
+//     }
 
-    // double c_aa = aa.normalize();
-    // double c_ax = ax.normalize();
-    // double c_xx = xx.normalize();
-    // double c_aw = aw.normalize();
-    // double c_wx = wx.normalize();
-    // double c_ww = ww.normalize();
+//     // double c_aa = aa.normalize();
+//     // double c_ax = ax.normalize();
+//     // double c_xx = xx.normalize();
+//     // double c_aw = aw.normalize();
+//     // double c_wx = wx.normalize();
+//     // double c_ww = ww.normalize();
 
-    // convert number to scientific notation
-    // std::stringstream ss_aa, ss_ax, ss_xx, ss_aw, ss_wx, ss_ww;
-    // ss_aa << std::scientific << c_aa;
-    // ss_ax << std::scientific << c_ax;
-    // ss_xx << std::scientific << c_xx;
-    // ss_aw << std::scientific << c_aw;
-    // ss_wx << std::scientific << c_wx;
-    // ss_ww << std::scientific << c_ww;
+//     // convert number to scientific notation
+//     // std::stringstream ss_aa, ss_ax, ss_xx, ss_aw, ss_wx, ss_ww;
+//     // ss_aa << std::scientific << c_aa;
+//     // ss_ax << std::scientific << c_ax;
+//     // ss_xx << std::scientific << c_xx;
+//     // ss_aw << std::scientific << c_aw;
+//     // ss_wx << std::scientific << c_wx;
+//     // ss_ww << std::scientific << c_ww;
 
-    // aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{aa} = $" + ss_aa.str()}, {"color", style::color::red}});
-    // ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{ax} = $" + ss_ax.str()}, {"color", style::color::blue}});
-    // xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{xx} = $" + ss_xx.str()}, {"color", style::color::green}});
-    // aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{aw} = $" + ss_aw.str()}, {"color", style::color::pink}});
-    // wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{wx} = $" + ss_wx.str()}, {"color", style::color::purple}});
-    // ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{ww} = $" + ss_ww.str()}, {"color", style::color::brown}});
+//     // aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{aa} = $" + ss_aa.str()}, {"color", style::color::red}});
+//     // ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{ax} = $" + ss_ax.str()}, {"color", style::color::blue}});
+//     // xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{xx} = $" + ss_xx.str()}, {"color", style::color::green}});
+//     // aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{aw} = $" + ss_aw.str()}, {"color", style::color::pink}});
+//     // wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{wx} = $" + ss_wx.str()}, {"color", style::color::purple}});
+//     // ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{ww} = $" + ss_ww.str()}, {"color", style::color::brown}});
 
-    plots::PlotDataset()
-        .plot(aa, plots::PlotOptions({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{aa}$"}, {"color", style::color::red}}))
-        .plot(ax, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{ax}$"}, {"color", style::color::blue}}))
-        .plot(xx, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{xx}$"}, {"color", style::color::green}}))
-        .plot(aw, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{aw}$"}, {"color", style::color::pink}}))
-        .plot(wx, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{wx}$"}, {"color", style::color::purple}}))
-        .plot(ww, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{ww}$"}, {"color", style::color::brown}}))
-    .save("temp/tests/composite_distance_histogram_ff_explicit/compare_ausaxs_x.png");
-}
+//     plots::PlotDataset()
+//         .plot(aa, plots::PlotOptions({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{aa}$"}, {"color", style::color::red}}))
+//         .plot(ax, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{ax}$"}, {"color", style::color::blue}}))
+//         .plot(xx, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{xx}$"}, {"color", style::color::green}}))
+//         .plot(aw, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{aw}$"}, {"color", style::color::pink}}))
+//         .plot(wx, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{wx}$"}, {"color", style::color::purple}}))
+//         .plot(ww, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{ww}$"}, {"color", style::color::brown}}))
+//     .save("temp/tests/composite_distance_histogram_ff_explicit/compare_ausaxs_x.png");
+// }

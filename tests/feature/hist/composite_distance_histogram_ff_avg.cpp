@@ -22,9 +22,9 @@ using namespace data;
 // unsigned int qcheck = 0;
 TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
-    auto ff_carbon = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::C);
-    auto ff_exv = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    auto ff_w = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::OH);
+    auto ff_carbon = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
+    auto ff_exv = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
+    auto ff_w = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::OH);
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
     auto d = SimpleCube::d;
@@ -154,8 +154,6 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         DebugMolecule protein(a);
 
         double ZX = protein.get_volume_grid()*constants::charge::density::water/8;
-        double ZC = constants::charge::nuclear::get_charge(form_factor::form_factor_t::C);
-        double ZO = constants::charge::nuclear::get_charge(form_factor::form_factor_t::OH); 
 
         for (unsigned int q = 0; q < q_axis.size(); ++q) {
             double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
@@ -183,12 +181,12 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 }
             #endif
 
-            Iq_exp[q] += ZC*ZC*aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                    // + aa
-            Iq_exp[q] -= 2*ZC*ZX*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);    // -2ax
-            Iq_exp[q] += ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                       // + xx
-            Iq_exp[q] += 2*ZC*ZO*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);      // +2aw
-            Iq_exp[q] -= 2*ZO*ZX*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);         // -2wx
-            Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
+            Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                    // + aa
+            Iq_exp[q] -= 2*ZX*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]); // -2ax
+            Iq_exp[q] += ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                 // + xx
+            Iq_exp[q] += 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);      // +2aw
+            Iq_exp[q] -= 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);         // -2wx
+            Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
         }
         auto Iq = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all()->debye_transform();
         CHECK(compare_hist(Iq_exp, Iq.get_counts()));
