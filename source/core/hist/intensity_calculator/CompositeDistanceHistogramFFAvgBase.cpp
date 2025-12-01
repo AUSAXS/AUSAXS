@@ -153,6 +153,38 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww
     return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_ww_counts());
 }
 
+// Raw counts accessors (new interface - these return absolute distance counts before FF weighting)
+template<typename FormFactorTableType>
+const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aa_counts_by_ff() const {
+    return distance_profiles.aa;
+}
+
+template<typename FormFactorTableType>
+Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aa_counts_by_ff() {
+    return distance_profiles.aa;
+}
+
+template<typename FormFactorTableType>
+const Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aw_counts_by_ff() const {
+    return distance_profiles.aw;
+}
+
+template<typename FormFactorTableType>
+Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aw_counts_by_ff() {
+    return distance_profiles.aw;
+}
+
+template<typename FormFactorTableType>
+const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_ww_counts_by_ff() const {
+    return distance_profiles.ww;
+}
+
+template<typename FormFactorTableType>
+Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_ww_counts_by_ff() {
+    return distance_profiles.ww;
+}
+
+// Backwards compatibility aliases (deprecated - these now just return raw counts)
 template<typename FormFactorTableType>
 const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() const {
     return distance_profiles.aa;

@@ -83,5 +83,26 @@ namespace ausaxs::hist {
              */
             const std::vector<double>& get_raw_counts() const;
             std::vector<double>& get_raw_counts(); // @copydoc get_counts() const
+
+            /**
+             * @brief Get the raw (unweighted) partial distance histogram for atom-atom interactions, indexed by form factor type.
+             *        These are the absolute distance counts before any form factor weighting.
+             */
+            virtual const Distribution3D& get_raw_aa_counts_by_ff() const = 0;
+            virtual Distribution3D& get_raw_aa_counts_by_ff() = 0;
+
+            /**
+             * @brief Get the raw (unweighted) partial distance histogram for atom-water interactions, indexed by form factor type.
+             *        These are the absolute distance counts before any form factor weighting.
+             */
+            virtual const Distribution2D& get_raw_aw_counts_by_ff() const = 0;
+            virtual Distribution2D& get_raw_aw_counts_by_ff() = 0;
+
+            /**
+             * @brief Get the raw (unweighted) partial distance histogram for water-water interactions.
+             *        These are the absolute distance counts before any form factor weighting.
+             */
+            virtual const Distribution1D& get_raw_ww_counts_by_ff() const = 0;
+            virtual Distribution1D& get_raw_ww_counts_by_ff() = 0;
     };
 }
