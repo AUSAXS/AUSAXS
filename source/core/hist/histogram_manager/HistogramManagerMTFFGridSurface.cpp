@@ -245,9 +245,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     WeightedDistribution1D p_tot = std::move(cast_res->get_counts());
     p_tot.set_bin_centers(cast_res->get_d_axis());
 
-    Distribution3D p_aa = std::move(cast_res->get_aa_counts_by_ff());
-    Distribution2D p_aw = std::move(cast_res->get_aw_counts_by_ff());
-    Distribution1D p_ww = std::move(cast_res->get_ww_counts_by_ff());
+    Distribution3D p_aa = std::move(cast_res->get_raw_aa_counts_by_ff());
+    Distribution2D p_aw = std::move(cast_res->get_raw_aw_counts_by_ff());
+    Distribution1D p_ww = std::move(cast_res->get_raw_ww_counts_by_ff());
 
     // either xx or ww are largest of all components
     max_bin = std::max<unsigned int>(max_bin, p_tot.size());

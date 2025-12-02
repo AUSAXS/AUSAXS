@@ -49,9 +49,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
     auto eval_scaled_exv = [
         p_tot = std::move(p_tot),
-        p_aa = std::move(cast_res->get_aa_counts_by_ff()),
-        p_aw = std::move(cast_res->get_aw_counts_by_ff()),
-        p_ww = std::move(cast_res->get_ww_counts_by_ff()),
+        p_aa = std::move(cast_res->get_raw_aa_counts_by_ff()),
+        p_aw = std::move(cast_res->get_raw_aw_counts_by_ff()),
+        p_ww = std::move(cast_res->get_raw_ww_counts_by_ff()),
         data_a = *this->data_a_ptr, 
         data_w = *this->data_w_ptr, 
         data_x = hist::detail::CompactCoordinates<variable_bin_width>(std::move(get_exv().interior), 1),

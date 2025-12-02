@@ -153,7 +153,6 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww
     return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_ww_counts());
 }
 
-// Raw counts accessors (new interface - these return absolute distance counts before FF weighting)
 template<typename FormFactorTableType>
 const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aa_counts_by_ff() const {
     return distance_profiles.aa;
@@ -184,35 +183,52 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ra
     return distance_profiles.ww;
 }
 
-// Backwards compatibility aliases (deprecated - these now just return raw counts)
 template<typename FormFactorTableType>
 const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() const {
-    return distance_profiles.aa;
+    static Distribution3D ret;
+    ret = distance_profiles.aa;
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+            double weight = get_ff_table().index(ff1, ff2).evaluate(0);
+            std::transform(ret.begin(ff1, ff2), ret.end(ff1, ff2), ret.begin(ff1, ff2), [weight](auto val) { return val*weight; });
+        }
+    }
+    return ret;
 }
 
 template<typename FormFactorTableType>
 Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() {
-    return distance_profiles.aa;
+    return const_cast<Distribution3D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_aa_counts_by_ff());
 }
 
 template<typename FormFactorTableType>
 const Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts_by_ff() const {
-    return distance_profiles.aw;
+    static Distribution2D ret;
+    ret = distance_profiles.aw;
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        double weight = 2 * free_params.cw * get_ff_table().index(ff1, form_factor::water_bin).evaluate(0);
+        std::transform(ret.begin(ff1), ret.end(ff1), ret.begin(ff1), [weight](auto val) { return val*weight; });
+    }
+    return ret;
 }
 
 template<typename FormFactorTableType>
 Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts_by_ff() {
-    return distance_profiles.aw;
+    return const_cast<Distribution2D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_aw_counts_by_ff());
 }
 
 template<typename FormFactorTableType>
 const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts_by_ff() const {
-    return distance_profiles.ww;
+    static Distribution1D ret;
+    ret = distance_profiles.ww;
+    double weight = free_params.cw * free_params.cw * get_ff_table().index(form_factor::water_bin, form_factor::water_bin).evaluate(0);
+    std::transform(ret.begin(), ret.end(), ret.begin(), [weight](auto val) { return val*weight; });
+    return ret;
 }
 
 template<typename FormFactorTableType>
 Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_counts_by_ff() {
-    return distance_profiles.ww;
+    return const_cast<Distribution1D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_ww_counts_by_ff());
 }
 
 template<typename FormFactorTableType>

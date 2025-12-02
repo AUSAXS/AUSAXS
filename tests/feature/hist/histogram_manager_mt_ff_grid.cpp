@@ -25,7 +25,7 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::data;
 
-auto test = [] (const Molecule& protein, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
+auto test = [] (const Molecule& protein, bool normalized, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
     settings::molecule::center = false; // to avoid rounding errors
     auto h = calculate(protein);
 
@@ -44,7 +44,7 @@ auto test = [] (const Molecule& protein, std::function<std::unique_ptr<IComposit
     hist::Distribution1D xx1, ax1, aa1;
     {
         // we have to sum all form factor contributions into the single distributions
-        auto aa = h_cast->get_aa_counts_by_ff();
+        auto aa = normalized ? h_cast->get_raw_aa_counts_by_ff() : h_cast->get_aa_counts_by_ff();
         hist::Distribution1D temp_aa(aa.size_z()), temp_ax(aa.size_z()), temp_xx(aa.size_z());
         for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
             for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
@@ -119,7 +119,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
             AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
             Molecule protein({Body{std::vector{a1}}});
             set_unity_charge(protein);
-            test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+            test(protein, true, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
         }
     }
 
@@ -129,7 +129,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
         settings::grid::exv::width = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
-        test(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+        test(protein, false, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
     }
 }
 
@@ -147,7 +147,7 @@ auto test_derived = [] () {
             AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
             Molecule protein({Body{std::vector{a1}}});
             set_unity_charge(protein);
-            test(protein, [](const Molecule& protein) {return H(&protein).calculate_all();});
+            test(protein, true, [](const Molecule& protein) {return H(&protein).calculate_all();});
         }
     }
 
@@ -158,7 +158,7 @@ auto test_derived = [] () {
         settings::grid::exv::surface_thickness = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
-        test(protein, [](const Molecule& protein) {return H(&protein).calculate_all();});
+        test(protein, false, [](const Molecule& protein) {return H(&protein).calculate_all();});
     }
 
     SECTION("compare with Grid") {
