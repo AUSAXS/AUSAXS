@@ -44,17 +44,27 @@ namespace ausaxs {
     // Water has constant form factor, so just compute weighted distances
     template<bool weighted_bins, bool variable_bin_widths, int factor>
     inline void evaluate8(typename hist::GenericDistribution1D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_i, const hist::detail::CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
-        evaluate8<weighted_bins, variable_bin_widths, factor>(p, reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_widths>&>(data_i), data_j, i, j);
+        auto res = detail::add8::evaluate<weighted_bins>(data_i, data_j, i, j);
+        for (unsigned int k = 0; k < 8; ++k) {
+            if constexpr (weighted_bins) {p.template add<factor>(res.distances[k], res.weights[k]);}
+            else {p.template increment<factor>(res.distances[k]);}
+        }
     }
 
     template<bool weighted_bins, bool variable_bin_widths, int factor>
     inline void evaluate4(typename hist::GenericDistribution1D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_i, const hist::detail::CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
-        evaluate4<weighted_bins, variable_bin_widths, factor>(p, reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_widths>&>(data_i), data_j, i, j);
+        auto res = detail::add4::evaluate<weighted_bins>(data_i, data_j, i, j);
+        for (unsigned int k = 0; k < 4; ++k) {
+            if constexpr (weighted_bins) {p.template add<factor>(res.distances[k], res.weights[k]);}
+            else {p.template increment<factor>(res.distances[k]);}
+        }
     }
 
     template<bool weighted_bins, bool variable_bin_widths, int factor>
     inline void evaluate1(typename hist::GenericDistribution1D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_widths>& data_i, const hist::detail::CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
-        evaluate1<weighted_bins, variable_bin_widths, factor>(p, reinterpret_cast<const hist::detail::CompactCoordinates<variable_bin_widths>&>(data_i), data_j, i, j);
+        auto res = detail::add1::evaluate<weighted_bins>(data_i, data_j, i, j);
+        if constexpr (weighted_bins) {p.template add<factor>(res.distance, res.weight);}
+        else {p.template increment<factor>(res.distance);}
     }
 }
 
