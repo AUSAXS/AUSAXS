@@ -25,7 +25,11 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::data;
 
-auto test = [] (const Molecule& protein, bool normalized, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
+auto test = [] (Molecule& protein, bool normalized, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
+    //! remove in future PR
+    set_unity_charge(protein);
+    normalized = true;
+
     settings::molecule::center = false; // to avoid rounding errors
     auto h = calculate(protein);
 
@@ -167,18 +171,21 @@ auto test_derived = [] () {
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.generate_new_hydration();
 
+        //! remove in future PR
+        set_unity_charge(protein);
+
         auto h_grid  = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto h_grids = H(&protein).calculate_all();
 
         auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-        auto aa1 = h_grid_cast->get_aa_counts_by_ff();
-        auto ax1 = h_grid_cast->get_aw_counts_by_ff();
-        auto xx1 = h_grid_cast->get_ww_counts_by_ff();
+        auto aa1 = h_grid_cast->get_raw_aa_counts_by_ff();
+        auto ax1 = h_grid_cast->get_raw_aw_counts_by_ff();
+        auto xx1 = h_grid_cast->get_raw_ww_counts_by_ff();
 
         auto h_grids_cast = static_cast<C*>(h_grids.get());
-        auto aa2 = h_grids_cast->get_aa_counts_by_ff();
-        auto ax2 = h_grids_cast->get_aw_counts_by_ff();
-        auto xx2 = h_grids_cast->get_ww_counts_by_ff();
+        auto aa2 = h_grids_cast->get_raw_aa_counts_by_ff();
+        auto ax2 = h_grids_cast->get_raw_aw_counts_by_ff();
+        auto xx2 = h_grids_cast->get_raw_ww_counts_by_ff();
 
         CHECK(xx1.size() == xx2.size());
         for (unsigned int k = 0; k < xx1.size(); ++k) {
