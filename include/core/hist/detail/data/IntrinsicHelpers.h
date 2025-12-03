@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <hist/detail/data/IntrinsicMacros.h>
+
 #include <stdexcept>
 
 namespace ausaxs::hist::detail {
@@ -14,21 +16,23 @@ namespace ausaxs::hist::detail {
     }
 }
 
+namespace ausaxs::hist::detail {
+    // This enum defines the control bits for the SSE4.1 _mm_dp_ps intrinsic
+    // the bits are: wzyx | dcba, where the upper nibble selects which components to multiply,
+    // and the lower nibble selects where to store the result. This enum therefore defines
+    // a multiplication of x, y, z components, and stores the result in the desired location (FIRST, SECOND, ...).
+    enum OutputControl : int8_t {
+        ALL =    0b01111111,
+        FIRST =  0b01110001,
+        SECOND = 0b01110010,
+        THIRD =  0b01110100,
+        FOURTH = 0b01111000
+    };
+}
+
 #if defined __SSE2__
 #include <nmmintrin.h>
     namespace ausaxs::hist::detail {
-        // This enum defines the control bits for the SSE4.1 _mm_dp_ps intrinsic
-        // the bits are: wzyx | dcba, where the upper nibble selects which components to multiply,
-        // and the lower nibble selects where to store the result. This enum therefore defines
-        // a multiplication of x, y, z components, and stores the result in the desired location (FIRST, SECOND, ...).
-        enum OutputControl : int8_t {
-            ALL =    0b01111111,
-            FIRST =  0b01110001,
-            SECOND = 0b01110010,
-            THIRD =  0b01110100,
-            FOURTH = 0b01111000
-        };
-
         /**
         * @brief Calculate the squared distance between two CompactCoordinatesXYZW using 128-bit SSE2 instructions.
         */

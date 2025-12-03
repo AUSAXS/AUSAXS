@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <hist/detail/data/IntrinsicMacros.h>
 #include <hist/detail/data/WidthControllers.h>
 #include <hist/detail/data/IntrinsicHelpers.h>
 #include <math/Vector3.h>
