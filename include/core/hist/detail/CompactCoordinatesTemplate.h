@@ -98,6 +98,8 @@ namespace ausaxs::hist::detail {
             const DataType& operator[](unsigned int i) const;
 
         protected: 
+            virtual void init() const {};
+
             std::vector<DataType> data;
     };
 }
@@ -144,6 +146,7 @@ inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoor
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
 inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(std::vector<Vector3<double>>&& coordinates, double weight) : data(coordinates.size()) {
     std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return DataType(v, weight);});
+    init();
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
@@ -152,6 +155,7 @@ inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::Compact
         const auto& a = atoms[i]; 
         data[i] = GenericConstructor<CoordType, vbw>(a);
     }
+    init();
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
@@ -162,6 +166,7 @@ inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::Compact
             data[i++] = GenericConstructor<CoordType, vbw>(a);
         }
     }
+    init();
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
@@ -170,6 +175,7 @@ inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::Compact
         const auto& a = atoms[i]; 
         data[i] = GenericConstructor<CoordType, vbw>(a);
     }
+    init();
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
