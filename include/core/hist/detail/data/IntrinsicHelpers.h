@@ -1,4 +1,9 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
 #pragma once
+
+#include <stdexcept>
 
 namespace ausaxs::hist::detail {
     static inline float squared_dot_product(const float* v1, const float* v2) noexcept {
