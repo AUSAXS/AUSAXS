@@ -17,8 +17,7 @@ namespace ausaxs::hist::detail {
 
         void init() const override {
             for (unsigned int i = 0; i < this->data.size(); ++i) {
-                unsigned int ff_type = this->data.ff_types[i];
-                if (ff_type == static_cast<unsigned int>(ausaxs::form_factor::form_factor_t::UNKNOWN)) {
+                if (get_ff_type(i) == static_cast<unsigned int>(ausaxs::form_factor::form_factor_t::UNKNOWN)) {
                     throw std::runtime_error(
                         "CompactCoordinatesFF: Attempted to use an atom with UNKNOWN form factor type.\n"
                         "Form factor information is required for the selected excluded volume model."
