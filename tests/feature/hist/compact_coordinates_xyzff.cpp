@@ -146,7 +146,7 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData<vbw>&, const D
         CHECK_THAT(result.distances[3], Catch::Matchers::WithinAbs(std::sqrt(27), 1e-6));
         CHECK_THAT(result.distances[4],  Catch::Matchers::WithinAbs(std::sqrt(48), 1e-6));
         CHECK_THAT(result.distances[5],  Catch::Matchers::WithinAbs(std::sqrt(75), 1e-6));
-        CHECK_THAT(result.distances[6],Catch::Matchers::WithinAbs(std::sqrt(108), 1e-6));
+        CHECK_THAT(result.distances[6], Catch::Matchers::WithinAbs(std::sqrt(108), 1e-6));
         CHECK_THAT(result.distances[7], Catch::Matchers::WithinAbs(std::sqrt(147), 1e-5));
         CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
         CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
