@@ -76,8 +76,8 @@ TEST_CASE("ExvFormFactorProduct::cross_table_comprehensive") {
 }
 
 TEST_CASE("ExvFormFactorProduct::specific_exv_pairs") {
-    SECTION("H exv form factor product") {
-        const FormFactorProduct& ffp = lookup::exv::raw::get_product(0, 0);
+    SECTION("C exv form factor product") {
+        const FormFactorProduct& ffp = lookup::exv::raw::get_product(1, 1);
         
         CHECK(ffp.evaluate(0) > 0);
         CHECK(ffp.evaluate(constants::axes::q_axis.bins - 1) > 0);
@@ -94,8 +94,8 @@ TEST_CASE("ExvFormFactorProduct::specific_exv_pairs") {
 }
 
 TEST_CASE("ExvFormFactorProduct::specific_cross_pairs") {
-    SECTION("H atomic-exv cross product") {
-        const FormFactorProduct& ffp = lookup::cross::raw::get_product(0, 0);
+    SECTION("C atomic-exv cross product") {
+        const FormFactorProduct& ffp = lookup::cross::raw::get_product(1, 1);
         
         CHECK(ffp.evaluate(0) > 0);
         CHECK(ffp.evaluate(constants::axes::q_axis.bins - 1) > 0);
