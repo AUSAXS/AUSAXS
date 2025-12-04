@@ -38,7 +38,6 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
         DebugMolecule protein(a);
 
-        set_unity_charge(protein);
         double Z = protein.get_volume_grid()*constants::charge::density::water/9;
         protein.set_volume_scaling(1./Z);
 
@@ -95,7 +94,6 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
         DebugMolecule protein(a);
 
-        set_unity_charge(protein);
         double Z = protein.get_volume_grid()*constants::charge::density::water/8;
         protein.set_volume_scaling(1./Z);
 
@@ -185,7 +183,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] -= 2*ZX*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]); // -2ax
             Iq_exp[q] += ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                 // + xx
             Iq_exp[q] += 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);      // +2aw
-            Iq_exp[q] -= 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);         // -2wx
+            Iq_exp[q] -= 2*ZX*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);      // -2wx
             Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
         }
         auto Iq = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all()->debye_transform();
