@@ -170,6 +170,9 @@ void run_test2(const Molecule& protein, const auto& target) {
 }
 
 TEST_CASE("HistogramManager::calculate_all real data") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::general::verbose = false;
+
     Molecule protein("tests/files/2epe.pdb");
     protein.generate_new_hydration();
     auto p_exp = protein.get_histogram();
@@ -183,50 +186,6 @@ TEST_CASE("HistogramManager::calculate_all real data") {
         },
         protein, p_exp->get_total_counts()
     );
-
-    // // create the molecule and generate hydration
-    // Molecule protein("tests/files/2epe.pdb");
-    // protein.generate_new_hydration();
-
-    // auto ref = hist::HistogramManager<false, false>(&protein).calculate_all();
-    // auto target = ref->get_total_counts();
-    
-    // SECTION("HistogramManagerMT") {
-    //     auto h = hist::HistogramManagerMT<false, false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
-    // SECTION("SymmetryManagerMT") {
-    //     auto h = hist::SymmetryManagerMT<false, false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
-    // SECTION("PartialHistogramManager") {
-    //     auto h = hist::PartialHistogramManager<false, false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
-    // SECTION("PartialHistogramManagerMT") {
-    //     auto h = hist::PartialHistogramManagerMT<false, false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
-    // SECTION("PartialSymmetryManagerMT") {
-    //     auto h = hist::PartialSymmetryManagerMT<false, false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
-    // SECTION("HistogramManagerMTFFExplicit") {
-    //     auto h = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
-    // SECTION("HistogramManagerMTFFGrid") {
-    //     auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
-    // SECTION("HistogramManagerMTFFGridSurface") {
-    //     auto h = hist::HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
-    // SECTION("HistogramManagerMTFFGridScalableExv") {
-    //     auto h = hist::HistogramManagerMTFFGridScalableExv<false>(&protein).calculate_all();
-    //     REQUIRE(compare_hist_approx(h->get_total_counts(), target));
-    // }
 }
 
 TEST_CASE("PartialHistogramManager::get_probe") {
