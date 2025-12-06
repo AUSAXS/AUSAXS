@@ -4,7 +4,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
@@ -74,7 +74,7 @@ namespace ausaxs::hist {
              */
             const std::vector<double>& get_d_axis_ax() const;
 
-            const form_factor::storage::atomic::table_t& get_ff_table() const override;
+            const form_factor::lookup::atomic::table_t& get_ff_table() const override;
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 

@@ -4,9 +4,8 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicitBase.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
-#include <form_factor/FormFactor.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/lookup/ExvFormFactorProduct.h>
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
 
@@ -213,5 +212,5 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
 }
 
 template class hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::storage::atomic::table_t, form_factor::storage::cross::table_t, form_factor::storage::exv::table_t
+    form_factor::lookup::atomic::table_t, form_factor::lookup::cross::table_t, form_factor::lookup::exv::table_t
 >;

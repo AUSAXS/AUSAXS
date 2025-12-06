@@ -4,7 +4,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
@@ -41,7 +41,7 @@ namespace ausaxs::hist {
                 hist::WeightedDistribution1D&& p_tot_xx
             );
 
-            const form_factor::storage::atomic::table_t& get_ff_table() const override {return ff_table;}
+            const form_factor::lookup::atomic::table_t& get_ff_table() const override {return ff_table;}
 
             /**
              * @brief Generate a new interal form factor table for the grid-based calculations.
@@ -49,8 +49,8 @@ namespace ausaxs::hist {
              * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
              */
             template<FormFactorType T>
-            static form_factor::storage::atomic::table_t generate_ff_table(T&& ffx);
-            static form_factor::storage::atomic::table_t generate_ff_table(); //< @copydoc generate_ff_table(T&&)
+            static form_factor::lookup::atomic::table_t generate_ff_table(T&& ffx);
+            static form_factor::lookup::atomic::table_t generate_ff_table(); //< @copydoc generate_ff_table(T&&)
 
             /**
              * @brief Regenerate the form factor table. This must be called to reflect changes in settings::grid::exv::width.
@@ -86,7 +86,7 @@ namespace ausaxs::hist {
             double exv_factor(double q) const override;
 
         private: 
-            inline static form_factor::storage::atomic::table_t ff_table;
+            inline static form_factor::lookup::atomic::table_t ff_table;
             struct {table::DebyeTableManager xx, ax;} sinc_tables;
             struct {std::vector<double> xx, ax;} distance_axes;
 

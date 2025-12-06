@@ -4,14 +4,12 @@
 #pragma once
 
 #include <form_factor/FormFactorType.h>
-#include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorTable.h>
 #include <form_factor/ExvFormFactor.h>
 #include <constants/ConstantsFwd.h>
 #include <data/DataFwd.h>
 
 #include <array>
-#include <stdexcept>
 
 namespace ausaxs::form_factor {
     class FormFactor {
@@ -19,16 +17,14 @@ namespace ausaxs::form_factor {
             /**
              * @brief Initialize a vacuum form factor based on a 5-Gaussian approximation.
              */
-            constexpr FormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : a(a), b(b), c(c) {
-                f0 = 1./I0();
-            }
+            constexpr FormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : a(a), b(b), c(c) {}
 
             /**
              * @brief Initialize an excluded volume form factor.
              *        This is only used to instantiate the average excluded volume form factor.
              *        Note that these excluded volume form factors are not normalized. 
              */
-            constexpr FormFactor(ExvFormFactor&& ffx) : a({ffx.q0, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0), f0(1) {}
+            constexpr FormFactor(ExvFormFactor&& ffx) : a({ffx.q0, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0) {}
 
             /**
              * @brief Evaluate the form factor at a given q value.
@@ -57,17 +53,19 @@ namespace ausaxs::form_factor {
                 this->f0 = f0;
             }
 
+        protected:
+            double f0 = 1;
+
         private: 
             std::array<double, 5> a;
             std::array<double, 5> b;
             double c;
-            double f0 = 1;
     };
 
     /**
      * This struct contains the form factors of the most common atomic elements encountered in SAXS. 
      */
-    namespace storage::atomic {
+    namespace lookup::atomic::raw {
         // atomic
         constexpr FormFactor H               = FormFactor(               constants::form_factor::H::a,               constants::form_factor::H::b,               constants::form_factor::H::c);
         constexpr FormFactor C               = FormFactor(               constants::form_factor::C::a,               constants::form_factor::C::b,               constants::form_factor::C::c);
@@ -99,7 +97,7 @@ namespace ausaxs::form_factor {
         // all others; this is just the form factor of argon
         constexpr FormFactor other           = FormFactor(           constants::form_factor::other::a,           constants::form_factor::other::b,           constants::form_factor::other::c);
 
-        constexpr const FormFactor& get_form_factor(form_factor_t type) {
+        constexpr const FormFactor& get(form_factor_t type) {
             switch (type) {
                 case form_factor_t::H:                  return H;
                 case form_factor_t::C:                  return C;
@@ -117,11 +115,11 @@ namespace ausaxs::form_factor {
                 case form_factor_t::OTHER:              return other;
                 case form_factor_t::EXCLUDED_VOLUME:    return excluded_volume;
                 case form_factor_t::UNKNOWN:
-                    throw std::runtime_error(
-                        "form_factor::storage::get_form_factor: Attempted to get the form factor of an UNKNOWN atom.\n"
-                        "This typically occurs when performing species-dependent operations on data without form factor information."
-                    );
-                default: throw std::runtime_error("form_factor::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                throw std::runtime_error(
+                    "form_factor::lookup::atomic::raw::get: Attempted to get the form factor of an UNKNOWN atom.\n"
+                    "This typically occurs when performing species-dependent operations on data without form factor information."
+                );
+                default: throw std::runtime_error("form_factor::lookup::atomic::raw::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }
         }
     }

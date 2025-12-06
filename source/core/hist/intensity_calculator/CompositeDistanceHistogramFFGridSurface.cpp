@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/ExvFormFactor.h>
 #include <table/ArrayDebyeTable.h>
 #include <settings/GridSettings.h>
@@ -68,7 +68,7 @@ const std::vector<double>& CompositeDistanceHistogramFFGridSurface::get_d_axis_a
     return distance_axes.ax;
 }
 
-const form_factor::storage::atomic::table_t& CompositeDistanceHistogramFFGridSurface::get_ff_table() const {
+const form_factor::lookup::atomic::table_t& CompositeDistanceHistogramFFGridSurface::get_ff_table() const {
     return CompositeDistanceHistogramFFGrid::ff_table;
 }
 
@@ -124,13 +124,13 @@ void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d
     auto wx = evaluate_wx_distance_profile(1);
     auto ax = evaluate_ax_distance_profile(1);
 
-    auto& aa = CompositeDistanceHistogramFFAvgBase::get_aa_counts_by_ff();
+    auto& aa = CompositeDistanceHistogramFFAvgBase::get_raw_aa_counts_by_ff();
     for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {
         std::transform(aa.begin(ff, form_factor::exv_bin), aa.end(ff, form_factor::exv_bin), ax.begin(ff), aa.begin(ff, form_factor::exv_bin), std::plus<double>());
     }
     std::transform(aa.begin(form_factor::exv_bin, form_factor::exv_bin), aa.end(form_factor::exv_bin, form_factor::exv_bin), xx.begin(), aa.begin(form_factor::exv_bin, form_factor::exv_bin), std::plus<double>());
 
-    auto& aw = CompositeDistanceHistogramFFAvgBase::get_aw_counts_by_ff();
+    auto& aw = CompositeDistanceHistogramFFAvgBase::get_raw_aw_counts_by_ff();
     std::transform(aw.begin(form_factor::exv_bin), aw.end(form_factor::exv_bin), wx.begin(), aw.begin(form_factor::exv_bin), std::plus<double>());
 }
 

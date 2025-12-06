@@ -10,7 +10,7 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <dataset/SimpleDataset.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -294,7 +294,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
             }
 
             auto exact = exact_aa_carbon(protein);
-            auto ff = form_factor::storage::atomic::C;
+            auto ff = form_factor::lookup::atomic::raw::C;
             { // hm
                 auto hm = hist::HistogramManager<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm.get_axis().as_vector();

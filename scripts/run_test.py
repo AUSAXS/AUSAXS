@@ -142,7 +142,7 @@ def run_all_tests(test_type, jobs=6, repeat=3):
         raise ValueError(f"Invalid test type: {test_type}")
     
     # Build all tests
-    if not build_test(build_target, jobs=12):
+    if not build_test(build_target, jobs=8):
         print(f"Failed to build {test_type}")
         return 1
     
@@ -151,7 +151,7 @@ def run_all_tests(test_type, jobs=6, repeat=3):
     cmd = [
         "ctest",
         "--output-on-failure",
-        "--parallel", str(jobs),
+        "--parallel", "1",
         "--repeat", f"until-pass:{repeat}",
         "--test-dir", str(test_path)
     ]
@@ -184,8 +184,8 @@ Examples:
     parser.add_argument(
         "-j", "--jobs",
         type=int,
-        default=12,
-        help="Number of parallel jobs for building (default: 12)"
+        default=8,
+        help="Number of parallel jobs for building (default: 8)"
     )
     
     args = parser.parse_args()

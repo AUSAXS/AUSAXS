@@ -172,7 +172,17 @@ struct SimpleCube {
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <catch2/catch_test_macros.hpp>
+
+inline auto get_raw_counts(hist::ICompositeDistanceHistogram* h) {
+    auto* exv_hist = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h);
+    if (exv_hist) {
+        return exv_hist->get_total_raw_counts();
+    } else { // assume `set_unity_charge` was used, so weights=1
+        return h->get_total_counts();
+    }
+}
 
 // This function uses template magic to invoke a given function template for all histogram manager variants, including weighted/unweighted and variable/fixed bin width versions.
 // This is PART ONE of a two-part function, where this part handles the histogram managers that only vary in one template parameter.

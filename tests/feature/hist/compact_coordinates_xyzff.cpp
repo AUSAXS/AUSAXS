@@ -1,52 +1,54 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/detail/CompactCoordinatesData.h>
+#include <hist/detail/data/CompactCoordinatesXYZFF.h>
 #include <constants/Constants.h>
 #include <math/Vector3.h>
+#include <form_factor/FormFactorType.h>
 
 using namespace ausaxs;
 using namespace hist::detail;
+using namespace hist::detail::xyzff;
 
-TEST_CASE("CompactCoordinatesData<vbw>::CompactCoordinatesData") {
-    SECTION("Vector3<double>, float") {
-        CompactCoordinatesData<false> data(Vector3<double>(1, 2, 3), 4);
+TEST_CASE("CompactCoordinatesXYZFF<vbw>::CompactCoordinatesData") {
+    SECTION("Vector3<double>, int32_t") {
+        CompactCoordinatesXYZFF<false> data(Vector3<double>(1, 2, 3), 4);
         CHECK(data.value.pos.x() == 1);
         CHECK(data.value.pos.y() == 2);
         CHECK(data.value.pos.z() == 3);
-        CHECK(data.value.w == 4);
+        CHECK(data.value.ff == 4);
     }
 }
 
 template<bool vbw>
-struct DebugData : CompactCoordinatesData<vbw> {
-    using CompactCoordinatesData<vbw>::CompactCoordinatesData;
-    EvaluatedResult evaluate_scalar(const CompactCoordinatesData<vbw>& other) const {return CompactCoordinatesData<vbw>::evaluate_scalar(other);}
-    QuadEvaluatedResult evaluate_scalar(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4) const {return CompactCoordinatesData<vbw>::evaluate_scalar(v1, v2, v3, v4);}
-    OctoEvaluatedResult evaluate_scalar(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4, const CompactCoordinatesData<vbw>& v5, const CompactCoordinatesData<vbw>& v6, const CompactCoordinatesData<vbw>& v7, const CompactCoordinatesData<vbw>& v8) const {return CompactCoordinatesData<vbw>::evaluate_scalar(v1, v2, v3, v4, v5, v6, v7, v8);}
+struct DebugData : CompactCoordinatesXYZFF<vbw> {
+    using CompactCoordinatesXYZFF<vbw>::CompactCoordinatesXYZFF;
+    EvaluatedResult evaluate_scalar(const CompactCoordinatesXYZFF<vbw>& other) const {return CompactCoordinatesXYZFF<vbw>::evaluate_scalar(other);}
+    QuadEvaluatedResult evaluate_scalar(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4) const {return CompactCoordinatesXYZFF<vbw>::evaluate_scalar(v1, v2, v3, v4);}
+    OctoEvaluatedResult evaluate_scalar(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4, const CompactCoordinatesXYZFF<vbw>& v5, const CompactCoordinatesXYZFF<vbw>& v6, const CompactCoordinatesXYZFF<vbw>& v7, const CompactCoordinatesXYZFF<vbw>& v8) const {return CompactCoordinatesXYZFF<vbw>::evaluate_scalar(v1, v2, v3, v4, v5, v6, v7, v8);}
 
-    EvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesData<vbw>& other) const {return CompactCoordinatesData<vbw>::evaluate_rounded_scalar(other);}
-    QuadEvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4) const {return CompactCoordinatesData<vbw>::evaluate_rounded_scalar(v1, v2, v3, v4);}
-    OctoEvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4, const CompactCoordinatesData<vbw>& v5, const CompactCoordinatesData<vbw>& v6, const CompactCoordinatesData<vbw>& v7, const CompactCoordinatesData<vbw>& v8) const {return CompactCoordinatesData<vbw>::evaluate_rounded_scalar(v1, v2, v3, v4, v5, v6, v7, v8);}    
+    EvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZFF<vbw>& other) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_scalar(other);}
+    QuadEvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_scalar(v1, v2, v3, v4);}
+    OctoEvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4, const CompactCoordinatesXYZFF<vbw>& v5, const CompactCoordinatesXYZFF<vbw>& v6, const CompactCoordinatesXYZFF<vbw>& v7, const CompactCoordinatesXYZFF<vbw>& v8) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_scalar(v1, v2, v3, v4, v5, v6, v7, v8);}    
 
     #if defined __SSE2__
-        EvaluatedResult evaluate_sse(const CompactCoordinatesData<vbw>& other) const {return CompactCoordinatesData<vbw>::evaluate_sse(other);}
-        QuadEvaluatedResult evaluate_sse(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4) const {return CompactCoordinatesData<vbw>::evaluate_sse(v1, v2, v3, v4);}
-        OctoEvaluatedResult evaluate_sse(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4, const CompactCoordinatesData<vbw>& v5, const CompactCoordinatesData<vbw>& v6, const CompactCoordinatesData<vbw>& v7, const CompactCoordinatesData<vbw>& v8) const {return CompactCoordinatesData<vbw>::evaluate_sse(v1, v2, v3, v4, v5, v6, v7, v8);}
+        EvaluatedResult evaluate_sse(const CompactCoordinatesXYZFF<vbw>& other) const {return CompactCoordinatesXYZFF<vbw>::evaluate_sse(other);}
+        QuadEvaluatedResult evaluate_sse(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4) const {return CompactCoordinatesXYZFF<vbw>::evaluate_sse(v1, v2, v3, v4);}
+        OctoEvaluatedResult evaluate_sse(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4, const CompactCoordinatesXYZFF<vbw>& v5, const CompactCoordinatesXYZFF<vbw>& v6, const CompactCoordinatesXYZFF<vbw>& v7, const CompactCoordinatesXYZFF<vbw>& v8) const {return CompactCoordinatesXYZFF<vbw>::evaluate_sse(v1, v2, v3, v4, v5, v6, v7, v8);}
 
-        EvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesData<vbw>& other) const {return CompactCoordinatesData<vbw>::evaluate_rounded_sse(other);}
-        QuadEvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4) const {return CompactCoordinatesData<vbw>::evaluate_rounded_sse(v1, v2, v3, v4);}
-        OctoEvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4, const CompactCoordinatesData<vbw>& v5, const CompactCoordinatesData<vbw>& v6, const CompactCoordinatesData<vbw>& v7, const CompactCoordinatesData<vbw>& v8) const {return CompactCoordinatesData<vbw>::evaluate_rounded_sse(v1, v2, v3, v4, v5, v6, v7, v8);}
+        EvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZFF<vbw>& other) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_sse(other);}
+        QuadEvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_sse(v1, v2, v3, v4);}
+        OctoEvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4, const CompactCoordinatesXYZFF<vbw>& v5, const CompactCoordinatesXYZFF<vbw>& v6, const CompactCoordinatesXYZFF<vbw>& v7, const CompactCoordinatesXYZFF<vbw>& v8) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_sse(v1, v2, v3, v4, v5, v6, v7, v8);}
     #endif
 
     #if defined __AVX__
-        EvaluatedResult evaluate_avx(const CompactCoordinatesData<vbw>& other) const {return CompactCoordinatesData<vbw>::evaluate_avx(other);}
-        QuadEvaluatedResult evaluate_avx(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4) const {return CompactCoordinatesData<vbw>::evaluate_avx(v1, v2, v3, v4);}
-        OctoEvaluatedResult evaluate_avx(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4, const CompactCoordinatesData<vbw>& v5, const CompactCoordinatesData<vbw>& v6, const CompactCoordinatesData<vbw>& v7, const CompactCoordinatesData<vbw>& v8) const {return CompactCoordinatesData<vbw>::evaluate_avx(v1, v2, v3, v4, v5, v6, v7, v8);}
+        EvaluatedResult evaluate_avx(const CompactCoordinatesXYZFF<vbw>& other) const {return CompactCoordinatesXYZFF<vbw>::evaluate_avx(other);}
+        QuadEvaluatedResult evaluate_avx(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4) const {return CompactCoordinatesXYZFF<vbw>::evaluate_avx(v1, v2, v3, v4);}
+        OctoEvaluatedResult evaluate_avx(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4, const CompactCoordinatesXYZFF<vbw>& v5, const CompactCoordinatesXYZFF<vbw>& v6, const CompactCoordinatesXYZFF<vbw>& v7, const CompactCoordinatesXYZFF<vbw>& v8) const {return CompactCoordinatesXYZFF<vbw>::evaluate_avx(v1, v2, v3, v4, v5, v6, v7, v8);}
 
-        EvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesData<vbw>& other) const {return CompactCoordinatesData<vbw>::evaluate_rounded_avx(other);}
-        QuadEvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4) const {return CompactCoordinatesData<vbw>::evaluate_rounded_avx(v1, v2, v3, v4);}
-        OctoEvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesData<vbw>& v1, const CompactCoordinatesData<vbw>& v2, const CompactCoordinatesData<vbw>& v3, const CompactCoordinatesData<vbw>& v4, const CompactCoordinatesData<vbw>& v5, const CompactCoordinatesData<vbw>& v6, const CompactCoordinatesData<vbw>& v7, const CompactCoordinatesData<vbw>& v8) const {return CompactCoordinatesData<vbw>::evaluate_rounded_avx(v1, v2, v3, v4, v5, v6, v7, v8);}
+        EvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesXYZFF<vbw>& other) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_avx(other);}
+        QuadEvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_avx(v1, v2, v3, v4);}
+        OctoEvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesXYZFF<vbw>& v1, const CompactCoordinatesXYZFF<vbw>& v2, const CompactCoordinatesXYZFF<vbw>& v3, const CompactCoordinatesXYZFF<vbw>& v4, const CompactCoordinatesXYZFF<vbw>& v5, const CompactCoordinatesXYZFF<vbw>& v6, const CompactCoordinatesXYZFF<vbw>& v7, const CompactCoordinatesXYZFF<vbw>& v8) const {return CompactCoordinatesXYZFF<vbw>::evaluate_rounded_avx(v1, v2, v3, v4, v5, v6, v7, v8);}
     #endif
 };
 
@@ -58,12 +60,12 @@ void single_tests(std::function<EvaluatedResult(const DebugData<vbw>&, const Deb
         DebugData<vbw> data2(Vector3<double>{2, 1, 1}, 4);
         auto result = evaluate(data1, data2);
         CHECK(result.distance == 1);
-        CHECK(result.weight == 8);
+        CHECK(result.ff_bin == ff_bin_index(2, 4));
 
         DebugData<vbw> data3(Vector3<double>{2, 2, 2}, 8);
         result = evaluate(data1, data3);
         CHECK_THAT(result.distance, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
-        CHECK(result.weight == 16);
+        CHECK(result.ff_bin == ff_bin_index(2, 8));
     }
 }
 
@@ -75,12 +77,12 @@ void single_tests_rounded(std::function<EvaluatedResultRounded(const DebugData<v
         DebugData<vbw> data2(Vector3<double>{2, 1, 1}, 4);
         auto result = evaluate(data1, data2);
         CHECK(result.distance == std::round(1./width));
-        CHECK(result.weight == 8);
+        CHECK(result.ff_bin == ff_bin_index(2, 4));
 
         DebugData<vbw> data3(Vector3<double>{2, 2, 2}, 8);
         result = evaluate(data1, data3);
         CHECK(result.distance == std::round(std::sqrt(3)/width));
-        CHECK(result.weight == 16);
+        CHECK(result.ff_bin == ff_bin_index(2, 8));
     }
 }
 
@@ -97,10 +99,10 @@ void quad_tests(std::function<QuadEvaluatedResult(const DebugData<vbw>&, const D
         CHECK_THAT(result.distances[1], Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
         CHECK_THAT(result.distances[2],  Catch::Matchers::WithinAbs(std::sqrt(12), 1e-6));
         CHECK_THAT(result.distances[3], Catch::Matchers::WithinAbs(std::sqrt(27), 1e-6));
-        CHECK(result.weights[0] == 8);
-        CHECK(result.weights[1] == 16);
-        CHECK(result.weights[2] == 32);
-        CHECK(result.weights[3] == 6);
+        CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
+        CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
+        CHECK(result.ff_bins[2] == ff_bin_index(2, 16));
+        CHECK(result.ff_bins[3] == ff_bin_index(2, 3));
     }
 }
 
@@ -118,10 +120,10 @@ void quad_tests_rounded(std::function<QuadEvaluatedResultRounded(const DebugData
         CHECK(result.distances[1] == std::round(std::sqrt(3)/width));
         CHECK(result.distances[2]  == std::round(std::sqrt(12)/width));
         CHECK(result.distances[3] == std::round(std::sqrt(27)/width));
-        CHECK(result.weights[0] == 8);
-        CHECK(result.weights[1] == 16);
-        CHECK(result.weights[2] == 32);
-        CHECK(result.weights[3] == 6);
+        CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
+        CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
+        CHECK(result.ff_bins[2] == ff_bin_index(2, 16));
+        CHECK(result.ff_bins[3] == ff_bin_index(2, 3));
     }
 }
 
@@ -144,16 +146,16 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData<vbw>&, const D
         CHECK_THAT(result.distances[3], Catch::Matchers::WithinAbs(std::sqrt(27), 1e-6));
         CHECK_THAT(result.distances[4],  Catch::Matchers::WithinAbs(std::sqrt(48), 1e-6));
         CHECK_THAT(result.distances[5],  Catch::Matchers::WithinAbs(std::sqrt(75), 1e-6));
-        CHECK_THAT(result.distances[6],Catch::Matchers::WithinAbs(std::sqrt(108), 1e-6));
-        CHECK_THAT(result.distances[7], Catch::Matchers::WithinAbs(std::sqrt(147), 1e-5)); // float accuracy loss
-        CHECK(result.weights[0] == 8);
-        CHECK(result.weights[1] == 16);
-        CHECK(result.weights[2] == 32);
-        CHECK(result.weights[3] == 64);
-        CHECK(result.weights[4] == 128);
-        CHECK(result.weights[5] == 256);
-        CHECK(result.weights[6] == 30);
-        CHECK(result.weights[7] == 10);
+        CHECK_THAT(result.distances[6], Catch::Matchers::WithinAbs(std::sqrt(108), 1e-6));
+        CHECK_THAT(result.distances[7], Catch::Matchers::WithinAbs(std::sqrt(147), 1e-5));
+        CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
+        CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
+        CHECK(result.ff_bins[2] == ff_bin_index(2, 16));
+        CHECK(result.ff_bins[3] == ff_bin_index(2, 32));
+        CHECK(result.ff_bins[4] == ff_bin_index(2, 64));
+        CHECK(result.ff_bins[5] == ff_bin_index(2, 128));
+        CHECK(result.ff_bins[6] == ff_bin_index(2, 15));
+        CHECK(result.ff_bins[7] == ff_bin_index(2, 5));
     }
 }
 
@@ -179,14 +181,14 @@ void octo_tests_rounded(std::function<OctoEvaluatedResultRounded(const DebugData
         CHECK(result.distances[5]   == std::round(std::sqrt(75)/width));
         CHECK(result.distances[6] == std::round(std::sqrt(108)/width));
         CHECK(result.distances[7]  == std::round(std::sqrt(147)/width));
-        CHECK(result.weights[0] == 8);
-        CHECK(result.weights[1] == 16);
-        CHECK(result.weights[2] == 32);
-        CHECK(result.weights[3] == 64);
-        CHECK(result.weights[4] == 128);
-        CHECK(result.weights[5] == 256);
-        CHECK(result.weights[6] == 30);
-        CHECK(result.weights[7] == 10);
+        CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
+        CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
+        CHECK(result.ff_bins[2] == ff_bin_index(2, 16));
+        CHECK(result.ff_bins[3] == ff_bin_index(2, 32));
+        CHECK(result.ff_bins[4] == ff_bin_index(2, 64));
+        CHECK(result.ff_bins[5] == ff_bin_index(2, 128));
+        CHECK(result.ff_bins[6] == ff_bin_index(2, 15));
+        CHECK(result.ff_bins[7] == ff_bin_index(2, 5));
     }
 }
 
@@ -227,7 +229,7 @@ void run_tests() {
     #endif
 }
 
-TEST_CASE("CompactCoordinatesData<vbw>::evaluate") {
+TEST_CASE("CompactCoordinatesXYZFF<vbw>::evaluate") {
     SECTION("variable bin width") {
         run_tests<true>();
     }

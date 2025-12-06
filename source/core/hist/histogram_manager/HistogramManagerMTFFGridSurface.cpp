@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
-#include <hist/detail/CompactCoordinatesFF.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
@@ -13,43 +13,13 @@
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
-#include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
+#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
-
-// custom evaluates for the grid since we don't want to account for the excluded volume
-namespace ausaxs::grid {
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate8(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add8::evaluate<weighted_bins>(data_i, data_j, i, j);
-        for (unsigned int k = 0; k < 8; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
-    }
-
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate4(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add4::evaluate<weighted_bins>(data_i, data_j, i, j);
-        for (unsigned int k = 0; k < 4; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
-    }
-
-    template<bool weighted_bins, bool variable_bin_width, int factor>
-    inline void evaluate1(
-        typename hist::GenericDistribution2D<weighted_bins>::type& p, const hist::detail::CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const hist::detail::CompactCoordinates<variable_bin_width>& data_j, int i, int j
-    ) {
-        auto res = ausaxs::detail::add1::evaluate<weighted_bins>(data_i, data_j, i, j);
-        p.add(data_i.get_ff_type(i), res.distance, factor*res.weight);
-    }
-}
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGridSurface<variable_bin_width>::~HistogramManagerMTFFGridSurface() = default;
@@ -275,9 +245,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     WeightedDistribution1D p_tot = std::move(cast_res->get_counts());
     p_tot.set_bin_centers(cast_res->get_d_axis());
 
-    Distribution3D p_aa = std::move(cast_res->get_aa_counts_by_ff());
-    Distribution2D p_aw = std::move(cast_res->get_aw_counts_by_ff());
-    Distribution1D p_ww = std::move(cast_res->get_ww_counts_by_ff());
+    Distribution3D p_aa = std::move(cast_res->get_raw_aa_counts_by_ff());
+    Distribution2D p_aw = std::move(cast_res->get_raw_aw_counts_by_ff());
+    Distribution1D p_ww = std::move(cast_res->get_raw_ww_counts_by_ff());
 
     // either xx or ww are largest of all components
     max_bin = std::max<unsigned int>(max_bin, p_tot.size());

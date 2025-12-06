@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/distance_calculator/detail/TemplateHelpers.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -170,7 +170,7 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_corre
     }
 
     // calculate self-correlation
-    p_aa.add(0, std::accumulate(current.get_data().begin(), current.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}));
+    p_aa.add(0, std::accumulate(current.get_data().begin(), current.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}));
 
     // store the coordinates for later
     this->coords_a[index] = std::move(current);
@@ -275,7 +275,7 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
     p_ww.add(0, std::accumulate(
         this->coords_w.get_data().begin(), this->coords_w.get_data().end(), 
         0.0, 
-        [](double sum, const hist::detail::CompactCoordinatesData<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
+        [](double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
     ));
 
     this->master -= partials_ww; // subtract the previous hydration histogram

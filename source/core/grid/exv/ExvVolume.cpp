@@ -4,7 +4,7 @@
 #include <grid/exv/ExvVolume.h>
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
@@ -26,7 +26,7 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
         auto ff_table = form_factor::detail::ExvFormFactorSet(constants::exv::get_exv_set());
         for (const auto& body : m->get_bodies()) {
             volume += std::accumulate(body.get_atoms().begin(), body.get_atoms().end(), 0.0, [&ff_table] (double sum, const data::AtomFF& atom) {
-                return sum + ff_table.get_form_factor(atom.form_factor_type()).evaluate(0);
+                return sum + ff_table.get(atom.form_factor_type()).evaluate(0);
             });
         }
         return volume / constants::charge::density::water;

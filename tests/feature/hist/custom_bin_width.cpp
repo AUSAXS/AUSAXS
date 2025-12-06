@@ -113,14 +113,14 @@ TEST_CASE("Custom bin width: respected by managers") {
 template<template<bool> class MANAGER>
 void run_test3(const Molecule& protein, const auto& target) {
     auto h2 = MANAGER<true>(&protein).calculate_all();
-    REQUIRE(compare_hist(h2->get_total_counts(), target));
+    REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
 }
 template<template<bool, bool> class MANAGER>
 void run_test3(const Molecule& protein, const auto& target) {
     auto h3 = MANAGER<false, true>(&protein).calculate_all();
-    REQUIRE(compare_hist(h3->get_total_counts(), target));
+    REQUIRE(compare_hist(get_raw_counts(h3.get()), target));
     auto h4 = MANAGER<true, true>(&protein).calculate_all();
-    REQUIRE(compare_hist(h4->get_total_counts(), target));
+    REQUIRE(compare_hist(get_raw_counts(h4.get()), target));
 }
 TEST_CASE("Custom bin width: varying widths agree with analytical result") {
     settings::general::verbose = false;

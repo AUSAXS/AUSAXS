@@ -4,7 +4,7 @@
 #pragma once
 
 #include <data/DataFwd.h>
-#include <hist/detail/HistDetailFwd.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::hist::detail {

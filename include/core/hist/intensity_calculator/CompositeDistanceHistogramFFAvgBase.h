@@ -90,24 +90,48 @@ namespace ausaxs::hist {
             Distribution1D& get_ww_counts() override; // @copydoc get_ww_counts() const
 
             /**
-             * @brief Get the partial distance histogram for atom-atom interactions.
+             * @brief Get the raw (unweighted) partial distance histogram for atom-atom interactions, indexed by form factor type.
+             *        These are the absolute distance counts before any form factor weighting.
+             */
+            const Distribution3D& get_raw_aa_counts_by_ff() const override;
+            Distribution3D& get_raw_aa_counts_by_ff() override;
+
+            /**
+             * @brief Get the raw (unweighted) partial distance histogram for atom-water interactions, indexed by form factor type.
+             *        These are the absolute distance counts before any form factor weighting.
+             */
+            const Distribution2D& get_raw_aw_counts_by_ff() const override;
+            Distribution2D& get_raw_aw_counts_by_ff() override;
+
+            /**
+             * @brief Get the raw (unweighted) partial distance histogram for water-water interactions.
+             *        These are the absolute distance counts before any form factor weighting.
+             */
+            const Distribution1D& get_raw_ww_counts_by_ff() const override;
+            Distribution1D& get_raw_ww_counts_by_ff() override;
+
+            /**
+             * @brief Get the weighted partial distance histogram for atom-atom interactions, indexed by form factor type.
+             *        These counts are scaled by form factor products f(q=0)*f(q=0) for each ff combination.
+             * @deprecated Use get_aa_counts_ff() instead for raw counts. This method exists for backwards compatibility.
              */
             const Distribution3D& get_aa_counts_by_ff() const;
             Distribution3D& get_aa_counts_by_ff(); // @copydoc get_aa_counts_ff() const
 
             /**
-             * @brief Get the partial distance histogram for atom-water interactions.
+             * @brief Get the weighted partial distance histogram for atom-water interactions.
              */
             const Distribution2D& get_aw_counts_by_ff() const;
             Distribution2D& get_aw_counts_by_ff(); // @copydoc get_aw_counts_ff() const
 
             /**
-             * @brief Get the partial distance histogram for water-water interactions.
+             * @brief Get the weighted partial distance histogram for water-water interactions.
              */
             const Distribution1D& get_ww_counts_by_ff() const;
             Distribution1D& get_ww_counts_by_ff(); // @copydoc get_ww_counts_ff() const
 
             const std::vector<double>& get_counts() const override;
+            const std::vector<double>& get_total_raw_counts() const override;
 
             virtual ScatteringProfile get_profile_aa() const override;
             virtual ScatteringProfile get_profile_aw() const override;

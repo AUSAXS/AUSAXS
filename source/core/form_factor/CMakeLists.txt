@@ -1,5 +1,8 @@
 target_sources(ausaxs_core PRIVATE 
-	"PrecalculatedExvFormFactorProduct.cpp"
-	"PrecalculatedFormFactorProduct.cpp"
 	"ExvTable.cpp"
+
+	"lookup/ExvFormFactorProduct.cpp"
+	"lookup/FormFactorProduct.cpp"
+	"lookup/NormalizedExvFormFactorProduct.cpp"
+	"lookup/NormalizedFormFactorProduct.cpp"
 )

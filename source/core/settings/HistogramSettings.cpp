@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/detail/SimpleExvModel.h>
-#include <hist/detail/CompactCoordinatesData.h>
+#include <hist/detail/data/CompactCoordinatesXYZW.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <constants/Constants.h>
