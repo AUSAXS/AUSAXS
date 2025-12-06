@@ -8,11 +8,10 @@
 #endif
 
 namespace ausaxs::utility::indexer {
-    template<ValidIndexable1D Derived>
+    template<typename Derived>
     class Indexer1D {
-        using value_type = Derived::value_type;
         protected:
-            const value_type& index_impl(int i) const {
+            constexpr auto& index(int i) {
                 #if (SAFE_MATH)
                     int N = static_cast<int>(derived().N);
                     if (i < 0 || N <= i) {
@@ -25,12 +24,21 @@ namespace ausaxs::utility::indexer {
                 return derived().data[i]; 
             }
 
-            value_type& index_impl(int i) {
-                return const_cast<value_type&>(static_cast<const Indexer1D&>(*this).index_impl(i));
+            constexpr const auto& index(int i) const {
+                #if (SAFE_MATH)
+                    int N = static_cast<int>(derived().N);
+                    if (i < 0 || N <= i) {
+                        throw std::out_of_range(
+                            "Indexer1D: Index out of bounds "
+                            "(" + std::to_string(i) + " should be less than " + std::to_string(N) + ")"
+                        );
+                    }
+                #endif
+                return derived().data[i];
             }
 
-            value_type linear_index_impl(int i) { return index_impl(i); }
-            const value_type& linear_index_impl(int i) const { return index_impl(i); }
+            constexpr auto& linear_index(int i) { return index(i); }
+            constexpr const auto& linear_index(int i) const { return index(i); }
 
         private:
             Derived& derived() { return static_cast<Derived&>(*this); }
