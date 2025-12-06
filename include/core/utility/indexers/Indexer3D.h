@@ -1,0 +1,56 @@
+#pragma once
+
+#include <utility/indexers/IndexerConcepts.h>
+
+#if (SAFE_MATH) 
+    #include <stdexcept>
+    #include <string>
+#endif
+
+namespace ausaxs::utility::indexer {
+    template<ValidIndexable3D Derived>
+    class Indexer3D {
+        using value_type = Derived::value_type;
+        protected:
+            const value_type& index_impl(int i, int j, int k) const {
+                #if (SAFE_MATH)
+                    int N = static_cast<int>(derived().N);
+                    int M = static_cast<int>(derived().M);
+                    int L = static_cast<int>(derived().L);
+                    if (i < 0 || N <= i || j < 0 || M <= j || k < 0 || L <= k) {
+                        throw std::out_of_range(
+                            "Indexer3D: Index out of bounds "
+                            "(" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ") "
+                            "should be less than (" + std::to_string(N) + ", " + std::to_string(M) + ", " + std::to_string(L) + ")"
+                        );
+                    }
+                #endif
+                return derived().data[k + derived().L * (j + derived().M * i)]; 
+            }
+
+            value_type& index_impl(int i, int j, int k) {
+                return const_cast<value_type&>(static_cast<const Indexer3D&>(*this).index_impl(i, j, k));
+            }
+
+            const value_type& linear_index_impl(int i) const { 
+                #if (SAFE_MATH)
+                    int size = static_cast<int>(derived().N * derived().M * derived().L);
+                    if (i < 0 || size <= i) {
+                        throw std::out_of_range(
+                            "Indexer3D::linear_index: Index out of bounds "
+                            "(" + std::to_string(i) + " should be less than " + std::to_string(size) + ")"
+                        );
+                    }
+                #endif
+                return derived().data[i]; 
+            }
+
+            value_type& linear_index_impl(int i) { 
+                return const_cast<value_type&>(static_cast<const Indexer3D&>(*this).linear_index_impl(i));
+            }
+
+        private:
+            Derived& derived() { return static_cast<Derived&>(*this); }
+            const Derived& derived() const { return static_cast<const Derived&>(*this); }
+    };
+}
