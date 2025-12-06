@@ -6,7 +6,7 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/distance_calculator/detail/TemplateHelpers.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <container/ThreadLocalWrapper.h>
 #include <utility/MultiThreading.h>
 #include <settings/HistogramSettings.h>
@@ -133,7 +133,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
                 data.get_data().begin(), 
                 data.get_data().end(), 
                 0.0, 
-                [] (double sum, const hist::detail::CompactCoordinatesData<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
+                [] (double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
             ));
         }
     );

@@ -3,7 +3,7 @@
 
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
-#include <hist/distance_calculator/detail/TemplateHelpers.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>

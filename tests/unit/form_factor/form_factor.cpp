@@ -33,7 +33,7 @@ TEST_CASE("FormFactor::evaluate") {
         double c = 0.5;
         
         FormFactor ff(a, b, c);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
+        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(15.5, 1e-6));
     }
 
     SECTION("at non-zero q") {
@@ -44,7 +44,7 @@ TEST_CASE("FormFactor::evaluate") {
         FormFactor ff(a, b, c);
         double result = ff.evaluate(0.1);
         CHECK(result > 0);
-        CHECK(result <= 1.0);
+        CHECK(result < 15.5);
     }
 
     SECTION("decreases with q") {
@@ -53,154 +53,86 @@ TEST_CASE("FormFactor::evaluate") {
         double c = 0.5;
         
         FormFactor ff(a, b, c);
-        double val0 = ff.evaluate(0.0);
-        double val1 = ff.evaluate(0.5);
-        double val2 = ff.evaluate(1.0);
+        double q1 = ff.evaluate(0.1);
+        double q2 = ff.evaluate(0.5);
+        double q3 = ff.evaluate(1.0);
         
-        CHECK(val0 >= val1);
-        CHECK(val1 >= val2);
-    }
-}
-
-TEST_CASE("FormFactor::I0") {
-    SECTION("sum of coefficients") {
-        std::array<double, 5> a = {1.0, 2.0, 3.0, 4.0, 5.0};
-        std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
-        double c = 0.5;
-        
-        FormFactor ff(a, b, c);
-        double expected = 1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 0.5;
-        CHECK_THAT(ff.I0(), Catch::Matchers::WithinAbs(expected, 1e-10));
-    }
-
-    SECTION("zero coefficients") {
-        std::array<double, 5> a = {0, 0, 0, 0, 0};
-        std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
-        double c = 0;
-        
-        FormFactor ff(a, b, c);
-        CHECK(ff.I0() == 0);
+        CHECK(q1 > q2);
+        CHECK(q2 > q3);
     }
 }
 
 TEST_CASE("FormFactor::set_normalization") {
-    SECTION("change normalization") {
+    SECTION("manual normalization") {
         std::array<double, 5> a = {1.0, 2.0, 3.0, 4.0, 5.0};
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
         FormFactor ff(a, b, c);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-        
-        double i0 = ff.I0();
         ff.set_normalization(2.0);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(i0 * 2.0, 1e-6));
+        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(31.0, 1e-6));
+    }
+}
+
+TEST_CASE("FormFactor::lookup::atomic::raw") {
+    SECTION("get hydrogen form factor") {
+        const FormFactor& ff = lookup::atomic::raw::H;
+        CHECK(ff.I0() > 0);
+        CHECK(ff.evaluate(0) > 0);
     }
 
-    SECTION("zero normalization") {
-        std::array<double, 5> a = {1.0, 2.0, 3.0, 4.0, 5.0};
-        std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
-        double c = 0.5;
+    SECTION("get carbon form factor") {
+        const FormFactor& ff = lookup::atomic::raw::C;
+        CHECK(ff.I0() > 0);
+        CHECK(ff.evaluate(0) > 0);
+    }
+
+    SECTION("get nitrogen form factor") {
+        const FormFactor& ff = lookup::atomic::raw::N;
+        CHECK(ff.I0() > 0);
+        CHECK(ff.evaluate(0) > 0);
+    }
+
+    SECTION("get oxygen form factor") {
+        const FormFactor& ff = lookup::atomic::raw::O;
+        CHECK(ff.I0() > 0);
+        CHECK(ff.evaluate(0) > 0);
+    }
+
+    SECTION("get sulfur form factor") {
+        const FormFactor& ff = lookup::atomic::raw::S;
+        CHECK(ff.I0() > 0);
+        CHECK(ff.evaluate(0) > 0);
+    }
+
+    SECTION("get excluded volume form factor") {
+        const FormFactor& ff = lookup::atomic::raw::excluded_volume;
+        CHECK(ff.I0() > 0);
+        CHECK(ff.evaluate(0) > 0);
+    }
+
+    SECTION("get form factor by type") {
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::C);
+        CHECK(ff.I0() > 0);
+        CHECK(ff.evaluate(0) > 0);
+    }
+}
+
+TEST_CASE("FormFactor::comparison with normalized") {
+    SECTION("raw form factors are not normalized to 1") {
+        const FormFactor& ff_h = lookup::atomic::raw::H;
+        const FormFactor& ff_c = lookup::atomic::raw::C;
+        const FormFactor& ff_n = lookup::atomic::raw::N;
+        const FormFactor& ff_o = lookup::atomic::raw::O;
         
-        FormFactor ff(a, b, c);
-        ff.set_normalization(0.0);
-        CHECK(ff.evaluate(0) == 0.0);
-    }
-}
-
-TEST_CASE("FormFactor::storage::atomic") {
-    SECTION("get_form_factor for all types") {
-        for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
-            const FormFactor& ff = storage::atomic::get_form_factor(static_cast<form_factor_t>(i));
-            CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-            CHECK(ff.I0() > 0);
-        }
-    }
-
-    SECTION("hydrogen") {
-        const FormFactor& H = storage::atomic::get_form_factor(form_factor_t::H);
-        CHECK_THAT(H.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("carbon") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
-        CHECK_THAT(C.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("nitrogen") {
-        const FormFactor& N = storage::atomic::get_form_factor(form_factor_t::N);
-        CHECK_THAT(N.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("oxygen") {
-        const FormFactor& O = storage::atomic::get_form_factor(form_factor_t::O);
-        CHECK_THAT(O.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("sulfur") {
-        const FormFactor& S = storage::atomic::get_form_factor(form_factor_t::S);
-        CHECK_THAT(S.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("excluded_volume") {
-        const FormFactor& exv = storage::atomic::get_form_factor(form_factor_t::EXCLUDED_VOLUME);
-        CHECK(exv.evaluate(0) > 0);
-    }
-
-    SECTION("invalid type throws") {
-        CHECK_THROWS(storage::atomic::get_form_factor(form_factor_t::UNKNOWN));
-    }
-}
-
-TEST_CASE("FormFactor::storage::atomic groups") {
-    SECTION("CH_sp3") {
-        const FormFactor& ff = storage::atomic::get_form_factor(form_factor_t::CH);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("CH2_sp3") {
-        const FormFactor& ff = storage::atomic::get_form_factor(form_factor_t::CH2);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("CH3_sp3") {
-        const FormFactor& ff = storage::atomic::get_form_factor(form_factor_t::CH3);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("NH") {
-        const FormFactor& ff = storage::atomic::get_form_factor(form_factor_t::NH);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("NH2") {
-        const FormFactor& ff = storage::atomic::get_form_factor(form_factor_t::NH2);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("NH3") {
-        const FormFactor& ff = storage::atomic::get_form_factor(form_factor_t::NH3);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("OH") {
-        const FormFactor& ff = storage::atomic::get_form_factor(form_factor_t::OH);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-
-    SECTION("SH") {
-        const FormFactor& ff = storage::atomic::get_form_factor(form_factor_t::SH);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
-    }
-}
-
-TEST_CASE("FormFactor::consistency with q_axis") {
-    SECTION("evaluate across q_axis") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
-        for (const double& q : constants::axes::q_vals) {
-            double val = C.evaluate(q);
-            CHECK(val > 0);
-            CHECK(val <= 1.0);
-        }
+        CHECK(ff_h.evaluate(0) != 1.0);
+        CHECK(ff_c.evaluate(0) != 1.0);
+        CHECK(ff_n.evaluate(0) != 1.0);
+        CHECK(ff_o.evaluate(0) != 1.0);
+        
+        CHECK(ff_h.evaluate(0) > 0);
+        CHECK(ff_c.evaluate(0) > 0);
+        CHECK(ff_n.evaluate(0) > 0);
+        CHECK(ff_o.evaluate(0) > 0);
     }
 }

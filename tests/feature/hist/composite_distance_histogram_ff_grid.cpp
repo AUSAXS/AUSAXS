@@ -8,6 +8,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <dataset/SimpleDataset.h>
@@ -51,7 +52,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
 
 auto calc_scat = [] (double k) {
     const auto& q_axis = constants::axes::q_vals;
-    auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
+    auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
 
     auto V = std::pow(settings::grid::exv::width, 3);
     form_factor::FormFactor ffx = form_factor::ExvFormFactor(V);
@@ -124,8 +125,8 @@ auto calc_scat = [] (double k) {
 
 auto calc_scat_water = [] () {
     const auto& q_axis = constants::axes::q_vals;
-    auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
-    auto ff_O = form_factor::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(form_factor::water_bin));
+    auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
+    auto ff_O = form_factor::lookup::atomic::raw::get(static_cast<form_factor::form_factor_t>(form_factor::water_bin));
     form_factor::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width, 3));
     auto d = SimpleCube::d_exact;
 
@@ -158,11 +159,9 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
 
     std::vector<AtomFF> atoms = SimpleCube::get_atoms();
     atoms.emplace_back(AtomFF({0, 0, 0}, form_factor::form_factor_t::C));
-    for (auto& a : atoms) {a.weight() = 1;}
 
     std::vector<Water> waters = SimpleCube::get_waters();
     waters.emplace_back(Water({0, 0, 0}));
-    for (auto& w : waters) {w.weight() = 1;}
 
     Molecule protein({Body{atoms, waters}});
     GridDebug::generate_debug_grid(protein);
@@ -245,7 +244,6 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
 
     std::vector<AtomFF> atoms = SimpleCube::get_atoms();
     atoms.emplace_back(AtomFF({0, 0, 0}, form_factor::form_factor_t::C));
-    for (auto& a : atoms) {a.weight() = 1;}
 
     Molecule protein({Body{atoms}});
     GridDebug::generate_debug_grid(protein);
@@ -293,7 +291,6 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
     SECTION("simple") {
         std::vector<AtomFF> atoms = {AtomFF({0, 0, 0}, form_factor::form_factor_t::C)};
-        for (auto& a : atoms) {a.weight() = 1;}
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
@@ -302,7 +299,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         auto calc = [] (double k) {
             const auto& q_axis = constants::axes::q_vals;
-            auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
+            auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
             auto ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width*k, 3));
             auto d = SimpleCube::d_exact;
             std::for_each(d.begin(), d.end(), [k] (double& v) {v *= k;});
@@ -363,7 +360,6 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
     SECTION("cube") {
         std::vector<AtomFF> atoms = SimpleCube::get_atoms();
         atoms.emplace_back(AtomFF({0, 0, 0}, form_factor::form_factor_t::C));
-        for (auto& a : atoms) {a.weight() = 1;}
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
@@ -372,7 +368,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         auto calc = [] (double k) {
             const auto& q_axis = constants::axes::q_vals;
-            auto ff_C = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
+            auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
             form_factor::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width*k, 3));
             auto d = SimpleCube::d_exact;
 

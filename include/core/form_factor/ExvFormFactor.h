@@ -51,7 +51,7 @@ namespace ausaxs::form_factor {
                 Ar(constants::exv::Ar)
             {}
 
-            constexpr ExvFormFactor get_form_factor(form_factor_t type) const {
+            constexpr ExvFormFactor get(form_factor_t type) const {
                 switch(type) {
                     case form_factor_t::H:     return H;
                     case form_factor_t::C:     return C;
@@ -80,7 +80,7 @@ namespace ausaxs::form_factor {
         };
     }
 
-    namespace storage::exv {
+    namespace lookup::exv {
         constexpr form_factor::detail::ExvFormFactorSet standard(constants::exv::standard);
     }
 }

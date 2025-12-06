@@ -68,6 +68,30 @@ namespace ausaxs::hist {
             }
 
             /**
+             * @brief Increment the value for a given distance.
+             * 
+             * @param distance The distance to increment.
+             *
+             * @tparam N A multiplicative factor for the value.
+             */
+            template<int N = 1>
+            void increment(float distance) {
+                index(std::round(distance)) += N;
+            }
+
+            /**
+             * @brief Increment the value for a given index.
+             * 
+             * @param i The index to increment.
+             *
+             * @tparam N A multiplicative factor for the value.
+             */
+            template<int N = 1>
+            void increment_index(int32_t i) {
+                index(i) += N;
+            }
+
+            /**
              * @brief Clear the value for a given distance.
              * 
              * @param distance The index to clear.

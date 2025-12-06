@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/FormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <constants/Constants.h>
 #include <dataset/SimpleDataset.h>
@@ -16,7 +16,7 @@ TEST_CASE("ExvFormFactor::evaluate") {}
 TEST_CASE("ExvFormFactor::plot", "[manual]") {
     plots::PlotDataset plot;
     {
-        const form_factor::FormFactor& ff_exv = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
+        const form_factor::NormalizedFormFactor& ff_exv = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
         SimpleDataset dataset;
         for (const double& q : q_vals) {
             dataset.push_back(q, ff_exv.evaluate(q)/ff_exv.evaluate(0));
@@ -25,7 +25,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
     }
 
     for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {
-        const form_factor::ExvFormFactor& ff_obj = form_factor::storage::exv::standard.get_form_factor(static_cast<form_factor::form_factor_t>(ff));
+        const form_factor::ExvFormFactor& ff_obj = form_factor::lookup::exv::standard.get(static_cast<form_factor::form_factor_t>(ff));
         SimpleDataset dataset;
         for (const double& q : q_vals) {
             dataset.push_back(q, ff_obj.evaluate_normalized(q));
@@ -38,8 +38,8 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
 // compare each exv form factor with its real one
 TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
     for (unsigned int ffi = 0; ffi < form_factor::get_count_without_excluded_volume(); ++ffi) {
-        const form_factor::FormFactor& ff = form_factor::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
-        const form_factor::ExvFormFactor& ffx = form_factor::storage::exv::standard.get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
+        const form_factor::NormalizedFormFactor& ff = form_factor::lookup::atomic::normalized::get(static_cast<form_factor::form_factor_t>(ffi));
+        const form_factor::ExvFormFactor& ffx = form_factor::lookup::exv::standard.get(static_cast<form_factor::form_factor_t>(ffi));
 
         SimpleDataset dataset, datasetx;
         for (const double& q : q_vals) {

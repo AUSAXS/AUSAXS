@@ -4,7 +4,6 @@
 #pragma once
 
 #include <hist/histogram_manager/IHistogramManager.h>
-#include <hist/detail/HistDetailFwd.h>
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 

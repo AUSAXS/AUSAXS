@@ -19,9 +19,17 @@ namespace ausaxs::hist::detail {
 
         /**
          * @brief Add the distance to this bin, and increase the counter by one.
+         * @tparam N A multiplicative factor for the value.
          */
         template<int N>
         void add(float distance, double value);
+
+        /**
+         * @brief Increment the count by one.
+         * @tparam N A multiplicative factor for the value.
+         */
+        template<int N>
+        void increment(float distance);
 
         WeightedEntry operator+(const WeightedEntry& other) const;
         WeightedEntry& operator+=(const WeightedEntry& other);
@@ -44,6 +52,13 @@ static_assert(supports_nothrow_move_v<ausaxs::hist::detail::WeightedEntry>, "Wei
 
 inline ausaxs::hist::detail::WeightedEntry::WeightedEntry() = default;
 inline ausaxs::hist::detail::WeightedEntry::WeightedEntry(constants::axes::d_type value, unsigned int count, double bin_center) : value(value), count(count), bin_center(bin_center) {}
+
+template<int N>
+inline void ausaxs::hist::detail::WeightedEntry::increment(float distance) {
+    count += N;
+    bin_center += N*distance;
+    value += N;
+}
 
 template<int N>
 inline void ausaxs::hist::detail::WeightedEntry::add(float distance, double value) {

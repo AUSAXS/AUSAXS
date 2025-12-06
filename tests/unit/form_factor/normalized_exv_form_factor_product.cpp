@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/PrecalculatedExvFormFactorProduct.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/lookup/NormalizedExvFormFactorProduct.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
@@ -10,9 +10,9 @@
 using namespace ausaxs;
 using namespace form_factor;
 
-TEST_CASE("storage::exv::get_precalculated_form_factor_product") {
+TEST_CASE("lookup::exv::normalized::get_product") {
     SECTION("single access") {
-        const auto& ff = storage::exv::get_precalculated_form_factor_product(
+        const auto& ff = lookup::exv::normalized::get_product(
             static_cast<unsigned int>(form_factor_t::C),
             static_cast<unsigned int>(form_factor_t::N)
         );
@@ -20,11 +20,11 @@ TEST_CASE("storage::exv::get_precalculated_form_factor_product") {
     }
 
     SECTION("symmetric access") {
-        const auto& ff1 = storage::exv::get_precalculated_form_factor_product(
+        const auto& ff1 = lookup::exv::normalized::get_product(
             static_cast<unsigned int>(form_factor_t::C),
             static_cast<unsigned int>(form_factor_t::N)
         );
-        const auto& ff2 = storage::exv::get_precalculated_form_factor_product(
+        const auto& ff2 = lookup::exv::normalized::get_product(
             static_cast<unsigned int>(form_factor_t::N),
             static_cast<unsigned int>(form_factor_t::C)
         );
@@ -35,12 +35,12 @@ TEST_CASE("storage::exv::get_precalculated_form_factor_product") {
     }
 }
 
-TEST_CASE("storage::exv::get_precalculated_form_factor_table") {
+TEST_CASE("lookup::exv::normalized::get_table") {
     SECTION("table access") {
-        const auto& table = storage::exv::get_precalculated_form_factor_table();
+        const auto& table = lookup::exv::normalized::get_table();
         
-        const ExvFormFactor& C = storage::exv::standard.get_form_factor(form_factor_t::C);
-        const ExvFormFactor& N = storage::exv::standard.get_form_factor(form_factor_t::N);
+        const ExvFormFactor& C = lookup::exv::standard.get(form_factor_t::C);
+        const ExvFormFactor& N = lookup::exv::standard.get(form_factor_t::N);
         
         const auto& ff = table.index(
             static_cast<unsigned int>(form_factor_t::C),
@@ -54,13 +54,13 @@ TEST_CASE("storage::exv::get_precalculated_form_factor_table") {
     }
 
     SECTION("table completeness") {
-        const auto& table = storage::exv::get_precalculated_form_factor_table();
+        const auto& table = lookup::exv::normalized::get_table();
         
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                const ExvFormFactor& ff1_obj = storage::exv::standard.get_form_factor(static_cast<form_factor_t>(ff1));
-                const ExvFormFactor& ff2_obj = storage::exv::standard.get_form_factor(static_cast<form_factor_t>(ff2));
-                const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
+                const ExvFormFactor& ff1_obj = lookup::exv::standard.get(static_cast<form_factor_t>(ff1));
+                const ExvFormFactor& ff2_obj = lookup::exv::standard.get(static_cast<form_factor_t>(ff2));
+                const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
                 
                 for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
@@ -71,9 +71,9 @@ TEST_CASE("storage::exv::get_precalculated_form_factor_table") {
     }
 }
 
-TEST_CASE("storage::cross::get_precalculated_form_factor_product") {
+TEST_CASE("lookup::cross::normalized::get_product") {
     SECTION("single access") {
-        const auto& ff = storage::cross::get_precalculated_form_factor_product(
+        const auto& ff = lookup::cross::normalized::get_product(
             static_cast<unsigned int>(form_factor_t::C),
             static_cast<unsigned int>(form_factor_t::N)
         );
@@ -81,10 +81,10 @@ TEST_CASE("storage::cross::get_precalculated_form_factor_product") {
     }
 
     SECTION("matches manual calculation") {
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
-        const ExvFormFactor& N_exv = storage::exv::standard.get_form_factor(form_factor_t::N);
+        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        const ExvFormFactor& N_exv = lookup::exv::standard.get(form_factor_t::N);
         
-        const auto& ff = storage::cross::get_precalculated_form_factor_product(
+        const auto& ff = lookup::cross::normalized::get_product(
             static_cast<unsigned int>(form_factor_t::C),
             static_cast<unsigned int>(form_factor_t::N)
         );
@@ -96,12 +96,12 @@ TEST_CASE("storage::cross::get_precalculated_form_factor_product") {
     }
 }
 
-TEST_CASE("storage::cross::get_precalculated_form_factor_table") {
+TEST_CASE("lookup::cross::normalized::get_table") {
     SECTION("table access") {
-        const auto& table = storage::cross::get_precalculated_form_factor_table();
+        const auto& table = lookup::cross::normalized::get_table();
         
-        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
-        const ExvFormFactor& N_exv = storage::exv::standard.get_form_factor(form_factor_t::N);
+        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        const ExvFormFactor& N_exv = lookup::exv::standard.get(form_factor_t::N);
         
         const auto& ff = table.index(
             static_cast<unsigned int>(form_factor_t::C),
@@ -115,13 +115,13 @@ TEST_CASE("storage::cross::get_precalculated_form_factor_table") {
     }
 
     SECTION("table completeness") {
-        const auto& table = storage::cross::get_precalculated_form_factor_table();
+        const auto& table = lookup::cross::normalized::get_table();
         
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
-                const ExvFormFactor& ff2_obj = storage::exv::standard.get_form_factor(static_cast<form_factor_t>(ff2));
-                const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
+                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
+                const ExvFormFactor& ff2_obj = lookup::exv::standard.get(static_cast<form_factor_t>(ff2));
+                const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
                 
                 for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
@@ -132,16 +132,16 @@ TEST_CASE("storage::cross::get_precalculated_form_factor_table") {
     }
 }
 
-TEST_CASE("storage::detail::set_custom_exv_table") {
+TEST_CASE("lookup::detail::set_custom_exv_table") {
     SECTION("set custom table") {
         auto original_setting = settings::molecule::exv_set;
         settings::molecule::exv_set = settings::molecule::ExvSet::Custom;
         
         constants::exv::detail::ExvSet custom_set = constants::exv::vdw;
-        storage::detail::set_custom_exv_table(custom_set);
+        lookup::exv::normalized::detail::set_custom_table(custom_set);
         
-        const auto& table_exv = storage::exv::get_precalculated_form_factor_table();
-        const auto& table_cross = storage::cross::get_precalculated_form_factor_table();
+        const auto& table_exv = lookup::exv::normalized::get_table();
+        const auto& table_cross = lookup::cross::normalized::get_table();
         
         CHECK(table_exv.index(0, 0).evaluate(0) > 0);
         CHECK(table_cross.index(0, 0).evaluate(0) > 0);
@@ -155,14 +155,14 @@ TEST_CASE("ExvSet switching") {
         auto original_setting = settings::molecule::exv_set;
         settings::molecule::exv_set = settings::molecule::ExvSet::Traube;
         
-        const auto& table = storage::exv::get_precalculated_form_factor_table();
+        const auto& table = lookup::exv::normalized::get_table();
         auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::Traube);
         
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                const ExvFormFactor& ff1_obj = ffset.get_form_factor(static_cast<form_factor_t>(ff1));
-                const ExvFormFactor& ff2_obj = ffset.get_form_factor(static_cast<form_factor_t>(ff2));
-                const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
+                const ExvFormFactor& ff1_obj = ffset.get(static_cast<form_factor_t>(ff1));
+                const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
+                const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
                 
                 for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
@@ -178,14 +178,14 @@ TEST_CASE("ExvSet switching") {
         auto original_setting = settings::molecule::exv_set;
         settings::molecule::exv_set = settings::molecule::ExvSet::vdw;
         
-        const auto& table = storage::cross::get_precalculated_form_factor_table();
+        const auto& table = lookup::cross::normalized::get_table();
         auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::vdw);
         
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-                const FormFactor& ff1_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff1));
-                const ExvFormFactor& ff2_obj = ffset.get_form_factor(static_cast<form_factor_t>(ff2));
-                const PrecalculatedFormFactorProduct& ff = table.index(ff1, ff2);
+                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
+                const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
+                const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
                 
                 for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
