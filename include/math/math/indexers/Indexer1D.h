@@ -11,7 +11,7 @@ namespace ausaxs::utility::indexer {
         protected:
             constexpr auto& index(int i) {
                 #if (SAFE_MATH)
-                    int N = static_cast<int>(derived().N);
+                    int N = static_cast<int>(derived().size());
                     if (i < 0 || N <= i) {
                         throw std::out_of_range(
                             "Indexer1D: Index out of bounds "
@@ -24,7 +24,7 @@ namespace ausaxs::utility::indexer {
 
             constexpr const auto& index(int i) const {
                 #if (SAFE_MATH)
-                    int N = static_cast<int>(derived().N);
+                    int N = static_cast<int>(derived().size());
                     if (i < 0 || N <= i) {
                         throw std::out_of_range(
                             "Indexer1D: Index out of bounds "

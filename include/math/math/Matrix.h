@@ -20,6 +20,8 @@ namespace ausaxs {
     template<numeric Q>
     class Matrix final : utility::indexer::Indexer2D<Matrix<Q>> {
         public: 
+            using utility::indexer::Indexer2D<Matrix<Q>>::index;
+
             Matrix() : N(0), M(0) {}
             Matrix(const Matrix<Q>& A) = default;
             Matrix(Matrix<Q>&& A) = default;

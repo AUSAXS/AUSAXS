@@ -19,7 +19,10 @@ namespace ausaxs {
      */
     template<numeric T>
     class Vector final : utility::indexer::Indexer1D<Vector<T>> {
+        friend class utility::indexer::Indexer1D<Vector<T>>;
         public:
+            using utility::indexer::Indexer1D<Vector<T>>::index;
+
             Vector() = default;
             Vector(const Vector<T>& v) = default;
             Vector(Vector<T>&& v) = default;
