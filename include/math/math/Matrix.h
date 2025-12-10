@@ -7,6 +7,7 @@
 #include <math/Vector.h>
 #include <math/MathConcepts.h>
 #include <math/MathTypeTraits.h>
+#include <math/indexers/Indexer2D.h>
 
 #include <initializer_list>
 
@@ -17,7 +18,7 @@ namespace ausaxs {
      *        Note that this class is _not_ optimized for speed! If efficiency is a concern, consider using e.g. Eigen. 
      */
     template<numeric Q>
-    class Matrix final {
+    class Matrix final : utility::indexer::Indexer2D<Matrix<Q>> {
         public: 
             Matrix() : N(0), M(0) {}
             Matrix(const Matrix<Q>& A) = default;

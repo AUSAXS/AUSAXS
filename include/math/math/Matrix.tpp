@@ -151,24 +151,6 @@ namespace ausaxs {
     }
 
     template<numeric Q>
-    const Q& Matrix<Q>::index(unsigned int i, unsigned int j) const {
-        #if (SAFE_MATH)
-            if (i >= N) [[unlikely]] {throw std::out_of_range("Matrix::index: Row index out of range. (" + std::to_string(i) + " >= " + std::to_string(N) + ")");}
-            if (j >= M) [[unlikely]] {throw std::out_of_range("Matrix::index: Column index out of range. (" + std::to_string(j) + " >= " + std::to_string(M) + ")");}
-        #endif
-        return data[M*i + j];
-    }
-
-    template<numeric Q>
-    Q& Matrix<Q>::index(unsigned int i, unsigned int j) {
-        #if (SAFE_MATH)
-            if (i >= N) [[unlikely]] {throw std::out_of_range("Matrix::index: Row index out of range. (" + std::to_string(i) + " >= " + std::to_string(N) + ")");}
-            if (j >= M) [[unlikely]] {throw std::out_of_range("Matrix::index: Column index out of range. (" + std::to_string(j) + " >= " + std::to_string(M) + ")");}
-        #endif
-        return data[M*i + j];
-    }
-
-    template<numeric Q>
     const typename std::vector<Q>::const_iterator Matrix<Q>::begin() const {return data.cbegin();}
 
     template<numeric Q>

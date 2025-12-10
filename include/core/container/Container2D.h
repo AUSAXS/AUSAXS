@@ -4,7 +4,7 @@
 #pragma once
 
 #include <utility/Exceptions.h>
-#include <utility/indexers/Indexer2D.h>
+#include <math/indexers/Indexer2D.h>
 
 #include <vector>
 

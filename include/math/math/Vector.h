@@ -5,6 +5,7 @@
 
 #include <math/MathConcepts.h>
 #include <math/MathTypeTraits.h>
+#include <math/indexers/Indexer1D.h>
 
 #include <initializer_list>
 #include <vector>
@@ -17,7 +18,7 @@ namespace ausaxs {
      *        The vector operations are _not_ optimized for speed! If efficiency is a concern, consider using e.g. Eigen.
      */
     template<numeric T>
-    class Vector final {
+    class Vector final : utility::indexer::Indexer1D<Vector<T>> {
         public:
             Vector() = default;
             Vector(const Vector<T>& v) = default;

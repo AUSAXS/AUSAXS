@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility/indexers/IndexerConcepts.h>
-
 #if (SAFE_MATH) 
     #include <stdexcept>
     #include <string>
