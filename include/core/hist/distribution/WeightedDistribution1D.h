@@ -108,6 +108,11 @@ namespace ausaxs::hist {
                 index(i).increment<N>(distance);
             }
 
+            template<int N = 1>
+            void increment_index(int32_t i) {
+                index(i).increment<N>();
+            }
+
             /**
              * @brief Increment the value for a given linear index. 
              * 

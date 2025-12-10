@@ -36,11 +36,11 @@ TEST_CASE("Distribution3D::Distribution3D") {
     }
 }
 
-TEST_CASE("Distribution3D::add") {
+TEST_CASE("Distribution3D::add_index") {
     hist::Distribution3D dist(5, 5, 10);
-    dist.add(0, 0, 0, 1);
-    dist.add(1, 1, 1, 2);
-    dist.add(2, 2, 2, 3);
+    dist.add_index(0, 0, 0, 1);
+    dist.add_index(1, 1, 1, 2);
+    dist.add_index(2, 2, 2, 3);
     
     CHECK(dist.index(0, 0, 0) == 1);
     CHECK(dist.index(1, 1, 1) == 2);

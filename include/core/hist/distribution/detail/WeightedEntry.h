@@ -31,6 +31,13 @@ namespace ausaxs::hist::detail {
         template<int N>
         void increment(float distance);
 
+        /**
+         * @brief Increment the count by N.
+         * @tparam N A multiplicative factor for the value.
+         */
+        template<int N>
+        void increment();
+
         WeightedEntry operator+(const WeightedEntry& other) const;
         WeightedEntry& operator+=(const WeightedEntry& other);
         WeightedEntry operator-(const WeightedEntry& other) const;
@@ -57,6 +64,12 @@ template<int N>
 inline void ausaxs::hist::detail::WeightedEntry::increment(float distance) {
     count += N;
     bin_center += N*distance;
+    value += N;
+}
+
+template<int N>
+inline void ausaxs::hist::detail::WeightedEntry::increment() {
+    count += N;
     value += N;
 }
 

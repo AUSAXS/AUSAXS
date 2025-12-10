@@ -31,7 +31,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void add(int x, int y, int32_t i, constants::axes::d_type value) {
+            void add_index(int x, int y, int32_t i, constants::axes::d_type value) {
                 index(x, y, i) += N*value;
             }
 
@@ -49,6 +49,11 @@ namespace ausaxs::hist {
                 index(x, y, i) += N;
             }
 
+            template<int N = 1>
+            void increment_index(int x, int y, int32_t i) {
+                index(x, y, i) += N;
+            }
+            
             /**
              * @brief Increment the value for a given linear index. 
              * 

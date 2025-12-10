@@ -50,7 +50,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void add(int32_t i, constants::axes::d_type value) {
+            void add_index(int32_t i, constants::axes::d_type value) {
                 index(i) += N*value;
             }
 
@@ -63,6 +63,11 @@ namespace ausaxs::hist {
              */
             template<int N = 1>
             void increment(int32_t i) {
+                index(i) += N;
+            }
+
+            template<int N = 1>
+            void increment_index(int32_t i) {
                 index(i) += N;
             }
 

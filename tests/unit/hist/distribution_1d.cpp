@@ -63,11 +63,11 @@ TEST_CASE("Distribution1D::set_content") {
     CHECK(dist.get_content(2) == 30);
 }
 
-TEST_CASE("Distribution1D::add") {
+TEST_CASE("Distribution1D::add_index") {
     hist::Distribution1D dist(10);
-    dist.add(0, 1);
-    dist.add(1, 2);
-    dist.add(2, 3);
+    dist.add_index(0, 1);
+    dist.add_index(1, 2);
+    dist.add_index(2, 3);
     
     CHECK(dist.get_content(0) == 1);
     CHECK(dist.get_content(1) == 2);

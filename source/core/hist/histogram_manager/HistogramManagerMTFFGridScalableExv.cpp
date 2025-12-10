@@ -79,15 +79,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             for (int i = imin; i < imax; ++i) { // exv
                 int j = i+1;                    // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate8<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate4<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    evaluate1<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate1<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
             }
             return p_xx;
@@ -99,15 +99,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             for (int i = imin; i < imax; ++i) { // atoms
                 int j = 0;                      // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    grid::evaluate8<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    grid::evaluate4<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    grid::evaluate1<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
             }
             return p_ax;
@@ -119,15 +119,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             for (int i = imin; i < imax; ++i) { // waters
                 int j = 0;                      // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate8<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate4<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    evaluate1<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate1<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
             }
             return p_wx;

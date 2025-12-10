@@ -110,15 +110,15 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
                 for (int i = imin; i < imax; ++i) { // atom
                     int j = i+1;                    // atom
                     for (; j+7 < data_size; j+=8) {
-                        evaluate8<weighted_bins, variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
+                        evaluate8<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
                     }
 
                     for (; j+3 < data_size; j+=4) {
-                        evaluate4<weighted_bins, variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
+                        evaluate4<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
                     }
 
                     for (; j < data_size; ++j) {
-                        evaluate1<weighted_bins, variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
+                        evaluate1<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
                     }
                 }
             }
@@ -129,15 +129,20 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
     pool->detach_task(
         [&data, res_ptr] () {
             auto& p_aa = res_ptr->get();
-            p_aa.add(0, scaling*std::accumulate(
+            double total_weight = std::accumulate(
                 data.get_data().begin(), 
                 data.get_data().end(), 
                 0.0, 
-                [] (double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
-            ));
+                [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
+            );
+
+            if constexpr (weighted_bins) {
+                p_aa.add_index(0, detail::WeightedEntry(total_weight, total_weight, 0));
+            } else {
+                p_aa.add_index(0, total_weight);
+            }
         }
     );
-
     return res_idx;
 }
 
@@ -172,15 +177,15 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_
                 for (int i = imin; i < imax; ++i) { // b
                     int j = 0;                      // a
                     for (; j+7 < data_1_size; j+=8) {
-                        evaluate8<weighted_bins, variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
+                        evaluate8<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
                     }
 
                     for (; j+3 < data_1_size; j+=4) {
-                        evaluate4<weighted_bins, variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
+                        evaluate4<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
                     }
 
                     for (; j < data_1_size; ++j) {
-                        evaluate1<weighted_bins, variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
+                        evaluate1<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
                     }
                 }
             }

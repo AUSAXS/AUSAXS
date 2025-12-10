@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
-#include <hist/distance_calculator/detail/TemplateHelperGrid.h> // For grid::evaluate8/4/1 and water-exv evaluate overloads
+#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/detail/CompactCoordinates.h>
@@ -21,8 +21,9 @@
 #include <utility/Logging.h>
 
 using namespace ausaxs;
-using namespace ausaxs::hist;
 using namespace ausaxs::container;
+using namespace ausaxs::hist;
+using namespace ausaxs::hist::detail;
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGrid<variable_bin_width>::~HistogramManagerMTFFGrid() = default;
@@ -33,7 +34,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGrid<variable_bin_width>:
 }
 
 template<bool variable_bin_width>
-grid::exv::GridExcludedVolume HistogramManagerMTFFGrid<variable_bin_width>::get_exv() const {
+ausaxs::grid::exv::GridExcludedVolume HistogramManagerMTFFGrid<variable_bin_width>::get_exv() const {
     return grid::exv::RawGridExv::create(this->protein->get_grid());
 }
 
@@ -59,15 +60,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         for (int i = imin; i < imax; ++i) { // exv
             int j = i+1;                    // exv
             for (; j+7 < data_x_size; j+=8) {
-                evaluate8<true, variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
+                evaluate8<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
             }
 
             for (; j+3 < data_x_size; j+=4) {
-                evaluate4<true, variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
+                evaluate4<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
             }
 
             for (; j < data_x_size; ++j) {
-                evaluate1<true, variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
+                evaluate1<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
             }
         }
         return p_xx;
@@ -79,15 +80,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         for (int i = imin; i < imax; ++i) { // atoms
             int j = 0;                      // exv
             for (; j+7 < data_x_size; j+=8) {
-                grid::evaluate8<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
+                detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
             }
 
             for (; j+3 < data_x_size; j+=4) {
-                grid::evaluate4<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
+                detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
             }
 
             for (; j < data_x_size; ++j) {
-                grid::evaluate1<true, variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
+                detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
             }
         }
         return p_ax;
@@ -99,15 +100,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         for (int i = imin; i < imax; ++i) { // waters
             int j = 0;                      // exv
             for (; j+7 < data_x_size; j+=8) {
-                evaluate8<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
+                evaluate8<variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
             }
 
             for (; j+3 < data_x_size; j+=4) {
-                evaluate4<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
+                evaluate4<variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
             }
 
             for (; j < data_x_size; ++j) {
-                evaluate1<true, variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
+                evaluate1<variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
             }
         }
         return p_wx;
