@@ -106,55 +106,55 @@ namespace ausaxs::hist::detail::grid {
     template<bool variable_bin_width, int factor>
     inline void evaluate8(
         WeightedDistribution2D& p, const CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const CompactCoordinates<variable_bin_width>& data_j, int i, int j
+        const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
-        auto res = add8::evaluate_weighted(data_i, data_j, i, j);
-        for (int k = 0; k < 8; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
+        xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_i, data_j, i, j);
+        for (int k = 0; k < 8; ++k) {p.increment<factor>(data_i.get_ff_type(i), res.distances[k]);}
     }
 
     template<bool variable_bin_width, int factor>
     inline void evaluate4(
         WeightedDistribution2D& p, const CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const CompactCoordinates<variable_bin_width>& data_j, int i, int j
+        const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
-        auto res = add4::evaluate_weighted(data_i, data_j, i, j);
-        for (int k = 0; k < 4; ++k) {p.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
+        xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_i, data_j, i, j);
+        for (int k = 0; k < 4; ++k) {p.increment<factor>(data_i.get_ff_type(i), res.distances[k]);}
     }
 
     template<bool variable_bin_width, int factor>
     inline void evaluate1(
         WeightedDistribution2D& p, const CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const CompactCoordinates<variable_bin_width>& data_j, int i, int j
+        const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
-        auto res = add1::evaluate_weighted(data_i, data_j, i, j);
-        p.add(data_i.get_ff_type(i), res.distance, factor*res.weight);
+        xyzff::EvaluatedResult res = add1::evaluate_weighted(data_i, data_j, i, j);
+        p.increment<factor>(data_i.get_ff_type(i), res.distance);
     }
 
     // Unweighted distribution overloads - receive int32_t bins
     template<bool variable_bin_width, int factor>
     inline void evaluate8(
         Distribution2D& p, const CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const CompactCoordinates<variable_bin_width>& data_j, int i, int j
+        const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
-        auto res = add8::evaluate_unweighted(data_i, data_j, i, j);
-        for (int k = 0; k < 8; ++k) {p.add_index(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
+        xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_i, data_j, i, j);
+        for (int k = 0; k < 8; ++k) {p.increment_index<factor>(data_i.get_ff_type(i), res.distances[k]);}
     }
 
     template<bool variable_bin_width, int factor>
     inline void evaluate4(
         Distribution2D& p, const CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const CompactCoordinates<variable_bin_width>& data_j, int i, int j
+        const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
-        auto res = add4::evaluate_unweighted(data_i, data_j, i, j);
-        for (int k = 0; k < 4; ++k) {p.add_index(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);}
+        xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_i, data_j, i, j);
+        for (int k = 0; k < 4; ++k) {p.increment_index<factor>(data_i.get_ff_type(i), res.distances[k]);}
     }
 
     template<bool variable_bin_width, int factor>
     inline void evaluate1(
         Distribution2D& p, const CompactCoordinatesFF<variable_bin_width>& data_i, 
-        const CompactCoordinates<variable_bin_width>& data_j, int i, int j
+        const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
-        auto res = add1::evaluate_unweighted(data_i, data_j, i, j);
-        p.add_index(data_i.get_ff_type(i), res.distance, factor*res.weight);
+        xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_i, data_j, i, j);
+        p.increment_index<factor>(data_i.get_ff_type(i), res.distance);
     }
 }

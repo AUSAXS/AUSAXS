@@ -43,12 +43,21 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     auto pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
-    hist::detail::CompactCoordinates<variable_bin_width> data_x_i, data_x_s;
+    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x_i, data_x_s;
 
     {   // generate the excluded volume representation
         auto exv = get_exv();
-        data_x_i = hist::detail::CompactCoordinates<variable_bin_width>(std::move(exv.interior), 1);
-        data_x_s = hist::detail::CompactCoordinates<variable_bin_width>(std::move(exv.surface), 1);
+        std::vector<data::AtomFF> interior(exv.interior.size()), surface(exv.surface.size());
+        std::transform(
+            exv.interior.begin(), exv.interior.end(), interior.begin(),
+            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
+        );
+        std::transform(
+            exv.surface.begin(), exv.surface.end(), surface.begin(),
+            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
+        );
+        data_x_i = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(interior));
+        data_x_s = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(surface));
     }
 
     auto& data_a = *this->data_a_ptr;

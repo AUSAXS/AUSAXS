@@ -46,6 +46,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
     WeightedDistribution1D p_tot = std::move(cast_res->get_counts());
     p_tot.set_bin_centers(cast_res->get_d_axis());
 
+    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
+    {   // generate the excluded volume representation
+        auto exv = get_exv().interior;
+        std::vector<data::AtomFF> interior(exv.size());
+        std::transform(
+            exv.begin(), exv.end(), interior.begin(),
+            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
+        );
+        data_x = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(interior));
+    }
+
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
     auto eval_scaled_exv = [
         p_tot = std::move(p_tot),
@@ -54,7 +65,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         p_ww = std::move(cast_res->get_raw_ww_counts_by_ff()),
         data_a = *this->data_a_ptr, 
         data_w = *this->data_w_ptr, 
-        data_x = hist::detail::CompactCoordinates<variable_bin_width>(std::move(get_exv().interior), 1),
+        data_x = std::move(data_x),
         pool] 
         (double scale) 
     {

@@ -147,11 +147,12 @@ def run_all_tests(test_type, jobs=6, repeat=3):
         return 1
     
     # Run tests with CTest
+    jobs = "12" if test_type == 'utest' else "1"
     test_path = project_root / "build" / "tests" / test_dir
     cmd = [
         "ctest",
         "--output-on-failure",
-        "--parallel", "1",
+        "--parallel", jobs,
         "--repeat", f"until-pass:{repeat}",
         "--test-dir", str(test_path)
     ]

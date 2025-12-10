@@ -44,7 +44,16 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     auto pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
-    auto data_x = hist::detail::CompactCoordinates<variable_bin_width>(std::move(get_exv().interior), 1);
+    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
+    {   // generate the excluded volume representation
+        auto exv = get_exv().interior;
+        std::vector<data::AtomFF> interior(exv.size());
+        std::transform(
+            exv.begin(), exv.end(), interior.begin(),
+            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
+        );
+        data_x = CompactCoordinatesFF<variable_bin_width>(std::move(interior));
+    }
     auto& data_a = *this->data_a_ptr;
     auto& data_w = *this->data_w_ptr;
     int data_a_size = (int) data_a.size();
