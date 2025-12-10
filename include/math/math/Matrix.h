@@ -19,6 +19,7 @@ namespace ausaxs {
      */
     template<numeric Q>
     class Matrix final : utility::indexer::Indexer2D<Matrix<Q>> {
+        friend class utility::indexer::Indexer2D<Matrix<Q>>;
         public: 
             using utility::indexer::Indexer2D<Matrix<Q>>::index;
 
@@ -116,9 +117,6 @@ namespace ausaxs {
 
             const Q& operator()(unsigned int i, unsigned int j) const;
             Q& operator()(unsigned int i, unsigned int j);
-
-            const Q& index(unsigned int i, unsigned int j) const;
-            Q& index(unsigned int i, unsigned int j);
 
             const typename std::vector<Q>::const_iterator begin() const;
             const typename std::vector<Q>::const_iterator end() const;

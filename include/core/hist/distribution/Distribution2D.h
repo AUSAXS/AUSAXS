@@ -27,57 +27,41 @@ namespace ausaxs::hist {
             const constants::axes::d_type& get_content(int i, int j) const; // @copydoc get_content(int i, int j)
 
             /**
-             * @brief Add a value for a given distance.
+             * @brief Add a value for a given bin index.
              * 
              * @param x The form factor index. 
-             * @param distance The distance to add the value to.
+             * @param i The bin index to add the value to.
              * @param value The value to add.
              *
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void add(int x, float distance, constants::axes::d_type value) {
-                index(x, std::round(distance)) += N*value;
-            }
-
-            /**
-             * @brief Add a value for a given index.
-             * 
-             * @param x The form factor index. 
-             * @param i The index to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add_index(int x, int32_t i, constants::axes::d_type value) {
+            void add(int x, int32_t i, constants::axes::d_type value) {
                 index(x, i) += N*value;
             }
             
             /**
-             * @brief Increment the value for a given distance.
+             * @brief Increment the value for a given bin index.dex.
              * 
              * @param x The form factor index. 
-             * @param distance The distance to increment.
+             * @param i The bin index to increment.
              *
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void increment(int x, float distance) {
-                index(x, std::round(distance)) += N;
+            void increment(int x, int32_t i) {
+                index(x, i) += N;
             }
 
             /**
-             * @brief Increment the value for a given index.
+             * @brief Increment the value for a given linear index. 
              * 
-             * @param x The form factor index. 
              * @param i The index to increment.
-             *
-             * @tparam N A multiplicative factor for the value.
+             * @tparam N A multiplicative factor for the value. 
              */
             template<int N = 1>
-            void increment_index(int x, int32_t i) {
-                index(x, i) += N;
+            void increment_linear_index(int32_t i) {
+                linear_index(i) += N;
             }
     };
     static_assert(supports_nothrow_move_v<Distribution2D>, "Distribution2D should support nothrow move semantics.");

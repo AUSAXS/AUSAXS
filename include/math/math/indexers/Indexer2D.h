@@ -52,7 +52,7 @@ namespace ausaxs::utility::indexer {
                 return derived().data[i];
             }
 
-            constexpr auto& linear_index_impl(int i) { 
+            constexpr auto& linear_index(int i) { 
                 #if (SAFE_MATH)
                     int size = static_cast<int>(derived().N * derived().M);
                     if (i < 0 || size <= i) {

@@ -39,19 +39,8 @@ TEST_CASE("Distribution3D::Distribution3D") {
 TEST_CASE("Distribution3D::add") {
     hist::Distribution3D dist(5, 5, 10);
     dist.add(0, 0, 0, 1);
-    dist.add(1, 1, 1.5, 2);
-    dist.add(2, 2, 3.3, 3);
-    
-    CHECK(dist.index(0, 0, 0) == 1);
-    CHECK(dist.index(1, 1, 2) == 2);
-    CHECK(dist.index(2, 2, 3) == 3);
-}
-
-TEST_CASE("Distribution3D::add_index") {
-    hist::Distribution3D dist(5, 5, 10);
-    dist.add_index(0, 0, 0, 1);
-    dist.add_index(1, 1, 1, 2);
-    dist.add_index(2, 2, 2, 3);
+    dist.add(1, 1, 1, 2);
+    dist.add(2, 2, 2, 3);
     
     CHECK(dist.index(0, 0, 0) == 1);
     CHECK(dist.index(1, 1, 1) == 2);
