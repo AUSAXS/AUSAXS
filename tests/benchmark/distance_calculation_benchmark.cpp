@@ -16,9 +16,9 @@ using namespace ausaxs;
 
 namespace {
     // Generate a random molecule with N atoms for benchmarking
-    data::Molecule generate_random_molecule(int n_atoms, unsigned int seed = 42) {
+    data::Molecule generate_random_molecule(size_t n_atoms, unsigned int seed = 42) {
         std::mt19937 gen(seed);
-        std::uniform_real_distribution<> pos_dist(-50.0, 50.0);
+        std::uniform_real_distribution<> pos_dist(-100.0, 100.0);
         std::uniform_int_distribution<> element_dist(0, 4);
         
         const std::array<form_factor::form_factor_t, 5> ff_types = {
@@ -32,7 +32,7 @@ namespace {
         std::vector<data::AtomFF> atoms;
         atoms.reserve(n_atoms);
         
-        for (int i = 0; i < n_atoms; ++i) {
+        for (size_t i = 0; i < n_atoms; ++i) {
             atoms.emplace_back(
                 Vector3<double>(pos_dist(gen), pos_dist(gen), pos_dist(gen)),
                 ff_types[element_dist(gen)]
@@ -43,84 +43,65 @@ namespace {
     }
 }
 
-TEST_CASE("Distance calculation benchmark: varying atom counts") {
+TEST_CASE("Distance calculation benchmark: large systems") {
     settings::general::verbose = false;
     
-    BENCHMARK_ADVANCED("100 atoms - FFAvg")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(100);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
+    SECTION("20k atoms") {
+        auto mol = generate_random_molecule(20000);
+        
+        BENCHMARK_ADVANCED("HistogramManagerMT (simple)")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+        
+        BENCHMARK_ADVANCED("HistogramManagerMTFFAvg")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+        
+        BENCHMARK_ADVANCED("HistogramManagerMTFFExplicit")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+    }
     
-    BENCHMARK_ADVANCED("500 atoms - FFAvg")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(500);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
+    SECTION("50k atoms") {
+        auto mol = generate_random_molecule(50000);
+        
+        BENCHMARK_ADVANCED("HistogramManagerMT (simple)")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+        
+        BENCHMARK_ADVANCED("HistogramManagerMTFFAvg")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+        
+        BENCHMARK_ADVANCED("HistogramManagerMTFFExplicit")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+    }
     
-    BENCHMARK_ADVANCED("1000 atoms - FFAvg")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(1000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
-    
-    BENCHMARK_ADVANCED("2000 atoms - FFAvg")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(2000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
-    
-    BENCHMARK_ADVANCED("5000 atoms - FFAvg")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(5000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
-}
-
-TEST_CASE("Distance calculation benchmark: histogram manager comparison") {
-    settings::general::verbose = false;
-    
-    BENCHMARK_ADVANCED("HistogramManagerMT (simple)")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(1000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
-    
-    BENCHMARK_ADVANCED("HistogramManagerMTFFAvg")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(1000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
-    
-    BENCHMARK_ADVANCED("HistogramManagerMTFFExplicit")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(1000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
-    
-    BENCHMARK_ADVANCED("HistogramManagerMTFFGrid")(Catch::Benchmark::Chronometer meter) {
-        auto mol = generate_random_molecule(1000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
-}
-
-TEST_CASE("Distance calculation benchmark: weighted vs unweighted") {
-    settings::general::verbose = false;
-    
-    BENCHMARK_ADVANCED("Weighted bins (track bin centers)")(Catch::Benchmark::Chronometer meter) {
-        settings::hist::weighted_bins = true;
-        auto mol = generate_random_molecule(2000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
-    
-    BENCHMARK_ADVANCED("Unweighted bins (simple counting)")(Catch::Benchmark::Chronometer meter) {
-        settings::hist::weighted_bins = false;
-        auto mol = generate_random_molecule(2000);
-        mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
-        meter.measure([&] { return mol.get_histogram(); });
-    };
+    SECTION("100k atoms") {
+        auto mol = generate_random_molecule(100000);
+        
+        BENCHMARK_ADVANCED("HistogramManagerMT (simple)")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+        
+        BENCHMARK_ADVANCED("HistogramManagerMTFFAvg")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+        
+        BENCHMARK_ADVANCED("HistogramManagerMTFFExplicit")(Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+            meter.measure([&] { return mol.get_histogram(); });
+        };
+    }
 }
 
 TEST_CASE("Distance calculation benchmark: real PDB file", "[.][pdb]") {
