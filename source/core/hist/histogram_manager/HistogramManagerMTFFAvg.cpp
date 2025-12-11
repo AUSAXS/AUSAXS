@@ -146,41 +146,7 @@ namespace {
         p.increment_index<factor>(form_factor::exv_bin, res.distance);
     }
 
-    template<bool vbw, int factor>
-    void evaluate_ww8(WeightedDistribution1D& p, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_w, data_w, i, j);
-        for (int k = 0; k < 8; ++k) {p.increment<factor>(res.distances[k]);}
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_ww8(Distribution1D& p, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_w, data_w, i, j);
-        for (int k = 0; k < 8; ++k) {p.increment_index<factor>(res.distances[k]);}
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_ww4(WeightedDistribution1D& p, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_w, data_w, i, j);
-        for (int k = 0; k < 4; ++k) {p.increment<factor>(res.distances[k]);}
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_ww4(Distribution1D& p, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_w, data_w, i, j);
-        for (int k = 0; k < 4; ++k) {p.increment_index<factor>(res.distances[k]);}
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_ww1(WeightedDistribution1D& p, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::EvaluatedResult res = add1::evaluate_weighted(data_w, data_w, i, j);
-        p.increment<factor>(res.distance);
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_ww1(Distribution1D& p, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_w, data_w, i, j);
-        p.increment_index<factor>(res.distance);
-    }
+    // Note: evaluate_ww functions removed - use TemplateHelperAvg's evaluate8/4/1 directly
 }
 
 template<bool wb, bool vbw>
@@ -253,15 +219,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         for (int i = imin; i < imax; ++i) { // water
             int j = i+1;                    // water
             for (; j+7 < data_w_size; j+=8) {
-                evaluate_ww8<vbw, 2>(p_ww, data_w, i, j);
+                evaluate8<vbw, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate_ww4<vbw, 2>(p_ww, data_w, i, j);
+                evaluate4<vbw, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate_ww1<vbw, 2>(p_ww, data_w, i, j);
+                evaluate1<vbw, 2>(p_ww, data_w, data_w, i, j);
             }
         }
     };
