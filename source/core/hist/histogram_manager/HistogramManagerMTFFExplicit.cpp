@@ -186,8 +186,6 @@ namespace {
         p_wa.increment_index<factor>(ff_i, res.distance);
         p_wx.increment_index<factor>(ff_i, res.distance);
     }
-
-    // Note: evaluate_ww functions removed - use TemplateHelperAvg's evaluate8/4/1 directly
 }
 
 template<bool wb, bool vbw>

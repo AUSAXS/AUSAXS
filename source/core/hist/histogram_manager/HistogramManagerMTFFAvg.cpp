@@ -145,8 +145,6 @@ namespace {
         p.increment_index<factor>(ff_i, res.distance);
         p.increment_index<factor>(form_factor::exv_bin, res.distance);
     }
-
-    // Note: evaluate_ww functions removed - use TemplateHelperAvg's evaluate8/4/1 directly
 }
 
 template<bool wb, bool vbw>
