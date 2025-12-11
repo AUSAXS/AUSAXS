@@ -169,7 +169,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: lukka/get-cmake@latest            
+      - uses: lukka/get-cmake@latest
       - uses: lukka/run-vcpkg@v11
         id: vcpkg
         with:
@@ -178,8 +178,8 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
-      - name: Install mono
-        run: brew install mono
+      - name: Install nuget
+        run: brew install nuget
 
       - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'arm64'
@@ -188,12 +188,11 @@ jobs:
           nuget_cmd: $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      
       - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'x86_64'
         with:
           package_permission: ${{ inputs.package_permission }}
-          nuget_cmd: 'mono $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)'
+          nuget_cmd: "nuget"
           github_token: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Install dependencies
