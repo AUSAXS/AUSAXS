@@ -27,10 +27,9 @@ namespace {
         xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
-            int ff_j = data_a.get_ff_type(j+k);
-            p.increment<factor>(ff_i, ff_j, res.distances[k]);
-            p.increment<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
-            p.increment<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
+            p.increment_linear<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
+            p.increment_bin<factor>(ff_i, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
+            p.increment_bin<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -39,8 +38,7 @@ namespace {
         xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
-            int ff_j = data_a.get_ff_type(j+k);
-            p.increment_bin<factor>(ff_i, ff_j, res.distances[k]);
+            p.increment_linear_bin<factor>(res.ff_bins[k], res.distances[k]);
             p.increment_bin<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
             p.increment_bin<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
         }
@@ -51,10 +49,9 @@ namespace {
         xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
-            int ff_j = data_a.get_ff_type(j+k);
-            p.increment<factor>(ff_i, ff_j, res.distances[k]);
-            p.increment<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
-            p.increment<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
+            p.increment_linear<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
+            p.increment_bin<factor>(ff_i, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
+            p.increment_bin<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -63,8 +60,7 @@ namespace {
         xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
-            int ff_j = data_a.get_ff_type(j+k);
-            p.increment_bin<factor>(ff_i, ff_j, res.distances[k]);
+            p.increment_linear_bin<factor>(res.ff_bins[k], res.distances[k]);
             p.increment_bin<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
             p.increment_bin<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
         }

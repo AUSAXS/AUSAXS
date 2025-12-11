@@ -61,12 +61,13 @@ namespace ausaxs::hist::detail::xyzff {
         QuadEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4) noexcept
             : distances{v1.distance, v2.distance, v3.distance, v4.distance}, ff_bins{v1.ff_bin, v2.ff_bin, v3.ff_bin, v4.ff_bin}
         {}
-        QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<int32_t, 4>& ff_bins) noexcept 
-            : distances(distances), ff_bins(ff_bins) 
+        QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<int32_t, 4>& distance_bins, const std::array<int32_t, 4>& ff_bins) noexcept 
+            : distances(distances), distance_bins(distance_bins), ff_bins(ff_bins) 
         {}
 
-        std::array<float, 4> distances; // The raw distances
-        std::array<int32_t, 4> ff_bins; // The form factor bin indices
+        std::array<float, 4> distances;       // The raw distances (for weighted bin center calculation)
+        std::array<int32_t, 4> distance_bins; // The distance bin indices (for array indexing)
+        std::array<int32_t, 4> ff_bins;       // The form factor bin indices
     };
 
     /**
@@ -99,12 +100,13 @@ namespace ausaxs::hist::detail::xyzff {
             : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance},
               ff_bins{v1.ff_bin, v2.ff_bin, v3.ff_bin, v4.ff_bin, v5.ff_bin, v6.ff_bin, v7.ff_bin, v8.ff_bin}
         {}
-        OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<int32_t, 8>& ff_bins) noexcept 
-            : distances(distances), ff_bins(ff_bins) 
+        OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<int32_t, 8>& distance_bins, const std::array<int32_t, 8>& ff_bins) noexcept 
+            : distances(distances), distance_bins(distance_bins), ff_bins(ff_bins) 
         {}
 
-        std::array<float, 8> distances; // The distance
-        std::array<int32_t, 8> ff_bins; // The form factor bin indices
+        std::array<float, 8> distances;       // The raw distances (for weighted bin center calculation)
+        std::array<int32_t, 8> distance_bins; // The distance bin indices (for array indexing)
+        std::array<int32_t, 8> ff_bins;       // The form factor bin indices
     };
 
     /**
@@ -128,11 +130,11 @@ namespace ausaxs::hist::detail::xyzff {
     };
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
-    static_assert(sizeof(EvaluatedResult)            == 8,  "hist::detail::EvaluatedResult is not 12 bytes long");
+    static_assert(sizeof(EvaluatedResult)            == 8,  "hist::detail::EvaluatedResult is not 8 bytes long");
     static_assert(sizeof(EvaluatedResultRounded)     == 8,  "hist::detail::EvaluatedResultRounded is not 8 bytes long");
-    static_assert(sizeof(QuadEvaluatedResult)        == 32, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
+    static_assert(sizeof(QuadEvaluatedResult)        == 48, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
     static_assert(sizeof(QuadEvaluatedResultRounded) == 32, "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
-    static_assert(sizeof(OctoEvaluatedResult)        == 64, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
+    static_assert(sizeof(OctoEvaluatedResult)        == 96, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
     static_assert(sizeof(OctoEvaluatedResultRounded) == 64, "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
 
     // ensure our structures are trivially copyable
@@ -394,13 +396,20 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResult ausaxs::hist::detail::Co
     float dx2 = std::sqrt(squared_dot_product(this->data.data(), v2.data.data()));
     float dx3 = std::sqrt(squared_dot_product(this->data.data(), v3.data.data()));
     float dx4 = std::sqrt(squared_dot_product(this->data.data(), v4.data.data()));
+    float inv_width = get_inv_width();
     return xyzff::QuadEvaluatedResult(
         std::array<float, 4>{dx1, dx2, dx3, dx4},
         std::array<int32_t, 4>{
-            xyzff::ff_bin_index(this->value.ff, v1.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v2.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v3.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v4.value.ff)
+            static_cast<int32_t>(std::round(inv_width * dx1)),
+            static_cast<int32_t>(std::round(inv_width * dx2)),
+            static_cast<int32_t>(std::round(inv_width * dx3)),
+            static_cast<int32_t>(std::round(inv_width * dx4))
+        },
+        std::array<int32_t, 4>{
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v1.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v2.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v3.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v4.value.ff)
         }
     );
 }
@@ -437,17 +446,28 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResult ausaxs::hist::detail::Co
     float dx6 = std::sqrt(squared_dot_product(this->data.data(), v6.data.data()));
     float dx7 = std::sqrt(squared_dot_product(this->data.data(), v7.data.data()));
     float dx8 = std::sqrt(squared_dot_product(this->data.data(), v8.data.data()));
+    float inv_width = get_inv_width();
     return xyzff::OctoEvaluatedResult(
         std::array<float, 8>{dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8},
         std::array<int32_t, 8>{
-            xyzff::ff_bin_index(this->value.ff, v1.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v2.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v3.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v4.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v5.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v6.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v7.value.ff),
-            xyzff::ff_bin_index(this->value.ff, v8.value.ff)
+            static_cast<int32_t>(std::round(inv_width * dx1)),
+            static_cast<int32_t>(std::round(inv_width * dx2)),
+            static_cast<int32_t>(std::round(inv_width * dx3)),
+            static_cast<int32_t>(std::round(inv_width * dx4)),
+            static_cast<int32_t>(std::round(inv_width * dx5)),
+            static_cast<int32_t>(std::round(inv_width * dx6)),
+            static_cast<int32_t>(std::round(inv_width * dx7)),
+            static_cast<int32_t>(std::round(inv_width * dx8))
+        },
+        std::array<int32_t, 8>{
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v1.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v2.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v3.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v4.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v5.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v6.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v7.value.ff),
+            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v8.value.ff)
         }
     );
 }
@@ -537,12 +557,15 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         dist2 = _mm_add_ps(dist2, dist2_4);
 
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
+        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
+        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // convert float distances to int bins
         __m128 ff_bins_f = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
-        __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);                              // convert float ff_bins to int
+        __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);                           // convert float ff_bins to int
 
         xyzff::QuadEvaluatedResult result;
-        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // store distances
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.ff_bins.data()), ff_bins);        // store ff_bins
+        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);    // store distance bins
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.ff_bins.data()), ff_bins);           // store ff_bins
         return result;
     }
 
@@ -578,6 +601,7 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
     ) const noexcept {
         xyzff::OctoEvaluatedResult result;
+        __m128 inv_width = _mm_set_ps1(get_inv_width());
         {   // first four
             __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
             __m128 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), OutputControl::SECOND);
@@ -588,10 +612,13 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
             dist2 = _mm_add_ps(dist2, dist2_3);
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
+            __m128 dist_binf = _mm_mul_ps(dist_sqrt, inv_width);              // multiply by the inverse width
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                    // convert float distances to int bins
             __m128 ff_bins_f = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
             __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);
 
             _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
+            _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);
             _mm_store_si128(reinterpret_cast<__m128i*>(result.ff_bins.data()), ff_bins);
         }
         {   // last four
@@ -604,10 +631,13 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
             dist2 = _mm_add_ps(dist2, dist2_3);
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
+            __m128 dist_binf = _mm_mul_ps(dist_sqrt, inv_width);              // multiply by the inverse width
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                    // convert float distances to int bins
             __m128 ff_bins_f = xyzff::ff_bin_index(*this, v5, v6, v7, v8);
             __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);
 
             _mm_store_ps(reinterpret_cast<float*>(result.distances.data()+4), dist_sqrt);
+            _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()+4), dist_bin);
             _mm_store_si128(reinterpret_cast<__m128i*>(result.ff_bins.data()+4), ff_bins);
         }
         return result;
@@ -708,12 +738,15 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         __m128 dist2_128_upper = _mm256_extractf128_ps(dist2_256_shuffled, 1);  // |0    |0    |Δx3^2|Δx4^2|
         __m128 dist2 = _mm_add_ps(dist2_128_lower, dist2_128_upper);            // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
+        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
+        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // convert float distances to int bins
         __m128 ff_bins_f = xyzff::ff_bin_index(*this, v1, v2, v3, v4);
-        __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);                              // convert float ff_bins to int
+        __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);                           // convert float ff_bins to int
 
         xyzff::QuadEvaluatedResult result;
-        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // store distances
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.ff_bins.data()), ff_bins);        // store ff_bins
+        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);    // store distance bins
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.ff_bins.data()), ff_bins);           // store ff_bins
         return result;
     }
 
@@ -755,12 +788,15 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         dist2_256 = _mm256_add_ps(dist2_256, dist2_3);                                                                 // |Δx1^2|Δx2^2|Δx3^2|0    |Δx5^2|Δx6^2|Δx7^2|0    |
         dist2_256 = _mm256_add_ps(dist2_256, dist2_4);                                                                 // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|Δx5^2|Δx6^2|Δx7^2|Δx8^2|
         __m256 dist_sqrt = _mm256_sqrt_ps(dist2_256);
+        __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())); // multiply by the inverse width
+        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);                             // convert float distances to int bins
         __m256 ff_bins_f = xyzff::ff_bin_index(*this, v1, v2, v3, v4, v5, v6, v7, v8);
         __m256i ff_bins = _mm256_cvtps_epi32(ff_bins_f);                              // convert float ff_bins to int
 
         xyzff::OctoEvaluatedResult result;
-        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // store distances
-        _mm256_store_si256(reinterpret_cast<__m256i*>(result.ff_bins.data()), ff_bins);        // store ff_bins
+        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distance_bins.data()), dist_bin);    // store distance bins
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.ff_bins.data()), ff_bins);           // store ff_bins
         return result;
     }
 

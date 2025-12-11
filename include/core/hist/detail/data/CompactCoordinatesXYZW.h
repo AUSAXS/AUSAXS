@@ -51,12 +51,13 @@ namespace ausaxs::hist::detail::xyzw {
         QuadEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4) noexcept 
             : distances{v1.distance, v2.distance, v3.distance, v4.distance}, weights{v1.weight, v2.weight, v3.weight, v4.weight}
         {}
-        QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<float, 4>& weights) noexcept 
-            : distances(distances), weights(weights) 
+        QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<int32_t, 4>& distance_bins, const std::array<float, 4>& weights) noexcept 
+            : distances(distances), distance_bins(distance_bins), weights(weights) 
         {}
 
-        std::array<float, 4> distances; // The raw distances
-        std::array<float, 4> weights;   // The combined weight
+        std::array<float, 4> distances;       // The raw distances (for weighted bin center calculation)
+        std::array<int32_t, 4> distance_bins; // The distance bin indices (for array indexing)
+        std::array<float, 4> weights;         // The combined weight
     };
 
     /**
@@ -89,12 +90,13 @@ namespace ausaxs::hist::detail::xyzw {
             : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance},
               weights{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight}
         {}
-        OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<float, 8>& weights) noexcept 
-            : distances(distances), weights(weights) 
+        OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<int32_t, 8>& distance_bins, const std::array<float, 8>& weights) noexcept 
+            : distances(distances), distance_bins(distance_bins), weights(weights) 
         {}
 
-        std::array<float, 8> distances; // The distance
-        std::array<float, 8> weights;   // The combined weight
+        std::array<float, 8> distances;       // The raw distances (for weighted bin center calculation)
+        std::array<int32_t, 8> distance_bins; // The distance bin indices (for array indexing)
+        std::array<float, 8> weights;         // The combined weight
     };
 
     /**
@@ -119,11 +121,11 @@ namespace ausaxs::hist::detail::xyzw {
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
     // sizes - EvaluatedResult must be exactly 1 float larger than EvaluatedResultRounded for storing the exact distance
-    static_assert(sizeof(EvaluatedResult)            == 8,  "hist::detail::EvaluatedResult is not 12 bytes long");
+    static_assert(sizeof(EvaluatedResult)            == 8,  "hist::detail::EvaluatedResult is not 8 bytes long");
     static_assert(sizeof(EvaluatedResultRounded)     == 8,  "hist::detail::EvaluatedResultRounded is not 8 bytes long");
-    static_assert(sizeof(QuadEvaluatedResult)        == 32, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
+    static_assert(sizeof(QuadEvaluatedResult)        == 48, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
     static_assert(sizeof(QuadEvaluatedResultRounded) == 32, "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
-    static_assert(sizeof(OctoEvaluatedResult)        == 64, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
+    static_assert(sizeof(OctoEvaluatedResult)        == 96, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
     static_assert(sizeof(OctoEvaluatedResultRounded) == 64, "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
 
     // ensure our structures are trivially copyable
@@ -370,8 +372,15 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::Com
     float dx2 = std::sqrt(squared_dot_product(this->data.data(), v2.data.data()));
     float dx3 = std::sqrt(squared_dot_product(this->data.data(), v3.data.data()));
     float dx4 = std::sqrt(squared_dot_product(this->data.data(), v4.data.data()));
+    float inv_width = get_inv_width();
     return xyzw::QuadEvaluatedResult(
         std::array<float, 4>{dx1, dx2, dx3, dx4},
+        std::array<int32_t, 4>{
+            static_cast<int32_t>(std::round(inv_width * dx1)),
+            static_cast<int32_t>(std::round(inv_width * dx2)),
+            static_cast<int32_t>(std::round(inv_width * dx3)),
+            static_cast<int32_t>(std::round(inv_width * dx4))
+        },
         std::array<float, 4>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w}
     );
 }
@@ -403,8 +412,19 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::Com
     float dx6 = std::sqrt(squared_dot_product(this->data.data(), v6.data.data()));
     float dx7 = std::sqrt(squared_dot_product(this->data.data(), v7.data.data()));
     float dx8 = std::sqrt(squared_dot_product(this->data.data(), v8.data.data()));
+    float inv_width = get_inv_width();
     return xyzw::OctoEvaluatedResult(
         std::array<float, 8>{dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8},
+        std::array<int32_t, 8>{
+            static_cast<int32_t>(std::round(inv_width * dx1)),
+            static_cast<int32_t>(std::round(inv_width * dx2)),
+            static_cast<int32_t>(std::round(inv_width * dx3)),
+            static_cast<int32_t>(std::round(inv_width * dx4)),
+            static_cast<int32_t>(std::round(inv_width * dx5)),
+            static_cast<int32_t>(std::round(inv_width * dx6)),
+            static_cast<int32_t>(std::round(inv_width * dx7)),
+            static_cast<int32_t>(std::round(inv_width * dx8))
+        },
         std::array<float, 8>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w, value.w*v5.value.w, value.w*v6.value.w, value.w*v7.value.w, value.w*v8.value.w}
     );
 }
@@ -464,14 +484,17 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         dist2 = _mm_add_ps(dist2, dist2_4);
 
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
+        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
+        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // convert to int
 
         __m128 w1 = _mm_set_ps1(value.w);
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
         xyzw::QuadEvaluatedResult result;
-        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // efficient store of distances
-        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);             // efficient store of weights
+        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);    // store distance bins
+        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);                // store weights
         return result;
     }
 
@@ -509,6 +532,7 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
         xyzw::OctoEvaluatedResult result;
+        __m128 inv_width = _mm_set_ps1(get_inv_width());
         {   // first four
             __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
             __m128 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), OutputControl::SECOND);
@@ -519,12 +543,15 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
             dist2 = _mm_add_ps(dist2, dist2_3);
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
+            __m128 dist_binf = _mm_mul_ps(dist_sqrt, inv_width);              // multiply by the inverse width
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                    // convert to int
 
             __m128 w1 = _mm_set_ps1(value.w);
             __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
             __m128 weights = _mm_mul_ps(w1, w2);
 
             _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
+            _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);
             _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         }
         {   // last four
@@ -537,12 +564,15 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
             dist2 = _mm_add_ps(dist2, dist2_3);
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
+            __m128 dist_binf = _mm_mul_ps(dist_sqrt, inv_width);              // multiply by the inverse width
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                    // convert to int
 
             __m128 w1 = _mm_set_ps1(value.w);
             __m128 w2 = _mm_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w);
             __m128 weights = _mm_mul_ps(w1, w2);
 
             _mm_store_ps(reinterpret_cast<float*>(result.distances.data()+4), dist_sqrt);
+            _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()+4), dist_bin);
             _mm_store_ps(reinterpret_cast<float*>(result.weights.data()+4), weights);
         }
         return result;
@@ -626,14 +656,17 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m128 dist2_128_upper = _mm256_extractf128_ps(dist2_256_shuffled, 1);  // |0    |0    |Δx3^2|Δx4^2|
         __m128 dist2 = _mm_add_ps(dist2_128_lower, dist2_128_upper);            // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
+        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
+        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // convert to int
 
         __m128 w1 = _mm_set1_ps(value.w);
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
         xyzw::QuadEvaluatedResult result;
-        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // efficient store of distances
-        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);             // efficient store of weights
+        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);    // store distance bins
+        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);                // store weights
         return result;
     }
 
@@ -677,14 +710,17 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         dist2_256 = _mm256_add_ps(dist2_256, dist2_3);                                                                 // |Δx1^2|Δx2^2|Δx3^2|0    |Δx5^2|Δx6^2|Δx7^2|0    |
         dist2_256 = _mm256_add_ps(dist2_256, dist2_4);                                                                 // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|Δx5^2|Δx6^2|Δx7^2|Δx8^2|
         __m256 dist_sqrt = _mm256_sqrt_ps(dist2_256);
+        __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())); // multiply by the inverse width
+        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);                             // convert to int
 
         __m256 w1 = _mm256_set1_ps(value.w);
         __m256 w2 = _mm256_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w, v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m256 weights = _mm256_mul_ps(w1, w2);
 
         xyzw::OctoEvaluatedResult result;
-        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);          // efficient store of distances
-        _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);              // efficient store of weights
+        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distance_bins.data()), dist_bin);    // store distance bins
+        _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);                // store weights
         return result;
     }
 
