@@ -178,6 +178,9 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
+      - name: Install mono
+        run: brew install mono
+
       - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'arm64'
         with:
