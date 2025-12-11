@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
+#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -16,6 +16,7 @@
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
+using namespace ausaxs::hist::detail;
 
 template<bool weighted_bins, bool variable_bin_width> 
 PartialHistogramManager<weighted_bins, variable_bin_width>::PartialHistogramManager(observer_ptr<const data::Molecule> protein) 
@@ -120,7 +121,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bi
 
             // iterate through each entry in the partial histogram
             for (int k = 0; k < bins; k++) {
-                p_aa.add(k, current.get_content(k)); // add to p_aa
+                p_aa.add_index(k, current.get_content(k)); // add to p_aa
             }
         }
     }
@@ -131,7 +132,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bi
 
         // iterate through each entry in the partial histogram
         for (int k = 0; k < bins; k++) {
-            p_aw.add(k, current.get_content(k)); // add to p_aa
+            p_aw.add_index(k, current.get_content(k)); // add to p_aa
         }
     }
 
@@ -157,21 +158,31 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_corre
     for (unsigned int i = 0; i < current.size(); i++) {
         unsigned int j = i+1;
         for (; j+7 < current.size(); j+=8) {
-            evaluate8<weighted_bins, variable_bin_width, 2>(p_aa, current, current, i, j);
+            evaluate8<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
 
         for (; j+3 < current.size(); j+=4) {
-            evaluate4<weighted_bins, variable_bin_width, 2>(p_aa, current, current, i, j);
+            evaluate4<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
 
         for (; j < current.size(); ++j) {
-            evaluate1<weighted_bins, variable_bin_width, 2>(p_aa, current, current, i, j);
+            evaluate1<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
     }
 
     // calculate self-correlation
-    p_aa.add(0, std::accumulate(current.get_data().begin(), current.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}));
-
+    double total_weight = std::accumulate(
+        current.get_data().begin(), 
+        current.get_data().end(), 
+        0.0, 
+        [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
+    );
+    if constexpr (weighted_bins) {
+        p_aa.add_index(0, WeightedEntry(total_weight, total_weight, 0));
+    } else {
+        p_aa.add_index(0, total_weight);
+    }
+    
     // store the coordinates for later
     this->coords_a[index] = std::move(current);
 
@@ -191,15 +202,15 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aa(unsigne
     for (unsigned int i = 0; i < coords_n.size(); i++) {
         unsigned int j = 0;
         for (; j+7 < coords_m.size(); j+=8) {
-            evaluate8<weighted_bins, variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
+            evaluate8<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
 
         for (; j+3 < coords_m.size(); j+=4) {
-            evaluate4<weighted_bins, variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
+            evaluate4<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
 
         for (; j < coords_m.size(); ++j) {
-            evaluate1<weighted_bins, variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
+            evaluate1<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
     }
 
@@ -234,15 +245,15 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aw(unsigne
     for (unsigned int i = 0; i < coords.size(); i++) {
         unsigned int j = 0;
         for (; j+7 < this->coords_w.size(); j+=8) {
-            evaluate8<weighted_bins, variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
+            evaluate8<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
         for (; j+3 < this->coords_w.size(); j+=4) {
-            evaluate4<weighted_bins, variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
+            evaluate4<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
         for (; j < this->coords_w.size(); ++j) {
-            evaluate1<weighted_bins, variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
+            evaluate1<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
     }
 
@@ -259,24 +270,31 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
     for (unsigned int i = 0; i < this->coords_w.size(); i++) {
         unsigned int j = i+1;
         for (; j+7 < this->coords_w.size(); j+=8) {
-            evaluate8<weighted_bins, variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
+            evaluate8<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
 
         for (; j+3 < this->coords_w.size(); j+=4) {
-            evaluate4<weighted_bins, variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
+            evaluate4<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
 
         for (; j < this->coords_w.size(); ++j) {
-            evaluate1<weighted_bins, variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
+            evaluate1<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
     }
 
     // calculate self-correlation
-    p_ww.add(0, std::accumulate(
-        this->coords_w.get_data().begin(), this->coords_w.get_data().end(), 
+    double total_weight = std::accumulate(
+        this->coords_w.get_data().begin(), 
+        this->coords_w.get_data().end(), 
         0.0, 
-        [](double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + val.value.w*val.value.w;}
-    ));
+        [](double sum, const auto& val) {return sum + val.value.w*val.value.w;}
+    );
+
+    if constexpr (weighted_bins) {
+        p_ww.add_index(0, WeightedEntry(total_weight, total_weight, 0));
+    } else {
+        p_ww.add_index(0, total_weight);
+    }
 
     this->master -= partials_ww; // subtract the previous hydration histogram
     partials_ww = std::move(p_ww);

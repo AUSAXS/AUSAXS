@@ -4,6 +4,7 @@
 #pragma once
 
 #include <utility/Exceptions.h>
+#include <math/indexers/Indexer2D.h>
 
 #include <vector>
 
@@ -14,45 +15,17 @@ namespace ausaxs::container {
      * This is just a convenience class supporting only indexing.
      */
     template <typename T>
-    class Container2D {
+    class Container2D : utility::indexer::Indexer2D<Container2D<T>> {
+        friend class utility::indexer::Indexer2D<Container2D<T>>;
         public:
             Container2D() : N(0), M(0), data(0) {}
             Container2D(int width, int height) : N(width), M(height), data(width*height) {}
             Container2D(int width, int height, const T& value) : N(width), M(height), data(width*height, value) {}
 
-            /**
-             * @brief Get the value at index i, j. 
-             */
-            T& operator()(int i, int j) {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || i < 0 || j < 0) {
-                        throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
-                    }
-                #endif
-                return data[j + M*i];
-            }
-
-            /**
-             * @brief Get the value at index i, j. 
-             */
-            const T& operator()(int i, int j) const {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || i < 0 || j < 0) {
-                        throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
-                    }
-                #endif
-                return data[j + M*i];
-            }
-
-            /**
-             * @brief Get the value at index i, j. 
-             */
-            T& index(int i, int j) {return operator()(i, j);}
-
-            /**
-             * @brief Get the value at index i, j. 
-             */
-            const T& index(int i, int j) const {return operator()(i, j);}
+            using utility::indexer::Indexer2D<Container2D<T>>::index;
+            using utility::indexer::Indexer2D<Container2D<T>>::linear_index;
+            T& operator()(int i, int j) {return this->index(i, j);}
+            const T& operator()(int i, int j) const {return this->index(i, j);}
 
             /**
              * @brief Get an iterator to the beginning of the vector at index i.

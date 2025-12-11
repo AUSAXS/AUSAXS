@@ -4,7 +4,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
+#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -17,6 +17,7 @@
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
+using namespace ausaxs::hist::detail;
 
 template<bool weighted_bins, bool variable_bin_width>
 HistogramManager<weighted_bins, variable_bin_width>::HistogramManager(observer_ptr<const data::Molecule> protein) : protein(protein) {}
@@ -46,15 +47,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     for (int i = 0; i < data_a_size; ++i) {
         int j = i+1;
         for (; j+7 < data_a_size; j+=8) {
-            evaluate8<weighted_bins, variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
+            evaluate8<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
         }
 
         for (; j+3 < data_a_size; j+=4) {
-            evaluate4<weighted_bins, variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
+            evaluate4<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
         }
 
         for (; j < data_a_size; ++j) {
-            evaluate1<weighted_bins, variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
+            evaluate1<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
         }
     }
 
@@ -62,37 +63,44 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
         {   // calculate ww distances
             int j = i+1;
             for (; j+7 < data_w_size; j+=8) {
-                evaluate8<weighted_bins, variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
+                evaluate8<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate4<weighted_bins, variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
+                evaluate4<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate1<weighted_bins, variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
+                evaluate1<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
             }
         }
 
         {   // calculate aw distances
             int j = 0;
             for (; j+7 < data_a_size; j+=8) {
-                evaluate8<weighted_bins, variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
+                evaluate8<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
             }
 
             for (; j+3 < data_a_size; j+=4) {
-                evaluate4<weighted_bins, variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
+                evaluate4<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
             }
 
             for (; j < data_a_size; ++j) {
-                evaluate1<weighted_bins, variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
+                evaluate1<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
             }
         }
     }
 
     // add self-correlation
-    p_aa.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + std::pow(val.value.w, 2);}));
-    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesXYZW<variable_bin_width>& val) {return sum + std::pow(val.value.w, 2);}));
+    double total_weight_aa = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const auto& val) {return sum + std::pow(val.value.w, 2);});
+    double total_weight_ww = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const auto& val) {return sum + std::pow(val.value.w, 2);});
+    if constexpr (weighted_bins) {
+        p_aa.add_index(0, WeightedEntry(total_weight_aa, total_weight_aa, 0));
+        p_ww.add_index(0, WeightedEntry(total_weight_ww, total_weight_ww, 0));
+    } else {
+        p_aa.add_index(0, total_weight_aa);
+        p_ww.add_index(0, total_weight_ww);
+    }
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(settings::axes::bin_count);

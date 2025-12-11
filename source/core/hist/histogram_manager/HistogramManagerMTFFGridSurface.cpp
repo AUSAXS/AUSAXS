@@ -13,6 +13,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
@@ -43,12 +44,21 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     auto pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
-    hist::detail::CompactCoordinates<variable_bin_width> data_x_i, data_x_s;
+    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x_i, data_x_s;
 
     {   // generate the excluded volume representation
         auto exv = get_exv();
-        data_x_i = hist::detail::CompactCoordinates<variable_bin_width>(std::move(exv.interior), 1);
-        data_x_s = hist::detail::CompactCoordinates<variable_bin_width>(std::move(exv.surface), 1);
+        std::vector<data::AtomFF> interior(exv.interior.size()), surface(exv.surface.size());
+        std::transform(
+            exv.interior.begin(), exv.interior.end(), interior.begin(),
+            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
+        );
+        std::transform(
+            exv.surface.begin(), exv.surface.end(), surface.begin(),
+            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
+        );
+        data_x_i = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(interior));
+        data_x_s = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(surface));
     }
 
     auto& data_a = *this->data_a_ptr;
@@ -67,15 +77,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         for (int i = imin; i < imax; ++i) { // exv interior
             int j = i+1;                    // exv interior
             for (; j+7 < data_x_i_size; j+=8) {
-                evaluate8<true, variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
+                evaluate8<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
             }
 
             for (; j+3 < data_x_i_size; j+=4) {
-                evaluate4<true, variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
+                evaluate4<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
             }
 
             for (; j < data_x_i_size; ++j) {
-                evaluate1<true, variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
+                evaluate1<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
             }
         }
         return p_xx;
@@ -86,15 +96,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         for (int i = imin; i < imax; ++i) { // exv surface
             int j = i+1;                    // exv surface
             for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<true, variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
+                evaluate8<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
             }
 
             for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<true, variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
+                evaluate4<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
             }
 
             for (; j < data_x_s_size; ++j) {
-                evaluate1<true, variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
+                evaluate1<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
             }
         }
         return p_xx;
@@ -105,15 +115,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         for (int i = imin; i < imax; ++i) { // exv interior
             int j = 0;                      // exv surface
             for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<true, variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
+                evaluate8<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
             }
 
             for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<true, variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
+                evaluate4<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
             }
 
             for (; j < data_x_s_size; ++j) {
-                evaluate1<true, variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
+                evaluate1<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
             }
         }
         return p_xx;
@@ -125,28 +135,28 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         for (int i = imin; i < imax; ++i) { // atoms
             int j = 0;                      // exv interior
             for (; j+7 < data_x_i_size; j+=8) {
-                grid::evaluate8<true, variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
+                detail::grid::evaluate8<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
             }
 
             for (; j+3 < data_x_i_size; j+=4) {
-                grid::evaluate4<true, variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
+                detail::grid::evaluate4<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
             }
 
             for (; j < data_x_i_size; ++j) {
-                grid::evaluate1<true, variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
+                detail::grid::evaluate1<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
             }
 
             j = 0;                          // exv surface
             for (; j+7 < data_x_s_size; j+=8) {
-                grid::evaluate8<true, variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
+                detail::grid::evaluate8<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
             }
 
             for (; j+3 < data_x_s_size; j+=4) {
-                grid::evaluate4<true, variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
+                detail::grid::evaluate4<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
             }
 
             for (; j < data_x_s_size; ++j) {
-                grid::evaluate1<true, variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
+                detail::grid::evaluate1<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
             }
         }
         return p_ax;
@@ -158,28 +168,28 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         for (int i = imin; i < imax; ++i) { // waters
             int j = 0;                      // exv interior
             for (; j+7 < data_x_i_size; j+=8) {
-                evaluate8<true, variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
+                evaluate8<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
             }
 
             for (; j+3 < data_x_i_size; j+=4) {
-                evaluate4<true, variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
+                evaluate4<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
             }
 
             for (; j < data_x_i_size; ++j) {
-                evaluate1<true, variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
+                evaluate1<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
             }
 
             j = 0;                          // exv surface
             for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<true, variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
+                evaluate8<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
             }
 
             for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<true, variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
+                evaluate4<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
             }
 
             for (; j < data_x_s_size; ++j) {
-                evaluate1<true, variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
+                evaluate1<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
             }
         }
         return p_wx;

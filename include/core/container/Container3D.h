@@ -4,6 +4,7 @@
 #pragma once
 
 #include <utility/Exceptions.h>
+#include <math/indexers/Indexer3D.h>
 
 #include <vector>
 
@@ -14,45 +15,17 @@ namespace ausaxs::container {
      * This is just a convenience class supporting only basic indexing.
      */
     template <typename T>
-    class Container3D {
+    class Container3D : utility::indexer::Indexer3D<Container3D<T>> {
+        friend class utility::indexer::Indexer3D<Container3D<T>>;
         public:
             Container3D() : N(0), M(0), L(0), data(0) {}
             Container3D(unsigned int width, unsigned int height, unsigned int depth) : N(width), M(height), L(depth), data(width * height * depth) {}
             Container3D(unsigned int width, unsigned int height, unsigned int depth, const T& value) : N(width), M(height), L(depth), data(width * height * depth, value) {}
 
-            /**
-             * @brief Get the value at index i, j, k. 
-             */
-            T& operator()(int i, int j, int k) {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || k >= static_cast<int>(L) || i < 0 || j < 0 || k < 0) {
-                        throw except::out_of_bounds("Container3D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ", " + std::to_string(L) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
-                    }
-                #endif
-                return data[k + L*(j + M*i)];
-            }
-
-            /**
-             * @brief Get the value at index i, j, k. 
-             */
-            const T& operator()(int i, int j, int k) const {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || k >= static_cast<int>(L) || i < 0 || j < 0 || k < 0) {
-                        throw except::out_of_bounds("Container3D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ", " + std::to_string(L) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
-                    }
-                #endif
-                return data[k + L*(j + M*i)];
-            }
-
-            /**
-             * @brief Get the value at index i, j, k. 
-             */
-            T& index(int i, int j, int k) {return operator()(i, j, k);}
-
-            /**
-             * @brief Get the value at index i, j, k. 
-             */
-            const T& index(int i, int j, int k) const {return operator()(i, j, k);}
+            using utility::indexer::Indexer3D<Container3D<T>>::index;
+            using utility::indexer::Indexer3D<Container3D<T>>::linear_index;
+            T& operator()(int i, int j, int k) {return this->index(i, j, k);}
+            const T& operator()(int i, int j, int k) const {return this->index(i, j, k);}
 
             /**
              * @brief Get the vector sum of all members of the container.

@@ -101,12 +101,27 @@ namespace ausaxs::hist {
              * @brief Increment the value for a given index.
              * 
              * @param i The index to increment.
-             *
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
             void increment_index(int32_t i, float distance) {
                 index(i).increment<N>(distance);
+            }
+
+            template<int N = 1>
+            void increment_index(int32_t i) {
+                index(i).increment<N>();
+            }
+
+            /**
+             * @brief Increment the value for a given linear index. 
+             * 
+             * @param i The index to increment.
+             * @tparam N A multiplicative factor for the value. 
+             */
+            template<int N = 1>
+            void increment_linear_index(int32_t i, float distance) {
+                linear_index(i).increment<N>(distance);
             }
 
             /**

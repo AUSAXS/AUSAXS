@@ -55,10 +55,10 @@ namespace ausaxs {
     }
 
     template<numeric T>
-    const T& Vector<T>::operator[](unsigned int i) const {return data[i];}
+    const T& Vector<T>::operator[](unsigned int i) const {return this->index(i);}
 
     template<numeric T>
-    T& Vector<T>::operator[](unsigned int i) {return data[i];}
+    T& Vector<T>::operator[](unsigned int i) {return this->index(i);}
 
     template<numeric T> template<numeric Q>
     bool Vector<T>::operator==(const Vector<Q>& v) const {

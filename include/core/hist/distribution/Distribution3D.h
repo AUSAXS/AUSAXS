@@ -21,26 +21,11 @@ namespace ausaxs::hist {
             explicit Distribution3D(const WeightedDistribution3D& other);
 
             /**
-             * @brief Add a value for a given distance.
+             * @brief Add a value for a given bin index.
              * 
              * @param x The first form factor index.
              * @param y The second form factor index.
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add(int x, int y, float distance, constants::axes::d_type value) {
-                index(x, y, std::round(distance)) += N*value;
-            }
-
-            /**
-             * @brief Add a value for a given index.
-             * 
-             * @param x The first form factor index.
-             * @param y The second form factor index.
-             * @param i The index to add the value to.
+             * @param i The bin index to add the value to.
              * @param value The value to add.
              *
              * @tparam N A multiplicative factor for the value.
@@ -51,29 +36,33 @@ namespace ausaxs::hist {
             }
 
             /**
-             * @brief Increment the value for a given distance.
+             * @brief Increment the value for a given bin index.dex.
              * 
-             * @param x The form factor index. 
-             * @param distance The distance to increment.
+             * @param x The form factor index.
+             * @param y The second form factor index. 
+             * @param i The bin index to increment.
              *
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void increment(int x, int y, float distance) {
-                index(x, y, std::round(distance)) += N;
+            void increment(int x, int y, int32_t i) {
+                index(x, y, i) += N;
             }
 
-            /**
-             * @brief Increment the value for a given index.
-             * 
-             * @param x The form factor index. 
-             * @param i The index to increment.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
             template<int N = 1>
             void increment_index(int x, int y, int32_t i) {
                 index(x, y, i) += N;
+            }
+            
+            /**
+             * @brief Increment the value for a given linear index. 
+             * 
+             * @param i The index to increment.
+             * @tparam N A multiplicative factor for the value. 
+             */
+            template<int N = 1>
+            void increment_linear_index(int32_t i) {
+                linear_index(i) += N;
             }
     };
     static_assert(supports_nothrow_move_v<Distribution3D>, "Distribution3D should support nothrow move semantics.");

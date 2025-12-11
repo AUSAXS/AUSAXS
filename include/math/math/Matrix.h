@@ -7,6 +7,7 @@
 #include <math/Vector.h>
 #include <math/MathConcepts.h>
 #include <math/MathTypeTraits.h>
+#include <math/indexers/Indexer2D.h>
 
 #include <initializer_list>
 
@@ -17,8 +18,11 @@ namespace ausaxs {
      *        Note that this class is _not_ optimized for speed! If efficiency is a concern, consider using e.g. Eigen. 
      */
     template<numeric Q>
-    class Matrix final {
+    class Matrix final : utility::indexer::Indexer2D<Matrix<Q>> {
+        friend class utility::indexer::Indexer2D<Matrix<Q>>;
         public: 
+            using utility::indexer::Indexer2D<Matrix<Q>>::index;
+
             Matrix() : N(0), M(0) {}
             Matrix(const Matrix<Q>& A) = default;
             Matrix(Matrix<Q>&& A) = default;
@@ -113,9 +117,6 @@ namespace ausaxs {
 
             const Q& operator()(unsigned int i, unsigned int j) const;
             Q& operator()(unsigned int i, unsigned int j);
-
-            const Q& index(unsigned int i, unsigned int j) const;
-            Q& index(unsigned int i, unsigned int j);
 
             const typename std::vector<Q>::const_iterator begin() const;
             const typename std::vector<Q>::const_iterator end() const;

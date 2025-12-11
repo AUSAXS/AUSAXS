@@ -14,6 +14,7 @@
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
 #include <utility/Logging.h>
@@ -46,6 +47,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
     WeightedDistribution1D p_tot = std::move(cast_res->get_counts());
     p_tot.set_bin_centers(cast_res->get_d_axis());
 
+    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
+    {   // generate the excluded volume representation
+        auto exv = get_exv().interior;
+        std::vector<data::AtomFF> interior(exv.size());
+        std::transform(
+            exv.begin(), exv.end(), interior.begin(),
+            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
+        );
+        data_x = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(interior));
+    }
+
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
     auto eval_scaled_exv = [
         p_tot = std::move(p_tot),
@@ -54,7 +66,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         p_ww = std::move(cast_res->get_raw_ww_counts_by_ff()),
         data_a = *this->data_a_ptr, 
         data_w = *this->data_w_ptr, 
-        data_x = hist::detail::CompactCoordinates<variable_bin_width>(std::move(get_exv().interior), 1),
+        data_x = std::move(data_x),
         pool] 
         (double scale) 
     {
@@ -79,15 +91,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             for (int i = imin; i < imax; ++i) { // exv
                 int j = i+1;                    // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate8<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate4<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    evaluate1<true, variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                    evaluate1<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
             }
             return p_xx;
@@ -99,15 +111,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             for (int i = imin; i < imax; ++i) { // atoms
                 int j = 0;                      // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    grid::evaluate8<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    grid::evaluate4<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    grid::evaluate1<true, variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
             }
             return p_ax;
@@ -119,15 +131,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             for (int i = imin; i < imax; ++i) { // waters
                 int j = 0;                      // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate8<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate4<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    evaluate1<true, variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
+                    evaluate1<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }
             }
             return p_wx;

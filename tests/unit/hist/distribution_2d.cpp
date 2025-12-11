@@ -44,17 +44,6 @@ TEST_CASE("Distribution2D::get_content") {
     CHECK(dist.get_content(3, 5) == 30);
 }
 
-TEST_CASE("Distribution2D::add") {
-    hist::Distribution2D dist(5, 10);
-    dist.add(0, 0, 1);
-    dist.add(1, 1.5, 2);
-    dist.add(2, 3.3, 3);
-    
-    CHECK(dist.get_content(0, 0) == 1);
-    CHECK(dist.get_content(1, 2) == 2);
-    CHECK(dist.get_content(2, 3) == 3);
-}
-
 TEST_CASE("Distribution2D::add_index") {
     hist::Distribution2D dist(5, 10);
     dist.add_index(0, 0, 1);

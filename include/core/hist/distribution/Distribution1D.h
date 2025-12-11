@@ -42,22 +42,9 @@ namespace ausaxs::hist {
             void set_content(int i, constants::axes::d_type value);
 
             /**
-             * @brief Add a value for a given distance.
+             * @brief Add a value for a given bin index.
              * 
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add(float distance, constants::axes::d_type value) {
-                index(std::round(distance)) += N*value;
-            }
-
-            /**
-             * @brief Add a value for a given index.
-             * 
-             * @param i The index to add the value to.
+             * @param i The bin index to add the value to.
              * @param value The value to add.
              *
              * @tparam N A multiplicative factor for the value.
@@ -68,27 +55,31 @@ namespace ausaxs::hist {
             }
 
             /**
-             * @brief Increment the value for a given distance.
+             * @brief Increment the value for a given bin index.dex.
              * 
-             * @param distance The distance to increment.
+             * @param i The bin index to increment.
              *
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void increment(float distance) {
-                index(std::round(distance)) += N;
+            void increment(int32_t i) {
+                index(i) += N;
             }
 
-            /**
-             * @brief Increment the value for a given index.
-             * 
-             * @param i The index to increment.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
             template<int N = 1>
             void increment_index(int32_t i) {
                 index(i) += N;
+            }
+
+            /**
+             * @brief Increment the value for a given linear index. 
+             * 
+             * @param i The index to increment.
+             * @tparam N A multiplicative factor for the value. 
+             */
+            template<int N = 1>
+            void increment_linear_index(int32_t i) {
+                linear_index(i) += N;
             }
 
             /**

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <utility/Exceptions.h>
+#include <math/indexers/Indexer1D.h>
 
 #include <vector>
 
@@ -15,7 +16,8 @@ namespace ausaxs::container {
      * Technically this is redundant since it is just a simpler std::vector, but it is used for consistency with the other two containers.
      */
     template <typename T>
-    class Container1D {
+    class Container1D : public utility::indexer::Indexer1D<Container1D<T>> {
+        friend class utility::indexer::Indexer1D<Container1D<T>>;
         public:
             Container1D() : N(0), data(0) {}
             Container1D(int size) : N(size), data(size) {}
@@ -23,29 +25,12 @@ namespace ausaxs::container {
             Container1D(const std::vector<T>& data) : N(data.size()), data(data) {}
             Container1D(std::vector<T>&& data) : N(data.size()), data(std::move(data)) {}
 
-            T& operator()(int i) {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || i < 0) {
-                        throw except::out_of_bounds("Container1D::operator: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
-                    }
-                #endif
-                return data[i];
-            }
-
-            const T& operator()(int i) const {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || i < 0) {
-                        throw except::out_of_bounds("Container1D::operator: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
-                    }
-                #endif
-                return data[i];
-            }
-
-            T& operator[](int i) {return operator()(i);}
-            const T& operator[](int i) const {return operator()(i);}
-
-            T& index(int i) {return operator()(i);}
-            const T& index(int i) const {return operator()(i);}
+            using utility::indexer::Indexer1D<Container1D<T>>::index;
+            using utility::indexer::Indexer1D<Container1D<T>>::linear_index;
+            T& operator()(int i) {return this->index(i);}
+            const T& operator()(int i) const {return this->index(i);}
+            T& operator[](int i) {return this->index(i);}
+            const T& operator[](int i) const {return this->index(i);}
 
             const typename std::vector<T>::const_iterator begin() const {return data.begin();}
             const typename std::vector<T>::const_iterator end() const {return data.end();}
