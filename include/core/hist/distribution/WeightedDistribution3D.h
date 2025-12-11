@@ -86,6 +86,18 @@ namespace ausaxs::hist {
             void increment_bin(int x, int y, int32_t i) {
                 index(x, y, i).increment<N>();
             }
+
+            /**
+             * @brief Increment the value using a linear 2D form factor bin index.
+             *
+             * @param xy The linear 2D form factor bin index (computed as ff2 + ff1*N_ff).
+             * @param i The distance bin index.
+             * @tparam N A multiplicative factor for the value.
+             */
+            template<int N = 1>
+            void increment_linear(int32_t xy, int32_t i, float distance) {
+                linear_index(xy, i).increment<N>(distance);
+            }
             
             /**
              * @brief Increment the value for a given linear index. 
@@ -94,7 +106,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value. 
              */
             template<int N = 1>
-            void increment_linear_index(int32_t i, float distance) {
+            void increment_linear(int32_t i, float distance) {
                 linear_index(i).increment<N>(distance);
             }
 

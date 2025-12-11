@@ -41,7 +41,6 @@ namespace ausaxs::hist {
              * @param x The form factor index.
              * @param y The second form factor index. 
              * @param i The bin index to increment.
-             *
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
@@ -57,12 +56,13 @@ namespace ausaxs::hist {
             /**
              * @brief Increment the value for a given linear index. 
              * 
+             * @param xy The combined form factor index.
              * @param i The index to increment.
              * @tparam N A multiplicative factor for the value. 
              */
             template<int N = 1>
-            void increment_linear_index(int32_t i) {
-                linear_index(i) += N;
+            void increment_linear_bin(int xy, int32_t i) {
+                linear_index(xy, i) += N;                
             }
     };
     static_assert(supports_nothrow_move_v<Distribution3D>, "Distribution3D should support nothrow move semantics.");

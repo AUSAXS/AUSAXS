@@ -90,7 +90,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value. 
              */
             template<int N = 1>
-            void increment_linear_index(int32_t i, float distance) {
+            void increment_linear(int32_t i, float distance) {
                 linear_index(i).increment<N>(distance);
             }
             

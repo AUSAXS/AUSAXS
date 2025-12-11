@@ -111,15 +111,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             for (int i = imin; i < imax; ++i) { // atoms
                 int j = 0;                      // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate8<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate4<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate1<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
             }
             return p_ax;

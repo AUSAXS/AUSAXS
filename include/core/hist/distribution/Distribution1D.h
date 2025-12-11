@@ -78,7 +78,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value. 
              */
             template<int N = 1>
-            void increment_linear_index(int32_t i) {
+            void increment_linear_bin(int32_t i) {
                 linear_index(i) += N;
             }
 
