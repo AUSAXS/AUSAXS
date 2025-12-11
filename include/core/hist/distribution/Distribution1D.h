@@ -54,20 +54,8 @@ namespace ausaxs::hist {
                 index(i) += N*value;
             }
 
-            /**
-             * @brief Increment the value for a given bin index.dex.
-             * 
-             * @param i The bin index to increment.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
             template<int N = 1>
-            void increment(int32_t i) {
-                index(i) += N;
-            }
-
-            template<int N = 1>
-            void increment_bin(int32_t i) {
+            void increment_index(int32_t i) {
                 index(i) += N;
             }
 
@@ -78,7 +66,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value. 
              */
             template<int N = 1>
-            void increment_linear_bin(int32_t i) {
+            void increment_linear_index(int32_t i) {
                 linear_index(i) += N;
             }
 

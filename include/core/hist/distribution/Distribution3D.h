@@ -35,21 +35,8 @@ namespace ausaxs::hist {
                 index(x, y, i) += N*value;
             }
 
-            /**
-             * @brief Increment the value for a given bin index.dex.
-             * 
-             * @param x The form factor index.
-             * @param y The second form factor index. 
-             * @param i The bin index to increment.
-             * @tparam N A multiplicative factor for the value.
-             */
             template<int N = 1>
-            void increment(int x, int y, int32_t i) {
-                index(x, y, i) += N;
-            }
-
-            template<int N = 1>
-            void increment_bin(int x, int y, int32_t i) {
+            void increment_index(int x, int y, int32_t i) {
                 index(x, y, i) += N;
             }
             
@@ -61,7 +48,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value. 
              */
             template<int N = 1>
-            void increment_linear_bin(int xy, int32_t i) {
+            void increment_linear_index(int xy, int32_t i) {
                 linear_index(xy, i) += N;                
             }
     };

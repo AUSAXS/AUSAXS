@@ -46,13 +46,8 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void increment_bin(int x, int32_t i, float distance) {
+            void increment_index(int x, int32_t i, float distance) {
                 index(x, i).increment<N>(distance);
-            }
-
-            template<int N = 1>
-            void increment_bin(int x, int32_t i) {
-                index(x, i).increment<N>();
             }
 
             /**
@@ -62,7 +57,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value. 
              */
             template<int N = 1>
-            void increment_linear(int32_t i, float distance) {
+            void increment_linear_index(int32_t i, float distance) {
                 linear_index(i).increment<N>(distance);
             }
             

@@ -48,7 +48,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void increment_bin(int x, int y, int32_t i, float distance) {
+            void increment_index(int x, int y, int32_t i, float distance) {
                 index(x, y, i).increment<N>(distance);
             }
 
@@ -60,21 +60,10 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void increment_linear(int32_t xy, int32_t i, float distance) {
+            void increment_linear_index(int32_t xy, int32_t i, float distance) {
                 linear_index(xy, i).increment<N>(distance);
             }
             
-            /**
-             * @brief Increment the value for a given linear index. 
-             * 
-             * @param i The index to increment.
-             * @tparam N A multiplicative factor for the value. 
-             */
-            template<int N = 1>
-            void increment_linear(int32_t i, float distance) {
-                linear_index(i).increment<N>(distance);
-            }
-
             /**
              * @brief Extract the weights from this distribution.
              */
