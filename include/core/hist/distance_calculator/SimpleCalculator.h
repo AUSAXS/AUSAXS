@@ -6,7 +6,7 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
+#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <container/ThreadLocalWrapper.h>
 #include <utility/MultiThreading.h>
 #include <settings/HistogramSettings.h>

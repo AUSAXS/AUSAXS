@@ -4,7 +4,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
+#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>

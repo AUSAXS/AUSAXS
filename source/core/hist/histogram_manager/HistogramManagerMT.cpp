@@ -7,7 +7,6 @@
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/SimpleExvModel.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <data/Molecule.h>
 #include <utility/Logging.h>
 

@@ -198,6 +198,7 @@ namespace ausaxs::constants::charge::nuclear {
             case form_factor::form_factor_t::S: return 16;
             case form_factor::form_factor_t::SH: return 17;
             case form_factor::form_factor_t::OTHER: return 18;
+            case ausaxs::form_factor::form_factor_t::EXCLUDED_VOLUME: return 0;
             default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
         }
     }

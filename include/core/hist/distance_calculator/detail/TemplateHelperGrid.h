@@ -4,7 +4,6 @@
 #pragma once
 
 #include <hist/distance_calculator/detail/TemplateHelperBase.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/Distribution2D.h>
@@ -12,45 +11,6 @@
 #include <hist/detail/CompactCoordinatesFF.h>
 
 namespace ausaxs::hist::detail {
-    template<bool variable_bin_widths, int factor>
-    inline void evaluate8(WeightedDistribution1D& p, const CompactCoordinatesFF<variable_bin_widths>& data_i, const CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
-        auto res = add8::evaluate_weighted(data_i, data_j, i, j);
-        for (int k = 0; k < 8; ++k) {p.add<factor>(res.distances[k], 1.0f);}
-    }
-
-    template<bool variable_bin_widths, int factor>
-    inline void evaluate4(WeightedDistribution1D& p, const CompactCoordinatesFF<variable_bin_widths>& data_i, const CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
-        auto res = add4::evaluate_weighted(data_i, data_j, i, j);
-        for (int k = 0; k < 4; ++k) {p.add<factor>(res.distances[k], 1.0f);}
-    }
-
-    template<bool variable_bin_widths, int factor>
-    inline void evaluate1(WeightedDistribution1D& p, const CompactCoordinatesFF<variable_bin_widths>& data_i, const CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
-        auto res = add1::evaluate_weighted(data_i, data_j, i, j);
-        p.add<factor>(res.distance, 1.0f);
-    }
-
-    // Unweighted distribution - receives int32_t bins, increments directly
-    template<bool variable_bin_widths, int factor>
-    inline void evaluate8(Distribution1D& p, const CompactCoordinatesFF<variable_bin_widths>& data_i, const CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
-        auto res = add8::evaluate_unweighted(data_i, data_j, i, j);
-        for (int k = 0; k < 8; ++k) {p.template increment<factor>(res.distances[k]);}
-    }
-
-    template<bool variable_bin_widths, int factor>
-    inline void evaluate4(Distribution1D& p, const CompactCoordinatesFF<variable_bin_widths>& data_i, const CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
-        auto res = add4::evaluate_unweighted(data_i, data_j, i, j);
-        for (int k = 0; k < 4; ++k) {
-            p.template increment<factor>(res.distances[k]);
-        }
-    }
-
-    template<bool variable_bin_widths, int factor>
-    inline void evaluate1(Distribution1D& p, const CompactCoordinatesFF<variable_bin_widths>& data_i, const CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
-        auto res = add1::evaluate_unweighted(data_i, data_j, i, j);
-        p.template increment<factor>(res.distance);
-    }
-
     // Water-excluded volume overloads (CompactCoordinatesFF + CompactCoordinates → 1D)
     // Water has constant form factor, so compute weighted distances
 

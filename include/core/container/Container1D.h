@@ -29,6 +29,8 @@ namespace ausaxs::container {
             using utility::indexer::Indexer1D<Container1D<T>>::linear_index;
             T& operator()(int i) {return this->index(i);}
             const T& operator()(int i) const {return this->index(i);}
+            T& operator[](int i) {return this->index(i);}
+            const T& operator[](int i) const {return this->index(i);}
 
             const typename std::vector<T>::const_iterator begin() const {return data.begin();}
             const typename std::vector<T>::const_iterator end() const {return data.end();}

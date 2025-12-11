@@ -13,6 +13,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>

@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>

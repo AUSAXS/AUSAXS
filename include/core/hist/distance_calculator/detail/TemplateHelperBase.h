@@ -6,10 +6,6 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 
-// Base template helpers - core distance evaluation functions used by all histogram managers
-// These provide the low-level SIMD distance calculations
-// Separate functions for weighted (float distances) vs unweighted (int32_t bins)
-
 namespace ausaxs::hist::detail {
     namespace add8 {
         //### CompactCoordinates overloads ###//
