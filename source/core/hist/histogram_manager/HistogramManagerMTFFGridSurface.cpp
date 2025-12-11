@@ -3,6 +3,7 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/distribution/detail/WeightedEntry.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
@@ -237,8 +238,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    p_xx.interior.add(0, data_x_i_size);
-    p_xx.surface.add(0, data_x_s_size);
+    p_xx.interior.add_index(0, detail::WeightedEntry(data_x_i_size, data_x_i_size, 0));
+    p_xx.surface.add_index(0, detail::WeightedEntry(data_x_s_size, data_x_s_size, 0));
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10

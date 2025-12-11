@@ -30,8 +30,9 @@ namespace ausaxs::hist::detail::xyzw {
      */
     struct EvaluatedResult {
         EvaluatedResult() noexcept = default;
-        EvaluatedResult(float distance, float weight) noexcept : distance(distance), weight(weight) {}
+        EvaluatedResult(float distance, int32_t distance_bin, float weight) noexcept : distance(distance), distance_bin(distance_bin), weight(weight) {}
         float distance;         // The raw distance 
+        int32_t distance_bin;   // The distance bin index
         float weight;           // The combined weight
     };
 
@@ -49,7 +50,9 @@ namespace ausaxs::hist::detail::xyzw {
     struct QuadEvaluatedResult {
         QuadEvaluatedResult() noexcept = default;
         QuadEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4) noexcept 
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, weights{v1.weight, v2.weight, v3.weight, v4.weight}
+            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, 
+              distance_bins{v1.distance_bin, v2.distance_bin, v3.distance_bin, v4.distance_bin},
+              weights{v1.weight, v2.weight, v3.weight, v4.weight}
         {}
         QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<int32_t, 4>& distance_bins, const std::array<float, 4>& weights) noexcept 
             : distances(distances), distance_bins(distance_bins), weights(weights) 
@@ -88,6 +91,7 @@ namespace ausaxs::hist::detail::xyzw {
             const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4, 
             const EvaluatedResult& v5, const EvaluatedResult& v6, const EvaluatedResult& v7, const EvaluatedResult& v8) noexcept 
             : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance},
+              distance_bins{v1.distance_bin, v2.distance_bin, v3.distance_bin, v4.distance_bin, v5.distance_bin, v6.distance_bin, v7.distance_bin, v8.distance_bin},
               weights{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight}
         {}
         OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<int32_t, 8>& distance_bins, const std::array<float, 8>& weights) noexcept 
@@ -120,8 +124,8 @@ namespace ausaxs::hist::detail::xyzw {
     };
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
-    // sizes - EvaluatedResult must be exactly 1 float larger than EvaluatedResultRounded for storing the exact distance
-    static_assert(sizeof(EvaluatedResult)            == 8,  "hist::detail::EvaluatedResult is not 8 bytes long");
+    // sizes - EvaluatedResult must be exactly 1 int32_t larger than EvaluatedResultRounded for storing the exact distance
+    static_assert(sizeof(EvaluatedResult)            == 12, "hist::detail::EvaluatedResult is not 12 bytes long");
     static_assert(sizeof(EvaluatedResultRounded)     == 8,  "hist::detail::EvaluatedResultRounded is not 8 bytes long");
     static_assert(sizeof(QuadEvaluatedResult)        == 48, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
     static_assert(sizeof(QuadEvaluatedResultRounded) == 32, "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
@@ -353,7 +357,8 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
 template<bool vbw>
 inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_scalar(const CompactCoordinatesXYZW& other) const noexcept {
     float dist = std::sqrt(squared_dot_product(this->data.data(), other.data.data()));
-    return xyzw::EvaluatedResult(dist, value.w*other.value.w);
+    int32_t dist_bin = std::round(get_inv_width() * dist);
+    return xyzw::EvaluatedResult(dist, dist_bin, value.w*other.value.w);
 }
 
 template<bool vbw>
@@ -456,7 +461,8 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m128 dist2 = squared_dot_product(this->data.data(), other.data.data(), OutputControl::ALL);
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         float dist = _mm_cvtss_f32(dist_sqrt);
-        return xyzw::EvaluatedResult(dist, this->value.w*other.value.w);
+        int32_t dist_bin = std::round(get_inv_width() * dist);
+        return xyzw::EvaluatedResult(dist, dist_bin, this->value.w*other.value.w);
     }
 
     template<bool vbw>

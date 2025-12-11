@@ -58,20 +58,6 @@ namespace ausaxs::hist {
             void set_bin_centers(const std::vector<double>& centers);
 
             /**
-             * @brief Add a value for a given distance.
-             * 
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add(float distance, constants::axes::d_type value) {
-                int i = std::round(distance*settings::flags::inv_bin_width);
-                index(i).add<N>(distance, value);
-            }
-
-            /**
              * @brief Add a value for a given index.
              * 
              * @param i The index to add the value to.
@@ -82,19 +68,6 @@ namespace ausaxs::hist {
             template<int N = 1>
             void add_index(int32_t i, const detail::WeightedEntry& value) {
                 index(i) += N*value;
-            }
-
-            /**
-             * @brief Increment the value for a given distance.
-             * 
-             * @param distance The distance to increment.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void increment(float distance) {
-                int i = std::round(distance*settings::flags::inv_bin_width);
-                index(i).increment<N>(distance);
             }
 
             /**

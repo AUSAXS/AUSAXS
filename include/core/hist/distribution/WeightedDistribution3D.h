@@ -25,22 +25,6 @@ namespace ausaxs::hist {
             WeightedDistribution3D(const Distribution3D& other);
 
             /**
-             * @brief Add twice the value for a given distance.
-             * 
-             * @param x The first form factor index.
-             * @param y The second form factor index.
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add(int x, int y, float distance, constants::axes::d_type value) {
-                int i = std::round(distance*settings::flags::inv_bin_width);
-                index(x, y, i).add<N>(distance, value);
-            }
-
-            /**
              * @brief Add a value for a given index.
              * 
              * @param x The first form factor index.
@@ -56,20 +40,6 @@ namespace ausaxs::hist {
             }
 
             /**
-             * @brief Increment the value for a given distance.
-             *
-             * @param x The form factor index.
-             * @param y The second form factor index.
-             * @param distance The distance to increment the value for.
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void increment(int x, int y, float distance) {
-                int i = std::round(distance*settings::flags::inv_bin_width);
-                index(x, y, i).increment<N>(distance);
-            }
-
-            /**
              * @brief Increment the value for a given index.
              *
              * @param x The form factor index.
@@ -80,11 +50,6 @@ namespace ausaxs::hist {
             template<int N = 1>
             void increment_bin(int x, int y, int32_t i, float distance) {
                 index(x, y, i).increment<N>(distance);
-            }
-
-            template<int N = 1>
-            void increment_bin(int x, int y, int32_t i) {
-                index(x, y, i).increment<N>();
             }
 
             /**

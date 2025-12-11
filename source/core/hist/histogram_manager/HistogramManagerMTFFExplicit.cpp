@@ -35,9 +35,9 @@ namespace {
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
             int ff_j = data_a.get_ff_type(j+k);
-            p_aa.increment<factor>(ff_i, ff_j, res.distances[k]);
-            p_ax.increment<factor>(ff_i, ff_j, res.distances[k]);
-            p_xx.increment<factor>(ff_i, ff_j, res.distances[k]);
+            p_aa.increment_bin<factor>(ff_i, ff_j, res.distance_bins[k], res.distances[k]);
+            p_ax.increment_bin<factor>(ff_i, ff_j, res.distance_bins[k], res.distances[k]);
+            p_xx.increment_bin<factor>(ff_i, ff_j, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -65,9 +65,9 @@ namespace {
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
             int ff_j = data_a.get_ff_type(j+k);
-            p_aa.increment<factor>(ff_i, ff_j, res.distances[k]);
-            p_ax.increment<factor>(ff_i, ff_j, res.distances[k]);
-            p_xx.increment<factor>(ff_i, ff_j, res.distances[k]);
+            p_aa.increment_bin<factor>(ff_i, ff_j, res.distance_bins[k], res.distances[k]);
+            p_ax.increment_bin<factor>(ff_i, ff_j, res.distance_bins[k], res.distances[k]);
+            p_xx.increment_bin<factor>(ff_i, ff_j, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -94,9 +94,9 @@ namespace {
         xyzff::EvaluatedResult res = add1::evaluate_weighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         int ff_j = data_a.get_ff_type(j);
-        p_aa.increment<factor>(ff_i, ff_j, res.distance);
-        p_ax.increment<factor>(ff_i, ff_j, res.distance);
-        p_xx.increment<factor>(ff_i, ff_j, res.distance);
+        p_aa.increment_bin<factor>(ff_i, ff_j, res.distance_bin, res.distance);
+        p_ax.increment_bin<factor>(ff_i, ff_j, res.distance_bin, res.distance);
+        p_xx.increment_bin<factor>(ff_i, ff_j, res.distance_bin, res.distance);
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
@@ -121,8 +121,8 @@ namespace {
         xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
-            p_wa.increment<factor>(ff_i, res.distances[k]);
-            p_wx.increment<factor>(ff_i, res.distances[k]);
+            p_wa.increment_bin<factor>(ff_i, res.distance_bins[k], res.distances[k]);
+            p_wx.increment_bin<factor>(ff_i, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -147,8 +147,8 @@ namespace {
         xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
-            p_wa.increment<factor>(ff_i, res.distances[k]);
-            p_wx.increment<factor>(ff_i, res.distances[k]);
+            p_wa.increment_bin<factor>(ff_i, res.distance_bins[k], res.distances[k]);
+            p_wx.increment_bin<factor>(ff_i, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -172,8 +172,8 @@ namespace {
     ) {
         xyzff::EvaluatedResult res = add1::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
-        p_wa.increment<factor>(ff_i, res.distance);
-        p_wx.increment<factor>(ff_i, res.distance);
+        p_wa.increment_bin<factor>(ff_i, res.distance_bin, res.distance);
+        p_wx.increment_bin<factor>(ff_i, res.distance_bin, res.distance);
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
@@ -316,8 +316,13 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     // SELF-CORRELATIONS //
     //###################//
     for (int i = 0; i < data_a_size; ++i) {
-        p_aa.increment_bin(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
-        p_xx.increment_bin(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
+        if constexpr (wb) {
+            p_aa.increment_bin(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 0.0f);
+            p_xx.increment_bin(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 0.0f);
+        } else {
+            p_aa.increment_bin(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
+            p_xx.increment_bin(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
+        }
     }
     if constexpr (wb) {
         p_ww.add_index(0, WeightedEntry(data_w_size, data_w_size, 0));
