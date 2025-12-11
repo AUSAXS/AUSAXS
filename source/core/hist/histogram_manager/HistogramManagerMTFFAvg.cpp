@@ -102,7 +102,7 @@ namespace {
 
     template<bool vbw, int factor>
     void evaluate_aw8(Distribution2D& p, const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_w, i, j);
+        xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
             p.increment_index<factor>(ff_i, res.distances[k]);
@@ -114,7 +114,7 @@ namespace {
     void evaluate_aw4(WeightedDistribution2D& p, const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
         xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
-        for (int k = 0; k < 8; ++k) {
+        for (int k = 0; k < 4; ++k) {
             p.increment<factor>(ff_i, res.distances[k]);
             p.increment<factor>(form_factor::exv_bin, res.distances[k]);
         }
@@ -122,7 +122,7 @@ namespace {
 
     template<bool vbw, int factor>
     void evaluate_aw4(Distribution2D& p, const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_w, i, j);
+        xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
             p.increment_index<factor>(ff_i, res.distances[k]);
@@ -178,7 +178,7 @@ namespace {
 
     template<bool vbw, int factor>
     void evaluate_ww1(Distribution1D& p, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
-        xyzff::EvaluatedResult res = add1::evaluate_weighted(data_w, data_w, i, j);
+        xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_w, data_w, i, j);
         p.increment_index<factor>(res.distance);
     }
 }
