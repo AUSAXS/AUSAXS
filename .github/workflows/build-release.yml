@@ -196,13 +196,13 @@ jobs:
       fail-fast: false
       matrix: 
         include: 
-          - runner: macos-14
+          - runner: macos-15-intel
             name: "MacOS x86"
             arch: x86_64
             vcpkg_triplet: x64-osx
             CC: clang
             CXX: clang++
-            XCODE_VER: 15.0.1
+            XCODE_VER: 26.1.1
 
           - runner: macos-14
             name: "MacOS arm64"
@@ -226,6 +226,9 @@ jobs:
 
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
+
+      - name: Install mono
+        run: brew install mono
 
       - name: Set up vcpkg nuget caching (arm64)
         if: matrix.arch == 'arm64'
