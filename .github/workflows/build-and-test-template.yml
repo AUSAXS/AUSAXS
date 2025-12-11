@@ -145,7 +145,7 @@ jobs:
       fail-fast: false
       matrix: 
         include: 
-          - runner: macos-14
+          - runner: macos-15-intel
             name: "MacOS x86"
             arch: x86_64
             vcpkg_triplet: x64-osx
@@ -153,7 +153,7 @@ jobs:
             CXX: clang++
             # CC: $(brew --prefix llvm@15)/bin/clang
             # CXX: $(brew --prefix llvm@15)/bin/clang++
-            XCODE_VER: 15.0.1
+            XCODE_VER: 26.1.1
 
           # - runner: macos-14
           #   name: "MacOS arm64"
@@ -178,9 +178,6 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
-      - name: Install nuget
-        run: brew install nuget
-
       - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'arm64'
         with:
@@ -192,7 +189,7 @@ jobs:
         if: matrix.arch == 'x86_64'
         with:
           package_permission: ${{ inputs.package_permission }}
-          nuget_cmd: "nuget"
+          nuget_cmd: 'mono $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)'
           github_token: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Install dependencies
