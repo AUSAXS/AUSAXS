@@ -129,7 +129,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
     pool->detach_task(
         [&data, res_ptr] () {
             auto& p_aa = res_ptr->get();
-            double total_weight = std::accumulate(
+            double total_weight = scaling*std::accumulate(
                 data.get_data().begin(), 
                 data.get_data().end(), 
                 0.0, 
