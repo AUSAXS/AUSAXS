@@ -67,7 +67,7 @@ namespace ausaxs::hist {
             }
 
             template<int N = 1>
-            void increment_index(int32_t i) {
+            void increment_bin(int32_t i) {
                 index(i) += N;
             }
 

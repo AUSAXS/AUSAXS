@@ -78,12 +78,12 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void increment_index(int x, int y, int32_t i, float distance) {
+            void increment_bin(int x, int y, int32_t i, float distance) {
                 index(x, y, i).increment<N>(distance);
             }
 
             template<int N = 1>
-            void increment_index(int x, int y, int32_t i) {
+            void increment_bin(int x, int y, int32_t i) {
                 index(x, y, i).increment<N>();
             }
             

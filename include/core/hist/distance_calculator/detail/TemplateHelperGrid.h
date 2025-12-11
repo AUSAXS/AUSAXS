@@ -97,7 +97,7 @@ namespace ausaxs::hist::detail::grid {
         const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
         xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_i, data_j, i, j);
-        for (int k = 0; k < 8; ++k) {p.increment_index<factor>(data_i.get_ff_type(i), res.distances[k]);}
+        for (int k = 0; k < 8; ++k) {p.increment_bin<factor>(data_i.get_ff_type(i), res.distances[k]);}
     }
 
     template<bool variable_bin_width, int factor>
@@ -106,7 +106,7 @@ namespace ausaxs::hist::detail::grid {
         const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
         xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_i, data_j, i, j);
-        for (int k = 0; k < 4; ++k) {p.increment_index<factor>(data_i.get_ff_type(i), res.distances[k]);}
+        for (int k = 0; k < 4; ++k) {p.increment_bin<factor>(data_i.get_ff_type(i), res.distances[k]);}
     }
 
     template<bool variable_bin_width, int factor>
@@ -115,6 +115,6 @@ namespace ausaxs::hist::detail::grid {
         const CompactCoordinatesFF<variable_bin_width>& data_j, int i, int j
     ) {
         xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_i, data_j, i, j);
-        p.increment_index<factor>(data_i.get_ff_type(i), res.distance);
+        p.increment_bin<factor>(data_i.get_ff_type(i), res.distance);
     }
 }
