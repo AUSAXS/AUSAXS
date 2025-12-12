@@ -260,8 +260,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         }
     }
     if constexpr (wb) {
-        p_aa.add_index(form_factor::exv_bin, form_factor::exv_bin, 0, 0, data_a_size);
-        p_ww.add_index(0, 0, data_w_size);
+        p_aa.add_index(form_factor::exv_bin, form_factor::exv_bin, 0, WeightedEntry(data_a_size, data_a_size, 0));
+        p_ww.add_index(0, WeightedEntry(data_w_size, data_w_size, 0));
     } else {
         p_aa.add_index(form_factor::exv_bin, form_factor::exv_bin, 0, data_a_size);
         p_ww.add_index(0, data_w_size);

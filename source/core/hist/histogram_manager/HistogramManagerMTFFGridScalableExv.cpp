@@ -170,7 +170,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         WeightedDistribution2D p_ax_generic = p_ax_all.merge();
         WeightedDistribution1D p_wx_generic = p_wx_all.merge();
 
-        p_xx_generic.add_index(0, 0, data_x_size); // self-correlations
+        p_xx_generic.add_index(0, detail::WeightedEntry(data_x_size, data_x_size, 0)); // self-correlations
 
         // downsize our axes to only the relevant area
         unsigned int max_bin = 10; // minimum size is 10

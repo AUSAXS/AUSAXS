@@ -152,7 +152,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    p_xx_generic.add_index(0, 0, data_x_size);
+    p_xx_generic.add_index(0, detail::WeightedEntry(data_x_size, data_x_size, 0));
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10

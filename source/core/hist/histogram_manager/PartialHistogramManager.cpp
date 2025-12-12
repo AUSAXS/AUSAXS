@@ -178,7 +178,7 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_corre
         [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
     );
     if constexpr (weighted_bins) {
-        p_aa.add_index(0, 0, total_weight);
+        p_aa.add_index(0, WeightedEntry(total_weight, total_weight, 0));
     } else {
         p_aa.add_index(0, total_weight);
     }
