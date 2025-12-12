@@ -56,8 +56,6 @@ jobs:
     needs: check-version
     runs-on: windows-latest
     env:
-      USERNAME: AUSAXS
-      FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
 
     steps:
@@ -67,19 +65,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Set up vcpkg nuget caching
-        shell: pwsh
-        run: |
-          .$(vcpkg fetch nuget) `
-            sources add `
-            -Source "${{ env.FEED_URL }}" `
-            -StorePasswordInClearText `
-            -Name GitHubPackages `
-            -UserName "${{ env.USERNAME }}" `
-            -Password "${{ secrets.PACKAGEACCESS }}"
-          .$(vcpkg fetch nuget) `
-          setapikey "${{ secrets.PACKAGEACCESS }}" `
-          -Source "${{ env.FEED_URL }}"
+      - uses: ./.github/actions/setup-vcpkg-nuget
+        with:
+          package_permission: true
+          nuget_cmd: "$(vcpkg fetch nuget)"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: |
@@ -212,8 +202,6 @@ jobs:
             CXX: clang++
             XCODE_VER: 26.1.1
     env:
-      USERNAME: AUSAXS
-      FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
 
     steps:
@@ -227,34 +215,22 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
-      - name: Install mono
-        run: brew install mono
+      - name: Install mono & nuget
+        run: brew install mono nuget
 
-      - name: Set up vcpkg nuget caching (arm64)
+      - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'arm64'
-        run: |
-          nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
-          "$nuget" sources add \
-            -Source "${{ env.FEED_URL }}" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.PACKAGEACCESS }}"
-          "$nuget" setapikey "${{ secrets.PACKAGEACCESS }}" \
-            -Source "${{ env.FEED_URL }}"
+        with:
+          package_permission: true
+          nuget_cmd: $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up vcpkg nuget caching (x86_64)
+      - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'x86_64'
-        run: |
-          nuget=$("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
-          mono "$nuget" sources add \
-            -Source "${{ env.FEED_URL }}" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.PACKAGEACCESS }}"
-          mono "$nuget" setapikey "${{ secrets.PACKAGEACCESS }}" \
-            -Source "${{ env.FEED_URL }}"
+        with:
+          package_permission: true
+          nuget_cmd: 'mono $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: |
