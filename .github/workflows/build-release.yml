@@ -118,7 +118,7 @@ jobs:
   build-mac:
     name: "MacOS universal"
     needs: check-version
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -204,13 +204,13 @@ jobs:
             CXX: clang++
             XCODE_VER: 26.1.1
 
-          - runner: macos-14
+          - runner: macos-15
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
             CC: clang
             CXX: clang++
-            XCODE_VER: 15.0.1
+            XCODE_VER: 26.1.1
     env:
       USERNAME: AUSAXS
       FEED_URL: https://nuget.pkg.github.com/AUSAXS/index.json
