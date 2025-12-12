@@ -93,7 +93,7 @@ jobs:
   build-mac:
     name: "MacOS universal"
     needs: check-headers
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -155,7 +155,7 @@ jobs:
             # CXX: $(brew --prefix llvm@15)/bin/clang++
             XCODE_VER: 26.1.1
 
-          - runner: macos-14
+          - runner: macos-15
             name: "MacOS arm64"
             arch: arm64
             vcpkg_triplet: arm64-osx
@@ -163,7 +163,7 @@ jobs:
             CXX: clang++
             # CC: $(brew --prefix llvm@18)/bin/clang
             # CXX: $(brew --prefix llvm@18)/bin/clang++
-            XCODE_VER: 15.0.1
+            XCODE_VER: 26.1.1
     env:
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,${{ inputs.package_permission && 'readwrite' || 'read' }}"
 
@@ -178,8 +178,8 @@ jobs:
       - name: Set Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
 
-      - name: Install mono
-        run: brew install mono
+      - name: Install mono & nuget
+        run: brew install mono nuget
 
       - uses: ./.github/actions/setup-vcpkg-nuget
         if: matrix.arch == 'arm64'

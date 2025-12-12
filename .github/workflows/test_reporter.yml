@@ -1,7 +1,7 @@
 name: report
 on:
   workflow_run:
-    workflows: [Build & test]
+    workflows: [] #[Build & test]
     types: [completed]
 
 jobs:
