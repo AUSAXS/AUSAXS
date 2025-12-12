@@ -137,7 +137,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
             );
 
             if constexpr (weighted_bins) {
-                p_aa.add_index(0, detail::WeightedEntry(total_weight, total_weight, 0));
+                p_aa.add_index(0, 0, total_weight);
             } else {
                 p_aa.add_index(0, total_weight);
             }

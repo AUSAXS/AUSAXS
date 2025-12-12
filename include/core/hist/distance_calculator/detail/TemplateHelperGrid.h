@@ -40,13 +40,13 @@ namespace ausaxs::hist::detail {
     template<bool variable_bin_widths, bool explicit_ff = false, int factor = 1>
     inline void evaluate4(Distribution1D& p, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_i, const CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
         xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_i, data_j, i, j);
-        for (int k = 0; k < 4; ++k) {p.template increment_index<factor>(res.distances[k]);}
+        for (int k = 0; k < 4; ++k) {p.increment_index<factor>(res.distances[k]);}
     }
 
     template<bool variable_bin_widths, bool explicit_ff = false, int factor = 1>
     inline void evaluate1(Distribution1D& p, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_i, const CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
         xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_i, data_j, i, j);
-        p.template increment_index<factor>(res.distance);
+        p.increment_index<factor>(res.distance);
     }
 }
 

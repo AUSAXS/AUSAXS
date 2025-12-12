@@ -313,7 +313,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         }
     }
     if constexpr (wb) {
-        p_ww.add_index(0, WeightedEntry(data_w_size, data_w_size, 0));
+        p_ww.add_index(0, 0, data_w_size);
     } else {
         p_ww.add_index(0, data_w_size);
     }

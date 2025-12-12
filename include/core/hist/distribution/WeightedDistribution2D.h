@@ -38,6 +38,11 @@ namespace ausaxs::hist {
                 index(x, i) += N*value;
             }
 
+            template<int N = 1>
+            void add_index(int x, int32_t i, float distance, float weight) {
+                index(x, i).add<N>(distance, weight);
+            }
+            
             /**
              * @brief Increment the value for a given index.
              *

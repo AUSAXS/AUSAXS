@@ -95,8 +95,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     double total_weight_aa = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const auto& val) {return sum + std::pow(val.value.w, 2);});
     double total_weight_ww = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const auto& val) {return sum + std::pow(val.value.w, 2);});
     if constexpr (weighted_bins) {
-        p_aa.add_index(0, WeightedEntry(total_weight_aa, total_weight_aa, 0));
-        p_ww.add_index(0, WeightedEntry(total_weight_ww, total_weight_ww, 0));
+        p_aa.add_index(0, 0, total_weight_aa);
+        p_ww.add_index(0, 0, total_weight_ww);
     } else {
         p_aa.add_index(0, total_weight_aa);
         p_ww.add_index(0, total_weight_ww);

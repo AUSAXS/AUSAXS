@@ -79,8 +79,7 @@ namespace {
     void evaluate_aa1(Distribution3D& p, const CompactCoordinatesFF<vbw>& data_a, int i, int j) {
         xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
-        int ff_j = data_a.get_ff_type(j);
-        p.increment_index<factor>(ff_i, ff_j, res.distance);
+        p.increment_linear_index<factor>(res.ff_bin, res.distance);
         p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distance);
         p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance);
     }
@@ -261,8 +260,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         }
     }
     if constexpr (wb) {
-        p_aa.add_index(form_factor::exv_bin, form_factor::exv_bin, 0, WeightedEntry(data_a_size, data_a_size, 0));
-        p_ww.add_index(0, WeightedEntry(data_w_size, data_w_size, 0));
+        p_aa.add_index(form_factor::exv_bin, form_factor::exv_bin, 0, 0, data_a_size);
+        p_ww.add_index(0, 0, data_w_size);
     } else {
         p_aa.add_index(form_factor::exv_bin, form_factor::exv_bin, 0, data_a_size);
         p_ww.add_index(0, data_w_size);
