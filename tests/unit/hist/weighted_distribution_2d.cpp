@@ -37,8 +37,8 @@ TEST_CASE("WeightedDistribution2D::WeightedDistribution2D") {
 TEST_CASE("WeightedDistribution2D::increment_bin") {
     hist::WeightedDistribution2D dist(5, 10);
     
-    dist.increment_bin(0, 0, 0.5f);
-    dist.increment_bin(1, 1, 1.5f);
+    dist.increment_index(0, 0, 0.5f);
+    dist.increment_index(1, 1, 1.5f);
     
     CHECK(dist.index(0, 0).value == 1);
     CHECK(dist.index(1, 1).value == 1);
@@ -46,9 +46,9 @@ TEST_CASE("WeightedDistribution2D::increment_bin") {
 
 TEST_CASE("WeightedDistribution2D::get_weighted_axis") {
     hist::WeightedDistribution2D dist(10, 10);
-    dist.increment_bin(0, 0, 0.0f);
-    dist.increment_bin<2>(1, 1, 1.25f);
-    dist.increment_bin<4>(2, 2, 2.5f);
+    dist.increment_index(0, 0, 0.0f);
+    dist.increment_index<2>(1, 1, 1.25f);
+    dist.increment_index<4>(2, 2, 2.5f);
 
     auto weighted_bins = dist.get_weighted_axis();
     REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));

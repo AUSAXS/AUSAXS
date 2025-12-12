@@ -75,9 +75,9 @@ TEST_CASE("WeightedDistribution1D::set_content") {
 TEST_CASE("WeightedDistribution1D::increment_bin") {
     hist::WeightedDistribution1D dist(10);
     
-    dist.increment_bin(0, 0.5f);
-    dist.increment_bin(1, 1.5f);
-    dist.increment_bin<2>(1, 2.0f);
+    dist.increment_index(0, 0.5f);
+    dist.increment_index(1, 1.5f);
+    dist.increment_index<2>(1, 2.0f);
     
     CHECK(dist.get_content(0) == 1);
     CHECK(dist.get_content(1) == 3);
@@ -118,8 +118,8 @@ TEST_CASE("WeightedDistribution1D::as_vector") {
 
 TEST_CASE("WeightedDistribution1D::get_weighted_axis") {
     hist::WeightedDistribution1D dist(10);
-    dist.increment_bin(0, 0.0f);
-    dist.increment_bin<2>(1, 1.25f);
+    dist.increment_index(0, 0.0f);
+    dist.increment_index<2>(1, 1.25f);
 
     auto weighted_bins = dist.get_weighted_axis();
     REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
