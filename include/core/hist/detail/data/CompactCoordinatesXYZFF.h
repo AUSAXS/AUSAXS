@@ -667,7 +667,7 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
             __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));   // multiply by the inverse width
             __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                            // convert float distances to int bins
-            __m128 ff_bins_f = xyzff::ff_bin_index<explicit_ff>(*this, v1, v2, v3, v4);
+            __m128 ff_bins_f = xyzff::ff_bin_index<vbw, explicit_ff>(*this, v1, v2, v3, v4);
             __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);
 
             _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin);
