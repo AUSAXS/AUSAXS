@@ -39,19 +39,6 @@ namespace ausaxs::hist {
             void add_index(int x, int32_t i, constants::axes::d_type value) {
                 index(x, i) += N*value;
             }
-            
-            /**
-             * @brief Increment the value for a given bin index.dex.
-             * 
-             * @param x The form factor index. 
-             * @param i The bin index to increment.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void increment(int x, int32_t i) {
-                index(x, i) += N;
-            }
 
             template<int N = 1>
             void increment_index(int x, int32_t i) {

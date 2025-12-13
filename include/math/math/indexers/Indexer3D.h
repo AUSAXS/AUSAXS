@@ -57,6 +57,10 @@ namespace ausaxs::utility::indexer {
                 return derived().data[i]; 
             }
 
+            constexpr const auto& linear_index(int ij, int k) const { 
+                return linear_index(ij * derived().L + k);
+            }
+
             constexpr auto& linear_index(int i) { 
                 #if (SAFE_MATH)
                     int size = static_cast<int>(derived().N * derived().M * derived().L);
@@ -70,6 +74,10 @@ namespace ausaxs::utility::indexer {
                 return derived().data[i]; 
             }
 
+            constexpr auto& linear_index(int ij, int k) { 
+                return linear_index(ij * derived().L + k);
+            }
+            
         private:
             Derived& derived() { return static_cast<Derived&>(*this); }
             const Derived& derived() const { return static_cast<const Derived&>(*this); }

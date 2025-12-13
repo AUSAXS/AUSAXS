@@ -30,7 +30,7 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
-			std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_a_ptr;
-		    std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_w_ptr;
+			std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width, true>> data_a_ptr;
+		    std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width, true>> data_w_ptr;
 	};
 }

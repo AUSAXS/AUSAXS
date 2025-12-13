@@ -60,12 +60,12 @@ void single_tests(std::function<EvaluatedResult(const DebugData<vbw>&, const Deb
         DebugData<vbw> data2(Vector3<double>{2, 1, 1}, 4);
         auto result = evaluate(data1, data2);
         CHECK(result.distance == 1);
-        CHECK(result.ff_bin == ff_bin_index(2, 4));
+        CHECK(result.ff_bin == ff_bin_index<false>(2, 4));
 
         DebugData<vbw> data3(Vector3<double>{2, 2, 2}, 8);
         result = evaluate(data1, data3);
         CHECK_THAT(result.distance, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
-        CHECK(result.ff_bin == ff_bin_index(2, 8));
+        CHECK(result.ff_bin == ff_bin_index<false>(2, 8));
     }
 }
 
@@ -77,12 +77,12 @@ void single_tests_rounded(std::function<EvaluatedResultRounded(const DebugData<v
         DebugData<vbw> data2(Vector3<double>{2, 1, 1}, 4);
         auto result = evaluate(data1, data2);
         CHECK(result.distance == std::round(1./width));
-        CHECK(result.ff_bin == ff_bin_index(2, 4));
+        CHECK(result.ff_bin == ff_bin_index<false>(2, 4));
 
         DebugData<vbw> data3(Vector3<double>{2, 2, 2}, 8);
         result = evaluate(data1, data3);
         CHECK(result.distance == std::round(std::sqrt(3)/width));
-        CHECK(result.ff_bin == ff_bin_index(2, 8));
+        CHECK(result.ff_bin == ff_bin_index<false>(2, 8));
     }
 }
 
@@ -99,10 +99,10 @@ void quad_tests(std::function<QuadEvaluatedResult(const DebugData<vbw>&, const D
         CHECK_THAT(result.distances[1], Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
         CHECK_THAT(result.distances[2],  Catch::Matchers::WithinAbs(std::sqrt(12), 1e-6));
         CHECK_THAT(result.distances[3], Catch::Matchers::WithinAbs(std::sqrt(27), 1e-6));
-        CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
-        CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
-        CHECK(result.ff_bins[2] == ff_bin_index(2, 16));
-        CHECK(result.ff_bins[3] == ff_bin_index(2, 3));
+        CHECK(result.ff_bins[0] == ff_bin_index<false>(2, 4));
+        CHECK(result.ff_bins[1] == ff_bin_index<false>(2, 8));
+        CHECK(result.ff_bins[2] == ff_bin_index<false>(2, 16));
+        CHECK(result.ff_bins[3] == ff_bin_index<false>(2, 3));
     }
 }
 
@@ -120,10 +120,10 @@ void quad_tests_rounded(std::function<QuadEvaluatedResultRounded(const DebugData
         CHECK(result.distances[1] == std::round(std::sqrt(3)/width));
         CHECK(result.distances[2]  == std::round(std::sqrt(12)/width));
         CHECK(result.distances[3] == std::round(std::sqrt(27)/width));
-        CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
-        CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
-        CHECK(result.ff_bins[2] == ff_bin_index(2, 16));
-        CHECK(result.ff_bins[3] == ff_bin_index(2, 3));
+        CHECK(result.ff_bins[0] == ff_bin_index<false>(2, 4));
+        CHECK(result.ff_bins[1] == ff_bin_index<false>(2, 8));
+        CHECK(result.ff_bins[2] == ff_bin_index<false>(2, 16));
+        CHECK(result.ff_bins[3] == ff_bin_index<false>(2, 3));
     }
 }
 
@@ -148,14 +148,14 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData<vbw>&, const D
         CHECK_THAT(result.distances[5],  Catch::Matchers::WithinAbs(std::sqrt(75), 1e-6));
         CHECK_THAT(result.distances[6], Catch::Matchers::WithinAbs(std::sqrt(108), 1e-6));
         CHECK_THAT(result.distances[7], Catch::Matchers::WithinAbs(std::sqrt(147), 1e-5));
-        CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
-        CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
-        CHECK(result.ff_bins[2] == ff_bin_index(2, 16));
-        CHECK(result.ff_bins[3] == ff_bin_index(2, 32));
-        CHECK(result.ff_bins[4] == ff_bin_index(2, 64));
-        CHECK(result.ff_bins[5] == ff_bin_index(2, 128));
-        CHECK(result.ff_bins[6] == ff_bin_index(2, 15));
-        CHECK(result.ff_bins[7] == ff_bin_index(2, 5));
+        CHECK(result.ff_bins[0] == ff_bin_index<false>(2, 4));
+        CHECK(result.ff_bins[1] == ff_bin_index<false>(2, 8));
+        CHECK(result.ff_bins[2] == ff_bin_index<false>(2, 16));
+        CHECK(result.ff_bins[3] == ff_bin_index<false>(2, 32));
+        CHECK(result.ff_bins[4] == ff_bin_index<false>(2, 64));
+        CHECK(result.ff_bins[5] == ff_bin_index<false>(2, 128));
+        CHECK(result.ff_bins[6] == ff_bin_index<false>(2, 15));
+        CHECK(result.ff_bins[7] == ff_bin_index<false>(2, 5));
     }
 }
 
@@ -181,14 +181,14 @@ void octo_tests_rounded(std::function<OctoEvaluatedResultRounded(const DebugData
         CHECK(result.distances[5]   == std::round(std::sqrt(75)/width));
         CHECK(result.distances[6] == std::round(std::sqrt(108)/width));
         CHECK(result.distances[7]  == std::round(std::sqrt(147)/width));
-        CHECK(result.ff_bins[0] == ff_bin_index(2, 4));
-        CHECK(result.ff_bins[1] == ff_bin_index(2, 8));
-        CHECK(result.ff_bins[2] == ff_bin_index(2, 16));
-        CHECK(result.ff_bins[3] == ff_bin_index(2, 32));
-        CHECK(result.ff_bins[4] == ff_bin_index(2, 64));
-        CHECK(result.ff_bins[5] == ff_bin_index(2, 128));
-        CHECK(result.ff_bins[6] == ff_bin_index(2, 15));
-        CHECK(result.ff_bins[7] == ff_bin_index(2, 5));
+        CHECK(result.ff_bins[0] == ff_bin_index<false>(2, 4));
+        CHECK(result.ff_bins[1] == ff_bin_index<false>(2, 8));
+        CHECK(result.ff_bins[2] == ff_bin_index<false>(2, 16));
+        CHECK(result.ff_bins[3] == ff_bin_index<false>(2, 32));
+        CHECK(result.ff_bins[4] == ff_bin_index<false>(2, 64));
+        CHECK(result.ff_bins[5] == ff_bin_index<false>(2, 128));
+        CHECK(result.ff_bins[6] == ff_bin_index<false>(2, 15));
+        CHECK(result.ff_bins[7] == ff_bin_index<false>(2, 5));
     }
 }
 

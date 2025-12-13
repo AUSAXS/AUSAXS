@@ -27,10 +27,9 @@ namespace {
         xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
-            int ff_j = data_a.get_ff_type(j+k);
-            p.increment<factor>(ff_i, ff_j, res.distances[k]);
-            p.increment<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
-            p.increment<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
+            p.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -39,8 +38,7 @@ namespace {
         xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
-            int ff_j = data_a.get_ff_type(j+k);
-            p.increment_index<factor>(ff_i, ff_j, res.distances[k]);
+            p.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
             p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
             p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
         }
@@ -51,10 +49,9 @@ namespace {
         xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
-            int ff_j = data_a.get_ff_type(j+k);
-            p.increment<factor>(ff_i, ff_j, res.distances[k]);
-            p.increment<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
-            p.increment<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
+            p.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -63,8 +60,7 @@ namespace {
         xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
-            int ff_j = data_a.get_ff_type(j+k);
-            p.increment_index<factor>(ff_i, ff_j, res.distances[k]);
+            p.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
             p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
             p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
         }
@@ -74,18 +70,16 @@ namespace {
     void evaluate_aa1(WeightedDistribution3D& p, const CompactCoordinatesFF<vbw>& data_a, int i, int j) {
         xyzff::EvaluatedResult res = add1::evaluate_weighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
-        int ff_j = data_a.get_ff_type(j);
-        p.increment<factor>(ff_i, ff_j, res.distance);
-        p.increment<factor>(ff_i, form_factor::exv_bin, res.distance);
-        p.increment<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance);
+        p.increment_linear_index<factor>(res.ff_bin, res.distance_bin, res.distance);
+        p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distance_bin, res.distance);
+        p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance_bin, res.distance);
     }
 
     template<bool vbw, int factor>
     void evaluate_aa1(Distribution3D& p, const CompactCoordinatesFF<vbw>& data_a, int i, int j) {
         xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
-        int ff_j = data_a.get_ff_type(j);
-        p.increment_index<factor>(ff_i, ff_j, res.distance);
+        p.increment_linear_index<factor>(res.ff_bin, res.distance);
         p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distance);
         p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance);
     }
@@ -95,8 +89,8 @@ namespace {
         xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
-            p.increment<factor>(ff_i, res.distances[k]);
-            p.increment<factor>(form_factor::exv_bin, res.distances[k]);
+            p.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -115,8 +109,8 @@ namespace {
         xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
-            p.increment<factor>(ff_i, res.distances[k]);
-            p.increment<factor>(form_factor::exv_bin, res.distances[k]);
+            p.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
         }
     }
 
@@ -134,8 +128,8 @@ namespace {
     void evaluate_aw1(WeightedDistribution2D& p, const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
         xyzff::EvaluatedResult res = add1::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
-        p.increment<factor>(ff_i, res.distance);
-        p.increment<factor>(form_factor::exv_bin, res.distance);
+        p.increment_index<factor>(ff_i, res.distance_bin, res.distance);
+        p.increment_index<factor>(form_factor::exv_bin, res.distance_bin, res.distance);
     }
 
     template<bool vbw, int factor>
@@ -259,7 +253,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
     // SELF-CORRELATIONS //
     //###################//
     for (int i = 0; i < data_a_size; ++i) {
-        p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
+        if constexpr (wb) {
+            p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 0.0f);
+        } else {
+            p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
+        }
     }
     if constexpr (wb) {
         p_aa.add_index(form_factor::exv_bin, form_factor::exv_bin, 0, WeightedEntry(data_a_size, data_a_size, 0));

@@ -25,21 +25,6 @@ namespace ausaxs::hist {
             WeightedDistribution2D(const Distribution2D& other);
 
             /**
-             * @brief Add a value for a given distance.
-             * 
-             * @param x The first form factor index.
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add(int x, float distance, constants::axes::d_type value) {
-                int i = std::round(distance*settings::flags::inv_bin_width);
-                index(x, i).add<N>(distance, value);
-            }
-
-            /**
              * @brief Add a value for a given index.
              * 
              * @param x The form factor index. 
@@ -53,19 +38,11 @@ namespace ausaxs::hist {
                 index(x, i) += N*value;
             }
 
-            /**
-             * @brief Increment the value for a given distance.
-             *
-             * @param x The form factor index.
-             * @param distance The distance to increment the value for.
-             * @tparam N A multiplicative factor for the value.
-             */
             template<int N = 1>
-            void increment(int x, float distance) {
-                int i = std::round(distance*settings::flags::inv_bin_width);
-                index(x, i).increment<N>(distance);
+            void add_index(int x, int32_t i, float distance, float weight) {
+                index(x, i).add<N>(distance, weight);
             }
-
+            
             /**
              * @brief Increment the value for a given index.
              *
@@ -76,11 +53,6 @@ namespace ausaxs::hist {
             template<int N = 1>
             void increment_index(int x, int32_t i, float distance) {
                 index(x, i).increment<N>(distance);
-            }
-
-            template<int N = 1>
-            void increment_index(int x, int32_t i) {
-                index(x, i).increment<N>();
             }
 
             /**

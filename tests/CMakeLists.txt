@@ -27,5 +27,6 @@ include(Catch)
 
 add_subdirectory(unit)
 add_subdirectory(feature)
+add_subdirectory(benchmark)
 
 add_custom_target(tests DEPENDS unit_tests feature_tests)

@@ -37,26 +37,24 @@ TEST_CASE("WeightedDistribution3D::WeightedDistribution3D") {
     }
 }
 
-TEST_CASE("WeightedDistribution3D::add") {
+TEST_CASE("WeightedDistribution3D::increment_bin") {
     hist::WeightedDistribution3D dist(5, 5, 10);
-    auto width = constants::axes::d_axis.width();
     
-    dist.add(0, 0, 0, 1);
-    dist.add(1, 1, width/2, 2);
+    dist.increment_index(0, 0, 0, 0.5f);
+    dist.increment_index(1, 1, 1, 1.5f);
     
     CHECK(dist.index(0, 0, 0).value == 1);
-    CHECK(dist.index(1, 1, 1).value == 2);
+    CHECK(dist.index(1, 1, 1).value == 1);
 }
 
 TEST_CASE("WeightedDistribution3D::get_weights") {
     hist::WeightedDistribution3D dist(10, 10, 10);
-    auto width = constants::axes::d_axis.width();
-    dist.add(0, 0, 0, 1);
-    dist.add(1, 1, width/2, 2);
-    dist.add(2, 2, 3*width/4, 4);
+    dist.increment_index(0, 0, 0, 0.0f);
+    dist.increment_index<2>(1, 1, 1, 1.25f);
+    dist.increment_index<4>(2, 2, 2, 2.5f);
 
     auto weighted_bins = dist.get_weights();
     REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
-    REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(2.5*width/4, 1e-3));
-    REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
+    REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(1.25, 1e-3));
+    REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2.5, 1e-3));
 }

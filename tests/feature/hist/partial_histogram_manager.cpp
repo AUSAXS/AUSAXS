@@ -71,32 +71,32 @@ auto test = [] (data::Molecule& protein, auto&& phm) {
     // no changes
     auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     auto phm_res = phm(protein)->get_total_counts();
-    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+    REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // change hydration
     protein.generate_new_hydration();
     p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     phm_res = phm(protein)->get_total_counts();
-    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+    REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // external change
     protein.get_body(1).translate({1, 1, 1});
     p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     phm_res = phm(protein)->get_total_counts();
-    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+    REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // internal change
     protein.get_body(1).get_atom(0).weight() = 100;
     protein.get_body(1).get_signaller()->modified_internal();
     p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     phm_res = phm(protein)->get_total_counts();
-    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+    REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 };
 
 auto test_random = [] (data::Molecule& protein, auto&& phm) {
     auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_total_counts();
     auto phm_res = phm(protein)->get_total_counts();
-    REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
+    REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     bool modify_external = GENERATE(false, true);
     bool modify_internal = GENERATE(false, true);

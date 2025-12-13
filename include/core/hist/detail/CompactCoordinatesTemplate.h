@@ -22,17 +22,17 @@ namespace ausaxs::hist::detail {
         std::is_same_v<CoordType, CoordinateTypeXYZFF>;
 
     // Helper to get the actual coordinate type
-    template<typename CoordType, bool variable_bin_width>
+    template<typename CoordType, bool variable_bin_width, bool explicit_ff = false>
     struct CoordinateTypeMapper;
 
-    template<bool vbw>
-    struct CoordinateTypeMapper<CoordinateTypeXYZW, vbw> {
+    template<bool vbw, bool explicit_ff>
+    struct CoordinateTypeMapper<CoordinateTypeXYZW, vbw, explicit_ff> {
         using type = CompactCoordinatesXYZW<vbw>;
     };
 
-    template<bool vbw>
-    struct CoordinateTypeMapper<CoordinateTypeXYZFF, vbw> {
-        using type = CompactCoordinatesXYZFF<vbw>;
+    template<bool vbw, bool explicit_ff>
+    struct CoordinateTypeMapper<CoordinateTypeXYZFF, vbw, explicit_ff> {
+        using type = CompactCoordinatesXYZFF<vbw, explicit_ff>;
     };
 
     /**
@@ -40,10 +40,11 @@ namespace ausaxs::hist::detail {
      *        The idea is that by only extracting the absolute necessities for the distance calculation such as the coordinates and weight,
      *        more values can be stored in the cache at any given time. This is further improved by storing the coordinates as floats instead of doubles.
      *        This is meant as a helper class to DistanceCalculator.
+     * @tparam explicit_ff If true, uses form factor count without excluded volume (for explicit FF managers). If false, includes excluded volume (for averaged FF managers).
      */
-    template<CompactCoordinatesType CoordType, bool variable_bin_width>
+    template<CompactCoordinatesType CoordType, bool variable_bin_width, bool explicit_ff = false>
     class CompactCoordinatesTemplate {
-        using DataType = typename CoordinateTypeMapper<CoordType, variable_bin_width>::type;
+        using DataType = typename CoordinateTypeMapper<CoordType, variable_bin_width, explicit_ff>::type;
         using NonCoordinateType = typename std::conditional_t<std::is_same_v<CoordType, CoordinateTypeXYZW>,
             float,
             int32_t
@@ -108,9 +109,9 @@ namespace ausaxs::hist::detail {
 
 // implementation defined in header to support efficient inlining
 namespace ausaxs::hist::detail {
-    template<CompactCoordinatesType CoordType, bool vbw>
-    typename CoordinateTypeMapper<CoordType, vbw>::type GenericConstructor(const data::AtomFF& a) {
-        using DataType = typename CoordinateTypeMapper<CoordType, vbw>::type;
+    template<CompactCoordinatesType CoordType, bool vbw, bool explicit_ff = false>
+    typename CoordinateTypeMapper<CoordType, vbw, explicit_ff>::type GenericConstructor(const data::AtomFF& a) {
+        using DataType = typename CoordinateTypeMapper<CoordType, vbw, explicit_ff>::type;
         if constexpr (std::is_same_v<CoordType, CoordinateTypeXYZW>) {
             return DataType(a.coordinates(), a.weight());
         } else {
@@ -119,9 +120,9 @@ namespace ausaxs::hist::detail {
         }
     }
 
-    template<CompactCoordinatesType CoordType, bool vbw>
-    typename CoordinateTypeMapper<CoordType, vbw>::type GenericConstructor(const data::Water& a) {
-        using DataType = typename CoordinateTypeMapper<CoordType, vbw>::type;
+    template<CompactCoordinatesType CoordType, bool vbw, bool explicit_ff = false>
+    typename CoordinateTypeMapper<CoordType, vbw, explicit_ff>::type GenericConstructor(const data::Water& a) {
+        using DataType = typename CoordinateTypeMapper<CoordType, vbw, explicit_ff>::type;
         if constexpr (std::is_same_v<CoordType, CoordinateTypeXYZW>) {
             return DataType(a.coordinates(), a.weight());
         } else {
@@ -131,49 +132,49 @@ namespace ausaxs::hist::detail {
     }
 }
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(unsigned int size) : data(size) {}
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::CompactCoordinatesTemplate(unsigned int size) : data(size) {}
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_non_coordinate_value(unsigned int i) const {
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::NonCoordinateType ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::get_non_coordinate_value(unsigned int i) const {
     // reinterpret the fourth element of the data as the non-coordinate type
     // this must be done as the int32_t is stored as a float internally
-    return *reinterpret_cast<const ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType*>(&data[i].data[3]);
+    return *reinterpret_cast<const ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::NonCoordinateType*>(&data[i].data[3]);
 }
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(std::vector<Vector3<double>>&& coordinates, double weight) : data(coordinates.size()) {
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::CompactCoordinatesTemplate(std::vector<Vector3<double>>&& coordinates, double weight) : data(coordinates.size()) {
     std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return DataType(v, weight);});
 }
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::AtomFF>& atoms) : data(atoms.size()) {
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::CompactCoordinatesTemplate(const std::vector<data::AtomFF>& atoms) : data(atoms.size()) {
     for (unsigned int i = 0; i < size(); ++i) {
         const auto& a = atoms[i]; 
-        data[i] = GenericConstructor<CoordType, vbw>(a);
+        data[i] = GenericConstructor<CoordType, vbw, explicit_ff>(a);
     }
 }
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Body>& bodies) : data(std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.size_atom();})) {
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::CompactCoordinatesTemplate(const std::vector<data::Body>& bodies) : data(std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.size_atom();})) {
     unsigned int i = 0;
     for (const auto& body : bodies) {
         for (const auto& a : body.get_atoms()) {
-            data[i++] = GenericConstructor<CoordType, vbw>(a);
+            data[i++] = GenericConstructor<CoordType, vbw, explicit_ff>(a);
         }
     }
 }
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Water>& atoms) : data(atoms.size()) {
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::CompactCoordinatesTemplate(const std::vector<data::Water>& atoms) : data(atoms.size()) {
     for (unsigned int i = 0; i < size(); ++i) {
         const auto& a = atoms[i]; 
-        data[i] = GenericConstructor<CoordType, vbw>(a);
+        data[i] = GenericConstructor<CoordType, vbw, explicit_ff>(a);
     }
 }
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::implicit_excluded_volume(double volume_per_atom) {
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::implicit_excluded_volume(double volume_per_atom) {
     static_assert(std::is_same_v<CoordType, CoordinateTypeXYZW>, "implicit_excluded_volume only works with weight-based CompactCoordinates");
     if constexpr (std::is_same_v<CoordType, CoordinateTypeXYZW>) {
         double displaced_charge = constants::charge::density::water*volume_per_atom;
@@ -182,17 +183,17 @@ inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::im
     }
 }
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline std::vector<typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::DataType>& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_data() {return data;}
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline std::vector<typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::DataType>& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::get_data() {return data;}
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline const std::vector<typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::DataType>& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_data() const {return data;}
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline const std::vector<typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::DataType>& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::get_data() const {return data;}
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline std::size_t ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::size() const {return data.size();}
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline std::size_t ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::size() const {return data.size();}
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::DataType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::operator[](unsigned int i) {return data[i];}
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::DataType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::operator[](unsigned int i) {return data[i];}
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline const typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::DataType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::operator[](unsigned int i) const {return data[i];}
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
+inline const typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::DataType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::operator[](unsigned int i) const {return data[i];}

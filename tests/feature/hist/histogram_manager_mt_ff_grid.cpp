@@ -85,31 +85,13 @@ auto test = [] (Molecule& protein, bool normalized, std::function<std::unique_pt
         }
     }
 
-    // aa
-    for (int i = 0; i < std::min<int>(xx1.size(), xx2.size()); ++i) {
-        if (!utility::approx(aa1.index(i), aa2.index(i), 1e-6, 0)) {
-            std::cout << "histogram_manager_mt_ff_grid failed at index " << i << std::endl;
-            REQUIRE_THAT(aa1.index(i), Catch::Matchers::WithinAbs(aa2.index(i), 1e-6));
-        }
-    }
+    compare_hist_approx(aa1, aa2);
     SUCCEED();
 
-    // xx
-    for (int i = 0; i < std::min<int>(xx1.size(), xx2.size()); ++i) {
-        if (!utility::approx(xx1.index(i), xx2.index(i), 1e-6, 0)) {
-            std::cout << "histogram_manager_mt_ff_grid failed at index " << i << std::endl;
-            REQUIRE_THAT(xx1.index(i), Catch::Matchers::WithinAbs(xx2.index(i), 1e-6));
-        }
-    } 
+    compare_hist_approx(xx1, xx2);
     SUCCEED();
 
-    // ax
-    for (int i = 0; i < std::min<int>(xx1.size(), xx2.size()); ++i) {
-        if (!utility::approx(ax1.index(i), ax2.index(i), 1e-6, 0)) {
-            std::cout << "histogram_manager_mt_ff_grid failed at index " << i << std::endl;
-            REQUIRE_THAT(ax1.index(i), Catch::Matchers::WithinAbs(ax2.index(i), 1e-6));
-        }
-    }
+    compare_hist_approx(ax1, ax2);
     SUCCEED();
 };
 

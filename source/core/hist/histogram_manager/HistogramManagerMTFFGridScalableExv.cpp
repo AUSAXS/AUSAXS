@@ -111,15 +111,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             for (int i = imin; i < imax; ++i) { // atoms
                 int j = 0;                      // exv
                 for (; j+7 < data_x_size; j+=8) {
-                    detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate8<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate4<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate1<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
             }
             return p_ax;
@@ -170,7 +170,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         WeightedDistribution2D p_ax_generic = p_ax_all.merge();
         WeightedDistribution1D p_wx_generic = p_wx_all.merge();
 
-        p_xx_generic.add(0, data_x_size); // self-correlations
+        p_xx_generic.add_index(0, detail::WeightedEntry(data_x_size, data_x_size, 0)); // self-correlations
 
         // downsize our axes to only the relevant area
         unsigned int max_bin = 10; // minimum size is 10

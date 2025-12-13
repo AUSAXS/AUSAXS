@@ -25,22 +25,6 @@ namespace ausaxs::hist {
             WeightedDistribution3D(const Distribution3D& other);
 
             /**
-             * @brief Add twice the value for a given distance.
-             * 
-             * @param x The first form factor index.
-             * @param y The second form factor index.
-             * @param distance The distance to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add(int x, int y, float distance, constants::axes::d_type value) {
-                int i = std::round(distance*settings::flags::inv_bin_width);
-                index(x, y, i).add<N>(distance, value);
-            }
-
-            /**
              * @brief Add a value for a given index.
              * 
              * @param x The first form factor index.
@@ -55,18 +39,9 @@ namespace ausaxs::hist {
                 index(x, y, i) += N*value;
             }
 
-            /**
-             * @brief Increment the value for a given distance.
-             *
-             * @param x The form factor index.
-             * @param y The second form factor index.
-             * @param distance The distance to increment the value for.
-             * @tparam N A multiplicative factor for the value.
-             */
             template<int N = 1>
-            void increment(int x, int y, float distance) {
-                int i = std::round(distance*settings::flags::inv_bin_width);
-                index(x, y, i).increment<N>(distance);
+            void add_index(int x, int y, int32_t i, float distance, float weight) {
+                index(x, y, i).add<N>(distance, weight);
             }
 
             /**
@@ -82,22 +57,18 @@ namespace ausaxs::hist {
                 index(x, y, i).increment<N>(distance);
             }
 
-            template<int N = 1>
-            void increment_index(int x, int y, int32_t i) {
-                index(x, y, i).increment<N>();
-            }
-            
             /**
-             * @brief Increment the value for a given linear index. 
-             * 
-             * @param i The index to increment.
-             * @tparam N A multiplicative factor for the value. 
+             * @brief Increment the value using a linear 2D form factor bin index.
+             *
+             * @param xy The linear 2D form factor bin index (computed as ff2 + ff1*N_ff).
+             * @param i The distance bin index.
+             * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void increment_linear_index(int32_t i, float distance) {
-                linear_index(i).increment<N>(distance);
+            void increment_linear_index(int32_t xy, int32_t i, float distance) {
+                linear_index(xy, i).increment<N>(distance);
             }
-
+            
             /**
              * @brief Extract the weights from this distribution.
              */

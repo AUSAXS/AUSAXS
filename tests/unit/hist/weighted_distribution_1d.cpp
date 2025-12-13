@@ -72,15 +72,15 @@ TEST_CASE("WeightedDistribution1D::set_content") {
     CHECK(dist.get_content(2) == 30);
 }
 
-TEST_CASE("WeightedDistribution1D::add") {
+TEST_CASE("WeightedDistribution1D::increment_bin") {
     hist::WeightedDistribution1D dist(10);
-    auto width = constants::axes::d_axis.width();
     
-    dist.add(0, 1);
-    dist.add(width/2, 2);
+    dist.increment_index(0, 0.5f);
+    dist.increment_index(1, 1.5f);
+    dist.increment_index<2>(1, 2.0f);
     
     CHECK(dist.get_content(0) == 1);
-    CHECK(dist.get_content(1) == 2);
+    CHECK(dist.get_content(1) == 3);
 }
 
 TEST_CASE("WeightedDistribution1D::add_index") {
@@ -118,14 +118,12 @@ TEST_CASE("WeightedDistribution1D::as_vector") {
 
 TEST_CASE("WeightedDistribution1D::get_weighted_axis") {
     hist::WeightedDistribution1D dist(10);
-    auto width = constants::axes::d_axis.width();
-    dist.add(0, 1);
-    dist.add(width/2, 2);
+    dist.increment_index(0, 0.0f);
+    dist.increment_index<2>(1, 1.25f);
 
     auto weighted_bins = dist.get_weighted_axis();
     REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
-    REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(width/2, 1e-3));
-    REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
+    REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(1.25, 1e-3));
 }
 
 TEST_CASE("WeightedDistribution1D::set_bin_centers") {
