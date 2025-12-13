@@ -26,7 +26,6 @@
 
 #include "hist/hist_test_helper.h"
 #include "hist/intensity_calculator/DistanceHistogram.h"
-#include "plots/PlotDataset.h"
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

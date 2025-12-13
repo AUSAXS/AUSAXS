@@ -75,7 +75,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::deby
 }
 
 template<typename FormFactorTableType>
-const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_counts() const {
+const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_weighted_counts() const {
     // Return weighted counts: multiply each form factor pair by its product at q=0
     const auto& ff_table = get_ff_table();
     p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);

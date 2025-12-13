@@ -44,7 +44,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
     // ensure that our new vectors are compatible with those from the base class
     // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
     auto cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    WeightedDistribution1D p_tot = std::move(cast_res->get_counts());
+    WeightedDistribution1D p_tot = std::move(cast_res->get_weighted_counts());
     p_tot.set_bin_centers(cast_res->get_d_axis());
 
     hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;

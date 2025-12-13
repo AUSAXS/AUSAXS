@@ -94,8 +94,6 @@ const std::vector<double>& DistanceHistogram::get_q_axis() {
 
 const std::vector<double>& DistanceHistogram::get_weighted_counts() const {return get_counts();}
 
-std::vector<double>& DistanceHistogram::get_weighted_counts() {return get_counts();}
-
 bool DistanceHistogram::is_highly_ordered() const {
     // count the number of 'spikes', defined as points that are at least 50% larger than their neighbours
     // also count the number of bins with non-zero counts
