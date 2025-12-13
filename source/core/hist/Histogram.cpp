@@ -74,10 +74,6 @@ const std::vector<double>& Histogram::get_counts() const {
     return p.data;
 }
 
-std::vector<double>& Histogram::get_counts() {
-    return const_cast<std::vector<double>&>(const_cast<const Histogram*>(this)->get_counts());
-}
-
 double& Histogram::get_count(unsigned int i) {
     assert(i < p.size() && "Index out of bounds");
     return p[i];
