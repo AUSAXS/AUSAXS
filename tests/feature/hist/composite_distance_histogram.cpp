@@ -70,11 +70,11 @@ hist::CompositeDistanceHistogram generate_random(unsigned int size) {
 TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
     settings::general::warnings = false;
     auto hist = generate_random(100);
-    auto p = hist.get_total_counts();
+    auto p = hist.get_weighted_counts();
     hist.apply_water_scaling_factor(2);
-    CHECK(hist.get_total_counts() != p);
+    CHECK(hist.get_weighted_counts() != p);
     hist.apply_water_scaling_factor(1);
-    CHECK(hist.get_total_counts() == p);
+    CHECK(hist.get_weighted_counts() == p);
 }
 
 TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
@@ -103,17 +103,17 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
 
     hist->apply_water_scaling_factor(2);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + 4*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + 4*p_hh[i], Catch::Matchers::WithinRel(hist->get_weighted_counts()[i]));
     }
 
     hist->apply_water_scaling_factor(3);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 3*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + 3*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist->get_weighted_counts()[i]));
     }
 
     hist->apply_water_scaling_factor(1);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist->get_weighted_counts()[i]));
     }
 }
 

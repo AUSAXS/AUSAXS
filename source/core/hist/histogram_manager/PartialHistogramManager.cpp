@@ -102,7 +102,7 @@ template<bool weighted_bins, bool variable_bin_width>
 std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bins, variable_bin_width>::calculate_all() {
     logging::log("PartialHistogramManager::calculate_all: starting calculation");
     auto total = calculate();
-    int bins = total->get_total_counts().size();
+    int bins = total->get_weighted_counts().size();
 
     // determine p_tot
     GenericDistribution1D_t p_tot(bins);

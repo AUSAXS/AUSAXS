@@ -93,7 +93,7 @@ TEST_CASE("managers: EM: em_partial_histogram_manager") {
     auto compare = [] (std::shared_ptr<em::managers::ProteinManager> manager1, std::shared_ptr<em::managers::ProteinManager> manager2, double cutoff) {
         auto h1 = manager1->get_histogram(cutoff);
         auto h2 = manager2->get_histogram(cutoff);
-        return compare_hist_approx(h1->get_total_counts(), h2->get_total_counts());
+        return compare_hist_approx(h1->get_weighted_counts(), h2->get_weighted_counts());
     };
 
     SECTION("basic functionality works") {

@@ -53,7 +53,7 @@ Distribution1D& CompositeDistanceHistogram::get_ww_counts() {
 }
 
 void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
-    auto& p_tot = get_total_counts();
+    auto& p_tot = get_weighted_counts();
     for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot[i] = distance_profiles.aa.index(i) + k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
 }
 

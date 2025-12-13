@@ -213,7 +213,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
 
     SECTION("delegated to HistogramManager") {
         Molecule protein(bodies);
-        REQUIRE(compare_hist(protein.get_histogram()->get_total_counts(), protein.get_histogram_manager()->calculate()->get_total_counts()));
+        REQUIRE(compare_hist(protein.get_histogram()->get_weighted_counts(), protein.get_histogram_manager()->calculate()->get_weighted_counts()));
     }
  
     SECTION("compare_debye") {
@@ -256,7 +256,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
 
 TEST_CASE_METHOD(fixture, "Molecule::get_total_histogram") {
     Molecule protein(bodies);
-    REQUIRE(compare_hist(protein.get_histogram()->get_total_counts(), protein.get_histogram_manager()->calculate_all()->get_total_counts()));
+    REQUIRE(compare_hist(protein.get_histogram()->get_weighted_counts(), protein.get_histogram_manager()->calculate_all()->get_weighted_counts()));
     // REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
 }
 
@@ -521,8 +521,8 @@ TEST_CASE("Molecule::histogram", "[files]") {
         auto d_o = one.get_histogram();
 
         // direct access to the histogram data (only p is defined)
-        const std::vector<double>& p_m = d_m->get_total_counts();
-        const std::vector<double>& p_o = d_o->get_total_counts();
+        const std::vector<double>& p_m = d_m->get_weighted_counts();
+        const std::vector<double>& p_o = d_o->get_weighted_counts();
 
         // compare each entry
         for (size_t i = 0; i < p_o.size(); i++) {
@@ -585,8 +585,8 @@ TEST_CASE("Molecule::histogram", "[files]") {
         auto d_b = hist::HistogramManager<false, false>(&protein).calculate_all();
 
         // direct access to the histogram data (only p is defined)
-        const std::vector<double>& p = d_p->get_total_counts();
-        const std::vector<double>& b_tot = d_b->get_total_counts();
+        const std::vector<double>& p = d_p->get_weighted_counts();
+        const std::vector<double>& b_tot = d_b->get_weighted_counts();
 
         // compare each entry
         for (unsigned int i = 0; i < b_tot.size(); i++) {
@@ -623,8 +623,8 @@ TEST_CASE("Molecule::histogram", "[files]") {
         auto h2 = protein2.get_histogram();
 
         // direct access to the histogram data (only p is defined)
-        const std::vector<double>& p1 = h1->get_total_counts();
-        const std::vector<double>& p2 = h2->get_total_counts();
+        const std::vector<double>& p1 = h1->get_weighted_counts();
+        const std::vector<double>& p2 = h2->get_weighted_counts();
 
         // compare each entry
         for (size_t i = 0; i < p1.size(); i++) {

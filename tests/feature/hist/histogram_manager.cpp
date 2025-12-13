@@ -148,25 +148,25 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 template<template<bool> class MANAGER>
 void run_test2(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h1->get_total_counts(), target));
+    REQUIRE(compare_hist_approx(h1->get_weighted_counts(), target));
     
     auto h2 = MANAGER<true>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h2->get_total_counts(), target));
+    REQUIRE(compare_hist_approx(h2->get_weighted_counts(), target));
 }
 
 template<template<bool, bool> class MANAGER>
 void run_test2(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false, false>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h1->get_total_counts(), target));
+    REQUIRE(compare_hist_approx(h1->get_weighted_counts(), target));
 
     auto h2 = MANAGER<false, true>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h2->get_total_counts(), target));
+    REQUIRE(compare_hist_approx(h2->get_weighted_counts(), target));
 
     auto h3 = MANAGER<true, false>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h3->get_total_counts(), target));
+    REQUIRE(compare_hist_approx(h3->get_weighted_counts(), target));
 
     auto h4 = MANAGER<true, true>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h4->get_total_counts(), target));
+    REQUIRE(compare_hist_approx(h4->get_weighted_counts(), target));
 }
 
 TEST_CASE("HistogramManager::calculate_all real data") {
@@ -184,7 +184,7 @@ TEST_CASE("HistogramManager::calculate_all real data") {
         []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
             run_test2<MANAGER>(protein, target);
         },
-        protein, p_exp->get_total_counts()
+        protein, p_exp->get_weighted_counts()
     );
 }
 

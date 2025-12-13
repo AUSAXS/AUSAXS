@@ -180,7 +180,7 @@ inline auto get_raw_counts(hist::ICompositeDistanceHistogram* h) {
     if (exv_hist) {
         return exv_hist->get_total_raw_counts();
     } else { // assume `set_unity_charge` was used, so weights=1
-        return h->get_total_counts();
+        return h->get_weighted_counts();
     }
 }
 
