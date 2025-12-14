@@ -224,9 +224,9 @@ TEST_CASE("Body::get_total_atomic_charge") {
     };
     Body body(atoms);
     
-    double expected = constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) +
-                      constants::charge::nuclear::get_charge(form_factor::form_factor_t::O) +
-                      constants::charge::nuclear::get_charge(form_factor::form_factor_t::H);
+    double expected = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C).I0() +
+                      form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::O).I0() +
+                      form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::H).I0();
     CHECK(body.get_total_atomic_charge() == expected);
 }
 
