@@ -5,7 +5,8 @@
 
 #include <hist/detail/data/IntrinsicMacros.h>
 
-#include <stdexcept>
+#include <cstdint>
+#include <cstdlib>
 
 namespace ausaxs::hist::detail {
     static inline float squared_dot_product(const float* v1, const float* v2) noexcept {
@@ -21,7 +22,7 @@ namespace ausaxs::hist::detail {
     // the bits are: wzyx | dcba, where the upper nibble selects which components to multiply,
     // and the lower nibble selects where to store the result. This enum therefore defines
     // a multiplication of x, y, z components, and stores the result in the desired location (FIRST, SECOND, ...).
-    enum OutputControl : int8_t {
+    enum OutputControl : std::int8_t {
         ALL =    0b01111111,
         FIRST =  0b01110001,
         SECOND = 0b01110010,
@@ -49,7 +50,7 @@ namespace ausaxs::hist::detail {
                     case OutputControl::SECOND: return _mm_dp_ps(diff, diff, OutputControl::SECOND);
                     case OutputControl::THIRD:  return _mm_dp_ps(diff, diff, OutputControl::THIRD);
                     case OutputControl::FOURTH: return _mm_dp_ps(diff, diff, OutputControl::FOURTH);
-                    default: throw std::runtime_error("Invalid OutputControl");
+                    default: std::abort();
                 }
             #else
                 sv1[3] = sv2[3] = 0;                        // zero out the weights
@@ -82,7 +83,7 @@ namespace ausaxs::hist::detail {
                 case OutputControl::SECOND: return _mm256_dp_ps(diff, diff, OutputControl::SECOND);
                 case OutputControl::THIRD:  return _mm256_dp_ps(diff, diff, OutputControl::THIRD);
                 case OutputControl::FOURTH: return _mm256_dp_ps(diff, diff, OutputControl::FOURTH);
-                default: throw std::runtime_error("Invalid OutputControl");
+                default: std::abort();
             }
         }
     }
