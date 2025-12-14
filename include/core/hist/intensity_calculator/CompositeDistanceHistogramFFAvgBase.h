@@ -130,7 +130,7 @@ namespace ausaxs::hist {
             const Distribution1D& get_ww_counts_by_ff() const;
             Distribution1D& get_ww_counts_by_ff(); // @copydoc get_ww_counts_ff() const
 
-            const std::vector<double>& get_counts() const override;
+            const std::vector<double>& get_weighted_counts() const override;
             const std::vector<double>& get_total_raw_counts() const override;
 
             virtual ScatteringProfile get_profile_aa() const override;

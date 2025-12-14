@@ -105,7 +105,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
     REQUIRE(compare_hist_approx(h1->get_aa_counts(), h2->get_aa_counts()));
     REQUIRE(compare_hist_approx(h1->get_ww_counts(), h2->get_ww_counts()));
     REQUIRE(compare_hist_approx(h1->get_aw_counts(), h2->get_aw_counts()));
-    REQUIRE(compare_hist_approx(h1->get_total_counts(), h2->get_total_counts()));
+    REQUIRE(compare_hist_approx(h1->get_weighted_counts(), h2->get_weighted_counts()));
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {

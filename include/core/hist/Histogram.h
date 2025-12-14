@@ -84,11 +84,6 @@ namespace ausaxs::hist {
             virtual const std::vector<double>& get_counts() const;
 
             /**
-             * @brief Get the total histogram.
-             */
-            std::vector<double>& get_counts();
-
-            /**
              * @brief Get the count at a specific bin.
              */
             const double& get_count(unsigned int i) const;

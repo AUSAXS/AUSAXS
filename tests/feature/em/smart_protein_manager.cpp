@@ -47,7 +47,7 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein", "[files]") {
 
 TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram", "[files]") {
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
-    CHECK(manager->get_histogram(1)->get_total_counts() == manager->get_protein(1)->get_histogram()->get_total_counts());
+    CHECK(manager->get_histogram(1)->get_weighted_counts() == manager->get_protein(1)->get_histogram()->get_weighted_counts());
 }
 
 TEST_CASE("SmartProteinManager::generate_protein", "[files]") {

@@ -75,8 +75,7 @@ namespace ausaxs::hist {
             /**
              * @brief Get the total histogram counts. Equivalent to get_counts().
              */
-            virtual const std::vector<double>& get_total_counts() const;
-            std::vector<double>& get_total_counts(); // @copydoc get_total_counts() const
+            virtual const std::vector<double>& get_weighted_counts() const;
 
             /**
              * @brief Determine if the structure represented by this histogram is highly ordered.

@@ -17,7 +17,7 @@ PlotDistance::PlotDistance(observer_ptr<hist::DistanceHistogram> d, const io::Fi
 
 void PlotDistance::quick_plot(observer_ptr<hist::DistanceHistogram> d, const io::File& path) {
     const auto& distances = d->get_d_axis();
-    SimpleDataset p(distances, d->get_total_counts());
+    SimpleDataset p(distances, d->get_weighted_counts());
 
     PlotDataset plot;
     plot.plot(p,  plots::PlotOptions("lines", {{"color", style::color::black}, {"legend", "total"}, {"xlabel", "Distance [$\\AA$]"}, {"ylabel", "Count"}}));

@@ -70,11 +70,11 @@ hist::CompositeDistanceHistogram generate_random(unsigned int size) {
 TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
     settings::general::warnings = false;
     auto hist = generate_random(100);
-    auto p = hist.get_total_counts();
+    auto p = hist.get_weighted_counts();
     hist.apply_water_scaling_factor(2);
-    CHECK(hist.get_total_counts() != p);
+    CHECK(hist.get_weighted_counts() != p);
     hist.apply_water_scaling_factor(1);
-    CHECK(hist.get_total_counts() == p);
+    CHECK(hist.get_weighted_counts() == p);
 }
 
 TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
@@ -103,17 +103,17 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
 
     hist->apply_water_scaling_factor(2);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + 4*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + 4*p_hh[i], Catch::Matchers::WithinRel(hist->get_weighted_counts()[i]));
     }
 
     hist->apply_water_scaling_factor(3);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 3*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + 3*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist->get_weighted_counts()[i]));
     }
 
     hist->apply_water_scaling_factor(1);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
+        REQUIRE_THAT(p_pp[i] + p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist->get_weighted_counts()[i]));
     }
 }
 
@@ -298,51 +298,58 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
             { // hm
                 auto hm = hist::HistogramManager<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm.get_axis().as_vector();
-                std::transform(hm.get_counts().begin(), hm.get_counts().end(), axis.begin(), hm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
-                REQUIRE(compare_hist(exact, hm, 0, 1e-2)); // 1% error allowed
+                auto counts = hm.get_counts();
+                std::transform(counts.begin(), counts.end(), axis.begin(), counts.begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, counts, 0, 1e-2)); // 1% error allowed
             }
             { // hm_mt
                 auto hm_mt = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt.get_axis().as_vector();
-                std::transform(hm_mt.get_counts().begin(), hm_mt.get_counts().end(), axis.begin(), hm_mt.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
-                REQUIRE(compare_hist(exact, hm_mt, 0, 1e-2));
+                auto counts = hm_mt.get_counts();
+                std::transform(counts.begin(), counts.end(), axis.begin(), counts.begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, counts, 0, 1e-2));
             }
             { // hm_mt_ff_avg
                 auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt_ff_avg.get_axis().as_vector();
-                std::transform(hm_mt_ff_avg.get_counts().begin(), hm_mt_ff_avg.get_counts().end(), axis.begin(), hm_mt_ff_avg.get_counts().begin(), 
+                auto counts = hm_mt_ff_avg.get_counts();
+                std::transform(counts.begin(), counts.end(), axis.begin(), counts.begin(), 
                     [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
                 );
-                REQUIRE(compare_hist(exact, hm_mt_ff_avg, 0, 1e-2));
+                REQUIRE(compare_hist(exact, counts, 0, 1e-2));
             }
             { // hm_mt_ff_explicit
                 auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt_ff_explicit.get_axis().as_vector();
-                std::transform(hm_mt_ff_explicit.get_counts().begin(), hm_mt_ff_explicit.get_counts().end(), axis.begin(), hm_mt_ff_explicit.get_counts().begin(), 
+                auto counts = hm_mt_ff_explicit.get_counts();
+                std::transform(counts.begin(), counts.end(), axis.begin(), counts.begin(), 
                     [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
                 );
-                REQUIRE(compare_hist(exact, hm_mt_ff_explicit, 0, 1e-2));
+                REQUIRE(compare_hist(exact, counts, 0, 1e-2));
             }
             { // hm_mt_ff_grid
                 auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt_ff_grid.get_axis().as_vector();
-                std::transform(hm_mt_ff_grid.get_counts().begin(), hm_mt_ff_grid.get_counts().end(), axis.begin(), hm_mt_ff_grid.get_counts().begin(), 
+                auto counts = hm_mt_ff_grid.get_counts();
+                std::transform(counts.begin(), counts.end(), axis.begin(), counts.begin(), 
                     [ff] (double x, double q) {return x/std::pow(ff.evaluate(q), 2);}
                 );
-                REQUIRE(compare_hist(exact, hm_mt_ff_grid, 0, 1e-2));
+                REQUIRE(compare_hist(exact, counts, 0, 1e-2));
             }
             { // phm
                 auto phm = hist::PartialHistogramManager<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = phm.get_axis().as_vector();
-                std::transform(phm.get_counts().begin(), phm.get_counts().end(), axis.begin(), phm.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
-                REQUIRE(compare_hist(exact, phm, 0, 1e-2));
+                auto counts = phm.get_counts();
+                std::transform(counts.begin(), counts.end(), axis.begin(), counts.begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, counts, 0, 1e-2));
             }
             { // phm_mt
                 settings::general::threads = 1;
                 auto phm_mt = hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all()->get_profile_aa();
                 auto axis = phm_mt.get_axis().as_vector();
-                std::transform(phm_mt.get_counts().begin(), phm_mt.get_counts().end(), axis.begin(), phm_mt.get_counts().begin(), [] (double x, double q) {return x*std::exp(q*q);});
-                REQUIRE(compare_hist(exact, phm_mt, 0, 1e-2));
+                auto counts = phm_mt.get_counts();
+                std::transform(counts.begin(), counts.end(), axis.begin(), counts.begin(), [] (double x, double q) {return x*std::exp(q*q);});
+                REQUIRE(compare_hist(exact, counts, 0, 1e-2));
             }
         }
     }

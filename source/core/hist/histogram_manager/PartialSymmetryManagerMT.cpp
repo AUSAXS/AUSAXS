@@ -401,7 +401,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact
 template<bool weighted_bins, bool variable_bin_width>
 std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calculate_all() {
     auto total = calculate();
-    int bins = total->get_total_counts().size();
+    int bins = total->get_weighted_counts().size();
 
     // determine p_tot
     GenericDistribution1D_t p_tot(bins);
