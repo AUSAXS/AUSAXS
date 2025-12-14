@@ -4,6 +4,7 @@
 #pragma once
 
 #include <data/atoms/Atom.h>
+#include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
 
 namespace ausaxs::data {
@@ -14,7 +15,7 @@ namespace ausaxs::data {
         public:
             AtomFF() = default;
             AtomFF(Atom a, form_factor::form_factor_t t) : basic(std::move(a)), type(t) {}
-            AtomFF(Vector3<precision_t> coords, form_factor::form_factor_t t) : basic(coords, constants::charge::nuclear::get_charge(t)), type(t) {}
+            AtomFF(Vector3<precision_t> coords, form_factor::form_factor_t t) : basic(coords, form_factor::lookup::atomic::raw::get(t).I0()), type(t) {}
             AtomFF(Vector3<precision_t> coords, form_factor::form_factor_t t, double weight) : basic(coords, weight), type(t) {}
             Atom& get_atom() {return basic;}
             const Atom& get_atom() const {return basic;}
