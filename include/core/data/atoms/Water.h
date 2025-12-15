@@ -4,6 +4,7 @@
 #pragma once
 
 #include <data/atoms/Atom.h>
+#include <form_factor/FormFactor.h>
 
 namespace ausaxs::data {
     /**
@@ -11,7 +12,10 @@ namespace ausaxs::data {
      */
     struct Water : detail::AtomForwarder<Water> {
         Water() = default;
-        Water(Vector3<precision_t> coords) : coords(std::move(coords)), w(constants::charge::nuclear::get_charge(form_factor_type())) {}
+        Water(Vector3<precision_t> coords) : 
+            coords(std::move(coords)), 
+            w(form_factor::lookup::atomic::raw::get(static_cast<form_factor::form_factor_t>(form_factor::water_bin)).I0()) 
+        {}
 
         form_factor::form_factor_t form_factor_type() const {return form_factor::form_factor_t::OH;}
         [[nodiscard]] const Water& get_atom() const {return *this;}

@@ -81,31 +81,31 @@ TEST_CASE("PDBReader: add_implicit_hydrogens") {
         protein.add_implicit_hydrogens();
         auto& atoms = protein.atoms;
 
-        CHECK(atoms[0].effective_charge == constants::charge::nuclear::get_charge(atoms[0].element) + 1);
+        CHECK(atoms[0].effective_charge == form_factor::lookup::atomic::raw::get(atoms[0].get_form_factor_type()).I0() + 1);
         CHECK(atoms[0].atomic_group == constants::atomic_group_t::NH);
 
-        CHECK(atoms[1].effective_charge == constants::charge::nuclear::get_charge(atoms[1].element) + 1);
+        CHECK(atoms[1].effective_charge == form_factor::lookup::atomic::raw::get(atoms[1].get_form_factor_type()).I0() + 1);
         CHECK(atoms[1].atomic_group == constants::atomic_group_t::CH);
 
-        CHECK(atoms[2].effective_charge == constants::charge::nuclear::get_charge(atoms[2].element) + 0);
+        CHECK(atoms[2].effective_charge == form_factor::lookup::atomic::raw::get(atoms[2].get_form_factor_type()).I0() + 0);
         CHECK(atoms[2].atomic_group == constants::atomic_group_t::unknown);
 
-        CHECK(atoms[3].effective_charge == constants::charge::nuclear::get_charge(atoms[3].element) + 0);
+        CHECK(atoms[3].effective_charge == form_factor::lookup::atomic::raw::get(atoms[3].get_form_factor_type()).I0() + 0);
         CHECK(atoms[3].atomic_group == constants::atomic_group_t::unknown);
 
-        CHECK(atoms[4].effective_charge == constants::charge::nuclear::get_charge(atoms[4].element) + 2);
+        CHECK(atoms[4].effective_charge == form_factor::lookup::atomic::raw::get(atoms[4].get_form_factor_type()).I0() + 2);
         CHECK(atoms[4].atomic_group == constants::atomic_group_t::CH2);
 
-        CHECK(atoms[5].effective_charge == constants::charge::nuclear::get_charge(atoms[5].element) + 2);
+        CHECK(atoms[5].effective_charge == form_factor::lookup::atomic::raw::get(atoms[5].get_form_factor_type()).I0() + 2);
         CHECK(atoms[5].atomic_group == constants::atomic_group_t::CH2);
 
-        CHECK(atoms[6].effective_charge == constants::charge::nuclear::get_charge(atoms[6].element) + 2);
+        CHECK(atoms[6].effective_charge == form_factor::lookup::atomic::raw::get(atoms[6].get_form_factor_type()).I0() + 2);
         CHECK(atoms[6].atomic_group == constants::atomic_group_t::CH2);
 
-        CHECK(atoms[7].effective_charge == constants::charge::nuclear::get_charge(atoms[7].element) + 2);
+        CHECK(atoms[7].effective_charge == form_factor::lookup::atomic::raw::get(atoms[7].get_form_factor_type()).I0() + 2);
         CHECK(atoms[7].atomic_group == constants::atomic_group_t::CH2);
 
-        CHECK(atoms[8].effective_charge == constants::charge::nuclear::get_charge(atoms[8].element) + 3);
+        CHECK(atoms[8].effective_charge == form_factor::lookup::atomic::raw::get(atoms[8].get_form_factor_type()).I0() + 3);
         CHECK(atoms[8].atomic_group == constants::atomic_group_t::NH3);
     }
 
@@ -113,7 +113,7 @@ TEST_CASE("PDBReader: add_implicit_hydrogens") {
         auto protein = generate_molecule();
 
         for (auto a : protein.atoms) {
-            CHECK(a.effective_charge == constants::charge::nuclear::get_charge(a.element));
+            CHECK(a.effective_charge == form_factor::lookup::atomic::raw::get(a.get_form_factor_type()).I0());
             CHECK(a.atomic_group == constants::atomic_group_t::unknown);
         }
     }
@@ -124,30 +124,39 @@ TEST_CASE("PDBWriter: writing multifile pdb") {
 
     std::vector<AtomFF> atoms(101000);
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
-        atoms[i] = AtomFF({1, 2, 3}, form_factor::form_factor_t::C);
+        atoms[i] = AtomFF({1e-4*i, 2e-4*i, 3e-4*i}, form_factor::form_factor_t::C);
     }
     std::vector<Water> waters(100);
     for (int i = 0; i < static_cast<int>(waters.size()); ++i) {
-        waters[i] = Water({1, 2, 3});
+        waters[i] = Water({4e-4*i, 5e-4*i, 6e-4*i});
     }
 
     Molecule protein({{atoms, waters}});
-    protein.save("temp/io/temp_multifile.pdb");
+    protein.save("temp/tests/io/temp_multifile.pdb");
     
-    REQUIRE(io::File("temp/io/temp_multifile_part1.pdb").exists());
-    REQUIRE(io::File("temp/io/temp_multifile_part2.pdb").exists());
+    REQUIRE(io::File("temp/tests/io/temp_multifile_part1.pdb").exists());
+    REQUIRE(io::File("temp/tests/io/temp_multifile_part2.pdb").exists());
 
     // first file
-    Molecule protein2("temp/io/temp_multifile_part1.pdb");
+    Molecule protein2("temp/tests/io/temp_multifile_part1.pdb");
     REQUIRE(protein2.get_body(0).size_atom() == 100000);
 
-    Molecule protein3("temp/io/temp_multifile_part2.pdb");
+    Molecule protein3("temp/tests/io/temp_multifile_part2.pdb");
     REQUIRE(protein3.get_body(0).size_atom() == 1000);
     REQUIRE(protein3.size_water() == 100);
 
-    Molecule protein4("temp/io/temp_multifile.pdb");
+    Molecule protein4("temp/tests/io/temp_multifile.pdb");
     REQUIRE(protein.size_body() == protein4.size_body());
     for (unsigned int i = 0; i < protein.get_bodies().size(); ++i) {
+        if (!protein.get_body(i).equals_content(protein4.get_body(i))) {
+            for (unsigned int j = 0; j < protein.get_body(i).size_atom(); ++j) {
+                if (!(protein.get_body(i).get_atom(j) == protein4.get_body(i).get_atom(j))) {
+                    std::cout << "Difference in body " << i << " atom " << j << std::endl;
+                    std::cout << "  Original: " << protein.get_body(i).get_atom(j).coordinates() << " " << protein.get_body(i).get_atom(j).weight() << std::endl;
+                    std::cout << "  Loaded:   " << protein4.get_body(i).get_atom(j).coordinates() << " " << protein4.get_body(i).get_atom(j).weight() << std::endl;
+                }
+            }
+        }
         REQUIRE(protein.get_body(i).equals_content(protein4.get_body(i)));
     }
 }

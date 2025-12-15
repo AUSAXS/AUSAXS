@@ -7,9 +7,10 @@
 
 #include <io/pdb/PDBAtom.h>
 #include <constants/Constants.h>
+#include <form_factor/FormFactor.h>
 #include <utility/Utility.h>
-#include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
+#include <settings/MoleculeSettings.h>
 
 #include <utility>
 #include <iomanip>
@@ -28,7 +29,7 @@ PDBAtom::PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element,
     this->element = element;
     this->resName = resName;
     this->serial = serial;
-    this->effective_charge = constants::charge::nuclear::get_charge(this->element);
+    this->effective_charge = form_factor::lookup::atomic::raw::get(form_factor::get_type(this->element, constants::atomic_group_t::unknown)).I0();
 }
 
 PDBAtom::PDBAtom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
@@ -46,9 +47,14 @@ PDBAtom::PDBAtom(int serial, const std::string& name, const std::string& altLoc,
     this->tempFactor = tempFactor;
     this->element = element;
     this->charge = charge;
-    this->effective_charge = constants::charge::nuclear::get_charge(this->element);
+    this->effective_charge = form_factor::lookup::atomic::raw::get(form_factor::get_type(this->element, constants::atomic_group_t::unknown)).I0();
     atomic_group = constants::atomic_group_t::unknown;
 }
+
+form_factor::form_factor_t PDBAtom::get_form_factor_type() const {
+    return form_factor::get_type(element, atomic_group);
+}
+
 
 void PDBAtom::parse_pdb(const std::string& str) {
     auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return
@@ -134,15 +140,18 @@ void PDBAtom::parse_pdb(const std::string& str) {
         throw;
     }
 
-    effective_charge = constants::charge::nuclear::get_charge(this->element);
+    effective_charge = form_factor::lookup::atomic::raw::get(get_form_factor_type()).I0();
     atomic_group = constants::atomic_group_t::unknown;
 }
 
 void PDBAtom::add_implicit_hydrogens() {
     assert(element != constants::atom_t::H && "PDBAtom::add_implicit_hydrogens: Attempted to add implicit hydrogens to a hydrogen atom.");
     try {
-        effective_charge = constants::charge::nuclear::get_charge(element) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
+        // First determine the atomic group, then get the form factor for that group
         atomic_group = constants::symbols::get_atomic_group(resName, name, element);
+        effective_charge = 
+            form_factor::lookup::atomic::raw::get(get_form_factor_type()).I0() + constants::hydrogen_atoms::residues.get(resName).get(name, element)
+        ;
     } catch (const except::base&) {
         throw except::invalid_argument(
             "PDBAtom::add_implicit_hydrogens: Could not identify group of atom " + std::to_string(serial) + ". Unknown element, residual or atom: "
