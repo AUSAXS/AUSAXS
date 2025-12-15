@@ -203,3 +203,11 @@ namespace ausaxs::constants::charge::nuclear {
         }
     }
 }
+
+namespace ausaxs::constants::charge {
+    /**
+     * @brief Get the effective charge based on the form factor evaluated at q=0.
+     *        This represents the scattering power of the atom/group.
+     */
+    double get_ff_charge(ausaxs::form_factor::form_factor_t type);
+}

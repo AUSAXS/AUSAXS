@@ -14,10 +14,10 @@ namespace ausaxs::data {
         Water() = default;
         Water(Vector3<precision_t> coords) : 
             coords(std::move(coords)), 
-            w(form_factor::lookup::atomic::raw::get(static_cast<form_factor::form_factor_t>(form_factor::water_bin)).I0()) 
+            w(constants::charge::get_ff_charge(form_factor_type())) 
         {}
 
-        form_factor::form_factor_t form_factor_type() const {return form_factor::form_factor_t::OH;}
+        form_factor::form_factor_t form_factor_type() const {return static_cast<form_factor::form_factor_t>(form_factor::water_bin);}
         [[nodiscard]] const Water& get_atom() const {return *this;}
         [[nodiscard]] Water& get_atom() {return *this;}
         bool operator==(const Water& rhs) const = default;
