@@ -49,11 +49,11 @@ void WeightedDistribution1D::set_content(int i, constants::axes::d_type value) {
 }
 
 std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
-    auto d_vals = Axis(0, size()*settings::axes::bin_width, size()).as_vector();
+    auto d_vals = Axis(0, size()*settings::axes::bin_width, size()).as_vector(0.5);  // shift by 0.5 to get bin centers
     Distribution1D weights(size());
     for (std::size_t i = 0; i < size(); i++) {
-        // this is a small optimization to both avoid dividing by zero and correctly handle the case where count is zero
-        weights.index(i) = (!index(i).bin_center*d_vals[i] + index(i).bin_center)/(!index(i).count + index(i).count);
+        // If count is zero, use the default bin center; otherwise use the weighted average
+        weights.index(i) = index(i).count ? index(i).bin_center / index(i).count : d_vals[i];
     }
     return weights;
 }

@@ -20,7 +20,7 @@ WeightedDistribution3D::WeightedDistribution3D(const Distribution3D& other) : Co
 }
 
 std::vector<double> WeightedDistribution3D::get_weights() const {
-    auto d_vals = Axis(0, size_z()*settings::axes::bin_width, size_z()).as_vector();
+    auto d_vals = Axis(0, size_z()*settings::axes::bin_width, size_z()).as_vector(0.5);  // shift by 0.5 to get bin centers
     std::vector<double> weights(size_z());
     for (std::size_t z = 0; z < size_z(); z++) {
         unsigned int count = 0;
@@ -30,8 +30,8 @@ std::vector<double> WeightedDistribution3D::get_weights() const {
                 count += index(x, y, z).count;
             }
         }
-        // this is a small optimization to both avoid dividing by zero and correctly handle the case where count is zero
-        weights[z] = !weights[z]*d_vals[z] + weights[z]/(!count + count);
+        // If count is zero, use the default bin center; otherwise use the weighted average
+        weights[z] = count ? weights[z] / count : d_vals[z];
     }
     return weights;
 }
