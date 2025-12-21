@@ -76,13 +76,13 @@ namespace ausaxs::hist {
              * @brief Get the raw unweighted total counts histogram (i.e., without form factor weighting).
              */
             virtual const std::vector<double>& get_total_raw_counts() const = 0;
-            std::vector<double>& get_total_raw_counts(); // @copydoc get_total_counts() const
+            std::vector<double>& get_total_raw_counts(); // @copydoc get_total_raw_counts() const
 
             /**
              * @brief Get the total raw counts. This is equivalent to get_total_raw_counts().
              */
             const std::vector<double>& get_raw_counts() const;
-            std::vector<double>& get_raw_counts(); // @copydoc get_counts() const
+            std::vector<double>& get_raw_counts(); // @copydoc get_raw_counts() const
 
             /**
              * @brief Get the raw (unweighted) partial distance histogram for atom-atom interactions, indexed by form factor type.
