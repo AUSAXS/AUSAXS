@@ -109,14 +109,14 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
             CHECK(atoms[0].coordinates().y() == 3.2);
             CHECK(atoms[0].coordinates().z() == 4.3);
             CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::C);
-            CHECK(atoms[0].weight() == 0.5*constants::charge::nuclear::get_charge(atoms[0].form_factor_type()));
+            CHECK(atoms[0].weight() == 0.5*constants::charge::get_ff_charge(atoms[0].form_factor_type()));
 
             REQUIRE(protein.size_water() == 2);
             auto waters = protein.get_waters();
             CHECK(waters[0].coordinates().x() == 30.117);
             CHECK(waters[0].coordinates().y() == 29.049);
             CHECK(waters[0].coordinates().z() == 34.879);
-            CHECK(waters[0].weight() == constants::charge::nuclear::get_charge(waters[0].form_factor_type()));
+            CHECK(waters[0].weight() == constants::charge::get_ff_charge(waters[0].form_factor_type()));
         }
 
         SECTION("real data") {
@@ -157,6 +157,8 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
 TEST_CASE("Molecule::get_Rg", "[files]") {
     // tests without effective charge are compared against the electron Rg from CRYSOL
     settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+
     SECTION("2epe") {
         Molecule protein("tests/files/2epe.pdb");
         REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(13.89, 0.01));
@@ -200,13 +202,13 @@ TEST_CASE_METHOD(fixture, "Molecule::get_cm") {
     REQUIRE(cm == Vector3<double>{0, 0, 0});
 }
 
-TEST_CASE_METHOD(fixture, "Molecule::get_volume", "[broken]") {
-    // broken since it was supposed to use the old protein.get_volume_acids() method
-    // since the protein does not consist of a complete amino acid, the volume is not correct
-    // TODO: create a protein containing a full amino acid and check if the volume is roughly correct
-    Molecule protein(bodies);
-    REQUIRE_THAT(protein.get_volume_grid(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
-}
+// TEST_CASE_METHOD(fixture, "Molecule::get_volume", "[broken]") {
+//     // broken since it was supposed to use the old protein.get_volume_acids() method
+//     // since the protein does not consist of a complete amino acid, the volume is not correct
+//     // TODO: create a protein containing a full amino acid and check if the volume is roughly correct
+//     Molecule protein(bodies);
+//     REQUIRE_THAT(protein.get_volume_grid(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
+// }
 
 TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
     settings::general::verbose = false;
@@ -704,56 +706,50 @@ TEST_CASE("Molecule: implicit hydrogens") {
     };
 
     SECTION("enabled") {
+        settings::molecule::implicit_hydrogens = true;
         auto file = generate_molecule();
         file.add_implicit_hydrogens();
         auto res = file.reduced_representation();
         Molecule protein({Body{res.atoms, res.waters}});
         auto atoms = protein.get_atoms();
 
-        CHECK(atoms[0].weight() == constants::charge::nuclear::get_charge(atoms[0].form_factor_type()));
-        CHECK(atoms[0].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::N) + 1);
+        // Weight is I0(grouped form factor) + hydrogen count
+        CHECK(atoms[0].weight() == constants::charge::get_ff_charge(atoms[0].form_factor_type()) + 1);
         CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::NH);
 
-        CHECK(atoms[1].weight() == constants::charge::nuclear::get_charge(atoms[1].form_factor_type()));
-        CHECK(atoms[1].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 1);
+        CHECK(atoms[1].weight() == constants::charge::get_ff_charge(atoms[1].form_factor_type()) + 1);
         CHECK(atoms[1].form_factor_type() == form_factor::form_factor_t::CH);
 
-        CHECK(atoms[2].weight() == constants::charge::nuclear::get_charge(atoms[2].form_factor_type()));
-        CHECK(atoms[2].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 0);
+        CHECK(atoms[2].weight() == constants::charge::get_ff_charge(atoms[2].form_factor_type()) + 0);
         CHECK(atoms[2].form_factor_type() == form_factor::form_factor_t::C);
 
-        CHECK(atoms[3].weight() == constants::charge::nuclear::get_charge(atoms[3].form_factor_type()));
-        CHECK(atoms[3].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::O) + 0);
+        CHECK(atoms[3].weight() == constants::charge::get_ff_charge(atoms[3].form_factor_type()) + 0);
         CHECK(atoms[3].form_factor_type() == form_factor::form_factor_t::O);
 
-        CHECK(atoms[4].weight() == constants::charge::nuclear::get_charge(atoms[4].form_factor_type()));
-        CHECK(atoms[4].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 2);
+        CHECK(atoms[4].weight() == constants::charge::get_ff_charge(atoms[4].form_factor_type()) + 2);
         CHECK(atoms[4].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK(atoms[5].weight() == constants::charge::nuclear::get_charge(atoms[5].form_factor_type()));
-        CHECK(atoms[5].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 2);
+        CHECK(atoms[5].weight() == constants::charge::get_ff_charge(atoms[5].form_factor_type()) + 2);
         CHECK(atoms[5].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK(atoms[6].weight() == constants::charge::nuclear::get_charge(atoms[6].form_factor_type()));
-        CHECK(atoms[6].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 2);
+        CHECK(atoms[6].weight() == constants::charge::get_ff_charge(atoms[6].form_factor_type()) + 2);
         CHECK(atoms[6].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK(atoms[7].weight() == constants::charge::nuclear::get_charge(atoms[7].form_factor_type()));
-        CHECK(atoms[7].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) + 2);
+        CHECK(atoms[7].weight() == constants::charge::get_ff_charge(atoms[7].form_factor_type()) + 2);
         CHECK(atoms[7].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK(atoms[8].weight() == constants::charge::nuclear::get_charge(atoms[8].form_factor_type()));
-        CHECK(atoms[8].weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::N) + 3);
+        CHECK(atoms[8].weight() == constants::charge::get_ff_charge(atoms[8].form_factor_type()) + 3);
         CHECK(atoms[8].form_factor_type() == form_factor::form_factor_t::NH3);
     }
 
     SECTION("disabled") {
+        settings::molecule::implicit_hydrogens = false;
         auto file = generate_molecule();
         auto res = file.reduced_representation();
         Molecule protein({Body{res.atoms, res.waters}});
 
         for (auto a : protein.get_atoms()) {
-            CHECK(a.weight() == constants::charge::nuclear::get_charge(a.form_factor_type()));
+            CHECK(a.weight() == constants::charge::get_ff_charge(a.form_factor_type()));
         }
 
         auto atoms = protein.get_atoms();

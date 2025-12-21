@@ -6,6 +6,7 @@
 #include <io/pdb/Record.h>
 #include <math/Vector3.h>
 #include <constants/ConstantsFwd.h>
+#include <form_factor/FormFactorType.h>
 
 #include <string>
 
@@ -39,6 +40,8 @@ namespace ausaxs::io::pdb {
                 const std::string& iCode, Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge);
 
             RecordType get_type() const override;
+
+            form_factor::form_factor_t get_form_factor_type() const;
 
             /**
              * @brief Add implicit hydrogens to this atom. 

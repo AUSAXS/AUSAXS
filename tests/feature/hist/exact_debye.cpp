@@ -68,7 +68,7 @@ TEST_CASE("ExactDebyeCalculator: agrees with analytical result") {
                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) +
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) +
                 8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-            Iq_exp[q] += dsum*std::exp(-q_axis[q]*q_axis[q])*std::pow(constants::charge::nuclear::get_charge(constants::atom_t::C), 2);
+            Iq_exp[q] += dsum*std::exp(-q_axis[q]*q_axis[q])*std::pow(constants::charge::get_ff_charge(form_factor::form_factor_t::C), 2);
         }
         return Iq_exp;
     };

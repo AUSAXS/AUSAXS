@@ -102,11 +102,11 @@ TEST_CASE("AtomFF::AtomFF") {
                 form_factor::form_factor_t::O, 
                 form_factor::form_factor_t::H
             );
-            Atom atom(coords, constants::charge::nuclear::get_charge(ff));
+            Atom atom(coords, constants::charge::get_ff_charge(ff));
             AtomFF atom_ff(atom, ff);
             CHECK(atom_ff.coordinates() == coords);
             CHECK(atom_ff.form_factor_type() == ff);
-            CHECK(atom_ff.weight() == constants::charge::nuclear::get_charge(ff));
+            CHECK(atom_ff.weight() == constants::charge::get_ff_charge(ff));
             CHECK(atom_ff.get_atom() == atom);        
         }
     }
@@ -125,7 +125,7 @@ TEST_CASE("AtomFF::AtomFF") {
         AtomFF atom(coords, ff);
         CHECK(atom.coordinates() == coords);
         CHECK(atom.form_factor_type() == ff);
-        CHECK(atom.weight() == constants::charge::nuclear::get_charge(ff));
+        CHECK(atom.weight() == constants::charge::get_ff_charge(ff));
     }
 
     SECTION("Vector3<precision_t>&, form_factor_t, double") {
@@ -193,7 +193,7 @@ TEST_CASE("Water::Water") {
         );
         Water water(coords);
         CHECK(water.coordinates() == coords);
-        CHECK(water.weight() == constants::charge::nuclear::get_charge(form_factor::form_factor_t::OH));
+        CHECK(water.weight() == constants::charge::get_ff_charge(form_factor::form_factor_t::OH));
         CHECK(water.form_factor_type() == form_factor::form_factor_t::OH);
     }
 }

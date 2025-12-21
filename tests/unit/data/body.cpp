@@ -224,9 +224,9 @@ TEST_CASE("Body::get_total_atomic_charge") {
     };
     Body body(atoms);
     
-    double expected = constants::charge::nuclear::get_charge(form_factor::form_factor_t::C) +
-                      constants::charge::nuclear::get_charge(form_factor::form_factor_t::O) +
-                      constants::charge::nuclear::get_charge(form_factor::form_factor_t::H);
+    double expected = constants::charge::get_ff_charge(form_factor::form_factor_t::C) +
+                      constants::charge::get_ff_charge(form_factor::form_factor_t::O) +
+                      constants::charge::get_ff_charge(form_factor::form_factor_t::H);
     CHECK(body.get_total_atomic_charge() == expected);
 }
 

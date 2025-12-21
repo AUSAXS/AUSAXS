@@ -25,15 +25,13 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::data;
 
-auto test = [] (Molecule& protein, bool normalized, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
-    //! remove in future PR
-    set_unity_charge(protein);
-    normalized = true;
-
+// Test that compares FFGrid histograms against a simple HistogramManager using normalized (raw) counts.
+// This validates the histogram binning is correct for the excluded volume grid representation.
+auto test_normalized = [] (Molecule& protein, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
     settings::molecule::center = false; // to avoid rounding errors
     auto h = calculate(protein);
 
-    // convert the grid to water atoms
+    // convert the grid to water atoms with unit weight for normalized comparison
     auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
     std::vector<Water> waters(exv_grid.interior.size());
     for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
@@ -41,21 +39,22 @@ auto test = [] (Molecule& protein, bool normalized, std::function<std::unique_pt
         waters[i].weight() = 1;
     }
     REQUIRE(waters.size() == exv_grid.interior.size());
+    
+    // Create exv molecule with unit weights for atoms too
     Molecule exv({Body{protein.get_atoms(), waters}});
+    set_unity_charge(exv);
 
-    // calculate the xx, ax, aa distributions
+    // calculate the xx, ax, aa distributions from FFGrid (raw counts)
     auto h_cast = static_cast<CompositeDistanceHistogramFFAvg*>(h.get());
     hist::Distribution1D xx1, ax1, aa1;
     {
-        // we have to sum all form factor contributions into the single distributions
-        auto aa = normalized ? h_cast->get_raw_aa_counts_by_ff() : h_cast->get_aa_counts_by_ff();
+        auto aa = h_cast->get_raw_aa_counts_by_ff();
         hist::Distribution1D temp_aa(aa.size_z()), temp_ax(aa.size_z()), temp_xx(aa.size_z());
         for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
             for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
                 std::transform(aa.begin(i, j), aa.end(i, j), temp_aa.begin(), temp_aa.begin(), std::plus<>());
             }
-            // aw in HistogramManager is multiplied by 2, while CompositeDistanceHistogramFFAvg is not
-            // this may be fixed in the future to be consistent, but for now, we have to multiply by 2
+            // atom-exv cross term (multiplied by 2 for symmetry)
             std::transform(aa.begin(i, form_factor::exv_bin), aa.end(i, form_factor::exv_bin), temp_ax.begin(), temp_ax.begin(), std::plus<>());
             std::transform(aa.begin(i, form_factor::exv_bin), aa.end(i, form_factor::exv_bin), temp_ax.begin(), temp_ax.begin(), std::plus<>());
         }
@@ -85,18 +84,39 @@ auto test = [] (Molecule& protein, bool normalized, std::function<std::unique_pt
         }
     }
 
-    compare_hist_approx(aa1, aa2);
-    SUCCEED();
-
-    compare_hist_approx(xx1, xx2);
-    SUCCEED();
-
-    compare_hist_approx(ax1, ax2);
-    SUCCEED();
+    REQUIRE(compare_hist_approx(aa1, aa2));
+    REQUIRE(compare_hist_approx(xx1, xx2));
+    REQUIRE(compare_hist_approx(ax1, ax2));
 };
 
-// Check that the Grid histograms are correct
+// Test that compares atom-atom histograms on absolute scale (with form factor weighting).
+// This validates that the form factor weighting is correct, without the complexity of the excluded volume.
+auto test_absolute_aa = [] (Molecule& protein, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
+    settings::molecule::center = false;
+    auto h = calculate(protein);
+
+    // Get atom-atom histogram from FFGrid with form factor weighting
+    auto h_cast = static_cast<CompositeDistanceHistogramFFAvg*>(h.get());
+    auto aa_by_ff = h_cast->get_aa_counts_by_ff();
+    
+    // Sum all form factor contributions
+    hist::Distribution1D aa1(aa_by_ff.size_z());
+    for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
+        for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
+            std::transform(aa_by_ff.begin(i, j), aa_by_ff.end(i, j), aa1.begin(), aa1.begin(), std::plus<>());
+        }
+    }
+
+    // Calculate atom-atom histogram using simple HistogramManager (which uses atom weights directly)
+    auto h_simple = hist::HistogramManager<true, false>(&protein).calculate_all();
+    auto aa2 = h_simple->get_aa_counts();
+
+    REQUIRE(compare_hist_approx(aa1, aa2));
+};
+
+// Check that the Grid histograms are correct (normalized comparison)
 TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
+    settings::molecule::implicit_hydrogens = false;
     SECTION("simple") {
         settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
         settings::grid::exv::width = settings::grid::cell_width;
@@ -105,7 +125,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
             AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
             Molecule protein({Body{std::vector{a1}}});
             set_unity_charge(protein);
-            test(protein, true, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+            test_normalized(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
         }
     }
 
@@ -115,12 +135,37 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
         settings::grid::exv::width = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
-        test(protein, false, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+        test_normalized(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+    }
+}
+
+// Check that the atom-atom form factor weighting is correct on absolute scale
+TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+    settings::general::verbose = false;
+
+    SECTION("simple") {
+        settings::grid::cell_width = 1;
+        settings::grid::exv::width = 1;
+        
+        std::vector<AtomFF> atoms = SimpleCube::get_atoms();
+        Molecule protein({Body{atoms}});
+        test_absolute_aa(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+    }
+
+    SECTION("actual data") {
+        settings::grid::cell_width = 1;
+        settings::grid::exv::width = 1;
+        Molecule protein("tests/files/LAR1-2.pdb");
+        protein.clear_hydration();
+        test_absolute_aa(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
     }
 }
 
 template<typename H, typename C>
 auto test_derived = [] () {
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::general::verbose = false;
 
@@ -133,7 +178,7 @@ auto test_derived = [] () {
             AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
             Molecule protein({Body{std::vector{a1}}});
             set_unity_charge(protein);
-            test(protein, true, [](const Molecule& protein) {return H(&protein).calculate_all();});
+            test_normalized(protein, [](const Molecule& protein) {return H(&protein).calculate_all();});
         }
     }
 
@@ -144,7 +189,7 @@ auto test_derived = [] () {
         settings::grid::exv::surface_thickness = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
-        test(protein, false, [](const Molecule& protein) {return H(&protein).calculate_all();});
+        test_normalized(protein, [](const Molecule& protein) {return H(&protein).calculate_all();});
     }
 
     SECTION("compare with Grid") {
@@ -152,9 +197,6 @@ auto test_derived = [] () {
 
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.generate_new_hydration();
-
-        //! remove in future PR
-        set_unity_charge(protein);
 
         auto h_grid  = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto h_grids = H(&protein).calculate_all();
