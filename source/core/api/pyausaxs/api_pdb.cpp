@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <api/api_pyausaxs.h>
+#include <api/pyausaxs/api_pdb.h>
 #include <api/ObjectStorage.h>
 #include <io/Reader.h>
 #include <data/Molecule.h>

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <api/api_pyausaxs.h>
+#include <api/pyausaxs/api_molecule.h>
 #include <api/ObjectStorage.h>
 #include <io/Reader.h>
 #include <data/Molecule.h>
@@ -116,37 +116,41 @@ void molecule_hydrate(
 }, status);}
 
 struct _molecule_distance_histogram_obj {
-    explicit _molecule_distance_histogram_obj(unsigned int n_bins) : aa(n_bins), aw(n_bins), ww(n_bins) {}
-    std::vector<double> aa, aw, ww;
+    explicit _molecule_distance_histogram_obj(unsigned int n_bins) : aa(n_bins), aw(n_bins), ww(n_bins), axis(n_bins) {}
+    std::vector<double> aa, aw, ww, axis;
 };
 int molecule_distance_histogram(
     int molecule_id,
-    double** aa, double** aw, double** ww,
-    int* n_bins, double* delta_r, int* status
+    double** aa, double** aw, double** ww, double** axis, int* n_bins, 
+    int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     auto hist = molecule->get_histogram();
     _molecule_distance_histogram_obj data(settings::axes::bin_count);
-    {   // copy to avoid resizing issues
+    {   // copy to avoid issues with mismatching sizes
+        //? is this necessary? I think these should always have the same size (or at least may be truncated to the same length)
         auto aa_dist = hist->get_aa_counts();
         auto aw_dist = hist->get_aw_counts();
         auto ww_dist = hist->get_ww_counts();
+        auto axis = hist->get_d_axis();
         std::copy(aa_dist.get_content().begin(), aa_dist.get_content().end(), data.aa.begin());
         std::copy(aw_dist.get_content().begin(), aw_dist.get_content().end(), data.aw.begin());
         std::copy(ww_dist.get_content().begin(), ww_dist.get_content().end(), data.ww.begin());
+        std::copy(axis.begin(), axis.end(), data.axis.begin());
     }
     assert(data.aa.size() == settings::axes::bin_count);
     assert(data.aw.size() == settings::axes::bin_count);
     assert(data.ww.size() == settings::axes::bin_count);
+    assert(data.axis.size() == settings::axes::bin_count);
 
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto ref = api::ObjectStorage::get_object<_molecule_distance_histogram_obj>(data_id);
     *aa = ref->aa.data();
     *aw = ref->aw.data();
     *ww = ref->ww.data();
+    *axis = ref->axis.data();
     *n_bins = static_cast<int>(settings::axes::bin_count);
-    *delta_r = settings::axes::bin_width;
     return data_id;
 }, status);}
 
