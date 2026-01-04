@@ -1,11 +1,40 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <api/api_settings.h>
+#include <api/pyausaxs/api_settings.h>
+#include <api/ObjectStorage.h>
 #include <settings/SettingsIO.h>
+#include <settings/SettingRef.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
+
+struct _get_setting_obj {
+    std::string value;
+    std::string type;
+};
+int get_setting(
+    const char* name,
+    int* status
+) {return execute_with_catch([&]() {
+    const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
+    const auto& setting = map.at(name);
+    auto obj_id = api::ObjectStorage::register_object(_get_setting_obj{
+        .value = setting->get(),
+        .type = settings::io::detail::type_as_string(setting->get())
+    });
+    return obj_id;
+}, status);}
+
+void set_setting(
+    const char* name,
+    const char* value,
+    int* status
+) {return execute_with_catch([&]() {
+    const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
+    if (!map.contains(name)) {ErrorMessage::last_error = "Unknown setting: \"" + std::string(name) + "\""; return;}
+    map.at(name)->set({value});
+}, status);}
 
 void set_exv_settings(
     const char* exv_model,

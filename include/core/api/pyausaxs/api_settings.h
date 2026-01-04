@@ -5,6 +5,17 @@
 
 #include <api/api_helper.h>
 
+extern "C" API int get_setting(
+    const char* name,
+    int* status
+);
+
+extern "C" API void set_setting(
+    const char* name,
+    const char* value,
+    int* status
+);
+
 extern "C" API void set_general_settings(
     bool offline,
     bool verbose,

@@ -14,6 +14,16 @@ std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRe
     return stored_settings;
 }
 
+template<> std::string ausaxs::settings::io::detail::type_as_string<std::string>(const std::string&) {return "string";}
+template<> std::string ausaxs::settings::io::detail::type_as_string<double>(const double&) {return "double";}
+template<> std::string ausaxs::settings::io::detail::type_as_string<int>(const int&) {return "int";}
+template<> std::string ausaxs::settings::io::detail::type_as_string<unsigned int>(const unsigned int&) {return "uint";}
+template<> std::string ausaxs::settings::io::detail::type_as_string<bool>(const bool&) {return "bool";}
+template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<std::string>>(const std::vector<std::string>&) {return "vector-string";}
+template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<double>>(const std::vector<double>&) {return "vector-double";}
+template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<int>>(const std::vector<int>&) {return "vector-int";}
+template<> std::string ausaxs::settings::io::detail::type_as_string<ausaxs::Limit>(const ausaxs::Limit&) {return "limit";}
+
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const {return settingref;}
 template<> std::string settings::io::detail::SettingRef<double>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<int>::get() const {return std::to_string(settingref);}

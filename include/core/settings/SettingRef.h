@@ -63,7 +63,20 @@ namespace ausaxs::settings::io::detail {
 
         T& settingref; // A reference to the setting.
     };
+
+    template<typename T>
+    std::string type_as_string(const T&);
 }
+
+template<> std::string ausaxs::settings::io::detail::type_as_string<std::string>(const std::string&);
+template<> std::string ausaxs::settings::io::detail::type_as_string<double>(const double&);
+template<> std::string ausaxs::settings::io::detail::type_as_string<int>(const int&);
+template<> std::string ausaxs::settings::io::detail::type_as_string<unsigned int>(const unsigned int&);
+template<> std::string ausaxs::settings::io::detail::type_as_string<bool>(const bool&);
+template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<std::string>>(const std::vector<std::string>&);
+template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<double>>(const std::vector<double>&);
+template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<int>>(const std::vector<int>&);
+template<> std::string ausaxs::settings::io::detail::type_as_string<ausaxs::Limit>(const ausaxs::Limit&);
 
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<double>::get() const;
