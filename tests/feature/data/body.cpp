@@ -151,15 +151,15 @@ TEST_CASE("Body::rotate") {
 
         Vector3<double> axis = {0, 1, 0};
         body.rotate(matrix::rotation_matrix(axis, std::numbers::pi/2));
-        CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coordinates()); 
-        CHECK(Vector3<double>({0, 1,  0}) == body.get_atom(1).coordinates()); 
-        CHECK(Vector3<double>({1, 0,  0}) == body.get_atom(2).coordinates()); 
+        CHECK(Vector3<double>{0, 0, -1} == body.get_atom(0).coordinates()); 
+        CHECK(Vector3<double>{0, 1,  0} == body.get_atom(1).coordinates()); 
+        CHECK(Vector3<double>{1, 0,  0} == body.get_atom(2).coordinates()); 
 
         axis = {1, 1, 1};
         body.rotate(matrix::rotation_matrix(axis, std::numbers::pi/4));
-        CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}) == body.get_atom(0).coordinates()); 
-        CHECK(Vector3<double>({-0.3106172175, 0.8047378541,  0.5058793634}) == body.get_atom(1).coordinates()); 
-        CHECK(Vector3<double>({ 0.8047378541, 0.5058793634, -0.3106172175}) == body.get_atom(2).coordinates()); 
+        CHECK(Vector3<double>{-0.5058793634, 0.3106172175, -0.8047378541} == body.get_atom(0).coordinates()); 
+        CHECK(Vector3<double>{-0.3106172175, 0.8047378541,  0.5058793634} == body.get_atom(1).coordinates()); 
+        CHECK(Vector3<double>{ 0.8047378541, 0.5058793634, -0.3106172175} == body.get_atom(2).coordinates()); 
     }
 
     SECTION("simple 2") {
@@ -170,14 +170,14 @@ TEST_CASE("Body::rotate") {
         Body body(a);
 
         body.rotate(matrix::rotation_matrix(0., std::numbers::pi/2, 0.));
-        CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coordinates()); 
-        CHECK(Vector3<double>({0, 1,  0}) == body.get_atom(1).coordinates()); 
-        CHECK(Vector3<double>({1, 0,  0}) == body.get_atom(2).coordinates()); 
+        CHECK(Vector3<double>{0, 0, -1} == body.get_atom(0).coordinates()); 
+        CHECK(Vector3<double>{0, 1,  0} == body.get_atom(1).coordinates()); 
+        CHECK(Vector3<double>{1, 0,  0} == body.get_atom(2).coordinates()); 
 
         body.rotate(matrix::rotation_matrix(0.5612026, 0.3158423, 0.5612026));
-        CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}).equals(body.get_atom(0).coordinates(), 1e-3));
-        CHECK(Vector3<double>({-0.3106172175, 0.8047378541,  0.5058793634}).equals(body.get_atom(1).coordinates(), 1e-3));
-        CHECK(Vector3<double>({ 0.8047378541, 0.5058793634, -0.3106172175}).equals(body.get_atom(2).coordinates(), 1e-3));
+        CHECK(Vector3<double>{-0.5058793634, 0.3106172175, -0.8047378541}.equals(body.get_atom(0).coordinates(), 1e-3));
+        CHECK(Vector3<double>{-0.3106172175, 0.8047378541,  0.5058793634}.equals(body.get_atom(1).coordinates(), 1e-3));
+        CHECK(Vector3<double>{ 0.8047378541, 0.5058793634, -0.3106172175}.equals(body.get_atom(2).coordinates(), 1e-3));
     }
 
     SECTION("complex") {
@@ -190,10 +190,10 @@ TEST_CASE("Body::rotate") {
 
         Vector3<double> axis = {0.5, 2, 1};
         body.rotate(matrix::rotation_matrix(axis, 1.8));
-        REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559})  == body.get_atom(0).coordinates()); 
-        REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.get_atom(1).coordinates()); 
-        REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794})  == body.get_atom(2).coordinates()); 
-        REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825})  == body.get_atom(3).coordinates()); 
+        REQUIRE(Vector3<double>{0.5843819499, 1.6706126346, 1.3665837559}  == body.get_atom(0).coordinates()); 
+        REQUIRE(Vector3<double>{1.8656722055, 4.7666664324, -2.9661689675} == body.get_atom(1).coordinates()); 
+        REQUIRE(Vector3<double>{2.6638285975, 5.6804357476, -3.692785794}  == body.get_atom(2).coordinates()); 
+        REQUIRE(Vector3<double>{0.0886646879, 7.4409765368, 2.5737145825}  == body.get_atom(3).coordinates()); 
     }
 }
 

@@ -131,10 +131,10 @@ int molecule_distance_histogram(
     _molecule_distance_histogram_obj data(settings::axes::bin_count);
     {   // copy to avoid issues with mismatching sizes
         //? is this necessary? I think these should always have the same size (or at least may be truncated to the same length)
-        auto aa_dist = hist->get_aa_counts();
-        auto aw_dist = hist->get_aw_counts();
-        auto ww_dist = hist->get_ww_counts();
-        auto axis = hist->get_d_axis();
+        auto& aa_dist = hist->get_aa_counts();
+        auto& aw_dist = hist->get_aw_counts();
+        auto& ww_dist = hist->get_ww_counts();
+        auto& axis = hist->get_d_axis();
         std::copy(aa_dist.get_content().begin(), aa_dist.get_content().end(), data.aa.begin());
         std::copy(aw_dist.get_content().begin(), aw_dist.get_content().end(), data.aw.begin());
         std::copy(ww_dist.get_content().begin(), ww_dist.get_content().end(), data.ww.begin());
@@ -167,8 +167,8 @@ int molecule_debye(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     molecule->reset_histogram_manager();
-    if (!molecule) {*status = 2; return -1;}
     auto hist = molecule->get_histogram();
     auto debye_I = hist->debye_transform();
     _molecule_debye_obj data(debye_I.size());
@@ -190,8 +190,8 @@ void molecule_debye_userq(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
     molecule->reset_histogram_manager();
-    if (!molecule) {*status = 2; return;}
     std::vector<double> q_vals(q, q + n_points);
     auto hist = molecule->get_histogram();
     auto debye_I = hist->debye_transform(q_vals);
@@ -209,7 +209,7 @@ int molecule_debye_raw(
     hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
 
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {*status = 2; return -1;}
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
     auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
     auto debye_I = hist->debye_transform();
     _molecule_debye_obj data(debye_I.size());
@@ -235,7 +235,7 @@ void molecule_debye_raw_userq(
     hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
 
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {*status = 2; return;}
+    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
     std::vector<double> q_vals(q, q + n_points);
     auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
     auto debye_I = hist->debye_transform(q_vals);

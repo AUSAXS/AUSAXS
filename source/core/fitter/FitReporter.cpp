@@ -22,7 +22,7 @@ void FitReporter::report(const std::vector<FitResult>& fits, const std::vector<s
     auto title_reporter = get_title_reporter(titles);
     for (unsigned int i = 0; i < fits.size(); i++) {
         std::string title = titles.empty() ? "" : titles[i];
-        std::cout << title_reporter(title);
+        std::cout << title_reporter(std::move(title));
         std::cout << fits[i].to_string() << std::endl;
     }
 }
@@ -53,7 +53,7 @@ void FitReporter::save(const std::vector<FitResult>& fits, const io::File& path,
     auto title_reporter = get_title_reporter(titles);
     for (unsigned int i = 0; i < fits.size(); i++) {
         std::string title = titles.empty() ? "" : titles[i];
-        out << title_reporter(title);
+        out << title_reporter(std::move(title));
         out << fits[i].to_string() << std::endl;
     }
     out.close();

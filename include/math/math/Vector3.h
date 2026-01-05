@@ -27,10 +27,6 @@ namespace ausaxs {
 			Vector3& operator=(const Vector3<T>& v) = default;
 			Vector3& operator=(Vector3<T>&& v) = default;
 
-			Vector3(const std::initializer_list<T>& l) {
-				*this = l;
-			}
-
 			template<typename Q> requires std::is_floating_point_v<Q>
 			Vector3(const Vector3<Q>& v) {
 				data[0] = static_cast<T>(v[0]);
