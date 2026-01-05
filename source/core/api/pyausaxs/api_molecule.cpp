@@ -126,6 +126,7 @@ int molecule_distance_histogram(
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    molecule->reset_histogram_manager();
     auto hist = molecule->get_histogram();
     _molecule_distance_histogram_obj data(settings::axes::bin_count);
     {   // copy to avoid issues with mismatching sizes
