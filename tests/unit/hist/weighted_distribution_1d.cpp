@@ -3,6 +3,7 @@
 
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/Distribution1D.h>
+#include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
 
@@ -117,13 +118,37 @@ TEST_CASE("WeightedDistribution1D::as_vector") {
 }
 
 TEST_CASE("WeightedDistribution1D::get_weighted_axis") {
-    hist::WeightedDistribution1D dist(10);
-    dist.increment_index(0, 0.0f);
-    dist.increment_index<2>(1, 1.25f);
+    SECTION("basic weighted axis") {
+        hist::WeightedDistribution1D dist(10);
+        dist.increment_index(0, 0.0f);
+        dist.increment_index<2>(1, 1.25f);
 
-    auto weighted_bins = dist.get_weighted_axis();
-    REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
-    REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(1.25, 1e-3));
+        auto weighted_bins = dist.get_weighted_axis();
+        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
+        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(1.25, 1e-3));
+    }
+
+    SECTION("empty bins should return default axis values") {
+        hist::WeightedDistribution1D dist(5);
+        auto weighted_bins = dist.get_weighted_axis();
+        
+        // For empty bins (count=0), should return the default bin center
+        for (size_t i = 0; i < weighted_bins.size(); ++i) {
+            double expected = i*settings::axes::bin_width;
+            REQUIRE_THAT(weighted_bins[i], Catch::Matchers::WithinAbs(expected, 1e-6));
+        }
+    }
+
+    SECTION("multiple increments should average correctly") {
+        hist::WeightedDistribution1D dist(10);
+        
+        // Add values to bin 2: distances 2.0 and 2.5, should average to 2.25
+        dist.increment_index(2, 2.0f);
+        dist.increment_index(2, 2.5f);
+        
+        auto weighted_bins = dist.get_weighted_axis();
+        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2.25, 1e-3));
+    }
 }
 
 TEST_CASE("WeightedDistribution1D::set_bin_centers") {
