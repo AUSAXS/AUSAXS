@@ -33,24 +33,18 @@ CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::~Compos
 template<typename AA, typename AXFormFactorTableType, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase(
     hist::Distribution3D&& p_aa, 
-    hist::Distribution3D&& p_ax, 
-    hist::Distribution3D&& p_xx, 
     hist::Distribution2D&& p_aw, 
-    hist::Distribution2D&& p_wx, 
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot
-) : CompositeDistanceHistogramFFAvgBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), exv_distance_profiles{.xx=std::move(p_xx), .ax=std::move(p_ax), .wx=std::move(p_wx)} {}
+) : CompositeDistanceHistogramFFAvgBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)) {}
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase(
     hist::Distribution3D&& p_aa, 
-    hist::Distribution3D&& p_ax, 
-    hist::Distribution3D&& p_xx, 
     hist::Distribution2D&& p_aw, 
-    hist::Distribution2D&& p_wx, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot
-) : CompositeDistanceHistogramFFAvgBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), exv_distance_profiles{.xx=std::move(p_xx), .ax=std::move(p_ax), .wx=std::move(p_wx)} {}
+) : CompositeDistanceHistogramFFAvgBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)) {}
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
 const AA CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::get_ffaa_table() const {
@@ -77,11 +71,9 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     if (exv_cache.sinqd.aa.empty()) {
+        // We only need one sinqd calculation per histogram type since aa/ax/xx share the same data
         exv_cache.sinqd.aa = container::Container3D<double>(form_factor::get_count(), form_factor::get_count(), debye_axis.bins);
-        exv_cache.sinqd.ax = container::Container3D<double>(form_factor::get_count(), form_factor::get_count(), debye_axis.bins);
-        exv_cache.sinqd.xx = container::Container3D<double>(form_factor::get_count(), form_factor::get_count(), debye_axis.bins);
         exv_cache.sinqd.aw = container::Container2D<double>(form_factor::get_count(), debye_axis.bins);
-        exv_cache.sinqd.wx = container::Container2D<double>(form_factor::get_count(), debye_axis.bins);
         exv_cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
     }
 
@@ -89,16 +81,15 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
             pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table] () {
                 for (unsigned int q = q0; q < q0+bins; ++q) {
+                    // Single sinqd calculation - the same histogram is used for aa, ax, and xx
                     exv_cache.sinqd.aa.index(ff1, ff2, q-q0) = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
-                    exv_cache.sinqd.ax.index(ff1, ff2, q-q0) = std::inner_product(exv_distance_profiles.ax.begin(ff1, ff2), exv_distance_profiles.ax.end(ff1, ff2), sinqd_table->begin(q), 0.0);
-                    exv_cache.sinqd.xx.index(ff1, ff2, q-q0) = std::inner_product(exv_distance_profiles.xx.begin(ff1, ff2), exv_distance_profiles.xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 }
             });
         }
         pool->detach_task([this, q0, bins=debye_axis.bins, ff1, sinqd_table] () {
             for (unsigned int q = q0; q < q0+bins; ++q) {
+                // Single sinqd calculation - the same histogram is used for aw and wx
                 exv_cache.sinqd.aw.index(ff1, q-q0) = std::inner_product(this->distance_profiles.aw.begin(ff1), this->distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
-                exv_cache.sinqd.wx.index(ff1, q-q0) = std::inner_product(exv_distance_profiles.wx.begin(ff1), exv_distance_profiles.wx.end(ff1), sinqd_table->begin(q), 0.0);
             }
         });
     }
@@ -153,12 +144,13 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     }
 
     if (cx_changed) {
+        // Use the same sinqd.aa values but with different form factor tables for ax and xx
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         this->cache.intensity_profiles.ax[q-q0] += 
-                            2*this->free_params.crho*cx[q-q0]*exv_cache.sinqd.ax.index(ff1, ff2, q-q0)*ff_ax_table.index(ff1, ff2).evaluate(q);
+                            2*this->free_params.crho*cx[q-q0]*exv_cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_ax_table.index(ff1, ff2).evaluate(q);
                     }
                 }
             }
@@ -168,7 +160,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         this->cache.intensity_profiles.xx[q-q0] += 
-                            std::pow(cx[q-q0]*this->free_params.crho, 2)*exv_cache.sinqd.xx.index(ff1, ff2, q-q0)*ff_xx_table.index(ff1, ff2).evaluate(q);
+                            std::pow(cx[q-q0]*this->free_params.crho, 2)*exv_cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_xx_table.index(ff1, ff2).evaluate(q);
                     }
                 }
             }
@@ -195,11 +187,12 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     }
 
     if (cw_changed || cx_changed) {
+        // Use the same sinqd.aw values but with different form factor table for wx
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     this->cache.intensity_profiles.wx[q-q0] += 
-                        2*this->free_params.crho*cx[q-q0]*this->free_params.cw*exv_cache.sinqd.wx.index(ff1, q-q0)
+                        2*this->free_params.crho*cx[q-q0]*this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)
                         *ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q);
                 }
             }

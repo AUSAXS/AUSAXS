@@ -26,42 +26,34 @@ namespace ausaxs::hist {
 
             /**
              * @brief Create a new unweighted composite distance histogram with form factors.
+             *        The same distance histogram is used for aa, ax, and xx interactions (with different form factor tables).
+             *        Similarly, the same histogram is used for aw and wx interactions.
              * 
-             * @param p_aa The partial distance histogram for atom-atom interactions.
-             * @param p_ax The partial distance histogram for atom-excluded volume interactions.
-             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions.
-             * @param p_aw The partial distance histogram for atom-water interactions.
-             * @param p_wx The partial distance histogram for water-excluded volume interactions.
+             * @param p_aa The partial distance histogram for atom-atom interactions (also used for ax and xx).
+             * @param p_aw The partial distance histogram for atom-water interactions (also used for wx).
              * @param p_ww The partial distance histogram for water-water interactions.
              * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
              */
             CompositeDistanceHistogramFFExplicitBase(
                 hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
                 hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
                 hist::Distribution1D&& p_ww,
                 hist::Distribution1D&& p_tot
             );
 
             /**
              * @brief Create a new weighted composite distance histogram with form factors.
+             *        The same distance histogram is used for aa, ax, and xx interactions (with different form factor tables).
+             *        Similarly, the same histogram is used for aw and wx interactions.
              * 
-             * @param p_aa The partial distance histogram for atom-atom interactions.
-             * @param p_ax The partial distance histogram for atom-excluded volume interactions.
-             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions.
-             * @param p_aw The partial distance histogram for atom-water interactions.
-             * @param p_wx The partial distance histogram for water-excluded volume interactions.
+             * @param p_aa The partial distance histogram for atom-atom interactions (also used for ax and xx).
+             * @param p_aw The partial distance histogram for atom-water interactions (also used for wx).
              * @param p_ww The partial distance histogram for water-water interactions.
              * @param p_tot The total distance histogram. This is only used to extract the bin centers.
              */
             CompositeDistanceHistogramFFExplicitBase(
                 hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
                 hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
                 hist::Distribution1D&& p_ww, 
                 hist::WeightedDistribution1D&& p_tot
             );
@@ -82,18 +74,18 @@ namespace ausaxs::hist {
             // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
             double exv_factor(double q) const override;
 
-            struct {hist::Distribution3D xx, ax; hist::Distribution2D wx;} exv_distance_profiles;
-
             //#################################//
             //###           CACHE           ###//
             //#################################//
 
             mutable struct {
                 // cached sinqd vals for each form factor combination
-                // indexing as [ff1][ff2]
+                // indexing as [ff1][ff2] for 3D, [ff1] for 2D
+                // Note: aa, ax, xx share the same underlying histogram, so we only cache sinqd_aa
+                // Similarly, aw and wx share the same histogram
                 mutable struct {
-                    container::Container3D<double> aa, ax, xx;
-                    container::Container2D<double> aw, wx;
+                    container::Container3D<double> aa;
+                    container::Container2D<double> aw;
                     container::Container1D<double> ww;
                     bool valid = false;
                 } sinqd;
