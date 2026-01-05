@@ -21,21 +21,18 @@ namespace ausaxs::hist {
 
             /**
              * @brief Create a new unweighted composite distance histogram with form factors.
+             *        The same distance histogram is used for aa, ax, and xx interactions (with different form factor tables).
+             *        Similarly, the same histogram is used for aw and wx interactions.
              * 
-             * @param p_aa The partial distance histogram for atom-atom interactions.
-             * @param p_ax The partial distance histogram for atom-excluded volume interactions.
-             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions.
-             * @param p_aw The partial distance histogram for atom-water interactions.
-             * @param p_wx The partial distance histogram for water-excluded volume interactions.
+             * @param p_aa The partial distance histogram for atom-atom interactions (also used for ax and xx).
+             * @param p_aw The partial distance histogram for atom-water interactions (also used for wx).
              * @param p_ww The partial distance histogram for water-water interactions.
              * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
+             * @param avg_displaced_V The average displaced volume per atom.
              */
             CompositeDistanceHistogramCrysol(
                 hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
                 hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
                 hist::Distribution1D&& p_ww,
                 hist::Distribution1D&& p_tot,
                 double avg_displaced_V
@@ -43,21 +40,18 @@ namespace ausaxs::hist {
 
             /**
              * @brief Create a new weighted composite distance histogram with form factors.
+             *        The same distance histogram is used for aa, ax, and xx interactions (with different form factor tables).
+             *        Similarly, the same histogram is used for aw and wx interactions.
              * 
-             * @param p_aa The partial distance histogram for atom-atom interactions.
-             * @param p_ax The partial distance histogram for atom-excluded volume interactions.
-             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions.
-             * @param p_aw The partial distance histogram for atom-water interactions.
-             * @param p_wx The partial distance histogram for water-excluded volume interactions.
+             * @param p_aa The partial distance histogram for atom-atom interactions (also used for ax and xx).
+             * @param p_aw The partial distance histogram for atom-water interactions (also used for wx).
              * @param p_ww The partial distance histogram for water-water interactions.
              * @param p_tot The total distance histogram. This is only used to extract the bin centers.
+             * @param avg_displaced_V The average displaced volume per atom.
              */
             CompositeDistanceHistogramCrysol(
                 hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
                 hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
                 hist::Distribution1D&& p_ww, 
                 hist::WeightedDistribution1D&& p_tot,
                 double avg_displaced_V

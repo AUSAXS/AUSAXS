@@ -16,26 +16,6 @@ namespace ausaxs::hist {
             using CompositeDistanceHistogramFFExplicitBase::CompositeDistanceHistogramFFExplicitBase;
             ~CompositeDistanceHistogramFoXS() override = default;
 
-            CompositeDistanceHistogramFoXS(
-                hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
-                hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
-                hist::Distribution1D&& p_ww,
-                hist::Distribution1D&& p_tot
-            );
-
-            CompositeDistanceHistogramFoXS(
-                hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
-                hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
-                hist::Distribution1D&& p_ww, 
-                hist::WeightedDistribution1D&& p_tot
-            );
-
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
             const form_factor::lookup::atomic::table_t& get_ff_table() const override {

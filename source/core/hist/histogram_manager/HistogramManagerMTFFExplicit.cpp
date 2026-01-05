@@ -25,154 +25,136 @@ using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
 namespace {
-    // Local evaluation helpers for FFExplicit - atom-atom (3 x 3D histograms: aa, ax, xx)
+    // Local evaluation helpers for FFExplicit - atom-atom (3D histogram)
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_aa8(
-        WeightedDistribution3D& p_aa, WeightedDistribution3D& p_ax, WeightedDistribution3D& p_xx,
+        WeightedDistribution3D& p_aa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
     ) {
         xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_a, i, j);
         for (int k = 0; k < 8; ++k) {
             p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
-            p_ax.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
-            p_xx.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
         }
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_aa8(
-        Distribution3D& p_aa, Distribution3D& p_ax, Distribution3D& p_xx,
+        Distribution3D& p_aa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
     ) {
         xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_a, data_a, i, j);
         for (int k = 0; k < 8; ++k) {
             p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
-            p_ax.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
-            p_xx.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
         }
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_aa4(
-        WeightedDistribution3D& p_aa, WeightedDistribution3D& p_ax, WeightedDistribution3D& p_xx,
+        WeightedDistribution3D& p_aa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
     ) {
         xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_a, i, j);
         for (int k = 0; k < 4; ++k) {
             p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
-            p_ax.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
-            p_xx.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
         }
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_aa4(
-        Distribution3D& p_aa, Distribution3D& p_ax, Distribution3D& p_xx,
+        Distribution3D& p_aa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
     ) {
         xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_a, data_a, i, j);
         for (int k = 0; k < 4; ++k) {
             p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
-            p_ax.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
-            p_xx.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
         }
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_aa1(
-        WeightedDistribution3D& p_aa, WeightedDistribution3D& p_ax, WeightedDistribution3D& p_xx,
+        WeightedDistribution3D& p_aa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
     ) {
         xyzff::EvaluatedResult res = add1::evaluate_weighted(data_a, data_a, i, j);
         p_aa.increment_linear_index<factor>(res.ff_bin, res.distance_bin, res.distance);
-        p_ax.increment_linear_index<factor>(res.ff_bin, res.distance_bin, res.distance);
-        p_xx.increment_linear_index<factor>(res.ff_bin, res.distance_bin, res.distance);
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_aa1(
-        Distribution3D& p_aa, Distribution3D& p_ax, Distribution3D& p_xx,
+        Distribution3D& p_aa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
     ) {
         xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_a, data_a, i, j);
         p_aa.increment_linear_index<factor>(res.ff_bin, res.distance);
-        p_ax.increment_linear_index<factor>(res.ff_bin, res.distance);
-        p_xx.increment_linear_index<factor>(res.ff_bin, res.distance);
     }
 
-    // Local evaluation helpers for FFExplicit - atom-water (2 x 2D histograms: wa, wx)
+    // Local evaluation helpers for FFExplicit - atom-water (2D histogram)
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_wa8(
-        WeightedDistribution2D& p_wa, WeightedDistribution2D& p_wx,
+        WeightedDistribution2D& p_wa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, const CompactCoordinatesFF<vbw, explicit_ff>& data_w, int i, int j
     ) {
         xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
             p_wa.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
-            p_wx.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
         }
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_wa8(
-        Distribution2D& p_wa, Distribution2D& p_wx,
+        Distribution2D& p_wa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, const CompactCoordinatesFF<vbw, explicit_ff>& data_w, int i, int j
     ) {
         xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 8; ++k) {
             p_wa.increment_index<factor>(ff_i, res.distances[k]);
-            p_wx.increment_index<factor>(ff_i, res.distances[k]);
         }
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_wa4(
-        WeightedDistribution2D& p_wa, WeightedDistribution2D& p_wx,
+        WeightedDistribution2D& p_wa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, const CompactCoordinatesFF<vbw, explicit_ff>& data_w, int i, int j
     ) {
         xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
             p_wa.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
-            p_wx.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
         }
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_wa4(
-        Distribution2D& p_wa, Distribution2D& p_wx,
+        Distribution2D& p_wa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, const CompactCoordinatesFF<vbw, explicit_ff>& data_w, int i, int j
     ) {
         xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         for (int k = 0; k < 4; ++k) {
             p_wa.increment_index<factor>(ff_i, res.distances[k]);
-            p_wx.increment_index<factor>(ff_i, res.distances[k]);
         }
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_wa1(
-        WeightedDistribution2D& p_wa, WeightedDistribution2D& p_wx,
+        WeightedDistribution2D& p_wa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, const CompactCoordinatesFF<vbw, explicit_ff>& data_w, int i, int j
     ) {
         xyzff::EvaluatedResult res = add1::evaluate_weighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         p_wa.increment_index<factor>(ff_i, res.distance_bin, res.distance);
-        p_wx.increment_index<factor>(ff_i, res.distance_bin, res.distance);
     }
 
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_wa1(
-        Distribution2D& p_wa, Distribution2D& p_wx,
+        Distribution2D& p_wa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, const CompactCoordinatesFF<vbw, explicit_ff>& data_w, int i, int j
     ) {
         xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_a, data_w, i, j);
         int ff_i = data_a.get_ff_type(i);
         p_wa.increment_index<factor>(ff_i, res.distance);
-        p_wx.increment_index<factor>(ff_i, res.distance);
     }
 }
 
@@ -204,51 +186,39 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), settings::axes::bin_count
     ); // ff_type1, ff_type2, distance
 
-    container::ThreadLocalWrapper<GenericDistribution3D_t> p_ax_all(
-        form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), settings::axes::bin_count
-    ); // ff_type1, ff_type2, distance
-
-    container::ThreadLocalWrapper<GenericDistribution3D_t> p_xx_all(
-        form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), settings::axes::bin_count
-    ); // ff_type1, ff_type2, distance
-
-    auto calc_aa = [&data_a, &p_aa_all, &p_ax_all, &p_xx_all, data_a_size] (int imin, int imax) {
+    auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
         auto& p_aa = p_aa_all.get();
-        auto& p_ax = p_ax_all.get();
-        auto& p_xx = p_xx_all.get();
         for (int i = imin; i < imax; ++i) { // atom
             int j = i+1;                    // atom
             for (; j+7 < data_a_size; j+=8) {
-                evaluate_aa8<vbw, true, 2>(p_aa, p_ax, p_xx, data_a, i, j);
+                evaluate_aa8<vbw, true, 2>(p_aa, data_a, i, j);
             }
 
             for (; j+3 < data_a_size; j+=4) {
-                evaluate_aa4<vbw, true, 2>(p_aa, p_ax, p_xx, data_a, i, j);
+                evaluate_aa4<vbw, true, 2>(p_aa, data_a, i, j);
             }
 
             for (; j < data_a_size; ++j) {
-                evaluate_aa1<vbw, true, 2>(p_aa, p_ax, p_xx, data_a, i, j);
+                evaluate_aa1<vbw, true, 2>(p_aa, data_a, i, j);
              }
         }
     };
 
     container::ThreadLocalWrapper<GenericDistribution2D_t> p_wa_all(form_factor::get_count_without_excluded_volume(), settings::axes::bin_count); // ff_type, distance
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_wx_all(form_factor::get_count_without_excluded_volume(), settings::axes::bin_count); // ff_type, distance
-    auto calc_wa = [&data_w, &data_a, &p_wa_all, &p_wx_all, data_w_size] (int imin, int imax) {
+    auto calc_wa = [&data_w, &data_a, &p_wa_all, data_w_size] (int imin, int imax) {
         auto& p_wa = p_wa_all.get();
-        auto& p_wx = p_wx_all.get();
         for (int i = imin; i < imax; ++i) { // atom
             int j = 0;                      // water
             for (; j+7 < data_w_size; j+=8) {
-                evaluate_wa8<vbw, true, 1>(p_wa, p_wx, data_a, data_w, i, j);
+                evaluate_wa8<vbw, true, 1>(p_wa, data_a, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate_wa4<vbw, true, 1>(p_wa, p_wx, data_a, data_w, i, j);
+                evaluate_wa4<vbw, true, 1>(p_wa, data_a, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate_wa1<vbw, true, 1>(p_wa, p_wx, data_a, data_w, i, j);
+                evaluate_wa1<vbw, true, 1>(p_wa, data_a, data_w, i, j);
             }
         }
     };
@@ -294,10 +264,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
 
     pool->wait();
     auto p_aa = p_aa_all.merge();
-    auto p_ax = p_ax_all.merge();
-    auto p_xx = p_xx_all.merge();
     auto p_wa = p_wa_all.merge();
-    auto p_wx = p_wx_all.merge();
     auto p_ww = p_ww_all.merge();
 
     //###################//
@@ -306,10 +273,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     for (int i = 0; i < data_a_size; ++i) {
         if constexpr (wb) {
             p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 0.0f);
-            p_xx.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 0.0f);
         } else {
             p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
-            p_xx.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
         }
     }
     if constexpr (wb) {
@@ -342,10 +307,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     }
 
     pool->detach_task([&p_aa, max_bin] () { p_aa.resize(max_bin); });
-    pool->detach_task([&p_ax, max_bin] () { p_ax.resize(max_bin); });
-    pool->detach_task([&p_xx, max_bin] () { p_xx.resize(max_bin); });
     pool->detach_task([&p_wa, max_bin] () { p_wa.resize(max_bin); });
-    pool->detach_task([&p_wx, max_bin] () { p_wx.resize(max_bin); });
     pool->detach_task([&p_ww, max_bin] () { p_ww.resize(max_bin); });
     pool->detach_task([&p_tot, max_bin] () { p_tot.resize(max_bin); });
     pool->wait();
@@ -382,20 +344,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         case settings::exv::ExvMethod::FoXS:
             return std::make_unique<CompositeDistanceHistogramFoXS>(
                 std::move(Distribution3D(std::move(p_aa))), 
-                std::move(Distribution3D(std::move(p_ax))), 
-                std::move(Distribution3D(std::move(p_xx))),
                 std::move(Distribution2D(std::move(p_wa))), 
-                std::move(Distribution2D(std::move(p_wx))), 
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
         case settings::exv::ExvMethod::Pepsi:
             return std::make_unique<CompositeDistanceHistogramPepsi>(
                 std::move(Distribution3D(std::move(p_aa))), 
-                std::move(Distribution3D(std::move(p_ax))), 
-                std::move(Distribution3D(std::move(p_xx))),
                 std::move(Distribution2D(std::move(p_wa))), 
-                std::move(Distribution2D(std::move(p_wx))), 
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot),
                 displaced_avg()
@@ -403,10 +359,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         case settings::exv::ExvMethod::CRYSOL:
             return std::make_unique<CompositeDistanceHistogramCrysol>(
                 std::move(Distribution3D(std::move(p_aa))), 
-                std::move(Distribution3D(std::move(p_ax))), 
-                std::move(Distribution3D(std::move(p_xx))),
                 std::move(Distribution2D(std::move(p_wa))), 
-                std::move(Distribution2D(std::move(p_wx))), 
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot),
                 displaced_avg()
@@ -414,10 +367,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         default:
             return std::make_unique<CompositeDistanceHistogramFFExplicit>(
                 std::move(Distribution3D(std::move(p_aa))), 
-                std::move(Distribution3D(std::move(p_ax))), 
-                std::move(Distribution3D(std::move(p_xx))),
                 std::move(Distribution2D(std::move(p_wa))), 
-                std::move(Distribution2D(std::move(p_wx))), 
                 std::move(Distribution1D(std::move(p_ww))),
                 std::move(p_tot)
             );
