@@ -24,7 +24,7 @@ TEST_CASE_METHOD(fixture, "Water::Water") {
         CHECK(w1.chainID == 'A');
         CHECK(w1.resSeq == 1);
         CHECK(w1.iCode == "");
-        CHECK(w1.coords == Vector3({-1, -1, -1}));
+        CHECK(w1.coords == Vector3<double>{-1, -1, -1});
         CHECK(w1.occupancy == 1);
         CHECK(w1.tempFactor == 0);
         CHECK(w1.element == constants::atom_t::C);
@@ -41,7 +41,7 @@ TEST_CASE_METHOD(fixture, "Water::Water") {
         CHECK(w1.chainID == 'A');
         CHECK(w1.resSeq == 1);
         CHECK(w1.iCode == "");
-        CHECK(w1.coords == Vector3({-1, -1, -1}));
+        CHECK(w1.coords == Vector3<double>{-1, -1, -1});
         CHECK(w1.occupancy == 1);
         CHECK(w1.tempFactor == 0);
         CHECK(w1.element == constants::atom_t::C);
@@ -58,7 +58,7 @@ TEST_CASE_METHOD(fixture, "Water::Water") {
         CHECK(w2.chainID == 'A');
         CHECK(w2.resSeq == 1);
         CHECK(w2.iCode == "");
-        CHECK(w2.coords == Vector3({-1, -1, -1}));
+        CHECK(w2.coords == Vector3<double>{-1, -1, -1});
         CHECK(w2.occupancy == 1);
         CHECK(w2.tempFactor == 0);
         CHECK(w2.element == constants::atom_t::C);
@@ -84,7 +84,7 @@ TEST_CASE_METHOD(fixture, "Water::is_water") {
 }
 
 TEST_CASE("Water::create_new_water") {
-    PDBWater w1 = PDBWater::create_new_water(Vector3<double>({1, 2, 3}));
+    PDBWater w1 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     CHECK(w1.serial == -1);
     CHECK(w1.name == "O");
     CHECK(w1.altLoc == "");
@@ -92,7 +92,7 @@ TEST_CASE("Water::create_new_water") {
     CHECK(w1.chainID == ' ');
     CHECK(w1.resSeq == -1);
     CHECK(w1.iCode == "");
-    CHECK(w1.coords == Vector3({1, 2, 3}));
+    CHECK(w1.coords == Vector3<double>{1, 2, 3});
     CHECK(w1.occupancy == 1);
     CHECK(w1.tempFactor == 0);
     CHECK(w1.element == constants::atom_t::O);
@@ -102,8 +102,8 @@ TEST_CASE("Water::create_new_water") {
 }
 
 TEST_CASE("Water::operator=") {
-    PDBWater w2 = PDBWater::create_new_water(Vector3<double>({1, 2, 3}));
-    PDBWater w3 = PDBWater::create_new_water(Vector3<double>({1, 2, 3}));
+    PDBWater w2 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
+    PDBWater w3 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     w2 = w3;
     CHECK(w2.serial == -1);
     CHECK(w2.name == "O");
@@ -112,7 +112,7 @@ TEST_CASE("Water::operator=") {
     CHECK(w2.chainID == ' ');
     CHECK(w2.resSeq == -1);
     CHECK(w2.iCode == "");
-    CHECK(w2.coords == Vector3({1, 2, 3}));
+    CHECK(w2.coords == Vector3<double>{1, 2, 3});
     CHECK(w2.occupancy == 1);
     CHECK(w2.tempFactor == 0);
     CHECK(w2.element == constants::atom_t::O);
@@ -122,8 +122,8 @@ TEST_CASE("Water::operator=") {
 }
 
 TEST_CASE("Water::operator==") {
-    PDBWater w2 = PDBWater::create_new_water(Vector3<double>({1, 2, 3}));
-    PDBWater w3 = PDBWater::create_new_water(Vector3<double>({1, 2, 3}));
+    PDBWater w2 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
+    PDBWater w3 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     CHECK_FALSE(w2 == w3);
 
     w2 = w3;

@@ -21,7 +21,7 @@ int get_setting(
 ) {return execute_with_catch([&]() {
     std::string name_str(name);
     const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
-    if (!map.contains(name_str)) {ErrorMessage::last_error = "Unknown setting: \"" + name_str + "\""; return 0;}
+    if (!map.contains(name_str)) {ErrorMessage::last_error = "Unknown setting: \"" + name_str + "\""; return -1;}
     const auto& setting = map.at(name_str);
     auto obj_id = api::ObjectStorage::register_object(_get_setting_obj{
         .value = setting->get(),

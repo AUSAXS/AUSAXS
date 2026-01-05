@@ -904,9 +904,9 @@ TEST_CASE("Grid: add and remove") {
     AtomFF a3({0, 0, 3}, form_factor::form_factor_t::C);
 
     // waters
-    Water w1(Vector3<double>({0, 0, -3}));
-    Water w2(Vector3<double>({0, -3, 0}));
-    Water w3(Vector3<double>({-3, 0, 0}));
+    Water w1(Vector3<double>{0, 0, -3});
+    Water w2(Vector3<double>{0, -3, 0});
+    Water w3(Vector3<double>{-3, 0, 0});
     Body body{std::vector{a1, a2, a3}, std::vector{w1, w2, w3}};
 
     SECTION("add") {

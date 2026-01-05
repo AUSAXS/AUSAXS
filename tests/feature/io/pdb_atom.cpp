@@ -16,14 +16,14 @@ TEST_CASE("PDBAtom::PDBAtom") {
 
         CHECK(a1.serial == 3);
         CHECK(a1.resName == "LYS");
-        CHECK(a1.coordinates() == Vector3<double>({3, 0, 5}));
+        CHECK(a1.coordinates() == Vector3<double>{3, 0, 5});
         CHECK(a1.occupancy == 2);
         CHECK(a1.element == constants::atom_t::He);
         CHECK(a1.is_water() == false);
     }
 
     SECTION("int, std::string&, std::string&, std::string&, int, std::string&, Vector3<double>, double, double, std::string&, std::string&") {
-        PDBAtom a1(15, "CA", "altLoc", "GLY", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::He, "2-");
+        PDBAtom a1(15, "CA", "altLoc", "GLY", 'X', 3, "iCode", Vector3<double>{0, 1, 2}, 2.5, 3.5, constants::atom_t::He, "2-");
 
         CHECK(a1.serial == 15);
         CHECK(a1.name == "CA");
@@ -32,7 +32,7 @@ TEST_CASE("PDBAtom::PDBAtom") {
         CHECK(a1.chainID == 'X');
         CHECK(a1.resSeq == 3);
         CHECK(a1.iCode == "iCode");
-        CHECK(a1.coordinates() == Vector3({0, 1, 2}));
+        CHECK(a1.coordinates() == Vector3<double>{0, 1, 2});
         CHECK(a1.occupancy == 2.5);
         CHECK(a1.tempFactor == 3.5);
         CHECK(a1.element == constants::atom_t::He);
@@ -47,7 +47,7 @@ TEST_CASE("PDBAtom::get_type") {
         CHECK(a1.get_type() == RecordType::ATOM);
     }
     SECTION("PDBWater") {
-        PDBWater w1 = PDBWater::create_new_water(Vector3<double>({1, 2, 3}));
+        PDBWater w1 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
         CHECK(w1.get_type() == RecordType::WATER);
     }
 }
@@ -63,7 +63,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a1.chainID == 'A');
         CHECK(a1.resSeq == 1);
         CHECK(a1.iCode == " ");
-        CHECK(a1.coordinates() == Vector3({1, 2, 3}));
+        CHECK(a1.coordinates() == Vector3<double>{1, 2, 3});
         CHECK(a1.occupancy == 1);
         CHECK(a1.tempFactor == 0);
         CHECK(a1.element == constants::atom_t::N);
@@ -81,7 +81,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a1.chainID == 'B');
         CHECK(a1.resSeq == 2);
         CHECK(a1.iCode == " ");
-        CHECK(a1.coordinates() == Vector3({5, 4, 2}));
+        CHECK(a1.coordinates() == Vector3<double>{5, 4, 2});
         CHECK(a1.occupancy == 0.5);
         CHECK(a1.tempFactor == 0.5);
         CHECK(a1.element == constants::atom_t::C);
@@ -99,7 +99,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a.chainID == 'A');
         CHECK(a.resSeq == 129);
         CHECK(a.iCode == " "); // same
-        CHECK(a.coordinates() == Vector3({2.1, 3.2, 4.3}));
+        CHECK(a.coordinates() == Vector3<double>{2.1, 3.2, 4.3});
         CHECK(a.occupancy == 0.5);
         CHECK(a.tempFactor == 42.04);
         CHECK(a.element == constants::atom_t::C);
@@ -144,15 +144,15 @@ TEST_CASE("PDBAtom::translate") {
     SECTION("simple") {
         PDBAtom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
         a1.coordinates() += Vector3{1, 2, 3};
-        CHECK(a1.coordinates() == Vector3({1, 2, 3}));
+        CHECK(a1.coordinates() == Vector3{1, 2, 3});
     }
 
     SECTION("complex") {
         PDBAtom a1({0, 0, 0}, 1, constants::atom_t::N, "GLY", 1);
         a1.coordinates() += Vector3{1, 2, 3};
-        CHECK(a1.coordinates() == Vector3({1, 2, 3}));
+        CHECK(a1.coordinates() == Vector3<double>{1, 2, 3});
         a1.coordinates() += Vector3{1, 2, 3};
-        CHECK(a1.coordinates() == Vector3({2, 4, 6}));
+        CHECK(a1.coordinates() == Vector3<double>{2, 4, 6});
     }
 }
 
@@ -243,7 +243,7 @@ TEST_CASE("PDBAtom::equals_content") {
 }
 
 TEST_CASE("PDBAtom: implicit hydrogens") {
-    PDBAtom a(15, "O", "altLoc", "LYS", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::O, "0+");
+    PDBAtom a(15, "O", "altLoc", "LYS", 'X', 3, "iCode", Vector3<double>{0, 1, 2}, 2.5, 3.5, constants::atom_t::O, "0+");
     CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O) + constants::hydrogen_atoms::residues.get("LYS").get("O", constants::atom_t::O));
     CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O));
 }
