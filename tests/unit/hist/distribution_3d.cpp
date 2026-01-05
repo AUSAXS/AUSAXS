@@ -46,3 +46,28 @@ TEST_CASE("Distribution3D::add_index") {
     CHECK(dist.index(1, 1, 1) == 2);
     CHECK(dist.index(2, 2, 2) == 3);
 }
+
+TEST_CASE("Distribution3D::increment_linear_index") {
+    SECTION("two parameters - ij, k access") {
+        hist::Distribution3D dist(2, 2, 3);
+        // increment_linear_index(ij, k) where ij is combined form factor index
+        dist.increment_linear_index(0, 0);
+        dist.increment_linear_index(0, 1);
+        dist.increment_linear_index(1, 0);
+        
+        CHECK(dist.linear_index(0, 0) == 1);
+        CHECK(dist.linear_index(0, 1) == 1);
+        CHECK(dist.linear_index(1, 0) == 1);
+    }
+
+    SECTION("template parameter increment") {
+        hist::Distribution3D dist(3, 3, 3);
+        dist.increment_linear_index<2>(0, 0);
+        dist.increment_linear_index<3>(0, 1);
+        dist.increment_linear_index<5>(0, 2);
+        
+        CHECK(dist.linear_index(0, 0) == 2);
+        CHECK(dist.linear_index(0, 1) == 3);
+        CHECK(dist.linear_index(0, 2) == 5);
+    }
+}

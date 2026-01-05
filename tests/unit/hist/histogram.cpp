@@ -325,3 +325,46 @@ TEST_CASE("Histogram::operator==") {
     hist::Histogram hist3(data3);
     CHECK(hist2 != hist3);
 }
+
+TEST_CASE("Histogram::get_counts const-correctness") {
+    SECTION("const histogram") {
+        std::vector<double> data{1, 2, 3, 4, 5};
+        const hist::Histogram hist(data);
+        const auto& counts = hist.get_counts();
+        CHECK(counts == data);
+        CHECK(counts.size() == 5);
+    }
+
+    SECTION("const reference") {
+        std::vector<double> data{1, 2, 3, 4, 5};
+        hist::Histogram hist_nonconst(data);
+        const hist::Histogram& hist = hist_nonconst;
+        const auto& counts = hist.get_counts();
+        CHECK(counts == data);
+    }
+
+    SECTION("returns const reference") {
+        std::vector<double> data{1, 2, 3, 4, 5};
+        const hist::Histogram hist(data);
+        const std::vector<double>& counts_ref = hist.get_counts();
+        CHECK(&counts_ref == &hist.get_counts());
+    }
+}
+
+TEST_CASE("Histogram::get_count const-correctness") {
+    SECTION("const histogram") {
+        std::vector<double> data{1, 2, 3, 4, 5};
+        const hist::Histogram hist(data);
+        CHECK(hist.get_count(0) == 1);
+        CHECK(hist.get_count(2) == 3);
+        CHECK(hist.get_count(4) == 5);
+    }
+
+    SECTION("const reference") {
+        std::vector<double> data{1, 2, 3, 4, 5};
+        hist::Histogram hist_nonconst(data);
+        const hist::Histogram& hist = hist_nonconst;
+        CHECK(hist.get_count(0) == 1);
+        CHECK(hist.get_count(2) == 3);
+    }
+}
