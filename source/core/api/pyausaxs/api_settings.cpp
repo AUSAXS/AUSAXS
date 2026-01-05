@@ -19,11 +19,13 @@ int get_setting(
     const char** type,
     int* status
 ) {return execute_with_catch([&]() {
+    std::string name_str(name);
     const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
-    const auto& setting = map.at(name);
+    if (!map.contains(name_str)) {ErrorMessage::last_error = "Unknown setting: \"" + name_str + "\""; return 0;}
+    const auto& setting = map.at(name_str);
     auto obj_id = api::ObjectStorage::register_object(_get_setting_obj{
         .value = setting->get(),
-        .type = settings::io::detail::type_as_string(setting->get())
+        .type = settings::io::detail::type_as_string(setting->get()) //! fix; always returns string
     });
     auto obj = api::ObjectStorage::get_object<_get_setting_obj>(obj_id);
     *value = obj->value.c_str();
