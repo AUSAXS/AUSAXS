@@ -257,7 +257,10 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
             double cx = exv_factor(constants::axes::q_vals[q]);
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                    double ax_sum = std::inner_product(exv_distance_profiles.ax.begin(ff1, ff2), exv_distance_profiles.ax.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                    // Use aa histogram but subtract self-correlations at distance bin 0
+                    double self_correlation = this->distance_profiles.aa.index(ff1, ff2, 0);
+                    double aa_sum = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                    double ax_sum = aa_sum - self_correlation * sinqd_table->lookup(q, 0);
                     Iq[q-q0] += 2*cx*ax_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
                 }
             }
@@ -277,7 +280,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
             double cx2 = std::pow(exv_factor(constants::axes::q_vals[q]), 2);
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                    double xx_sum = std::inner_product(exv_distance_profiles.xx.begin(ff1, ff2), exv_distance_profiles.xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                    // xx uses the same histogram as aa (both include self-correlations)
+                    double xx_sum = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += cx2*xx_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
                 }
             }
@@ -297,7 +301,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(constants::axes::q_vals[q]);
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-                double wx_sum = std::inner_product(exv_distance_profiles.wx.begin(ff1), exv_distance_profiles.wx.end(ff1), sinqd_table->begin(q), 0.0);
+                // wx uses the same histogram as aw (no self-correlations for atom-water)
+                double wx_sum = std::inner_product(this->distance_profiles.aw.begin(ff1), this->distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*cx*this->free_params.cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
             }
         }
@@ -324,12 +329,13 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
                     double aa_sum = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
 
-                    // atom-exv
-                    double ax_sum = std::inner_product(exv_distance_profiles.ax.begin(ff1, ff2), exv_distance_profiles.ax.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                    // atom-exv (use aa histogram but subtract self-correlations)
+                    double self_correlation = this->distance_profiles.aa.index(ff1, ff2, 0);
+                    double ax_sum = aa_sum - self_correlation * sinqd_table->lookup(q, 0);
                     Iq[q-q0] -= 2*cx*ax_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
 
-                    // exv-exv
-                    double xx_sum = std::inner_product(exv_distance_profiles.xx.begin(ff1, ff2), exv_distance_profiles.xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                    // exv-exv (same as aa, includes self-correlations)
+                    double xx_sum = aa_sum;
                     Iq[q-q0] += cx*cx*xx_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
                 }
 
@@ -337,8 +343,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
                 double aw_sum = std::inner_product(this->distance_profiles.aw.begin(ff1), this->distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*this->free_params.cw*aw_sum*ff_aa_table.index(ff1, form_factor::water_bin).evaluate(q);
 
-                // exv-water
-                double wx_sum = std::inner_product(exv_distance_profiles.wx.begin(ff1), exv_distance_profiles.wx.end(ff1), sinqd_table->begin(q), 0.0);
+                // exv-water (same as aw, no self-correlations)
+                double wx_sum = aw_sum;
                 Iq[q-q0] -= 2*cx*this->free_params.cw*wx_sum*ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q);
             }
 
