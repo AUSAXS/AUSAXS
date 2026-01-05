@@ -15,6 +15,8 @@ struct _get_setting_obj {
 };
 int get_setting(
     const char* name,
+    const char** value,
+    const char** type,
     int* status
 ) {return execute_with_catch([&]() {
     const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
@@ -23,6 +25,9 @@ int get_setting(
         .value = setting->get(),
         .type = settings::io::detail::type_as_string(setting->get())
     });
+    auto obj = api::ObjectStorage::get_object<_get_setting_obj>(obj_id);
+    *value = obj->value.c_str();
+    *type = obj->type.c_str();
     return obj_id;
 }, status);}
 

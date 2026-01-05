@@ -7,6 +7,8 @@
 
 extern "C" API int get_setting(
     const char* name,
+    const char** value,
+    const char** type,
     int* status
 );
 
