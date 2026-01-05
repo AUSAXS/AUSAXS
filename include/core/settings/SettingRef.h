@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <settings/SettingsHelper.h>
 #include <utility/Type.h>
 #include <utility/UtilityFwd.h>
 
@@ -66,6 +67,28 @@ namespace ausaxs::settings::io::detail {
 
     template<typename T>
     std::string type_as_string(const T&);
+
+    // Specialization for Setting<T> wrapper
+    template<typename T>
+    struct SettingRef<ausaxs::settings::detail::Setting<T>> : public ISettingRef {
+        SettingRef(ausaxs::settings::detail::Setting<T>& setting, const std::vector<std::string>& names)
+            : ISettingRef(names), settingref(setting) {}
+        virtual ~SettingRef() = default;
+
+        void set(const std::vector<std::string>& values) override {
+            // Delegate to SettingRef<T>
+            SettingRef<T> ref(settingref.value, names);
+            ref.set(values);
+        }
+
+        std::string get() const override {
+            // Delegate to SettingRef<T>
+            SettingRef<T> ref(const_cast<T&>(settingref.value), names);
+            return ref.get();
+        }
+
+        ausaxs::settings::detail::Setting<T>& settingref;
+    };
 }
 
 template<> std::string ausaxs::settings::io::detail::type_as_string<std::string>(const std::string&);
