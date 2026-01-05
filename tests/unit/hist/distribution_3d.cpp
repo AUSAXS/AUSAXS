@@ -50,16 +50,14 @@ TEST_CASE("Distribution3D::add_index") {
 TEST_CASE("Distribution3D::increment_linear_index") {
     SECTION("two parameters - ij, k access") {
         hist::Distribution3D dist(2, 2, 3);
-        // For (i=0,j=0,k=0): linear = 0, ij=0, k=0
-        // For (i=0,j=0,k=1): linear = 1, ij=0, k=1
-        // For (i=0,j=1,k=0): linear = 3, ij=1, k=0
-        dist.increment_linear_index(0, 0);  // (0,0,0)
-        dist.increment_linear_index(0, 1);  // (0,0,1)
-        dist.increment_linear_index(1, 0);  // (0,1,0)
+        // increment_linear_index(ij, k) where ij is combined form factor index
+        dist.increment_linear_index(0, 0);
+        dist.increment_linear_index(0, 1);
+        dist.increment_linear_index(1, 0);
         
-        CHECK(dist.linear_index(0, 0) == 1);  // (0,0,0)
-        CHECK(dist.linear_index(0, 1) == 1);  // (0,0,1)
-        CHECK(dist.linear_index(1, 0) == 1);  // (0,1,0)
+        CHECK(dist.linear_index(0, 0) == 1);
+        CHECK(dist.linear_index(0, 1) == 1);
+        CHECK(dist.linear_index(1, 0) == 1);
     }
 
     SECTION("template parameter increment") {
