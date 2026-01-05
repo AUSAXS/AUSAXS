@@ -54,3 +54,34 @@ TEST_CASE("Distribution2D::add_index") {
     CHECK(dist.get_content(1, 1) == 2);
     CHECK(dist.get_content(2, 2) == 3);
 }
+
+TEST_CASE("Distribution2D::increment_linear_index") {
+    SECTION("basic increment") {
+        hist::Distribution2D dist(3, 4);
+        // Linear indexing for 2D: index = i * size_y + j
+        // For (0,0): linear = 0
+        // For (0,1): linear = 1
+        // For (1,0): linear = 4
+        dist.increment_linear_index(0);
+        dist.increment_linear_index(1);
+        dist.increment_linear_index(1);
+        dist.increment_linear_index(4);
+        dist.increment_linear_index(4);
+        dist.increment_linear_index(4);
+        
+        CHECK(dist.linear_index(0) == 1);
+        CHECK(dist.linear_index(1) == 2);
+        CHECK(dist.linear_index(4) == 3);
+    }
+
+    SECTION("template parameter increment") {
+        hist::Distribution2D dist(3, 4);
+        dist.increment_linear_index<2>(0);
+        dist.increment_linear_index<3>(1);
+        dist.increment_linear_index<5>(2);
+        
+        CHECK(dist.linear_index(0) == 2);
+        CHECK(dist.linear_index(1) == 3);
+        CHECK(dist.linear_index(2) == 5);
+    }
+}

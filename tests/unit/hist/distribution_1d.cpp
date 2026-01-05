@@ -74,6 +74,69 @@ TEST_CASE("Distribution1D::add_index") {
     CHECK(dist.get_content(2) == 3);
 }
 
+TEST_CASE("Distribution1D::increment_index") {
+    SECTION("basic increment") {
+        hist::Distribution1D dist(10);
+        dist.increment_index(0);
+        dist.increment_index(1);
+        dist.increment_index(1);
+        dist.increment_index(2);
+        dist.increment_index(2);
+        dist.increment_index(2);
+        
+        CHECK(dist.get_content(0) == 1);
+        CHECK(dist.get_content(1) == 2);
+        CHECK(dist.get_content(2) == 3);
+    }
+
+    SECTION("template parameter increment") {
+        hist::Distribution1D dist(10);
+        dist.increment_index<2>(0);
+        dist.increment_index<3>(1);
+        dist.increment_index<5>(2);
+        
+        CHECK(dist.get_content(0) == 2);
+        CHECK(dist.get_content(1) == 3);
+        CHECK(dist.get_content(2) == 5);
+    }
+}
+
+TEST_CASE("Distribution1D::increment_linear_index") {
+    SECTION("basic increment") {
+        hist::Distribution1D dist(10);
+        dist.increment_linear_index(0);
+        dist.increment_linear_index(1);
+        dist.increment_linear_index(1);
+        dist.increment_linear_index(2);
+        dist.increment_linear_index(2);
+        dist.increment_linear_index(2);
+        
+        CHECK(dist.get_content(0) == 1);
+        CHECK(dist.get_content(1) == 2);
+        CHECK(dist.get_content(2) == 3);
+    }
+
+    SECTION("template parameter increment") {
+        hist::Distribution1D dist(10);
+        dist.increment_linear_index<2>(0);
+        dist.increment_linear_index<3>(1);
+        dist.increment_linear_index<5>(2);
+        
+        CHECK(dist.get_content(0) == 2);
+        CHECK(dist.get_content(1) == 3);
+        CHECK(dist.get_content(2) == 5);
+    }
+
+    SECTION("linear_index equals index for 1D") {
+        hist::Distribution1D dist(10);
+        dist.increment_index(5);
+        hist::Distribution1D dist2(10);
+        dist2.increment_linear_index(5);
+        
+        CHECK(dist.get_content() == dist2.get_content());
+    }
+}
+
 TEST_CASE("Distribution1D::clear") {
     hist::Distribution1D dist(5);
     dist.set_content(2, 10);

@@ -46,3 +46,30 @@ TEST_CASE("Distribution3D::add_index") {
     CHECK(dist.index(1, 1, 1) == 2);
     CHECK(dist.index(2, 2, 2) == 3);
 }
+
+TEST_CASE("Distribution3D::increment_linear_index") {
+    SECTION("two parameters - ij, k access") {
+        hist::Distribution3D dist(2, 2, 3);
+        // For (i=0,j=0,k=0): linear = 0, ij=0, k=0
+        // For (i=0,j=0,k=1): linear = 1, ij=0, k=1
+        // For (i=0,j=1,k=0): linear = 3, ij=1, k=0
+        dist.increment_linear_index(0, 0);  // (0,0,0)
+        dist.increment_linear_index(0, 1);  // (0,0,1)
+        dist.increment_linear_index(1, 0);  // (0,1,0)
+        
+        CHECK(dist.linear_index(0, 0) == 1);  // (0,0,0)
+        CHECK(dist.linear_index(0, 1) == 1);  // (0,0,1)
+        CHECK(dist.linear_index(1, 0) == 1);  // (0,1,0)
+    }
+
+    SECTION("template parameter increment") {
+        hist::Distribution3D dist(3, 3, 3);
+        dist.increment_linear_index<2>(0, 0);
+        dist.increment_linear_index<3>(0, 1);
+        dist.increment_linear_index<5>(0, 2);
+        
+        CHECK(dist.linear_index(0, 0) == 2);
+        CHECK(dist.linear_index(0, 1) == 3);
+        CHECK(dist.linear_index(0, 2) == 5);
+    }
+}
