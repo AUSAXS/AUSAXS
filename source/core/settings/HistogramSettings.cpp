@@ -88,11 +88,13 @@ namespace ausaxs::settings::io {
         settings::io::create(axes::qmin, "qmin"),
         settings::io::create(axes::qmax, "qmax"),
     });
-}
 
-settings::io::SettingSection hist_section("Histogram", {
-    settings::io::create(settings::hist::weighted_bins, "weighted_bins")
-});
+    settings::io::SettingSection hist_section("Histogram", {
+        settings::io::create(settings::hist::weighted_bins, "weighted_bins"),
+        settings::io::create(settings::axes::bin_width, "bin_width"),
+        settings::io::create(settings::axes::bin_count, "bin_count"),
+    });
+}
 
 settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
     switch (settings::exv::exv_method) {
