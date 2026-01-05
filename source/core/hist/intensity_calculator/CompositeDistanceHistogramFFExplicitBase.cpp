@@ -108,6 +108,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     const auto& ff_aa_table = get_ffaa_table();
     const auto& ff_ax_table = get_ffax_table();
     const auto& ff_xx_table = get_ffxx_table();
+    const auto& sinqd_table = this->sinc_table.get_sinc_table();
 
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -145,12 +146,17 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
 
     if (cx_changed) {
         // Use the same sinqd.aa values but with different form factor tables for ax and xx
+        // For ax: subtract self-correlations at distance bin 0
         pool->detach_task([&] () {
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+                    // Get the self-correlation contribution at distance bin 0
+                    double self_correlation = this->distance_profiles.aa.index(ff1, ff2, 0);
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+                        // Subtract self-correlation * sinqd(q, d=0) from the sinqd.aa value
+                        double sinqd_ax = exv_cache.sinqd.aa.index(ff1, ff2, q-q0) - self_correlation * sinqd_table->lookup(q, 0);
                         this->cache.intensity_profiles.ax[q-q0] += 
-                            2*this->free_params.crho*cx[q-q0]*exv_cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_ax_table.index(ff1, ff2).evaluate(q);
+                            2*this->free_params.crho*cx[q-q0]*sinqd_ax*ff_ax_table.index(ff1, ff2).evaluate(q);
                     }
                 }
             }
