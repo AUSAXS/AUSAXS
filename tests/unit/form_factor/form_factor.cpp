@@ -69,8 +69,11 @@ TEST_CASE("FormFactor::set_normalization") {
         double c = 0.5;
         
         FormFactor ff(a, b, c);
-        ff.set_normalization(2.0);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(31.0, 1e-6));
+        ff.set_normalization(2);
+        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(2, 1e-9));
+
+        ff.set_normalization(30);
+        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(30, 1e-9));
     }
 }
 

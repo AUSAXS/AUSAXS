@@ -90,11 +90,13 @@ TEST_CASE("NormalizedFormFactor::set_normalization") {
         double c = 0.5;
         
         NormalizedFormFactor ff(a, b, c);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
+        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-9));
         
-        double i0 = ff.I0();
-        ff.set_normalization(2.0);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(i0 * 2.0, 1e-6));
+        ff.set_normalization(2);
+        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(2, 1e-9));
+
+        ff.set_normalization(10);
+        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(10, 1e-9));
     }
 
     SECTION("zero normalization") {

@@ -2,6 +2,7 @@ target_sources(ausaxs_core PRIVATE
 	"ExvTable.cpp"
 	"FormFactorType.cpp"
 
+	"lookup/CustomExvTable.cpp"
 	"lookup/ExvFormFactorProduct.cpp"
 	"lookup/FormFactorProduct.cpp"
 	"lookup/NormalizedExvFormFactorProduct.cpp"

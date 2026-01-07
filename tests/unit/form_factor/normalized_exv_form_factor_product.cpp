@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <form_factor/lookup/NormalizedExvFormFactorProduct.h>
+#include <form_factor/lookup/CustomExvTable.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <settings/MoleculeSettings.h>
@@ -135,16 +136,45 @@ TEST_CASE("lookup::cross::normalized::get_table") {
 TEST_CASE("lookup::detail::set_custom_exv_table") {
     SECTION("set custom table") {
         auto original_setting = settings::molecule::exv_set;
-        settings::molecule::exv_set = settings::molecule::ExvSet::Custom;
         
         constants::exv::detail::ExvSet custom_set = constants::exv::vdw;
-        lookup::exv::normalized::detail::set_custom_table(custom_set);
+        lookup::exv::set_custom_table(custom_set);
         
         const auto& table_exv = lookup::exv::normalized::get_table();
         const auto& table_cross = lookup::cross::normalized::get_table();
         
-        CHECK(table_exv.index(0, 0).evaluate(0) > 0);
-        CHECK(table_cross.index(0, 0).evaluate(0) > 0);
+        REQUIRE(table_exv.index(0, 0).evaluate(0) > 0);
+        REQUIRE(table_cross.index(0, 0).evaluate(0) > 0);
+        
+        settings::molecule::exv_set = original_setting;
+    }
+
+    SECTION("raw and normalized tables stay in sync") {
+        auto original_setting = settings::molecule::exv_set;
+        
+        // Set custom table using normalized interface
+        constants::exv::detail::ExvSet custom_set = constants::exv::Traube;
+        lookup::exv::set_custom_table(custom_set);
+        
+        // Verify both raw and normalized tables are updated
+        const auto& norm_table = lookup::exv::normalized::get_table();
+        const auto& raw_table = lookup::exv::raw::get_table();
+        
+        // The excluded volume form factors are the same for raw and normalized
+        // (normalization only affects atomic form factors)
+        auto ffset = form_factor::detail::ExvFormFactorSet(custom_set);
+        for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
+                const ExvFormFactor& ff1_obj = ffset.get(static_cast<form_factor_t>(ff1));
+                const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
+                
+                for (unsigned int i = 0; i < 10; ++i) { // Check first 10 q-values
+                    double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
+                    REQUIRE_THAT(norm_table.index(ff1, ff2).evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
+                    REQUIRE_THAT(raw_table.index(ff1, ff2).evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
+                }
+            }
+        }
         
         settings::molecule::exv_set = original_setting;
     }

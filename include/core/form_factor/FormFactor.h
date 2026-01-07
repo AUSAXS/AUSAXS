@@ -35,7 +35,7 @@ namespace ausaxs::form_factor {
                 for (unsigned int i = 0; i < 5; ++i) {
                     sum += a[i]*constexpr_math::exp(-b[i]*q*q);
                 }
-                return (sum + c)*f0;
+                return (sum + c)*q0;
             }
 
             /**
@@ -49,12 +49,12 @@ namespace ausaxs::form_factor {
              * @brief Manually set the normalization of this form factor.
              *        evaluate(0) will return this value.
              */
-            constexpr void set_normalization(double f0) {
-                this->f0 = f0;
+            constexpr void set_normalization(double q0) {
+                this->q0 = q0/I0();
             }
 
         protected:
-            double f0 = 1;
+            double q0 = 1;
 
         private: 
             std::array<double, 5> a;
