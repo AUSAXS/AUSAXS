@@ -4,24 +4,9 @@
 #include <em/Image.h>
 #include <em/ImageStack.h>
 #include <em/ObjectBounds3D.h>
-#include <numeric>
 #include <utility/Limit.h>
 
 using namespace ausaxs;
-
-// Unit tests for Image have been moved to tests/unit/em/image.cpp
-// This file now contains only feature/integration tests
-
-// TODO: fix the remaining tests
-TEST_CASE("Image::Image") {
-    SECTION("std::shared_ptr<ccp4::Header>, unsigned int") {}
-    SECTION("Matrix<float>&") {}
-    SECTION("Matrix<float>&, std::shared_ptr<ccp4::Header>, unsigned int") {}
-}
-
-TEST_CASE("Image::as_hist") {}
-TEST_CASE("Image::generate_atoms") {}
-TEST_CASE("Image::set_header") {}
 
 TEST_CASE("Image::setup_bounds") {
     SECTION("correct_bounds_imagestack") {

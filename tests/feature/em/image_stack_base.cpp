@@ -20,9 +20,6 @@
 
 using namespace ausaxs;
 
-// Basic unit tests for ImageStackBase have been moved to tests/unit/em/image_stack_base.cpp
-// This file now contains only feature/integration tests
-
 Matrix<float> dummy_image1 = {
     {1, 2, 3},
     {4, 5, 6},
