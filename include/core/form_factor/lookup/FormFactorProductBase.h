@@ -99,7 +99,7 @@ namespace ausaxs::form_factor::lookup::detail {
     const TableType& get_exv_table_for_settings(
         const TableType& default_table,
         const TableType& custom_table,
-        TableGenerator generator
+        TableGenerator&& generator
     ) {
         if (settings::molecule::exv_set == settings::molecule::ExvSet::Default) {
             return default_table;
