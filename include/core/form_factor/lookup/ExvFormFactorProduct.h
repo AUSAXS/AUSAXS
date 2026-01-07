@@ -48,7 +48,3 @@ namespace ausaxs::form_factor::lookup::cross {
         const table_t& get_table();
     }
 }
-
-namespace ausaxs::form_factor::lookup::exv::raw::detail {
-    void set_custom_table(const constants::exv::detail::ExvSet& set);
-}

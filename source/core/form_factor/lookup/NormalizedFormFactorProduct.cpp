@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
-#include <form_factor/lookup/FormFactorProductBase.h>
+#include <form_factor/lookup/detail/FormFactorProductBase.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <constants/Constants.h>
 

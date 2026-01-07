@@ -4,6 +4,7 @@
 #pragma once
 
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/lookup/ExvFormFactorProduct.h>
 #include <form_factor/ExvFormFactor.h>
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
