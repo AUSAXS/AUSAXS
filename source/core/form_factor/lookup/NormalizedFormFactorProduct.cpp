@@ -3,6 +3,7 @@
 
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
 #include <form_factor/lookup/detail/FormFactorProductBase.h>
+#include <form_factor/lookup/detail/LookupHelpers.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <constants/Constants.h>
 
@@ -10,13 +11,7 @@ using namespace ausaxs;
 using namespace ausaxs::form_factor;
 
 namespace {
-    struct NormalizedFormFactorLookup {
-        static constexpr const NormalizedFormFactor& get(form_factor_t type) {
-            return lookup::atomic::normalized::get(type);
-        }
-    };
-
-    auto ff_table = lookup::detail::generate_atomic_table<NormalizedFormFactorLookup>();
+    auto ff_table = lookup::detail::generate_atomic_table<lookup::detail::NormalizedFormFactorLookup>();
 }
 
 const NormalizedFormFactorProduct& form_factor::lookup::atomic::normalized::get_product(unsigned int i, unsigned int j) noexcept {
