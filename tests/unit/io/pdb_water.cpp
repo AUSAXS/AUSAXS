@@ -1,9 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include <settings/All.h>
-#include <io/pdb/PDBStructure.h>
+#include <io/pdb/PDBWater.h>
 #include <constants/Constants.h>
 
 using namespace ausaxs;
@@ -14,7 +11,7 @@ struct fixture {
     PDBWater w1 = PDBWater(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0");
 };
 
-TEST_CASE_METHOD(fixture, "Water::Water") {
+TEST_CASE_METHOD(fixture, "PDBWater::PDBWater") {
     SECTION("Atom&&") {
         PDBWater w1(std::move(a1));
         CHECK(w1.serial == 1);
@@ -67,23 +64,23 @@ TEST_CASE_METHOD(fixture, "Water::Water") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "Water::get_mass") {
+TEST_CASE_METHOD(fixture, "PDBWater::get_mass") {
     CHECK(w1.get_mass() == constants::mass::get_mass(constants::atom_t::O) + 2*constants::mass::get_mass(constants::atom_t::H));
 }
 
-TEST_CASE_METHOD(fixture, "Water::get_type") {
+TEST_CASE_METHOD(fixture, "PDBWater::get_type") {
     CHECK(w1.get_type() == RecordType::WATER);
 }
 
-TEST_CASE_METHOD(fixture, "Water::get_recName") {
+TEST_CASE_METHOD(fixture, "PDBWater::get_recName") {
     CHECK(w1.get_recName() == "HETATM");
 }
 
-TEST_CASE_METHOD(fixture, "Water::is_water") {
+TEST_CASE_METHOD(fixture, "PDBWater::is_water") {
     CHECK(w1.is_water() == true);
 }
 
-TEST_CASE("Water::create_new_water") {
+TEST_CASE("PDBWater::create_new_water") {
     PDBWater w1 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     CHECK(w1.serial == -1);
     CHECK(w1.name == "O");
@@ -101,7 +98,7 @@ TEST_CASE("Water::create_new_water") {
     CHECK(w1.is_water() == true);
 }
 
-TEST_CASE("Water::operator=") {
+TEST_CASE("PDBWater::operator=") {
     PDBWater w2 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     PDBWater w3 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     w2 = w3;
@@ -121,7 +118,7 @@ TEST_CASE("Water::operator=") {
     CHECK(w2.is_water() == true);
 }
 
-TEST_CASE("Water::operator==") {
+TEST_CASE("PDBWater::operator==") {
     PDBWater w2 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     PDBWater w3 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     CHECK_FALSE(w2 == w3);

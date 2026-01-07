@@ -1,8 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <io/pdb/Header.h>
-#include <settings/All.h>
 
 using namespace ausaxs;
 using namespace io::pdb;
@@ -45,7 +43,6 @@ TEST_CASE("Header::get") {
 
     h1.add("TITLE  test2");
     CHECK(h1.get() == "HEADER test1\nTITLE  test2\n");
-
 }
 
 TEST_CASE("Header::size") {

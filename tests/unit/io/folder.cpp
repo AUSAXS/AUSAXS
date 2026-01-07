@@ -1,5 +1,4 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <io/Folder.h>
 
@@ -68,4 +67,29 @@ TEST_CASE("Folder::create") {
         CHECK(folder.exists());
         std::filesystem::remove(path);
     }
+}
+
+TEST_CASE("Folder::empty") {
+    SECTION("true") {
+        io::Folder folder;
+        CHECK(folder.empty());
+    }
+
+    SECTION("false") {
+        io::Folder folder("test");
+        CHECK_FALSE(folder.empty());
+    }
+}
+
+TEST_CASE("Folder::str") {
+    io::Folder folder("tests");
+    CHECK(folder.str() == "tests");
+}
+
+TEST_CASE("Folder::operator==") {
+    io::Folder f1("tests");
+    io::Folder f2("tests");
+    io::Folder f3("other");
+    CHECK(f1 == f2);
+    CHECK_FALSE(f1 == f3);
 }

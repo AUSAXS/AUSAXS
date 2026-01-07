@@ -1,11 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <io/File.h>
 
-#include <string>
 #include <fstream>
-#include <tuple>
 
 using namespace ausaxs;
 
@@ -94,4 +91,38 @@ TEST_CASE("File::remove") {
     CHECK(file.exists() == true);
     file.remove();
     CHECK(file.exists() == false);
+}
+
+TEST_CASE("File::filename") {
+    io::File file("tests/folder/file.txt");
+    CHECK(file.filename() == "file.txt");
+}
+
+TEST_CASE("File::extension") {
+    io::File file("tests/file.txt");
+    CHECK(file.extension() == ".txt");
+}
+
+TEST_CASE("File::directory") {
+    io::File file("tests/file.txt");
+    CHECK(file.directory().path() == "tests");
+}
+
+TEST_CASE("File::empty") {
+    SECTION("true") {
+        io::File file;
+        CHECK(file.empty());
+    }
+
+    SECTION("false") {
+        io::File file("test");
+        CHECK_FALSE(file.empty());
+    }
+}
+
+TEST_CASE("File::replace_extension") {
+    io::File file("tests/file.txt");
+    file.replace_extension(".dat");
+    CHECK(file.extension() == "dat");
+    CHECK(file.path() == "tests/filedat");
 }
