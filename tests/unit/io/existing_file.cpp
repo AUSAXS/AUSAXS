@@ -1,5 +1,4 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <io/ExistingFile.h>
 
@@ -15,4 +14,9 @@ TEST_CASE("ExistingFile::ExistingFile") {
         io::ExistingFile file("tests/files/2epe.dat");
         CHECK(file.path() == "tests/files/2epe.dat");
     }
+}
+
+TEST_CASE("ExistingFile::empty") {
+    io::ExistingFile file;
+    CHECK(file.empty());
 }

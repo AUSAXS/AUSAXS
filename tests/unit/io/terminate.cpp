@@ -1,8 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <io/pdb/Terminate.h>
-#include <settings/All.h>
 
 using namespace ausaxs;
 using namespace io::pdb;
