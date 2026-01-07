@@ -4,6 +4,7 @@
 
 #include <math/Matrix.h>
 #include <math/Vector.h>
+#include <math/MatrixUtils.h>
 
 using namespace ausaxs;
 

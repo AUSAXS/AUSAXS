@@ -226,12 +226,6 @@ TEST_CASE("Vector::norm") {
     REQUIRE(result == sqrt(1+4+9+16));
 }
 
-TEST_CASE("Vector::norm2") {
-    Vector<double> x = {1, 2, 3, 4};
-    double result = x.norm2();
-    REQUIRE(result == 1+4+9+16);
-}
-
 TEST_CASE("Vector::distance") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};

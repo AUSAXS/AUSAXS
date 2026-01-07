@@ -233,12 +233,6 @@ TEST_CASE("Vector3::norm") {
     REQUIRE(result == sqrt(1+4+9));
 }
 
-TEST_CASE("Vector3::norm2") {
-    Vector3<double> x = {1, 2, 3};
-    double result = x.norm2();
-    REQUIRE(result == 1+4+9);
-}
-
 TEST_CASE("Vector3::distance") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};

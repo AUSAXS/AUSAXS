@@ -27,7 +27,8 @@ TEST_CASE("find_minima") {
         std::vector<double> y = {0, 1, 2, 3, 4};
         
         auto minima = find_minima(x, y, 1, 0.1);
-        CHECK(minima.empty() || minima.size() > 0);
+        bool result = minima.empty() || minima.size() > 0;
+        CHECK(result);
     }
 
     SECTION("single point minimum") {

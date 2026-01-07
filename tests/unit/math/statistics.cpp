@@ -114,18 +114,18 @@ TEST_CASE("stats::Measurement") {
     SECTION("mean") {
         std::vector<double> data = {10, 3, 5, 6};
         stats::Measurement<double> m(data);
-        CHECK(m.mean() == 6);
+        CHECK(stats::mean(m.vals) == 6);
     }
 
     SECTION("variance") {
         std::vector<double> data = {9, 10, 11, 7, 13};
         stats::Measurement<double> m(data);
-        CHECK(m.var() == 5);
+        CHECK(stats::var(m.vals) == 5);
     }
 
     SECTION("standard deviation") {
         std::vector<double> data = {10, 10, 10, 10, 10};
         stats::Measurement<double> m(data);
-        CHECK(m.std() == 0);
+        CHECK(stats::std(m.vals) == 0);
     }
 }

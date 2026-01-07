@@ -3,6 +3,7 @@
 
 #include <math/LUPDecomposition.h>
 #include <math/Matrix.h>
+#include <math/MatrixUtils.h>
 
 using namespace ausaxs;
 
