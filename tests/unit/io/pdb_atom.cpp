@@ -140,7 +140,7 @@ TEST_CASE("PDBAtom::get_mass") {
         PDBAtom a1;
         a1.set_element("C");
         a1.resName = "GLY";
-        a1.name = "CA";
+        a1.name = "CA"; // CA has 2 H attached
         CHECK(a1.get_mass() == constants::mass::get_mass(constants::atom_t::C) + 2*constants::mass::get_mass(constants::atom_t::H));
     }
 }
