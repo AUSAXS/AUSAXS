@@ -254,7 +254,8 @@ TEST_CASE("Vector3::normalize") {
         Vector3<double> x = {1, 1, 0};
         Vector3<double> result = x.normalize();
         REQUIRE_THAT(result.norm(), Catch::Matchers::WithinAbs(1.0, 1e-10));
-        REQUIRE(result == Vector3<double>{1, 1, 0}*sqrt(2)/2);
+        const double inv_sqrt2 = 1.0 / std::numbers::sqrt2;
+        REQUIRE(result == Vector3<double>{inv_sqrt2, inv_sqrt2, 0});
     }
 }
 
