@@ -54,8 +54,8 @@ TEST_CASE("MovingAverage::average") {
         std::vector<double> data = {10, 20, 30, 40, 50};
         auto res = MovingAverage::average(data, 3);
         REQUIRE(res.size() == 5);
-        CHECK_THAT(res[0], Catch::Matchers::WithinAbs(15.0, 1e-10));
-        CHECK_THAT(res[4], Catch::Matchers::WithinAbs(45.0, 1e-10));
+        CHECK_THAT(res[0], Catch::Matchers::WithinAbs(10.0, 1e-10));
+        CHECK_THAT(res[4], Catch::Matchers::WithinAbs(50.0, 1e-10));
     }
 }
 

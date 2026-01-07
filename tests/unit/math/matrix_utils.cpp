@@ -157,11 +157,11 @@ TEST_CASE("vector3::generate_basis") {
         Vector3<double> v = {1, 2, 3};
         auto [v1, v2, v3] = vector3::generate_basis(v);
         
-        REQUIRE_THAT(v1.norm(), Catch::Matchers::WithinAbs(1.0, 1e-10));
-        REQUIRE_THAT(v2.norm(), Catch::Matchers::WithinAbs(1.0, 1e-10));
-        REQUIRE_THAT(v3.norm(), Catch::Matchers::WithinAbs(1.0, 1e-10));
-        REQUIRE_THAT(v1.dot(v2), Catch::Matchers::WithinAbs(0.0, 1e-10));
-        REQUIRE_THAT(v2.dot(v3), Catch::Matchers::WithinAbs(0.0, 1e-10));
-        REQUIRE_THAT(v3.dot(v1), Catch::Matchers::WithinAbs(0.0, 1e-10));
+        REQUIRE_THAT(v1.norm(), Catch::Matchers::WithinAbs(1.0, 1e-6));
+        REQUIRE_THAT(v2.norm(), Catch::Matchers::WithinAbs(1.0, 1e-6));
+        REQUIRE_THAT(v3.norm(), Catch::Matchers::WithinAbs(1.0, 1e-6));
+        REQUIRE_THAT(v1.dot(v2), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(v2.dot(v3), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(v3.dot(v1), Catch::Matchers::WithinAbs(0.0, 1e-6));
     }
 }

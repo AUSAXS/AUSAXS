@@ -41,7 +41,7 @@ TEST_CASE("Matrix::Matrix") {
     }
 
     SECTION("vector<vector>") {
-        std::vector<std::vector<double>> data = {{1, 2}, {3, 4}, {5, 6}};
+        std::vector<std::vector<double>> data = {{1, 3, 5}, {2, 4, 6}};
         Matrix<double> A(data);
         CHECK(A.N == 3);
         CHECK(A.M == 2);

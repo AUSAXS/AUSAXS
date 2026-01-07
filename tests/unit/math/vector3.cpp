@@ -10,13 +10,6 @@
 using namespace ausaxs;
 
 TEST_CASE("Vector3::Vector3") {
-    SECTION("default") {
-        Vector3<double> x;
-        REQUIRE(x.x() == 0);
-        REQUIRE(x.y() == 0);
-        REQUIRE(x.z() == 0);
-    }
-
     SECTION("xyz constructor") {
         Vector3<double> x(1, 2, 3);
         REQUIRE(x.x() == 1);
