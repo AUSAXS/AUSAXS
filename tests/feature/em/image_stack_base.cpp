@@ -20,11 +20,8 @@
 
 using namespace ausaxs;
 
-Matrix<float> dummy_image_stack = {
-    {1, 2, 3},    {4, 5, 6},    {7, 8, 9},
-    {10, 11, 12}, {13, 14, 15}, {16, 17, 18},
-    {19, 20, 21}, {22, 23, 24}, {25, 26, 27}
-};
+// Basic unit tests for ImageStackBase have been moved to tests/unit/em/image_stack_base.cpp
+// This file now contains only feature/integration tests
 
 Matrix<float> dummy_image1 = {
     {1, 2, 3},
@@ -58,15 +55,6 @@ struct fixture {
 };
 
 TEST_CASE("ImageStackBase::ImageStackBase") {
-    SECTION("std::vector<Image>&") {
-        std::vector<em::Image> images;
-        for (int i = 0; i < 10; ++i) {
-            images.emplace_back(dummy_image1);
-        }
-        em::ImageStackBase isb(images);
-        REQUIRE(isb.size() == 10);
-    }
-
     SECTION("io::ExistingFile&") {
         io::ExistingFile file("tests/files/A2M_2020_Q4.ccp4");
         em::ImageStackBase isb(file);
@@ -83,18 +71,6 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
 
         REQUIRE(isb.get_protein_manager() != nullptr);
     }
-}
-
-TEST_CASE_METHOD(fixture, "ImageStackBase::image") {
-    em::ImageStackBase isb(images);
-    REQUIRE(isb.image(0) == images[0]);
-    REQUIRE(isb.image(1) == images[1]);
-    REQUIRE(isb.image(2) == images[2]);
-}
-
-TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
-    em::ImageStackBase isb(images);
-    REQUIRE(isb.images() == images);
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
