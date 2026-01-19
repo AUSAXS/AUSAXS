@@ -8,6 +8,11 @@ option(DLIB "Download and use the dlib minimizers" ON)
 option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" OFF)
 option(CONSTEXPR_TABLES "Generate lookup tables at compile-time" OFF)
 set(ARCH "native" CACHE STRING "Target architecture. Default: native")
+option(USE_SYSTEM_GCEM "Use system provided GCEM" OFF)
+option(USE_SYSTEM_BACKWARD "Use system provided backward" OFF)
+option(USE_SYSTEM_CLI11 "Use system provided CLI11" OFF)
+option(USE_SYSTEM_THREADPOOL "Use system provided thread-pool" OFF)
+option(USE_SYSTEM_CATCH "Use system provided Catch" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -110,20 +115,44 @@ if (DLIB)
 	add_compile_definitions("DLIB_AVAILABLE")
 endif()
 
-FetchContent_Declare(
-	backward
-	GIT_REPOSITORY https://github.com/bombela/backward-cpp
-)
+if(USE_SYSTEM_BACKWARD)
+	find_package(Backward REQUIRED)
+else()
+	FetchContent_Declare(
+		backward
+		GIT_REPOSITORY https://github.com/bombela/backward-cpp
+	)
+	FetchContent_MakeAvailable(Backward)
+endif()
 
-FetchContent_Declare(
-	thread_pool
-	GIT_REPOSITORY https://github.com/bshoshany/thread-pool
-)
+if(USE_SYSTEM_THREADPOOL)
+	include(CheckIncludeFileCXX)
 
-FetchContent_Declare(
-	gcem
-	GIT_REPOSITORY https://github.com/klytje/gcem
-)
+	check_include_file_cxx(
+		BS_thread_pool.hpp
+		BS_THREAD_POOL_FOUND
+	)
+
+	if (NOT BS_THREAD_POOL_FOUND)
+		message(FATAL_ERROR "BS.thread_pool headers not found")
+	endif()
+else()
+	FetchContent_Declare(
+		thread_pool
+		GIT_REPOSITORY https://github.com/bshoshany/thread-pool
+	)
+	FetchContent_MakeAvailable(thread_pool)
+endif()
+
+if(USE_SYSTEM_GCEM)
+	find_package(gcem REQUIRED)
+else()
+	FetchContent_Declare(
+		gcem
+		GIT_REPOSITORY https://github.com/klytje/gcem
+	)
+	FetchContent_MakeAvailable(GCEM)
+endif()
 
 set_property(
     DIRECTORY
@@ -131,7 +160,6 @@ set_property(
 )
 unset(compile_options)
 
-FetchContent_MakeAvailable(thread_pool GCEM backward)
 include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include ${backward_SOURCE_DIR})
 
 ############################################

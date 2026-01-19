@@ -1,10 +1,14 @@
-FetchContent_Declare(
-	CLI11
-	GIT_REPOSITORY https://github.com/CLIUtils/CLI11
-	GIT_TAG 792d89286788acac125e0487f8dbde88035f7422
-	GIT_PROGRESS TRUE
-)
-FetchContent_MakeAvailable(CLI11)
+if(USE_SYSTEM_CLI11)
+	find_package(CLI11 REQUIRED)
+else()
+	FetchContent_Declare(
+		CLI11
+		GIT_REPOSITORY https://github.com/CLIUtils/CLI11
+		GIT_TAG 792d89286788acac125e0487f8dbde88035f7422
+		GIT_PROGRESS TRUE
+	)
+	FetchContent_MakeAvailable(CLI11)
+endif()
 
 # helper function to attach post-build copy of plotting scripts to an executable target.
 function(add_plot_scripts_to_target _target)
