@@ -11,14 +11,18 @@ endif()
 
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
-include(FetchContent)
-FetchContent_Declare(
-	Catch2
-	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-	GIT_TAG 914aeecfe23b1e16af6ea675a4fb5dbd5a5b8d0a
-	GIT_PROGRESS TRUE
-)
-FetchContent_MakeAvailable(Catch2)
+if(USE_SYSTEM_CATCH)
+	find_package(Catch2 REQUIRED)
+else()
+	include(FetchContent)
+	FetchContent_Declare(
+		Catch2
+		GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+		GIT_TAG 914aeecfe23b1e16af6ea675a4fb5dbd5a5b8d0a
+		GIT_PROGRESS TRUE
+	)
+	FetchContent_MakeAvailable(Catch2)
+endif()
 
 # make the tests available through CTest
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
