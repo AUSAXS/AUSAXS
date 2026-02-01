@@ -11,6 +11,7 @@ using namespace ausaxs;
 bool settings::molecule::center = true;
 bool settings::molecule::implicit_hydrogens = true;
 bool settings::molecule::use_occupancy = true;
+bool settings::molecule::allow_unknown_residues = false;
 
 settings::molecule::ExvSet settings::molecule::exv_set = settings::molecule::ExvSet::Default;
 
@@ -24,6 +25,7 @@ namespace ausaxs::settings::io {
     settings::io::SettingSection molecule_section("Molecule", {
         settings::io::create(molecule::center, "center"),
         settings::io::create(molecule::throw_on_unknown_atom, "throw_on_unknown_atom"),
+        settings::io::create(molecule::allow_unknown_residues, "allow_unknown_residues"),
         settings::io::create(molecule::implicit_hydrogens, "implicit_hydrogens"),
         settings::io::create(molecule::use_occupancy, "use_occupancy"),
         settings::io::create(molecule::exv_set, "exv_volume")
