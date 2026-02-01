@@ -71,7 +71,7 @@ TEST_CASE("PDBAtom: operators") {
 #include <form_factor/FormFactorType.h>
 TEST_CASE("PDBAtom: correct_atomic_group_ff") {
     settings::molecule::implicit_hydrogens = true;
-    settings::molecule::throw_on_unknown_atom = true;
+    settings::molecule::allow_unknown_atoms = false;
     PDBAtom atom;
 
     SECTION("lys") {
