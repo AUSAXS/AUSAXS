@@ -37,9 +37,9 @@ int main(int argc, char const *argv[]) {
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
-    app.add_flag("--allow-unknown-atom", settings::molecule::throw_on_unknown_atom, 
+    app.add_flag("--allow-unknown-atom", settings::molecule::allow_unknown_atoms, 
         "Allow processing files with unknown atoms. Use only if you understand the implications.")
-        ->default_val(settings::molecule::throw_on_unknown_atom);
+        ->default_val(settings::molecule::allow_unknown_atoms);
     app.add_flag("--allow-unknown-residues", settings::molecule::allow_unknown_residues,
         "Allow processing files with unknown residues. Use only if you understand the implications.")
         ->default_val(settings::molecule::allow_unknown_residues);
