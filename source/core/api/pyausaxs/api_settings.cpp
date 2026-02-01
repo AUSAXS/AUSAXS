@@ -111,7 +111,7 @@ void set_molecule_settings(
     int* status
 ) {return execute_with_catch([&]() {
     settings::molecule::center = center;
-    settings::molecule::throw_on_unknown_atom = throw_on_unknown_atom;
+    settings::molecule::allow_unknown_atoms = !throw_on_unknown_atom;
     settings::molecule::implicit_hydrogens = implicit_hydrogens;
     settings::molecule::use_occupancy = use_occupancy;
     settings::detail::parse_option("exv_volume", {std::string(exv_set)});

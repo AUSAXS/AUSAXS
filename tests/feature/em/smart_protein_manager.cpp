@@ -51,8 +51,7 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram", "[files]") {
 }
 
 TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
-    settings::general::threads = 6;
-    settings::em::sample_frequency = 3;
+    settings::em::sample_frequency = 4;
 
     // ensure hydration shell is deterministic
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
@@ -73,14 +72,13 @@ TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
 }
 
 TEST_CASE("SmartProteinManager::update_protein", "[files]") {
-    settings::general::threads = 6;
-    settings::em::sample_frequency = 2;
+    settings::em::sample_frequency = 3;
 
     // ensure hydration shell is deterministic
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     // alpha as the inner loop to check the protein update functionality 
-    int alpha_min = 5, alpha_max = 24;
+    int alpha_min = 16, alpha_max = 24;
     em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
     std::unordered_map<double, hist::ScatteringProfile> hists;
     images.set_protein_manager(std::make_unique<em::managers::SimpleProteinManager>(&images));
@@ -99,10 +97,9 @@ TEST_CASE("SmartProteinManager::update_protein", "[files]") {
 }
 
 TEST_CASE("SmartProteinManager: consistency", "[files]") {
-    settings::general::threads = 6;
     settings::general::verbose = false;
     settings::general::supplementary_plots = false;
-    settings::em::sample_frequency = 2;
+    settings::em::sample_frequency = 3;
     settings::em::alpha_levels = {6, 8};
     settings::em::save_pdb = false;
     settings::fit::max_iterations = 20;

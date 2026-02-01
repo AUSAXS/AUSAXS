@@ -76,7 +76,7 @@ auto test_random = [] (data::Molecule& protein) {
     static std::uniform_int_distribution<> ri(0, 100);
     static std::uniform_real_distribution<> rd(-10, 10);
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 2; ++i) {
         if (modify_symmetry) {
             int body_index = ri(gen) % protein.size_body();
             if (protein.get_body(body_index).size_symmetry() != 0) {

@@ -43,7 +43,7 @@ double ResidueMap::get(const AtomKey& key) {
     if (average.contains(key.atom)) {
         return average.at(key.atom);
     } else {
-        if (settings::molecule::throw_on_unknown_atom) {
+        if (!settings::molecule::allow_unknown_atoms) {
             throw except::map_error("ResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available.");
         } else {
             static bool warned = false;
@@ -87,7 +87,7 @@ constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_n
     auto key = AtomKey(atom_name, atom_type);
     if (!map.contains(key)) {
         if (key.atom == constants::atom_t::H) {return constants::atomic_group_t::unknown;}
-        if (settings::molecule::throw_on_unknown_atom) {
+        if (!settings::molecule::allow_unknown_atoms) {
             throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
         } else {
             static bool warned = false;

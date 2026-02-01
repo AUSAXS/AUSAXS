@@ -174,11 +174,12 @@ TEST_CASE("Molecule::get_Rg", "[files]") {
         REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(28.91, 0.02));
     }
 
-    settings::molecule::throw_on_unknown_atom = false;
+    settings::molecule::allow_unknown_atoms = true;
     SECTION("SASDJQ4") {
         Molecule protein("tests/files/SASDJQ4.pdb");
         REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(28.08, 0.02));
     }
+    settings::molecule::allow_unknown_atoms = false;
 }
 
 TEST_CASE("Molecule::simulate_dataset", "[files]") {

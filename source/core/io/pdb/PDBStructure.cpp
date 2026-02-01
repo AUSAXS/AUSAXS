@@ -10,6 +10,8 @@
 #include <data/Molecule.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
+#include <constants/Constants.h>
+#include <settings/MoleculeSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
@@ -72,16 +74,29 @@ void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& h
 }
 
 void PDBStructure::add_implicit_hydrogens() {
-    // sanity check: if the structure already contains hydrogens, don't implicitly add more
     for (auto& a : atoms) {
+        // sanity check: if the structure already contains hydrogens, don't implicitly add more
         if (a.element != constants::atom_t::H) {continue;}
         console::print_warning("Molecule::add_implicit_hydrogens: The molecule already contains hydrogen atoms. Skipping implicit addition.");
         return;
     }
 
+    int unknown_res_count = 0;
     console::print_text("\tAdding implicit hydrogens to the molecule.");
-    for (auto& a :atoms) {
+    for (auto& a : atoms) {
+        // verify that the residue is valid, otherwise add_implicit_hydrogens will throw
+        if (!constants::hydrogen_atoms::residues.contains(a.resName)) {++unknown_res_count; continue;}
         a.add_implicit_hydrogens();
+    }
+
+    if (unknown_res_count != 0) {
+        std::string msg = "Molecule::add_implicit_hydrogens: Molecule contains " + std::to_string(unknown_res_count) + " atoms with unknown residues.";
+        if (!settings::molecule::allow_unknown_residues) {
+            msg += " Disable implicit hydrogens with --no-implicit-hydrogens flag, or use --allow-unknown-residues to continue anyway.";
+            throw except::io_error(msg);
+        } else {
+            console::print_warning("PDBStructure::add_implicit_hydrogens: " + msg + " Implicit hydrogens will be SKIPPED for these atoms.");
+        }
     }
 }
 

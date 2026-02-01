@@ -152,8 +152,8 @@ void PDBAtom::add_implicit_hydrogens() {
         effective_charge = constants::charge::get_ff_charge(get_form_factor_type()) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
     } catch (const except::base&) {
         throw except::invalid_argument(
-            "PDBAtom::add_implicit_hydrogens: Could not identify group of atom " + std::to_string(serial) + ". Unknown element, residual or atom: "
-            "(" + constants::symbols::to_string(element) + ", " + this->resName + ", " + this->name + ")"
+            "PDBAtom::add_implicit_hydrogens: Unknown atom name \"" + name + "\" in residue \"" + resName + "\"" 
+            "(element: " + constants::symbols::to_string(element) + ", serial: " + std::to_string(serial) + ")"
         );
     }
 }

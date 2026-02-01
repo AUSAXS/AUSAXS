@@ -122,11 +122,10 @@ TEST_CASE("CIFReader: uses file residues") {
 
 TEST_CASE("CIFReader: file residues agrees with PDB") {
     settings::general::verbose = false;
-
-    // loading the PDB file first to load default ResidueStorage data
-    data::Molecule pdb("tests/files/3sba.pdb");
+    settings::molecule::allow_unknown_residues = true;
 
     auto residues = io::detail::cif::read_residue("tests/files/3sba.cif");
+    data::Molecule pdb("tests/files/3sba.pdb");
     for (const auto& residue : residues) {
         auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
         auto expected = residue.to_map();
@@ -137,6 +136,7 @@ TEST_CASE("CIFReader: file residues agrees with PDB") {
             REQUIRE(loaded.get(atom) == num);
         }
     }
+    settings::molecule::allow_unknown_residues = false;
 }
 
 TEST_CASE("CIFReader::read: crystal file") {
