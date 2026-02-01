@@ -86,13 +86,14 @@ def build_test(test_target, jobs=12):
     return result.returncode == 0
 
 
-def run_test_executable(test_type, test_name):
+def run_test_executable(test_type, test_name, test_case_filter=None):
     """
-    Run a specific test executable.
+    Run a specific test executable or test case using CTest.
     
     Args:
         test_type: Either 'utest' or 'ftest'
-        test_name: Name of the test (without prefix)
+        test_name: Name of the test file (without prefix)
+        test_case_filter: Optional specific test case name to run
     
     Returns:
         The return code from the test execution
@@ -107,14 +108,36 @@ def run_test_executable(test_type, test_name):
     else:
         raise ValueError(f"Invalid test type: {test_type}")
     
-    test_exe = project_root / "build" / "tests" / test_dir / "bin" / f"{test_type}_{test_name}"
+    test_path = project_root / "build" / "tests" / test_dir
     
-    if not test_exe.exists():
-        print(f"Error: Test executable not found: {test_exe}")
-        return 1
+    # Use CTest to run the test
+    if test_case_filter:
+        # Run only the specific test case
+        # CTest test names are just the test case name (from TEST_CASE macro)
+        cmd = [
+            "ctest",
+            "--output-on-failure",
+            "-R", f"^{test_case_filter}$",
+            "--test-dir", str(test_path)
+        ]
+        print(f"Running specific test case: {test_case_filter}")
+    else:
+        # Run all test cases in the file
+        # For running all tests from a specific file, we can't easily filter by file
+        # so we'll fall back to running the executable directly
+        test_exe = project_root / "build" / "tests" / test_dir / "bin" / f"{test_type}_{test_name}"
+        
+        if not test_exe.exists():
+            print(f"Error: Test executable not found: {test_exe}")
+            return 1
+        
+        print(f"Running all test cases in: {test_name}")
+        print(f"Executable: {test_exe}")
+        result = subprocess.run([str(test_exe)], cwd=test_exe.parent)
+        return result.returncode
     
-    print(f"Running: {test_exe}")
-    result = subprocess.run([str(test_exe)], cwd=test_exe.parent)
+    print(f"Command: {' '.join(cmd)}")
+    result = subprocess.run(cmd, cwd=project_root)
     return result.returncode
 
 
@@ -370,8 +393,8 @@ Examples:
                 print(f"Failed to build test: {target_name}")
                 return 1
             
-            # Run the test
-            return run_test_executable(found_type, test_file_name)
+            # Run only the specific test case using CTest filter
+            return run_test_executable(found_type, test_file_name, test_case_filter=test_name)
         
         # Nothing found
         print(f"Error: Test '{test_name}' not found")

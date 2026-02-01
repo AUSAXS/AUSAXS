@@ -5,6 +5,7 @@
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/transform/TransformGroup.h>
+#include <rigidbody/parameters/BodyTransformParameters.h>
 
 #include <data/Body.h>
 #include <rigidbody/Rigidbody.h>
