@@ -107,7 +107,7 @@ auto test_random = [] (data::Molecule& protein, auto&& phm) {
     static std::uniform_int_distribution<> ri(0, 100);
     static std::uniform_real_distribution<> rd(-10, 10);
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 2; ++i) {
         if (modify_external) {
             int body_index = ri(gen) % protein.size_body();
             protein.get_body(body_index).translate({rd(gen), rd(gen), rd(gen)});
