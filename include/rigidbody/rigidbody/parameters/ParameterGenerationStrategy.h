@@ -5,7 +5,7 @@
 
 #include <math/MathFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
-#include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/parameters/RelativeTransformParameters.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
 
@@ -14,6 +14,8 @@
 namespace ausaxs::rigidbody::parameter {    
     /**
      * @brief Thread-safe superclass for parameter generation strategies.
+     * 
+     * Generates relative transformations to be applied to bodies or rigid groups.
      */
     class ParameterGenerationStrategy {
         public:
@@ -38,9 +40,9 @@ namespace ausaxs::rigidbody::parameter {
             virtual ~ParameterGenerationStrategy();
 
             /**
-             * @brief Get the next parameter in the sequence for the given body.
+             * @brief Get the next relative transformation for the given body.
              */
-            virtual BodyTransformParameters next(int ibody) = 0;
+            virtual RelativeTransformParameters next(int ibody) = 0;
 
             /**
              * @brief Set the decay strategy.

@@ -6,11 +6,14 @@
 #include <rigidbody/detail/Conformation.h>
 #include <rigidbody/detail/Configuration.h>
 #include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/parameters/RelativeTransformParameters.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <math/MatrixUtils.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -30,19 +33,31 @@ TEST_CASE("Backup: Parameters updated in configuration after transformation") {
     auto& transformer = rigidbody.transformer;
 
     auto original_params = rigidbody.conformation->configuration.parameters[ibody];
-    auto new_params = parameter::BodyTransformParameters{{1, 1, 1}, {1, 1, 1}};
-    auto expected_rotation = new_params.rotation;
-    auto expected_translation = new_params.translation;
+    Vector3<double> delta_rotation = {1, 1, 1};
+    Vector3<double> delta_translation = {1, 1, 1};
+    auto delta_params = parameter::RelativeTransformParameters{delta_translation, delta_rotation};
+    
+    // Expected rotation: R_new = R_delta * R_original (where R_original is identity since original_params.rotation starts at 0)
+    auto expected_R = matrix::rotation_matrix(delta_rotation);
+    
+    // Expected translation: t_new = R_delta * t_original + t_delta
+    // Note: original_params.translation is the body's original center of mass, NOT zero!
+    auto R_delta = matrix::rotation_matrix(delta_rotation);
+    auto expected_translation = R_delta * original_params.translation + delta_translation;
 
-    transformer->apply(std::move(new_params), ibody);
+    transformer->apply(std::move(delta_params), ibody);
 
     // Verify configuration.parameters were updated
     auto& updated_params = rigidbody.conformation->configuration.parameters[ibody];
 
-    INFO("Rotation should be updated in configuration after transformation");
-    REQUIRE_THAT(updated_params.rotation.x(), Catch::Matchers::WithinAbs(expected_rotation.x(), 1e-6));
-    REQUIRE_THAT(updated_params.rotation.y(), Catch::Matchers::WithinAbs(expected_rotation.y(), 1e-6));
-    REQUIRE_THAT(updated_params.rotation.z(), Catch::Matchers::WithinAbs(expected_rotation.z(), 1e-6));
+    // Check that the stored rotation produces the same rotation matrix as the delta
+    auto actual_R = matrix::rotation_matrix(updated_params.rotation);
+    INFO("Rotation matrices should be equivalent after transformation");
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            REQUIRE_THAT(actual_R(i, j), Catch::Matchers::WithinAbs(expected_R(i, j), 1e-6));
+        }
+    }
 
     INFO("Translation should be updated in configuration after transformation");
     REQUIRE_THAT(updated_params.translation.x(), Catch::Matchers::WithinAbs(expected_translation.x(), 1e-6));
@@ -148,8 +163,18 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         auto original_params = rigidbody.conformation->configuration.parameters;
 
         // Apply constraint-based transformation
-        auto new_params = parameter::BodyTransformParameters{{1, 1, 1}, {1, 1, 1}};
-        transformer->apply(std::move(new_params), constraint);
+        Vector3<double> delta_rotation = {1, 1, 1};
+        Vector3<double> delta_translation = {1, 1, 1};
+        auto delta_params = parameter::RelativeTransformParameters{delta_translation, delta_rotation};
+        auto expected_R = matrix::rotation_matrix(delta_rotation);
+        
+        // For constraint-based transforms, the pivot is the constraining atom position
+        // t_new = R_delta * (t_old - pivot) + pivot + t_delta
+        auto R_delta = matrix::rotation_matrix(delta_rotation);
+        Vector3<double> pivot = constraint.get_atom2().coordinates();
+        auto expected_translation = R_delta * (original_params[ibody].translation - pivot) + pivot + delta_translation;
+        
+        transformer->apply(std::move(delta_params), constraint);
 
         // Verify the selected body's parameters were updated
         auto& updated_params = rigidbody.conformation->configuration.parameters[ibody];
@@ -160,12 +185,17 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
             auto& other_params = rigidbody.conformation->configuration.parameters[i];
             REQUIRE((other_params.rotation == original_params[i].rotation && other_params.translation == original_params[i].translation));
         }
-        REQUIRE(updated_params.rotation.x() == 1);
-        REQUIRE(updated_params.rotation.y() == 1);
-        REQUIRE(updated_params.rotation.z() == 1);
-        REQUIRE(updated_params.translation.x() == 1);
-        REQUIRE(updated_params.translation.y() == 1);
-        REQUIRE(updated_params.translation.z() == 1);
+
+        // Check rotation matrix equivalence
+        auto actual_R = matrix::rotation_matrix(updated_params.rotation);
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                REQUIRE_THAT(actual_R(i, j), Catch::Matchers::WithinAbs(expected_R(i, j), 1e-6));
+            }
+        }
+        REQUIRE_THAT(updated_params.translation.x(), Catch::Matchers::WithinAbs(expected_translation.x(), 1e-6));
+        REQUIRE_THAT(updated_params.translation.y(), Catch::Matchers::WithinAbs(expected_translation.y(), 1e-6));
+        REQUIRE_THAT(updated_params.translation.z(), Catch::Matchers::WithinAbs(expected_translation.z(), 1e-6));
     }
 
     SECTION("RigidTransform updates all connected bodies") {

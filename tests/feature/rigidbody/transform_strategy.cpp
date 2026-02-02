@@ -6,6 +6,8 @@
 #include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/detail/Configuration.h>
 
 #include <data/Body.h>
 #include <rigidbody/Rigidbody.h>
@@ -138,6 +140,40 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
         CHECK(rigidbody.molecule.get_body(1).get_atom(0).coordinates() == Vector3<double>( 1, -1, -1));
         CHECK(rigidbody.molecule.get_body(1).get_atom(1).coordinates() == Vector3<double>( 1,  1, -1));
+    }
+
+    SECTION("Parameters can reconstruct body after transformation") {
+        Rigidbody rigidbody(Molecule{bodies});
+        auto& manager = rigidbody.constraints;
+
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody.molecule, 0, 1, 0, 0));
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody.molecule, 1, 2, 0, 0));
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody.molecule, 2, 3, 0, 0));
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody.molecule, 3, 4, 0, 0));
+
+        rigidbody::transform::RigidTransform transform(&rigidbody);
+
+        // Apply a rotation then check that parameters can reconstruct
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->distance_constraints[0]);
+
+        for (unsigned int ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
+            auto& current_body = rigidbody.molecule.get_body(ibody);
+            auto& params = rigidbody.conformation->configuration.parameters[ibody];
+            auto& original = rigidbody.conformation->original_conformation[ibody];
+
+            // Reconstruct from original + parameters
+            Body reconstructed = original;
+            reconstructed.rotate(matrix::rotation_matrix(params.rotation));
+            reconstructed.translate(params.translation);
+
+            auto current_cm = current_body.get_cm();
+            auto reconstructed_cm = reconstructed.get_cm();
+
+            INFO("Body " << ibody << " should be reconstructible from parameters");
+            CHECK(std::abs(reconstructed_cm.x() - current_cm.x()) < 1e-6);
+            CHECK(std::abs(reconstructed_cm.y() - current_cm.y()) < 1e-6);
+            CHECK(std::abs(reconstructed_cm.z() - current_cm.z()) < 1e-6);
+        }
     }
 }
 

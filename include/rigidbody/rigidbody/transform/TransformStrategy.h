@@ -5,6 +5,7 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
+#include <rigidbody/parameters/RelativeTransformParameters.h>
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
 #include <utility/observer_ptr.h>
@@ -24,24 +25,28 @@ namespace ausaxs::rigidbody::transform {
             virtual ~TransformStrategy();
 
             /**
-             * @brief Apply a transformation to a constraint.
+             * @brief Apply a relative transformation to a rigid group defined by a constraint.
              * 
+             * The delta transformation is applied to all bodies in the smaller branch of the constraint.
+             * Absolute parameters for all affected bodies are updated accordingly.
              * The most recent transformation can be undone by calling undo().
              * 
-             * @param par The parameters to apply.
+             * @param par The relative transformation to apply.
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(parameter::BodyTransformParameters&& par, constraints::DistanceConstraint& constraint) = 0;
+            virtual void apply(parameter::RelativeTransformParameters&& par, constraints::DistanceConstraint& constraint) = 0;
 
             /**
-             * @brief Apply a transformation to a body. 
+             * @brief Apply a relative transformation to a single body. 
              * 
+             * The delta transformation is applied to the specified body.
+             * Absolute parameters for the body are updated accordingly.
              * The most recent transformation can be undone by calling undo().
              * 
-             * @param par The parameters to apply.
+             * @param par The relative transformation to apply.
              * @param ibody The index of the body to transform.
              */
-            virtual void apply(parameter::BodyTransformParameters&& par, unsigned int ibody);
+            virtual void apply(parameter::RelativeTransformParameters&& par, unsigned int ibody);
 
             /**
              * @brief Undo the previous transformation. 
