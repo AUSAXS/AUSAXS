@@ -168,7 +168,7 @@ namespace ausaxs {
 
 			operator std::vector<T>();
 			operator Vector<T>();
-			operator Matrix<T>();
+			explicit operator Matrix<T>();
 
 			T& x();
 			T& y();

@@ -110,7 +110,7 @@ TEST_CASE("Backup: Body positions match parameters after transformation") {
 
     // Manually apply transformation to original body
     auto reconstructed_body = original_body;
-    reconstructed_body.rotate(params.rotation);
+    reconstructed_body.rotate(matrix::rotation_matrix(params.rotation));
     reconstructed_body.translate(params.translation);
 
     // Compare with actual body
@@ -174,7 +174,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
         Rigidbody rigidbody(std::move(bodies));
         rigidbody.molecule.generate_new_hydration();
-        
+
         unsigned int ibody = 1; // Middle body
         auto& transformer = rigidbody.transformer;
         auto& param_gen = rigidbody.parameter_generator;
@@ -231,7 +231,7 @@ TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
 
     // Undo transformation
     transformer->undo();
-    auto& restored_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto restored_params = rigidbody.conformation->configuration.parameters[ibody];  // Make a copy, not a reference
     auto& restored_body = rigidbody.molecule.get_body(ibody);
 
     INFO("Undo should restore to previous state");
@@ -247,7 +247,7 @@ TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
     transformer->apply(std::move(new_params2), ibody);
     auto state2_params = rigidbody.conformation->configuration.parameters[ibody];
 
-    // Verify we can continue transforming after undo
+    INFO("After undo and new apply, we should be in a different state");
     REQUIRE((restored_params.rotation != state2_params.rotation || restored_params.translation != state2_params.translation));
 
     // Undo again - should go back to state after first undo
