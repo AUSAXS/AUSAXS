@@ -1,0 +1,292 @@
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/BodySplitter.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/detail/Configuration.h>
+#include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/parameters/OptimizableSymmetryStorage.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>
+#include <rigidbody/transform/TransformStrategy.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <data/Molecule.h>
+#include <data/Body.h>
+#include <data/symmetry/BodySymmetryFacade.h>
+#include <settings/All.h>
+#include <io/ExistingFile.h>
+
+using namespace ausaxs;
+using namespace ausaxs::data;
+using namespace ausaxs::rigidbody;
+
+TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+
+    SECTION("via direct construction") {
+        // Create bodies and add symmetries directly
+        auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        
+        // Add symmetry to first body
+        bodies.get_body(0).symmetry().add(symmetry::type::p2);
+        
+        Rigidbody rigidbody(std::move(bodies));
+        rigidbody.molecule.generate_new_hydration();
+
+        // Verify the molecule body has symmetries
+        REQUIRE(rigidbody.molecule.get_body(0).size_symmetry() == 1);
+
+        // Verify original_conformation also has matching symmetry structure
+        auto& original_body = rigidbody.conformation->original_conformation[0];
+        INFO("original_conformation must have same symmetry structure as molecule body");
+        REQUIRE(original_body.size_symmetry() == 1);
+
+        // Verify both use OptimizableSymmetryStorage
+        auto* mol_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
+            rigidbody.molecule.get_body(0).symmetry().get_obj()
+        );
+        auto* orig_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
+            original_body.symmetry().get_obj()
+        );
+
+        REQUIRE(mol_storage != nullptr);
+        REQUIRE(orig_storage != nullptr);
+
+        // Verify configuration.parameters has symmetry_pars initialized
+        REQUIRE(rigidbody.conformation->configuration.parameters[0].symmetry_pars.size() == 1);
+    }
+}
+
+TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+
+    // Create a rigidbody with symmetry
+    auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+    bodies.get_body(0).symmetry().add(symmetry::type::p2);
+    
+    Rigidbody rigidbody(std::move(bodies));
+    rigidbody.molecule.generate_new_hydration();
+    unsigned int ibody = 0;
+
+    // Store original symmetry parameters
+    auto original_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+    REQUIRE(original_sym_pars.size() == 1);
+
+    auto original_sym_translation = original_sym_pars[0].initial_relation.translation;
+    auto original_sym_orientation = original_sym_pars[0].initial_relation.orientation;
+
+    // Apply a transformation that modifies symmetry parameters
+    auto& transformer = rigidbody.transformer;
+    auto& param_gen = rigidbody.parameter_generator;
+
+    // Generate new parameters (which should include modified symmetry parameters)
+    auto new_params = param_gen->next(ibody);
+
+    // Store the new symmetry parameters for verification
+    auto expected_new_sym_pars = new_params.symmetry_pars;
+    REQUIRE(expected_new_sym_pars.size() == 1);
+
+    // Apply the transformation
+    transformer->apply(std::move(new_params), ibody);
+
+    // Verify symmetry parameters were updated in configuration
+    auto& updated_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+    REQUIRE(updated_sym_pars.size() == 1);
+
+    INFO("Symmetry parameters should be updated after transformation");
+    REQUIRE(updated_sym_pars[0].initial_relation.translation.x() == expected_new_sym_pars[0].initial_relation.translation.x());
+    REQUIRE(updated_sym_pars[0].initial_relation.translation.y() == expected_new_sym_pars[0].initial_relation.translation.y());
+    REQUIRE(updated_sym_pars[0].initial_relation.translation.z() == expected_new_sym_pars[0].initial_relation.translation.z());
+
+    // Undo the transformation
+    transformer->undo();
+
+    // Verify symmetry parameters were restored
+    auto& restored_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+    REQUIRE(restored_sym_pars.size() == 1);
+
+    INFO("Symmetry parameters should be restored after undo");
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.x(), 
+                 Catch::Matchers::WithinAbs(original_sym_translation.x(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.y(), 
+                 Catch::Matchers::WithinAbs(original_sym_translation.y(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.z(), 
+                 Catch::Matchers::WithinAbs(original_sym_translation.z(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.x(), 
+                 Catch::Matchers::WithinAbs(original_sym_orientation.x(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.y(), 
+                 Catch::Matchers::WithinAbs(original_sym_orientation.y(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.z(), 
+                 Catch::Matchers::WithinAbs(original_sym_orientation.z(), 1e-6));
+}
+
+TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformations") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+
+    auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+    bodies.get_body(0).symmetry().add(symmetry::type::p2);
+    
+    Rigidbody rigidbody(std::move(bodies));
+    rigidbody.molecule.generate_new_hydration();
+    unsigned int ibody = 0;
+
+    // Verify initial state has OptimizableSymmetryStorage
+    auto* initial_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
+        rigidbody.molecule.get_body(ibody).symmetry().get_obj()
+    );
+    REQUIRE(initial_storage != nullptr);
+    REQUIRE(initial_storage->optimize_rotate == true);
+
+    // Apply a transformation
+    auto& transformer = rigidbody.transformer;
+    auto& param_gen = rigidbody.parameter_generator;
+    auto new_params = param_gen->next(ibody);
+    transformer->apply(std::move(new_params), ibody);
+
+    // Verify the body still has OptimizableSymmetryStorage after transformation
+    auto* after_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
+        rigidbody.molecule.get_body(ibody).symmetry().get_obj()
+    );
+    INFO("Body should retain OptimizableSymmetryStorage after transformation");
+    REQUIRE(after_storage != nullptr);
+    REQUIRE(after_storage->optimize_rotate == true);
+    REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
+
+    // Undo the transformation
+    transformer->undo();
+
+    // Verify the body still has OptimizableSymmetryStorage after undo
+    auto* undo_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
+        rigidbody.molecule.get_body(ibody).symmetry().get_obj()
+    );
+    INFO("Body should retain OptimizableSymmetryStorage after undo");
+    REQUIRE(undo_storage != nullptr);
+    REQUIRE(undo_storage->optimize_rotate == true);
+    REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
+}
+
+TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+
+    SECTION("SingleTransform") {
+        settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
+
+        auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        bodies.get_body(0).symmetry().add(symmetry::type::p2);
+        
+        Rigidbody rigidbody(std::move(bodies));
+        rigidbody.molecule.generate_new_hydration();
+        unsigned int ibody = 0;
+
+        // Store original symmetry state
+        auto original_size = rigidbody.molecule.get_body(ibody).size_symmetry();
+        auto original_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+
+        // Apply constraint-based transformation
+        auto& transformer = rigidbody.transformer;
+        auto& param_gen = rigidbody.parameter_generator;
+        auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+
+        auto new_params = param_gen->next(ibody);
+        transformer->apply(std::move(new_params), constraint);
+
+        // Verify symmetry count is preserved
+        INFO("Symmetry count should be preserved after constraint transformation");
+        REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == original_size);
+
+        // Verify OptimizableSymmetryStorage is still there
+        auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
+            rigidbody.molecule.get_body(ibody).symmetry().get_obj()
+        );
+        REQUIRE(storage != nullptr);
+
+        // Undo and verify restoration
+        transformer->undo();
+
+        REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == original_size);
+        auto& restored_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+        REQUIRE(restored_sym_pars.size() == original_sym_pars.size());
+    }
+
+    SECTION("RigidTransform") {
+        settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
+
+        auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        bodies.get_body(0).symmetry().add(symmetry::type::p2);
+        
+        Rigidbody rigidbody(std::move(bodies));
+        rigidbody.molecule.generate_new_hydration();
+        unsigned int ibody = 0;
+
+        // Store original symmetry state
+        auto original_size = rigidbody.molecule.get_body(ibody).size_symmetry();
+        auto original_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+
+        // Apply constraint-based transformation
+        auto& transformer = rigidbody.transformer;
+        auto& param_gen = rigidbody.parameter_generator;
+        auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+
+        auto new_params = param_gen->next(ibody);
+        transformer->apply(std::move(new_params), constraint);
+
+        // Verify symmetry count is preserved
+        INFO("Symmetry count should be preserved after RigidTransform");
+        REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == original_size);
+
+        // Verify OptimizableSymmetryStorage is still there
+        auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
+            rigidbody.molecule.get_body(ibody).symmetry().get_obj()
+        );
+        REQUIRE(storage != nullptr);
+
+        // Undo and verify restoration
+        transformer->undo();
+
+        REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == original_size);
+        auto& restored_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+        REQUIRE(restored_sym_pars.size() == original_sym_pars.size());
+    }
+}
+
+TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::iterations = 10;
+
+    auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+    bodies.get_body(0).symmetry().add(symmetry::type::p2);
+    
+    Rigidbody rigidbody(std::move(bodies));
+    rigidbody.molecule.generate_new_hydration();
+    unsigned int ibody = 0;
+
+    auto& transformer = rigidbody.transformer;
+    auto& param_gen = rigidbody.parameter_generator;
+
+    // Apply multiple transformations in sequence
+    for (int i = 0; i < 5; ++i) {
+        auto params = param_gen->next(ibody);
+        transformer->apply(std::move(params), ibody);
+
+        INFO("After transformation " << i);
+        REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
+        REQUIRE(rigidbody.conformation->configuration.parameters[ibody].symmetry_pars.size() == 1);
+        REQUIRE(rigidbody.conformation->original_conformation[ibody].size_symmetry() == 1);
+
+        // Verify OptimizableSymmetryStorage is maintained
+        auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
+            rigidbody.molecule.get_body(ibody).symmetry().get_obj()
+        );
+        REQUIRE(storage != nullptr);
+    }
+}
