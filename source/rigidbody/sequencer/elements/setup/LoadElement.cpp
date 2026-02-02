@@ -15,7 +15,7 @@ using namespace ausaxs::rigidbody::sequencer;
 
 LoadElement::~LoadElement() = default;
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names, const std::string& saxs_path) : owner(owner) {
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names) : owner(owner) {
     if (auto loc = paths[0].find("%"); loc != std::string::npos) {
         rigidbody = std::make_unique<Rigidbody>(data::Molecule(load_wildcarded(paths[0])));
     } else {
@@ -40,17 +40,12 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
     }
     owner->setup()._set_active_body(rigidbody.get());
 
-    if (!saxs_path.empty()) {
-        auto path = lookup_file(saxs_path);
-        owner->setup()._set_saxs_path(path.first);
-    }
-
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from " << paths.size() << " files." << std::endl;
     }
 }
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& splits, const std::vector<std::string>& body_names, const std::string& saxs_path) 
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& splits, const std::vector<std::string>& body_names) 
     : owner(owner) 
 {
     if (auto loc = path.find("%"); loc != std::string::npos) {
@@ -75,17 +70,12 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
     owner->setup()._set_active_body(rigidbody.get());
 
-    if (!saxs_path.empty()) {
-        auto path = lookup_file(saxs_path);
-        owner->setup()._set_saxs_path(path.first);
-    }
-
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from \"" << path << "\"." << std::endl;
     }
 }
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names, const std::string& saxs_path) : owner(owner) {
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names) : owner(owner) {
     rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(lookup_file(path).first));
 
     // add default names
@@ -103,11 +93,6 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         }
     }
     owner->setup()._set_active_body(rigidbody.get());
-
-    if (!saxs_path.empty()) {
-        auto path = lookup_file(saxs_path);
-        owner->setup()._set_saxs_path(path.first);
-    }
 
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from \"" << path << "\"." << std::endl;

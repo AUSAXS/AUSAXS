@@ -6,6 +6,9 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
+#include <rigidbody/RigidbodyFwd.h>
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <string_view>
 #include <utility/observer_ptr.h>
 #include <io/ExistingFile.h>
 #include <io/Folder.h>
@@ -40,17 +43,29 @@ namespace ausaxs::rigidbody::sequencer {
             SetupElement& set_overlap_function(std::function<double(double)> func);
 
             /**
-             * @brief Load a body from a file. 
+             * @brief Load multiple bodies from multiple files. One body is loaded from each file.
              * 
-             * @param path Path to the file.
-             * @param body_names Optional names for the bodies contained in the file.
+             * @param paths Paths to the files.
+             * @param body_names Optional names for the bodies contained in the files.
              */
-            SetupElement& load(const std::vector<std::string>& path, const std::vector<std::string>& body_names = {});
+            SetupElement& load(const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {});
 
             /**
-             * @brief Load a SAXS file. 
+             * @brief Load multiple bodies from a single file, separated at the designated indices.
+             * 
+             * @param path Path to the file.
+             * @param split Indices where to split the structure.
+             * @param body_names Optional names for the bodies.
              */
-            SetupElement& load(const io::ExistingFile& saxs);
+            SetupElement& load(const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {});
+
+            /**
+             * @brief Load multiple bodies from a single file, separated by chainID.
+             * 
+             * @param path Path to the file.
+             * @param body_names Optional names for the bodies.
+             */
+            SetupElement& load(const std::string& path, const std::vector<std::string>& body_names = {});
 
             /**
              * @brief Load an existing rigidbody. 
@@ -125,6 +140,44 @@ namespace ausaxs::rigidbody::sequencer {
              * @brief Automatically create distance constraints between all bodies that are close to each other.
              */
             SetupElement& generate_volumetric_constraints();
+
+            /**
+             * @brief Add a custom constraint to the rigidbody.
+             * 
+             * @param constraint The constraint to add.
+             */
+            SetupElement& add_constraint(std::unique_ptr<rigidbody::constraints::Constraint> constraint);
+
+            /**
+             * @brief Define a symmetry for the given bodies.
+             * 
+             * @param names Names of the bodies to add symmetry to.
+             * @param symmetry The symmetry types to add.
+             */
+            SetupElement& symmetry(const std::vector<std::string>& names, const std::vector<symmetry::type>& symmetry);
+
+            /**
+             * @brief Define a symmetry for the given body.
+             * 
+             * @param name Name of the body to add symmetry to.
+             * @param symmetry The symmetry type to add.
+             */
+            SetupElement& symmetry(std::string_view name, symmetry::type symmetry);
+
+            /**
+             * @brief Set relative hydration levels for the given bodies.
+             * 
+             * @param names Names of the bodies.
+             * @param ratios Relative hydration ratios.
+             */
+            SetupElement& relative_hydration(const std::vector<std::string>& names, const std::vector<double>& ratios);
+
+            /**
+             * @brief Set the output folder for saving results.
+             * 
+             * @param path The output folder path.
+             */
+            SetupElement& output_folder(const io::Folder& path);
 
             /**
              * @brief Get the name identifiers of all loaded bodies.

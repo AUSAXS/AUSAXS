@@ -7,6 +7,14 @@
 
 #include <cassert>
 
-void ausaxs::rigidbody::sequencer::ConvertSymmetryElement::run() {
+using namespace ausaxs::rigidbody::sequencer;
+
+ConvertSymmetryElement::ConvertSymmetryElement(observer_ptr<LoopElement> owner, int) : LoopElementCallback(owner), GenericElement() {
+    assert(false && "ConvertSymmetryElement::run: Not implemented.");
+}
+
+ConvertSymmetryElement::~ConvertSymmetryElement() = default;
+
+void ConvertSymmetryElement::run() {
     assert(false && "ConvertSymmetryElement::run: Not implemented.");
 }

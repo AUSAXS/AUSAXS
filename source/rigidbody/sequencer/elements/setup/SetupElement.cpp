@@ -6,6 +6,10 @@
 #include <rigidbody/sequencer/elements/setup/LoadExistingElement.h>
 #include <rigidbody/sequencer/elements/setup/LoadElement.h>
 #include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
+#include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
+#include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
+#include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
+#include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
@@ -31,8 +35,13 @@ SetupElement& SetupElement::load(const std::vector<std::string>& paths, const st
     return *this;
 }
 
-SetupElement& SetupElement::load(const io::ExistingFile& saxs) {
-    saxs_path = saxs;
+SetupElement& SetupElement::load(const std::string& path, const std::vector<int>& split, const std::vector<std::string>& names) {
+    elements.push_back(std::make_unique<LoadElement>(owner->_get_sequencer(), path, split, names));
+    return *this;
+}
+
+SetupElement& SetupElement::load(const std::string& path, const std::vector<std::string>& names) {
+    elements.push_back(std::make_unique<LoadElement>(owner->_get_sequencer(), path, names));
     return *this;
 }
 
@@ -132,6 +141,31 @@ SetupElement& SetupElement::generate_linear_constraints() {
 
 SetupElement& SetupElement::generate_volumetric_constraints() {
     elements.push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric));
+    return *this;
+}
+
+SetupElement& SetupElement::add_constraint(std::unique_ptr<rigidbody::constraints::Constraint> constraint) {
+    elements.push_back(std::make_unique<ConstraintElement>(owner->_get_sequencer(), std::move(constraint)));
+    return *this;
+}
+
+SetupElement& SetupElement::symmetry(const std::vector<std::string>& names, const std::vector<symmetry::type>& symmetry) {
+    elements.push_back(std::make_unique<SymmetryElement>(owner->_get_sequencer(), names, symmetry));
+    return *this;
+}
+
+SetupElement& SetupElement::symmetry(std::string_view name, symmetry::type symmetry) {
+    this->symmetry(std::vector<std::string>{std::string{name}}, std::vector<symmetry::type>{symmetry});
+    return *this;
+}
+
+SetupElement& SetupElement::relative_hydration(const std::vector<std::string>& names, const std::vector<double>& ratios) {
+    elements.push_back(std::make_unique<RelativeHydrationElement>(owner->_get_sequencer(), names, ratios));
+    return *this;
+}
+
+SetupElement& SetupElement::output_folder(const io::Folder& path) {
+    elements.push_back(std::make_unique<OutputFolderElement>(owner->_get_sequencer(), path));
     return *this;
 }
 

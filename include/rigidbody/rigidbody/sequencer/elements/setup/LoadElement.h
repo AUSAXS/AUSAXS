@@ -19,17 +19,17 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Load multiple bodies from multiple files. One body is loaded from each file.
              */
-            LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {}, const std::string& saxs_path = {});
+            LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {});
 
             /**
              * @brief Load multiple bodies from a single file, separated at the designated indices. 
              */
-            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {}, const std::string& saxs_path = {});
+            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {});
 
             /**
              * @brief Load multiple bodies from a single file, separated by the chainID. 
              */
-            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names = {}, const std::string& saxs_path = {});
+            LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names = {});
 
             ~LoadElement() override;
 

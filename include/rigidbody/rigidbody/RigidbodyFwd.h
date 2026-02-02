@@ -11,7 +11,7 @@ namespace ausaxs::rigidbody {
     }
     namespace transform         {class TransformStrategy;}
     namespace selection         {class BodySelectStrategy;}
-    namespace constraints       {struct ConstraintManager;}
+    namespace constraints       {class Constraint; struct ConstraintManager;}
     namespace parameter         {class ParameterGenerationStrategy;}
     namespace parameter::decay  {class DecayStrategy;}
 }
