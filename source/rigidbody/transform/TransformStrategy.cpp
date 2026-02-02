@@ -50,7 +50,7 @@ void TransformStrategy::apply(parameter::BodyTransformParameters&& par, unsigned
         auto& body = rigidbody->molecule.get_body(ibody);
 
         bodybackup.clear();
-        bodybackup.emplace_back(body, ibody); //! std::move
+        bodybackup.emplace_back(body, ibody, rigidbody->conformation->configuration.parameters[ibody]); //! std::move
 
         grid->remove(body);
     }
@@ -70,6 +70,9 @@ void TransformStrategy::apply(parameter::BodyTransformParameters&& par, unsigned
         // update the conformation
         rigidbody->molecule.get_body(ibody) = std::move(body);
 
+        // update configuration parameters with the new absolute transformation
+        rigidbody->conformation->configuration.parameters[ibody] = std::move(par);
+
         // ensure there is space for the new conformation in the grid
         rigidbody->refresh_grid();
     }
@@ -81,6 +84,7 @@ void TransformStrategy::apply(parameter::BodyTransformParameters&& par, unsigned
 void TransformStrategy::undo() {
     for (auto& body : bodybackup) {
         rigidbody->molecule.get_body(body.index) = std::move(body.body);
+        rigidbody->conformation->configuration.parameters[body.index] = std::move(body.params);
     }
     bodybackup.clear();
 }
@@ -88,6 +92,6 @@ void TransformStrategy::undo() {
 void TransformStrategy::backup(TransformGroup& group) {
     bodybackup.clear();
     for (unsigned int i = 0; i < group.bodies.size(); i++) {
-        bodybackup.emplace_back(*group.bodies[i], group.indices[i]);
+        bodybackup.emplace_back(*group.bodies[i], group.indices[i], rigidbody->conformation->configuration.parameters[group.indices[i]]);
     }
 }

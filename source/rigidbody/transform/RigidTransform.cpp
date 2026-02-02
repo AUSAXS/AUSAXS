@@ -7,6 +7,7 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/detail/Conformation.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
@@ -26,16 +27,66 @@ void RigidTransform::apply(parameter::BodyTransformParameters&& par, constraints
     auto group = get_connected(constraint);
     backup(group);
 
-    // remove the bodies from the grid
     auto grid = rigidbody->molecule.get_grid();
-    for (auto& body : group.bodies) {
-        grid->remove(*body);
+
+    // Calculate transformation delta for the primary body
+    auto& old_primary_params = rigidbody->conformation->configuration.parameters[constraint.ibody1];
+    auto delta_rotation = par.rotation - old_primary_params.rotation;
+    auto delta_rotation_matrix = matrix::rotation_matrix(delta_rotation);
+
+    // Get the current center of mass of the primary body to use as rotation pivot
+    auto primary_center = rigidbody->molecule.get_body(constraint.ibody1).get_cm();
+
+    // For each body in the rigid group, apply absolute transformation from original_conformation
+    // The primary body gets the new parameters, secondary bodies maintain rigid relationship
+    for (unsigned int i = 0; i < group.bodies.size(); i++) {
+        unsigned int ibody = group.indices[i];
+
+        // Remove old body from grid
+        grid->remove(*group.bodies[i]);
+
+        // Get fresh body from original_conformation
+        auto body = rigidbody->conformation->original_conformation[ibody];
+
+        // Apply absolute transformation using parameters
+        if (ibody == constraint.ibody1) {
+            // Primary body: use the new parameters
+            body.rotate(matrix::rotation_matrix(par.rotation));
+            body.translate(par.translation);
+            symmetry(std::move(par.symmetry_pars), body);
+
+            // Update configuration with new absolute parameters
+            rigidbody->conformation->configuration.parameters[ibody] = std::move(par);
+        } else {
+            // Secondary bodies: same rotation delta, but translation accounts for orbital motion
+            auto& current_params = rigidbody->conformation->configuration.parameters[ibody];
+            
+            // Apply same rotation delta to maintain relative orientation
+            auto new_rotation = current_params.rotation + delta_rotation;
+            
+            // Calculate new translation: body orbits around primary's center during rotation
+            auto current_center = rigidbody->molecule.get_body(ibody).get_cm();
+            auto offset_from_primary = current_center - primary_center;
+            auto rotated_offset = delta_rotation_matrix * offset_from_primary;
+            auto orbital_displacement = rotated_offset - offset_from_primary;
+            auto new_translation = current_params.translation + (par.translation - old_primary_params.translation) + orbital_displacement;
+
+            body.rotate(matrix::rotation_matrix(new_rotation));
+            body.translate(new_translation);
+
+            // Update configuration with new absolute parameters
+            rigidbody->conformation->configuration.parameters[ibody].rotation = new_rotation;
+            rigidbody->conformation->configuration.parameters[ibody].translation = new_translation;
+        }
+
+        // Update molecule with transformed body
+        rigidbody->molecule.get_body(ibody) = std::move(body);
     }
 
-    rotate_and_translate(matrix::rotation_matrix(par.rotation), par.translation, group);
-    symmetry(std::move(par.symmetry_pars), *group.bodies.front());
+    // Ensure grid has space for new conformations
+    rigidbody->refresh_grid();
 
-    // add them back to the grid
+    // Add all bodies back to grid
     for (auto& body : group.bodies) {
         grid->add(*body);
     }
