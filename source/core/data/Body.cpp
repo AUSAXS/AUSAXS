@@ -106,7 +106,7 @@ symmetry::detail::BodySymmetryFacade<Body> Body::symmetry() {return symmetry::de
 
 symmetry::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return symmetry::detail::BodySymmetryFacade<const Body>(this);}
 
-Vector3<double> Body::get_cm() const {
+Vector3<double> Body::get_cm(bool include_water) const {
     Vector3<double> cm{0, 0, 0};
     double M = 0; // total mass
     auto weighted_sum = [&cm, &M] (auto& atoms) {
@@ -117,6 +117,7 @@ Vector3<double> Body::get_cm() const {
         }
     };
     weighted_sum(atoms);
+    if (!include_water) {return cm/M;}
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         weighted_sum(h->waters);
     }

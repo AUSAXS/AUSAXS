@@ -13,7 +13,7 @@ Conformation::Conformation(observer_ptr<const Rigidbody> rigidbody)
     std::vector<data::Body> bodies = rigidbody->molecule.get_bodies();
     assert(configuration.parameters.size() == bodies.size() && "Configuration parameters size mismatch with molecule body size.");
     for (unsigned int i = 0; i < bodies.size(); ++i) {
-        auto cm = bodies[i].get_cm();
+        auto cm = bodies[i].get_cm(false);
         bodies[i].translate(-cm);
         original_conformation[i] = std::move(bodies[i]);
         configuration.parameters[i].translation = cm;

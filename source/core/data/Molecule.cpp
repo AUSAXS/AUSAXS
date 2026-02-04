@@ -178,7 +178,7 @@ std::vector<AtomFF> Molecule::get_atoms() const {
     return atoms;
 }
 
-Vector3<double> Molecule::get_cm() const {
+Vector3<double> Molecule::get_cm(bool include_water) const {
     Vector3<double> cm{0, 0, 0};
     double M = 0; // total mass
 
@@ -190,6 +190,7 @@ Vector3<double> Molecule::get_cm() const {
             M += m;
             cm += atom.coordinates()*m;
         });
+        if (!include_water) {continue;}
 
         // iterate through their hydration atoms
         auto w = body.get_waters();

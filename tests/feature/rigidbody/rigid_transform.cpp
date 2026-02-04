@@ -93,7 +93,7 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
     Rigidbody rigidbody(std::move(bodies));
-    // Note: Do not call generate_new_hydration() here - it changes CM after Conformation is created
+    rigidbody.molecule.generate_new_hydration();
 
     auto& transformer = rigidbody.transformer;
     auto& param_gen = rigidbody.parameter_generator;
