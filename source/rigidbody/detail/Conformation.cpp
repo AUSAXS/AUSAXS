@@ -12,11 +12,16 @@ Conformation::Conformation(observer_ptr<const Rigidbody> rigidbody)
 {
     std::vector<data::Body> bodies = rigidbody->molecule.get_bodies();
     assert(configuration.parameters.size() == bodies.size() && "Configuration parameters size mismatch with molecule body size.");
-    for (unsigned int i = 0; i < bodies.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(bodies.size()); ++i) {
         auto cm = bodies[i].get_cm(false);
         bodies[i].translate(-cm);
         original_conformation[i] = std::move(bodies[i]);
         configuration.parameters[i].translation = cm;
+
+        // initialize symmetry parameters from the body's symmetries
+        for (int j = 0; j < static_cast<int>(original_conformation[i].size_symmetry()); ++j) {
+            configuration.parameters[i].symmetry_pars[j] = original_conformation[i].symmetry().get(j);
+        }
     }
 }
 

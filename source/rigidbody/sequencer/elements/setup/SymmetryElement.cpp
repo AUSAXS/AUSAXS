@@ -33,12 +33,8 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         }
         int ibody = owner->setup()._get_body_names().at(names[i]);
 
-        // the body symmetry storage must be replaced with an OptimizableSymmetryStorage object
-        if (auto obj = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(owner->_get_molecule()->get_body(ibody).symmetry().get_obj()); !obj) {
-            // sanity check: ensure that the body does not already have symmetries before replacing the object
-            assert(owner->_get_molecule()->get_body(ibody).size_symmetry() == 0 && "SymmetryElement::SymmetryElement: The body already has symmetries.");
-            owner->_get_molecule()->get_body(ibody).symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>());
-        }
+        // ensure the body's symmetry storage is optimizable
+        assert(dynamic_cast<symmetry::OptimizableSymmetryStorage*>(owner->_get_molecule()->get_body(ibody).symmetry().get_obj()));
         owner->_get_molecule()->get_body(ibody).symmetry().add(symmetry[i]);
 
         // place the symmetry body at a sane distance from the original

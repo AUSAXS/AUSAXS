@@ -227,6 +227,10 @@ std::shared_ptr<signaller::Signaller> Body::get_signaller() const {
 
 void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
     this->signal = std::move(signal);
+    // Notify the new signaller about existing symmetries
+    if (size_symmetry() > 0) {
+        this->signal->set_symmetry_size(size_symmetry());
+    }
 }
 
 std::vector<data::AtomFF>& Body::get_atoms() {return atoms;}

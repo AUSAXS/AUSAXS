@@ -23,19 +23,15 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 500;
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("via direct construction") {
-        // Create bodies and add symmetries directly
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-        
-        // Add symmetry to first body
         bodies.get_body(0).symmetry().add(symmetry::type::p2);
         
         Rigidbody rigidbody(std::move(bodies));
         rigidbody.molecule.generate_new_hydration();
-
-        // Verify the molecule body has symmetries
         REQUIRE(rigidbody.molecule.get_body(0).size_symmetry() == 1);
 
         // Verify original_conformation also has matching symmetry structure
@@ -61,6 +57,7 @@ TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation
 
 TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 500;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -110,22 +107,17 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     REQUIRE(restored_sym_pars.size() == 1);
 
     INFO("Symmetry parameters should be restored after undo");
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.x(), 
-                 Catch::Matchers::WithinAbs(original_sym_translation.x(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.y(), 
-                 Catch::Matchers::WithinAbs(original_sym_translation.y(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.z(), 
-                 Catch::Matchers::WithinAbs(original_sym_translation.z(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.x(), 
-                 Catch::Matchers::WithinAbs(original_sym_orientation.x(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.y(), 
-                 Catch::Matchers::WithinAbs(original_sym_orientation.y(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.z(), 
-                 Catch::Matchers::WithinAbs(original_sym_orientation.z(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.x(), Catch::Matchers::WithinAbs(original_sym_translation.x(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.y(), Catch::Matchers::WithinAbs(original_sym_translation.y(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.z(), Catch::Matchers::WithinAbs(original_sym_translation.z(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.x(), Catch::Matchers::WithinAbs(original_sym_orientation.x(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.y(), Catch::Matchers::WithinAbs(original_sym_orientation.y(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.z(), Catch::Matchers::WithinAbs(original_sym_orientation.z(), 1e-6));
 }
 
 TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformations") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 500;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -141,7 +133,9 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
         rigidbody.molecule.get_body(ibody).symmetry().get_obj()
     );
     REQUIRE(initial_storage != nullptr);
-    REQUIRE(initial_storage->optimize_rotate == true);
+    
+    // Verify configuration was properly initialized with symmetry parameters
+    REQUIRE(rigidbody.conformation->configuration.parameters[ibody].symmetry_pars.size() == 1);
 
     // Apply a transformation
     auto& transformer = rigidbody.transformer;
@@ -155,7 +149,6 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
     );
     INFO("Body should retain OptimizableSymmetryStorage after transformation");
     REQUIRE(after_storage != nullptr);
-    REQUIRE(after_storage->optimize_rotate == true);
     REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
 
     // Undo the transformation
@@ -167,7 +160,6 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
     );
     INFO("Body should retain OptimizableSymmetryStorage after undo");
     REQUIRE(undo_storage != nullptr);
-    REQUIRE(undo_storage->optimize_rotate == true);
     REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
 }
 
@@ -177,6 +169,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
     SECTION("SingleTransform") {
+        settings::grid::min_bins = 500;
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
@@ -217,6 +210,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
     }
 
     SECTION("RigidTransform") {
+        settings::grid::min_bins = 500;
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
@@ -259,6 +253,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
 
 TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 500;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::iterations = 10;

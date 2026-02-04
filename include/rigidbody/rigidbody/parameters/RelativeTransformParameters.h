@@ -17,6 +17,10 @@ namespace ausaxs::rigidbody::parameter {
      * The translation is the delta translation vector.
      */
     struct RelativeTransformParameters {
+        RelativeTransformParameters() = default;
+        RelativeTransformParameters(const Vector3<double>& translation, const Vector3<double>& rotation, std::vector<symmetry::Symmetry>&& symmetry_pars = {})
+            : translation(translation), rotation(rotation), symmetry_pars(std::move(symmetry_pars)) 
+        {}
         Vector3<double> translation = {0, 0, 0};
         Vector3<double> rotation = {0, 0, 0};
         std::vector<symmetry::Symmetry> symmetry_pars;

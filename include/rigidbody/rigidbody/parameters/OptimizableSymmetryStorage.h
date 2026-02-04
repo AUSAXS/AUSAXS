@@ -7,6 +7,7 @@
 
 namespace ausaxs::symmetry  {
     struct OptimizableSymmetryStorage : SymmetryStorage {
+        OptimizableSymmetryStorage(SymmetryStorage&& other) : SymmetryStorage(std::move(other)) {}
         ~OptimizableSymmetryStorage() override = default;
 
         void add(symmetry::type symmetry) override;
