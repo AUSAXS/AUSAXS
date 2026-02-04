@@ -30,7 +30,7 @@ void verify_configuration_consistency(const Rigidbody& rigidbody) {
         const auto& params = rigidbody.conformation->configuration.parameters[ibody];
 
         // original_conformation should be centered at origin
-        auto original_cm = original_body.get_cm();
+        auto original_cm = original_body.get_cm(false);
         REQUIRE_THAT(original_cm.x(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         REQUIRE_THAT(original_cm.y(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         REQUIRE_THAT(original_cm.z(), Catch::Matchers::WithinAbs(0.0, 1e-6));
@@ -41,8 +41,8 @@ void verify_configuration_consistency(const Rigidbody& rigidbody) {
         reconstructed.translate(params.translation);
 
         // reconstructed body should match current body
-        auto current_cm = current_body.get_cm();
-        auto reconstructed_cm = reconstructed.get_cm();
+        auto current_cm = current_body.get_cm(false);
+        auto reconstructed_cm = reconstructed.get_cm(false);
 
         INFO("Body " << ibody << " center of mass mismatch");
         REQUIRE_THAT(reconstructed_cm.x(), Catch::Matchers::WithinAbs(current_cm.x(), 1e-3));
@@ -99,6 +99,7 @@ TEST_CASE("AbsoluteParameters: Free body transformations preserve consistency") 
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::rigidbody::iterations = 10;
+    settings::grid::min_bins = 100;
 
     // simple system with no constraints
     AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
