@@ -32,14 +32,14 @@ namespace ausaxs::rigidbody::controller {
             *
             * The step is split in two to provide access to the generated configuration before it is evaluated.
             * finish_step() must be called to complete the step.
+            * @return true if the step will be accepted, false otherwise.
             */
-            virtual void prepare_step() = 0;
+            virtual bool prepare_step() = 0;
 
             /**
              * @brief Finish the current step. 
-             * @return true if the step was accepted, false otherwise.
              */
-            virtual bool finish_step() = 0;
+            virtual void finish_step() = 0;
 
             observer_ptr<detail::Configuration> get_current_best_config() const;
             observer_ptr<detail::Configuration> get_current_config() const;
@@ -47,10 +47,11 @@ namespace ausaxs::rigidbody::controller {
             observer_ptr<const fitter::FitResult> get_calibration() const;
 
             protected:
+                bool step_accepted = false;
                 observer_ptr<Rigidbody> rigidbody;
                 std::unique_ptr<fitter::ConstrainedFitter> fitter;
                 std::unique_ptr<fitter::FitResult> calibration;
                 std::unique_ptr<rigidbody::detail::Configuration> current_config;
-                std::unique_ptr<rigidbody::detail::Configuration> current_best_config;
+                std::unique_ptr<rigidbody::detail::Configuration> current_best_config;            
     };
 }

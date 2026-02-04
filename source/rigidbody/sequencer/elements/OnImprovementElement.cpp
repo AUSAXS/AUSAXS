@@ -2,20 +2,19 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/OnImprovementElement.h>
+#include <rigidbody/sequencer/elements/OptimizeStepElement.h>
 #include <rigidbody/detail/Configuration.h>
-
-#include <limits>
 
 using namespace ausaxs::rigidbody::sequencer;
 
-OnImprovementElement::OnImprovementElement(observer_ptr<LoopElement> owner) : LoopElement(owner, 1), best_chi2(std::numeric_limits<double>::max()) {}
+OnImprovementElement::OnImprovementElement(observer_ptr<OptimizeStepElement> owner)
+    : LoopElement(owner, 1), owner(owner) {}
 
 OnImprovementElement::~OnImprovementElement() = default;
 
 void OnImprovementElement::run() {
-    double new_best_conf = _get_last_conf()->chi2;
-    if (new_best_conf < best_chi2) {
-        best_chi2 = new_best_conf;
+    // Only run children if the parent optimization step was accepted
+    if (owner->was_accepted()) {
         for (auto& e : elements) {
             e->run();
         }

@@ -12,8 +12,8 @@ namespace ausaxs::rigidbody::controller {
             ~SimpleController() override;
 
             void setup(const io::ExistingFile& measurement_path) override;
-            void prepare_step() override;
-            bool finish_step() override;
+            bool prepare_step() override;
+            void finish_step() override;
 
         private:
             /**

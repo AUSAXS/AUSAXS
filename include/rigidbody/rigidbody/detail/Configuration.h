@@ -15,6 +15,6 @@ namespace ausaxs::rigidbody::detail {
         ~Configuration();
 
         std::vector<parameter::BodyTransformParameters> parameters;
-        double chi2;
+        double chi2 = 1e9;
     };
 }

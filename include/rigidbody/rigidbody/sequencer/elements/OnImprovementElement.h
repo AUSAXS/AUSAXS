@@ -7,14 +7,20 @@
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
+    class OptimizeStepElement;
+
+    /**
+     * @brief A conditional element that runs its children only if the optimization step was accepted.
+     *        This must be a child of OptimizeStepElement.
+     */
     class OnImprovementElement : public LoopElement {
         public:
-            OnImprovementElement(observer_ptr<LoopElement> owner);
+            OnImprovementElement(observer_ptr<OptimizeStepElement> owner);
             ~OnImprovementElement() override;
 
             void run() override;
 
         private:
-            double best_chi2;
+            observer_ptr<OptimizeStepElement> owner;
     };
 }

@@ -50,7 +50,7 @@ void SimpleController::update_fitter() {
     }
 }
 
-void SimpleController::prepare_step() {
+bool SimpleController::prepare_step() {
     auto& molecule = rigidbody->molecule;
 
     // select a body to be modified this iteration
@@ -69,11 +69,18 @@ void SimpleController::prepare_step() {
     update_fitter();
     double new_chi2 = fitter->fit_chi2_only();
     current_config->chi2 = new_chi2;
+
+    step_accepted = current_config->chi2 < current_best_config->chi2;
+    return step_accepted;
 }
 
-bool SimpleController::finish_step() {
-    // if the old configuration was better
-    if (current_config->chi2 >= current_best_config->chi2) {
+void SimpleController::finish_step() {
+    if (step_accepted) {
+        // accept the changes
+        //? swap
+        *current_best_config = *current_config;
+        step_accepted = false;
+    } else {
         // undo the body transforms
         rigidbody->transformer->undo();
 
@@ -82,11 +89,5 @@ bool SimpleController::finish_step() {
         //? as the order of adding bodies may differ. perhaps the difference is negligible?
         rigidbody->molecule.clear_grid();
         rigidbody->molecule.generate_new_hydration();
-        return false;
-    } else {
-        // accept the changes
-        //? swap
-        *current_best_config = *current_config;
-        return true;
     }
 }

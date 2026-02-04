@@ -491,7 +491,11 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Eve
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OnImprovement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (!args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"on_improvement\". Expected 0, but got " + std::to_string(args.size()) + ".");}
-    return std::make_unique<OnImprovementElement>(loop_stack.back());
+    observer_ptr<OptimizeStepElement> optimize_step = nullptr;
+    if (loop_stack.empty() || !(optimize_step = dynamic_cast<OptimizeStepElement*>(loop_stack.back()))) {
+        throw except::invalid_argument("SequenceParser::parse_arguments: \"on_improvement\" must be inside an \"optimize_step\" block.");
+    }
+    return std::make_unique<OnImprovementElement>(optimize_step);
 }
 
 template<>
@@ -615,6 +619,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
             case ElementType::OptimizeStep:
                 loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::OptimizeStep>(args));
+                loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
                 break;
 
             case ElementType::EveryNStep:
@@ -655,5 +660,6 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                 throw except::invalid_argument("SequenceParser::constructor: Unknown element type \"" + tokens[0] + "\".");
         }
     }
+    if (loop_stack.size() != 1) {throw except::invalid_argument("SequenceParser::constructor: Missing \"end\" statements.");}
     return sequencer;
 }
