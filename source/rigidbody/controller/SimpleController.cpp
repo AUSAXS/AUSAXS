@@ -8,6 +8,7 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/Configuration.h>
+#include <rigidbody/detail/Conformation.h>
 #include <rigidbody/Rigidbody.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
@@ -57,10 +58,18 @@ bool SimpleController::prepare_step() {
     auto [ibody, iconstraint] = rigidbody->body_selector->next();
     if (iconstraint == -1) {    // transform free body
         auto param = rigidbody->parameter_generator->next(ibody);
+        // Store the parameters before applying
+        current_config->parameters[ibody].translation = param.translation;
+        current_config->parameters[ibody].rotation = param.rotation;
+        current_config->parameters[ibody].symmetry_pars = param.symmetry_pars;
         rigidbody->transformer->apply(std::move(param), ibody);
     } else {                    // transform constrained body
         DistanceConstraint& constraint = rigidbody->constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
         auto param = rigidbody->parameter_generator->next(ibody);
+        // Store the parameters before applying
+        current_config->parameters[ibody].translation = param.translation;
+        current_config->parameters[ibody].rotation = param.rotation;
+        current_config->parameters[ibody].symmetry_pars = param.symmetry_pars;
         rigidbody->transformer->apply(std::move(param), constraint);
     }
     molecule.generate_new_hydration(); 
@@ -76,9 +85,11 @@ bool SimpleController::prepare_step() {
 
 void SimpleController::finish_step() {
     if (step_accepted) {
-        // accept the changes
-        //? swap
+        // accept the changes - update both current_best_config and rigidbody's conformation
         *current_best_config = *current_config;
+        // Update the rigidbody's conformation configuration parameters to reflect the new state
+        rigidbody->conformation->configuration.parameters = current_best_config->parameters;
+        rigidbody->conformation->configuration.chi2 = current_best_config->chi2;
         step_accepted = false;
     } else {
         // undo the body transforms

@@ -30,6 +30,8 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
     }
 
     molecule.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+    constraints = std::make_unique<constraints::ConstraintManager>(this);
+    conformation = std::make_unique<rigidbody::detail::Conformation>(this);
     controller = factory::create_controller(this);
     body_selector = factory::create_selection_strategy(this);
     transformer = factory::create_transform_strategy(this);
@@ -39,8 +41,6 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
         5,
         std::numbers::pi/3
     );
-    constraints = std::make_unique<constraints::ConstraintManager>(this);
-    conformation = std::make_unique<rigidbody::detail::Conformation>(this);
 }
 
 Rigidbody::Rigidbody(Rigidbody&& other) = default;

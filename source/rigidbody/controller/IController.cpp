@@ -4,6 +4,7 @@
 #include <rigidbody/controller/IController.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/Configuration.h>
+#include <rigidbody/detail/Conformation.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/Grid.h>
 
@@ -14,16 +15,16 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::controller;
 
-std::unique_ptr<rigidbody::detail::Configuration> init_config() {
-    return std::make_unique<rigidbody::detail::Configuration>();
+std::unique_ptr<rigidbody::detail::Configuration> init_config(observer_ptr<Rigidbody> rigidbody) {
+    return std::make_unique<rigidbody::detail::Configuration>(rigidbody->conformation->configuration);
 }
 
-IController::IController(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody), current_config(init_config()), current_best_config(init_config()) {
+IController::IController(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody), current_config(init_config(rigidbody)), current_best_config(init_config(rigidbody)) {
     assert(rigidbody != nullptr && "IController: RigidBody must not be null.");
 }
 
 IController::IController(observer_ptr<Rigidbody> rigidbody, std::unique_ptr<fitter::FitResult> calibration) 
-    : rigidbody(rigidbody), calibration(std::move(calibration)), current_config(init_config()), current_best_config(init_config())
+    : rigidbody(rigidbody), calibration(std::move(calibration)), current_config(init_config(rigidbody)), current_best_config(init_config(rigidbody))
 {
     assert(rigidbody != nullptr && "IController: RigidBody must not be null.");
 }
