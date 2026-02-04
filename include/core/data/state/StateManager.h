@@ -16,6 +16,7 @@ namespace ausaxs::state {
 	class StateManager {
 		public:
 			StateManager(std::size_t size);
+			StateManager(std::size_t size, const std::vector<std::size_t>& symmetry_sizes);
 
 			/**
 			 * @brief Mark that all atoms of all bodies were internally modified. 

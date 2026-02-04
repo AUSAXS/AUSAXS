@@ -227,10 +227,10 @@ std::shared_ptr<signaller::Signaller> Body::get_signaller() const {
 
 void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
     this->signal = std::move(signal);
-    // Notify the new signaller about existing symmetries
-    if (size_symmetry() > 0) {
-        this->signal->set_symmetry_size(size_symmetry());
-    }
+    assert(( // verify the signaller contains the correct symmetry information
+        dynamic_cast<signaller::UnboundSignaller*>(this->signal.get()) // UnboundSignaller does not store symmetry sizes
+        || this->signal->get_symmetry_size() == size_symmetry()) && "Body::register_probe: Symmetry size mismatch."
+    );
 }
 
 std::vector<data::AtomFF>& Body::get_atoms() {return atoms;}

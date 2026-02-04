@@ -13,7 +13,18 @@ StateManager::StateManager(std::size_t size)
     : _size(size), _externally_modified(size, true), _internally_modified(size, true), 
       _symmetry_modified(size, std::vector<bool>()), _modified_hydration(true), _modified(true)
 {
-    for (unsigned int i = 0; i < size; ++i) {
+    for (int i = 0; i < static_cast<int>(size); ++i) {
+        probes.emplace_back(std::make_shared<signaller::BoundSignaller>(i, this));
+    }
+}
+
+StateManager::StateManager(std::size_t size, const std::vector<std::size_t>& symmetry_sizes) 
+    : _size(size), _externally_modified(size, true), _internally_modified(size, true), 
+      _symmetry_modified(size), _modified_hydration(true), _modified(true)
+{
+    assert(symmetry_sizes.size() == size && "StateManager::StateManager: symmetry_sizes size mismatch");
+    for (int i = 0; i < static_cast<int>(size); ++i) {
+        _symmetry_modified[i] = std::vector<bool>(symmetry_sizes[i], false);
         probes.emplace_back(std::make_shared<signaller::BoundSignaller>(i, this));
     }
 }

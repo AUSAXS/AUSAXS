@@ -5,11 +5,18 @@
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
 #include <data/Molecule.h>
+#include <data/Body.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-BodyTracker::BodyTracker(observer_ptr<const data::Molecule> protein) : body_size(protein->size_body()), statemanager(std::make_unique<state::StateManager>(body_size)) {}
+BodyTracker::BodyTracker(observer_ptr<const data::Molecule> protein) : body_size(protein->size_body()) {
+    std::vector<std::size_t> symmetry_sizes(body_size);
+    for (int i = 0; i < static_cast<int>(body_size); ++i) {
+        symmetry_sizes[i] = protein->get_body(i).size_symmetry();
+    }
+    statemanager = std::make_unique<state::StateManager>(body_size, symmetry_sizes);
+}
 
 BodyTracker::~BodyTracker() = default;
 
