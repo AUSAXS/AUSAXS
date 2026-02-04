@@ -7,8 +7,8 @@
 #include <rigidbody/selection/BodySelectStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
-#include <rigidbody/detail/Configuration.h>
-#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/Rigidbody.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
@@ -58,41 +58,29 @@ bool SimpleController::prepare_step() {
     auto [ibody, iconstraint] = rigidbody->body_selector->next();
     if (iconstraint == -1) {    // transform free body
         auto param = rigidbody->parameter_generator->next(ibody);
-        // Store the parameters before applying
-        current_config->parameters[ibody].translation = param.translation;
-        current_config->parameters[ibody].rotation = param.rotation;
-        current_config->parameters[ibody].symmetry_pars = param.symmetry_pars;
         rigidbody->transformer->apply(std::move(param), ibody);
     } else {                    // transform constrained body
         DistanceConstraint& constraint = rigidbody->constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
         auto param = rigidbody->parameter_generator->next(ibody);
-        // Store the parameters before applying
-        current_config->parameters[ibody].translation = param.translation;
-        current_config->parameters[ibody].rotation = param.rotation;
-        current_config->parameters[ibody].symmetry_pars = param.symmetry_pars;
         rigidbody->transformer->apply(std::move(param), constraint);
     }
-    molecule.generate_new_hydration(); 
+    molecule.generate_new_hydration();
 
     // update the body location in the fitter
     update_fitter();
-    double new_chi2 = fitter->fit_chi2_only();
-    current_config->chi2 = new_chi2;
+    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
 
-    step_accepted = current_config->chi2 < current_best_config->chi2;
+    step_accepted = rigidbody->conformation->absolute_parameters.chi2 < current_best_config->chi2;
     return step_accepted;
 }
 
 void SimpleController::finish_step() {
     if (step_accepted) {
-        // accept the changes - update both current_best_config and rigidbody's conformation
-        *current_best_config = *current_config;
-        // Update the rigidbody's conformation configuration parameters to reflect the new state
-        rigidbody->conformation->configuration.parameters = current_best_config->parameters;
-        rigidbody->conformation->configuration.chi2 = current_best_config->chi2;
+        // accept the changes - update the best configuration
+        *current_best_config = rigidbody->conformation->absolute_parameters;
         step_accepted = false;
     } else {
-        // undo the body transforms
+        // undo the body transforms (restores rigidbody->conformation->absolute_parameters from backup)
         rigidbody->transformer->undo();
 
         // regenerate grid & hydration layer

@@ -5,7 +5,7 @@
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
-#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
 #include <utility/Random.h>
@@ -17,7 +17,7 @@ namespace ausaxs::rigidbody::parameter {
             using ParameterGenerationStrategy::ParameterGenerationStrategy;
             ~LimitedParameterGenerator() override = default;
 
-            RelativeTransformParameters next(int ibody) override;
+            BodyTransformParametersRelative next(int ibody) override;
     };
 }
 
@@ -25,9 +25,9 @@ namespace ausaxs::rigidbody::parameter {
  * @brief Generate a set of relative transformation parameters.
  */
 template<bool TRANSLATE, bool ROTATE, bool SYMMETRY>
-ausaxs::rigidbody::parameter::RelativeTransformParameters ausaxs::rigidbody::parameter::LimitedParameterGenerator<TRANSLATE, ROTATE, SYMMETRY>::next(int ibody) {
+ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody::parameter::LimitedParameterGenerator<TRANSLATE, ROTATE, SYMMETRY>::next(int ibody) {
     double scaling = decay_strategy->next();
-    assert(ibody < static_cast<int>(rigidbody->conformation->configuration.parameters.size()) && "ibody out of bounds");
+    assert(ibody < static_cast<int>(rigidbody->conformation->absolute_parameters.parameters.size()) && "ibody out of bounds");
 
     Vector3<double> t = {0, 0, 0};
     if constexpr (TRANSLATE) {
@@ -45,23 +45,22 @@ ausaxs::rigidbody::parameter::RelativeTransformParameters ausaxs::rigidbody::par
 
     std::vector<symmetry::Symmetry> symmetry_pars;
     if constexpr (SYMMETRY) {
-        // Get current symmetry params and generate deltas
-        auto& current_pars = rigidbody->conformation->configuration.parameters[ibody];
-        symmetry_pars = current_pars.symmetry_pars;
-        
+        // Generate deltas for symmetry parameters
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
+        symmetry_pars.resize(symmetries->symmetries.size());
+        
         for (size_t i = 0; i < symmetries->symmetries.size(); ++i) {
             if (symmetries->optimize_translate) {
-                symmetry_pars[i].initial_relation.translation.x() += translation_symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.translation.y() += translation_symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.translation.z() += translation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.translation.x() = translation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.translation.y() = translation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.translation.z() = translation_symmetry_dist(random::generator())*scaling;
             }
 
             if (symmetries->optimize_rotate) {
                 // initial_relation.orientation allows arbitrary reorientation before applying symmetry
-                symmetry_pars[i].initial_relation.orientation.x() += rotation_symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.orientation.y() += rotation_symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.orientation.z() += rotation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.orientation.x() = rotation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.orientation.y() = rotation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.orientation.z() = rotation_symmetry_dist(random::generator())*scaling;
             }
         }
     }

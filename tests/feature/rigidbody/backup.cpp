@@ -3,10 +3,9 @@
 
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/BodySplitter.h>
-#include <rigidbody/detail/Conformation.h>
-#include <rigidbody/detail/Configuration.h>
-#include <rigidbody/parameters/BodyTransformParameters.h>
-#include <rigidbody/parameters/RelativeTransformParameters.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
@@ -32,10 +31,10 @@ TEST_CASE("Backup: Parameters updated in configuration after transformation") {
     unsigned int ibody = 0;
     auto& transformer = rigidbody.transformer;
 
-    auto original_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto original_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
     Vector3<double> delta_rotation = {1, 1, 1};
     Vector3<double> delta_translation = {1, 1, 1};
-    auto delta_params = parameter::RelativeTransformParameters{delta_translation, delta_rotation};
+    auto delta_params = parameter::BodyTransformParametersRelative{delta_translation, delta_rotation};
     
     // Expected rotation: R_new = R_delta * R_original (where R_original is identity since original_params.rotation starts at 0)
     auto expected_R = matrix::rotation_matrix(delta_rotation);
@@ -48,7 +47,7 @@ TEST_CASE("Backup: Parameters updated in configuration after transformation") {
     transformer->apply(std::move(delta_params), ibody);
 
     // Verify configuration.parameters were updated
-    auto& updated_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto& updated_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
     // Check that the stored rotation produces the same rotation matrix as the delta
     auto actual_R = matrix::rotation_matrix(updated_params.rotation);
@@ -79,7 +78,7 @@ TEST_CASE("Backup: Parameters restored after undo") {
     auto& param_gen = rigidbody.parameter_generator;
 
     // Store original parameters
-    auto original_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto original_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
     auto original_rotation = original_params.rotation;
     auto original_translation = original_params.translation;
 
@@ -89,7 +88,7 @@ TEST_CASE("Backup: Parameters restored after undo") {
     transformer->undo();
 
     // Verify parameters were restored
-    auto& restored_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto& restored_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
     INFO("Rotation should be restored after undo");
     REQUIRE_THAT(restored_params.rotation.x(), Catch::Matchers::WithinAbs(original_rotation.x(), 1e-6));
@@ -120,8 +119,8 @@ TEST_CASE("Backup: Body positions match parameters after transformation") {
     transformer->apply(std::move(new_params), ibody);
 
     // Reconstruct body from original + parameters
-    auto& original_body = rigidbody.conformation->original_conformation[ibody];
-    auto& params = rigidbody.conformation->configuration.parameters[ibody];
+    auto& original_body = rigidbody.conformation->initial_conformation[ibody];
+    auto& params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
     // Manually apply transformation to original body
     auto reconstructed_body = original_body;
@@ -160,12 +159,12 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
 
         // Store original parameters
-        auto original_params = rigidbody.conformation->configuration.parameters;
+        auto original_params = rigidbody.conformation->absolute_parameters.parameters;
 
         // Apply constraint-based transformation
         Vector3<double> delta_rotation = {1, 1, 1};
         Vector3<double> delta_translation = {1, 1, 1};
-        auto delta_params = parameter::RelativeTransformParameters{delta_translation, delta_rotation};
+        auto delta_params = parameter::BodyTransformParametersRelative{delta_translation, delta_rotation};
         auto expected_R = matrix::rotation_matrix(delta_rotation);
         
         // For constraint-based transforms, the pivot is the constraining atom position
@@ -177,12 +176,12 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         transformer->apply(std::move(delta_params), constraint);
 
         // Verify the selected body's parameters were updated
-        auto& updated_params = rigidbody.conformation->configuration.parameters[ibody];
+        auto& updated_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
         INFO("SingleTransform should update only the selected body's parameters");
         for (unsigned int i = 0; i < 3; ++i) {
             if (i == ibody) continue;
-            auto& other_params = rigidbody.conformation->configuration.parameters[i];
+            auto& other_params = rigidbody.conformation->absolute_parameters.parameters[i];
             REQUIRE((other_params.rotation == original_params[i].rotation && other_params.translation == original_params[i].translation));
         }
 
@@ -211,7 +210,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
 
         // Store original parameters for all bodies
-        std::vector<rigidbody::parameter::BodyTransformParameters> original_params = rigidbody.conformation->configuration.parameters;
+        std::vector<rigidbody::parameter::BodyTransformParametersAbsolute> original_params = rigidbody.conformation->absolute_parameters.parameters;
 
         // Apply rigid transformation
         auto new_params = param_gen->next(ibody);
@@ -220,7 +219,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         // At least one body should have updated parameters
         bool any_updated = false;
         for (unsigned int i = 0; i < rigidbody.molecule.size_body(); ++i) {
-            auto& updated = rigidbody.conformation->configuration.parameters[i];
+            auto& updated = rigidbody.conformation->absolute_parameters.parameters[i];
             auto& original = original_params[i];
 
             if (updated.rotation != original.rotation || updated.translation != original.translation) {
@@ -248,20 +247,20 @@ TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
     auto& param_gen = rigidbody.parameter_generator;
 
     // Store initial state
-    auto state0_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto state0_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
     auto state0_body = rigidbody.molecule.get_body(ibody);
 
     // Apply transformation
     auto new_params = param_gen->next(ibody);
     transformer->apply(std::move(new_params), ibody);
-    auto state1_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto state1_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
     // Verify transformation happened
     REQUIRE((state0_params.rotation != state1_params.rotation || state0_params.translation != state1_params.translation));
 
     // Undo transformation
     transformer->undo();
-    auto restored_params = rigidbody.conformation->configuration.parameters[ibody];  // Make a copy, not a reference
+    auto restored_params = rigidbody.conformation->absolute_parameters.parameters[ibody];  // Make a copy, not a reference
     auto& restored_body = rigidbody.molecule.get_body(ibody);
 
     INFO("Undo should restore to previous state");
@@ -275,14 +274,14 @@ TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
     // Apply a new transformation
     auto new_params2 = param_gen->next(ibody);
     transformer->apply(std::move(new_params2), ibody);
-    auto state2_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto state2_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
     INFO("After undo and new apply, we should be in a different state");
     REQUIRE((restored_params.rotation != state2_params.rotation || restored_params.translation != state2_params.translation));
 
     // Undo again - should go back to state after first undo
     transformer->undo();
-    auto& final_params = rigidbody.conformation->configuration.parameters[ibody];
+    auto& final_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
     INFO("Second undo should restore to state before second apply (which was state0)");
     REQUIRE_THAT(final_params.rotation.x(), Catch::Matchers::WithinAbs(state0_params.rotation.x(), 1e-6));

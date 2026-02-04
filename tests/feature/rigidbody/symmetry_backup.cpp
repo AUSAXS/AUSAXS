@@ -4,9 +4,9 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/detail/Conformation.h>
-#include <rigidbody/detail/Configuration.h>
-#include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/transform/TransformStrategy.h>
@@ -35,7 +35,7 @@ TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation
         REQUIRE(rigidbody.molecule.get_body(0).size_symmetry() == 1);
 
         // Verify original_conformation also has matching symmetry structure
-        auto& original_body = rigidbody.conformation->original_conformation[0];
+        auto& original_body = rigidbody.conformation->initial_conformation[0];
         INFO("original_conformation must have same symmetry structure as molecule body");
         REQUIRE(original_body.size_symmetry() == 1);
 
@@ -51,7 +51,7 @@ TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation
         REQUIRE(orig_storage != nullptr);
 
         // Verify configuration.parameters has symmetry_pars initialized
-        REQUIRE(rigidbody.conformation->configuration.parameters[0].symmetry_pars.size() == 1);
+        REQUIRE(rigidbody.conformation->absolute_parameters.parameters[0].symmetry_pars.size() == 1);
     }
 }
 
@@ -70,7 +70,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     unsigned int ibody = 0;
 
     // Store original symmetry parameters
-    auto original_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+    auto original_sym_pars = rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars;
     REQUIRE(original_sym_pars.size() == 1);
 
     auto original_sym_translation = original_sym_pars[0].initial_relation.translation;
@@ -91,7 +91,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     transformer->apply(std::move(new_params), ibody);
 
     // Verify symmetry parameters were updated in configuration
-    auto& updated_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+    auto& updated_sym_pars = rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars;
     REQUIRE(updated_sym_pars.size() == 1);
 
     INFO("Symmetry parameters should be updated after transformation");
@@ -103,7 +103,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     transformer->undo();
 
     // Verify symmetry parameters were restored
-    auto& restored_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+    auto& restored_sym_pars = rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars;
     REQUIRE(restored_sym_pars.size() == 1);
 
     INFO("Symmetry parameters should be restored after undo");
@@ -135,7 +135,7 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
     REQUIRE(initial_storage != nullptr);
     
     // Verify configuration was properly initialized with symmetry parameters
-    REQUIRE(rigidbody.conformation->configuration.parameters[ibody].symmetry_pars.size() == 1);
+    REQUIRE(rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars.size() == 1);
 
     // Apply a transformation
     auto& transformer = rigidbody.transformer;
@@ -181,7 +181,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
 
         // Store original symmetry state
         auto original_size = rigidbody.molecule.get_body(ibody).size_symmetry();
-        auto original_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+        auto original_sym_pars = rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars;
 
         // Apply constraint-based transformation
         auto& transformer = rigidbody.transformer;
@@ -205,7 +205,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         transformer->undo();
 
         REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == original_size);
-        auto& restored_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+        auto& restored_sym_pars = rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars;
         REQUIRE(restored_sym_pars.size() == original_sym_pars.size());
     }
 
@@ -222,7 +222,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
 
         // Store original symmetry state
         auto original_size = rigidbody.molecule.get_body(ibody).size_symmetry();
-        auto original_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+        auto original_sym_pars = rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars;
 
         // Apply constraint-based transformation
         auto& transformer = rigidbody.transformer;
@@ -246,7 +246,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         transformer->undo();
 
         REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == original_size);
-        auto& restored_sym_pars = rigidbody.conformation->configuration.parameters[ibody].symmetry_pars;
+        auto& restored_sym_pars = rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars;
         REQUIRE(restored_sym_pars.size() == original_sym_pars.size());
     }
 }
@@ -275,8 +275,8 @@ TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity"
 
         INFO("After transformation " << i);
         REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
-        REQUIRE(rigidbody.conformation->configuration.parameters[ibody].symmetry_pars.size() == 1);
-        REQUIRE(rigidbody.conformation->original_conformation[ibody].size_symmetry() == 1);
+        REQUIRE(rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars.size() == 1);
+        REQUIRE(rigidbody.conformation->initial_conformation[ibody].size_symmetry() == 1);
 
         // Verify OptimizableSymmetryStorage is maintained
         auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(

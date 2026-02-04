@@ -6,8 +6,8 @@
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
-#include <rigidbody/parameters/RelativeTransformParameters.h>
-#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
@@ -49,7 +49,7 @@ RigidTransform::RigidTransform(observer_ptr<Rigidbody> rigidbody) : TransformStr
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(parameter::RelativeTransformParameters&& par, constraints::DistanceConstraint& constraint) {
+void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
 
@@ -69,7 +69,7 @@ void RigidTransform::apply(parameter::RelativeTransformParameters&& par, constra
     
     for (unsigned int i = 0; i < group.bodies.size(); i++) {
         unsigned int ibody = group.indices[i];
-        const auto& old_params = rigidbody->conformation->configuration.parameters[ibody];
+        const auto& old_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
         
         // R_B_new = R_delta * R_B
         // t_B_new = R_delta * (t_B - pivot) + pivot + t_delta
@@ -85,13 +85,20 @@ void RigidTransform::apply(parameter::RelativeTransformParameters&& par, constra
         
         grid->remove(*group.bodies[i]);
         
-        auto body = rigidbody->conformation->original_conformation[ibody];
+        auto body = rigidbody->conformation->initial_conformation[ibody];
+        auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
         const auto& [rotation, translation] = new_params[i];
         body.rotate(matrix::rotation_matrix(rotation));
         body.translate(translation);
         
-        rigidbody->conformation->configuration.parameters[ibody].rotation = rotation;
-        rigidbody->conformation->configuration.parameters[ibody].translation = translation;
+        current_params.rotation = rotation;
+        current_params.translation = translation;
+
+        auto& updated_body = rigidbody->molecule.get_body(ibody);
+        current_params.symmetry_pars.clear();
+        for (unsigned int i = 0; i < updated_body.size_symmetry(); ++i) {
+            current_params.symmetry_pars.push_back(updated_body.symmetry().get(i));
+        }
         
         rigidbody->molecule.get_body(ibody) = std::move(body);
     }

@@ -5,7 +5,7 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
-#include <rigidbody/parameters/RelativeTransformParameters.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
 #include <utility/observer_ptr.h>
@@ -34,7 +34,7 @@ namespace ausaxs::rigidbody::transform {
              * @param par The relative transformation to apply.
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(parameter::RelativeTransformParameters&& par, constraints::DistanceConstraint& constraint) = 0;
+            virtual void apply(parameter::BodyTransformParametersRelative&& par, constraints::DistanceConstraint& constraint) = 0;
 
             /**
              * @brief Apply a relative transformation to a single body. 
@@ -46,7 +46,7 @@ namespace ausaxs::rigidbody::transform {
              * @param par The relative transformation to apply.
              * @param ibody The index of the body to transform.
              */
-            virtual void apply(parameter::RelativeTransformParameters&& par, unsigned int ibody);
+            virtual void apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody);
 
             /**
              * @brief Undo the previous transformation. 
@@ -90,6 +90,6 @@ namespace ausaxs::rigidbody::transform {
             /**
              * @brief Apply symmetry transformations to a body.
              */
-            virtual void symmetry(std::vector<symmetry::Symmetry>&& symmetry_pars, data::Body& body);
+            virtual void symmetry(std::vector<symmetry::Symmetry>&& symmetry_deltas, data::Body& body);
     };
 }

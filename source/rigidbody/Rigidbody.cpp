@@ -8,7 +8,7 @@
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/controller/ControllerFactory.h>
-#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <fitter/SmartFitter.h>
 #include <fitter/FitResult.h>
 #include <data/Molecule.h>
@@ -31,7 +31,7 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
 
     molecule.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
     constraints = std::make_unique<constraints::ConstraintManager>(this);
-    conformation = std::make_unique<rigidbody::detail::Conformation>(this);
+    conformation = std::make_unique<rigidbody::detail::SystemSpecification>(this);
     controller = factory::create_controller(this);
     body_selector = factory::create_selection_strategy(this);
     transformer = factory::create_transform_strategy(this);

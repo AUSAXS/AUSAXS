@@ -5,9 +5,9 @@
 
 namespace ausaxs::rigidbody {
     struct Rigidbody;
-    namespace detail            {
-        struct Configuration;
-        struct Conformation;
+    namespace detail {
+        struct SystemSpecification;
+        struct MoleculeTransformParametersAbsolute;
     }
     namespace transform         {class TransformStrategy;}
     namespace selection         {class BodySelectStrategy;}

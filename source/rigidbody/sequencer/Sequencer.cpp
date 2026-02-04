@@ -45,16 +45,10 @@ observer_ptr<Sequencer> Sequencer::_get_sequencer() {
     return this;
 }
 
-observer_ptr<rigidbody::detail::Configuration> Sequencer::_get_best_conf() const {
+observer_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> Sequencer::_get_best_conf() const {
     assert(rigidbody != nullptr && "Sequencer::_get_best_conf: Rigidbody not set.");
     assert(_get_controller() != nullptr && "Sequencer::_get_best_conf: Controller not set.");
     return _get_controller()->get_current_best_config();
-}
-
-observer_ptr<rigidbody::detail::Configuration> Sequencer::_get_last_conf() const {
-    assert(rigidbody != nullptr && "Sequencer::_get_last_conf: Rigidbody not set.");
-    assert(_get_controller() != nullptr && "Sequencer::_get_last_conf: Controller not set.");
-    return _get_controller()->get_current_config();
 }
 
 observer_ptr<controller::IController> Sequencer::_get_controller() const {

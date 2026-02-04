@@ -4,14 +4,14 @@
 #pragma once
 
 #include <data/Body.h>
-#include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 
 namespace ausaxs::rigidbody::transform {
     struct BackupBody {
-        BackupBody(const data::Body& body, unsigned int index, const parameter::BodyTransformParameters& params) 
+        BackupBody(const data::Body& body, unsigned int index, const parameter::BodyTransformParametersAbsolute& params) 
             : body(body), index(index), params(params) {}
         data::Body body;
         unsigned int index;
-        parameter::BodyTransformParameters params;
+        parameter::BodyTransformParametersAbsolute params;
     };
 }

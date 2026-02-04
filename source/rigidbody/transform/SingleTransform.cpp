@@ -4,9 +4,9 @@
 #include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
-#include <rigidbody/parameters/RelativeTransformParameters.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
-#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/Grid.h>
 #include <data/Body.h>
@@ -42,7 +42,7 @@ SingleTransform::SingleTransform(observer_ptr<Rigidbody> rigidbody) : TransformS
 
 SingleTransform::~SingleTransform() = default;
 
-void SingleTransform::apply(parameter::RelativeTransformParameters&& par, constraints::DistanceConstraint& constraint) {
+void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, constraints::DistanceConstraint& constraint) {
     unsigned int ibody = constraint.ibody1;
     auto& body_ref = rigidbody->molecule.get_body(ibody);
     auto grid = rigidbody->molecule.get_grid();
@@ -58,7 +58,7 @@ void SingleTransform::apply(parameter::RelativeTransformParameters&& par, constr
 
     // Compute new absolute parameters from current + delta
     // Rotation happens around the pivot point
-    auto& current_params = rigidbody->conformation->configuration.parameters[ibody];
+    auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
     auto R_delta = matrix::rotation_matrix(par.rotation);
     
     auto new_rotation = compose_rotation(R_delta, current_params.rotation);
@@ -66,7 +66,7 @@ void SingleTransform::apply(parameter::RelativeTransformParameters&& par, constr
     auto new_translation = R_delta * (current_params.translation - pivot) + pivot + par.translation;
 
     // Get fresh body from original_conformation and apply new absolute transformation
-    auto body = rigidbody->conformation->original_conformation[ibody];
+    auto body = rigidbody->conformation->initial_conformation[ibody];
 
     body.rotate(matrix::rotation_matrix(new_rotation));
     body.translate(new_translation);
@@ -78,6 +78,13 @@ void SingleTransform::apply(parameter::RelativeTransformParameters&& par, constr
     // Update configuration with new absolute parameters
     current_params.rotation = new_rotation;
     current_params.translation = new_translation;
+    
+    // Extract the new absolute symmetry parameters back to current_params
+    auto& updated_body = rigidbody->molecule.get_body(ibody);
+    current_params.symmetry_pars.clear();
+    for (unsigned int i = 0; i < updated_body.size_symmetry(); ++i) {
+        current_params.symmetry_pars.push_back(updated_body.symmetry().get(i));
+    }
 
     // Ensure grid has space
     rigidbody->refresh_grid();

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <rigidbody/detail/Configuration.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -17,12 +17,12 @@ namespace ausaxs::rigidbody::detail {
      * For convenience, the contained bodies are moved to the origin, with the configuration
      * initialized with the center of mass of each body required to restore the original conformation.
      */
-    struct Conformation {
-        Conformation();
-        Conformation(observer_ptr<const Rigidbody> rigidbody);
-        ~Conformation();
+    struct SystemSpecification {
+        SystemSpecification();
+        SystemSpecification(observer_ptr<const Rigidbody> rigidbody);
+        ~SystemSpecification();
 
-        Configuration configuration;
-        std::vector<data::Body> original_conformation;
+        MoleculeTransformParametersAbsolute absolute_parameters;
+        std::vector<data::Body> initial_conformation;
     };
 }

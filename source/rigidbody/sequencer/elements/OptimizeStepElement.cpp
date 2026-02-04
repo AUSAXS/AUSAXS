@@ -3,7 +3,7 @@
 
 #include <rigidbody/sequencer/elements/OptimizeStepElement.h>
 #include <rigidbody/sequencer/elements/OnImprovementElement.h>
-#include <rigidbody/detail/Configuration.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/Rigidbody.h>
 #include <settings/GeneralSettings.h>

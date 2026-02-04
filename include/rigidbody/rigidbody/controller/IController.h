@@ -41,17 +41,15 @@ namespace ausaxs::rigidbody::controller {
              */
             virtual void finish_step() = 0;
 
-            observer_ptr<detail::Configuration> get_current_best_config() const;
-            observer_ptr<detail::Configuration> get_current_config() const;
+            observer_ptr<detail::MoleculeTransformParametersAbsolute> get_current_best_config() const;
             observer_ptr<fitter::ConstrainedFitter> get_fitter() const;
             observer_ptr<const fitter::FitResult> get_calibration() const;
 
-            protected:
-                bool step_accepted = false;
-                observer_ptr<Rigidbody> rigidbody;
-                std::unique_ptr<fitter::ConstrainedFitter> fitter;
-                std::unique_ptr<fitter::FitResult> calibration;
-                std::unique_ptr<rigidbody::detail::Configuration> current_config;
-                std::unique_ptr<rigidbody::detail::Configuration> current_best_config;            
+        protected:
+            bool step_accepted = false;
+            observer_ptr<Rigidbody> rigidbody;
+            std::unique_ptr<fitter::ConstrainedFitter> fitter;
+            std::unique_ptr<fitter::FitResult> calibration;
+            std::unique_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> current_best_config;            
     };
 }

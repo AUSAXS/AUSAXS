@@ -19,8 +19,8 @@ add_library(ausaxs_rigidbody OBJECT
 	"controller/IController.cpp"
 	"controller/SimpleController.cpp"
 
-	"detail/Configuration.cpp"
-	"detail/Conformation.cpp"
+	"detail/MoleculeTransformParametersAbsolute.cpp"
+	"detail/SystemSpecification.cpp"
 	
 	"parameters/ParameterGenerationFactory.cpp"
 	"parameters/ParameterGenerationStrategy.cpp"

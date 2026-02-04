@@ -5,9 +5,9 @@
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/controller/SimpleController.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/detail/Conformation.h>
-#include <rigidbody/detail/Configuration.h>
-#include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <data/Molecule.h>
@@ -26,8 +26,8 @@ using namespace ausaxs::rigidbody;
 void verify_configuration_consistency(const Rigidbody& rigidbody) {
     for (size_t ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
         const auto& current_body = rigidbody.molecule.get_body(ibody);
-        const auto& original_body = rigidbody.conformation->original_conformation[ibody];
-        const auto& params = rigidbody.conformation->configuration.parameters[ibody];
+        const auto& original_body = rigidbody.conformation->initial_conformation[ibody];
+        const auto& params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
         // original_conformation should be centered at origin
         auto original_cm = original_body.get_cm(false);
@@ -195,7 +195,8 @@ TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
 
         // run several optimization steps
         for (int i = 0; i < 10; ++i) {
-            controller->run_step();
+            controller->prepare_step();
+            controller->finish_step();
             
             INFO("After optimization step " << i << " with SingleTransform");
             verify_configuration_consistency(rigidbody);
@@ -211,7 +212,8 @@ TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
 
         // run several optimization steps
         for (int i = 0; i < 10; ++i) {
-            controller->run_step();
+            controller->prepare_step();
+            controller->finish_step();
             
             INFO("After optimization step " << i << " with RigidTransform");
             verify_configuration_consistency(rigidbody);
@@ -232,7 +234,7 @@ TEST_CASE("AbsoluteParameters: Undo restores configuration.parameters") {
     Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2}});
 
     // store original parameters
-    auto original_params = rigidbody.conformation->configuration.parameters[0];
+    auto original_params = rigidbody.conformation->absolute_parameters.parameters[0];
 
     // apply a transformation
     auto& transformer = rigidbody.transformer;
@@ -246,7 +248,7 @@ TEST_CASE("AbsoluteParameters: Undo restores configuration.parameters") {
     transformer->apply(std::move(new_params), 0);
     
     // verify parameters were updated
-    auto& updated_params = rigidbody.conformation->configuration.parameters[0];
+    auto& updated_params = rigidbody.conformation->absolute_parameters.parameters[0];
     REQUIRE(updated_params.translation.x() == expected_new_translation.x());
     REQUIRE(updated_params.translation.y() == expected_new_translation.y());
     REQUIRE(updated_params.translation.z() == expected_new_translation.z());
@@ -255,7 +257,7 @@ TEST_CASE("AbsoluteParameters: Undo restores configuration.parameters") {
     transformer->undo();
 
     // verify parameters were restored
-    auto& restored_params = rigidbody.conformation->configuration.parameters[0];
+    auto& restored_params = rigidbody.conformation->absolute_parameters.parameters[0];
     REQUIRE_THAT(restored_params.translation.x(), Catch::Matchers::WithinAbs(original_params.translation.x(), 1e-6));
     REQUIRE_THAT(restored_params.translation.y(), Catch::Matchers::WithinAbs(original_params.translation.y(), 1e-6));
     REQUIRE_THAT(restored_params.translation.z(), Catch::Matchers::WithinAbs(original_params.translation.z(), 1e-6));

@@ -5,9 +5,9 @@
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/parameters/BodyTransformParameters.h>
-#include <rigidbody/detail/Conformation.h>
-#include <rigidbody/detail/Configuration.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/detail/SystemSpecification.h>
 
 #include <data/Body.h>
 #include <rigidbody/Rigidbody.h>
@@ -158,8 +158,8 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
 
         for (unsigned int ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
             auto& current_body = rigidbody.molecule.get_body(ibody);
-            auto& params = rigidbody.conformation->configuration.parameters[ibody];
-            auto& original = rigidbody.conformation->original_conformation[ibody];
+            auto& params = rigidbody.conformation->absolute_parameters.parameters[ibody];
+            auto& original = rigidbody.conformation->initial_conformation[ibody];
 
             // Reconstruct from original + parameters
             Body reconstructed = original;

@@ -6,9 +6,9 @@
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/parameters/BodyTransformParameters.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <math/MatrixUtils.h>
@@ -38,7 +38,7 @@ TEST_CASE("RigidTransform: Secondary body parameter updates") {
     auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
 
     // Store initial parameters for all bodies
-    std::vector<rigidbody::parameter::BodyTransformParameters> initial_params = rigidbody.conformation->configuration.parameters;
+    std::vector<rigidbody::parameter::BodyTransformParametersAbsolute> initial_params = rigidbody.conformation->absolute_parameters.parameters;
     
     // Also store initial body CMs
     std::vector<Vector3<double>> initial_cms;
@@ -53,7 +53,7 @@ TEST_CASE("RigidTransform: Secondary body parameter updates") {
     // At least one body should have updated parameters (the rigid group that was transformed)
     int bodies_updated = 0;
     for (size_t i = 0; i < rigidbody.molecule.size_body(); ++i) {
-        auto& updated = rigidbody.conformation->configuration.parameters[i];
+        auto& updated = rigidbody.conformation->absolute_parameters.parameters[i];
         auto& original = initial_params[i];
 
         if (updated.rotation != original.rotation || updated.translation != original.translation) {
@@ -67,8 +67,8 @@ TEST_CASE("RigidTransform: Secondary body parameter updates") {
     // Verify parameters can reconstruct the current state for ALL bodies
     for (size_t i = 0; i < rigidbody.molecule.size_body(); ++i) {
         auto& current_body = rigidbody.molecule.get_body(i);
-        auto& params = rigidbody.conformation->configuration.parameters[i];
-        auto& original = rigidbody.conformation->original_conformation[i];
+        auto& params = rigidbody.conformation->absolute_parameters.parameters[i];
+        auto& original = rigidbody.conformation->initial_conformation[i];
 
         // Reconstruct from original + parameters
         Body reconstructed = original;
@@ -170,8 +170,8 @@ TEST_CASE("RigidTransform: Orbital motion correctness") {
     REQUIRE_THAT(final_dist, Catch::Matchers::WithinAbs(initial_dist, 1e-6));
 
     // Verify transformed body had its parameters updated and can be reconstructed
-    auto& params_0 = rigidbody.conformation->configuration.parameters[0];
-    auto& original_0 = rigidbody.conformation->original_conformation[0];
+    auto& params_0 = rigidbody.conformation->absolute_parameters.parameters[0];
+    auto& original_0 = rigidbody.conformation->initial_conformation[0];
     
     Body reconstructed = original_0;
     reconstructed.rotate(matrix::rotation_matrix(params_0.rotation));
@@ -211,8 +211,8 @@ TEST_CASE("RigidTransform: Multi-step transformation consistency") {
         // Verify all bodies can be reconstructed from parameters
         for (size_t i = 0; i < rigidbody.molecule.size_body(); ++i) {
             auto& current_body = rigidbody.molecule.get_body(i);
-            auto& body_params = rigidbody.conformation->configuration.parameters[i];
-            auto& original = rigidbody.conformation->original_conformation[i];
+            auto& body_params = rigidbody.conformation->absolute_parameters.parameters[i];
+            auto& original = rigidbody.conformation->initial_conformation[i];
 
             Body reconstructed = original;
             reconstructed.rotate(matrix::rotation_matrix(body_params.rotation));

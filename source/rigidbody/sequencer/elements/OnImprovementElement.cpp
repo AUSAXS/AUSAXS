@@ -3,7 +3,6 @@
 
 #include <rigidbody/sequencer/elements/OnImprovementElement.h>
 #include <rigidbody/sequencer/elements/OptimizeStepElement.h>
-#include <rigidbody/detail/Configuration.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 

@@ -5,7 +5,7 @@
 
 #include <math/MathFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
-#include <rigidbody/parameters/RelativeTransformParameters.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
 
@@ -42,7 +42,7 @@ namespace ausaxs::rigidbody::parameter {
             /**
              * @brief Get the next relative transformation for the given body.
              */
-            virtual RelativeTransformParameters next(int ibody) = 0;
+            virtual BodyTransformParametersRelative next(int ibody) = 0;
 
             /**
              * @brief Set the decay strategy.

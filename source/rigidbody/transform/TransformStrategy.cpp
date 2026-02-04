@@ -4,8 +4,8 @@
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
-#include <rigidbody/parameters/RelativeTransformParameters.h>
-#include <rigidbody/detail/Conformation.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
@@ -36,10 +36,13 @@ void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vect
     std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (observer_ptr<data::Body> body) {body->translate(group.pivot+t);});
 }
 
-void TransformStrategy::symmetry(std::vector<symmetry::Symmetry>&& symmetry_pars, data::Body& body) {
-    assert(symmetry_pars.size() == body.size_symmetry());
+void TransformStrategy::symmetry(std::vector<symmetry::Symmetry>&& symmetry_deltas, data::Body& body) {
+    assert(symmetry_deltas.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
-        body.symmetry().get(i) = symmetry_pars[i];
+        // Add the deltas to the current symmetry parameters
+        auto& current_sym = body.symmetry().get(i);
+        current_sym.initial_relation.translation += symmetry_deltas[i].initial_relation.translation;
+        current_sym.initial_relation.orientation += symmetry_deltas[i].initial_relation.orientation;
         body.get_signaller()->modified_symmetry(i);
     }
 }
@@ -80,20 +83,20 @@ namespace {
     }
 }
 
-void TransformStrategy::apply(parameter::RelativeTransformParameters&& par, unsigned int ibody) {
+void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody) {
     auto grid = rigidbody->molecule.get_grid();
 
     {   // remove old body and backup
         auto& body = rigidbody->molecule.get_body(ibody);
 
         bodybackup.clear();
-        bodybackup.emplace_back(body, ibody, rigidbody->conformation->configuration.parameters[ibody]);
+        bodybackup.emplace_back(body, ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
 
         grid->remove(body);
     }
 
     {   // Compute new absolute parameters from current + delta
-        auto& current_params = rigidbody->conformation->configuration.parameters[ibody];
+        auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
         auto R_delta = matrix::rotation_matrix(par.rotation);
         
         // R_new = R_delta * R_current, t_new = R_delta * t_current + t_delta
@@ -101,8 +104,8 @@ void TransformStrategy::apply(parameter::RelativeTransformParameters&& par, unsi
         auto new_translation = R_delta * current_params.translation + par.translation;
 
         // Get fresh body and apply the new absolute transformation
-        assert(ibody < rigidbody->conformation->original_conformation.size() && "ibody out of bounds");
-        auto body = rigidbody->conformation->original_conformation[ibody];
+        assert(ibody < rigidbody->conformation->initial_conformation.size() && "ibody out of bounds");
+        auto body = rigidbody->conformation->initial_conformation[ibody];
 
         body.rotate(matrix::rotation_matrix(new_rotation));
         body.translate(new_translation);
@@ -116,6 +119,13 @@ void TransformStrategy::apply(parameter::RelativeTransformParameters&& par, unsi
         // Update configuration with new absolute parameters
         current_params.rotation = new_rotation;
         current_params.translation = new_translation;
+        
+        // Extract the new absolute symmetry parameters back to current_params
+        auto& body_ref = rigidbody->molecule.get_body(ibody);
+        current_params.symmetry_pars.clear();
+        for (unsigned int i = 0; i < body_ref.size_symmetry(); ++i) {
+            current_params.symmetry_pars.push_back(body_ref.symmetry().get(i));
+        }
 
         // Ensure there is space for the new conformation in the grid
         rigidbody->refresh_grid();
@@ -128,7 +138,7 @@ void TransformStrategy::apply(parameter::RelativeTransformParameters&& par, unsi
 void TransformStrategy::undo() {
     for (auto& body : bodybackup) {
         rigidbody->molecule.get_body(body.index) = std::move(body.body);
-        rigidbody->conformation->configuration.parameters[body.index] = std::move(body.params);
+        rigidbody->conformation->absolute_parameters.parameters[body.index] = std::move(body.params);
     }
     bodybackup.clear();
 }
@@ -136,6 +146,6 @@ void TransformStrategy::undo() {
 void TransformStrategy::backup(TransformGroup& group) {
     bodybackup.clear();
     for (unsigned int i = 0; i < group.bodies.size(); i++) {
-        bodybackup.emplace_back(*group.bodies[i], group.indices[i], rigidbody->conformation->configuration.parameters[group.indices[i]]);
+        bodybackup.emplace_back(*group.bodies[i], group.indices[i], rigidbody->conformation->absolute_parameters.parameters[group.indices[i]]);
     }
 }

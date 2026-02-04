@@ -73,14 +73,9 @@ observer_ptr<data::Molecule> LoopElement::_get_molecule() const {
     return owner->_get_molecule();
 }
 
-observer_ptr<rigidbody::detail::Configuration> LoopElement::_get_best_conf() const {
+observer_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> LoopElement::_get_best_conf() const {
     assert(owner != nullptr && "LoopElement::_get_best_conf: Owner is null.");
     return owner->_get_best_conf();
-}
-
-observer_ptr<rigidbody::detail::Configuration> LoopElement::_get_last_conf() const {
-    assert(owner != nullptr && "LoopElement::_get_last_conf: Owner is null.");
-    return owner->_get_last_conf();
 }
 
 observer_ptr<LoopElement> LoopElement::_get_owner() const {
