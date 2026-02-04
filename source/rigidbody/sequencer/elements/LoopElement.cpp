@@ -78,6 +78,11 @@ observer_ptr<rigidbody::detail::Configuration> LoopElement::_get_best_conf() con
     return owner->_get_best_conf();
 }
 
+observer_ptr<rigidbody::detail::Configuration> LoopElement::_get_last_conf() const {
+    assert(owner != nullptr && "LoopElement::_get_last_conf: Owner is null.");
+    return owner->_get_last_conf();
+}
+
 observer_ptr<LoopElement> LoopElement::_get_owner() const {
     assert(owner != nullptr && "LoopElement::_get_owner: Owner is null.");
     return owner;

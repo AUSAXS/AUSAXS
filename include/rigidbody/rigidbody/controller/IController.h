@@ -28,11 +28,21 @@ namespace ausaxs::rigidbody::controller {
             virtual void setup(const io::ExistingFile& measurement_path) = 0;
 
             /**
-            * @brief Run a single optimization step. 
+            * @brief Prepare the next optimization step. This prepares the internal state for the next optimization step.
+            *
+            * The step is split in two to provide access to the generated configuration before it is evaluated.
+            * finish_step() must be called to complete the step.
             */
-            virtual bool run_step() = 0;
+            virtual void prepare_step() = 0;
 
-            observer_ptr<detail::Configuration> current_best() const;
+            /**
+             * @brief Finish the current step. 
+             * @return true if the step was accepted, false otherwise.
+             */
+            virtual bool finish_step() = 0;
+
+            observer_ptr<detail::Configuration> get_current_best_config() const;
+            observer_ptr<detail::Configuration> get_current_config() const;
             observer_ptr<fitter::ConstrainedFitter> get_fitter() const;
             observer_ptr<const fitter::FitResult> get_calibration() const;
 
@@ -41,5 +51,6 @@ namespace ausaxs::rigidbody::controller {
                 std::unique_ptr<fitter::ConstrainedFitter> fitter;
                 std::unique_ptr<fitter::FitResult> calibration;
                 std::unique_ptr<rigidbody::detail::Configuration> current_config;
+                std::unique_ptr<rigidbody::detail::Configuration> current_best_config;
     };
 }

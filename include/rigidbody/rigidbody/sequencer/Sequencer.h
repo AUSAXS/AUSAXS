@@ -60,6 +60,11 @@ namespace ausaxs::rigidbody::sequencer {
              * @brief Get the best configuration found so far.
              */
             observer_ptr<rigidbody::detail::Configuration> _get_best_conf() const override;
+
+            /**
+             * @brief Get the last configuration. 
+             */
+            observer_ptr<rigidbody::detail::Configuration> _get_last_conf() const override;
             
         private:
             SetupElement setup_loop;

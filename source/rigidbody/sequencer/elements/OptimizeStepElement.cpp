@@ -20,15 +20,17 @@ namespace ausaxs::rigidbody::sequencer {
 
     void OptimizeStepElement::run() {
         logging::log("OptimizeStepElement::run: running optimization step " + std::to_string(LoopElement::global_counter));
-        if (owner->_get_sequencer()->_get_controller()->run_step()) {
+        owner->_get_sequencer()->_get_controller()->prepare_step();
+
+        for (auto& e : elements) {
+            e->run();
+        }
+
+        if (owner->_get_sequencer()->_get_controller()->finish_step()) {
             logging::log("OptimizeStepElement::run: optimization step " + std::to_string(LoopElement::global_counter) + " accepted");
             if (settings::general::verbose) {
                 std::cout << "Iteration " << LoopElement::global_counter << " of " << LoopElement::total_loop_count << std::endl;
                 console::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(owner->_get_best_conf()->chi2));
-            }
-
-            for (auto& e : elements) {
-                e->run();
             }
         }
     }

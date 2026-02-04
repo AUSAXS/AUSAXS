@@ -3,6 +3,7 @@
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
+#include <rigidbody/Rigidbody.h>
 #include <math/Vector3.h>
 #include <utility/Random.h>
 
@@ -10,22 +11,29 @@
 
 using namespace ausaxs::rigidbody::parameter;
 
+std::tuple<
+    std::uniform_real_distribution<double>, std::uniform_real_distribution<double>, 
+    std::uniform_real_distribution<double>, std::uniform_real_distribution<double>
+> create_distributions(double length_start, double rad_start, double Rg) {
+    std::uniform_real_distribution<double> translation_dist(-length_start, length_start);
+    std::uniform_real_distribution<double> rotation_dist(-rad_start, rad_start);
+    std::uniform_real_distribution<double> translation_symmetry_dist(-Rg, Rg);
+    std::uniform_real_distribution<double> rotation_symmetry_dist(-3, 3);
+    return {std::move(translation_dist), std::move(rotation_dist), std::move(translation_symmetry_dist), std::move(rotation_symmetry_dist)};
+}
+
 ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, unsigned int iterations, double length_start, double rad_start) 
     : rigidbody(rigidbody), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
 ) {
-    translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
-    rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
-    symmetry_dist = std::uniform_real_distribution<double>(-10, 10);
+    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg());
 }
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) 
     : rigidbody(rigidbody), decay_strategy(std::move(decay_strategy)
 ) {
-    translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
-    rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
-    symmetry_dist = std::uniform_real_distribution<double>(-10, 10);
+    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg());
 }
 
 ParameterGenerationStrategy::~ParameterGenerationStrategy() = default;

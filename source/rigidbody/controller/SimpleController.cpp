@@ -50,7 +50,7 @@ void SimpleController::update_fitter() {
     }
 }
 
-bool SimpleController::run_step() {
+void SimpleController::prepare_step() {
     auto& molecule = rigidbody->molecule;
 
     // select a body to be modified this iteration
@@ -68,9 +68,12 @@ bool SimpleController::run_step() {
     // update the body location in the fitter
     update_fitter();
     double new_chi2 = fitter->fit_chi2_only();
+    current_config->chi2 = new_chi2;
+}
 
+bool SimpleController::finish_step() {
     // if the old configuration was better
-    if (new_chi2 >= current_config->chi2) {
+    if (current_config->chi2 >= current_best_config->chi2) {
         // undo the body transforms
         rigidbody->transformer->undo();
 
@@ -82,7 +85,7 @@ bool SimpleController::run_step() {
         return false;
     } else {
         // accept the changes
-        current_config->chi2 = new_chi2;
+        current_best_config->chi2 = current_config->chi2;
         return true;
     }
 }

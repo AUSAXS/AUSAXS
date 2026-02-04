@@ -52,15 +52,16 @@ ausaxs::rigidbody::parameter::RelativeTransformParameters ausaxs::rigidbody::par
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
         for (size_t i = 0; i < symmetries->symmetries.size(); ++i) {
             if (symmetries->optimize_translate) {
-                symmetry_pars[i].initial_relation.translation.x() += symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.translation.y() += symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.translation.z() += symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.translation.x() += translation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.translation.y() += translation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.translation.z() += translation_symmetry_dist(random::generator())*scaling;
             }
 
             if (symmetries->optimize_rotate) {
-                symmetry_pars[i].initial_relation.orientation.x() += symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.orientation.y() += symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.orientation.z() += symmetry_dist(random::generator())*scaling;
+                // initial_relation.orientation allows arbitrary reorientation before applying symmetry
+                symmetry_pars[i].initial_relation.orientation.x() += rotation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.orientation.y() += rotation_symmetry_dist(random::generator())*scaling;
+                symmetry_pars[i].initial_relation.orientation.z() += rotation_symmetry_dist(random::generator())*scaling;
             }
         }
     }

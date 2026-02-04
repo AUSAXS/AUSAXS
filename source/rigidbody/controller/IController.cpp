@@ -18,7 +18,7 @@ std::unique_ptr<rigidbody::detail::Configuration> init_config() {
     return std::make_unique<rigidbody::detail::Configuration>();
 }
 
-IController::IController(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody), current_config(init_config()) {
+IController::IController(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody), current_config(init_config()), current_best_config(init_config()) {
     assert(rigidbody != nullptr && "IController: RigidBody must not be null.");
 }
 
@@ -30,8 +30,13 @@ IController::IController(observer_ptr<Rigidbody> rigidbody, std::unique_ptr<fitt
 
 IController::~IController() = default;
 
-observer_ptr<rigidbody::detail::Configuration> IController::current_best() const {
-    assert(current_config != nullptr && "IController::current_best: Best configuration not set.");
+observer_ptr<rigidbody::detail::Configuration> IController::get_current_best_config() const {
+    assert(current_best_config != nullptr && "IController::current_best: Best configuration not set.");
+    return current_best_config.get();
+}
+
+observer_ptr<rigidbody::detail::Configuration> IController::get_current_config() const {
+    assert(current_config != nullptr && "IController::current_best: Current configuration not set.");
     return current_config.get();
 }
 

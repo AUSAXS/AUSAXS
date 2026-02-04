@@ -30,6 +30,7 @@ inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type sym
         case symmetry::type::p3:
         case symmetry::type::p4:
             optimize_rotate = true;
+            optimize_translate = true;
             break;
 
         default:

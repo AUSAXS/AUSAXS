@@ -61,9 +61,10 @@ namespace ausaxs::rigidbody::parameter {
 
         protected:
             observer_ptr<const Rigidbody> rigidbody;
-            std::uniform_real_distribution<double> translation_dist; // Random number distribution for translations. 
-            std::uniform_real_distribution<double> rotation_dist;    // Random number distribution for rotations. 
-            std::uniform_real_distribution<double> symmetry_dist;    // Random number distribution for symmetry transforms.
+            std::uniform_real_distribution<double> translation_dist;
+            std::uniform_real_distribution<double> rotation_dist;
+            std::uniform_real_distribution<double> translation_symmetry_dist;
+            std::uniform_real_distribution<double> rotation_symmetry_dist;
             std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy;
     };
 }

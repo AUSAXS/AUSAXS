@@ -13,7 +13,7 @@ OnImprovementElement::OnImprovementElement(observer_ptr<LoopElement> owner) : Lo
 OnImprovementElement::~OnImprovementElement() = default;
 
 void OnImprovementElement::run() {
-    double new_best_conf = _get_best_conf()->chi2;
+    double new_best_conf = _get_last_conf()->chi2;
     if (new_best_conf < best_chi2) {
         best_chi2 = new_best_conf;
         for (auto& e : elements) {
