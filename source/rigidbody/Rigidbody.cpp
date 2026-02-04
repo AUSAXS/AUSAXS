@@ -49,6 +49,9 @@ Rigidbody& Rigidbody::operator=(Rigidbody&& other) = default;
 void Rigidbody::refresh_grid() {
     auto grid = molecule.get_grid();
     std::pair<Vector3<double>, Vector3<double>> bounds;
+    bounds.first = Vector3<double>{std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
+    bounds.second = Vector3<double>{std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()};
+    
     for (const auto& body : molecule.get_bodies()) {
         auto [min, max] = grid::Grid::bounding_box(body.get_atoms());
         auto w = body.get_waters();
@@ -59,6 +62,40 @@ void Rigidbody::refresh_grid() {
                 max[i] = std::max(max[i], max1[i]);
             }
         }
+        
+        // Account for symmetry bodies by computing their expected bounds
+        for (std::size_t j = 0; j < body.size_symmetry(); ++j) {
+            auto& sym = body.symmetry().get(j);
+            auto cm = body.get_cm(false);
+            
+            for (int rep = 1; rep <= sym.repetitions; ++rep) {
+                auto transform = sym.template get_transform<double>(cm, rep);
+                
+                // Transform the 8 corners of the bounding box to get symmetry-transformed bounds
+                auto [body_min, body_max] = grid::Grid::bounding_box(body.get_atoms());
+                std::vector<Vector3<double>> corners = {
+                    {body_min.x(), body_min.y(), body_min.z()},
+                    {body_max.x(), body_min.y(), body_min.z()},
+                    {body_min.x(), body_max.y(), body_min.z()},
+                    {body_max.x(), body_max.y(), body_min.z()},
+                    {body_min.x(), body_min.y(), body_max.z()},
+                    {body_max.x(), body_min.y(), body_max.z()},
+                    {body_min.x(), body_max.y(), body_max.z()},
+                    {body_max.x(), body_max.y(), body_max.z()}
+                };
+                
+                for (const auto& corner : corners) {
+                    auto transformed = transform(corner);
+                    min[0] = std::min(min[0], transformed.x());
+                    min[1] = std::min(min[1], transformed.y());
+                    min[2] = std::min(min[2], transformed.z());
+                    max[0] = std::max(max[0], transformed.x());
+                    max[1] = std::max(max[1], transformed.y());
+                    max[2] = std::max(max[2], transformed.z());
+                }
+            }
+        }
+        
         for (int i = 0; i < 3; ++i) {
             bounds.first[i] = std::min(bounds.first[i], min[i]);
             bounds.second[i] = std::max(bounds.second[i], max[i]);

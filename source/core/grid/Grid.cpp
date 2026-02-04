@@ -31,7 +31,7 @@ Grid::Grid(const Limit3D& axes) : Grid(Axis3D(axes, settings::grid::cell_width),
 Grid::Grid(const std::vector<AtomFF>& atoms) : Grid({Body(atoms)}) {}
 
 Grid::Grid(const std::vector<Body>& bodies) {
-    // find the total bounding box containing all bodies
+    // find the total bounding box containing all bodies including their symmetries
     Vector3 min{0, 0, 0}, max{0, 0, 0};
     for (const Body& body : bodies) {
         auto[amin, amax] = bounding_box(body.get_atoms());
@@ -42,11 +42,42 @@ Grid::Grid(const std::vector<Body>& bodies) {
         }
 
         auto w = body.get_waters();
-        if (!w.has_value()) {continue;}
-        auto[wmin, wmax] = bounding_box(w.value().get());
-        for (int i = 0; i < 3; i++) {
-            if (wmin[i] < min[i]) {min[i] = wmin[i];}
-            if (wmax[i] > max[i]) {max[i] = wmax[i];}
+        if (w.has_value()) {
+            auto[wmin, wmax] = bounding_box(w.value().get());
+            for (int i = 0; i < 3; i++) {
+                if (wmin[i] < min[i]) {min[i] = wmin[i];}
+                if (wmax[i] > max[i]) {max[i] = wmax[i];}
+            }
+        }
+        
+        // Account for symmetry bodies by transforming bounding box corners
+        for (std::size_t j = 0; j < body.size_symmetry(); ++j) {
+            auto& sym = body.symmetry().get(j);
+            auto cm = body.get_cm(false);
+            
+            for (int rep = 1; rep <= sym.repetitions; ++rep) {
+                auto transform = sym.template get_transform<double>(cm, rep);
+                
+                // Transform the 8 corners of the bounding box
+                std::vector<Vector3<double>> corners = {
+                    {amin.x(), amin.y(), amin.z()},
+                    {amax.x(), amin.y(), amin.z()},
+                    {amin.x(), amax.y(), amin.z()},
+                    {amax.x(), amax.y(), amin.z()},
+                    {amin.x(), amin.y(), amax.z()},
+                    {amax.x(), amin.y(), amax.z()},
+                    {amin.x(), amax.y(), amax.z()},
+                    {amax.x(), amax.y(), amax.z()}
+                };
+                
+                for (const auto& corner : corners) {
+                    auto transformed = transform(corner);
+                    for (int i = 0; i < 3; i++) {
+                        if (transformed[i] < min[i]) {min[i] = transformed[i];}
+                        if (transformed[i] > max[i]) {max[i] = transformed[i];}
+                    }
+                }
+            }
         }
     }
 

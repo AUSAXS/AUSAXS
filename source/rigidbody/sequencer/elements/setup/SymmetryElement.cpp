@@ -36,16 +36,21 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         // ensure the body's symmetry storage is optimizable
         assert(dynamic_cast<symmetry::OptimizableSymmetryStorage*>(owner->_get_molecule()->get_body(ibody).symmetry().get_obj()));
         owner->_get_molecule()->get_body(ibody).symmetry().add(symmetry[i]);
+        owner->_get_rigidbody()->conformation->original_conformation[ibody].symmetry().add(symmetry[i]);
 
         // place the symmetry body at a sane distance from the original
         double Rg = owner->_get_molecule()->get_Rg();
         owner->_get_molecule()->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
+        owner->_get_rigidbody()->conformation->original_conformation[ibody].symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
         owner->_get_rigidbody()->conformation->configuration.parameters[ibody].symmetry_pars.emplace_back(
             owner->_get_molecule()->get_body(ibody).symmetry().get(0)
         );
         std::cout << "SymmetryElement::SymmetryElement: Added symmetry to body " << names[i] << std::endl;
         std::cout << "\tIt now has " << owner->_get_molecule()->get_body(ibody).size_symmetry() << " symmetries." << std::endl;
     }
+    
+    // Refresh grid to accommodate symmetry bodies
+    owner->_get_rigidbody()->refresh_grid();
 }
 
 SymmetryElement::~SymmetryElement() = default;

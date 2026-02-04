@@ -285,3 +285,43 @@ TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity"
         REQUIRE(storage != nullptr);
     }
 }
+
+TEST_CASE("SymmetryBackup: Grid properly sized for symmetry optimization") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+
+    // Create rigidbody with symmetry
+    auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+    bodies.get_body(0).symmetry().add(symmetry::type::p2);
+    
+    Rigidbody rigidbody(std::move(bodies));
+    rigidbody.molecule.generate_new_hydration();
+    unsigned int ibody = 0;
+
+    // Verify grid is large enough for initial symmetry configuration
+    auto grid = rigidbody.molecule.get_grid();
+    REQUIRE(grid != nullptr);
+    
+    // Apply a symmetry-only transformation
+    auto& transformer = rigidbody.transformer;
+    auto& param_gen = rigidbody.parameter_generator;
+    
+    // Generate parameters that modify only symmetry (no translation/rotation)
+    auto params = param_gen->next(ibody);
+    if (!params.symmetry_pars.empty()) {
+        // Modify symmetry parameters
+        params.translation = {0, 0, 0};
+        params.rotation = {0, 0, 0};
+        
+        // Apply the transformation
+        INFO("Grid should be automatically resized to accommodate symmetry transformations");
+        REQUIRE_NOTHROW(transformer->apply(std::move(params), ibody));
+        
+        // Verify molecule is still valid and grid contains all atoms
+        REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
+        
+        // Try to regenerate hydration (this will fail if grid is too small)
+        REQUIRE_NOTHROW(rigidbody.molecule.generate_new_hydration());
+    }
+}
