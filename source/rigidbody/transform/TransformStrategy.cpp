@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include "data/symmetry/Symmetry.h"
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
@@ -10,6 +9,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
+#include <data/state/BoundSignaller.h>
 #include <math/MatrixUtils.h>
 
 #include <vector>
@@ -40,6 +40,7 @@ void TransformStrategy::symmetry(std::vector<symmetry::Symmetry>&& symmetry_pars
     assert(symmetry_pars.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
         body.symmetry().get(i) = symmetry_pars[i];
+        body.get_signaller()->modified_symmetry(i);
     }
 }
 

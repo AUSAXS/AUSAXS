@@ -85,7 +85,8 @@ bool SimpleController::finish_step() {
         return false;
     } else {
         // accept the changes
-        current_best_config->chi2 = current_config->chi2;
+        //? swap
+        *current_best_config = *current_config;
         return true;
     }
 }

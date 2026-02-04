@@ -23,7 +23,7 @@ IController::IController(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbod
 }
 
 IController::IController(observer_ptr<Rigidbody> rigidbody, std::unique_ptr<fitter::FitResult> calibration) 
-    : rigidbody(rigidbody), calibration(std::move(calibration)), current_config(init_config())
+    : rigidbody(rigidbody), calibration(std::move(calibration)), current_config(init_config()), current_best_config(init_config())
 {
     assert(rigidbody != nullptr && "IController: RigidBody must not be null.");
 }
