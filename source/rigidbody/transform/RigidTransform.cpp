@@ -54,62 +54,33 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, con
     backup(group);
 
     auto grid = rigidbody->molecule.get_grid();
-
-    // par is a delta transformation: par.rotation is the delta rotation, par.translation is the delta translation
-    // The rotation happens around the group's pivot point.
-    // For each body B with current absolute params (R_B, t_B):
-    //   R_B_new = R_delta * R_B
-    //   t_B_new = R_delta * (t_B - pivot) + pivot + t_delta
     auto R_delta = matrix::rotation_matrix(par.rotation);
     const auto& t_delta = par.translation;
     const auto& pivot = group.pivot;
 
     // Step 1: Compute new absolute parameters for all bodies in the group
     std::vector<std::pair<Vector3<double>, Vector3<double>>> new_params(group.bodies.size());
-    
     for (unsigned int i = 0; i < group.bodies.size(); i++) {
         unsigned int ibody = group.indices[i];
         const auto& old_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
         
-        // R_B_new = R_delta * R_B
-        // t_B_new = R_delta * (t_B - pivot) + pivot + t_delta
+        // R_B_new = R_delta * R_B, t_B_new = R_delta * (t_B - pivot) + pivot + t_delta
         auto new_rotation = compose_rotation(R_delta, old_params.rotation);
         auto new_translation = R_delta * (old_params.translation - pivot) + pivot + t_delta;
-        
         new_params[i] = {new_rotation, new_translation};
     }
     
-    // Step 2: Apply the computed absolute parameters to original_conformation
+    // Step 2: Update all bodies (symmetry deltas only applied to first body)
     for (unsigned int i = 0; i < group.bodies.size(); i++) {
         unsigned int ibody = group.indices[i];
-        
         grid->remove(*group.bodies[i]);
         
-        auto body = rigidbody->conformation->initial_conformation[ibody];
-        auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
         const auto& [rotation, translation] = new_params[i];
-        body.rotate(matrix::rotation_matrix(rotation));
-        body.translate(translation);
-        
-        current_params.rotation = rotation;
-        current_params.translation = translation;
-
-        auto& updated_body = rigidbody->molecule.get_body(ibody);
-        current_params.symmetry_pars.clear();
-        for (unsigned int i = 0; i < updated_body.size_symmetry(); ++i) {
-            current_params.symmetry_pars.push_back(updated_body.symmetry().get(i));
-        }
-        
-        rigidbody->molecule.get_body(ibody) = std::move(body);
-    }
-
-    // Handle symmetry for the first body
-    if (!group.bodies.empty()) {
-        symmetry(std::move(par.symmetry_pars), *group.bodies.front());
+        auto symmetry_pars = (i == 0) ? std::move(par.symmetry_pars) : std::vector<symmetry::Symmetry>();
+        update_body(ibody, {rotation, translation, std::move(symmetry_pars)});
     }
 
     rigidbody->refresh_grid();
-
     for (auto& body : group.bodies) {
         grid->add(*body);
     }

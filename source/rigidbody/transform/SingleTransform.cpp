@@ -47,8 +47,7 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, co
     auto& body_ref = rigidbody->molecule.get_body(ibody);
     auto grid = rigidbody->molecule.get_grid();
 
-    // Backup current state
-    // Pivot is the position of the constraining atom (atom2 is in the non-moving body)
+    // Backup current state (pivot is the position of the constraining atom)
     Vector3<double> pivot = constraint.get_atom2().coordinates();
     TransformGroup group({&body_ref}, {ibody}, constraint, pivot);
     backup(group);
@@ -60,35 +59,19 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, co
     // Rotation happens around the pivot point
     auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
     auto R_delta = matrix::rotation_matrix(par.rotation);
-    
     auto new_rotation = compose_rotation(R_delta, current_params.rotation);
-    // t_new = R_delta * (t_old - pivot) + pivot + t_delta
     auto new_translation = R_delta * (current_params.translation - pivot) + pivot + par.translation;
-
-    // Get fresh body from original_conformation and apply new absolute transformation
-    auto body = rigidbody->conformation->initial_conformation[ibody];
-
-    body.rotate(matrix::rotation_matrix(new_rotation));
-    body.translate(new_translation);
-    symmetry(std::move(par.symmetry_pars), body);
-
-    // Update molecule with transformed body
-    rigidbody->molecule.get_body(ibody) = std::move(body);
-
-    // Update configuration with new absolute parameters
-    current_params.rotation = new_rotation;
-    current_params.translation = new_translation;
-    
-    // Extract the new absolute symmetry parameters back to current_params
-    auto& updated_body = rigidbody->molecule.get_body(ibody);
-    current_params.symmetry_pars.clear();
-    for (unsigned int i = 0; i < updated_body.size_symmetry(); ++i) {
-        current_params.symmetry_pars.push_back(updated_body.symmetry().get(i));
+    auto new_symmetry = current_params.symmetry_pars;
+    for (unsigned int i = 0; i < new_symmetry.size(); ++i) {
+        auto& sym = new_symmetry[i];
+        sym.initial_relation.orientation += par.symmetry_pars[i].initial_relation.orientation;
+        sym.initial_relation.translation += par.symmetry_pars[i].initial_relation.translation;
     }
 
-    // Ensure grid has space
-    rigidbody->refresh_grid();
+    // Update body with new absolute parameters
+    update_body(ibody, {new_rotation, new_translation, std::move(new_symmetry)});
 
-    // Add body back to grid
+    // Refresh grid and re-add body
+    rigidbody->refresh_grid();
     grid->add(rigidbody->molecule.get_body(ibody));
 }

@@ -36,14 +36,55 @@ void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vect
     std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (observer_ptr<data::Body> body) {body->translate(group.pivot+t);});
 }
 
-void TransformStrategy::symmetry(std::vector<symmetry::Symmetry>&& symmetry_deltas, data::Body& body) {
-    assert(symmetry_deltas.size() == body.size_symmetry());
+void TransformStrategy::apply_symmetry(std::vector<symmetry::Symmetry>&& symmetry, data::Body& body) {
+    assert(symmetry.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
-        // Add the deltas to the current symmetry parameters
         auto& current_sym = body.symmetry().get(i);
-        current_sym.initial_relation.translation += symmetry_deltas[i].initial_relation.translation;
-        current_sym.initial_relation.orientation += symmetry_deltas[i].initial_relation.orientation;
+        current_sym.initial_relation.translation = symmetry[i].initial_relation.translation;
+        current_sym.initial_relation.orientation = symmetry[i].initial_relation.orientation;
         body.get_signaller()->modified_symmetry(i);
+    }
+}
+
+void TransformStrategy::update_body(unsigned int ibody, parameter::BodyTransformParametersAbsolute&& pars) {
+    auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+    auto& body = rigidbody->molecule.get_body(ibody);
+
+    // Check what actually changed to avoid unnecessary recalculations
+    bool rotation_changed = (pars.rotation != current_params.rotation);
+    bool translation_changed = (pars.translation != current_params.translation);
+    bool symmetry_changed = !pars.symmetry_pars.empty();
+
+    // If rotation or translation changed, we need to reconstruct from initial_conformation
+    if (rotation_changed || translation_changed) {
+        auto fresh_body = rigidbody->conformation->initial_conformation[ibody];
+        fresh_body.rotate(matrix::rotation_matrix(pars.rotation));
+        fresh_body.translate(pars.translation);
+        
+        // Apply current symmetry state (will be updated below if symmetry_changed)
+        if (!pars.symmetry_pars.empty()) {
+            apply_symmetry(std::move(pars.symmetry_pars), fresh_body);
+        } else {
+            for (unsigned int i = 0; i < current_params.symmetry_pars.size() && i < fresh_body.size_symmetry(); ++i) {
+                fresh_body.symmetry().get(i) = current_params.symmetry_pars[i];
+                fresh_body.get_signaller()->modified_symmetry(i);
+            }
+        }
+        
+        body = std::move(fresh_body);
+        current_params.rotation = std::move(pars.rotation);
+        current_params.translation = std::move(pars.translation);
+    } else if (symmetry_changed) {
+        // Only symmetry changed - update in place without reconstruction
+        apply_symmetry(std::move(pars.symmetry_pars), body);
+    }
+
+    // Extract final symmetry parameters
+    if (symmetry_changed) {
+        current_params.symmetry_pars.clear();
+        for (unsigned int i = 0; i < body.size_symmetry(); ++i) {
+            current_params.symmetry_pars.push_back(body.symmetry().get(i));
+        }
     }
 }
 
@@ -85,53 +126,30 @@ namespace {
 
 void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody) {
     auto grid = rigidbody->molecule.get_grid();
+    auto& body = rigidbody->molecule.get_body(ibody);
 
-    {   // remove old body and backup
-        auto& body = rigidbody->molecule.get_body(ibody);
+    // Backup and remove old body
+    bodybackup.clear();
+    bodybackup.emplace_back(body, ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
+    grid->remove(body);
 
-        bodybackup.clear();
-        bodybackup.emplace_back(body, ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
-
-        grid->remove(body);
+    // Compute new absolute parameters from current + delta
+    auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+    auto R_delta = matrix::rotation_matrix(par.rotation);
+    auto new_rotation = compose_rotation(current_params.rotation, par.rotation);
+    auto new_translation = R_delta * current_params.translation + par.translation;
+    auto new_symmetry = current_params.symmetry_pars;
+    for (unsigned int i = 0; i < new_symmetry.size(); ++i) {
+        auto& sym = new_symmetry[i];
+        sym.initial_relation.orientation += par.symmetry_pars[i].initial_relation.orientation;
+        sym.initial_relation.translation += par.symmetry_pars[i].initial_relation.translation;
     }
 
-    {   // Compute new absolute parameters from current + delta
-        auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-        auto R_delta = matrix::rotation_matrix(par.rotation);
-        
-        // R_new = R_delta * R_current, t_new = R_delta * t_current + t_delta
-        auto new_rotation = compose_rotation(current_params.rotation, par.rotation);
-        auto new_translation = R_delta * current_params.translation + par.translation;
+    // Update body with new absolute parameters
+    update_body(ibody, {new_rotation, new_translation, std::move(new_symmetry)});
 
-        // Get fresh body and apply the new absolute transformation
-        assert(ibody < rigidbody->conformation->initial_conformation.size() && "ibody out of bounds");
-        auto body = rigidbody->conformation->initial_conformation[ibody];
-
-        body.rotate(matrix::rotation_matrix(new_rotation));
-        body.translate(new_translation);
-
-        // Update symmetry parameters
-        symmetry(std::move(par.symmetry_pars), body);
-
-        // Update the molecule with the transformed body
-        rigidbody->molecule.get_body(ibody) = std::move(body);
-
-        // Update configuration with new absolute parameters
-        current_params.rotation = new_rotation;
-        current_params.translation = new_translation;
-        
-        // Extract the new absolute symmetry parameters back to current_params
-        auto& body_ref = rigidbody->molecule.get_body(ibody);
-        current_params.symmetry_pars.clear();
-        for (unsigned int i = 0; i < body_ref.size_symmetry(); ++i) {
-            current_params.symmetry_pars.push_back(body_ref.symmetry().get(i));
-        }
-
-        // Ensure there is space for the new conformation in the grid
-        rigidbody->refresh_grid();
-    }
-
-    // Re-add the body to the grid
+    // Refresh grid and re-add body
+    rigidbody->refresh_grid();
     grid->add(rigidbody->molecule.get_body(ibody));
 }
 

@@ -6,6 +6,7 @@
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
 #include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
 #include <utility/observer_ptr.h>
@@ -88,8 +89,23 @@ namespace ausaxs::rigidbody::transform {
             virtual void translate(const Vector3<double>& t, TransformGroup& group);
 
             /**
-             * @brief Apply symmetry transformations to a body.
+             * @brief Set a new set of absolute symmetry parameters for a given body. 
              */
-            virtual void symmetry(std::vector<symmetry::Symmetry>&& symmetry_deltas, data::Body& body);
+            virtual void apply_symmetry(std::vector<symmetry::Symmetry>&& symmetry, data::Body& body);
+
+            /**
+             * @brief Update a body with new absolute rotation and translation, handling symmetry accumulation.
+             * 
+             * This helper method encapsulates the common pattern:
+             * 1. Get fresh body from initial_conformation
+             * 2. Apply absolute rotation and translation
+             * 3. Restore accumulated symmetry state
+             * 4. Apply symmetry deltas (if provided)
+             * 5. Update molecule and current_params
+             * 
+             * @param ibody The index of the body to update.
+             * @param new_state The new absolute parameters for the body.
+             */
+            void update_body(unsigned int ibody, parameter::BodyTransformParametersAbsolute&& pars);
     };
 }
