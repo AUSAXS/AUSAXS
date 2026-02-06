@@ -15,3 +15,6 @@ target_link_libraries(extract_profile_water ausaxs_core ausaxs_math ausaxs_md CL
 
 add_executable(background_schemes background_schemes.cpp)
 target_link_libraries(background_schemes ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)
+
+add_executable(single_mol_sim single_mol_sim.cpp)
+target_link_libraries(single_mol_sim ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)

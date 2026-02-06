@@ -57,8 +57,8 @@ minimize::base::base() {
     add(MDPOptions::nsteps = 100);
     add(MDPOptions::emtol = 1e-6);
     add(MDPOptions::emstep = 0.001);
-    add(MDPOptions::lincs_order = 8);
-    add(MDPOptions::lincs_iter = 2);
+    add(MDPOptions::lincs_order = 6);
+    add(MDPOptions::lincs_iter = 1);
 }
 
 equilibrate::base::base() {
@@ -74,7 +74,7 @@ equilibrate::base::base() {
     add(MDPOptions::vdw_modifier = "Potential-shift");
     add(MDPOptions::dispcorr = "EnerPres");
     add(MDPOptions::tcoupl = "v-rescale");
-    add(MDPOptions::pcoupl = "Berendsen");
+    add(MDPOptions::pcoupl = "C-rescale");
     add(MDPOptions::pcoupltype = "isotropic");
     add(MDPOptions::tau_p = 1.0);
     add(MDPOptions::ref_p = 1.0);
@@ -110,7 +110,7 @@ production::base::base() {
     add(MDPOptions::vdw_modifier = "Potential-shift-Verlet");
     add(MDPOptions::dispcorr = "EnerPres");
     add(MDPOptions::tcoupl = "v-rescale");
-    add(MDPOptions::pcoupl = "Parrinello-Rahman");
+    add(MDPOptions::pcoupl = "C-rescale");
     add(MDPOptions::pcoupltype = "isotropic");
     add(MDPOptions::tau_p = 5.0);
     add(MDPOptions::ref_p = 1.0);
@@ -180,7 +180,7 @@ time_analysis::base::base() {
     add(MDPOptions::vdw_modifier = "Potential-shift-Verlet");
     add(MDPOptions::dispcorr = "EnerPres");
     add(MDPOptions::tcoupl = "v-rescale");
-    add(MDPOptions::pcoupl = "Parrinello-Rahman");
+    add(MDPOptions::pcoupl = "C-rescale");
     add(MDPOptions::pcoupltype = "isotropic");
     add(MDPOptions::tau_p = 5.0);
     add(MDPOptions::ref_p = 1.0);
@@ -216,7 +216,7 @@ frame_analysis::base::base() {
     add(MDPOptions::vdw_modifier = "Potential-shift-Verlet");
     add(MDPOptions::dispcorr = "EnerPres");
     add(MDPOptions::tcoupl = "v-rescale");
-    add(MDPOptions::pcoupl = "Parrinello-Rahman");
+    add(MDPOptions::pcoupl = "C-rescale");
     add(MDPOptions::pcoupltype = "isotropic");
     add(MDPOptions::tau_p = 5.0);
     add(MDPOptions::ref_p = 1.0);

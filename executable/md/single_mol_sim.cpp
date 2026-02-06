@@ -18,7 +18,6 @@ int main(int argc, char const *argv[]) {
     io::ExistingFile s_pdb, s_settings;
     CLI::App app{"MD simulation pipeline."};
     app.add_option("input", s_pdb, "PDB structure file.")->required()->check(CLI::ExistingFile);
-    app.add_option("--buffer", settings::md::buffer_path, "Pre-simulated buffer. Set this to the base output folder.");
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
     CLI11_PARSE(app, argc, argv);
@@ -35,7 +34,7 @@ int main(int argc, char const *argv[]) {
     if (!gmx().valid_executable()) {
         throw except::io_error("Invalid GROMACS path \"" + settings::md::gmx_path + "\"");
     }
-    settings::general::output += "md/" + s_pdb.stem() + "/";
+    settings::general::output += "md/single_mol_sim/" + s_pdb.stem() + "/";
 
     if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
     gmx::gmx::set_logfile(settings::general::output + "output.log", settings::general::output + "cmd.log");
@@ -47,12 +46,48 @@ int main(int argc, char const *argv[]) {
         .boxtype = option::BoxType::DODECAHEDRON,
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
+        .custom_options = {
+            {"vsites", "true"},
+            {"editconf extend", "1.05"},
+        },
     };
 
+    // We are essentially using GROMACS as a Monte Carlo sampler here, so we do not care about physical accuracy at all. 
+    // The following settings are therefore tuned for maximum performance and fast decorrelation. 
     auto mdp = mdp::templates::production::mol()
+        .add(MDPOptions::integrator = "sd")
+        .add(MDPOptions::dt = "0.005")
         .add(MDPOptions::nsteps = "5000000")
-        .add(MDPOptions::dt = "0.002")
-        .add(MDPOptions::nstxout = "5")
+
+        // stochastic dynamics settings to get good sampling without caring about physical accuracy at all
+        .add(MDPOptions::bd_fric = "10")
+        .add(MDPOptions::tau_t = "0.05")
+        .add(MDPOptions::ref_t = "300")
+        .add(MDPOptions::tc_grps = "System")
+
+        // constraints and vsites to allow for a large time step
+        .add(MDPOptions::constraints = "all-bonds")
+        .add(MDPOptions::constraint_algorithm = "lincs")
+        .add(MDPOptions::lincs_order = "2")
+        .add(MDPOptions::lincs_iter = "1")
+
+        // non-bonded settings to speed up the simulation, since we do not care about accuracy
+        .add(MDPOptions::coulombtype = "Cut-off")
+        .add(MDPOptions::rcoulomb = "1")
+        .add(MDPOptions::vdw_type = "Cutoff")
+        .add(MDPOptions::rvdw = "1")
+        .add(MDPOptions::dispcorr = "no")
+        .add(MDPOptions::cutoff_scheme = "Verlet")
+        .add(MDPOptions::nstlist = "20") // inversely related to the box size
+        .add(MDPOptions::verlet_buffer_drift = "0.005")
+
+        // ensemble and com motion
+        .add(MDPOptions::pcoupl = "no")
+        .add(MDPOptions::comm_mode = "none")
+        .add(MDPOptions::nstcomm = "0")
+
+        // write frames often to get good sampling, while ensuring they are still uncorrelated
+        .add(MDPOptions::nstxout_compressed = 5000)
     .write(settings::general::output + "mdp/mol.mdp");
     auto molecule = simulate_molecule({
         .system = ss,
@@ -62,5 +97,6 @@ int main(int argc, char const *argv[]) {
         .equilibrate_runner = executor::local::construct(),
         .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
     });
+    molecule.job->wait();
     return 0;
 } 

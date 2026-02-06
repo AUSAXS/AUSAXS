@@ -53,6 +53,7 @@ namespace ausaxs::md {
 
         const inline static detail::Option cutoff_scheme        = "cutoff-scheme";    // neighbor list cut-off scheme
         const inline static detail::Option nstlist              = "nstlist";          // neighbor list frequency
+        const inline static detail::Option verlet_buffer_drift  = "verlet-buffer-drift"; // buffer size for Verlet cut-off scheme
         const inline static detail::Option pbc                  = "pbc";              // periodic boundary conditions
         const inline static detail::Option rlist                = "rlist";            // short-range neighbor list cut-off
 
@@ -75,9 +76,11 @@ namespace ausaxs::md {
         const inline static detail::Option ref_p                = "ref_p";            // reference pressure
         const inline static detail::Option compressibility      = "compressibility";  // isothermal compressibility
         const inline static detail::Option refcoord_scaling     = "refcoord_scaling"; // reference coordinate scaling
+        const inline static detail::Option bd_fric              = "bd-fric";          // Langevin dynamics friction coefficient
 
-        const inline static detail::Option gen_vel              = "gen_vel";          // generate velocities
-        const inline static detail::Option gen_temp             = "gen_temp";         // temperature for velocity generation
+        const inline static detail::Option gen_vel              = "gen-vel";          // generate velocities
+        const inline static detail::Option gen_temp             = "gen-temp";         // temperature for velocity generation
+        const inline static detail::Option gen_seed             = "gen-seed";         // random seed for velocity generation
 
         const inline static detail::Option constraints          = "constraints";      // constraints
         const inline static detail::Option constraint_algorithm = "constraint_algorithm"; // constraints

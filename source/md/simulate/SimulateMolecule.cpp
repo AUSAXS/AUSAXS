@@ -38,24 +38,26 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
             console::print_text("Converting structure to GROMACS format...");
 
             // prepare the pdb file for gromacs
-            auto[conf, top, posre] = pdb2gmx(options.pdbfile)
+            auto cmd = pdb2gmx(options.pdbfile)
                 .output(setup_path)
                 .ignore_hydrogens()
-                // .virtual_sites()
                 .water_model(wm.get())
-                .forcefield(ff.get())
-            .run();
+                .forcefield(ff.get());
+            if (options.system.custom_options.contains("vsites") && options.system.custom_options.at("vsites") == "true") {cmd.virtual_sites();}
+            auto[conf, top, posre] = cmd.run();
         } else {
             console::print_text("Reusing previously generated GROMACS structure.");
         }
+        std::cout << "USING VSITES SETTING OF " << (options.system.custom_options.contains("vsites") && options.system.custom_options.at("vsites") == "true" ? "true" : "false") << std::endl;
 
         // create a box around the protein
         console::print_text("Generating unit cell...");
         auto[uc] = editconf(conf)
             .output(setup_path + "uc.gro")
             .box_type(options.system.boxtype)
-            .extend(1.5)
+            .extend(options.system.custom_options.contains("editconf extend") ? std::stod(options.system.custom_options.at("editconf extend")) : 1.5)
         .run();
+        std::cout << "USING BOX EXTENSION OF " << (options.system.custom_options.contains("editconf extend") ? options.system.custom_options.at("editconf extend") : "1.5") << std::endl;
 
         // add water to the box
         console::print_text("Solvating unit cell...");
