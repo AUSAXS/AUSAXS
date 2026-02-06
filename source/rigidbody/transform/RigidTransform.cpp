@@ -20,31 +20,6 @@
 
 using namespace ausaxs::rigidbody::transform;
 
-namespace {
-    // Helper to compose rotation matrices and extract Euler angles (XYZ extrinsic convention)
-    // The rotation matrix uses the convention: R = Rz(gamma) * Ry(beta) * Rx(alpha)
-    ausaxs::Vector3<double> compose_rotation(const ausaxs::Matrix<double>& R_delta, const ausaxs::Vector3<double>& current_rotation) {
-        auto R_current = ausaxs::matrix::rotation_matrix(current_rotation);
-        auto R_new = R_delta * R_current;
-        
-        // Extract Euler angles (alpha, beta, gamma) from the rotation matrix
-        double beta = std::asin(std::clamp(-R_new(2, 0), -1.0, 1.0));
-        double cos_beta = std::cos(beta);
-        
-        double alpha, gamma;
-        if (std::abs(cos_beta) > 1e-10) {
-            alpha = std::atan2(R_new(2, 1), R_new(2, 2));
-            gamma = std::atan2(R_new(1, 0), R_new(0, 0));
-        } else {
-            // Gimbal lock
-            alpha = 0.0;
-            gamma = std::atan2(-R_new(0, 1), R_new(1, 1));
-        }
-        
-        return {alpha, beta, gamma};
-    }
-}
-
 RigidTransform::RigidTransform(observer_ptr<Rigidbody> rigidbody) : TransformStrategy(rigidbody) {}
 
 RigidTransform::~RigidTransform() = default;
@@ -52,38 +27,50 @@ RigidTransform::~RigidTransform() = default;
 void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
-
     auto grid = rigidbody->molecule.get_grid();
-    auto R_delta = matrix::rotation_matrix(par.rotation);
-    const auto& t_delta = par.translation;
-    const auto& pivot = group.pivot;
 
-    // Step 1: Compute new absolute parameters for all bodies in the group
-    std::vector<std::pair<Vector3<double>, Vector3<double>>> new_params(group.bodies.size());
+    // Step 1: Get fresh bodies and compute new absolute parameters
     for (unsigned int i = 0; i < group.bodies.size(); i++) {
         unsigned int ibody = group.indices[i];
-        const auto& old_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+        auto& body = *group.bodies[i];
+        grid->remove(body);
+        body = rigidbody->conformation->initial_conformation[ibody];
+    }
+
+    // Step 2: Compute new absolute parameters for all bodies
+    std::vector<parameter::BodyTransformParametersAbsolute> new_params(group.bodies.size());
+    for (unsigned int i = 0; i < group.bodies.size(); i++) {
+        unsigned int ibody = group.indices[i];
+        new_params[i] = rigidbody->conformation->absolute_parameters.parameters[ibody];
         
-        // R_B_new = R_delta * R_B, t_B_new = R_delta * (t_B - pivot) + pivot + t_delta
-        auto new_rotation = compose_rotation(R_delta, old_params.rotation);
-        auto new_translation = R_delta * (old_params.translation - pivot) + pivot + t_delta;
-        new_params[i] = {new_rotation, new_translation};
+        if (par.rotation.has_value()) {
+            new_params[i].rotation += par.rotation.value();
+        }
+        if (par.translation.has_value()) {
+            auto R_delta = matrix::rotation_matrix(par.rotation.value_or(Vector3<double>{0, 0, 0}));
+            new_params[i].translation = R_delta * (new_params[i].translation - group.pivot) + group.pivot + par.translation.value();
+        }
+        if (i == 0 && par.symmetry_pars.has_value()) {
+            new_params[i].symmetry_pars = add_symmetries(new_params[i].symmetry_pars, par.symmetry_pars.value());
+        }
     }
     
-    // Step 2: Update all bodies (symmetry deltas only applied to first body)
+    // Step 3: Apply transformations to all bodies
     for (unsigned int i = 0; i < group.bodies.size(); i++) {
-        unsigned int ibody = group.indices[i];
-        grid->remove(*group.bodies[i]);
+        auto& body = *group.bodies[i];
+        const auto& params = new_params[i];
         
-        const auto& [rotation, translation] = new_params[i];
-        auto symmetry_pars = (i == 0) ? std::move(par.symmetry_pars) : std::vector<symmetry::Symmetry>();
-        update_body(ibody, {rotation, translation, std::move(symmetry_pars)});
+        body.rotate(matrix::rotation_matrix(params.rotation));
+        body.translate(params.translation);
+        
+        if (i == 0 && par.symmetry_pars.has_value()) {
+            apply_symmetry(params.symmetry_pars, body);
+        }
+        
+        grid->add(body);
     }
 
     rigidbody->refresh_grid();
-    for (auto& body : group.bodies) {
-        grid->add(*body);
-    }
 }
 
 TransformGroup RigidTransform::get_connected(const constraints::DistanceConstraint& pivot) {

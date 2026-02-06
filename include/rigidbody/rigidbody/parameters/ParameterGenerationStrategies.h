@@ -28,44 +28,44 @@ template<bool TRANSLATE, bool ROTATE, bool SYMMETRY>
 ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody::parameter::LimitedParameterGenerator<TRANSLATE, ROTATE, SYMMETRY>::next(int ibody) {
     double scaling = decay_strategy->next();
     assert(ibody < static_cast<int>(rigidbody->conformation->absolute_parameters.parameters.size()) && "ibody out of bounds");
+    BodyTransformParametersRelative params;
 
-    Vector3<double> t = {0, 0, 0};
     if constexpr (TRANSLATE) {
-        t.x() = translation_dist(random::generator())*scaling;
-        t.y() = translation_dist(random::generator())*scaling;
-        t.z() = translation_dist(random::generator())*scaling;
+        params.translation = {
+            translation_dist(random::generator())*scaling,
+            translation_dist(random::generator())*scaling,
+            translation_dist(random::generator())*scaling
+        };
     }
 
-    Vector3<double> r = {0, 0, 0};
     if constexpr (ROTATE) {
-        r.x() = rotation_dist(random::generator())*scaling;
-        r.y() = rotation_dist(random::generator())*scaling;
-        r.z() = rotation_dist(random::generator())*scaling;
+        params.rotation = {
+            rotation_dist(random::generator())*scaling,
+            rotation_dist(random::generator())*scaling,
+            rotation_dist(random::generator())*scaling
+        };
     }
 
     std::vector<symmetry::Symmetry> symmetry_pars;
     if constexpr (SYMMETRY) {
-        // Generate deltas for symmetry parameters
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
-        symmetry_pars.resize(symmetries->symmetries.size());
-        
-        for (size_t i = 0; i < symmetries->symmetries.size(); ++i) {
+        params.symmetry_pars = std::vector<symmetry::Symmetry>(symmetries->symmetries.size());
+        for (int i = 0; i < static_cast<int>(params.symmetry_pars->size()); ++i) {
             if (symmetries->optimize_translate) {
-                symmetry_pars[i].initial_relation.translation.x() = translation_symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.translation.y() = translation_symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.translation.z() = translation_symmetry_dist(random::generator())*scaling;
+                params.symmetry_pars->at(i).initial_relation.translation.x() = translation_symmetry_dist(random::generator())*scaling;
+                params.symmetry_pars->at(i).initial_relation.translation.y() = translation_symmetry_dist(random::generator())*scaling;
+                params.symmetry_pars->at(i).initial_relation.translation.z() = translation_symmetry_dist(random::generator())*scaling;
             }
 
             if (symmetries->optimize_rotate) {
-                // initial_relation.orientation allows arbitrary reorientation before applying symmetry
-                symmetry_pars[i].initial_relation.orientation.x() = rotation_symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.orientation.y() = rotation_symmetry_dist(random::generator())*scaling;
-                symmetry_pars[i].initial_relation.orientation.z() = rotation_symmetry_dist(random::generator())*scaling;
+                params.symmetry_pars->at(i).initial_relation.orientation.x() = rotation_symmetry_dist(random::generator())*scaling;
+                params.symmetry_pars->at(i).initial_relation.orientation.y() = rotation_symmetry_dist(random::generator())*scaling;
+                params.symmetry_pars->at(i).initial_relation.orientation.z() = rotation_symmetry_dist(random::generator())*scaling;
             }
         }
     }
 
-    return {t, r, std::move(symmetry_pars)};
+    return params;
 }
 
 namespace ausaxs::rigidbody::parameter {

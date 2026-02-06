@@ -9,6 +9,20 @@
 
 using namespace ausaxs;
 
+bool is_rotation_matrix(const Matrix<double>& R) {
+    Matrix<double> should_be_identity = R.transpose() * R;
+    return std::accumulate(should_be_identity.begin(), should_be_identity.end(), 0.0, [] (double acc, double val) {return acc + std::abs(val);}) - 3 < 1e-6;
+}
+
+template<numeric T>
+std::array<double, 3> matrix::euler_angles(const Matrix<T>& R) {
+    assert(is_rotation_matrix(R) && "Input matrix is not a valid rotation matrix.");
+    double beta = std::atan2(-R.index(2, 0), std::sqrt(R.index(0, 0)*R.index(0, 0) + R.index(1, 0)*R.index(1, 0)));
+    double alpha = std::atan2(R.index(1, 0)/std::cos(beta), R.index(0, 0)/std::cos(beta));
+    double gamma = std::atan2(R.index(2, 1)/std::cos(beta), R.index(2, 2)/std::cos(beta));
+    return {alpha, beta, gamma};
+}
+
 template<numeric T>
 Matrix<T> matrix::rotation_matrix(T alpha, T beta, T gamma) {
     double cosa = std::cos(alpha), cosb = std::cos(beta), cosg = std::cos(gamma);

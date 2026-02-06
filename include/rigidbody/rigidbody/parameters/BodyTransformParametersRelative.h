@@ -7,6 +7,7 @@
 #include <data/symmetry/Symmetry.h>
 
 #include <vector>
+#include <optional>
 
 namespace ausaxs::rigidbody::parameter {
     /**
@@ -21,9 +22,9 @@ namespace ausaxs::rigidbody::parameter {
         BodyTransformParametersRelative(const Vector3<double>& translation, const Vector3<double>& rotation, std::vector<symmetry::Symmetry>&& symmetry_pars = {})
             : translation(translation), rotation(rotation), symmetry_pars(std::move(symmetry_pars)) 
         {}
-        Vector3<double> translation = {0, 0, 0};
-        Vector3<double> rotation = {0, 0, 0};
-        std::vector<symmetry::Symmetry> symmetry_pars;
+        std::optional<Vector3<double>> translation;
+        std::optional<Vector3<double>> rotation;
+        std::optional<std::vector<symmetry::Symmetry>> symmetry_pars;
 
         bool operator==(const BodyTransformParametersRelative&) const = default;
     };

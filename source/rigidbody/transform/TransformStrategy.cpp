@@ -36,7 +36,7 @@ void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vect
     std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (observer_ptr<data::Body> body) {body->translate(group.pivot+t);});
 }
 
-void TransformStrategy::apply_symmetry(std::vector<symmetry::Symmetry>&& symmetry, data::Body& body) {
+void TransformStrategy::apply_symmetry(const std::vector<symmetry::Symmetry>& symmetry, data::Body& body) {
     assert(symmetry.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
         auto& current_sym = body.symmetry().get(i);
@@ -44,6 +44,16 @@ void TransformStrategy::apply_symmetry(std::vector<symmetry::Symmetry>&& symmetr
         current_sym.initial_relation.orientation = symmetry[i].initial_relation.orientation;
         body.get_signaller()->modified_symmetry(i);
     }
+}
+
+std::vector<ausaxs::symmetry::Symmetry> TransformStrategy::add_symmetries(const std::vector<symmetry::Symmetry>& current, const std::vector<symmetry::Symmetry>& delta) {
+    assert(current.size() == delta.size());
+    std::vector<symmetry::Symmetry> result = current;
+    for (int i = 0; i < static_cast<int>(current.size()); ++i) {
+        result[i].initial_relation.translation += delta[i].initial_relation.translation;
+        result[i].initial_relation.orientation += delta[i].initial_relation.orientation;
+    }
+    return result;
 }
 
 void TransformStrategy::update_body(unsigned int ibody, parameter::BodyTransformParametersAbsolute&& pars) {
@@ -88,69 +98,56 @@ void TransformStrategy::update_body(unsigned int ibody, parameter::BodyTransform
     }
 }
 
-namespace {
-    // Helper to compose rotation matrices and extract Euler angles (XYZ extrinsic convention)
-    // The rotation matrix uses the convention: R = Rz(gamma) * Ry(beta) * Rx(alpha)
-    // Matrix layout:
-    //   [0,0] = cos(beta)*cos(gamma)
-    //   [1,0] = cos(beta)*sin(gamma)
-    //   [2,0] = -sin(beta)
-    //   [2,1] = sin(alpha)*cos(beta)
-    //   [2,2] = cos(alpha)*cos(beta)
-    ausaxs::Vector3<double> compose_rotation(const ausaxs::Vector3<double>& current_rotation, const ausaxs::Vector3<double>& delta_rotation) {
-        auto R_current = ausaxs::matrix::rotation_matrix(current_rotation);
-        auto R_delta = ausaxs::matrix::rotation_matrix(delta_rotation);
-        auto R_new = R_delta * R_current;
-        
-        // Extract Euler angles (alpha, beta, gamma) from the rotation matrix
-        // Using XYZ extrinsic convention matching rotation_matrix(alpha, beta, gamma)
-        double beta = std::asin(std::clamp(-R_new(2, 0), -1.0, 1.0));
-        double cos_beta = std::cos(beta);
-        
-        double alpha, gamma;
-        if (std::abs(cos_beta) > 1e-10) {
-            // Normal case: cos(beta) != 0
-            alpha = std::atan2(R_new(2, 1), R_new(2, 2));
-            gamma = std::atan2(R_new(1, 0), R_new(0, 0));
-        } else {
-            // Gimbal lock: beta = +/- pi/2
-            // In this case, alpha and gamma are not uniquely determined
-            // Convention: set alpha = 0 and solve for gamma
-            alpha = 0.0;
-            gamma = std::atan2(-R_new(0, 1), R_new(1, 1));
-        }
-        
-        return {alpha, beta, gamma};
-    }
-}
-
 void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody) {
-    auto grid = rigidbody->molecule.get_grid();
+    // auto& body = rigidbody->get_body(ibody);
+
+    // bodybackup.clear();
+    // bodybackup.emplace_back(body, ibody);
+
+    // auto grid = rigidbody->get_grid();
+    // grid->remove(body);
+
+    // // translate & rotate
+    // auto cm = body.get_cm();
+    // body.translate(-cm);
+    // body.rotate(matrix::rotation_matrix(par.rotation));
+    // body.translate(cm + par.translation);
+
+    // // update symmetry parameters
+    // symmetry(std::move(par.symmetry_pars), body);
+
+    // grid->add(body);
+
     auto& body = rigidbody->molecule.get_body(ibody);
 
-    // Backup and remove old body
+    // Backup and get fresh body
     bodybackup.clear();
     bodybackup.emplace_back(body, ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
+    body = rigidbody->conformation->initial_conformation[ibody];
+
+    // remove body from grid since it does not track transforms
+    auto grid = rigidbody->molecule.get_grid();
     grid->remove(body);
 
-    // Compute new absolute parameters from current + delta
-    auto& current_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-    auto R_delta = matrix::rotation_matrix(par.rotation);
-    auto new_rotation = compose_rotation(current_params.rotation, par.rotation);
-    auto new_translation = R_delta * current_params.translation + par.translation;
-    auto new_symmetry = current_params.symmetry_pars;
-    for (unsigned int i = 0; i < new_symmetry.size(); ++i) {
-        auto& sym = new_symmetry[i];
-        sym.initial_relation.orientation += par.symmetry_pars[i].initial_relation.orientation;
-        sym.initial_relation.translation += par.symmetry_pars[i].initial_relation.translation;
+    // compute new absolute transform parameters for the body
+    parameter::BodyTransformParametersAbsolute& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+    if (par.rotation.has_value()) {body_params.rotation += par.rotation.value();}
+    if (par.translation.has_value()) {body_params.translation += par.translation.value();}
+
+    // apply transformations
+    if (par.rotation.has_value() || par.translation.has_value()) {
+        rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body);
     }
 
-    // Update body with new absolute parameters
-    update_body(ibody, {new_rotation, new_translation, std::move(new_symmetry)});
+    // update and apply symmetry parameters
+    if (par.symmetry_pars.has_value()) {
+        body_params.symmetry_pars = add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
+        apply_symmetry(body_params.symmetry_pars, body);
+    }
 
-    // Refresh grid and re-add body
+    // re-add body and refresh grid
+    grid->add(body);
     rigidbody->refresh_grid();
-    grid->add(rigidbody->molecule.get_body(ibody));
 }
 
 void TransformStrategy::undo() {
@@ -163,7 +160,7 @@ void TransformStrategy::undo() {
 
 void TransformStrategy::backup(TransformGroup& group) {
     bodybackup.clear();
-    for (unsigned int i = 0; i < group.bodies.size(); i++) {
+    for (int i = 0; i < static_cast<int>(group.bodies.size()); i++) {
         bodybackup.emplace_back(*group.bodies[i], group.indices[i], rigidbody->conformation->absolute_parameters.parameters[group.indices[i]]);
     }
 }

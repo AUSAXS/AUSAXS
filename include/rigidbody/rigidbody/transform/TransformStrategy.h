@@ -38,7 +38,7 @@ namespace ausaxs::rigidbody::transform {
             virtual void apply(parameter::BodyTransformParametersRelative&& par, constraints::DistanceConstraint& constraint) = 0;
 
             /**
-             * @brief Apply a relative transformation to a single body. 
+             * @brief Apply a relative transformation to a single unconstrained body. 
              * 
              * The delta transformation is applied to the specified body.
              * Absolute parameters for the body are updated accordingly.
@@ -47,7 +47,7 @@ namespace ausaxs::rigidbody::transform {
              * @param par The relative transformation to apply.
              * @param ibody The index of the body to transform.
              */
-            virtual void apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody);
+            void apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody);
 
             /**
              * @brief Undo the previous transformation. 
@@ -91,7 +91,8 @@ namespace ausaxs::rigidbody::transform {
             /**
              * @brief Set a new set of absolute symmetry parameters for a given body. 
              */
-            virtual void apply_symmetry(std::vector<symmetry::Symmetry>&& symmetry, data::Body& body);
+            virtual void apply_symmetry(const std::vector<symmetry::Symmetry>& symmetry, data::Body& body);
+            std::vector<symmetry::Symmetry> add_symmetries(const std::vector<symmetry::Symmetry>& current, const std::vector<symmetry::Symmetry>& delta);
 
             /**
              * @brief Update a body with new absolute rotation and translation, handling symmetry accumulation.

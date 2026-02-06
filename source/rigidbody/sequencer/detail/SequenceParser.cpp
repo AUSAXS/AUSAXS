@@ -71,8 +71,8 @@ ElementType get_type(std::string_view line) {
 }
 
 settings::rigidbody::TransformationStrategyChoice get_transform_strategy(std::string_view line) {
-    if (line == "rigid_transform") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}
-    if (line == "single_transform") {return settings::rigidbody::TransformationStrategyChoice::SingleTransform;}
+    if (line == "rigid_transform" || line == "rigid") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}
+    if (line == "single_transform" || line == "single") {return settings::rigidbody::TransformationStrategyChoice::SingleTransform;}
     throw except::invalid_argument("SequenceParser::get_transform_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 

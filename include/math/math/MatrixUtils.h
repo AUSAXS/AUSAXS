@@ -32,6 +32,13 @@ namespace ausaxs::matrix {
     template<numeric T>
     Matrix<T> rotation_matrix(const Vector3<T>& axis, double angle);
 
+    /**
+     * @brief Extract extrinsic Euler angles from a rotation matrix. 
+     *        The angles are returned in the order (alpha, beta, gamma).
+     */
+    template<numeric T>
+    std::array<double, 3> euler_angles(const Matrix<T>& R);
+
     // enable if the angle type is different from the axis type
     template<numeric T, numeric Q> requires (!std::same_as<Q, T>)
     Matrix<T> rotation_matrix(const Vector3<Q>& axis, double angle) {
