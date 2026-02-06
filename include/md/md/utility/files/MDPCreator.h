@@ -46,7 +46,10 @@ namespace ausaxs::md {
         const inline static detail::Option nstlog               = "nstlog";           // log output frequency
         const inline static detail::Option nstenergy            = "nstenergy";        // energy output frequency
         const inline static detail::Option nstcalcenergy        = "nstcalcenergy";    // energy calculation frequency
+        const inline static detail::Option nstxout              = "nstxout";          // coordinates trajectory output frequency
         const inline static detail::Option nstxout_compressed   = "nstxout-compressed"; // compressed trajectory output frequency
+        const inline static detail::Option nstvout              = "nstvout";          // velocity trajectory output frequency
+        const inline static detail::Option nstfout              = "nstfout";          // force trajectory output frequency
 
         const inline static detail::Option cutoff_scheme        = "cutoff-scheme";    // neighbor list cut-off scheme
         const inline static detail::Option nstlist              = "nstlist";          // neighbor list frequency

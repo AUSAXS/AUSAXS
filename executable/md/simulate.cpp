@@ -51,25 +51,23 @@ int main(int argc, char const *argv[]) {
 
     auto molecule = simulate_molecule({
         .system = ss,
-        .jobname = pdb.stem() + "_mol",
         .pdbfile = pdb,
         .mdp = mdp::templates::production::mol().write(settings::general::output + "mdp/mol.mdp"),
-        .setup_runner = RunLocation::local,
-        .main_runner = RunLocation::local,
-        .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
-    });
+        .minimize_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
+        .equilibrate_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
+        .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
+    });    
 
     SimulateBufferOutput buffer;
     console::print_info("\nPreparing buffer simulation");
     if (settings::md::buffer_path.empty()) {
         buffer = simulate_buffer({
             .system = ss,
-            .jobname = pdb.stem() + "_buf",
             .refgro = molecule.gro,
             .mdp = mdp::templates::production::solv().write(settings::general::output + "mdp/buf.mdp"),
-            .setup_runner = RunLocation::local,
-            .main_runner = RunLocation::local,
-            .jobscript = SHFile("scripts/jobscript_slurm_standard.sh").absolute_path(),
+            .minimize_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
+            .equilibrate_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
+            .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_buf"),
         });
     } else {
         // find production gro
@@ -100,15 +98,17 @@ int main(int argc, char const *argv[]) {
         }
 
         // create dummy job
-        buffer.job = std::make_unique<NoExecution<MDRunResult>>(settings::md::buffer_path + "/prod/");
+        buffer.job = std::make_unique<NoExecutor<MDRunResult>>(settings::md::buffer_path + "/prod/");
     }
 
     auto saxs = simulate_saxs({
         .pdbfile = pdb,
-        .molecule = std::move(molecule),
-        .buffer = std::move(buffer),
-        .runner = RunLocation::local,
-        .jobscript = SHFile("scripts/jobscript_slurm_swaxs.sh").absolute_path(),
+        .molecule = molecule,
+        .buffer = buffer,
+        .output = settings::general::output + "saxs_uncorrected/",
+        .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_uncorr"),
+        .mol_mdp = mdp::templates::saxs::mol(),
+        .buf_mdp = mdp::templates::saxs::solv(),
     });
     saxs.job->submit();
 
