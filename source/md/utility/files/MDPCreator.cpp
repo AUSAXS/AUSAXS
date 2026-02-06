@@ -17,6 +17,7 @@ MDPCreator& MDPCreator::add(const MDPOptions::detail::OptionVal& option) {
     for (auto& opt : options) {
         if (opt.name == option.name) {
             opt.value = option.value;
+            return *this;
         }
     }
 

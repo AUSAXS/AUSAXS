@@ -115,9 +115,13 @@ int main(int argc, char const *argv[]) {
     }
 
     SimulateSAXSOutput saxs1, saxs2;
-    {   // scheme 1: uncorrected
+    io::File uncorrected_xvg(settings::general::output + "saxs_uncorrected/prod/prod_final.xvg");
+    io::File corrected_xvg(settings::general::output + "saxs_corrected/prod/prod_final.xvg");
+    if (!uncorrected_xvg.exists()) { // scheme 1: uncorrected
         auto mol_mdp = mdp::templates::saxs::mol();
         auto buf_mdp = mdp::templates::saxs::solv();
+        mol_mdp.add(MDPOptions::waxs_endq = "50");
+        buf_mdp.add(MDPOptions::waxs_endq = "50");
         mol_mdp.add(MDPOptions::waxs_correct_buffer = "no");
         buf_mdp.add(MDPOptions::waxs_correct_buffer = "no");
 
@@ -126,16 +130,17 @@ int main(int argc, char const *argv[]) {
             .molecule = molecule,
             .buffer = buffer,
             .output = settings::general::output + "saxs_uncorrected/",
-            // .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_uncorr"),
-            .runner = executor::local::construct(),
+            .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_uncorr"),
             .mol_mdp = mol_mdp,
             .buf_mdp = buf_mdp,
         });
         saxs1.job->submit();
     }
-    {   // scheme 2: corrected
+    if (!corrected_xvg.exists()) { // scheme 2: corrected
         auto mol_mdp = mdp::templates::saxs::mol();
         auto buf_mdp = mdp::templates::saxs::solv();
+        mol_mdp.add(MDPOptions::waxs_endq = "50");
+        buf_mdp.add(MDPOptions::waxs_endq = "50");
         mol_mdp.add(MDPOptions::waxs_correct_buffer = "yes");
         buf_mdp.add(MDPOptions::waxs_correct_buffer = "yes");
 
@@ -144,26 +149,30 @@ int main(int argc, char const *argv[]) {
             .molecule = molecule,
             .buffer = buffer,
             .output = settings::general::output + "saxs_corrected/",
-            .runner = executor::local::construct(),
+            .runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_corr"),
             .mol_mdp = mol_mdp,
             .buf_mdp = buf_mdp,
         });
         saxs2.job->submit();
     }
+    if (saxs1.job || saxs2.job) {
+        saxs1.job->wait();
+        saxs2.job->wait();
+    }
 
-    settings::axes::qmax = 1;
+    settings::axes::qmax = 5;
     SimpleDataset data(s_dat);
-    SimpleDataset data1(saxs1.job->result().xvg);
-    SimpleDataset data2(saxs2.job->result().xvg);
-    data.normalize();
-    data1.normalize();
-    data2.normalize();
+    SimpleDataset data1(uncorrected_xvg);
+    SimpleDataset data2(corrected_xvg);
+    // data.normalize();
+    // data1.normalize();
+    // data2.normalize();
     plots::PlotDataset()
-        .plot(data, {style::draw::errors, {{"legend", "SAXS data"}, {"logx", true}, {"logy", true}, {"color", style::color::black}}})
-        .plot(data1, {style::draw::errors, {{"legend", "uncorrected"}, {"color", style::color::orange}}})
-        .plot(data2, {style::draw::errors, {{"legend", "corrected"}, {"color", style::color::blue}}})
+        // .plot(data, {style::draw::errors, {{"legend", "SAXS data"}, {"logx", true}, {"logy", true}, {"color", style::color::black}}})
+        .plot(data1, {style::draw::errors, {{"legend", "direct"}, {"logx", true}, {"logy", true}, {"color", style::color::orange}}})
+        .plot(data2, {style::draw::errors, {{"legend", "volume-scaled"}, {"logx", true}, {"logy", false}, {"color", style::color::blue}}})
     .save(settings::general::output + "out/saxs_comparison.png");
-    saxs1.job->result().xvg.copy(settings::general::output + "out", "saxs_uncorrected.xvg");
-    saxs2.job->result().xvg.copy(settings::general::output + "out", "saxs_corrected.xvg");
+    uncorrected_xvg.copy(settings::general::output + "out", "saxs_uncorrected.xvg");
+    corrected_xvg.copy(settings::general::output + "out", "saxs_corrected.xvg");
     return 0;
 }
