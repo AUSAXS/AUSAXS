@@ -27,49 +27,51 @@ RigidTransform::~RigidTransform() = default;
 void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
-    auto grid = rigidbody->molecule.get_grid();
 
-    // Step 1: Get fresh bodies and compute new absolute parameters
-    for (unsigned int i = 0; i < group.bodies.size(); i++) {
+    // remove bodies from grid since it does not track transforms
+    auto grid = rigidbody->molecule.get_grid();
+    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
         unsigned int ibody = group.indices[i];
         auto& body = *group.bodies[i];
         grid->remove(body);
         body = rigidbody->conformation->initial_conformation[ibody];
     }
 
-    // Step 2: Compute new absolute parameters for all bodies
-    std::vector<parameter::BodyTransformParametersAbsolute> new_params(group.bodies.size());
-    for (unsigned int i = 0; i < group.bodies.size(); i++) {
-        unsigned int ibody = group.indices[i];
-        new_params[i] = rigidbody->conformation->absolute_parameters.parameters[ibody];
-        
-        if (par.rotation.has_value()) {
-            new_params[i].rotation += par.rotation.value();
+    // compute new absolute transform parameters for the bodies
+    if (par.rotation.has_value()) {
+        auto R = matrix::rotation_matrix(par.rotation.value());
+        for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
+            unsigned int ibody = group.indices[i];
+            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+            body_params.rotation = matrix::euler_angles(R*matrix::rotation_matrix(rigidbody->conformation->absolute_parameters.parameters[ibody].rotation));
         }
-        if (par.translation.has_value()) {
-            auto R_delta = matrix::rotation_matrix(par.rotation.value_or(Vector3<double>{0, 0, 0}));
-            new_params[i].translation = R_delta * (new_params[i].translation - group.pivot) + group.pivot + par.translation.value();
+    } if (par.translation.has_value()) {
+        for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
+            unsigned int ibody = group.indices[i];
+            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+            body_params.translation += par.translation.value();
         }
-        if (i == 0 && par.symmetry_pars.has_value()) {
-            new_params[i].symmetry_pars = add_symmetries(new_params[i].symmetry_pars, par.symmetry_pars.value());
-        }
-    }
-    
-    // Step 3: Apply transformations to all bodies
-    for (unsigned int i = 0; i < group.bodies.size(); i++) {
-        auto& body = *group.bodies[i];
-        const auto& params = new_params[i];
-        
-        body.rotate(matrix::rotation_matrix(params.rotation));
-        body.translate(params.translation);
-        
-        if (i == 0 && par.symmetry_pars.has_value()) {
-            apply_symmetry(params.symmetry_pars, body);
-        }
-        
-        grid->add(body);
     }
 
+    // apply transformations
+    if (par.rotation.has_value() || par.translation.has_value()) {
+        for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
+            unsigned int ibody = group.indices[i];
+            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+            rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, group.pivot, *group.bodies[i]);
+        }
+    }
+
+    // apply symmetry parameters to primary body
+    if (par.symmetry_pars.has_value()) {
+        unsigned int ibody = group.indices[0];
+        auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+        body_params.symmetry_pars = add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
+        apply_symmetry(body_params.symmetry_pars, *group.bodies[0]);
+    }
+
+    // re-add bodies and refresh grid
+    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {grid->add(*group.bodies[i]);}
     rigidbody->refresh_grid();
 }
 

@@ -71,6 +71,7 @@ namespace ausaxs::rigidbody::transform {
              * @param group The group to apply the transformation to.
              */
             void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group);
+            void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, const Vector3<double>& pivot, data::Body& body);
 
             /**
              * @brief Rotate a body. 
@@ -93,20 +94,5 @@ namespace ausaxs::rigidbody::transform {
              */
             virtual void apply_symmetry(const std::vector<symmetry::Symmetry>& symmetry, data::Body& body);
             std::vector<symmetry::Symmetry> add_symmetries(const std::vector<symmetry::Symmetry>& current, const std::vector<symmetry::Symmetry>& delta);
-
-            /**
-             * @brief Update a body with new absolute rotation and translation, handling symmetry accumulation.
-             * 
-             * This helper method encapsulates the common pattern:
-             * 1. Get fresh body from initial_conformation
-             * 2. Apply absolute rotation and translation
-             * 3. Restore accumulated symmetry state
-             * 4. Apply symmetry deltas (if provided)
-             * 5. Update molecule and current_params
-             * 
-             * @param ibody The index of the body to update.
-             * @param new_state The new absolute parameters for the body.
-             */
-            void update_body(unsigned int ibody, parameter::BodyTransformParametersAbsolute&& pars);
     };
 }

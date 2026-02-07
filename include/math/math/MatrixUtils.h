@@ -37,7 +37,7 @@ namespace ausaxs::matrix {
      *        The angles are returned in the order (alpha, beta, gamma).
      */
     template<numeric T>
-    std::array<double, 3> euler_angles(const Matrix<T>& R);
+    Vector3<T> euler_angles(const Matrix<T>& R);
 
     // enable if the angle type is different from the axis type
     template<numeric T, numeric Q> requires (!std::same_as<Q, T>)

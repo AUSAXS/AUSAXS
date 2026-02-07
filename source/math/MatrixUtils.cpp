@@ -6,20 +6,29 @@
 #include <math/Matrix.h>
 
 #include <math.h>
+#include <cassert>
 
 using namespace ausaxs;
 
-bool is_rotation_matrix(const Matrix<double>& R) {
-    Matrix<double> should_be_identity = R.transpose() * R;
+template<numeric T>
+bool is_rotation_matrix(const Matrix<T>& R) {
+    Matrix<T> should_be_identity = R.transpose() * R;
     return std::accumulate(should_be_identity.begin(), should_be_identity.end(), 0.0, [] (double acc, double val) {return acc + std::abs(val);}) - 3 < 1e-6;
 }
 
 template<numeric T>
-std::array<double, 3> matrix::euler_angles(const Matrix<T>& R) {
+Vector3<T> matrix::euler_angles(const Matrix<T>& R) {
     assert(is_rotation_matrix(R) && "Input matrix is not a valid rotation matrix.");
-    double beta = std::atan2(-R.index(2, 0), std::sqrt(R.index(0, 0)*R.index(0, 0) + R.index(1, 0)*R.index(1, 0)));
-    double alpha = std::atan2(R.index(1, 0)/std::cos(beta), R.index(0, 0)/std::cos(beta));
-    double gamma = std::atan2(R.index(2, 1)/std::cos(beta), R.index(2, 2)/std::cos(beta));
+    T c = std::hypot(R.index(0, 0), R.index(1, 0));
+    T beta = std::atan2(-R.index(2, 0), c);
+    T alpha, gamma;
+    if (1e-9 < c) {
+        alpha = std::atan2(R(2, 1), R(2, 2));
+        gamma = std::atan2(R(1, 0), R(0, 0));
+    } else { // gimbal lock
+        alpha = 0.0;
+        gamma = std::atan2(-R(0, 1), R(1, 1));
+    }
     return {alpha, beta, gamma};
 }
 
@@ -68,6 +77,8 @@ template Matrix<double> matrix::rotation_matrix(const Vector3<double>& axis, dou
 template Matrix<float> matrix::rotation_matrix(float alpha, float beta, float gamma);
 template Matrix<float> matrix::rotation_matrix(const Vector3<float>& angles);
 template Matrix<float> matrix::rotation_matrix(const Vector3<float>& axis, double angle);
+template Vector3<double> matrix::euler_angles(const Matrix<double>& R);
+template Vector3<float> matrix::euler_angles(const Matrix<float>& R);
 
 Matrix<double> matrix::identity(unsigned int dim) {
     Matrix<double> A(dim, dim);
