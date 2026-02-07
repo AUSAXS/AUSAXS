@@ -2,6 +2,8 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/ConstraintFactory.h>
 #include <rigidbody/sequencer/elements/All.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
@@ -42,6 +44,13 @@ enum class rigidbody::sequencer::ElementType {
     RelativeHydration,
     OutputFolder,
 };
+
+int SequenceParser::body_name_to_index(const std::string& name) const {
+    const auto& body_names = loop_stack.back()->_get_sequencer()->setup()._get_body_names();
+    auto it = body_names.find(name);
+    if (it == body_names.end()) {throw except::invalid_argument("SequenceParser::body_name_to_index: Unknown body name \"" + name + "\".");}
+    return it->second;
+}
 
 ElementType get_type(std::string_view line) {
     static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
@@ -191,13 +200,14 @@ ArgResult<double> get_arg(std::vector<std::string>& names, const std::unordered_
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {body1, body2, iatom1, iatom2, type};
+    enum class Args {body1, body2, iatom1, iatom2, type, distance};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
         {Args::body1, {"first", "first_body"}},
         {Args::body2, {"second", "second_body"}},
         {Args::iatom1, {"iatom1", "iatom_1", "i1"}},
         {Args::iatom2, {"iatom2", "iatom_2", "i2"}},
-        {Args::type, {"type", "kind"}}
+        {Args::type, {"type", "kind"}},
+        {Args::distance, {"distance", "dist", "d"}}
     };
     if (args.size() < 3) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"constraint\". Expected at least 3, but got " + std::to_string(args.size()) + ".");}
 
@@ -206,37 +216,58 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
     auto type  = get_arg<std::string>(valid_args[Args::type], args);
     auto iatom1 = get_arg<int>(valid_args[Args::iatom1], args);
     auto iatom2 = get_arg<int>(valid_args[Args::iatom2], args);
+    auto distance = get_arg<double>(valid_args[Args::distance], args);
 
-    if (!body1.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body1\".");}
-    if (!body1.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body2\".");}
+    {   // INPUT VALIDATION
+        if (!body1.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body1\".");}
+        if (!body2.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body2\".");}
+        if (iatom1.found && !iatom2.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"iatom1\" provided without \"iatom2\".");}
+        if (!iatom1.found && iatom2.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"iatom2\" provided without \"iatom1\".");}
+        if (type.found && (iatom1.found || iatom2.found)) {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"type\" cannot be provided together with \"iatom1\" or \"iatom2\".");}
+        if (distance.found && !type.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"distance\" cannot be provided without \"type\".");}
+        if (distance.found && type.value != "attract") {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"distance\" can only be provided when \"type\" is \"attract\".");}
+    }
 
     if (!(iatom1.found && iatom2.found)) {
-        if (!type.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"iatom1\", and \"iatom2\", or \"type\".");}
+        assert(body1.found && body2.found);
+        std::unique_ptr<constraints::Constraint> constraint;
         if (type.value == "closest") {
-            return std::make_unique<ConstraintElement>(
-                static_cast<Sequencer*>(loop_stack.front()), 
-                body1.value, 
-                body2.value
+            constraint = factory::create_constraint_closest(
+                &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                body_name_to_index(body1.value), 
+                body_name_to_index(body2.value)
             );
-        }
-        if (type.value == "center_mass") {
-            return std::make_unique<ConstraintElement>(
-                static_cast<Sequencer*>(loop_stack.front()), 
-                body1.value, 
-                body2.value,
-                true
+        } else if (type.value == "center_mass") {
+            constraint = factory::create_constraint_cm(
+                &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                body_name_to_index(body1.value), 
+                body_name_to_index(body2.value)
             );
+        } else if (type.value == "attract") {
+            assert(distance.found);
+            constraint = factory::create_constraint_attractor(
+                &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                body_name_to_index(body1.value), 
+                body_name_to_index(body2.value),
+                distance.value
+            );
+        } else {
+            throw except::invalid_argument("SequenceParser::parse_arguments: Invalid arguments for \"type\": \"" + type.value + "\". Expected one of {closest, center_mass, attract}.");
         }
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for \"type\": \"" + type.value + "\".");
+        loop_stack.front()->_get_rigidbody()->constraints->add_constraint(std::move(constraint));
     } else {
-        return std::make_unique<ConstraintElement>(
-            static_cast<Sequencer*>(loop_stack.front()), 
-            body1.value, 
-            body2.value,
-            iatom1.value,
-            iatom2.value
+        assert(body1.found && body2.found && iatom1.found && iatom2.found);
+        loop_stack.front()->_get_rigidbody()->constraints->add_constraint(
+            factory::create_constraint(
+                &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                body_name_to_index(body1.value), 
+                body_name_to_index(body2.value),
+                iatom1.value,
+                iatom2.value
+            )
         );
     }
+    return nullptr;
 }
 
 template<>
@@ -596,7 +627,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
         }
         switch (get_type(tokens[0])) {
             case ElementType::Constraint:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Constraint>(args));
+                parse_arguments<ElementType::Constraint>(args);
                 break;
 
             case ElementType::AutomaticConstraint:

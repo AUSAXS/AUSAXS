@@ -3,7 +3,9 @@ add_library(ausaxs_rigidbody OBJECT
 	"Rigidbody.cpp"
 	"BodySplitter.cpp"
 
+	"constraints/AttractorConstraint.cpp"
 	"constraints/Constraint.cpp"
+	"constraints/ConstraintFactory.cpp"
 	"constraints/ConstraintManager.cpp"
 	"constraints/DistanceConstraint.cpp"
 	"constraints/FixedConstraint.cpp"

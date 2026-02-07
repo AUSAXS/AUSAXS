@@ -12,7 +12,8 @@ using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
 
 DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
-    : molecule(molecule), ibody1(ibody1), ibody2(ibody2), iatom1(iatom1), iatom2(iatom2) {
+    : molecule(molecule), ibody1(ibody1), ibody2(ibody2), iatom1(iatom1), iatom2(iatom2) 
+{
     const Body& body1 = molecule->get_body(ibody1);
     const Body& body2 = molecule->get_body(ibody2);
     const AtomFF& atom1 = body1.get_atom(iatom1);
@@ -103,30 +104,8 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
     if (iatom1 == iatom2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Could not find atoms to constrain.");}
 }
 
-DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, const AtomFF& atom1, const AtomFF& atom2) : molecule(molecule) {
-    // we only want to allow constraints between the backbone C-alpha structure
-    if (form_factor::to_atom_type(atom1.form_factor_type()) != constants::atom_t::C || form_factor::to_atom_type(atom2.form_factor_type()) != constants::atom_t::C) {
-        throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Constraints only makes sense between the carbon-atoms of the backbone!");
-    }
-
-    auto[loc1, loc2] = find_host_bodies(atom1, atom2);
-
-    ibody1 = loc1.body;
-    ibody2 = loc2.body;
-    iatom1 = loc1.atom;
-    iatom2 = loc2.atom;
-
-    // constraints within the same body doesn't make sense
-    if (ibody1 == ibody2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Cannot create a constraint between atoms in the same body!");}
-
-    // set the base radius and perform a sanity check
-    r_base = atom1.coordinates().distance(atom2.coordinates());
-    if (r_base > settings::rigidbody::bond_distance) {
-        throw except::invalid_argument("DistanceConstraint::DistanceConstraint: The atoms being constrained are too far apart!");
-    }
-}
-
-std::pair<DistanceConstraint::AtomLoc, DistanceConstraint::AtomLoc> DistanceConstraint::find_host_bodies(const AtomFF& atom1, const AtomFF& atom2) const {
+struct AtomLoc {int body, atom;};
+std::pair<AtomLoc, AtomLoc> find_host_bodies(observer_ptr<const data::Molecule> molecule, const AtomFF& atom1, const AtomFF& atom2) {
     int ibody1 = -1, ibody2 = -1;
     int iatom1 = -1, iatom2 = -1;
     for (unsigned int ibody = 0; ibody < molecule->size_body(); ++ibody) {
@@ -151,6 +130,29 @@ std::pair<DistanceConstraint::AtomLoc, DistanceConstraint::AtomLoc> DistanceCons
     }
 
     return std::make_pair(AtomLoc{.body=ibody1, .atom=iatom1}, AtomLoc{.body=ibody2, .atom=iatom2});
+}
+
+DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, const AtomFF& atom1, const AtomFF& atom2) : molecule(molecule) {
+    // we only want to allow constraints between the backbone C-alpha structure
+    if (form_factor::to_atom_type(atom1.form_factor_type()) != constants::atom_t::C || form_factor::to_atom_type(atom2.form_factor_type()) != constants::atom_t::C) {
+        throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Constraints only makes sense between the carbon-atoms of the backbone!");
+    }
+
+    auto[loc1, loc2] = find_host_bodies(molecule, atom1, atom2);
+
+    ibody1 = loc1.body;
+    ibody2 = loc2.body;
+    iatom1 = loc1.atom;
+    iatom2 = loc2.atom;
+
+    // constraints within the same body doesn't make sense
+    if (ibody1 == ibody2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Cannot create a constraint between atoms in the same body!");}
+
+    // set the base radius and perform a sanity check
+    r_base = atom1.coordinates().distance(atom2.coordinates());
+    if (r_base > settings::rigidbody::bond_distance) {
+        throw except::invalid_argument("DistanceConstraint::DistanceConstraint: The atoms being constrained are too far apart!");
+    }
 }
 
 double DistanceConstraint::evaluate() const {
@@ -188,7 +190,11 @@ const Body& DistanceConstraint::get_body2() const {
 
 std::string DistanceConstraint::to_string() const {
     std::stringstream ss;
-    ss << "Constraint between (" << form_factor::to_string(molecule->get_body(ibody1).get_atom(iatom1).form_factor_type()) << ") and "
-                             "(" << form_factor::to_string(molecule->get_body(ibody2).get_atom(iatom2).form_factor_type()) << ")";
+    ss << 
+        "DistanceConstraint between (" << form_factor::to_string(molecule->get_body(ibody1).get_atom(iatom1).form_factor_type()) << ") and "
+        "(" << form_factor::to_string(molecule->get_body(ibody2).get_atom(iatom2).form_factor_type()) << ")"
+    ;
     return ss.str();
 }
+
+std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.to_string(); return os;}

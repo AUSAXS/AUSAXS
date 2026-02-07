@@ -7,7 +7,7 @@
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <iostream>
+#include <string>
 
 namespace ausaxs::rigidbody::constraints {
     /**
@@ -96,8 +96,6 @@ namespace ausaxs::rigidbody::constraints {
              */
             std::string to_string() const;
 
-            friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.to_string(); return os;}
-
             double r_base;                               // The normal distance between the two atoms. 
             observer_ptr<const data::Molecule> molecule; // The molecule this constraint belongs to.
             unsigned int ibody1 = -1;                    // The index of the first body.
@@ -106,19 +104,11 @@ namespace ausaxs::rigidbody::constraints {
             unsigned int iatom2 = -1;                    // The index of the second atom.
 
         private: 
-            struct AtomLoc {int body, atom;};
-
             /**
              * @brief Transforms a distance into a proper constraint for least-squares fitting. 
              * 
              * @param offset The radial offset between the new and original positions. 
              */
             static double transform(double offset);
-
-            /**
-             * @brief Find the bodies containing the argument atoms.
-             *        This is linear in the total number of atoms. 
-             */
-            std::pair<AtomLoc, AtomLoc> find_host_bodies(const data::AtomFF& atom1, const data::AtomFF& atom2) const;
     };
 }

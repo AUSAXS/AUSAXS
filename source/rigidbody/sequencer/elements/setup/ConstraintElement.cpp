@@ -13,27 +13,4 @@ ConstraintElement::ConstraintElement(observer_ptr<Sequencer> owner, std::unique_
     owner->_get_rigidbody()->constraints->add_constraint(std::move(constraint));
 }
 
-ConstraintElement::ConstraintElement(observer_ptr<Sequencer> owner, const std::string& body1, const std::string& body2, bool center_mass) {
-    owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<rigidbody::constraints::DistanceConstraint>(
-            &owner->_get_rigidbody()->molecule,
-            owner->setup()._get_body_names().at(body1),
-            owner->setup()._get_body_names().at(body2),
-            center_mass
-        )
-    );
-}
-
-ConstraintElement::ConstraintElement(observer_ptr<Sequencer> owner, const std::string& body1, const std::string& body2, unsigned int iatom1, unsigned int iatom2) {
-    owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<rigidbody::constraints::DistanceConstraint>(
-            &owner->_get_rigidbody()->molecule,
-            owner->setup()._get_body_names().at(body1),
-            owner->setup()._get_body_names().at(body2),
-            iatom1,
-            iatom2
-        )
-    );
-}
-
 void ConstraintElement::run() {}
