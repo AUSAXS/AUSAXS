@@ -77,6 +77,7 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
     if (par.translation.has_value()) {body_params.translation += par.translation.value();}
 
     // apply transformations
+    body = rigidbody->conformation->initial_conformation[ibody];
     if (par.rotation.has_value() || par.translation.has_value()) {
         rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body.get_cm(), body);
     }

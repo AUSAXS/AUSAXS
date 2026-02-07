@@ -51,16 +51,17 @@ ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody:
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
         params.symmetry_pars = std::vector<symmetry::Symmetry>(symmetries->symmetries.size());
         for (int i = 0; i < static_cast<int>(params.symmetry_pars->size()); ++i) {
+            auto& current_sym = params.symmetry_pars.value()[i];
             if (symmetries->optimize_translate) {
-                params.symmetry_pars->at(i).initial_relation.translation.x() = translation_symmetry_dist(random::generator())*scaling;
-                params.symmetry_pars->at(i).initial_relation.translation.y() = translation_symmetry_dist(random::generator())*scaling;
-                params.symmetry_pars->at(i).initial_relation.translation.z() = translation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.translation.x() = translation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.translation.y() = translation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.translation.z() = translation_symmetry_dist(random::generator())*scaling;
             }
 
             if (symmetries->optimize_rotate) {
-                params.symmetry_pars->at(i).initial_relation.orientation.x() = rotation_symmetry_dist(random::generator())*scaling;
-                params.symmetry_pars->at(i).initial_relation.orientation.y() = rotation_symmetry_dist(random::generator())*scaling;
-                params.symmetry_pars->at(i).initial_relation.orientation.z() = rotation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.orientation.x() = rotation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.orientation.y() = rotation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.orientation.z() = rotation_symmetry_dist(random::generator())*scaling;
             }
         }
     }

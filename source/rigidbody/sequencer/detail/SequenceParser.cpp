@@ -369,23 +369,31 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     auto strategy = get_arg<std::string>(valid_args[Args::strategy], args, "both");
     auto decay_strategy = get_arg<std::string>(valid_args[Args::decay_strategy], args, "linear");
 
+    bool has_translate = translate.found && translate.value != 0;
+    bool has_rotate = rotate.found && rotate.value != 0;
+
     // validate arguments
     if (!iterations.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing required argument \"iterations\".");}
     if (!strategy.found) {
         // automatic determination of strategy if not provided
-        if (translate.found && !rotate.found) {strategy.value = ParameterStrategyDefs::TRANSLATE_ONLY;}
-        else if (!translate.found && rotate.found) {strategy.value = ParameterStrategyDefs::ROTATE_ONLY;}
-        else if (!translate.found && !rotate.found) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing one of \"strategy\", \"translate\", or \"rotate\".");
+        if (has_translate && !has_rotate) {strategy.value = ParameterStrategyDefs::TRANSLATE_ONLY;}
+        else if (!has_translate && has_rotate) {strategy.value = ParameterStrategyDefs::ROTATE_ONLY;}
+        else if (!has_translate && !has_rotate) {
+            if (loop_stack.front()->_get_rigidbody()->molecule.symmetry().has_symmetries()) {
+                strategy.value = ParameterStrategyDefs::SYMMETRY_ONLY;
+                std::cout << "SequenceParser::parse_arguments: No strategy provided for \"parameter\" element, but symmetry parameters are available. Defaulting to strategy \"symmetry_only\"." << std::endl;
+            } else {
+                throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing one of \"strategy\", \"translate\", or \"rotate\".");
+            }
         }
     } else {
-        if (strategy.value == ParameterStrategyDefs::TRANSLATE_ONLY && !translate.found) {
+        if (strategy.value == ParameterStrategyDefs::TRANSLATE_ONLY && !has_translate) {
             throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing required argument \"translate\" for strategy \"translate_only\".");
-        } else if (strategy.value == ParameterStrategyDefs::ROTATE_ONLY && !rotate.found) {
+        } else if (strategy.value == ParameterStrategyDefs::ROTATE_ONLY && !has_rotate) {
             throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing required argument \"rotate\" for strategy \"rotate_only\".");
-        } else if (strategy.value == ParameterStrategyDefs::BOTH && !(translate.found && rotate.found)) {
+        } else if (strategy.value == ParameterStrategyDefs::BOTH && !(has_translate && has_rotate)) {
             throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing required arguments \"translate\" and \"rotate\" for strategy \"both\".");
-        } else if (strategy.value == ParameterStrategyDefs::SYMMETRY_ONLY && (translate.found || rotate.found)) {
+        } else if (strategy.value == ParameterStrategyDefs::SYMMETRY_ONLY && (has_translate || has_rotate)) {
             throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Unexpected arguments \"translate\" and/or \"rotate\" for strategy \"symmetry_only\".");
         }
     }
