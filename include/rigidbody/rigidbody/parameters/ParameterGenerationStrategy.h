@@ -48,6 +48,7 @@ namespace ausaxs::rigidbody::parameter {
              * @brief Set the decay strategy.
              */
             void set_decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy);
+            observer_ptr<parameter::decay::DecayStrategy> get_decay_strategy() const;
 
             /**
              * @brief Set the maximum translation distance to the given value.

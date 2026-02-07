@@ -9,6 +9,7 @@
 
 #include <random>
 
+using namespace ausaxs;
 using namespace ausaxs::rigidbody::parameter;
 
 std::tuple<
@@ -41,6 +42,8 @@ ParameterGenerationStrategy::~ParameterGenerationStrategy() = default;
 void ParameterGenerationStrategy::set_decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy) {
     this->decay_strategy = std::move(decay_strategy);
 }
+
+observer_ptr<rigidbody::parameter::decay::DecayStrategy> ParameterGenerationStrategy::get_decay_strategy() const {return decay_strategy.get();}
 
 void ParameterGenerationStrategy::set_max_translation_distance(double distance) {
     translation_dist = std::uniform_real_distribution<double>(-distance, distance);

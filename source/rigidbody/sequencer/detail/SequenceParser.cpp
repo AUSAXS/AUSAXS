@@ -534,6 +534,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
     // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
     sequencer->setup()._set_config_folder(config.directory());
+    observer_ptr<ParameterElement> last_parameter_element = nullptr; // loop needs to know the last parameter element for automatic iteration determination
 
     std::string line;
     while(!in.eof()) {
@@ -595,6 +596,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                 break;
 
             case ElementType::LoopBegin:
+                if (args.size() == 0 && last_parameter_element) { // if no argument is provided, we can determine the number of iterations from the last parameter element
+                    args["iterations"] = {std::to_string(last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations())};
+                    std::cout << "\tNo iteration count provided for loop, using " << args["iterations"][0] << " from last parameter element." << std::endl;
+                }
                 loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::LoopBegin>(args));
                 loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
                 break;
@@ -607,6 +612,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
             case ElementType::Parameter:
                 loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Parameter>(args));
+                last_parameter_element = dynamic_cast<ParameterElement*>(loop_stack.back()->_get_elements().back().get());
                 break;
 
             case ElementType::BodySelect:

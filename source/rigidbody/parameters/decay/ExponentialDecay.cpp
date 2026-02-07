@@ -7,7 +7,7 @@
 
 using namespace ausaxs::rigidbody::parameter::decay;
 
-ExponentialDecay::ExponentialDecay(unsigned int max_iterations) {
+ExponentialDecay::ExponentialDecay(unsigned int max_iterations) : DecayStrategy(max_iterations) {
     set_characteristic_time(max_iterations/2);
 }
 

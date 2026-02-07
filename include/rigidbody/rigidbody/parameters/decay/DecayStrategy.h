@@ -9,6 +9,8 @@ namespace ausaxs::rigidbody::parameter::decay {
      */
     class DecayStrategy {
         public:
+            DecayStrategy() = default;
+            DecayStrategy(unsigned int iterations) : iterations(iterations) {}
             virtual ~DecayStrategy() = default;
 
             /**
@@ -16,12 +18,21 @@ namespace ausaxs::rigidbody::parameter::decay {
              */
             virtual double next() = 0;
 
+            void set_iterations(unsigned int iterations) {
+                this->iterations = iterations;
+                set_characteristic_time(iterations);
+            }
+
+            int get_iterations() const {return iterations;}
+
+        protected:
+            unsigned int iterations = 0;
+            unsigned int draws = 0;
+
+        private:
             /**
              * @brief Set the characteristic time scale for this decay strategy.
              */
             virtual void set_characteristic_time(unsigned int iterations) = 0;
-
-        protected:
-            unsigned int draws = 0;
     };
 }

@@ -24,7 +24,10 @@ namespace ausaxs::rigidbody::sequencer {
 
             ParameterElement& decay_strategy(std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> strategy);
 
+            observer_ptr<rigidbody::parameter::ParameterGenerationStrategy> get_parameter_strategy() const;
+
         private:
             std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy;
+            int iterations = 0;
     };
 }

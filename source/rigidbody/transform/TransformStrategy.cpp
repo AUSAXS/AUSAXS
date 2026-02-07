@@ -136,7 +136,7 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
 
     // apply transformations
     if (par.rotation.has_value() || par.translation.has_value()) {
-        rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body);
+        // rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body);
     }
 
     // update and apply symmetry parameters
