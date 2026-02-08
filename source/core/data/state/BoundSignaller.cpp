@@ -33,6 +33,10 @@ void BoundSignaller::set_symmetry_size(std::size_t size) const {
     owner->get_symmetry_modified_bodies()[id].resize(size, true);
 }
 
+std::size_t BoundSignaller::get_symmetry_size() const {
+    return owner->get_symmetry_modified_bodies()[id].size();
+}
+
 unsigned int BoundSignaller::get_id() const {
     return id;
 }

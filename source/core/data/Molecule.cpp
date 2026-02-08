@@ -54,7 +54,9 @@ Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
     initialize();
 }
 
+#include <utility/Logging.h>
 Molecule& Molecule::operator=(Molecule&& other) {
+    logging::log("Molecule move-assign");
     if (this == &other) {return *this;}
     bodies = std::move(other.bodies);
     grid = std::move(other.grid);
@@ -67,6 +69,7 @@ void Molecule::reset_histogram_manager() {
 }
 
 void Molecule::initialize() {
+    logging::log("initializing Molecule");
     if (!settings::flags::init_histogram_manager) {return;}
     reset_histogram_manager();
 }
@@ -175,7 +178,7 @@ std::vector<AtomFF> Molecule::get_atoms() const {
     return atoms;
 }
 
-Vector3<double> Molecule::get_cm() const {
+Vector3<double> Molecule::get_cm(bool include_water) const {
     Vector3<double> cm{0, 0, 0};
     double M = 0; // total mass
 
@@ -187,6 +190,7 @@ Vector3<double> Molecule::get_cm() const {
             M += m;
             cm += atom.coordinates()*m;
         });
+        if (!include_water) {continue;}
 
         // iterate through their hydration atoms
         auto w = body.get_waters();

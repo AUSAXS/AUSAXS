@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/selection/RandomBodySelect.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
@@ -19,8 +19,6 @@
 #include <grid/detail/GridObj.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
-
-#include <numbers>
 
 using namespace ausaxs;
 using namespace data;

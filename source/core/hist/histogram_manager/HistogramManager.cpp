@@ -20,7 +20,9 @@ using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
 template<bool weighted_bins, bool variable_bin_width>
-HistogramManager<weighted_bins, variable_bin_width>::HistogramManager(observer_ptr<const data::Molecule> protein) : protein(protein) {}
+HistogramManager<weighted_bins, variable_bin_width>::HistogramManager(observer_ptr<const data::Molecule> protein) : protein(protein) {
+    logging::log("initializing HistogramManager");
+}
 
 template<bool weighted_bins, bool variable_bin_width>
 HistogramManager<weighted_bins, variable_bin_width>::~HistogramManager() = default;

@@ -274,14 +274,6 @@ namespace ausaxs::grid {
 			 */
 			[[nodiscard]] std::pair<Vector3<int>, Vector3<int>> bounding_box_index(bool include_waters = false) const;
 
-			detail::GridObj grid; // The actual grid.
-			std::vector<GridMember<data::AtomFF>> a_members; // The member atoms and where they are located.
-			std::vector<GridMember<data::Water>>  w_members; // The member water molecules and where they are located. 
-			std::unordered_map<int, int> body_start; 		 // The starting index of each body in the a_members vector. 
-
-		protected:
-			int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-
 			/**
 			 * @brief Create the smallest possible box containing all atoms.
 			 * 		  Complexity: O(n) in the number of atoms.
@@ -295,6 +287,14 @@ namespace ausaxs::grid {
 			[[nodiscard]] static std::pair<Vector3<double>, Vector3<double>> 
 				bounding_box(const std::vector<data::Water>& atoms);
 
+			detail::GridObj grid; // The actual grid.
+			std::vector<GridMember<data::AtomFF>> a_members; // The member atoms and where they are located.
+			std::vector<GridMember<data::Water>>  w_members; // The member water molecules and where they are located. 
+			std::unordered_map<int, int> body_start; 		 // The starting index of each body in the a_members vector. 
+
+		protected:
+			int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
+				
 		private:
 			Axis3D axes;
 

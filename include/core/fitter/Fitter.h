@@ -23,7 +23,7 @@ namespace ausaxs::fitter {
             /**
              * @brief Perform a fit and return the minimum function value.
              */
-            [[nodiscard]] double fit_chi2_only();
+            [[nodiscard]] virtual double fit_chi2_only();
 
             /**
              * @brief Perform a fit and return the optimal parameters.

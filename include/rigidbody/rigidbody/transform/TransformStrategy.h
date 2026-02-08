@@ -5,7 +5,8 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
-#include <rigidbody/parameters/Parameter.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
 #include <utility/observer_ptr.h>
@@ -21,28 +22,32 @@ namespace ausaxs::rigidbody::transform {
      */
     class TransformStrategy {
         public:
-            TransformStrategy(observer_ptr<RigidBody> rigidbody);
+            TransformStrategy(observer_ptr<Rigidbody> rigidbody);
             virtual ~TransformStrategy();
 
             /**
-             * @brief Apply a transformation to a constraint.
+             * @brief Apply a relative transformation to a rigid group defined by a constraint.
              * 
+             * The delta transformation is applied to all bodies in the smaller branch of the constraint.
+             * Absolute parameters for all affected bodies are updated accordingly.
              * The most recent transformation can be undone by calling undo().
              * 
-             * @param par The parameters to apply.
+             * @param par The relative transformation to apply.
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) = 0;
+            virtual void apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) = 0;
 
             /**
-             * @brief Apply a transformation to a body. 
+             * @brief Apply a relative transformation to a single unconstrained body. 
              * 
+             * The delta transformation is applied to the specified body.
+             * Absolute parameters for the body are updated accordingly.
              * The most recent transformation can be undone by calling undo().
              * 
-             * @param par The parameters to apply.
+             * @param par The relative transformation to apply.
              * @param ibody The index of the body to transform.
              */
-            virtual void apply(parameter::Parameter&& par, unsigned int ibody);
+            void apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody);
 
             /**
              * @brief Undo the previous transformation. 
@@ -50,7 +55,7 @@ namespace ausaxs::rigidbody::transform {
             virtual void undo();
 
         protected: 
-            observer_ptr<RigidBody> rigidbody;
+            observer_ptr<Rigidbody> rigidbody;
             std::vector<BackupBody> bodybackup;
 
             /**
@@ -66,6 +71,7 @@ namespace ausaxs::rigidbody::transform {
              * @param group The group to apply the transformation to.
              */
             void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group);
+            void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, const Vector3<double>& pivot, data::Body& body);
 
             /**
              * @brief Rotate a body. 
@@ -84,8 +90,9 @@ namespace ausaxs::rigidbody::transform {
             virtual void translate(const Vector3<double>& t, TransformGroup& group);
 
             /**
-             * @brief Apply symmetry transformations to a body.
+             * @brief Set a new set of absolute symmetry parameters for a given body. 
              */
-            virtual void symmetry(std::vector<parameter::Parameter::SymmetryParameter>&& symmetry_pars, data::Body& body);
+            virtual void apply_symmetry(const std::vector<symmetry::Symmetry>& symmetry, data::Body& body);
+            std::vector<symmetry::Symmetry> add_symmetries(const std::vector<symmetry::Symmetry>& current, const std::vector<symmetry::Symmetry>& delta);
     };
 }

@@ -14,9 +14,7 @@
 using namespace ausaxs;
 using namespace ausaxs::fitter;
 
-FitResult::FitResult(const mini::Result& res, double chi2, unsigned int dof) noexcept : Result(res), dof(dof) {
-    fval = chi2;
-}
+FitResult::FitResult(const mini::Result& res, unsigned int dof) noexcept : Result(res), dof(dof) {}
 
 void FitResult::add_fit(observer_ptr<FitResult> fit, bool front) noexcept {
     if (front) {

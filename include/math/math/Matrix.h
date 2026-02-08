@@ -47,7 +47,7 @@ namespace ausaxs {
             /**
              * @brief Construct a Matrix based on a vector.
              */
-            Matrix(const Vector<Q>& v);
+            explicit Matrix(const Vector<Q>& v);
 
             /**
              * @brief Construct an empty Matrix of a given size. 

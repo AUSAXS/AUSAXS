@@ -57,5 +57,11 @@ namespace ausaxs::settings {
             Volumetric  // Generate constraints between bodies based on proximity. 
         };
         static ConstraintGenerationStrategyChoice constraint_generation_strategy;
+
+        enum class ControllerChoice {
+            Classic,    // Classic controller essentially equivalent to a gradient descent. 
+            Metropolis, // Metropolis controller relying on Bayesian statistics to find probable conformations.
+        };
+        static ControllerChoice controller_choice;
     };
 }

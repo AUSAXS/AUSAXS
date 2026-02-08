@@ -16,7 +16,7 @@ namespace ausaxs::rigidbody {
          */
         class BodySelectStrategy {
             public:
-                BodySelectStrategy(observer_ptr<const RigidBody> rigidbody);
+                BodySelectStrategy(observer_ptr<const Rigidbody> rigidbody);
                 virtual ~BodySelectStrategy() = default;
 
                 /**
@@ -28,7 +28,7 @@ namespace ausaxs::rigidbody {
                 virtual std::pair<unsigned int, int> next() = 0;
 
             protected: 
-                const RigidBody* rigidbody;
+                observer_ptr<const Rigidbody> rigidbody;
                 unsigned int N;
         };
     }

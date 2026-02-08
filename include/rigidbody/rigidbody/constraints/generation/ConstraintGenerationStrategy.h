@@ -4,20 +4,18 @@
 #pragma once
 
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <vector>
+#include <memory>
 
 namespace ausaxs::rigidbody::constraints {
     class ConstraintGenerationStrategy {
         public:
-            ConstraintGenerationStrategy(const ConstraintManager* manager);
+            ConstraintGenerationStrategy(observer_ptr<const ConstraintManager> manager);
             virtual ~ConstraintGenerationStrategy();
+            virtual std::vector<std::unique_ptr<IDistanceConstraint>> generate() const = 0;
 
-            /**
-             * @brief Generate a constraint.
-             */
-            virtual std::vector<DistanceConstraint> generate() const = 0;
-
-            const ConstraintManager* manager;
+            observer_ptr<const ConstraintManager> manager;
     };
 }

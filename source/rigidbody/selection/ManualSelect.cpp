@@ -6,7 +6,7 @@
 
 using namespace ausaxs::rigidbody::selection;
 
-ManualSelect::ManualSelect(observer_ptr<const RigidBody> rigidbody) : BodySelectStrategy(rigidbody) {}
+ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody) : BodySelectStrategy(rigidbody) {}
 
 ManualSelect::~ManualSelect() = default;
 

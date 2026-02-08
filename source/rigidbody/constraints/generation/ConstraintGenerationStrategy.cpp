@@ -6,5 +6,5 @@
 using namespace ausaxs;
 using namespace rigidbody::constraints;
 
-ConstraintGenerationStrategy::ConstraintGenerationStrategy(const ConstraintManager* manager) : manager(manager) {}
+ConstraintGenerationStrategy::ConstraintGenerationStrategy(observer_ptr<const ConstraintManager> manager) : manager(manager) {}
 ConstraintGenerationStrategy::~ConstraintGenerationStrategy() = default;

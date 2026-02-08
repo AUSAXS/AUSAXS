@@ -447,7 +447,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     double fval = func({min_abs.x});
     assert(std::abs(fval - min_abs.y) < 1e-6 && "ImageStack::fit: The minimum found by the minimizer does not match the minimum found in the dataset.");
 
-    std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(res, fval, dof+3); // +3 because they'll be subtracted again by the add_fit call
+    std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(res, dof+3); // +3 because they'll be subtracted again by the add_fit call
     {
         auto data = fitter->get_data();
         emfit->set_data_curves(
@@ -459,6 +459,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
         );
     }
     emfit->add_fit(last_fit.get(), true);
+    emfit->fval = fval;
     emfit->fevals = evals.evals.size();
     emfit->em_info = std::move(plots);
     emfit->evaluated_points = std::move(evals);

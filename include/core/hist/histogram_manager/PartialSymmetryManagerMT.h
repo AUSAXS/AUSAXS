@@ -19,30 +19,6 @@ namespace ausaxs::hist {
 	 */
     template<bool weighted_bins, bool variable_bin_width> 
 	class PartialSymmetryManagerMT : public IPartialHistogramManager {
-		using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-		using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>;
-
-		template<typename T> using BodyIndexer2D = typename container::Container2D<T>;
-		template<typename T> using BodyIndexer1D = typename container::Container1D<T>;
-
-		// 2D symmetry indexer to be stored within a BodyIndexer2D
-		template<typename T> struct SymmetryIndexer2D {
-			SymmetryIndexer2D() = default;
-			SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::forward<T>(value))) {}
-			SymmetryIndexer2D(int size_x, int size_y, T&& value) : data(size_x, std::vector<T>(size_y, std::forward<T>(value))) {}
-			T& index(int isym1, int isym2) {return data[isym1][isym2];}
-			std::vector<std::vector<T>> data;
-		}; 
-
-		// 1D symmetry indexer to be stored within a BodyIndexer1D
-		template<typename T> struct SymmetryIndexer1D {
-			SymmetryIndexer1D() = default;
-			SymmetryIndexer1D(int size, T&& value) : data(size, std::forward<T>(value)) {}
-			template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
-			T& index(int isym) {return data[isym];}
-			std::vector<T> data;
-		};
-
 		public:
 			PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein);
 			virtual ~PartialSymmetryManagerMT() override;
@@ -58,12 +34,42 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		private:
+			using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
+			using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>;
+
+			// 2D symmetry indexer to be stored within a BodyIndexer2D
+			template<typename T> struct SymmetryIndexer2D {
+				SymmetryIndexer2D() = default;
+				SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::forward<T>(value))) {}
+				SymmetryIndexer2D(int size_x, int size_y, T&& value) : data(size_x, std::vector<T>(size_y, std::forward<T>(value))) {}
+				T& index(int isym1, int isym2) {return data[isym1][isym2];}
+				std::vector<std::vector<T>> data;
+			}; 
+
+			// 1D symmetry indexer to be stored within a BodyIndexer1D
+			template<typename T> struct SymmetryIndexer1D {
+				SymmetryIndexer1D() = default;
+				SymmetryIndexer1D(int size, T&& value) : data(size, std::forward<T>(value)) {}
+				template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
+				T& index(int isym) {return data[isym];}
+				std::vector<T> data;
+			};
+
+			struct { // cache for early return
+				GenericDistribution1D_t p_aa;
+				GenericDistribution1D_t p_aw;
+				GenericDistribution1D_t p_ww;
+				GenericDistribution1D_t p_tot;
+			} cache;
+
 			observer_ptr<const data::Molecule> protein;									// the molecule we are calculating the histogram for
             detail::MasterHistogram<weighted_bins> master;								// the current total histogram
 			std::vector<symmetry::detail::BodySymmetryData<variable_bin_width>> coords;	// a compact representation of the relevant data from the managed bodies
 			hist::detail::CompactCoordinates<variable_bin_width> coords_w;				// a compact representation of the relevant data from the hydration layer
 			std::unordered_map<int, int> res_self_index_map;							// a map to keep track of result indexes in the self-correlation results
 			std::unordered_map<int, int> res_cross_index_map;							// a map to keep track of result indexes in the cross-correlation results
+			template<typename T> using BodyIndexer2D = typename container::Container2D<T>;
+			template<typename T> using BodyIndexer1D = typename container::Container1D<T>;
 
 			// partial histograms - the types are quite complex since we must track both bodies and symmetries
 			BodyIndexer2D<SymmetryIndexer2D<detail::PartialHistogram<weighted_bins>>> partials_aa;

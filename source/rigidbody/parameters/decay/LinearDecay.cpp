@@ -5,7 +5,7 @@
 
 using namespace ausaxs::rigidbody::parameter::decay;
 
-LinearDecay::LinearDecay(unsigned int max_iterations) {
+LinearDecay::LinearDecay(unsigned int max_iterations) : DecayStrategy(max_iterations) {
     set_characteristic_time(max_iterations/2);
 }
 

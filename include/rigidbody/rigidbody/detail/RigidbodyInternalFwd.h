@@ -20,11 +20,11 @@ namespace ausaxs::rigidbody {
 
     namespace parameter {
     	class ParameterGenerationStrategy;
-        struct SymmetryParameter;
+        struct BodyTransformParameters;
     }
 
     namespace constraints {
-        class ConstraintManager;
-        class DistanceConstraint;
+        struct ConstraintManager;
+        class IDistanceConstraint;
     }
 }

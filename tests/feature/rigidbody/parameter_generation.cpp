@@ -15,7 +15,7 @@ TEST_CASE("RotationsOnly::next") {
     int iterations = 100;
     double length_start = GENERATE(1, 2, 3);
     double rad_start = GENERATE(1, 2, 3);
-    RigidBody rb(std::vector<Body>{Body(std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)})});
+    Rigidbody rb(Molecule{std::vector<Body>{Body(std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)})}});
 
     SECTION("RotationsOnly") {
         rigidbody::parameter::RotationsOnly ro(&rb, iterations, length_start, rad_start);

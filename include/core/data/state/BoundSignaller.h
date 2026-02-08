@@ -23,6 +23,7 @@ namespace ausaxs::signaller {
             void modified_symmetry(int i) const override;
             void modified_hydration() const override;
             void set_symmetry_size(std::size_t size) const override;
+            virtual std::size_t get_symmetry_size() const override;
 
             /**
              * @brief Get the id of this signaller. 

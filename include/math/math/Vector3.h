@@ -54,13 +54,6 @@ namespace ausaxs {
 				std::copy_n(M.begin(), 3, data.begin());
 			}
 
-			/**
-			 * @brief Constructor. 
-			 * 
-			 * @param x The x-coordinate.
-			 * @param y The y-coordinate.
-			 * @param z The z-coordinate. 
-			 */
 			Vector3(T x, T y, T z) : data({x, y, z}) {}
 
 			T operator[](unsigned int i) const;
@@ -73,21 +66,16 @@ namespace ausaxs {
 			 */
 			Vector3<T>& operator=(std::initializer_list<T> l);
 
-			// Plus-assignment, w += v
 			template<numeric Q>
 			Vector3<T>& operator+=(const Vector3<Q>& v);
 
-			// Minus-assignment, w -= v
 			template<numeric Q>
 			Vector3<T>& operator-=(const Vector3<Q>& v);
 
-			// Scalar division-assignment, w /= a
 			Vector3<T>& operator/=(double a);
 
-			// Scalar multiplication-assignment, w /= a
 			Vector3<T>& operator*=(double a);
 
-			// Vector multiplication-assignment, w /= v
 			template<numeric Q>
 			Vector3<T>& operator*=(const Vector3<Q>& v);
 
@@ -100,37 +88,19 @@ namespace ausaxs {
 			template<numeric Q>
 			bool equals(const Vector3<Q>& v, double precision) const;
 
-			/**
-			 * @brief Get the dot product with another Vector.
-			 */
 			template<numeric Q>
 			double dot(const Vector3<Q>& v) const;
 
-			/**
-			 * @brief Get the norm of this Vector.
-			 */
 			double norm() const;
 
-			/**
-			 * @brief Get the magnitude of this Vector.
-			 */
 			double magnitude() const;
 
-			/**
-			 * @brief Get the Euclidian distance to another vector. 
-			 */
 			template<numeric Q>
 			double distance(const Vector3<Q>& v) const;
 
-			/**
-			 * @brief Get the squared Euclidian distance to another Vector.
-			 */
 			template<numeric Q>
 			double distance2(const Vector3<Q>& v) const;
 
-			/**
-			 * @brief Calculate the cross product of this vector with another. 
-			 */
 			template<numeric Q>
 			Vector3 cross(const Vector3<Q>& v) const;
 
@@ -168,7 +138,7 @@ namespace ausaxs {
 
 			operator std::vector<T>();
 			operator Vector<T>();
-			operator Matrix<T>();
+			explicit operator Matrix<T>();
 
 			T& x();
 			T& y();

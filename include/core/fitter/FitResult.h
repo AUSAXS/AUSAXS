@@ -16,7 +16,7 @@ namespace ausaxs::fitter {
     class FitResult : public mini::Result {
         public:
             FitResult() noexcept = default;
-            FitResult(const mini::Result& res, double chi2, unsigned int dof) noexcept;
+            FitResult(const mini::Result& res, unsigned int dof) noexcept;
             ~FitResult() override = default;
             
             /**

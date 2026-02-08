@@ -5,7 +5,7 @@
 
 #include <math/MathFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
-#include <rigidbody/parameters/Parameter.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
 
@@ -14,6 +14,8 @@
 namespace ausaxs::rigidbody::parameter {    
     /**
      * @brief Thread-safe superclass for parameter generation strategies.
+     * 
+     * Generates relative transformations to be applied to bodies or rigid groups.
      */
     class ParameterGenerationStrategy {
         public:
@@ -24,7 +26,7 @@ namespace ausaxs::rigidbody::parameter {
              * @param length_start The start length of the generated translation vectors. 
              * @param rad_start The start angle in radians of the generated rotations. 
              */
-            ParameterGenerationStrategy(observer_ptr<const RigidBody> molecule, unsigned int iterations, double length_start, double rad_start);
+            ParameterGenerationStrategy(observer_ptr<const Rigidbody> molecule, unsigned int iterations, double length_start, double rad_start);
 
             /**
              * @brief Construct a new parameter generation strategy.
@@ -33,19 +35,20 @@ namespace ausaxs::rigidbody::parameter {
              * @param length_start The start length of the generated translation vectors. 
              * @param rad_start The start angle in radians of the generated rotations. 
              */
-            ParameterGenerationStrategy(observer_ptr<const RigidBody> molecule, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start);
+            ParameterGenerationStrategy(observer_ptr<const Rigidbody> molecule, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start);
 
             virtual ~ParameterGenerationStrategy();
 
             /**
-             * @brief Get the next parameter in the sequence for the given body.
+             * @brief Get the next relative transformation for the given body.
              */
-            virtual Parameter next(int ibody) = 0;
+            virtual BodyTransformParametersRelative next(int ibody) = 0;
 
             /**
              * @brief Set the decay strategy.
              */
             void set_decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy);
+            observer_ptr<parameter::decay::DecayStrategy> get_decay_strategy() const;
 
             /**
              * @brief Set the maximum translation distance to the given value.
@@ -58,11 +61,11 @@ namespace ausaxs::rigidbody::parameter {
             void set_max_rotation_angle(double radians);
 
         protected:
-            observer_ptr<const RigidBody> molecule;
-            std::mt19937 generator;
-            std::uniform_real_distribution<double> translation_dist; // Random number distribution for translations. 
-            std::uniform_real_distribution<double> rotation_dist;    // Random number distribution for rotations. 
-            std::uniform_real_distribution<double> symmetry_dist;    // Random number distribution for symmetry transforms.
+            observer_ptr<const Rigidbody> rigidbody;
+            std::uniform_real_distribution<double> translation_dist;
+            std::uniform_real_distribution<double> rotation_dist;
+            std::uniform_real_distribution<double> translation_symmetry_dist;
+            std::uniform_real_distribution<double> rotation_symmetry_dist;
             std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy;
     };
 }

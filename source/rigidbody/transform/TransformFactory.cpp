@@ -10,12 +10,12 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 
-std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(observer_ptr<rigidbody::RigidBody> body) {
+std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(observer_ptr<rigidbody::Rigidbody> body) {
     return create_transform_strategy(body, settings::rigidbody::transform_strategy);
 }
 
 std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(
-    observer_ptr<rigidbody::RigidBody> body, const settings::rigidbody::TransformationStrategyChoice& choice
+    observer_ptr<rigidbody::Rigidbody> body, settings::rigidbody::TransformationStrategyChoice choice
 ) {
     switch (choice) {
         case settings::rigidbody::TransformationStrategyChoice::RigidTransform:

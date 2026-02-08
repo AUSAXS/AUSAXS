@@ -35,7 +35,7 @@ namespace ausaxs::symmetry::detail {
             /**
              * @brief Add a symmetry to this body.
              */
-            void add(symmetry::Symmetry&& symmetry) requires (NONCONST); //< @copydoc add_symmetry()
+            void add(symmetry::Symmetry&& symmetry) requires (NONCONST);
             void add(symmetry::type symmetry) requires (NONCONST); //< @copydoc add_symmetry()
 
             /**
@@ -59,6 +59,12 @@ namespace ausaxs::symmetry::detail {
              * @brief Get the symmetry at the specified index.
              */
             [[nodiscard]] const symmetry::Symmetry& get(unsigned int index) const;
+
+            [[nodiscard]] const symmetry::Symmetry& back() const;
+            [[nodiscard]] symmetry::Symmetry& back() requires (NONCONST);
+
+            [[nodiscard]] const symmetry::Symmetry& front() const;
+            [[nodiscard]] symmetry::Symmetry& front() requires (NONCONST);
 
             /**
              * @brief Get the symmetry storage object.
