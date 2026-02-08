@@ -22,5 +22,6 @@ double AttractorConstraint::evaluate() const {
 double AttractorConstraint::transform(double distance, double r_base) {
     if (distance < r_base) {return 0;}
     double offset = distance - r_base;
+    std::cout << "AttractorConstraint: penalty is " << 10*offset*offset << " for distance " << distance << " with target " << r_base << std::endl;
     return 10*offset*offset;
 }

@@ -56,13 +56,13 @@ void ConstraintManager::add_constraint(std::unique_ptr<Constraint> constraint) {
 
 double ConstraintManager::evaluate() const {
     double sum = 0;
-    std::accumulate(
+    sum = std::accumulate(
         discoverable_constraints.begin(), discoverable_constraints.end(), sum, 
         [] (double sum, const std::unique_ptr<IDistanceConstraint>& constraint) {
             return sum + constraint->evaluate();
         }
     );
-    std::accumulate(
+    sum = std::accumulate(
         non_discoverable_constraints.begin(), non_discoverable_constraints.end(), sum, 
         [] (double sum, const std::unique_ptr<Constraint>& constraint) {
             return sum + constraint->evaluate();

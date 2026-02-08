@@ -28,7 +28,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
     for (unsigned int i = 0; i < names.size(); ++i) {
         auto index = setup._get_body_index(names[i]);
         int ibody = index.body;
-        assert(index.replica == 0 && index.symmetry == 0 && "SymmetryElement::SymmetryElement: The body name must refer to a base body (replica 0, symmetry 0).");
+        assert(index.replica == 0 && index.symmetry == -1 && "SymmetryElement::SymmetryElement: The body name must refer to a base body (symmetry -1, replica 0).");
 
         // ensure the body's symmetry storage is optimizable
         assert(dynamic_cast<symmetry::OptimizableSymmetryStorage*>(molecule->get_body(ibody).symmetry().get_obj()));
@@ -37,12 +37,13 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 
         // add names for the symmetry bodies
         auto& name_map = setup._get_body_names();
-        int isymmetry = molecule->get_body(ibody).size_symmetry();
-        if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry-1).repetitions; reps == 1) { // single replica only: b1s1
-            name_map.emplace(names[i] + "s" + std::to_string(isymmetry), detail::to_index(ibody, isymmetry-1, i-1));
+        int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
+        assert(0 <= isymmetry && "SymmetryElement::SymmetryElement: Inconsistent data structures.");
+        if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry).repetitions; reps == 1) { // single replica only: b1s1
+            name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 0));
         } else { // multiple replicas, so include replica index in name: b1s1r1, b1s1r2, ...
-            for (int i = 0; i < reps; ++i) {
-                name_map.emplace(names[i] + "s" + std::to_string(isymmetry) + "r" + std::to_string(i+1), detail::to_index(ibody, isymmetry-1, i-1));
+            for (int j = 0; j < reps; ++j) {
+                name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1) + "r" + std::to_string(j+1), detail::to_index(ibody, isymmetry, j));
             }
         }
 
