@@ -146,7 +146,7 @@ TEST_CASE("AbsoluteParameters: Constraint-based transformations preserve consist
         for (int iter = 0; iter < 5; ++iter) {
             // transform the first constrained body
             unsigned int ibody = 0;
-            auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+            auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
             auto params = param_gen->next(ibody);
             
             transformer->apply(std::move(params), constraint);
@@ -169,7 +169,7 @@ TEST_CASE("AbsoluteParameters: Constraint-based transformations preserve consist
         for (int iter = 0; iter < 5; ++iter) {
             // transform the first constrained body
             unsigned int ibody = 0;
-            auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+            auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
             auto params = param_gen->next(ibody);
             
             transformer->apply(std::move(params), constraint);
@@ -242,10 +242,10 @@ TEST_CASE("AbsoluteParameters: Undo restores configuration.parameters") {
     auto new_params = param_gen->next(0);
 
     // store the new parameters for comparison
-    auto expected_new_translation = new_params.translation;
-    auto expected_new_rotation = new_params.rotation;
+    auto expected_new_translation = new_params.translation.value();
+    auto expected_new_rotation = new_params.rotation.value();
 
-    transformer->apply(std::move(new_params), 0);
+    transformer->apply(std::move(new_params), 0u);
     
     // verify parameters were updated
     auto& updated_params = rigidbody.conformation->absolute_parameters.parameters[0];

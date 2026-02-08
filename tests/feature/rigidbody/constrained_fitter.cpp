@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/constraints/ConstrainedFitter.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <hist//intensity_calculator/ICompositeDistanceHistogram.h>
 #include <fitter/SmartFitter.h>
 #include <rigidbody/Rigidbody.h>
@@ -49,11 +49,12 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
     fitter::ConstrainedFitter fitter(protein.constraints.get(), SimpleDataset("tests/files/2epe.dat"), protein.molecule.get_histogram());
     double chi2 = fitter.fit()->fval;
 
-    constraints::DistanceConstraint constraint(&protein.molecule, a1, a3);
+    auto constraint_ptr = std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1);
+    auto* constraint = constraint_ptr.get();
     protein.molecule.get_body(0).translate(Vector3<double>(-1, 0, 0));
-    fitter.constraints->add_constraint(std::move(constraint));
+    protein.constraints->add_constraint(std::move(constraint_ptr));
     double chi2c = fitter.fit()->fval;
 
-    CHECK(constraint.evaluate() > 0);
-    REQUIRE_THAT(chi2c-chi2, Catch::Matchers::WithinAbs(constraint.evaluate(), 0.1));
+    CHECK(constraint->evaluate() > 0);
+    REQUIRE_THAT(chi2c-chi2, Catch::Matchers::WithinAbs(constraint->evaluate(), 0.1));
 }

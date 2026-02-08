@@ -4,7 +4,8 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/transform/RigidTransform.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
@@ -35,7 +36,7 @@ TEST_CASE("RigidTransform: Secondary body parameter updates") {
     
     // Transform via a constraint - RigidTransform will choose which side to transform
     unsigned int ibody = 1;
-    auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+    auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
     // Store initial parameters for all bodies
     std::vector<rigidbody::parameter::BodyTransformParametersAbsolute> initial_params = rigidbody.conformation->absolute_parameters.parameters;
@@ -108,20 +109,20 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
 
     // Record initial constraint distances
     std::vector<double> initial_distances;
-    for (const auto& constraint : rigidbody.constraints->distance_constraints) {
-        auto dist = (constraint.get_atom1().coordinates() - constraint.get_atom2().coordinates()).norm();
+    for (const auto& constraint : rigidbody.constraints->discoverable_constraints) {
+        auto dist = (constraint->get_atom1().coordinates() - constraint->get_atom2().coordinates()).norm();
         initial_distances.push_back(dist);
     }
 
     // Transform using constraint 0 (between body 0 and 1)
     // This should preserve constraint 1 (between body 1 and 2)
-    auto& constraint0 = rigidbody.constraints->distance_constraints[0];
+    auto constraint0 = rigidbody.constraints->discoverable_constraints[0].get();
     auto params = param_gen->next(0);
     transformer->apply(std::move(params), constraint0);
 
     // Check constraint 1 (not the hinge) is preserved
-    auto& c1 = rigidbody.constraints->distance_constraints[1];
-    double new_distance_1 = (c1.get_atom1().coordinates() - c1.get_atom2().coordinates()).norm();
+    auto c1 = rigidbody.constraints->discoverable_constraints[1].get();
+    double new_distance_1 = (c1->get_atom1().coordinates() - c1->get_atom2().coordinates()).norm();
     INFO("Constraint 1 (internal to non-moving group) should be preserved");
     REQUIRE_THAT(new_distance_1, Catch::Matchers::WithinAbs(initial_distances[1], 0.1));
 }
@@ -147,7 +148,7 @@ TEST_CASE("RigidTransform: Orbital motion correctness") {
     
     // Manually create constraints: 0 - 1 - 2 (only 0-1 constraint so transforming it affects only body 0)
     rigidbody.constraints->add_constraint(
-        rigidbody::constraints::DistanceConstraint(&rigidbody.molecule, 0, 1, 0, 0)
+        std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
     );
 
     auto& transformer = rigidbody.transformer;
@@ -158,7 +159,7 @@ TEST_CASE("RigidTransform: Orbital motion correctness") {
     double initial_dist = (initial_cm_0 - initial_cm_1).norm();
 
     // Rotate body 0 by 90 degrees around Z axis (body 1 is at origin)
-    auto& constraint = rigidbody.constraints->distance_constraints[0];
+    auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
     transformer->apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint);
 
     // Verify distance is preserved (rigid relationship maintained)
@@ -202,9 +203,9 @@ TEST_CASE("RigidTransform: Multi-step transformation consistency") {
     // Apply multiple transformations and verify consistency is maintained throughout
     for (int iter = 0; iter < 10; ++iter) {
         unsigned int ibody = iter % rigidbody.molecule.size_body();
-        if (rigidbody.constraints->distance_constraints_map.at(ibody).empty()) continue;
+        if (rigidbody.constraints->get_body_constraints(ibody).empty()) continue;
 
-        auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+        auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
         auto params = param_gen->next(ibody);
         transformer->apply(std::move(params), constraint);
 

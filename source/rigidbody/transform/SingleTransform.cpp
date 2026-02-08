@@ -30,9 +30,10 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, ob
 
     // compute new absolute transform parameters for the body
     auto& body_params = rigidbody->conformation->absolute_parameters.parameters[constraint->ibody1];
-    if (par.rotation.has_value()) {
+    static const Vector3<double> zero = {0, 0, 0};
+    if (par.rotation.has_value() && !(par.rotation.value() == zero)) {
         body_params.rotation = matrix::euler_angles(matrix::rotation_matrix(body_params.rotation)*matrix::rotation_matrix(par.rotation.value()));
-    } if (par.translation.has_value()) {
+    } if (par.translation.has_value() && !(par.translation.value() == zero)) {
         body_params.translation += par.translation.value();
     }
 

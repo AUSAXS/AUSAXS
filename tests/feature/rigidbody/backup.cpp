@@ -9,7 +9,8 @@
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <math/MatrixUtils.h>
@@ -156,7 +157,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
 
         unsigned int ibody = 0;
         auto& transformer = rigidbody.transformer;
-        auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+        auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
         // Store original parameters
         auto original_params = rigidbody.conformation->absolute_parameters.parameters;
@@ -170,7 +171,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         // For constraint-based transforms, the pivot is the constraining atom position
         // t_new = R_delta * (t_old - pivot) + pivot + t_delta
         auto R_delta = matrix::rotation_matrix(delta_rotation);
-        Vector3<double> pivot = constraint.get_atom2().coordinates();
+        Vector3<double> pivot = constraint->get_atom2().coordinates();
         auto expected_translation = R_delta * (original_params[ibody].translation - pivot) + pivot + delta_translation;
         
         transformer->apply(std::move(delta_params), constraint);
@@ -207,7 +208,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         unsigned int ibody = 1; // Middle body
         auto& transformer = rigidbody.transformer;
         auto& param_gen = rigidbody.parameter_generator;
-        auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+        auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
         // Store original parameters for all bodies
         std::vector<rigidbody::parameter::BodyTransformParametersAbsolute> original_params = rigidbody.conformation->absolute_parameters.parameters;

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <rigidbody/constraints/generation/LinearConstraints.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/BodySplitter.h>
@@ -43,6 +43,6 @@ TEST_CASE("VolumetricConstraints::generate") {
         Body b9 = Body(std::vector<AtomFF>{a9});
         std::vector<Body> ap = {b1, b2, b3, b4, b5, b6, b7, b8, b9};
         rigidbody::Rigidbody rigidbody(Molecule{ap});
-        REQUIRE(rigidbody.constraints->distance_constraints.size() == 8);
+        REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 8);
     }
 }

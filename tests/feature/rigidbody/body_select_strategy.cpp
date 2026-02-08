@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/selection/RandomBodySelect.h>
@@ -30,7 +31,7 @@ TEST_CASE("BodySelectStrategy::next") {
     for (unsigned int i = 0; i < rigidbody.molecule.size_body(); i++) {
         for (unsigned int j = i+1; j < rigidbody.molecule.size_body(); j++) {
             for (unsigned int k = j; k < 5; k++) {
-                manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody.molecule, i, j, 0, 0));
+                manager->add_constraint(std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, i, j));
             }
         }
     }
@@ -41,7 +42,7 @@ TEST_CASE("BodySelectStrategy::next") {
 
         // check that the constraints are selected sequentially
         for (unsigned int i = 0; i < rigidbody.molecule.size_body(); i++) {
-            for (unsigned int j = 0; j < rigidbody.constraints->distance_constraints_map.at(i).size(); j++) {
+            for (unsigned int j = 0; j < rigidbody.constraints->get_body_constraints(i).size(); j++) {
                 auto[ibody, iconstraint] = strat->next();
                 REQUIRE(ibody == i);
                 REQUIRE(iconstraint == int(j));
@@ -81,21 +82,21 @@ TEST_CASE("BodySelectStrategy::next") {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
                 REQUIRE(false);
             } 
-            if (iconstraint >= int(rigidbody.constraints->distance_constraints_map.at(ibody).size())) {
+            if (iconstraint >= int(rigidbody.constraints->get_body_constraints(ibody).size())) {
                 std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
                 REQUIRE(false);
             }
 
-            const auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(iconstraint);
-            for (unsigned int j = 0; j < rigidbody.constraints->distance_constraints.size(); j++) {
-                if (&rigidbody.constraints->distance_constraints[j] == &constraint.get()) {
+            auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(iconstraint);
+            for (unsigned int j = 0; j < rigidbody.constraints->discoverable_constraints.size(); j++) {
+                if (rigidbody.constraints->discoverable_constraints[j].get() == constraint) {
                     count[j]++;
                 }
             }
         }
 
-        for (unsigned int i = 0; i < rigidbody.constraints->distance_constraints.size(); i++) {
-            REQUIRE(count[i] > 0.8*iterations/rigidbody.constraints->distance_constraints.size());
+        for (unsigned int i = 0; i < rigidbody.constraints->discoverable_constraints.size(); i++) {
+            REQUIRE(count[i] > 0.8*iterations/rigidbody.constraints->discoverable_constraints.size());
         }
     }
 
@@ -111,7 +112,7 @@ TEST_CASE("BodySelectStrategy::next") {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
                 REQUIRE(false);
             } 
-            if (iconstraint >= int(rigidbody.constraints->distance_constraints_map.at(ibody).size())) {
+            if (iconstraint >= int(rigidbody.constraints->get_body_constraints(ibody).size())) {
                 std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
                 REQUIRE(false);
             }
@@ -121,7 +122,7 @@ TEST_CASE("BodySelectStrategy::next") {
         for (unsigned int i = 0; i < rigidbody.molecule.size_body(); i++) {
             // calculate how many times each body was selected
             double sum = 0;
-            for (unsigned int j = 0; j < rigidbody.constraints->distance_constraints_map.at(i).size(); j++) {
+            for (unsigned int j = 0; j < rigidbody.constraints->get_body_constraints(i).size(); j++) {
                 sum += count[i][j];
             }
 
@@ -129,8 +130,8 @@ TEST_CASE("BodySelectStrategy::next") {
             REQUIRE(sum > iterations*0.2);
 
             // check that the constraints were randomly selected
-            for (unsigned int j = i; j < rigidbody.constraints->distance_constraints_map.at(i).size(); j++) {
-                REQUIRE(count[i][j] > 0.7*sum/rigidbody.constraints->distance_constraints_map.at(i).size());
+            for (unsigned int j = i; j < rigidbody.constraints->get_body_constraints(i).size(); j++) {
+                REQUIRE(count[i][j] > 0.7*sum/rigidbody.constraints->get_body_constraints(i).size());
             }
         }
     }

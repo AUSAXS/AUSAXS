@@ -38,14 +38,15 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
     }
 
     // compute new absolute transform parameters for the bodies
-    if (par.rotation.has_value()) {
+    static const Vector3<double> zero = {0, 0, 0};
+    if (par.rotation.has_value() && !(par.rotation.value() == zero)) {
         auto R = matrix::rotation_matrix(par.rotation.value());
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
             unsigned int ibody = group.indices[i];
             auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
             body_params.rotation = matrix::euler_angles(R*matrix::rotation_matrix(rigidbody->conformation->absolute_parameters.parameters[ibody].rotation));
         }
-    } if (par.translation.has_value()) {
+    } if (par.translation.has_value() && !(par.translation.value() == zero)) {
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
             unsigned int ibody = group.indices[i];
             auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <rigidbody/constraints/generation/LinearConstraints.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Body.h>
@@ -33,11 +33,11 @@ TEST_CASE("LinearConstraints::generate") {
         Body b4(std::vector<AtomFF>{a4});
         std::vector<Body> ap = {b1, b2, b3, b4};
         rigidbody::Rigidbody rigidbody(Molecule{ap});
-        REQUIRE(rigidbody.constraints->distance_constraints.size() == 0);
+        REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 0);
     }
 
     SECTION("real data") {
         rigidbody::Rigidbody rigidbody = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-        REQUIRE(rigidbody.constraints->distance_constraints.size() == 0);
+        REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 0);
     }
 }
