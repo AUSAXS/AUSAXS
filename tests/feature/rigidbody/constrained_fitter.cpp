@@ -51,8 +51,9 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
 
     auto constraint_ptr = std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1);
     auto* constraint = constraint_ptr.get();
-    protein.molecule.get_body(0).translate(Vector3<double>(-1, 0, 0));
     protein.constraints->add_constraint(std::move(constraint_ptr));
+    // Move body 0 toward body 1 to compress bond (triggers non-zero evaluate)
+    protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
     double chi2c = fitter.fit()->fval;
 
     CHECK(constraint->evaluate() > 0);
