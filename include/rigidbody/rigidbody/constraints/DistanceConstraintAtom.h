@@ -41,6 +41,21 @@ namespace ausaxs::rigidbody::constraints {
                 std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1}
             );
 
+            /**
+             * @brief Create a constraint between two specific atoms by reference.
+             * 
+             * This constructor searches through all bodies to find which ones contain the given atoms.
+             * 
+             * @param molecule The molecule this constraint belongs to.
+             * @param atom1 The first atom.
+             * @param atom2 The second atom.
+             */
+            DistanceConstraintAtom(
+                observer_ptr<const data::Molecule> molecule,
+                const data::AtomFF& atom1,
+                const data::AtomFF& atom2
+            );
+
             virtual ~DistanceConstraintAtom() override = default;
 
             /**
