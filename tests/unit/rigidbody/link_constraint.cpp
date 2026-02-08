@@ -46,12 +46,14 @@ TEST_CASE("LinkConstraint::get_body") {
     }
 
     SECTION("non-const get_body1 returns first body") {
-        auto& body1 = const_cast<LinkConstraint&>(constraint).get_body1();
+        LinkConstraint non_const_constraint(&molecule, 0, 1);
+        auto& body1 = non_const_constraint.get_body1();
         CHECK(&body1 == &molecule.get_body(0));
     }
 
     SECTION("non-const get_body2 returns second body") {
-        auto& body2 = const_cast<LinkConstraint&>(constraint).get_body2();
+        LinkConstraint non_const_constraint(&molecule, 0, 1);
+        auto& body2 = non_const_constraint.get_body2();
         CHECK(&body2 == &molecule.get_body(1));
     }
 }
