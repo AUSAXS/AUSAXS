@@ -5,17 +5,17 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/ConstraintFactory.h>
 #include <rigidbody/sequencer/elements/All.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
+#include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
-#include <data/symmetry/PredefinedSymmetries.h>
+#include <utility/Logging.h>
 #include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/GeneralSettings.h>
@@ -115,6 +115,24 @@ settings::rigidbody::ConstraintGenerationStrategyChoice get_constraint_strategy(
     throw except::invalid_argument("SequenceParser::get_constraint_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
+enum class ConstraintChoice {
+    SpecificAtoms,
+    Bond,
+    BodyCM,
+    BodyCMAttractor,
+    BodyCMRepeller,
+    Unknown
+};
+
+ConstraintChoice get_constraint_choice(std::string_view line) {
+    if (line == "bond") {return ConstraintChoice::Bond;}
+    if (line == "distance") {return ConstraintChoice::SpecificAtoms;}
+    if (line == "cm" || line == "center_mass" || line == "center_of_mass") {return ConstraintChoice::BodyCM;}
+    if (line == "attract") {return ConstraintChoice::BodyCMAttractor;}
+    if (line == "repel") {return ConstraintChoice::BodyCMRepeller;}
+    throw except::invalid_argument("SequenceParser::get_constraint_choice: Unknown constraint choice \"" + std::string(line) + "\"");
+}
+
 template<typename T>
 struct ArgResult {T value; bool found;};
 
@@ -211,7 +229,9 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
     auto iatom2 = get_arg<int>(valid_args[Args::iatom2], args);
     auto distance = get_arg<double>(valid_args[Args::distance], args);
 
-    {   // INPUT VALIDATION
+    ConstraintChoice type_enum = ConstraintChoice::Unknown;
+    if (type.found) {type_enum = get_constraint_choice(type.value);}
+    {   // input validation
         if (!body1.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body1\".");}
         if (!body2.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"body2\".");}
         if (iatom1.found && !iatom2.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"iatom1\" provided without \"iatom2\".");}
@@ -219,38 +239,72 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
         if (type.found && (iatom1.found || iatom2.found)) {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"type\" cannot be provided together with \"iatom1\" or \"iatom2\".");}
         if (distance.found) {
             if (!type.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"distance\" cannot be provided without \"type\".");}
-            if (type.value != "attract") {throw except::invalid_argument("SequenceParser::parse_arguments: Argument \"distance\" can only be provided when \"type\" is \"attract\".");}
         }
-        if (type.found && type.value == "attract" && !distance.found) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"distance\" for constraint of type \"attract\".");
+        if (type.found) {
+            switch (type_enum) {
+                case ConstraintChoice::BodyCMAttractor:
+                case ConstraintChoice::BodyCMRepeller:
+                    if (!distance.found) {
+                        throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"distance\" for constraint of type \"" + type.value + "\".");
+                    }
+                default:
+                    break;
+            }
         }
     }
 
     if (!(iatom1.found && iatom2.found)) {
         assert(body1.found && body2.found);
         std::unique_ptr<constraints::Constraint> constraint;
-        if (type.value == "closest") {
-            constraint = factory::create_constraint_closest(
-                &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
-                loop_stack.back()->_get_sequencer()->setup()._get_body_index(body1.value),
-                loop_stack.back()->_get_sequencer()->setup()._get_body_index(body2.value)
-            );
-        } else if (type.value == "center_mass") {
-            constraint = factory::create_constraint_cm(
-                &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
-                loop_stack.back()->_get_sequencer()->setup()._get_body_index(body1.value),
-                loop_stack.back()->_get_sequencer()->setup()._get_body_index(body2.value)
-            );
-        } else if (type.value == "attract") {
-            assert(distance.found);
-            constraint = factory::create_constraint_attractor(
-                &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
-                loop_stack.back()->_get_sequencer()->setup()._get_body_index(body1.value),
-                loop_stack.back()->_get_sequencer()->setup()._get_body_index(body2.value),
-                distance.value
-            );
-        } else {
-            throw except::invalid_argument("SequenceParser::parse_arguments: Invalid arguments for \"type\": \"" + type.value + "\". Expected one of {closest, center_mass, attract}.");
+        switch (type_enum) {
+            case ConstraintChoice::Bond:
+                constraint = factory::create_constraint_bond(
+                    &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body1.value),
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body2.value)
+                );
+                break;
+
+            case ConstraintChoice::BodyCM:
+                constraint = factory::create_constraint_cm(
+                    &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body1.value),
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body2.value)
+                );
+                break;
+
+            case ConstraintChoice::BodyCMAttractor:
+                constraint = factory::create_constraint_attractor(
+                    &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body1.value),
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body2.value),
+                    distance.value
+                );
+                break;
+
+            case ConstraintChoice::BodyCMRepeller:
+                constraint = factory::create_constraint_repeller(
+                    &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body1.value),
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body2.value),
+                    distance.value
+                );
+                break;
+
+            case ConstraintChoice::SpecificAtoms:
+                constraint = factory::create_constraint(
+                    &static_cast<Sequencer*>(loop_stack.front())->_get_rigidbody()->molecule,
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body1.value),
+                    loop_stack.back()->_get_sequencer()->setup()._get_body_index(body2.value),
+                    iatom1.value,
+                    iatom2.value
+                );
+                break;
+
+            default: 
+                throw except::invalid_argument(
+                    "SequenceParser::parse_arguments: Unknown constraint type \"" + (type.found ? type.value : "unspecified") + "\". Expected one of {bond, distance, cm, attract, repel}."
+                );
         }
         loop_stack.front()->_get_rigidbody()->constraints->add_constraint(std::move(constraint));
     } else {
@@ -410,7 +464,10 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
         else if (!has_translate && !has_rotate) {
             if (loop_stack.front()->_get_rigidbody()->molecule.symmetry().has_symmetries()) {
                 strategy.value = ParameterStrategyDefs::SYMMETRY_ONLY;
-                std::cout << "SequenceParser::parse_arguments: No strategy provided for \"parameter\" element, but symmetry parameters are available. Defaulting to strategy \"symmetry_only\"." << std::endl;
+                logging::log(
+                    "SequenceParser::parse_arguments: No strategy provided for \"parameter\" element, but symmetry parameters are available. "
+                    "Defaulting to strategy \"symmetry_only\"."
+                );
             } else {
                 throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing one of \"strategy\", \"translate\", or \"rotate\".");
             }

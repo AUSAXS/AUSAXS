@@ -6,7 +6,7 @@
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/selection/BodySelectStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>

@@ -4,7 +4,7 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs::rigidbody::sequencer;

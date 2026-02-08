@@ -3,7 +3,7 @@
 
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/Rigidbody.h>
 #include <utility/Exceptions.h>
 #include <utility/Random.h>

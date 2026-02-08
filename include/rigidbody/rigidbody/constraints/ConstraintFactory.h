@@ -15,11 +15,15 @@ namespace ausaxs::rigidbody::factory {
         observer_ptr<const data::Molecule> owner, sequencer::detail::BodySymmetrySelector body1, sequencer::detail::BodySymmetrySelector body2
     );
 
-    std::unique_ptr<constraints::Constraint> create_constraint_closest(
+    std::unique_ptr<constraints::Constraint> create_constraint_bond(
         observer_ptr<const data::Molecule> owner, sequencer::detail::BodySymmetrySelector body1, sequencer::detail::BodySymmetrySelector body2
     );
 
     std::unique_ptr<constraints::Constraint> create_constraint_attractor(
+        observer_ptr<const data::Molecule> owner, sequencer::detail::BodySymmetrySelector body1, sequencer::detail::BodySymmetrySelector body2, double target_distance
+    );
+
+    std::unique_ptr<constraints::Constraint> create_constraint_repeller(
         observer_ptr<const data::Molecule> owner, sequencer::detail::BodySymmetrySelector body1, sequencer::detail::BodySymmetrySelector body2, double target_distance
     );
 

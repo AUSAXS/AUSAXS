@@ -13,6 +13,12 @@ namespace ausaxs::rigidbody::constraints {
     struct IDistanceConstraint : Constraint {
         IDistanceConstraint() = default;
         IDistanceConstraint(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2, std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1});
+        IDistanceConstraint(
+            observer_ptr<const data::Molecule> molecule, 
+            int ibody1, int iatom1, 
+            int ibody2, int iatom2,
+            std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1}
+        );
         virtual ~IDistanceConstraint() = default;
 
         /**
@@ -35,7 +41,7 @@ namespace ausaxs::rigidbody::constraints {
          */
         const data::Body& get_body2() const;
 
-        double d_target;                             // The target distance between the two bodies.
+        double d_target = 0;                         // The target distance between the two bodies.
         observer_ptr<const data::Molecule> molecule; // The molecule this constraint belongs to.
         int ibody1 = -1;                             // The index of the first body.
         int ibody2 = -1;                             // The index of the second body.

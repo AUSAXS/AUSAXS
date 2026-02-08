@@ -5,7 +5,7 @@
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/parameters/BodyTransformParametersRelative.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/Grid.h>

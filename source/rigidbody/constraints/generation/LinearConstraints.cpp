@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/generation/LinearConstraints.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <settings/GeneralSettings.h>
 #include <constants/Constants.h>
@@ -53,7 +53,7 @@ std::vector<std::unique_ptr<IDistanceConstraint>> LinearConstraints::generate() 
         if (min_atom1 == -1u || min_atom2 == -1u) {
             throw except::unexpected("LinearConstraints::generate: No suitable atoms were found for constraint generation. ");
         }
-        constraints.emplace_back(std::make_unique<DistanceConstraint>(manager->molecule, ibody1, ibody2, min_atom1, min_atom2));
+        constraints.emplace_back(std::make_unique<DistanceConstraintAtom>(manager->molecule, ibody1, ibody2, min_atom1, min_atom2));
         if (settings::general::verbose) {
             std::cout 
                 << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " 

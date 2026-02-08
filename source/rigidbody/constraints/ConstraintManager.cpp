@@ -3,7 +3,7 @@
 
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/AttractorConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/Rigidbody.h>
@@ -33,23 +33,22 @@ void ConstraintManager::generate_constraints(std::unique_ptr<ConstraintGeneratio
 }
 
 void ConstraintManager::add_constraint(std::unique_ptr<Constraint> constraint) {
-    auto ptr = constraint.release(); // need to transfer ownership
-    if (auto cast = dynamic_cast<DistanceConstraint*>(ptr); cast != nullptr) {
-        discoverable_constraints.emplace_back(std::unique_ptr<DistanceConstraint>(cast));
+    if (auto cast = dynamic_cast<DistanceConstraintCM*>(constraint.get()); cast != nullptr) {
+        non_discoverable_constraints.emplace_back(std::move(constraint));
+        return;
+    }
+
+    if (auto cast = dynamic_cast<OverlapConstraint*>(constraint.get()); cast != nullptr) {
+        non_discoverable_constraints.emplace_back(std::move(constraint));
+        return;
+    }
+
+    auto ptr = constraint.release();
+    if (auto cast = dynamic_cast<DistanceConstraintBond*>(ptr); cast != nullptr) {
+        discoverable_constraints.emplace_back(std::unique_ptr<DistanceConstraintBond>(cast));
         update_constraint_map();
         return;
     }
-
-    if (auto cast = dynamic_cast<AttractorConstraint*>(ptr); cast != nullptr) {
-        non_discoverable_constraints.emplace_back(std::unique_ptr<AttractorConstraint>(cast)); //! wrong!!! we need a non-discoverable storage
-        return;
-    }
-
-    if (auto cast = dynamic_cast<OverlapConstraint*>(ptr); cast != nullptr) {
-        non_discoverable_constraints.emplace_back(std::unique_ptr<OverlapConstraint>(cast));
-        return;
-    }
-
     delete ptr;
     throw except::invalid_argument("ConstraintManager::add_constraint: Unknown constraint type.");
 }

@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/DistanceConstraintCM.h>
-#include <settings/RigidBodySettings.h>
+#include <rigidbody/constraints/DistanceConstraintFunctions.h>
 #include <constants/Constants.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -54,7 +54,7 @@ DistanceConstraintCM::DistanceConstraintCM(observer_ptr<const data::Molecule> mo
     if (iatom1 == -1 || iatom2 == -1) {
         throw except::invalid_argument("DistanceConstraintCM::DistanceConstraintCM: Could not find carbon atoms to represent the center of mass of the two bodies!");
     }
-    d_target = body1.get_atom(iatom1).coordinates().distance(body2.get_atom(iatom2).coordinates());
+    d_target = evaluate_distance();
 }
 
 double DistanceConstraintCM::evaluate() const {
@@ -62,5 +62,5 @@ double DistanceConstraintCM::evaluate() const {
 }
 
 double DistanceConstraintCM::transform(double offset) {
-    return offset*offset*offset*offset*10;
+    return functions::between_bodies(offset);
 }

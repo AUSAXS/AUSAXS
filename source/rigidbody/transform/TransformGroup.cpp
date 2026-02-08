@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <data/Body.h>
 
 using namespace ausaxs::rigidbody::transform;

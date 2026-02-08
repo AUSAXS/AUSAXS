@@ -12,7 +12,9 @@
 #include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintAtom.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/Rigidbody.h>
 
@@ -78,7 +80,7 @@ void SetupElement::_set_active_body(observer_ptr<Rigidbody> body) {
 
 SetupElement& SetupElement::distance_constraint(const std::string& body1, const std::string& body2, unsigned int iatom1, unsigned int iatom2) {
     owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraint>(
+        std::make_unique<constraints::DistanceConstraintAtom>(
             &active_body->molecule,
             body_names.at(body1),
             body_names.at(body2),
@@ -91,7 +93,7 @@ SetupElement& SetupElement::distance_constraint(const std::string& body1, const 
 
 SetupElement& SetupElement::distance_constraint_closest(unsigned int ibody1, unsigned int ibody2) {
     owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraint>(
+        std::make_unique<constraints::DistanceConstraintBond>(
             &active_body->molecule,
             ibody1, 
             ibody2
@@ -102,7 +104,7 @@ SetupElement& SetupElement::distance_constraint_closest(unsigned int ibody1, uns
 
 SetupElement& SetupElement::distance_constraint_closest(const std::string& ibody1, const std::string& ibody2) {
     owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraint>(
+        std::make_unique<constraints::DistanceConstraintBond>(
             &active_body->molecule,
             body_names.at(ibody1), 
             body_names.at(ibody2)
@@ -113,11 +115,10 @@ SetupElement& SetupElement::distance_constraint_closest(const std::string& ibody
 
 SetupElement& SetupElement::distance_constraint_center_mass(unsigned int ibody1, unsigned int ibody2) {
     owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraint>(
+        std::make_unique<constraints::DistanceConstraintCM>(
             &active_body->molecule,
             ibody1, 
-            ibody2,
-            true
+            ibody2
         )
     );
     return *this;
@@ -125,11 +126,10 @@ SetupElement& SetupElement::distance_constraint_center_mass(unsigned int ibody1,
 
 SetupElement& SetupElement::distance_constraint_center_mass(const std::string& ibody1, const std::string& ibody2) {
     owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraint>(
+        std::make_unique<constraints::DistanceConstraintCM>(
             &active_body->molecule,
             body_names.at(ibody1), 
-            body_names.at(ibody2),
-            true
+            body_names.at(ibody2)
         )
     );
     return *this;
