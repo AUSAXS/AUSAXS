@@ -16,13 +16,13 @@ double DistanceConstraintCM::evaluate_distance() const {
     auto atom2 = molecule->get_body(ibody2).get_atom(iatom2).coordinates();
     if (isym1.first != -1) {
         const auto& sym = molecule->get_body(ibody1).symmetry().get(isym1.first);
-        atom1 += sym.initial_relation.translation;
-        atom1 += sym.repeat_relation.translate*isym1.second;
+        auto transform = sym.get_transform<double>(atom1, isym1.second);
+        atom1 = transform(atom1);
     }
     if (isym2.first != -1) {
         const auto& sym = molecule->get_body(ibody2).symmetry().get(isym2.first);
-        atom2 += sym.initial_relation.translation;
-        atom2 += sym.repeat_relation.translate*isym2.second;
+        auto transform = sym.get_transform<double>(atom2, isym2.second);
+        atom2 = transform(atom2);
     }
     return atom1.distance(atom2);
 }
