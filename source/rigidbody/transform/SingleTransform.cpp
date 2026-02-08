@@ -18,8 +18,8 @@ SingleTransform::SingleTransform(observer_ptr<Rigidbody> rigidbody) : TransformS
 
 SingleTransform::~SingleTransform() = default;
 
-void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, constraints::DistanceConstraint& constraint) {
-    int ibody = constraint.ibody1;
+void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) {
+    int ibody = constraint->ibody1;
     auto& body = rigidbody->molecule.get_body(ibody);
     bodybackup.clear();
     bodybackup.emplace_back(body, ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
@@ -29,7 +29,7 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, co
     grid->remove(body);
 
     // compute new absolute transform parameters for the body
-    auto& body_params = rigidbody->conformation->absolute_parameters.parameters[constraint.ibody1];
+    auto& body_params = rigidbody->conformation->absolute_parameters.parameters[constraint->ibody1];
     if (par.rotation.has_value()) {
         body_params.rotation = matrix::euler_angles(matrix::rotation_matrix(body_params.rotation)*matrix::rotation_matrix(par.rotation.value()));
     } if (par.translation.has_value()) {
@@ -37,9 +37,9 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, co
     }
 
     // apply transformations
-    body = rigidbody->conformation->initial_conformation[constraint.ibody1];
+    body = rigidbody->conformation->initial_conformation[constraint->ibody1];
     if (par.rotation.has_value() || par.translation.has_value()) {
-        rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, constraint.get_atom2().coordinates(), body);
+        rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, constraint->get_atom2().coordinates(), body);
     }
 
     // apply symmetry parameters

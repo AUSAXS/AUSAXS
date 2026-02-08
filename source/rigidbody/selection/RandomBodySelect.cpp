@@ -18,7 +18,7 @@ RandomBodySelect::~RandomBodySelect() = default;
 std::pair<unsigned int, int> RandomBodySelect::next() {
     unsigned int ibody = distribution(random::generator());
 
-    unsigned int N = rigidbody->constraints->distance_constraints_map.at(ibody).size();
+    unsigned int N = rigidbody->constraints->get_body_constraints(ibody).size();
     switch (N) {
         case 0: {
             return std::make_pair(ibody, -1);

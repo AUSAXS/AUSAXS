@@ -35,7 +35,7 @@ namespace ausaxs::rigidbody::transform {
              * @param par The relative transformation to apply.
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(parameter::BodyTransformParametersRelative&& par, constraints::DistanceConstraint& constraint) = 0;
+            virtual void apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) = 0;
 
             /**
              * @brief Apply a relative transformation to a single unconstrained body. 

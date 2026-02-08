@@ -6,6 +6,7 @@
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/selection/BodySelectStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
@@ -60,7 +61,8 @@ bool SimpleController::prepare_step() {
         auto param = rigidbody->parameter_generator->next(ibody);
         rigidbody->transformer->apply(std::move(param), ibody);
     } else {                    // transform constrained body
-        DistanceConstraint& constraint = rigidbody->constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
+        assert(iconstraint < static_cast<int>(rigidbody->constraints->get_body_constraints(ibody).size()));
+        auto constraint = rigidbody->constraints->get_body_constraints(ibody)[iconstraint];
         auto param = rigidbody->parameter_generator->next(ibody);
         rigidbody->transformer->apply(std::move(param), constraint);
     }

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <rigidbody/constraints/Constraint.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
@@ -15,7 +15,7 @@ namespace ausaxs::rigidbody::constraints {
      * adding a new term to the chi-square which is a function of the distance between the two atoms. Thus the optimizer is penalized depending on how much it separates the two 
      * constrained atoms. 
      */
-    class DistanceConstraint : public Constraint {
+    class DistanceConstraint : public IDistanceConstraint {
         public: 
             /**
              * @brief Create a new constraint between a pair of atoms.
@@ -31,7 +31,7 @@ namespace ausaxs::rigidbody::constraints {
              * @param iatom1 The index of the first atom in the first body.
              * @param iatom2 The index of the second atom in the second body.
              */
-            DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
+            DistanceConstraint(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2, int iatom1, int iatom2);
 
             /**
              * @brief Create a new constraint between a pair of atoms in the two bodies.
@@ -42,7 +42,7 @@ namespace ausaxs::rigidbody::constraints {
              * @param body2 The second body.
              * @param center_mass Create a constraint from the center-masses of the two bodies. If false, the two closest carbon atoms are used instead. 
              */
-            DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, bool center_mass = false);
+            DistanceConstraint(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2, bool center_mass = false);
 
             /**
              * @brief Create a new constraint between a pair of atoms.
@@ -65,26 +65,6 @@ namespace ausaxs::rigidbody::constraints {
             double evaluate() const override;
 
             /**
-             * @brief Get the first atom of this constraint. 
-             */
-            const data::AtomFF& get_atom1() const;
-
-            /**
-             * @brief Get the second atom of this constraint. 
-             */
-            const data::AtomFF& get_atom2() const;
-
-            /**
-             * @brief Get the first body of this constraint. 
-             */
-            const data::Body& get_body1() const;
-
-            /**
-             * @brief Get the second body of this constraint. 
-             */
-            const data::Body& get_body2() const;
-
-            /**
              * @brief Check if a constraint is identical to this object. 
              * 
              * @param constraint The constraint to be checked for equality. 
@@ -95,13 +75,6 @@ namespace ausaxs::rigidbody::constraints {
              * @brief Generate a string representation of this constraint.
              */
             std::string to_string() const;
-
-            double r_base;                               // The normal distance between the two atoms. 
-            observer_ptr<const data::Molecule> molecule; // The molecule this constraint belongs to.
-            unsigned int ibody1 = -1;                    // The index of the first body.
-            unsigned int ibody2 = -1;                    // The index of the second body.
-            unsigned int iatom1 = -1;                    // The index of the first atom.
-            unsigned int iatom2 = -1;                    // The index of the second atom.
 
         private: 
             /**

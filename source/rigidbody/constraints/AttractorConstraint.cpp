@@ -9,20 +9,14 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
 
-AttractorConstraint::AttractorConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, double target) 
-    : DistanceConstraint(molecule, ibody1, ibody2, true) 
-{
-    r_base = target;
+AttractorConstraint::AttractorConstraint(
+    observer_ptr<const data::Molecule> molecule, double target_distance, int ibody1, int ibody2, std::pair<int, int> isym1, std::pair<int, int> isym2
+) : DistanceConstraintCM(molecule, ibody1, ibody2, std::move(isym1), std::move(isym2)) {
+    d_target = target_distance;
 }
 
 double AttractorConstraint::evaluate() const {
-    const AtomFF& atom1 = molecule->get_body(ibody1).get_atom(iatom1);
-    const AtomFF& atom2 = molecule->get_body(ibody2).get_atom(iatom2);
-    return transform(atom1.coordinates().distance(atom2.coordinates()), r_base);
-}
-
-bool AttractorConstraint::operator==(const AttractorConstraint& constraint) const {
-    return DistanceConstraint::operator==(constraint);
+    return transform(evaluate_distance(), d_target);
 }
 
 double AttractorConstraint::transform(double distance, double r_base) {
@@ -30,14 +24,3 @@ double AttractorConstraint::transform(double distance, double r_base) {
     double offset = distance - r_base;
     return 10*offset*offset;
 }
-
-std::string AttractorConstraint::to_string() const {
-    std::stringstream ss;
-    ss << 
-        "AttractorConstraint between (" << form_factor::to_string(molecule->get_body(ibody1).get_atom(iatom1).form_factor_type()) << ") and "
-        "(" << form_factor::to_string(molecule->get_body(ibody2).get_atom(iatom2).form_factor_type()) << ")"
-    ;
-    return ss.str();
-}
-
-std::ostream& operator<<(std::ostream& os, const AttractorConstraint& constraint) {os << constraint.to_string(); return os;}

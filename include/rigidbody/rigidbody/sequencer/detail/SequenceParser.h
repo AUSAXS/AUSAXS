@@ -21,7 +21,5 @@ namespace ausaxs::rigidbody::sequencer {
 
             template<ElementType T>
             std::unique_ptr<GenericElement> parse_arguments(const std::unordered_map<std::string, std::vector<std::string>>& args);
-
-            int body_name_to_index(const std::string& name) const;
     };
 }

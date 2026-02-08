@@ -12,11 +12,11 @@
 
 namespace ausaxs::rigidbody::transform {
     struct TransformGroup {
-        TransformGroup(std::vector<observer_ptr<data::Body>> bodies, std::vector<unsigned int> indices, const constraints::DistanceConstraint& target, Vector3<double> pivot);
+        TransformGroup(std::vector<observer_ptr<data::Body>> bodies, std::vector<unsigned int> indices, observer_ptr<const constraints::IDistanceConstraint> target, Vector3<double> pivot);
         ~TransformGroup();
-        std::vector<observer_ptr<data::Body>> bodies;  // The bodies to transform.
-        std::vector<unsigned int> indices;             // The indices of the bodies in the rigidbody.
-        const constraints::DistanceConstraint& target; // The constraint to transform along.
-        Vector3<double> pivot;                         // The pivot point of the transformation.
+        std::vector<observer_ptr<data::Body>> bodies;                // The bodies to transform.
+        std::vector<unsigned int> indices;                           // The indices of the bodies in the rigidbody.
+        observer_ptr<const constraints::IDistanceConstraint> target; // The constraint to transform along.
+        Vector3<double> pivot;                                       // The pivot point of the transformation.
     };
 }

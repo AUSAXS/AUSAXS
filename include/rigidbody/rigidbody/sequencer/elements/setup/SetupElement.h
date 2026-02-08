@@ -6,6 +6,7 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
+#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <string_view>
@@ -183,6 +184,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @brief Get the name identifiers of all loaded bodies.
              */
             std::unordered_map<std::string, unsigned int>& _get_body_names();
+            detail::BodySymmetrySelector _get_body_index(std::string_view name) const;
 
             /**
              * @brief Set the currently active body for the setup.

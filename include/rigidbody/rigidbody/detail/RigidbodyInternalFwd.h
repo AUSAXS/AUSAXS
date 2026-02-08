@@ -25,6 +25,6 @@ namespace ausaxs::rigidbody {
 
     namespace constraints {
         struct ConstraintManager;
-        class DistanceConstraint;
+        class IDistanceConstraint;
     }
 }

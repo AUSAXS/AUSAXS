@@ -4,6 +4,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
@@ -19,36 +20,44 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
     : owner(owner) 
 {
     assert(names.size() == symmetry.size() && "SymmetryElement::SymmetryElement: The number of names and symmetries must be equal.");
+    auto molecule = owner->_get_molecule();
+    auto rigidbody = owner->_get_rigidbody();
+    auto& setup = owner->setup();
 
-    owner->_get_molecule()->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(owner->_get_molecule()));
+    molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
     for (unsigned int i = 0; i < names.size(); ++i) {
-        if (!owner->setup()._get_body_names().contains(names[i])) {
-            std::cout << "Body names:" << std::endl;
-            for (const auto& [name, index] : owner->setup()._get_body_names()) {
-                std::cout << name << " " << index << std::endl;
-            }
-            throw std::runtime_error("SymmetryElement::SymmetryElement: The body name \"" + names[i] + "\" is not known.");
-        }
-        int ibody = owner->setup()._get_body_names().at(names[i]);
+        auto index = setup._get_body_index(names[i]);
+        int ibody = index.body;
+        assert(index.replica == 0 && index.symmetry == 0 && "SymmetryElement::SymmetryElement: The body name must refer to a base body (replica 0, symmetry 0).");
 
         // ensure the body's symmetry storage is optimizable
-        assert(dynamic_cast<symmetry::OptimizableSymmetryStorage*>(owner->_get_molecule()->get_body(ibody).symmetry().get_obj()));
-        owner->_get_molecule()->get_body(ibody).symmetry().add(symmetry[i]);
-        owner->_get_rigidbody()->conformation->initial_conformation[ibody].symmetry().add(symmetry[i]);
+        assert(dynamic_cast<symmetry::OptimizableSymmetryStorage*>(molecule->get_body(ibody).symmetry().get_obj()));
+        molecule->get_body(ibody).symmetry().add(symmetry[i]);
+        rigidbody->conformation->initial_conformation[ibody].symmetry().add(symmetry[i]);
+
+        // add names for the symmetry bodies
+        auto& name_map = setup._get_body_names();
+        int isymmetry = molecule->get_body(ibody).size_symmetry();
+        if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry-1).repetitions; reps == 1) { // single replica only: b1s1
+            name_map.emplace(names[i] + "s" + std::to_string(isymmetry), detail::to_index(ibody, isymmetry-1, i-1));
+        } else { // multiple replicas, so include replica index in name: b1s1r1, b1s1r2, ...
+            for (int i = 0; i < reps; ++i) {
+                name_map.emplace(names[i] + "s" + std::to_string(isymmetry) + "r" + std::to_string(i+1), detail::to_index(ibody, isymmetry-1, i-1));
+            }
+        }
 
         // place the symmetry body at a sane distance from the original
-        double Rg = owner->_get_molecule()->get_Rg();
-        owner->_get_molecule()->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
-        owner->_get_rigidbody()->conformation->initial_conformation[ibody].symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
-        owner->_get_rigidbody()->conformation->absolute_parameters.parameters[ibody].symmetry_pars.emplace_back(
-            owner->_get_molecule()->get_body(ibody).symmetry().get(0)
+        double Rg = molecule->get_Rg();
+        molecule->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
+        rigidbody->conformation->initial_conformation[ibody].symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
+        rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars.emplace_back(
+            molecule->get_body(ibody).symmetry().get(0)
         );
-        std::cout << "SymmetryElement::SymmetryElement: Added symmetry to body " << names[i] << std::endl;
-        std::cout << "\tIt now has " << owner->_get_molecule()->get_body(ibody).size_symmetry() << " symmetries." << std::endl;
+
     }
     
     // Refresh grid to accommodate symmetry bodies
-    owner->_get_rigidbody()->refresh_grid();
+    rigidbody->refresh_grid();
 }
 
 SymmetryElement::~SymmetryElement() = default;

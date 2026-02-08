@@ -12,8 +12,8 @@ SequentialConstraintSelect::SequentialConstraintSelect(observer_ptr<const Rigidb
 SequentialConstraintSelect::~SequentialConstraintSelect() = default;
 
 std::pair<unsigned int, int> SequentialConstraintSelect::next() {
-    unsigned int N = rigidbody->constraints->distance_constraints_map.size();
-    unsigned int M = rigidbody->constraints->distance_constraints_map.at(ibody).size();
+    unsigned int N = rigidbody->constraints->discoverable_constraints.size();
+    unsigned int M = rigidbody->constraints->get_body_constraints(ibody).size();
 
     if (iconstraint == M) {
         ibody = (ibody + 1) % N;

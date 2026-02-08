@@ -11,9 +11,11 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
 
-DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
-    : molecule(molecule), ibody1(ibody1), ibody2(ibody2), iatom1(iatom1), iatom2(iatom2) 
+DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2, int iatom1, int iatom2) 
+    : IDistanceConstraint(molecule, ibody1, ibody2) 
 {
+    this->iatom1 = iatom1;
+    this->iatom2 = iatom2;
     const Body& body1 = molecule->get_body(ibody1);
     const Body& body2 = molecule->get_body(ibody2);
     const AtomFF& atom1 = body1.get_atom(iatom1);
@@ -30,8 +32,8 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
     }
 
     // set the base radius and perform a sanity check
-    r_base = atom1.coordinates().distance(atom2.coordinates());
-    if (r_base > 4) {
+    d_target = atom1.coordinates().distance(atom2.coordinates());
+    if (d_target > 4) {
         throw except::invalid_argument(
             "DistanceConstraint::DistanceConstraint: The atoms being constrained are too far apart!\n"
             "Atom 1: " + form_factor::to_string(atom1.form_factor_type()) + " in body " + std::to_string(ibody1) + " at " + atom1.coordinates().to_string() + "\n"
@@ -40,8 +42,8 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
     }
 }
 
-DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, bool center_mass)
-    : molecule(molecule), ibody1(ibody1), ibody2(ibody2) 
+DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2, bool center_mass)
+    : IDistanceConstraint(molecule, ibody1, ibody2) 
 {
     const Body& body1 = molecule->get_body(ibody1);
     const Body& body2 = molecule->get_body(ibody2);
@@ -68,7 +70,7 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
                 }
             }
         }
-        r_base = min_distance;
+        d_target = min_distance;
     } else {
         // find the closest atoms in the two bodies
         double min_distance = std::numeric_limits<double>::max();
@@ -90,8 +92,8 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
                 }
             }
         }
-        r_base = min_distance;
-        if (r_base > 4) {
+        d_target = min_distance;
+        if (d_target > 4) {
             auto& atom1 = body1.get_atom(iatom1);
             auto& atom2 = body2.get_atom(iatom2);
             throw except::invalid_argument(
@@ -132,7 +134,8 @@ std::pair<AtomLoc, AtomLoc> find_host_bodies(observer_ptr<const data::Molecule> 
     return std::make_pair(AtomLoc{.body=ibody1, .atom=iatom1}, AtomLoc{.body=ibody2, .atom=iatom2});
 }
 
-DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, const AtomFF& atom1, const AtomFF& atom2) : molecule(molecule) {
+DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecule, const AtomFF& atom1, const AtomFF& atom2) {
+    this->molecule = molecule;
     // we only want to allow constraints between the backbone C-alpha structure
     if (form_factor::to_atom_type(atom1.form_factor_type()) != constants::atom_t::C || form_factor::to_atom_type(atom2.form_factor_type()) != constants::atom_t::C) {
         throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Constraints only makes sense between the carbon-atoms of the backbone!");
@@ -149,8 +152,8 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
     if (ibody1 == ibody2) {throw except::invalid_argument("DistanceConstraint::DistanceConstraint: Cannot create a constraint between atoms in the same body!");}
 
     // set the base radius and perform a sanity check
-    r_base = atom1.coordinates().distance(atom2.coordinates());
-    if (r_base > settings::rigidbody::bond_distance) {
+    d_target = atom1.coordinates().distance(atom2.coordinates());
+    if (d_target > settings::rigidbody::bond_distance) {
         throw except::invalid_argument("DistanceConstraint::DistanceConstraint: The atoms being constrained are too far apart!");
     }
 }
@@ -158,7 +161,7 @@ DistanceConstraint::DistanceConstraint(observer_ptr<const data::Molecule> molecu
 double DistanceConstraint::evaluate() const {
     const AtomFF& atom1 = molecule->get_body(ibody1).get_atom(iatom1);
     const AtomFF& atom2 = molecule->get_body(ibody2).get_atom(iatom2);
-    return transform(r_base - atom1.coordinates().distance(atom2.coordinates()));
+    return transform(d_target - atom1.coordinates().distance(atom2.coordinates()));
 }
 
 bool DistanceConstraint::operator==(const DistanceConstraint& constraint) const {
@@ -170,22 +173,6 @@ bool DistanceConstraint::operator==(const DistanceConstraint& constraint) const 
 
 double DistanceConstraint::transform(double offset) {
     return offset*offset*offset*offset*10;
-}
-
-const AtomFF& DistanceConstraint::get_atom1() const {
-    return molecule->get_body(ibody1).get_atom(iatom1);
-}
-
-const AtomFF& DistanceConstraint::get_atom2() const {
-    return molecule->get_body(ibody2).get_atom(iatom2);
-}
-
-const Body& DistanceConstraint::get_body1() const {
-    return molecule->get_body(ibody1);
-}
-
-const Body& DistanceConstraint::get_body2() const {
-    return molecule->get_body(ibody2);
 }
 
 std::string DistanceConstraint::to_string() const {

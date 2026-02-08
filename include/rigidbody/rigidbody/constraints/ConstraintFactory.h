@@ -4,6 +4,7 @@
 #pragma once
 
 #include <rigidbody/constraints/Constraint.h>
+#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
@@ -11,18 +12,18 @@
 
 namespace ausaxs::rigidbody::factory {
     std::unique_ptr<constraints::Constraint> create_constraint_cm(
-        observer_ptr<const data::Molecule> owner, unsigned int body1, unsigned int body2
+        observer_ptr<const data::Molecule> owner, sequencer::detail::BodySymmetrySelector body1, sequencer::detail::BodySymmetrySelector body2
     );
 
     std::unique_ptr<constraints::Constraint> create_constraint_closest(
-        observer_ptr<const data::Molecule> owner, unsigned int body1, unsigned int body2
+        observer_ptr<const data::Molecule> owner, sequencer::detail::BodySymmetrySelector body1, sequencer::detail::BodySymmetrySelector body2
     );
 
     std::unique_ptr<constraints::Constraint> create_constraint_attractor(
-        observer_ptr<const data::Molecule> owner, unsigned int body1, unsigned int body2, double target_distance
+        observer_ptr<const data::Molecule> owner, sequencer::detail::BodySymmetrySelector body1, sequencer::detail::BodySymmetrySelector body2, double target_distance
     );
 
     std::unique_ptr<constraints::Constraint> create_constraint(
-        observer_ptr<const data::Molecule> owner, unsigned int body1, unsigned int body2, unsigned int iatom1, unsigned int iatom2
+        observer_ptr<const data::Molecule> owner, sequencer::detail::BodySymmetrySelector body1, sequencer::detail::BodySymmetrySelector body2, unsigned int iatom1, unsigned int iatom2
     );
 }

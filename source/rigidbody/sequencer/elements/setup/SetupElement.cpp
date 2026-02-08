@@ -54,6 +54,23 @@ std::unordered_map<std::string, unsigned int>& SetupElement::_get_body_names() {
     return body_names;
 }
 
+detail::BodySymmetrySelector SetupElement::_get_body_index(std::string_view name) const {
+    auto it = body_names.find(std::string{name});
+    if (it == body_names.end()) {
+        throw std::runtime_error(
+            "SetupElement::_get_body_index: Unknown body name \"" + std::string{name} + "\". "
+            "Known body names are: " + [&] () {
+                std::string result;
+                for (const auto& [name, index] : body_names) {
+                    result += name + " ";
+                }
+                return result;
+            }()
+        );
+    }
+    return detail::from_index(it->second);
+}
+
 void SetupElement::_set_active_body(observer_ptr<Rigidbody> body) {
     active_body = body;
     owner->_get_sequencer()->rigidbody = body;

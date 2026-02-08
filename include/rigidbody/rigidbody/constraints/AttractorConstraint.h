@@ -3,21 +3,22 @@
 
 #pragma once
 
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <string>
-
 namespace ausaxs::rigidbody::constraints {
-    class AttractorConstraint : public DistanceConstraint {
+    class AttractorConstraint : public DistanceConstraintCM {
         public: 
             /**
              * @brief Create a new constraint between a pair of atoms in the two bodies.
              * 
              * Complexity: O(n)
              */
-            AttractorConstraint(observer_ptr<const data::Molecule> molecule, unsigned int ibody1, unsigned int ibody2, double target_distance);
+            AttractorConstraint(
+                observer_ptr<const data::Molecule> molecule, double target_distance, 
+                int ibody1, int ibody2, std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1}
+            );
             virtual ~AttractorConstraint() override = default;
 
             /**
@@ -26,18 +27,6 @@ namespace ausaxs::rigidbody::constraints {
              * @return The chi2 contribution of this constraint.
              */
             double evaluate() const override;
-
-            /**
-             * @brief Check if a constraint is identical to this object. 
-             * 
-             * @param constraint The constraint to be checked for equality. 
-             */
-            bool operator==(const AttractorConstraint& constraint) const;
-
-            /**
-             * @brief Generate a string representation of this constraint.
-             */
-            std::string to_string() const;
 
         private: 
             static double transform(double distance, double r_base);

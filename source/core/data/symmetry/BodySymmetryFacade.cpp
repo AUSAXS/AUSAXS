@@ -52,6 +52,32 @@ const symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::
 }
 
 template<typename BODY, bool NONCONST>
+const symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::back() const {
+    assert(!body->symmetries->get().empty() && "BodySymmetryFacade::back: No symmetries available.");
+    return body->symmetries->get().back();
+}
+
+template<typename BODY, bool NONCONST>
+symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::back() requires (NONCONST) {
+    assert(!body->symmetries->get().empty() && "BodySymmetryFacade::back: No symmetries available.");
+    body->get_signaller()->modified_symmetry(body->symmetries->get().size() - 1);
+    return body->symmetries->get().back();
+}
+
+template<typename BODY, bool NONCONST>
+const symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front() const {
+    assert(!body->symmetries->get().empty() && "BodySymmetryFacade::front: No symmetries available.");
+    return body->symmetries->get().front();
+}
+
+template<typename BODY, bool NONCONST>
+symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front() requires (NONCONST) {
+    assert(!body->symmetries->get().empty() && "BodySymmetryFacade::front: No symmetries available.");
+    body->get_signaller()->modified_symmetry(0);
+    return body->symmetries->get().front();
+}
+
+template<typename BODY, bool NONCONST>
 observer_ptr<symmetry::SymmetryStorage> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get_obj() requires (NONCONST) {
     for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
     return body->symmetries.get();
