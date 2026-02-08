@@ -26,7 +26,7 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
                 continue;
             }
 
-            double distance = body1.get_atom(i).coordinates().distance2(body2.get_atom(j).coordinates());
+            double distance = body1.get_atom(i).coordinates().distance(body2.get_atom(j).coordinates());
             if (distance < min_distance) {
                 min_distance = distance;
                 iatom1 = i;
