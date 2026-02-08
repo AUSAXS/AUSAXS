@@ -32,7 +32,7 @@ DistanceConstraintAtom::DistanceConstraintAtom(
 ) : IDistanceConstraint(molecule, ibody1, ibody2, std::move(isym1), std::move(isym2)) {
     this->iatom1 = iatom1;
     this->iatom2 = iatom2;
-    
+
     if (iatom1 < 0 || static_cast<size_t>(iatom1) >= molecule->get_body(ibody1).size_atom()) {
         throw except::invalid_argument("DistanceConstraintAtom::DistanceConstraintAtom: Invalid atom index " + std::to_string(iatom1) + " for body " + std::to_string(ibody1));
     }
