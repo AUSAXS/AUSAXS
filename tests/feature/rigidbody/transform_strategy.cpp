@@ -65,8 +65,18 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
         manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
 
-        // translate
+        // zero transform - should not change anything
         rigidbody::transform::SingleTransform transform(&rigidbody);
+        auto original_pos_0 = rigidbody.get_body(0).get_atom(0).coordinates();
+        auto original_pos_1 = rigidbody.get_body(0).get_atom(1).coordinates();
+        transform.apply({{0, 0, 0}, {0, 0, 0}}, manager->distance_constraints[0]);
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == original_pos_0);
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == original_pos_1);
+        transform.undo();
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == original_pos_0);
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == original_pos_1);
+
+        // translate
         transform.apply({{1, 0, 0}, {0, 0, 0}}, manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
@@ -97,8 +107,26 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 3
         manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 4
 
-        // single-body translate
+        // zero transform - should not change anything
         rigidbody::transform::RigidTransform transform(&rigidbody);
+        auto original_b0_a0 = rigidbody.get_body(0).get_atom(0).coordinates();
+        auto original_b0_a1 = rigidbody.get_body(0).get_atom(1).coordinates();
+        auto original_b1_a0 = rigidbody.get_body(1).get_atom(0).coordinates();
+        auto original_b1_a1 = rigidbody.get_body(1).get_atom(1).coordinates();
+        
+        transform.apply({{0, 0, 0}, {0, 0, 0}}, manager->distance_constraints[0]);
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == original_b0_a0);
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == original_b0_a1);
+        transform.undo();
+        
+        transform.apply({{0, 0, 0}, {0, 0, 0}}, manager->distance_constraints[1]);
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == original_b0_a0);
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == original_b0_a1);
+        CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == original_b1_a0);
+        CHECK(rigidbody.get_body(1).get_atom(1).coordinates() == original_b1_a1);
+        transform.undo();
+
+        // single-body translate
         transform.apply({{1, 0, 0}, {0, 0, 0}}, manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
@@ -149,6 +177,61 @@ auto vector_contains = [] (std::vector<unsigned int> vec, std::vector<unsigned i
     }
     return true;
 };
+
+TEST_CASE_METHOD(fixture, "TransformStrategy::zero_transform_no_drift") {
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+    settings::general::verbose = false;
+    settings::grid::scaling = 2;
+
+    SECTION("SingleTransform repeated zero transform") {
+        RigidBody rigidbody(bodies);
+        auto manager = rigidbody.get_constraint_manager();
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 0, 1, 0, 0));
+
+        rigidbody::transform::SingleTransform transform(&rigidbody);
+        auto original_pos_0 = rigidbody.get_body(0).get_atom(0).coordinates();
+        auto original_pos_1 = rigidbody.get_body(0).get_atom(1).coordinates();
+
+        // Apply zero transform many times
+        for (int i = 0; i < 100; ++i) {
+            transform.apply({{0, 0, 0}, {0, 0, 0}}, manager->distance_constraints[0]);
+        }
+
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == original_pos_0);
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == original_pos_1);
+    }
+
+    SECTION("RigidTransform repeated zero transform") {
+        RigidBody rigidbody(bodies);
+        auto manager = rigidbody.get_constraint_manager();
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 0, 1, 0, 0));
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 1, 2, 0, 0));
+
+        rigidbody::transform::RigidTransform transform(&rigidbody);
+        auto original_b0_a0 = rigidbody.get_body(0).get_atom(0).coordinates();
+        auto original_b0_a1 = rigidbody.get_body(0).get_atom(1).coordinates();
+        auto original_b1_a0 = rigidbody.get_body(1).get_atom(0).coordinates();
+        auto original_b1_a1 = rigidbody.get_body(1).get_atom(1).coordinates();
+
+        // Apply zero transform many times
+        for (int i = 0; i < 100; ++i) {
+            transform.apply({{0, 0, 0}, {0, 0, 0}}, manager->distance_constraints[0]);
+        }
+
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == original_b0_a0);
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == original_b0_a1);
+        
+        // Apply zero transform on a multi-body constraint
+        for (int i = 0; i < 100; ++i) {
+            transform.apply({{0, 0, 0}, {0, 0, 0}}, manager->distance_constraints[1]);
+        }
+
+        CHECK(rigidbody.get_body(0).get_atom(0).coordinates() == original_b0_a0);
+        CHECK(rigidbody.get_body(0).get_atom(1).coordinates() == original_b0_a1);
+        CHECK(rigidbody.get_body(1).get_atom(0).coordinates() == original_b1_a0);
+        CHECK(rigidbody.get_body(1).get_atom(1).coordinates() == original_b1_a1);
+    }
+}
 
 TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;

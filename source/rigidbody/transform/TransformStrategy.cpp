@@ -28,6 +28,26 @@ void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& grou
 }
 
 void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group) {
+    // Check if this is effectively a no-op to avoid floating point drift
+    bool is_identity_rotation = true;
+    for (unsigned int i = 0; i < 3; ++i) {
+        for (unsigned int j = 0; j < 3; ++j) {
+            double expected = (i == j) ? 1.0 : 0.0;
+            if (std::abs(M.index(i, j) - expected) > 1e-10) {
+                is_identity_rotation = false;
+                break;
+            }
+        }
+        if (!is_identity_rotation) break;
+    }
+    
+    bool is_zero_translation = t.magnitude() < 1e-10;
+    
+    // If both rotation and translation are effectively zero, skip the transformation
+    if (is_identity_rotation && is_zero_translation) {
+        return;
+    }
+    
     std::for_each(group.bodies.begin(), group.bodies.end(), [&group]     (data::Body* body) {body->translate(-group.pivot);});
     std::for_each(group.bodies.begin(), group.bodies.end(), [&M]         (data::Body* body) {body->rotate(M);});
     std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (data::Body* body) {body->translate(group.pivot+t);});
@@ -47,6 +67,14 @@ void TransformStrategy::apply(parameter::Parameter&& par, unsigned int ibody) {
 
     bodybackup.clear();
     bodybackup.emplace_back(body, ibody);
+
+    // Check if this is effectively a no-op to avoid floating point drift
+    bool is_zero_rotation = par.rotation.magnitude() < 1e-10;
+    bool is_zero_translation = par.translation.magnitude() < 1e-10;
+    
+    if (is_zero_rotation && is_zero_translation) {
+        return;
+    }
 
     auto grid = rigidbody->get_grid();
     grid->remove(body);
