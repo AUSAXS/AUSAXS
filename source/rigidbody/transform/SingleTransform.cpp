@@ -29,17 +29,19 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, ob
     grid->remove(body);
 
     // compute new absolute transform parameters for the body
+    Vector3<double> pivot = constraint->get_atom2().coordinates();
     auto& body_params = rigidbody->conformation->absolute_parameters.parameters[constraint->ibody1];
     if (par.rotation.has_value()) {
-        body_params.rotation = matrix::euler_angles(matrix::rotation_matrix(body_params.rotation)*matrix::rotation_matrix(par.rotation.value()));
+        auto dR = matrix::rotation_matrix(par.rotation.value());
+        body_params.transform(pivot, dR);
     } if (par.translation.has_value()) {
-        body_params.translation += par.translation.value();
+        body_params.transform(par.translation.value());
     }
 
-    // apply transformations
+    // reconstruct body from initial conformation using absolute parameters
     body = rigidbody->conformation->initial_conformation[constraint->ibody1];
     if (par.rotation.has_value() || par.translation.has_value()) {
-        rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, constraint->get_atom2().coordinates(), body);
+        rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body.get_cm(), body);
     }
 
     // apply symmetry parameters

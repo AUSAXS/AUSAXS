@@ -39,26 +39,24 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
 
     // compute new absolute transform parameters for the bodies
     if (par.rotation.has_value()) {
-        auto R = matrix::rotation_matrix(par.rotation.value());
+        auto dR = matrix::rotation_matrix(par.rotation.value());
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
-            unsigned int ibody = group.indices[i];
-            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-            body_params.rotation = matrix::euler_angles(R*matrix::rotation_matrix(rigidbody->conformation->absolute_parameters.parameters[ibody].rotation));
+            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[group.indices[i]];
+            body_params.transform(group.pivot, dR);
         }
     } if (par.translation.has_value()) {
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
-            unsigned int ibody = group.indices[i];
-            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-            body_params.translation += par.translation.value();
+            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[group.indices[i]];
+            body_params.transform(par.translation.value());
         }
     }
 
-    // apply transformations
+    // reconstruct bodies from initial conformation using absolute parameters
     if (par.rotation.has_value() || par.translation.has_value()) {
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
             unsigned int ibody = group.indices[i];
             auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-            rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, group.pivot, *group.bodies[i]);
+            rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, group.bodies[i]->get_cm(), *group.bodies[i]);
         }
     }
 

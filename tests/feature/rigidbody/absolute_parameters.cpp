@@ -129,7 +129,7 @@ TEST_CASE("AbsoluteParameters: Free body transformations preserve consistency") 
 // NOTE: Constraint-based transforms use atom pivots that are NOT at origin,
 // so reconstruction from rotate+translate of absolute params doesn't account for pivot offset.
 // This is a known limitation of the absolute parameter storage.
-TEST_CASE("AbsoluteParameters: Constraint-based transformations preserve consistency", "[broken]") {
+TEST_CASE("AbsoluteParameters: Constraint-based transformations preserve consistency") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
@@ -183,7 +183,7 @@ TEST_CASE("AbsoluteParameters: Constraint-based transformations preserve consist
     }
 }
 
-TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency", "[broken]") {
+TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
