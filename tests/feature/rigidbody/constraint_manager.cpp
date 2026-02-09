@@ -80,23 +80,20 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
         constraints::ConstraintManager cm(&protein);
         REQUIRE(cm.evaluate() == 0);
 
-        constraints::OverlapConstraint oc(&protein.molecule);
-        cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
+        auto dc1 = cm.discoverable_constraints.back().get();
 
-        auto dc1_ptr = std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1);
-        auto* dc1 = dc1_ptr.get();
-        cm.add_constraint(std::move(dc1_ptr));
         // Move body 0 toward body 1 to compress the bond (triggers non-zero evaluate)
         protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
-        CHECK(dc1->evaluate() != 0);
-        CHECK(cm.evaluate() > 0);
-        protein.molecule.get_body(0).translate(Vector3<double>(-1, 0, 0));
+        auto val = dc1->evaluate();
+        CHECK(val != 0);
+        CHECK(cm.evaluate() == val);
 
-        auto dc2_ptr = std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2);
-        auto* dc2 = dc2_ptr.get();
-        cm.add_constraint(std::move(dc2_ptr));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));
+        auto dc2 = cm.discoverable_constraints.back().get();
         protein.molecule.get_body(0).translate(Vector3<double>(0, 0, 1));
-        CHECK(dc2->evaluate() != 0);
-        CHECK(cm.evaluate() > 0);
+        auto val2 = dc2->evaluate();
+        CHECK(val2 != 0);
+        CHECK(cm.evaluate() == val + val2);
     }
 }

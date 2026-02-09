@@ -94,47 +94,41 @@ TEST_CASE("AbsoluteParameters: Initial configuration consistency") {
     }
 }
 
-TEST_CASE("AbsoluteParameters: Free body transformations preserve consistency") {
-    settings::general::verbose = false;
-    settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::rigidbody::iterations = 10;
-    settings::grid::min_bins = 100;
-
-    // simple system with no constraints
-    AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
-    AtomFF a2({1, 0, 0}, form_factor::form_factor_t::C);
-    AtomFF a3({0, 1, 0}, form_factor::form_factor_t::C);
-
-    Body b1 = Body(std::vector<AtomFF>{a1});
-    Body b2 = Body(std::vector<AtomFF>{a2});
-    Body b3 = Body(std::vector<AtomFF>{a3});
-
-    Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2, b3}});
-
-    // apply some transformations using the base class apply(param, ibody)
-    auto& transformer = rigidbody.transformer;
-    auto& param_gen = rigidbody.parameter_generator;
-    for (int iter = 0; iter < 5; ++iter) {
-        for (size_t ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
-            auto params = param_gen->next(ibody);
-            transformer->apply(std::move(params), ibody);
-
-            INFO("After iteration " << iter << ", body " << ibody);
-            verify_configuration_consistency(rigidbody);
-        }
-    }
-}
-
-// NOTE: Constraint-based transforms use atom pivots that are NOT at origin,
-// so reconstruction from rotate+translate of absolute params doesn't account for pivot offset.
-// This is a known limitation of the absolute parameter storage.
-TEST_CASE("AbsoluteParameters: Constraint-based transformations preserve consistency") {
+TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
     settings::rigidbody::iterations = 10;
+    settings::grid::min_bins = 100;
+
+    SECTION("Free transform") {
+        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+
+        // simple system with no constraints
+        AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a2({1, 0, 0}, form_factor::form_factor_t::C);
+        AtomFF a3({0, 1, 0}, form_factor::form_factor_t::C);
+
+        Body b1 = Body(std::vector<AtomFF>{a1});
+        Body b2 = Body(std::vector<AtomFF>{a2});
+        Body b3 = Body(std::vector<AtomFF>{a3});
+
+        Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2, b3}});
+
+        // apply some transformations using the base class apply(param, ibody)
+        auto& transformer = rigidbody.transformer;
+        auto& param_gen = rigidbody.parameter_generator;
+        for (int iter = 0; iter < 5; ++iter) {
+            for (size_t ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
+                auto params = param_gen->next(ibody);
+                transformer->apply(std::move(params), ibody);
+
+                INFO("After iteration " << iter << ", body " << ibody);
+                verify_configuration_consistency(rigidbody);
+            }
+        }        
+    }
 
     SECTION("SingleTransform strategy") {
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;

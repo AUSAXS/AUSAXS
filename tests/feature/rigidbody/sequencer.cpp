@@ -17,12 +17,13 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("Sequencer: programmatic API basic run", "[files]") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 500;
     settings::molecule::implicit_hydrogens = false;
 
     sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
     auto result = seq
         .setup()
-            .load("tests/files/SASDJG5.pdb", "chain")
+            .load("tests/files/SASDJG5.pdb")
         .end()
         .loop(5)
             .optimize()

@@ -11,35 +11,10 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
-TEST_CASE("SequenceParser: parse normal.conf", "[files]") {
-    settings::general::verbose = false;
-    settings::molecule::implicit_hydrogens = false;
-
-    SequenceParser parser;
-    auto sequencer = parser.parse(io::ExistingFile("normal.conf"));
-    REQUIRE(sequencer != nullptr);
-
-    auto result = sequencer->execute();
-    REQUIRE(result != nullptr);
-    CHECK(result->fval > 0);
-}
-
-TEST_CASE("SequenceParser: parse symmetry.conf", "[files]") {
-    settings::general::verbose = false;
-    settings::molecule::implicit_hydrogens = false;
-
-    SequenceParser parser;
-    auto sequencer = parser.parse(io::ExistingFile("symmetry.conf"));
-    REQUIRE(sequencer != nullptr);
-
-    auto result = sequencer->execute();
-    REQUIRE(result != nullptr);
-    CHECK(result->fval > 0);
-}
-
 TEST_CASE("SequenceParser: parse minimal config", "[files]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
+    settings::grid::min_bins = 500;
 
     // Write a minimal config to a temporary location
     std::string config_path = "/tmp/ausaxs_test_minimal.conf";

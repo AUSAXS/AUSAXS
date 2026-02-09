@@ -89,6 +89,7 @@ TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
 
 TEST_CASE("RigidTransform: Internal constraints within group preserved") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 500;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
