@@ -69,6 +69,6 @@ namespace ausaxs::rigidbody::constraints {
             /**
              * @brief Calculate the current distance between the (symmetry-transformed) atoms.
              */
-            double evaluate_distance() const;
+            double evaluate_distance(int iatom1, int iatom2) const;
     };
 }
