@@ -4,9 +4,10 @@
 #pragma once
 
 #include <iostream>
+#include <unordered_map>
+
 #if defined(_WIN32)
     #include <windows.h>
-    #include <map>
 #endif
 
 namespace ausaxs::console {
@@ -29,11 +30,35 @@ namespace ausaxs::console {
             lightcyan = 66,
             white = 67
         };
+
+        inline color parse(std::string_view color_name) {
+            static std::unordered_map<std::string_view, color> colormap = {
+                {"black", color::black},
+                {"red", color::red},
+                {"green", color::green},
+                {"yellow", color::yellow},
+                {"blue", color::blue},
+                {"magenta", color::magenta},
+                {"cyan", color::cyan},
+                {"lightgray", color::lightgray},
+                {"darkgray", color::darkgray},
+                {"lightred", color::lightred},
+                {"lightgreen", color::lightgreen},
+                {"lightyellow", color::lightyellow},
+                {"lightblue", color::lightblue},
+                {"lightmagenta", color::lightmagenta},
+                {"lightcyan", color::lightcyan},
+                {"white", color::white}
+            };
+            auto it = colormap.find(color_name);
+            if (it == colormap.end()) {throw std::invalid_argument("ConsoleColor::parse: Unknown color name: \"" + std::string(color_name) + "\"");}
+            return it->second;
+        }
     }
 
     #if defined(_WIN32)
         struct detail {
-            inline static std::map<color::color, DWORD> foregroundmap = {
+            inline static std::unordered_map<color::color, DWORD> foregroundmap = {
                 {color::black, 0},
                 {color::blue, FOREGROUND_BLUE},
                 {color::green, FOREGROUND_GREEN},
@@ -51,7 +76,7 @@ namespace ausaxs::console {
                 {color::white, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY}
             };
 
-            inline static std::map<color::color, DWORD> backgroundmap = {
+            inline static std::unordered_map<color::color, DWORD> backgroundmap = {
                 {color::black, 0},
                 {color::blue, BACKGROUND_BLUE},
                 {color::green, BACKGROUND_GREEN},

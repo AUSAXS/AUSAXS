@@ -6,9 +6,12 @@
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 
+#include <string_view>
+
 namespace ausaxs::rigidbody::sequencer {
     class MessageElement : public LoopElementCallback, public GenericElement {
         public:
+            MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, std::string_view colour, bool log);
             MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, bool log);
             ~MessageElement() override;
 

@@ -62,12 +62,18 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
     };
 }
 
-MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, bool log) : LoopElementCallback(owner) {
-    message_func = [log, builder=parse_user_msg(message)] () -> void {
+MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, bool log) 
+    : MessageElement(owner, message, "white", log) 
+{}
+
+MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, std::string_view colour, bool log) 
+    : LoopElementCallback(owner)
+{
+    message_func = [log, colour=std::string(colour), builder=parse_user_msg(message)] () -> void {
         if (log) {
             logging::log(builder());
         } else {
-            console::print_text(builder());
+            console::print_text(builder(), console::color::parse(colour));
         }
     };
 }

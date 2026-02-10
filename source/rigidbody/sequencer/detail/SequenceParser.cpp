@@ -65,7 +65,7 @@ ElementType get_type(std::string_view line) {
         {ElementType::Save, {"save", "write"}},
         {ElementType::RelativeHydration, {"relative_hydration"}},
         {ElementType::OutputFolder, {"output", "output_folder"}},
-        {ElementType::Message, {"message", "msg", "log"}},
+        {ElementType::Message, {"print"}},
     };
     for (const auto& [type, prefixes] : type_map) {
         for (const auto& prefix : prefixes) {
@@ -358,9 +358,18 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Aut
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Message>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"message\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    auto message = args.begin()->second[0];
-    return std::make_unique<MessageElement>(static_cast<Sequencer*>(loop_stack.front()), message, false);
+    enum class Args {message, color};
+    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
+        {Args::message, {"message", "msg", "anonymous"}},
+        {Args::color, {"color", "colour", "col"}}
+    };
+    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"message\": Missing required argument \"message\".");}
+    if (2 < args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"message\": Too many arguments. Expected at most 2, but got " + std::to_string(args.size()) + ".");}
+
+    auto message = get_arg<std::string>(valid_args[Args::message], args);
+    auto color = get_arg<std::string>(valid_args[Args::color], args, "white");
+    if (!message.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"message\": Missing required argument \"message\".");}
+    return std::make_unique<MessageElement>(static_cast<Sequencer*>(loop_stack.front()), message.value, color.value, false);
 }
 
 template<>
