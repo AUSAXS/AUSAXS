@@ -1,4 +1,4 @@
-target_sources(ausaxs_core PRIVATE
+add_library(ausaxs_api OBJECT 
     "ObjectStorage.cpp"
 
     "api_helper.cpp"
@@ -11,3 +11,7 @@ target_sources(ausaxs_core PRIVATE
     "pyausaxs/api_pdb.cpp"
     "pyausaxs/api_settings.cpp"
 )
+
+target_include_directories(ausaxs_api PUBLIC "${CMAKE_SOURCE_DIR}/include/api")
+target_link_libraries(ausaxs_api ausaxs_core ausaxs_rigidbody)
+set_target_properties(ausaxs_api PROPERTIES POSITION_INDEPENDENT_CODE 1)
