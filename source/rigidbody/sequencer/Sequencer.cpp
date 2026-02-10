@@ -3,10 +3,13 @@
 
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/Rigidbody.h>
 #include <grid/Grid.h>
 #include <io/ExistingFile.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hydrate/ExplicitHydration.h>
+#include <data/Body.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
@@ -73,6 +76,18 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     _get_controller()->setup(saxs_path);
     for (auto& e : LoopElement::elements) {
         e->run();
+    }
+
+    // restore the best hydration shell before the final fit
+    auto best_conf = _get_best_conf();
+    if (!best_conf->waters.empty()) {
+        rigidbody->molecule.clear_hydration();
+        rigidbody->molecule.get_body(0).set_hydration(
+            std::make_unique<hydrate::ExplicitHydration>(std::move(best_conf->waters))
+        );
+        
+        // update the fitter with the restored hydration shell
+        _get_controller()->get_fitter()->set_model(rigidbody->molecule.get_histogram());
     }
 
     return _get_controller()->get_fitter()->unconstrained_fit();

@@ -5,6 +5,7 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::detail {
@@ -18,6 +19,7 @@ namespace ausaxs::rigidbody::detail {
         ~MoleculeTransformParametersAbsolute();
 
         std::vector<parameter::BodyTransformParametersAbsolute> parameters;
+        std::vector<data::Water> waters;
         double chi2 = 1e9;
     };
 }

@@ -80,6 +80,7 @@ void SimpleController::finish_step() {
     if (step_accepted) {
         // accept the changes - update the best configuration
         *current_best_config = rigidbody->conformation->absolute_parameters;
+        current_best_config->waters = rigidbody->molecule.get_waters();
         step_accepted = false;
     } else {
         // undo the body transforms (restores rigidbody->conformation->absolute_parameters from backup)

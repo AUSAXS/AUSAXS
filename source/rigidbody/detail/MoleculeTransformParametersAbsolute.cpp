@@ -4,6 +4,7 @@
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
+#include <data/atoms/Water.h>
 
 using namespace ausaxs;
 
