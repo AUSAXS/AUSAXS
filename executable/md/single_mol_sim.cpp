@@ -48,7 +48,8 @@ int main(int argc, char const *argv[]) {
         .anion = option::Anion::CL,
         .custom_options = {
             {"vsites", "true"},
-            {"editconf extend", "1.05"},
+            {"editconf extend", "0.8"},
+            {"backbone_restraints", "false"},
         },
     };
 
@@ -56,12 +57,12 @@ int main(int argc, char const *argv[]) {
     // The following settings are therefore tuned for maximum performance and fast decorrelation. 
     auto mdp = mdp::templates::production::mol()
         .add(MDPOptions::integrator = "sd")
-        .add(MDPOptions::dt = "0.005")
-        .add(MDPOptions::nsteps = "5000000")
+        .add(MDPOptions::dt = "0.006")
+        .add(MDPOptions::nsteps = "500000")
 
         // stochastic dynamics settings to get good sampling without caring about physical accuracy at all
         .add(MDPOptions::bd_fric = "10")
-        .add(MDPOptions::tau_t = "0.05")
+        .add(MDPOptions::tau_t = "0.01")
         .add(MDPOptions::ref_t = "300")
         .add(MDPOptions::tc_grps = "System")
 
@@ -72,14 +73,14 @@ int main(int argc, char const *argv[]) {
         .add(MDPOptions::lincs_iter = "1")
 
         // non-bonded settings to speed up the simulation, since we do not care about accuracy
-        .add(MDPOptions::coulombtype = "Cut-off")
-        .add(MDPOptions::rcoulomb = "1")
+        .add(MDPOptions::coulombtype = "Reaction-Field")
+        .add(MDPOptions::rcoulomb = "0.7")
         .add(MDPOptions::vdw_type = "Cutoff")
-        .add(MDPOptions::rvdw = "1")
+        .add(MDPOptions::rvdw = "0.7")
         .add(MDPOptions::dispcorr = "no")
         .add(MDPOptions::cutoff_scheme = "Verlet")
-        .add(MDPOptions::nstlist = "20") // inversely related to the box size
-        .add(MDPOptions::verlet_buffer_drift = "0.005")
+        .add(MDPOptions::nstlist = "100")
+        .add(MDPOptions::verlet_buffer_drift = "0.01")
 
         // ensemble and com motion
         .add(MDPOptions::pcoupl = "no")
@@ -87,7 +88,7 @@ int main(int argc, char const *argv[]) {
         .add(MDPOptions::nstcomm = "0")
 
         // write frames often to get good sampling, while ensuring they are still uncorrelated
-        .add(MDPOptions::nstxout_compressed = 5000)
+        .add(MDPOptions::nstxout_compressed = 500)
     .write(settings::general::output + "mdp/mol.mdp");
     auto molecule = simulate_molecule({
         .system = ss,
@@ -95,7 +96,7 @@ int main(int argc, char const *argv[]) {
         .mdp = mdp,
         .minimize_runner = executor::local::construct(),
         .equilibrate_runner = executor::local::construct(),
-        .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
+        .production_runner = executor::slurm::construct("temp/md/SmaugTemplateSampling.sh", pdb.stem() + "_mol"),
     });
     molecule.job->wait();
     return 0;

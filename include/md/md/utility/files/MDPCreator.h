@@ -60,6 +60,7 @@ namespace ausaxs::md {
         const inline static detail::Option coulombtype          = "coulombtype";      // electrostatics method
         const inline static detail::Option rcoulomb             = "rcoulomb";         // short-range electrostatic cut-off
         const inline static detail::Option coulomb_modifier     = "coulomb-modifier"; // electrostatics cut-off modifier
+        const inline static detail::Option epsilon_rf           = "epsilon-rf";       // dielectric constant for reaction field
         const inline static detail::Option vdw_type             = "vdwtype";          // van der Waals method
         const inline static detail::Option rvdw                 = "rvdw";             // short-range van der Waals cut-off
         const inline static detail::Option vdw_modifier         = "vdw-modifier";     // van der Waals cut-off modifier

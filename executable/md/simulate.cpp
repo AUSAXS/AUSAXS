@@ -47,16 +47,21 @@ int main(int argc, char const *argv[]) {
         .boxtype = option::BoxType::DODECAHEDRON,
         .cation = option::Cation::NA,
         .anion = option::Anion::CL,
+        .custom_options = {}
     };
 
     auto molecule = simulate_molecule({
         .system = ss,
         .pdbfile = pdb,
         .mdp = mdp::templates::production::mol().write(settings::general::output + "mdp/mol.mdp"),
-        .minimize_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
-        .equilibrate_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
-        .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
+        .minimize_runner = executor::local::construct(),
+        .equilibrate_runner = executor::local::construct(),
+        .production_runner = executor::local::construct()
+        // .minimize_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
+        // .equilibrate_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
+        // .production_runner = executor::slurm::construct("temp/md/SmaugTemplate.sh", pdb.stem() + "_mol"),
     });    
+    molecule.job->wait();
 
     SimulateBufferOutput buffer;
     console::print_info("\nPreparing buffer simulation");

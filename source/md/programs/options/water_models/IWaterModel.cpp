@@ -1,11 +1,11 @@
-#include "utility/Console.h"
 #include <md/programs/options/water_models/IWaterModel.h>
 #include <md/programs/options/water_models/TIP4P.h>
 #include <md/programs/options/water_models/TIP4P2005.h>
 #include <md/programs/options/water_models/TIP5P.h>
-#include <io/File.h>
 #include <utility/Exceptions.h>
+#include <utility/Console.h>
 #include <settings/MDSettings.h>
+#include <io/File.h>
 
 #include <fstream>
 #include <cassert>

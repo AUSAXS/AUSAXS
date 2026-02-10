@@ -48,7 +48,6 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
         } else {
             console::print_text("Reusing previously generated GROMACS structure.");
         }
-        std::cout << "USING VSITES SETTING OF " << (options.system.custom_options.contains("vsites") && options.system.custom_options.at("vsites") == "true" ? "true" : "false") << std::endl;
 
         // create a box around the protein
         console::print_text("Generating unit cell...");
@@ -57,7 +56,6 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
             .box_type(options.system.boxtype)
             .extend(options.system.custom_options.contains("editconf extend") ? std::stod(options.system.custom_options.at("editconf extend")) : 1.5)
         .run();
-        std::cout << "USING BOX EXTENSION OF " << (options.system.custom_options.contains("editconf extend") ? options.system.custom_options.at("editconf extend") : "1.5") << std::endl;
 
         // add water to the box
         console::print_text("Solvating unit cell...");
@@ -178,24 +176,28 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
     //##################################//
     GROFile prodgro(prod_path + "prod.gro");
     if (!prodgro.exists()) {
-        console::print_text("Generating backbone restraints...");
-        auto[backbone] = genrestr(eq_path + "eq.gro")
-            .output(setup_path + "backbone.itp")
-            .index(index)
-            .force(2000, 2000, 2000)
-        .run();
-        auto backbone_chains = backbone.split_restraints(top.get_includes());
-        top.include_new_type(backbone_chains, "POSRESBACKBONE");
+        if (options.system.custom_options.contains("backbone_restraints") && options.system.custom_options.at("backbone_restraints") == "true") {
+            console::print_text("Generating backbone restraints...");
+            auto[backbone] = genrestr(eq_path + "eq.gro")
+                .output(setup_path + "backbone.itp")
+                .index(index)
+                .force(2000, 2000, 2000)
+            .run();
+            auto backbone_chains = backbone.split_restraints(top.get_includes());
+            top.include_new_type(backbone_chains, "POSRESBACKBONE");
+        } else {
+            console::print_text("No backbone restraints will be used.");
+        }
         // top.include(top.relative_path(backbone), "POSRESBACKBONE", "chain topol");
 
         // prepare production sim
         console::print_text("Running production...");
-        auto[prodtpr] = grompp(options.mdp, top, eqgro)
+        auto cmd = grompp(options.mdp, top, eqgro)
             .output(prod_path + "prod.tpr")
             .index(index)
-            .restraints(eqgro)
-            .warnings(1)
-        .run();
+            .warnings(1);
+        if (options.system.custom_options.contains("backbone_restraints") && options.system.custom_options.at("backbone_restraints") == "true") {cmd.restraints(eqgro);}
+        auto[prodtpr] = cmd.run();
 
         // run production
         auto job = mdrun(prodtpr)
