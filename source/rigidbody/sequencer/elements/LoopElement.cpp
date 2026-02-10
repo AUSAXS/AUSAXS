@@ -9,6 +9,9 @@
 #include <rigidbody/sequencer/elements/OptimizeStepElement.h>
 #include <rigidbody/sequencer/elements/EveryNStepElement.h>
 #include <rigidbody/sequencer/elements/SaveElement.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 
 #include <cassert>
 
@@ -78,6 +81,10 @@ observer_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> LoopElement
     return owner->_get_best_conf();
 }
 
+observer_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> LoopElement::_get_current_conf() const {
+    return &_get_rigidbody()->conformation->absolute_parameters;
+}
+
 observer_ptr<LoopElement> LoopElement::_get_owner() const {
     assert(owner != nullptr && "LoopElement::_get_owner: Owner is null.");
     return owner;
@@ -114,4 +121,12 @@ LoopElement& LoopElement::save(const io::File& path) {
 EveryNStepElement& LoopElement::every(unsigned int n) {
     elements.push_back(std::make_unique<EveryNStepElement>(this, n));
     return *static_cast<EveryNStepElement*>(elements.back().get());
+}
+
+unsigned int LoopElement::_get_current_iteration() {
+    return global_counter;
+}
+
+unsigned int LoopElement::_get_total_iterations() {
+    return total_loop_count;
 }

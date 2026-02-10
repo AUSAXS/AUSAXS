@@ -78,6 +78,7 @@ namespace ausaxs::rigidbody::sequencer {
             virtual observer_ptr<data::Molecule> _get_molecule() const;
 
             virtual observer_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> _get_best_conf() const;
+            virtual observer_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> _get_current_conf() const;
 
             virtual observer_ptr<const Sequencer> _get_sequencer() const;
             virtual observer_ptr<Sequencer> _get_sequencer();
@@ -85,6 +86,9 @@ namespace ausaxs::rigidbody::sequencer {
             std::vector<std::unique_ptr<GenericElement>>& _get_elements();
 
             observer_ptr<LoopElement> _get_owner() const;
+
+            static unsigned int _get_current_iteration();
+            static unsigned int _get_total_iterations();
 
         protected: 
             unsigned int iterations = 1;

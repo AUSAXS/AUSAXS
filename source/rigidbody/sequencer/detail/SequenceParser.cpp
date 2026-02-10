@@ -43,6 +43,8 @@ enum class rigidbody::sequencer::ElementType {
     Save,
     RelativeHydration,
     OutputFolder,
+    Message,
+    Log,
 };
 
 ElementType get_type(std::string_view line) {
@@ -62,7 +64,8 @@ ElementType get_type(std::string_view line) {
         {ElementType::OnImprovement, {"on_improvement"}},
         {ElementType::Save, {"save", "write"}},
         {ElementType::RelativeHydration, {"relative_hydration"}},
-        {ElementType::OutputFolder, {"output", "output_folder"}}
+        {ElementType::OutputFolder, {"output", "output_folder"}},
+        {ElementType::Message, {"message", "msg", "log"}},
     };
     for (const auto& [type, prefixes] : type_map) {
         for (const auto& prefix : prefixes) {
@@ -354,6 +357,20 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Aut
 }
 
 template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Message>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"message\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    auto message = args.begin()->second[0];
+    return std::make_unique<MessageElement>(static_cast<Sequencer*>(loop_stack.front()), message, false);
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Log>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"log\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    auto message = args.begin()->second[0];
+    return std::make_unique<MessageElement>(static_cast<Sequencer*>(loop_stack.front()), message, true);
+}
+
+template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     enum class Args {paths, splits, names, saxs};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
@@ -638,38 +655,102 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
         // skip empty lines & comments
         std::unordered_map<std::string, std::vector<std::string>> args;
-        auto tokens = utility::split(line, " \t\r\n");
+        
+        // tokenize line respecting quoted strings
+        static auto tokenize = [] (const std::string& s) -> std::vector<std::string> {
+            std::vector<std::string> result;
+            std::string current;
+            char in_quote = 0;
+            bool in_token = false;
+            
+            for (size_t i = 0; i < s.size(); ++i) {
+                char c = s[i];
+                
+                // handle quotes
+                if ((c == '"' || c == '\'') && (i == 0 || s[i-1] != '\\')) {
+                    if (in_quote == 0) {
+                        in_quote = c;
+                        in_token = true;
+                    } else if (in_quote == c) {
+                        in_quote = 0;
+                    } else {
+                        current += c;
+                    }
+                    continue;
+                }
+                
+                // inside quotes: add everything
+                if (in_quote != 0) {
+                    current += c;
+                    continue;
+                }
+                
+                // outside quotes: whitespace delimits tokens
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                    if (in_token) {
+                        result.push_back(current);
+                        current.clear();
+                        in_token = false;
+                    }
+                    continue;
+                }
+                
+                // regular character
+                current += c;
+                in_token = true;
+            }
+            
+            if (in_token) {
+                result.push_back(current);
+            }
+            
+            return result;
+        };
+        
+        auto tokens = tokenize(line);
         if (tokens.empty() || tokens.front()[0] == '#') {continue;}
 
-        // check if the argument list spans over multiple lines
-        if (line.find_first_of("{[(") != std::string::npos) {
-            // parse args in the next lines
+        static auto is_opening_brace = [] (char c) {return c == '{' || c == '[' || c == '(';};
+        static auto is_closing_brace = [] (char c) {return c == '}' || c == ']' || c == ')';};
+
+        // check if the argument list spans over multiple lines by inspecting the last non-whitespace char
+        static auto last_non_ws = [] (const std::string& s) -> char {
+            for (int i = static_cast<int>(s.size()) - 1; i >= 0; --i) {
+                char c = s[i];
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {continue;}
+                return c;
+            }
+            return 0;
+        };
+
+        // if the last unquoted non-whitespace character is an opening brace, read a multiline arg block
+        if (is_opening_brace(last_non_ws(line))) {
             std::string argline;
             std::getline(in, argline);
-            while (argline.find_first_of("]})") == std::string::npos) {
-                if (argline.empty()) {continue;}
-                auto sub_tokens = utility::split(argline, " \t\r\n");
-
-                // remove possible quotations & check for comment tokens 
-                int end = sub_tokens.size();
-                for (unsigned int i = 0; i < sub_tokens.size(); i++) {
-                    sub_tokens[i] = utility::remove_quotation_marks(sub_tokens[i]);
-                    if (sub_tokens[i][0] == '#') {
-                        end = i;
-                        break;
+            while (!is_closing_brace(last_non_ws(argline))) {
+                if (!argline.empty()) {
+                    auto sub_tokens = tokenize(argline);
+                    if (!sub_tokens.empty()) {
+                        int end = static_cast<int>(sub_tokens.size());
+                        for (unsigned int i = 0; i < sub_tokens.size(); i++) {
+                            if (!sub_tokens[i].empty() && sub_tokens[i][0] == '#') {
+                                end = static_cast<int>(i);
+                                break;
+                            }
+                        }
+                        args[sub_tokens[0]] = std::vector<std::string>(sub_tokens.begin()+1, sub_tokens.begin()+end);
                     }
                 }
 
-                args[sub_tokens[0]] = std::vector<std::string>(sub_tokens.begin()+1, sub_tokens.begin()+end);
+                if (in.eof()) { throw except::io_error("SequenceParser::parse: Unescaped argument list starting in line \"" + line + "\"."); }
                 std::getline(in, argline);
-                if (in.eof()) {throw except::io_error("SequenceParser::parse: Unescaped argument list starting in line \"" + line + "\".");}
             }
-        } 
+        }
 
         // else check if we only have a single argument
         else if (tokens.size() == 2) {
-            // allow for a single anonymous argument
-            args["anonymous"] = {utility::remove_quotation_marks(tokens[1])};
+            // allow for a single anonymous argument (already unquoted by tokenizer)
+            args["anonymous"] = {tokens[1]};
         }
 
         std::cout << tokens[0] << ":" << std::endl;
@@ -754,6 +835,14 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
             case ElementType::OutputFolder:
                 loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::OutputFolder>(args));
+                break;
+            
+            case ElementType::Message:
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Message>(args));
+                break;
+
+            case ElementType::Log:
+                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Log>(args));
                 break;
 
             default:

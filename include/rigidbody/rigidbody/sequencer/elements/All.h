@@ -22,3 +22,4 @@
 #include <rigidbody/sequencer/elements/ParameterElement.h>
 #include <rigidbody/sequencer/elements/SaveElement.h>
 #include <rigidbody/sequencer/elements/TransformElement.h>
+#include <rigidbody/sequencer/elements/MessageElement.h>
