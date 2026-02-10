@@ -6,6 +6,7 @@ add_library(ausaxs_api OBJECT
 
     "pyausaxs/api_data.cpp"
     "pyausaxs/api_fit.cpp"
+    "pyausaxs/api_io.cpp"
     "pyausaxs/api_iterative_fit.cpp"
     "pyausaxs/api_molecule.cpp"
     "pyausaxs/api_pdb.cpp"
