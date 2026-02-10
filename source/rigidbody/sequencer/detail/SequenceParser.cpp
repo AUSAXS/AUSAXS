@@ -16,6 +16,7 @@
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
+#include <utility/Random.h>
 #include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/GeneralSettings.h>
@@ -45,6 +46,7 @@ enum class rigidbody::sequencer::ElementType {
     OutputFolder,
     Message,
     Log,
+    Seed,
 };
 
 ElementType get_type(std::string_view line) {
@@ -66,6 +68,8 @@ ElementType get_type(std::string_view line) {
         {ElementType::RelativeHydration, {"relative_hydration"}},
         {ElementType::OutputFolder, {"output", "output_folder"}},
         {ElementType::Message, {"print"}},
+        {ElementType::Log, {"log"}},
+        {ElementType::Seed, {"seed"}},
     };
     for (const auto& [type, prefixes] : type_map) {
         for (const auto& prefix : prefixes) {
@@ -354,6 +358,18 @@ template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::AutomaticConstraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"auto_constraints\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     return std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(loop_stack.front()), get_constraint_strategy(args.begin()->second[0]));
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Seed>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"seed\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    try {
+        int seed = std::stoi(args.begin()->second[0]);
+        random::set_seed(seed);
+        return nullptr;
+    } catch (std::exception&) {
+        throw except::invalid_argument("SequenceParser::parse_arguments: \"" + args.begin()->second[0] + "\" cannot be interpreted as an integer seed value.");
+    }
 }
 
 template<>
@@ -852,6 +868,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
             case ElementType::Log:
                 loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Log>(args));
+                break;
+
+            case ElementType::Seed:
+                parse_arguments<ElementType::Seed>(args);
                 break;
 
             default:
