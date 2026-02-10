@@ -56,7 +56,7 @@ std::vector<std::unique_ptr<IDistanceConstraint>> VolumetricConstraints::generat
             // check if the bodies are close enough for a constraint to make sense
             if (min_dist > settings::rigidbody::bond_distance) {continue;} 
 
-            constraints.emplace_back(std::make_unique<DistanceConstraintAtom>(manager->molecule, ibody1, ibody2, min_atom1, min_atom2));
+            constraints.emplace_back(std::make_unique<DistanceConstraintAtom>(manager->molecule, ibody1, min_atom1, ibody2, min_atom2));
             if (settings::general::verbose) {
                 std::cout 
                     << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " 

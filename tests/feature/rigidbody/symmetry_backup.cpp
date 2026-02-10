@@ -23,7 +23,7 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("via direct construction") {
@@ -57,7 +57,7 @@ TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation
 
 TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -85,7 +85,8 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
 
     // Store the new symmetry parameters for verification
     auto expected_new_sym_pars = new_params.symmetry_pars;
-    REQUIRE(expected_new_sym_pars.size() == 1);
+    REQUIRE(expected_new_sym_pars.has_value());
+    REQUIRE(expected_new_sym_pars.value().size() == 1);
 
     // Apply the transformation
     transformer->apply(std::move(new_params), ibody);
@@ -95,9 +96,9 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     REQUIRE(updated_sym_pars.size() == 1);
 
     INFO("Symmetry parameters should be updated after transformation");
-    REQUIRE(updated_sym_pars[0].initial_relation.translation.x() == expected_new_sym_pars[0].initial_relation.translation.x());
-    REQUIRE(updated_sym_pars[0].initial_relation.translation.y() == expected_new_sym_pars[0].initial_relation.translation.y());
-    REQUIRE(updated_sym_pars[0].initial_relation.translation.z() == expected_new_sym_pars[0].initial_relation.translation.z());
+    REQUIRE(updated_sym_pars[0].initial_relation.translation.x() == expected_new_sym_pars.value()[0].initial_relation.translation.x());
+    REQUIRE(updated_sym_pars[0].initial_relation.translation.y() == expected_new_sym_pars.value()[0].initial_relation.translation.y());
+    REQUIRE(updated_sym_pars[0].initial_relation.translation.z() == expected_new_sym_pars.value()[0].initial_relation.translation.z());
 
     // Undo the transformation
     transformer->undo();
@@ -117,7 +118,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
 
 TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformations") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -169,7 +170,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
     SECTION("SingleTransform") {
-        settings::grid::min_bins = 500;
+        settings::grid::min_bins = 250;
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
@@ -186,7 +187,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         // Apply constraint-based transformation
         auto& transformer = rigidbody.transformer;
         auto& param_gen = rigidbody.parameter_generator;
-        auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+        auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
         auto new_params = param_gen->next(ibody);
         transformer->apply(std::move(new_params), constraint);
@@ -210,7 +211,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
     }
 
     SECTION("RigidTransform") {
-        settings::grid::min_bins = 500;
+        settings::grid::min_bins = 250;
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
@@ -227,7 +228,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         // Apply constraint-based transformation
         auto& transformer = rigidbody.transformer;
         auto& param_gen = rigidbody.parameter_generator;
-        auto& constraint = rigidbody.constraints->distance_constraints_map.at(ibody).at(0).get();
+        auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
         auto new_params = param_gen->next(ibody);
         transformer->apply(std::move(new_params), constraint);
@@ -253,7 +254,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
 
 TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::iterations = 10;
@@ -309,7 +310,7 @@ TEST_CASE("SymmetryBackup: Grid properly sized for symmetry optimization") {
     
     // Generate parameters that modify only symmetry (no translation/rotation)
     auto params = param_gen->next(ibody);
-    if (!params.symmetry_pars.empty()) {
+    if (params.symmetry_pars.has_value() && !params.symmetry_pars.value().empty()) {
         // Modify symmetry parameters
         params.translation = {0, 0, 0};
         params.rotation = {0, 0, 0};

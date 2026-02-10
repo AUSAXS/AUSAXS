@@ -22,15 +22,13 @@ TEST_CASE("RotationsOnly::next") {
 
         for (int i = 0; i < iterations; i++) {
             auto p = ro.next(0);
-            REQUIRE(p.translation.x() == 0             );
-            REQUIRE(p.translation.y() == 0             );
-            REQUIRE(p.translation.z() == 0             );
-            REQUIRE(-rad_start        <= p.rotation.x());
-            REQUIRE(p.rotation.x()    <= rad_start     );
-            REQUIRE(-rad_start        <= p.rotation.y());
-            REQUIRE(p.rotation.y()    <= rad_start     );
-            REQUIRE(-rad_start        <= p.rotation.z());
-            REQUIRE(p.rotation.z()    <= rad_start     );
+            CHECK_FALSE(p.translation.has_value());
+            REQUIRE(-rad_start        <= p.rotation.value().x());
+            REQUIRE(p.rotation.value().x()    <= rad_start     );
+            REQUIRE(-rad_start        <= p.rotation.value().y());
+            REQUIRE(p.rotation.value().y()    <= rad_start     );
+            REQUIRE(-rad_start        <= p.rotation.value().z());
+            REQUIRE(p.rotation.value().z()    <= rad_start     );
         }
     }
 
@@ -39,15 +37,13 @@ TEST_CASE("RotationsOnly::next") {
 
         for (int i = 0; i < iterations; i++) {
             auto p = to.next(0);
-            REQUIRE(-length_start     <= p.translation.x());
-            REQUIRE(p.translation.x() <= length_start     );
-            REQUIRE(-length_start     <= p.translation.y());
-            REQUIRE(p.translation.y() <= length_start     );
-            REQUIRE(-length_start     <= p.translation.z());
-            REQUIRE(p.translation.z() <= length_start     );
-            REQUIRE(p.rotation.x()    == 0                );
-            REQUIRE(p.rotation.y()    == 0                );
-            REQUIRE(p.rotation.z()    == 0                );
+            REQUIRE(-length_start     <= p.translation.value().x());
+            REQUIRE(p.translation.value().x() <= length_start     );
+            REQUIRE(-length_start     <= p.translation.value().y());
+            REQUIRE(p.translation.value().y() <= length_start     );
+            REQUIRE(-length_start     <= p.translation.value().z());
+            REQUIRE(p.translation.value().z() <= length_start     );
+            CHECK_FALSE(p.rotation.has_value());
         }
     }
 
@@ -56,18 +52,18 @@ TEST_CASE("RotationsOnly::next") {
 
         for (int i = 0; i < iterations; i++) {
             auto p = ap.next(0);
-            REQUIRE(-length_start     <= p.translation.x());
-            REQUIRE(p.translation.x() <= length_start     );
-            REQUIRE(-length_start     <= p.translation.y());
-            REQUIRE(p.translation.y() <= length_start     );
-            REQUIRE(-length_start     <= p.translation.z());
-            REQUIRE(p.translation.z() <= length_start     );
-            REQUIRE(-rad_start        <= p.rotation.x()   );
-            REQUIRE(p.rotation.x()    <= rad_start        );
-            REQUIRE(-rad_start        <= p.rotation.y()   );
-            REQUIRE(p.rotation.y()    <= rad_start        );
-            REQUIRE(-rad_start        <= p.rotation.z()   );
-            REQUIRE(p.rotation.z()    <= rad_start        );
+            REQUIRE(-length_start     <= p.translation.value().x());
+            REQUIRE(p.translation.value().x() <= length_start     );
+            REQUIRE(-length_start     <= p.translation.value().y());
+            REQUIRE(p.translation.value().y() <= length_start     );
+            REQUIRE(-length_start     <= p.translation.value().z());
+            REQUIRE(p.translation.value().z() <= length_start     );
+            REQUIRE(-rad_start        <= p.rotation.value().x()   );
+            REQUIRE(p.rotation.value().x()    <= rad_start        );
+            REQUIRE(-rad_start        <= p.rotation.value().y()   );
+            REQUIRE(p.rotation.value().y()    <= rad_start        );
+            REQUIRE(-rad_start        <= p.rotation.value().z()   );
+            REQUIRE(p.rotation.value().z()    <= rad_start        );
         }
     }
 }

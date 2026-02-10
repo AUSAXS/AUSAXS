@@ -15,8 +15,8 @@ TEST_CASE("FitResult::constructor") {
         res.status = 0;
         res.fevals = 100;
         
-        FitResult result(res, 2.0, 5);
-        REQUIRE(result.fval == 2.0);
+        FitResult result(res, 5);
+        REQUIRE(result.fval == 1.5);
         REQUIRE(result.dof == 5);
         REQUIRE(result.status == 0);
         REQUIRE(result.fevals == 100);

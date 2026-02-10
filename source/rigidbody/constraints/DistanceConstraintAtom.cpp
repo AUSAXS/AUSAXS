@@ -11,7 +11,7 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
 
-double DistanceConstraintAtom::evaluate_distance() const {
+double DistanceConstraintAtom::evaluate_distance(int iatom1, int iatom2) const {
     auto atom1 = molecule->get_body(ibody1).get_atom(iatom1).coordinates();
     auto atom2 = molecule->get_body(ibody2).get_atom(iatom2).coordinates();
     if (isym1.first != -1) {
@@ -54,7 +54,7 @@ DistanceConstraintAtom::DistanceConstraintAtom(
         throw except::invalid_argument("DistanceConstraintAtom::DistanceConstraintAtom: Cannot create a constraint between atoms in the same body!");
     }
 
-    d_target = evaluate_distance();
+    d_target = evaluate_distance(iatom1, iatom2);
 }
 
 DistanceConstraintAtom::DistanceConstraintAtom(
@@ -106,10 +106,10 @@ DistanceConstraintAtom::DistanceConstraintAtom(
     iatom1 = found_iatom1;
     iatom2 = found_iatom2;
 
-    d_target = atom1.coordinates().distance(atom2.coordinates());
+    d_target = evaluate_distance(iatom1, iatom2);
 }
 
 double DistanceConstraintAtom::evaluate() const {
     assert(d_target != 0);
-    return functions::between_atoms(d_target - evaluate_distance());
+    return functions::between_atoms(d_target - evaluate_distance(iatom1, iatom2));
 }

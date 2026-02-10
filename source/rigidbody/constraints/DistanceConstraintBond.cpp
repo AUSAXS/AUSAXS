@@ -16,17 +16,17 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
 
     // find the closest atoms in the two bodies
     double min_distance = std::numeric_limits<double>::max();
-    for (unsigned int i = 0; i < body1.size_atom(); i++) {
+    for (int i = 0; i < static_cast<int>(body1.size_atom()); ++i) {
         if (form_factor::to_atom_type(body1.get_atom(i).form_factor_type()) != constants::atom_t::C) {
             continue;
         }
 
-        for (unsigned int j = 0; j < body2.size_atom(); j++) {
+        for (int j = 0; j < static_cast<int>(body2.size_atom()); ++j) {
             if (form_factor::to_atom_type(body2.get_atom(j).form_factor_type()) != constants::atom_t::C) {
                 continue;
             }
 
-            double distance = body1.get_atom(i).coordinates().distance2(body2.get_atom(j).coordinates());
+            double distance = evaluate_distance(i, j);
             if (distance < min_distance) {
                 min_distance = distance;
                 iatom1 = i;
@@ -51,7 +51,7 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
 }
 
 double DistanceConstraintBond::evaluate() const {
-    double distance = evaluate_distance();
+    double distance = evaluate_distance(iatom1, iatom2);
     if (d_target < distance) {return 0;}
     double offset = distance - d_target;
     return functions::attractor_repulsor(offset);

@@ -8,7 +8,7 @@
 #include <rigidbody/selection/SequentialConstraintSelect.h>
 #include <rigidbody/selection/SequentialBodySelect.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/BodySplitter.h>
 #include <fitter/SmartFitter.h>

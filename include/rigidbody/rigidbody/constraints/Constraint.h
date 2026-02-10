@@ -18,7 +18,5 @@ namespace ausaxs::rigidbody::constraints {
              * @brief Evaluate this constraint. This method is called by the optimizer in each step to evaluate the chi2 contribution of this constraint.
              */
             virtual double evaluate() const = 0;
-
-            bool operator==(const Constraint& other) const = default;
     };
 }
