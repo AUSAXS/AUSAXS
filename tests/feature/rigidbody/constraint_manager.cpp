@@ -78,22 +78,35 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
     Rigidbody protein(Molecule{ap});
     SECTION("returns chi2 contribution of all constraints") {
         constraints::ConstraintManager cm(&protein);
+        // Remove the automatically added OverlapConstraint so we can test distance constraints in isolation.
+        cm.non_discoverable_constraints.clear();
         REQUIRE(cm.evaluate() == 0);
 
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         auto dc1 = cm.discoverable_constraints.back().get();
 
         // Move body 0 toward body 1 to compress the bond (triggers non-zero evaluate)
-        protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
+        protein.molecule.get_body(0).translate(Vector3<double>(0, 0, 1));
         auto val = dc1->evaluate();
         CHECK(val != 0);
         CHECK(cm.evaluate() == val);
 
+        // shift back to original position, should be zero again
+        protein.molecule.get_body(0).translate(Vector3<double>(0, 0, -1));
+        CHECK(dc1->evaluate() == 0);
+
+        // shift again
+        protein.molecule.get_body(0).translate(Vector3<double>(0, 0, -1));
+        val = dc1->evaluate();
+        CHECK(val == 0);
+        CHECK(cm.evaluate() == val);
+
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));
         auto dc2 = cm.discoverable_constraints.back().get();
-        protein.molecule.get_body(0).translate(Vector3<double>(0, 0, 1));
+        protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
         auto val2 = dc2->evaluate();
+        auto val_after = dc1->evaluate();
         CHECK(val2 != 0);
-        CHECK(cm.evaluate() == val + val2);
+        CHECK(cm.evaluate() == val_after + val2);
     }
 }
