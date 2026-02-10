@@ -24,12 +24,6 @@ using namespace ausaxs;
 using namespace data;
 using namespace rigidbody;
 
-// TODO: make more tests for the RigidBody class & fix the existing ones
-TEST_CASE("RigidBody::optimize") {}
-TEST_CASE("RigidBody::apply_calibration") {}
-TEST_CASE("RigidBody::update_fitter") {}
-TEST_CASE("RigidBody::get_constraint_manager") {}
-
 // test that we can consistently fit the same protein
 TEST_CASE("RigidBody: reusable fitter", "[files]") {
     settings::general::verbose = false;
