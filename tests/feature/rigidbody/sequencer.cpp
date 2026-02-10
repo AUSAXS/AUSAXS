@@ -17,7 +17,7 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("Sequencer: programmatic API basic run", "[files]") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
 
     sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
@@ -50,6 +50,7 @@ TEST_CASE("Sequencer: load with split indices", "[files]") {
 
 TEST_CASE("Sequencer: load_existing with pre-built Rigidbody", "[files]") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 

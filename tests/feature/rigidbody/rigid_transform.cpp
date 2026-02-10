@@ -24,6 +24,7 @@ using namespace ausaxs::rigidbody;
 // NOTE: Reconstruction from absolute params requires accounting for the pivot point in the new transform system.
 TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
@@ -89,7 +90,7 @@ TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
 
 TEST_CASE("RigidTransform: Internal constraints within group preserved") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
@@ -191,6 +192,7 @@ TEST_CASE("RigidTransform: Orbital motion correctness") {
 
 TEST_CASE("RigidTransform: Multi-step transformation consistency", "[broken]") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;

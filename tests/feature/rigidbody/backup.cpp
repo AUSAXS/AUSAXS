@@ -22,7 +22,7 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("Backup: Parameters restored after undo") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -60,7 +60,7 @@ TEST_CASE("Backup: Parameters restored after undo") {
 
 TEST_CASE("Backup: Body positions match parameters after transformation") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -102,7 +102,7 @@ TEST_CASE("Backup: Body positions match parameters after transformation") {
 
 TEST_CASE("Backup: Constraint-based transforms update all affected body parameters", "[broken]") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -194,7 +194,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
 
 TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 

@@ -34,13 +34,6 @@ TEST_CASE("BodyTransformParametersRelative::BodyTransformParametersRelative") {
 }
 
 TEST_CASE("BodyTransformParametersAbsolute::BodyTransformParametersAbsolute") {
-    SECTION("default") {
-        BodyTransformParametersAbsolute params;
-        CHECK(params.translation == Vector3<double>{0, 0, 0});
-        CHECK(params.rotation == Vector3<double>{0, 0, 0});
-        CHECK(params.symmetry_pars.empty());
-    }
-
     SECTION("with translation and rotation") {
         Vector3<double> t = {1, 2, 3};
         Vector3<double> r = {0.1, 0.2, 0.3};

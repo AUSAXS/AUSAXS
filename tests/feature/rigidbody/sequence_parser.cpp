@@ -14,7 +14,7 @@ using namespace ausaxs::rigidbody::sequencer;
 TEST_CASE("SequenceParser: parse minimal config", "[files]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
 
     // Write a minimal config to a temporary location
     std::string config_path = "/tmp/ausaxs_test_minimal.conf";

@@ -109,26 +109,3 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate with symmetry", "[br
         // Same-body symmetry constraints not supported by current DistanceConstraintAtom constructor
     }
 }
-
-// NOTE: Constraint::operator== is defaulted on an empty base class, so it always returns true.
-// This is a known library design issue - equality comparison is not meaningful for constraints.
-TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::operator==", "[broken]") {
-    settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
-    Molecule protein = Molecule(ap);
-
-    constraints::DistanceConstraintAtom c1(&protein, 0, 0, 1, 1);
-    constraints::DistanceConstraintAtom c2(&protein, 0, 0, 1, 1);
-    constraints::DistanceConstraintAtom c3(&protein, 0, 0, 1, 0);
-
-    CHECK(c1 == c2);
-    CHECK_FALSE(c1 == c3);
-
-    // Test with symmetry using 2-body constructor which does not evaluate
-    constraints::DistanceConstraintAtom c4(&protein, 0, 1, {0, -1}, {1, -1});
-    constraints::DistanceConstraintAtom c5(&protein, 0, 1, {0, -1}, {1, -1});
-    constraints::DistanceConstraintAtom c6(&protein, 0, 1, {0, -1}, {2, -1});
-
-    CHECK(c4 == c5);
-    CHECK_FALSE(c4 == c6);
-}

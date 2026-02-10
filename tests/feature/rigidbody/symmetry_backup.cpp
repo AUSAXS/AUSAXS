@@ -23,7 +23,7 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("via direct construction") {
@@ -57,7 +57,7 @@ TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation
 
 TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -118,7 +118,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
 
 TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformations") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
@@ -170,7 +170,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
     SECTION("SingleTransform") {
-        settings::grid::min_bins = 500;
+        settings::grid::min_bins = 250;
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
@@ -211,7 +211,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
     }
 
     SECTION("RigidTransform") {
-        settings::grid::min_bins = 500;
+        settings::grid::min_bins = 250;
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
@@ -254,7 +254,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
 
 TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity") {
     settings::general::verbose = false;
-    settings::grid::min_bins = 500;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::iterations = 10;

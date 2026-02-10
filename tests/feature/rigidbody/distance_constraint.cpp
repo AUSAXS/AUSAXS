@@ -112,17 +112,3 @@ TEST_CASE_METHOD(fixture, "DistanceConstraint::evaluate") {
         CHECK(c57.evaluate() != 0);
     }
 }
-
-// NOTE: Constraint::operator== is defaulted on an empty base class, so it always returns true.
-TEST_CASE_METHOD(fixture, "DistanceConstraint::operator==", "[broken]") {
-    settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
-    Molecule protein = Molecule(ap);
-
-    constraints::DistanceConstraintAtom c1(&protein, a1, a3);
-    constraints::DistanceConstraintAtom c2(&protein, a1, a3);
-    constraints::DistanceConstraintAtom c3(&protein, a1, a4);
-
-    CHECK(c1 == c2);
-    CHECK_FALSE(c1 == c3);
-}

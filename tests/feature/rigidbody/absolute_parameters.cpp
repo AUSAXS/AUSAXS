@@ -100,7 +100,7 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
     settings::rigidbody::iterations = 10;
-    settings::grid::min_bins = 100;
+    settings::grid::min_bins = 250;
 
     SECTION("Free transform") {
         settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
@@ -179,6 +179,7 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
 
 TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::rigidbody::iterations = 20;
@@ -220,6 +221,7 @@ TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
 
 TEST_CASE("AbsoluteParameters: Undo restores configuration.parameters") {
     settings::general::verbose = false;
+    settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
