@@ -223,7 +223,7 @@ TEST_CASE("Vector3::cross") {
 TEST_CASE("Vector3::norm") {
     Vector3<double> x = {1, 2, 3};
     double result = x.norm();
-    REQUIRE(result == sqrt(1+4+9));
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbsMatcher(sqrt(1+4+9), 1e-9));
 }
 
 TEST_CASE("Vector3::distance") {
@@ -286,7 +286,7 @@ TEST_CASE("Vector3::conversion to Vector") {
 
 TEST_CASE("Vector3::conversion to Matrix") {
     Vector3<double> x = {1, 2, 3};
-    Matrix<double> M = x;
+    Matrix<double> M(x);
     REQUIRE(M.N == 3);
     REQUIRE(M.M == 1);
     REQUIRE(M[0][0] == 1);
