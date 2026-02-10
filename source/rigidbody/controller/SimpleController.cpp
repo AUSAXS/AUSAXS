@@ -39,6 +39,10 @@ void SimpleController::setup(const io::ExistingFile& measurement_path) {
             std::move(histogram)
         );
     }
+
+    // initialize the best configuration with the current conformation
+    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
+    current_best_config->chi2 = rigidbody->conformation->absolute_parameters.chi2;
 }
 
 void SimpleController::update_fitter() {
