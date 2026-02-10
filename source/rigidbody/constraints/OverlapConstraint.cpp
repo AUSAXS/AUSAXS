@@ -63,5 +63,3 @@ void OverlapConstraint::initialize() {
         if (target.size() < 5) {console::print_warning("\tWarning: Only " + std::to_string(target.size()) + " bins will be used for calculating the overlap penalty. Consider decreasing the bin size in the histogram settings.");}
     }
 }
-
-bool OverlapConstraint::operator==(const OverlapConstraint& other) const = default;
