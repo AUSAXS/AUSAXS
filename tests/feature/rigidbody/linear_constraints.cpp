@@ -1,12 +1,13 @@
+#include "data/Molecule.h"
 #include <catch2/catch_test_macros.hpp>
 
 #include <rigidbody/constraints/generation/LinearConstraints.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Body.h>
 #include <rigidbody/BodySplitter.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/MoleculeSettings.h>
@@ -32,12 +33,12 @@ TEST_CASE("LinearConstraints::generate") {
         Body b3 = Body(std::vector<AtomFF>{a3});
         Body b4 = Body(std::vector<AtomFF>{a4});
         std::vector<Body> ap = {b1, b2, b3, b4};
-        rigidbody::RigidBody rigidbody(ap);
-        REQUIRE(rigidbody.get_constraint_manager()->distance_constraints.size() == 3);
+        rigidbody::Rigidbody rigidbody(Molecule{ap});
+        REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 3);
     }
 
     SECTION("real data") {
-        rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-        REQUIRE(rigidbody.get_constraint_manager()->distance_constraints.size() == 2);
+        rigidbody::Rigidbody rigidbody = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 2);
     }
 }

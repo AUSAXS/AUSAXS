@@ -20,49 +20,49 @@ void console::unindent(int level) {
     indentation.resize(indentation.size() - level);
 }
 
-void console::print_critical(std::string_view text) {
+void console::print_critical(std::string_view text, color::color text_color) {
     logging::log_critical(text);
-    console::print(text, console::color::red);
+    console::print(text, text_color);
 }
 
-void console::print_text_critical(std::string_view text) {
+void console::print_text_critical(std::string_view text, color::color text_color) {
     logging::log_critical(text);
-    console::print(std::string(text), console::color::white);
+    console::print(std::string(text), text_color);
 }
 
-void console::print_warning(std::string_view text) {
+void console::print_warning(std::string_view text, color::color text_color) {
     logging::log_console(text);
     if (!settings::general::warnings) {return;}
-    console::print(text, console::color::red);
+    console::print(text, text_color);
 }
 
-void console::print_success(std::string_view text) {
+void console::print_success(std::string_view text, color::color text_color) {
     logging::log_console(text);
     if (!settings::general::verbose) {return;}
-    console::print(indentation + std::string(text), console::color::green);
+    console::print(indentation + std::string(text), text_color);
 }
 
-void console::print_failure(std::string_view text) {
+void console::print_failure(std::string_view text, color::color text_color) {
     logging::log_console(text);
     if (!settings::general::verbose) {return;}
-    console::print(indentation + std::string(text), console::color::red);
+    console::print(indentation + std::string(text), text_color);
 }
 
-void console::print_info(std::string_view text) {
+void console::print_info(std::string_view text, color::color text_color) {
     logging::log_console(text);
     if (!settings::general::verbose) {return;}
-    console::print(text, console::color::lightblue);
+    console::print(text, text_color);
 }
 
-void console::print_text(std::string_view text) {
+void console::print_text(std::string_view text, color::color text_color) {
     logging::log_console(text);
     if (!settings::general::verbose) {return;}
-    console::print(indentation + std::string(text), console::color::white);
+    console::print(indentation + std::string(text), text_color);
 }
 
 bool minor_messages = true;
-void console::print_text_minor(std::string_view text) {
+void console::print_text_minor(std::string_view text, color::color text_color) {
     logging::log_console(text);
     if (!minor_messages || !settings::general::verbose) {return;}
-    console::print(indentation + std::string(text), console::color::white);
+    console::print(indentation + std::string(text), text_color);
 }

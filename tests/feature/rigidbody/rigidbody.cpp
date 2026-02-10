@@ -1,14 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/selection/RandomBodySelect.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/selection/SequentialConstraintSelect.h>
 #include <rigidbody/selection/SequentialBodySelect.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/BodySplitter.h>
 #include <fitter/SmartFitter.h>
@@ -20,17 +20,9 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 
-#include <numbers>
-
 using namespace ausaxs;
 using namespace data;
 using namespace rigidbody;
-
-// TODO: make more tests for the RigidBody class & fix the existing ones
-TEST_CASE("RigidBody::optimize") {}
-TEST_CASE("RigidBody::apply_calibration") {}
-TEST_CASE("RigidBody::update_fitter") {}
-TEST_CASE("RigidBody::get_constraint_manager") {}
 
 // test that we can consistently fit the same protein
 TEST_CASE("RigidBody: reusable fitter", "[files]") {

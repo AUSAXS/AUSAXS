@@ -11,19 +11,19 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::parameter;
 
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
-    observer_ptr<const RigidBody> molecule, unsigned int iterations, double translate_amp, double rotate_amp
+    observer_ptr<const Rigidbody> molecule, unsigned int iterations, double translate_amp, double rotate_amp
 ) {
     return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), translate_amp, rotate_amp, settings::rigidbody::parameter_generation_strategy);
 }
 
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
-    observer_ptr<const RigidBody> molecule, unsigned int iterations, double translate_amp, double rotate_amp, settings::rigidbody::ParameterGenerationStrategyChoice choice
+    observer_ptr<const Rigidbody> molecule, unsigned int iterations, double translate_amp, double rotate_amp, settings::rigidbody::ParameterGenerationStrategyChoice choice
 ) {
     return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), translate_amp, rotate_amp, choice);
 }
 
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
-    observer_ptr<const RigidBody> molecule, std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> decay_strategy, 
+    observer_ptr<const Rigidbody> molecule, std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> decay_strategy, 
     double translate_amp, double rotate_amp, settings::rigidbody::ParameterGenerationStrategyChoice choice
 ) {
     switch (choice) {

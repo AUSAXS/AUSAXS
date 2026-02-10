@@ -14,6 +14,7 @@ settings::rigidbody::ParameterGenerationStrategyChoice settings::rigidbody::para
 settings::rigidbody::BodySelectStrategyChoice settings::rigidbody::body_select_strategy = BodySelectStrategyChoice::RandomBodySelect;
 settings::rigidbody::ConstraintGenerationStrategyChoice settings::rigidbody::constraint_generation_strategy = ConstraintGenerationStrategyChoice::Linear;
 settings::rigidbody::DecayStrategyChoice settings::rigidbody::decay_strategy = DecayStrategyChoice::Linear;
+settings::rigidbody::ControllerChoice settings::rigidbody::controller_choice = ControllerChoice::Classic;
 
 std::vector<int> ausaxs::settings::rigidbody::detail::constraints;
 std::string ausaxs::settings::rigidbody::detail::calibration_file;
@@ -45,4 +46,14 @@ template<> void settings::io::detail::SettingRef<settings::rigidbody::BodySelect
 template<> std::string settings::io::detail::SettingRef<settings::rigidbody::ConstraintGenerationStrategyChoice>::get() const {return std::to_string(static_cast<int>(settingref));}
 template<> void settings::io::detail::SettingRef<settings::rigidbody::ConstraintGenerationStrategyChoice>::set(const std::vector<std::string>& val) {
     settingref = static_cast<settings::rigidbody::ConstraintGenerationStrategyChoice>(std::stoi(val[0]));
+}
+
+template<> std::string settings::io::detail::SettingRef<settings::rigidbody::DecayStrategyChoice>::get() const {return std::to_string(static_cast<int>(settingref));}
+template<> void settings::io::detail::SettingRef<settings::rigidbody::DecayStrategyChoice>::set(const std::vector<std::string>& val) {
+    settingref = static_cast<settings::rigidbody::DecayStrategyChoice>(std::stoi(val[0]));
+}
+
+template<> std::string settings::io::detail::SettingRef<settings::rigidbody::ControllerChoice>::get() const {return std::to_string(static_cast<int>(settingref));}
+template<> void settings::io::detail::SettingRef<settings::rigidbody::ControllerChoice>::set(const std::vector<std::string>& val) {
+    settingref = static_cast<settings::rigidbody::ControllerChoice>(std::stoi(val[0]));
 }

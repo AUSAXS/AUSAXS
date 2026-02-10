@@ -4,11 +4,18 @@
 #pragma once
 
 namespace ausaxs::rigidbody {
-    class RigidBody;
-    namespace detail            {struct BestConf;}
+    struct Rigidbody;
+    namespace detail {
+        struct SystemSpecification;
+        struct MoleculeTransformParametersAbsolute;
+    }
     namespace transform         {class TransformStrategy;}
     namespace selection         {class BodySelectStrategy;}
-    namespace constraints       {class ConstraintManager;}
+    namespace constraints       {class Constraint; struct ConstraintManager;}
     namespace parameter         {class ParameterGenerationStrategy;}
     namespace parameter::decay  {class DecayStrategy;}
+}
+
+namespace ausaxs::fitter {
+    struct ConstrainedFitter;
 }

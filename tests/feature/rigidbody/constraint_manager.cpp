@@ -1,10 +1,11 @@
-#include "constants/ConstantsFwd.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/Rigidbody.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <settings/All.h>
@@ -37,92 +38,75 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "ConstraintManager::ConstraintManager") {
     settings::general::verbose = false;
-    Molecule protein(ap);
+    Rigidbody protein(Molecule{ap});
     SECTION("Protein*") {
         constraints::ConstraintManager cm(&protein);
-        CHECK(cm.protein == &protein);
+        CHECK(cm.molecule == &protein.molecule);
     }
 }
 
 TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
     settings::general::verbose = false;
-    Molecule protein(ap);
-    SECTION("OverlapConstraint&&") {
+    Rigidbody protein(Molecule{ap});
+
+    SECTION("OverlapConstraint") {
         constraints::ConstraintManager cm(&protein);
-        constraints::OverlapConstraint oc(&protein);
-        auto oc_copy = oc;
-        cm.add_constraint(std::move(oc));
-        CHECK(cm.overlap_constraint == oc_copy);
+        auto initial_non_disc = cm.non_discoverable_constraints.size();
+        cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule));
+        CHECK(cm.non_discoverable_constraints.size() == initial_non_disc + 1);
     }
 
-    SECTION("OverlapConstraint&") {
+    SECTION("DistanceConstraintBond") {
         constraints::ConstraintManager cm(&protein);
-        constraints::OverlapConstraint oc(&protein);
-        cm.add_constraint(oc);
-        CHECK(cm.overlap_constraint == oc);
-    }
-
-    SECTION("DistanceConstraint&&") {
-        constraints::ConstraintManager cm(&protein);
-        constraints::DistanceConstraint dc(&protein, a1, a3);
-        auto dc_copy = dc;
-        cm.add_constraint(std::move(dc));
-        CHECK(cm.distance_constraints.size() == 1);
-        CHECK(cm.distance_constraints[0] == dc_copy);
-    }
-
-    SECTION("DistanceConstraint&") {
-        constraints::ConstraintManager cm(&protein);
-        constraints::DistanceConstraint dc(&protein, a1, a3);
-        cm.add_constraint(dc);
-        CHECK(cm.distance_constraints.size() == 1);
-        CHECK(cm.distance_constraints[0] == dc);
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
+        CHECK(cm.discoverable_constraints.size() == 1);
     }
 
     SECTION("Multiple") {
         constraints::ConstraintManager cm(&protein);
-        constraints::OverlapConstraint oc(&protein);
-        constraints::DistanceConstraint dc1(&protein, a1, a3);
-        constraints::DistanceConstraint dc2(&protein, a1, a4);
-        cm.add_constraint(oc);
-        cm.add_constraint(dc1);
-        cm.add_constraint(std::move(dc2));
-        CHECK(cm.overlap_constraint == oc);
-        REQUIRE(cm.distance_constraints.size() == 2);
-        CHECK(cm.distance_constraints[0] == dc1);
-        CHECK(cm.distance_constraints[1] == dc2);
+        auto initial_non_disc = cm.non_discoverable_constraints.size();
+        cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));
+        CHECK(cm.non_discoverable_constraints.size() == initial_non_disc + 1);
+        REQUIRE(cm.discoverable_constraints.size() == 2);
     }
 }
 
 TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
     settings::general::verbose = false;
-    Molecule protein(ap);
+    Rigidbody protein(Molecule{ap});
     SECTION("returns chi2 contribution of all constraints") {
         constraints::ConstraintManager cm(&protein);
+        // Remove the automatically added OverlapConstraint so we can test distance constraints in isolation.
+        cm.non_discoverable_constraints.clear();
         REQUIRE(cm.evaluate() == 0);
 
-        constraints::OverlapConstraint oc(&protein);
-        constraints::DistanceConstraint dc1(&protein, a1, a3);
-        constraints::DistanceConstraint dc2(&protein, a1, a4);
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
+        auto dc1 = cm.discoverable_constraints.back().get();
 
-        cm.add_constraint(oc);
-        protein.get_body(0).translate(Vector3<double>(2, 2, 1.5));
-        CHECK(oc.evaluate() != 0);
-        CHECK_THAT(cm.evaluate(), Catch::Matchers::WithinAbs(oc.evaluate(), 1e-3));
-        protein.get_body(0).translate(Vector3<double>(-2, -2, -1.5));
+        // Move body 0 toward body 1 to compress the bond (triggers non-zero evaluate)
+        protein.molecule.get_body(0).translate(Vector3<double>(0, 0, 1));
+        auto val = dc1->evaluate();
+        CHECK(val != 0);
+        CHECK(cm.evaluate() == val);
 
-        cm.add_constraint(dc1);
-        protein.get_body(0).translate(Vector3<double>(2, 2, 1.5));
-        CHECK(oc.evaluate() != 0);
-        CHECK(dc1.evaluate() != 0);
-        CHECK_THAT(cm.evaluate(), Catch::Matchers::WithinAbs(oc.evaluate() + dc1.evaluate(), 1e-3));
-        protein.get_body(0).translate(Vector3<double>(-2, -2, -1.5));
+        // shift back to original position, should be zero again
+        protein.molecule.get_body(0).translate(Vector3<double>(0, 0, -1));
+        CHECK(dc1->evaluate() == 0);
 
-        cm.add_constraint(std::move(dc2));
-        protein.get_body(0).translate(Vector3<double>(2, 2, 1.5));
-        CHECK(oc.evaluate() != 0);
-        CHECK(dc1.evaluate() != 0);
-        CHECK(dc2.evaluate() != 0);
-        CHECK_THAT(cm.evaluate(), Catch::Matchers::WithinAbs(oc.evaluate() + dc1.evaluate() + dc2.evaluate(), 1e-3));
+        // shift again
+        protein.molecule.get_body(0).translate(Vector3<double>(0, 0, -1));
+        val = dc1->evaluate();
+        CHECK(val == 0);
+        CHECK(cm.evaluate() == val);
+
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));
+        auto dc2 = cm.discoverable_constraints.back().get();
+        protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
+        auto val2 = dc2->evaluate();
+        auto val_after = dc1->evaluate();
+        CHECK(val2 != 0);
+        CHECK(cm.evaluate() == val_after + val2);
     }
 }

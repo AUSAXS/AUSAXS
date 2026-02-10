@@ -7,8 +7,7 @@
 #include <hydrate/culling/BodyCounterCulling.h>
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
-
-#include <random>
+#include <utility/Random.h>
 
 using namespace ausaxs;
 
@@ -17,7 +16,7 @@ hydrate::RandomCulling<Wrapped>::RandomCulling::~RandomCulling() = default;
 
 template<typename Wrapped>
 void hydrate::RandomCulling<Wrapped>::cull(std::span<grid::GridMember<data::Water>>& placed_water) const {
-    std::shuffle(placed_water.begin(), placed_water.end(), std::mt19937{std::random_device{}()}); // shuffle the molecules
+    std::shuffle(placed_water.begin(), placed_water.end(), random::generator()); // shuffle the molecules
     Wrapped::cull(placed_water);
 }
 

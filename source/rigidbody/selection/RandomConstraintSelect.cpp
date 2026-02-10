@@ -3,32 +3,31 @@
 
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
-#include <rigidbody/RigidBody.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
+#include <rigidbody/Rigidbody.h>
 #include <utility/Exceptions.h>
+#include <utility/Random.h>
 
 #include <utility>
 
 using namespace ausaxs::rigidbody::selection;
 
-RandomConstraintSelect::RandomConstraintSelect(observer_ptr<const RigidBody> rigidbody) : BodySelectStrategy(rigidbody) {
-    unsigned int M = rigidbody->get_constraint_manager()->distance_constraints.size();
-    std::random_device random;
-    generator = std::mt19937(random());
+RandomConstraintSelect::RandomConstraintSelect(observer_ptr<const Rigidbody> rigidbody) : BodySelectStrategy(rigidbody) {
+    unsigned int M = rigidbody->constraints->discoverable_constraints.size();
     distribution = std::uniform_int_distribution<int>(0, M-1);
 }
 
 RandomConstraintSelect::~RandomConstraintSelect() = default;
 
 std::pair<unsigned int, int> RandomConstraintSelect::next() {
-    unsigned int iconstraint = distribution(generator);
-    const auto& constraint = rigidbody->get_constraint_manager()->distance_constraints[iconstraint];
-    unsigned int ibody = constraint.ibody1;
+    unsigned int iconstraint = distribution(random::generator());
+    const auto& constraint = rigidbody->constraints->discoverable_constraints[iconstraint];
+    unsigned int ibody = constraint->ibody1;
 
     // find the index of the constraint in the list of constraints for the body
-    for (unsigned int i = 0; i < rigidbody->get_constraint_manager()->distance_constraints_map.at(ibody).size(); i++) {
+    for (unsigned int i = 0; i < rigidbody->constraints->get_body_constraints(ibody).size(); i++) {
         // address comparison since the DistanceConstraint comparison operator is a weak equality comparing only its contents
-        if (&rigidbody->get_constraint_manager()->distance_constraints_map.at(ibody).at(i).get() == &constraint) {
+        if (rigidbody->constraints->get_body_constraints(ibody).at(i) == constraint.get()) {
             return std::make_pair(ibody, i);
         }
     }

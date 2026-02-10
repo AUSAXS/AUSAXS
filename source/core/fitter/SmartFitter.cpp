@@ -158,18 +158,17 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
 
     auto linear_fitter = prepare_linear_fitter(res.get_parameter_values());
     auto linear_fit = linear_fitter.fit();
-    assert(std::abs(linear_fit->fval - res.fval) < 1e-6 && "SmartFitter::fit: Linear fit and minimizer results do not match.");
 
-    auto fit_result = std::make_unique<FitResult>(res, res.fval, dof()+2);     // start with the fit performed here
-    fit_result->add_fit(linear_fit.get(), true);                               // add the a,b inner fit
+    auto fit_result = std::make_unique<FitResult>(res, dof()+2);            // start with the fit performed here
+    fit_result->add_fit(linear_fit.get(), true);                            // add the a,b inner fit
     fit_result->set_data_curves(
-        data.x(),                                                              // q
-        data.y(),                                                              // I
-        data.yerr(),                                                           // I_err
-        linear_fitter.get_model_curve(linear_fit->get_parameter_values()),     // I_fit
-        linear_fitter.get_residuals(linear_fit->get_parameter_values())        // residuals
+        data.x(),                                                           // q
+        data.y(),                                                           // I
+        data.yerr(),                                                        // I_err
+        linear_fitter.get_model_curve(linear_fit->get_parameter_values()),  // I_fit
+        linear_fitter.get_residuals(linear_fit->get_parameter_values())     // residuals
     );
-    fit_result->evaluated_points = mini->get_evaluated_points();               // add the evaluated points
+    fit_result->evaluated_points = mini->get_evaluated_points();            // add the evaluated points
     return fit_result;
 }
 

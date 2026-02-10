@@ -13,17 +13,17 @@ namespace ausaxs::rigidbody::transform {
      */
     class RigidTransform : public TransformStrategy {
         public:
-            RigidTransform(observer_ptr<RigidBody> rigidbody);
+            RigidTransform(observer_ptr<Rigidbody> rigidbody);
             ~RigidTransform() override;
 
-            ///< @copydoc TransformStrategy::apply(const Matrix<double>&, const Vector3<double>&, constraints::DistanceConstraint&)
-            void apply(parameter::Parameter&& par, constraints::DistanceConstraint& constraint) override;
+            ///< @copydoc TransformStrategy::apply
+            void apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) override;
 
         protected:
             /**
              * @brief Get all bodies connected by constraints to the first body of the pivot. 
              *        If we have the four bodies A - B - C - D and pivot around the BC connection, this would return the group {AB}.
              */
-            TransformGroup get_connected(const constraints::DistanceConstraint& pivot);
+            TransformGroup get_connected(observer_ptr<const constraints::IDistanceConstraint> pivot);
     };
 }

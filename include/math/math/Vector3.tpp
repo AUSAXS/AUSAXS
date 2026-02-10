@@ -77,12 +77,12 @@ namespace ausaxs {
 
     template<numeric T> template<numeric Q>
     bool Vector3<T>::operator==(const Vector3<Q>& v) const {
-        return abs(double(x()-v.x())) + abs(double(y()-v.y())) + abs(double(z()-v.z())) < precision;
+        return std::abs(double(x()-v.x())) + std::abs(double(y()-v.y())) + std::abs(double(z()-v.z())) < precision;
     }
 
     template<numeric T> template<numeric Q>
     bool Vector3<T>::equals(const Vector3<Q>& v, double p) const {
-        return abs(double(x()-v.x())) + abs(double(y()-v.y())) + abs(double(z()-v.z())) < p;
+        return std::abs(double(x()-v.x())) + std::abs(double(y()-v.y())) + std::abs(double(z()-v.z())) < p;
     }
     template<numeric T> template<numeric Q>
     bool Vector3<T>::operator!=(const Vector3<Q>& v) const {
@@ -95,16 +95,16 @@ namespace ausaxs {
     }
 
     template<numeric T>
-    double Vector3<T>::norm() const {return sqrt(dot(*this));}
+    double Vector3<T>::norm() const {return std::hypot(x(), y(), z());}
 
     template<numeric T>
     double Vector3<T>::magnitude() const {return norm();}
 
     template<numeric T> template<numeric Q>
-    double Vector3<T>::distance(const Vector3<Q>& v) const {return sqrt(distance2(v));}
+    double Vector3<T>::distance(const Vector3<Q>& v) const {return std::sqrt(distance2(v));}
 
     template<numeric T> template<numeric Q>
-    double Vector3<T>::distance2(const Vector3<Q>& v) const {return pow(x()-v.x(), 2) + pow(y()-v.y(), 2) + pow(z()-v.z(), 2);}
+    double Vector3<T>::distance2(const Vector3<Q>& v) const {return std::pow(x()-v.x(), 2) + std::pow(y()-v.y(), 2) + std::pow(z()-v.z(), 2);}
 
     template<numeric T> template<numeric Q>
     Vector3<T> Vector3<T>::cross(const Vector3<Q>& v) const {return {y()*v.z() - v.y()*z(), z()*v.x() - v.z()*x(), x()*v.y() - v.x()*y()};}

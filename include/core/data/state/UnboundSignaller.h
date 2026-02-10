@@ -24,5 +24,6 @@ namespace ausaxs::signaller {
             void modified_symmetry(int) const override {}
             void modified_hydration() const override {}
             void set_symmetry_size(std::size_t) const override {}
+            virtual std::size_t get_symmetry_size() const override {return 0;}
     };
 }
