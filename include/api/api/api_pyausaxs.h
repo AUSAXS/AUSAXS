@@ -8,6 +8,8 @@
 #include <api/pyausaxs/api_iterative_fit.h>
 #include <api/pyausaxs/api_molecule.h>
 #include <api/pyausaxs/api_pdb.h>
+#include <api/pyausaxs/api_rigidbody.h>
+#include <api/pyausaxs/api_settings.h>
 
 // extern "C" API int map_read(
 //     const char* filename,
