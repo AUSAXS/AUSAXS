@@ -26,7 +26,6 @@ add_library(ausaxs_api OBJECT
     "pyausaxs/api_iterative_fit.cpp"
     "pyausaxs/api_molecule.cpp"
     "pyausaxs/api_pdb.cpp"
-    "pyausaxs/api_rigidbody.cpp"
     "pyausaxs/api_settings.cpp"
 )
 
