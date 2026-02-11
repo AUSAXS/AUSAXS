@@ -5,6 +5,8 @@
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <math/MatrixUtils.h>
@@ -84,7 +86,8 @@ TEST_CASE("TransformStrategy::rotate_and_translate") {
         
         auto& body = rigidbody.molecule.get_body(0);
         Vector3<double> pivot(0, 0, 0);
-        auto rotation = matrix::rotation_matrix({0, 0, std::numbers::pi/2});
+        Vector3<double> euler_angles(0, 0, std::numbers::pi/2);
+        auto rotation = matrix::rotation_matrix(euler_angles);
         Vector3<double> translation(1, 1, 0);
         
         // Manually call the protected method via transformer
