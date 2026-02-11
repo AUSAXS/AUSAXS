@@ -202,11 +202,8 @@ TEST_CASE("RigidTransform::apply updates all body parameters") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::scaling = 2;
 
-    SECTION("all bodies in group have updated parameters") {
-        // Skip this test - RigidTransform behavior with equal-sized groups is implementation-dependent
-        // and we already test the core functionality in other tests
-        SUCCEED("Skipping test for equal-sized group behavior");
-    }
+    // Note: Test skipped - RigidTransform behavior with equal-sized constraint groups
+    // depends on internal heuristics. Covered by other tests that verify core functionality.
 }
 
 TEST_CASE("RigidTransform::undo") {

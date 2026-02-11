@@ -142,13 +142,13 @@ TEST_CASE("SingleTransform::undo") {
     }
 }
 
-TEST_CASE("SingleTransform::apply parameter reconstruction") {
+TEST_CASE("SingleTransform::reconstructed body from stored parameters matches transformed body") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::scaling = 2;
 
-    SECTION("parameters can reconstruct body state") {
+    SECTION("reconstructed body from stored parameters matches transformed body") {
         AtomFF a1({3, 2, 1}, form_factor::form_factor_t::C);
         AtomFF a2({0, 0, 0}, form_factor::form_factor_t::C);
         

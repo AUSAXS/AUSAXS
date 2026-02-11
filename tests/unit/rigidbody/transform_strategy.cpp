@@ -162,13 +162,13 @@ TEST_CASE("TransformStrategy::undo") {
     }
 }
 
-TEST_CASE("TransformStrategy::reconstruction from initial conformation") {
+TEST_CASE("TransformStrategy::reconstructed body matches current state after multiple transformations") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::scaling = 2;
 
-    SECTION("body can be reconstructed from initial conformation and parameters") {
+    SECTION("reconstructed body matches current state after multiple transformations") {
         AtomFF a1({2, 3, 4}, form_factor::form_factor_t::C);
         AtomFF a2({5, 6, 7}, form_factor::form_factor_t::C);
         Body b1(std::vector<AtomFF>{a1, a2});
