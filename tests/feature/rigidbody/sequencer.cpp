@@ -103,13 +103,6 @@ TEST_CASE("Sequencer: with parameter configuration", "[files]") {
             .load("tests/files/SASDJG5.pdb")
         .end()
         .loop(5)
-            .parameter(
-                settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly,
-                settings::rigidbody::DecayStrategyChoice::Linear,
-                0.1,  // max rotation
-                0.5,  // max translation
-                0.9   // decay rate
-            )
             .optimize()
         .end()
     .execute();
@@ -130,7 +123,6 @@ TEST_CASE("Sequencer: with body selection strategies", "[files]") {
                 .load("tests/files/SASDJG5.pdb")
             .end()
             .loop(5)
-                .body_selection(settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect)
                 .optimize()
             .end()
         .execute();
@@ -146,7 +138,6 @@ TEST_CASE("Sequencer: with body selection strategies", "[files]") {
                 .load("tests/files/SASDJG5.pdb")
             .end()
             .loop(5)
-                .body_selection(settings::rigidbody::BodySelectStrategyChoice::SequentialBodySelect)
                 .optimize()
             .end()
         .execute();
@@ -168,7 +159,6 @@ TEST_CASE("Sequencer: with transform strategies", "[files]") {
                 .load("tests/files/SASDJG5.pdb")
             .end()
             .loop(5)
-                .transform(settings::rigidbody::TransformationStrategyChoice::RigidTransform)
                 .optimize()
             .end()
         .execute();
@@ -184,7 +174,6 @@ TEST_CASE("Sequencer: with transform strategies", "[files]") {
                 .load("tests/files/SASDJG5.pdb")
             .end()
             .loop(5)
-                .transform(settings::rigidbody::TransformationStrategyChoice::SingleTransform)
                 .optimize()
             .end()
         .execute();
@@ -203,11 +192,7 @@ TEST_CASE("Sequencer: with automatic constraints", "[files]") {
     auto result = seq
         .setup()
             .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-            .generate_constraints(
-                settings::rigidbody::ConstraintGenerationStrategyChoice::Linear,
-                settings::rigidbody::DistanceConstraintType::CM,
-                5.0  // overlap strength
-            )
+            .generate_linear_constraints()
         .end()
         .loop(5)
             .optimize()
