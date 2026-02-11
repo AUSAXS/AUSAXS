@@ -151,9 +151,10 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::AutoConstraintsEl
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::RelativeHydrationElement") {
-    // This test requires knowing the actual body names loaded from the file
-    // Commenting out for now as it requires investigation of how body names are assigned
-    REQUIRE(true); // Placeholder test
+    // RelativeHydrationElement requires knowing the actual body names loaded from the file.
+    // Body names are assigned during load based on chain IDs or user-provided names.
+    // This functionality is better tested in feature tests with real scenarios.
+    // Skipping unit test to avoid false coverage metrics.
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::ConstraintElement") {
