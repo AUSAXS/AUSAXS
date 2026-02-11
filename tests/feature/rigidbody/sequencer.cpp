@@ -70,3 +70,150 @@ TEST_CASE("Sequencer: load_existing with pre-built Rigidbody", "[files]") {
     REQUIRE(result != nullptr);
     CHECK(result->fval > 0);
 }
+
+TEST_CASE("Sequencer: complex sequence with nested loops and conditionals", "[files]") {
+    settings::general::verbose = false;
+    settings::grid::min_bins = 250;
+    settings::molecule::implicit_hydrogens = false;
+
+    sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+    auto result = seq
+        .setup()
+            .load("tests/files/SASDJG5.pdb")
+        .end()
+        .loop(3)
+            .loop(2)
+                .optimize()
+            .end()
+        .end()
+    .execute();
+
+    REQUIRE(result != nullptr);
+    CHECK(result->fval > 0);
+}
+
+TEST_CASE("Sequencer: with parameter configuration", "[files]") {
+    settings::general::verbose = false;
+    settings::grid::min_bins = 250;
+    settings::molecule::implicit_hydrogens = false;
+
+    sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+    auto result = seq
+        .setup()
+            .load("tests/files/SASDJG5.pdb")
+        .end()
+        .loop(5)
+            .parameter(
+                settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly,
+                settings::rigidbody::DecayStrategyChoice::Linear,
+                0.1,  // max rotation
+                0.5,  // max translation
+                0.9   // decay rate
+            )
+            .optimize()
+        .end()
+    .execute();
+
+    REQUIRE(result != nullptr);
+    CHECK(result->fval > 0);
+}
+
+TEST_CASE("Sequencer: with body selection strategies", "[files]") {
+    settings::general::verbose = false;
+    settings::grid::min_bins = 250;
+    settings::molecule::implicit_hydrogens = false;
+
+    SECTION("Random body selection") {
+        sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+        auto result = seq
+            .setup()
+                .load("tests/files/SASDJG5.pdb")
+            .end()
+            .loop(5)
+                .body_selection(settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect)
+                .optimize()
+            .end()
+        .execute();
+
+        REQUIRE(result != nullptr);
+        CHECK(result->fval > 0);
+    }
+
+    SECTION("Sequential body selection") {
+        sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+        auto result = seq
+            .setup()
+                .load("tests/files/SASDJG5.pdb")
+            .end()
+            .loop(5)
+                .body_selection(settings::rigidbody::BodySelectStrategyChoice::SequentialBodySelect)
+                .optimize()
+            .end()
+        .execute();
+
+        REQUIRE(result != nullptr);
+        CHECK(result->fval > 0);
+    }
+}
+
+TEST_CASE("Sequencer: with transform strategies", "[files]") {
+    settings::general::verbose = false;
+    settings::grid::min_bins = 250;
+    settings::molecule::implicit_hydrogens = false;
+
+    SECTION("Rigid transform") {
+        sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+        auto result = seq
+            .setup()
+                .load("tests/files/SASDJG5.pdb")
+            .end()
+            .loop(5)
+                .transform(settings::rigidbody::TransformationStrategyChoice::RigidTransform)
+                .optimize()
+            .end()
+        .execute();
+
+        REQUIRE(result != nullptr);
+        CHECK(result->fval > 0);
+    }
+
+    SECTION("Single transform") {
+        sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+        auto result = seq
+            .setup()
+                .load("tests/files/SASDJG5.pdb")
+            .end()
+            .loop(5)
+                .transform(settings::rigidbody::TransformationStrategyChoice::SingleTransform)
+                .optimize()
+            .end()
+        .execute();
+
+        REQUIRE(result != nullptr);
+        CHECK(result->fval > 0);
+    }
+}
+
+TEST_CASE("Sequencer: with automatic constraints", "[files]") {
+    settings::general::verbose = false;
+    settings::grid::min_bins = 250;
+    settings::molecule::implicit_hydrogens = false;
+
+    sequencer::Sequencer seq(io::ExistingFile("tests/files/LAR1-2.pdb"));
+    auto result = seq
+        .setup()
+            .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
+            .generate_constraints(
+                settings::rigidbody::ConstraintGenerationStrategyChoice::Linear,
+                settings::rigidbody::DistanceConstraintType::CM,
+                5.0  // overlap strength
+            )
+        .end()
+        .loop(5)
+            .optimize()
+        .end()
+    .execute();
+
+    REQUIRE(result != nullptr);
+    CHECK(result->fval > 0);
+}
