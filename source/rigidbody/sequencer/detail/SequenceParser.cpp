@@ -778,14 +778,17 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
             args["anonymous"] = {tokens[1]};
         }
 
-        std::cout << tokens[0] << ":" << std::endl;
+        logging::log("Parsed script:");
+        std::string parsed_script = tokens[0] + " " + (args.empty() ? "" : "{\n");
         for (const auto& [key, value] : args) {
-            std::cout << "\t\"" << key << "\": ";
+            parsed_script += "\t" + key + ": ";
             for (const auto& v : value) {
-                std::cout << v << "\" ";
+                parsed_script += "\"" + v + "\" ";}
+                parsed_script += "\n";
             }
-            std::cout << std::endl;
-        }
+            parsed_script += (args.empty() ? "" : "}");
+        logging::log(parsed_script);
+
         switch (get_type(tokens[0])) {
             case ElementType::Constraint:
                 parse_arguments<ElementType::Constraint>(args);
@@ -798,7 +801,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
             case ElementType::LoopBegin:
                 if (args.size() == 0 && last_parameter_element) { // if no argument is provided, we can determine the number of iterations from the last parameter element
                     args["iterations"] = {std::to_string(last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations())};
-                    std::cout << "\tNo iteration count provided for loop, using " << args["iterations"][0] << " from last parameter element." << std::endl;
+                    logging::log(
+                        "SequenceParser::constructor: No iteration count provided for loop, but a previous parameter element with a decay strategy was found. "
+                        "Using the number of iterations from that decay strategy: " + args["iterations"][0] + "."
+                    );
                 }
                 loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::LoopBegin>(args));
                 loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));

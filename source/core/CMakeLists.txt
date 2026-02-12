@@ -26,10 +26,9 @@ set_target_properties(ausaxs PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib
 )
 
-target_link_libraries(ausaxs ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody)
-target_link_libraries(ausaxs_static ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody)
+target_link_libraries(ausaxs ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
+target_link_libraries(ausaxs_static ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
 
-add_subdirectory(api)
 add_subdirectory(constants)
 add_subdirectory(data)
 add_subdirectory(dataset)
