@@ -55,14 +55,11 @@ struct fixture {
     std::vector<Body> bodies;
 };
 
-// NOTE: Exact position expectations and reconstruction need recalculating for pivot-based transform system
-TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
+TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::general::verbose = false;
     settings::grid::scaling = 2;
 
-    // NOTE: The test expectations for exact positions need recalculating for the new transform system
-    // which centers bodies at origin in initial_conformation and applies absolute transforms.
     SECTION("SingleTransform::apply") {
         Rigidbody rigidbody(Molecule{bodies});
         auto& manager = rigidbody.constraints;

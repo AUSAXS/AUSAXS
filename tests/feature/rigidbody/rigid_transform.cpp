@@ -21,8 +21,7 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
 
-// NOTE: Reconstruction from absolute params requires accounting for the pivot point in the new transform system.
-TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
+TEST_CASE("RigidTransform: Secondary body parameter updates") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
@@ -190,7 +189,7 @@ TEST_CASE("RigidTransform: Orbital motion correctness") {
     REQUIRE_THAT(reconstructed_cm.z(), Catch::Matchers::WithinAbs(current_cm.z(), 1e-3));
 }
 
-TEST_CASE("RigidTransform: Multi-step transformation consistency", "[broken]") {
+TEST_CASE("RigidTransform: Multi-step transformation consistency") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
