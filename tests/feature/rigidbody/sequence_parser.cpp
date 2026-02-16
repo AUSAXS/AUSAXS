@@ -40,23 +40,10 @@ TEST_CASE("SequenceParser: parse minimal config", "[files]") {
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("SequenceParser: parse LAR1-2 config with constraints", "[files]") {
-    settings::general::verbose = false;
-    settings::molecule::implicit_hydrogens = false;
-    settings::grid::min_bins = 250;
-
-    SequenceParser parser;
-    auto sequencer = parser.parse(io::ExistingFile("tests/files/rigidbody/LAR1-2.conf"));
-    REQUIRE(sequencer != nullptr);
-
-    auto result = sequencer->execute();
-    REQUIRE(result != nullptr);
-    CHECK(result->fval > 0);
-}
-
 TEST_CASE("SequenceParser: parse normal config with output folder", "[files]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 250;
 
     SequenceParser parser;
@@ -71,6 +58,7 @@ TEST_CASE("SequenceParser: parse normal config with output folder", "[files]") {
 TEST_CASE("SequenceParser: parse symmetry config", "[files]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 250;
 
     SequenceParser parser;

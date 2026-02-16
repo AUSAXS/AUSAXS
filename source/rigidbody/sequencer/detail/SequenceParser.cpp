@@ -778,13 +778,15 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
             args["anonymous"] = {tokens[1]};
         }
 
-        std::cout << tokens[0] << ":" << std::endl;
-        for (const auto& [key, value] : args) {
-            std::cout << "\t\"" << key << "\": ";
-            for (const auto& v : value) {
-                std::cout << v << "\" ";
+        if (settings::general::verbose) {
+            std::cout << tokens[0] << ":" << std::endl;
+            for (const auto& [key, value] : args) {
+                std::cout << "\t\"" << key << "\": ";
+                for (const auto& v : value) {
+                    std::cout << v << "\" ";
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
         }
         switch (get_type(tokens[0])) {
             case ElementType::Constraint:
