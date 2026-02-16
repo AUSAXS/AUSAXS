@@ -226,7 +226,7 @@ TEST_CASE("SingleTransform::apply only affects single body") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 50;
 
     SECTION("other bodies remain unchanged") {
         AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
