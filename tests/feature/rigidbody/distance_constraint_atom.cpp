@@ -92,20 +92,3 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate") {
         CHECK(c24.evaluate() == 0);
     }
 }
-
-TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate with symmetry", "[broken]") {
-    settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
-    Molecule protein = Molecule(ap);
-
-    // Add dimer symmetry to body 0
-    protein.get_body(0).symmetry().add(symmetry::type::p2);
-
-    SECTION("symmetric constraint") {
-        // Same-body symmetry constraints not supported by current DistanceConstraintAtom constructor
-    }
-
-    SECTION("symmetric constraint with translation") {
-        // Same-body symmetry constraints not supported by current DistanceConstraintAtom constructor
-    }
-}

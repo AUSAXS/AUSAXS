@@ -100,7 +100,7 @@ TEST_CASE("Backup: Body positions match parameters after transformation") {
     }
 }
 
-TEST_CASE("Backup: Constraint-based transforms update all affected body parameters", "[broken]") {
+TEST_CASE("Backup: Constraint-based transforms update all affected body parameters") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
