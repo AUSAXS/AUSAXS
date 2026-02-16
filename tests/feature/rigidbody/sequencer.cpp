@@ -188,7 +188,7 @@ TEST_CASE("Sequencer: with automatic constraints", "[files]") {
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
 
-    sequencer::Sequencer seq(io::ExistingFile("tests/files/LAR1-2.pdb"));
+    sequencer::Sequencer seq("tests/files/LAR1-2.dat");
     auto result = seq
         .setup()
             .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
