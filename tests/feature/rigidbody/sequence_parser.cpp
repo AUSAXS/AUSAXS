@@ -39,3 +39,33 @@ TEST_CASE("SequenceParser: parse minimal config", "[files]") {
     REQUIRE(result != nullptr);
     CHECK(result->fval > 0);
 }
+
+TEST_CASE("SequenceParser: parse normal config with output folder", "[files]") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+    settings::grid::min_bins = 250;
+
+    SequenceParser parser;
+    auto sequencer = parser.parse(io::ExistingFile("tests/files/rigidbody/normal.conf"));
+    REQUIRE(sequencer != nullptr);
+
+    auto result = sequencer->execute();
+    REQUIRE(result != nullptr);
+    CHECK(result->fval > 0);
+}
+
+TEST_CASE("SequenceParser: parse symmetry config", "[files]") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+    settings::grid::min_bins = 250;
+
+    SequenceParser parser;
+    auto sequencer = parser.parse(io::ExistingFile("tests/files/rigidbody/symmetry.conf"));
+    REQUIRE(sequencer != nullptr);
+
+    auto result = sequencer->execute();
+    REQUIRE(result != nullptr);
+    CHECK(result->fval > 0);
+}

@@ -55,18 +55,9 @@ void MetropolisController::setup(const io::ExistingFile& measurement_path) {
         return fitter->fit_chi2_only();
     };
 
-    auto reject_update = [this] (const detail::Configuration& best) {
-        rigidbody->transformer->undo();         // undo the body transforms
-        *rigidbody->molecule.get_grid() = *best.grid;          // restore the old grid
-        rigidbody->molecule.get_waters() = best.waters; // restore the old waters
-        rigidbody->molecule.signal_modified_hydration_layer();
-    };
-
-    auto accept_update = [this] (detail::Configuration& best, double new_chi2) {
-        best.grid = std::make_shared<grid::Grid>(*rigidbody->molecule.get_grid());
-        best.waters = rigidbody->molecule.get_waters();
-        best.chi2 = new_chi2;
-    };
+    // initialize the best configuration with the current conformation
+    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
+    current_best_config->chi2 = rigidbody->conformation->absolute_parameters.chi2;
 }
 
 void MetropolisController::update_fitter() {
@@ -80,38 +71,44 @@ void MetropolisController::update_fitter() {
     }
 }
 
-bool MetropolisController::run_step() {
+bool MetropolisController::prepare_step() {
     auto& molecule = rigidbody->molecule;
-    auto grid = molecule.get_grid();
 
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = rigidbody->body_selector->next();
     if (iconstraint == -1) {    // transform free body
-        Parameter param = rigidbody->parameter_generator->next(ibody);
+        auto param = rigidbody->parameter_generator->next(ibody);
         rigidbody->transformer->apply(std::move(param), ibody);
     } else {                    // transform constrained body
-        DistanceConstraint& constraint = rigidbody->constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
-        Parameter param = rigidbody->parameter_generator->next(ibody);
+        assert(iconstraint < static_cast<int>(rigidbody->constraints->get_body_constraints(ibody).size()));
+        auto constraint = rigidbody->constraints->get_body_constraints(ibody)[iconstraint];
+        auto param = rigidbody->parameter_generator->next(ibody);
         rigidbody->transformer->apply(std::move(param), constraint);
     }
     molecule.generate_new_hydration(); 
 
     // update the body location in the fitter
     update_fitter();
-    double new_chi2 = fitter->fit_chi2_only();
+    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
 
-    // if the old configuration was better
-    if (new_chi2 >= best->chi2) {
-        rigidbody->transformer->undo();         // undo the body transforms
-        *grid = *best->grid;                    // restore the old grid
-        molecule.get_waters() = best->waters;   // restore the old waters
-        molecule.signal_modified_hydration_layer();
-        return false;
+    step_accepted = rigidbody->conformation->absolute_parameters.chi2 < current_best_config->chi2;
+    return step_accepted;
+}
+
+void MetropolisController::finish_step() {
+    if (step_accepted) {
+        // accept the changes - update the best configuration
+        *current_best_config = rigidbody->conformation->absolute_parameters;
+        current_best_config->waters = rigidbody->molecule.get_waters();
+        step_accepted = false;
     } else {
-        // accept the changes
-        best->grid = std::make_shared<grid::Grid>(*grid);
-        best->waters = molecule.get_waters();
-        best->chi2 = new_chi2;
-        return true;
+        // undo the body transforms (restores rigidbody->conformation->absolute_parameters from backup)
+        rigidbody->transformer->undo();
+
+        // regenerate grid & hydration layer
+        //? potential inconsistency: the new grid may not be exactly identical to the old one,
+        //? as the order of adding bodies may differ. perhaps the difference is negligible?
+        rigidbody->molecule.clear_grid();
+        rigidbody->molecule.generate_new_hydration();
     }
 }
