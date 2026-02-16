@@ -6,6 +6,7 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/Rigidbody.h>
 #include <settings/GeneralSettings.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -21,7 +22,7 @@ OutputFolderElement::OutputFolderElement(observer_ptr<Sequencer> owner, const io
 
     settings::general::output = prefix + folder.path() + (folder.path().back() == '/' ? "" : "/");
     if (settings::general::verbose) {
-        std::cout << "OutputFolderElement: Setting output folder to \"" << settings::general::output << "\"" << std::endl;
+        logging::log("OutputFolderElement: Setting output folder to \"" + settings::general::output + "\".");
     }
 }
 
