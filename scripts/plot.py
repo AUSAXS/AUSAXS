@@ -7,9 +7,12 @@ import concurrent.futures
 import argparse
 import os
 
-from plot_helper import plot_file, plot_fits
+try:
+    from .plot_helper import plot_file, plot_fits
+except ImportError:
+    from plot_helper import plot_file, plot_fits
 
-def parse_args():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(prog="plot", description="AUSAXS plotting utility.")
     parser.add_argument("--folder", type=str, default=".", help="Folder to search for .plot files.")
     parser.add_argument("--max_depth", type=int, default=4, help="Maximum depth to search for .plot files.")
@@ -18,10 +21,10 @@ def parse_args():
     parser.add_argument("--medium", action="store_true", help="Use medium font size.")
     parser.add_argument("--title", type=str, help="Title for the plot.")
     parser.format_help
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
-def main():
-    args = parse_args()
+def main(argv=None):
+    args = parse_args(argv)
     folder = args.folder
     max_depth = args.max_depth
     max_files = args.max_files
