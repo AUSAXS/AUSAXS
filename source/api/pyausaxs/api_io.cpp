@@ -7,11 +7,11 @@
 
 using namespace ausaxs;
 
-API void io_is_pdb(
+API bool io_is_pdb(
     const char* path,
     int* status
 ) {return execute_with_catch([&]() {
-    constants::filetypes::structure.check(io::ExistingFile(path));
+    return constants::filetypes::structure.check(io::ExistingFile(path));
 }, status);}
 
 API bool io_is_saxs_data(

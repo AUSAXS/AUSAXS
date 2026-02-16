@@ -5,7 +5,7 @@
 
 #include <api/api_helper.h>
 
-extern "C" API void io_is_pdb(
+extern "C" API bool io_is_pdb(
     const char* script,
     int* status
 );
