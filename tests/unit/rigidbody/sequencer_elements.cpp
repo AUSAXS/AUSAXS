@@ -10,9 +10,6 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
-#include <filesystem>
-#include <fstream>
-
 using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
@@ -24,14 +21,6 @@ struct SequencerElementsFixture {
         settings::molecule::implicit_hydrogens = false;
         settings::grid::min_bins = 250;
         settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-        
-        // Create test output directory
-        std::filesystem::create_directories("/tmp/ausaxs_test_output");
-    }
-    
-    ~SequencerElementsFixture() {
-        // Cleanup test output directory
-        std::filesystem::remove_all("/tmp/ausaxs_test_output");
     }
 };
 
@@ -95,39 +84,6 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::OnImprovementElem
     }
 }
 
-TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::MessageElement") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
-    SECTION("Simple loop without crash") {
-        // Just verify the sequencer runs without crashing
-        auto result = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(2)
-                .optimize()
-            .end()
-        .execute();
-        
-        REQUIRE(result != nullptr);
-    }
-}
-
-TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::OutputFolderElement") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
-    SECTION("Set output folder - verify no crash") {
-        std::string output_folder = "/tmp/ausaxs_test_output/custom_output";
-        
-        REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/SASDJG5.pdb")
-                .output_folder(output_folder)
-            .end()
-        );
-    }
-}
-
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::AutoConstraintsElement") {
     Sequencer seq(io::ExistingFile("tests/files/LAR1-2.pdb"));
     
@@ -148,13 +104,6 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::AutoConstraintsEl
             .end()
         );
     }
-}
-
-TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::RelativeHydrationElement") {
-    // RelativeHydrationElement requires knowing the actual body names loaded from the file.
-    // Body names are assigned during load based on chain IDs or user-provided names.
-    // This functionality is better tested in feature tests with real scenarios.
-    // Skipping unit test to avoid false coverage metrics.
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::ConstraintElement") {

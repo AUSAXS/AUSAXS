@@ -74,29 +74,3 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::SequentialBod
         }
     }
 }
-
-// Note: Advanced selection strategies (RandomConstraintSelect, SequentialConstraintSelect, ManualSelect)
-// require complex rigidbody state with properly initialized constraints and selectors.
-// These tests verify the core API contract - construction with a valid Rigidbody.
-// Full functional testing is covered in feature tests with realistic scenarios.
-
-TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::RandomConstraintSelect") {
-    SECTION("Constructor doesn't crash") {
-        RandomConstraintSelect selector(rb.get());
-        CHECK(true); // If we got here, construction succeeded
-    }
-}
-
-TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::SequentialConstraintSelect") {
-    SECTION("Constructor doesn't crash") {
-        SequentialConstraintSelect selector(rb.get());
-        CHECK(true); // If we got here, construction succeeded
-    }
-}
-
-TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::ManualSelect") {
-    SECTION("Constructor doesn't crash") {
-        ManualSelect selector(rb.get());
-        CHECK(true); // If we got here, construction succeeded
-    }
-}
