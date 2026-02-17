@@ -116,7 +116,7 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
 
     atoms.reserve((1+body->size_symmetry_total())*body->size_atom());
     waters.reserve((1+body->size_symmetry_total())*body->size_water());
-    auto cm = body->get_cm();
+    auto cm = body->get_cm(false);
 
     // static spans for iteration
     std::span<AtomFF> atom_span(atoms);
