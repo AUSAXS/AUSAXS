@@ -82,7 +82,7 @@ namespace ausaxs::data {
 			/** 
 			 * @brief Calculate the center-of-mass coordinates for the body.
 			 */
-			[[nodiscard]] Vector3<double> get_cm(bool include_water = true) const;
+			[[nodiscard]] Vector3<double> get_cm(bool include_water = false) const;
 			
 			/**
 			 * @brief Calculate the van der Waals volume of this body.

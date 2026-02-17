@@ -66,7 +66,7 @@ void Rigidbody::refresh_grid() {
         // Account for symmetry bodies by computing their expected bounds
         for (std::size_t j = 0; j < body.size_symmetry(); ++j) {
             auto& sym = body.symmetry().get(j);
-            auto cm = body.get_cm(false);
+            auto cm = body.get_cm();
             
             for (int rep = 1; rep <= sym.repetitions; ++rep) {
                 auto transform = sym.template get_transform<double>(cm, rep);

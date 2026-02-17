@@ -74,7 +74,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     REQUIRE(original_sym_pars.size() == 1);
 
     auto original_sym_translation = original_sym_pars[0].initial_relation.translation;
-    auto original_sym_orientation = original_sym_pars[0].initial_relation.orientation;
+    auto original_sym_orientation = original_sym_pars[0].initial_relation.rotation;
 
     // Apply a transformation that modifies symmetry parameters
     auto& transformer = rigidbody.transformer;
@@ -111,9 +111,9 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.x(), Catch::Matchers::WithinAbs(original_sym_translation.x(), 1e-6));
     REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.y(), Catch::Matchers::WithinAbs(original_sym_translation.y(), 1e-6));
     REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.z(), Catch::Matchers::WithinAbs(original_sym_translation.z(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.x(), Catch::Matchers::WithinAbs(original_sym_orientation.x(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.y(), Catch::Matchers::WithinAbs(original_sym_orientation.y(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.z(), Catch::Matchers::WithinAbs(original_sym_orientation.z(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.rotation.x(), Catch::Matchers::WithinAbs(original_sym_orientation.x(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.rotation.y(), Catch::Matchers::WithinAbs(original_sym_orientation.y(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].initial_relation.rotation.z(), Catch::Matchers::WithinAbs(original_sym_orientation.z(), 1e-6));
 }
 
 TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformations") {

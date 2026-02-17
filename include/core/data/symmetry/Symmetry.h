@@ -20,14 +20,14 @@ namespace ausaxs::symmetry {
             // we must guarantee that all symmetric duplicates are equidistant, which is complicated because we have two separate translation vectors
             // if t_i and t_r are linearly dependent, then the distance to the first repeat will be offset by t_i compared to the following duplicates
             // therefore, the action of t_i and t_r cannot overlap, i.e. they must be orthogonal
-            assert(initial_relation.translation.dot(repeat_relation.translate) == 0 && "The translation vectors must be orthogonal.");
+            assert(initial_relation.translation.dot(repeat_relation.translation) == 0 && "The translation vectors must be orthogonal.");
 
             // but this is actually not enough, since t_r may also be rotated into the same space as t_i
             // therefore, we must further guarantee that t_r lies in the invariant space of r_i
             assert(
                 (
-                    repeat_relation.rotate.magnitude() == 0 
-                    || matrix::rotation_matrix(repeat_relation.rotate)*repeat_relation.translate == repeat_relation.translate
+                    repeat_relation.rotation.magnitude() == 0 
+                    || matrix::rotation_matrix(repeat_relation.rotation)*repeat_relation.translation == repeat_relation.translation
                 )
                 && "The translation vector must lie in the invariant space of the rotation matrix."
             );
@@ -36,11 +36,11 @@ namespace ausaxs::symmetry {
         Symmetry(_Relation initial_relation, int repetitions = 1)
             : initial_relation(initial_relation), repeat_relation({0, 0, 0}, {0, 0, 0}), repetitions(repetitions) 
         {
-            assert(initial_relation.translation.dot(repeat_relation.translate) == 0 && "The translation vectors must be orthogonal.");
+            assert(initial_relation.translation.dot(repeat_relation.translation) == 0 && "The translation vectors must be orthogonal.");
             assert(
                 (
-                    repeat_relation.rotate.magnitude() == 0 
-                    || matrix::rotation_matrix(repeat_relation.rotate)*repeat_relation.translate == repeat_relation.translate
+                    repeat_relation.rotation.magnitude() == 0 
+                    || matrix::rotation_matrix(repeat_relation.rotation)*repeat_relation.translation == repeat_relation.translation
                 )
                 && "The translation vector must lie in the invariant space of the rotation matrix."
             );
@@ -65,22 +65,22 @@ namespace ausaxs::symmetry {
         // The relationship between the original body and the first repeat of this symmetry
         struct _Relation {
             _Relation() = default;
-            _Relation(Vector3<double>&& t, Vector3<double>&& o) : translation(std::move(t)), orientation(std::move(o)) {}
-            _Relation(const Vector3<double>& t, const Vector3<double>& o) : translation(t), orientation(o) {}
+            _Relation(Vector3<double>&& t, Vector3<double>&& r) : translation(std::move(t)), rotation(std::move(r)) {}
+            _Relation(const Vector3<double>& t, const Vector3<double>& r) : translation(t), rotation(r) {}
 
             Vector3<double> translation;
-            Vector3<double> orientation;
+            Vector3<double> rotation;
             bool operator==(const _Relation& rhs) const = default;
         } initial_relation;
 
         // The relationship between the N-th repeat and the (N+1)-th repeat
         struct _Repeat {
             _Repeat() = default;
-            _Repeat(Vector3<double>&& t, Vector3<double>&& r) : translate(std::move(t)), rotate(std::move(r)) {}
-            _Repeat(const Vector3<double>& t, const Vector3<double>& r) : translate(t), rotate(r) {}
+            _Repeat(Vector3<double>&& t, Vector3<double>&& r) : translation(std::move(t)), rotation(std::move(r)) {}
+            _Repeat(const Vector3<double>& t, const Vector3<double>& r) : translation(t), rotation(r) {}
 
-            Vector3<double> translate;
-            Vector3<double> rotate;
+            Vector3<double> translation;
+            Vector3<double> rotation;
             bool operator==(const _Repeat& rhs) const = default;
         } repeat_relation;
         int repetitions;
@@ -97,13 +97,13 @@ inline std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::symmetry::S
 
     {
         auto t_i = initial_relation.translation;
-        auto r_i = matrix::rotation_matrix<Q>(initial_relation.orientation);    
-        auto t_r = repeat_relation.translate;
-        auto r_r = matrix::rotation_matrix<Q>(repeat_relation.rotate);
+        auto r_i = matrix::rotation_matrix<Q>(initial_relation.rotation);    
+        auto t_r = repeat_relation.translation;
+        auto r_r = matrix::rotation_matrix<Q>(repeat_relation.rotation);
         assert(t_i.dot(t_r) == 0 && "The translation vectors must be orthogonal.");
         assert(
             (
-                repeat_relation.rotate.magnitude() == 0 
+                repeat_relation.rotation.magnitude() == 0 
                 || r_r*t_r == t_r
             )
             && "The translation vector must lie in the invariant space of the rotation matrix."
@@ -159,11 +159,11 @@ inline std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::symmetry::S
 }
 
 inline bool ausaxs::symmetry::Symmetry::is_closed() const {
-    if (repeat_relation.translate.magnitude() != 0) {return false;}
+    if (repeat_relation.translation.magnitude() != 0) {return false;}
 
     // due to floating point inaccuracies, we multiply by 100 and round to nearest integer
     // we then compare the value modulo 100*2*pi = 628 with 0
-    auto angles = 100*(repetitions+1)*repeat_relation.rotate;
+    auto angles = 100*(repetitions+1)*repeat_relation.rotation;
     constexpr int cmp = 100*2*std::numbers::pi;
     return 
         static_cast<int>(std::round(angles.x())) % cmp == 0 && 

@@ -32,13 +32,13 @@ auto test = [] (data::Molecule& protein) {
     // REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry
-    protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, 1, 0};
+    protein.get_body(0).symmetry().get(0).repeat_relation.translation = {0, 1, 0};
     phm_res = protein.get_histogram()->get_weighted_counts();
     p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & hydration simultanously
-    protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, -1, 0};
+    protein.get_body(0).symmetry().get(0).repeat_relation.translation = {0, -1, 0};
     protein.get_waters().clear();
     protein.signal_modified_hydration_layer();
     phm_res = protein.get_histogram()->get_weighted_counts();
@@ -46,14 +46,14 @@ auto test = [] (data::Molecule& protein) {
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & external simultanously
-    protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, 1, 0};
+    protein.get_body(0).symmetry().get(0).repeat_relation.translation = {0, 1, 0};
     protein.get_body(0).translate({2, 0, 0});
     phm_res = protein.get_histogram()->get_weighted_counts();
     p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & internal simultanously
-    protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, -1, 0};
+    protein.get_body(0).symmetry().get(0).repeat_relation.translation = {0, -1, 0};
     protein.get_body(0).get_atom(0).weight() = 2;
     protein.get_body(0).get_signaller()->modified_internal();
     phm_res = protein.get_histogram()->get_weighted_counts();
@@ -81,7 +81,7 @@ auto test_random = [] (data::Molecule& protein) {
             int body_index = ri(gen) % protein.size_body();
             if (protein.get_body(body_index).size_symmetry() != 0) {
                 int symmetry_index = ri(gen) % protein.get_body(body_index).size_symmetry();
-                protein.get_body(body_index).symmetry().get(symmetry_index).repeat_relation.translate = {rd(gen), rd(gen), rd(gen)};    
+                protein.get_body(body_index).symmetry().get(symmetry_index).repeat_relation.translation = {rd(gen), rd(gen), rd(gen)};    
             }
         }
 

@@ -98,7 +98,7 @@ namespace ausaxs::data {
 			/** 
 			 * @brief Calculate the center-mass coordinates.
 			 */
-			[[nodiscard]] Vector3<double> get_cm(bool include_water = true) const;
+			[[nodiscard]] Vector3<double> get_cm(bool include_water = false) const;
 
 			/**
 			 * @brief Calculate the atomic molar mass of this molecule in Daltons.

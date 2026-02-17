@@ -562,7 +562,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         if (isym2 == 0) {
             assert(isym1 < 1+static_cast<int>(body1.size_symmetry()) && "symmetry index out of bounds");
             const auto& sym1 = body1.symmetry().get(isym1-1);
-            bool closed = sym1.is_closed() && sym1.repeat_relation.rotate.magnitude() != 0;
+            bool closed = sym1.is_closed() && sym1.repeat_relation.rotation.magnitude() != 0;
             for (int irepeat1 = 0; irepeat1 < (sym1.repetitions - closed); ++irepeat1) {
                 const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
                 int scale = sym1.repetitions - irepeat1;

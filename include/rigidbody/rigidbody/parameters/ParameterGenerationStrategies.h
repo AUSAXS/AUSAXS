@@ -46,7 +46,6 @@ ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody:
         };
     }
 
-    std::vector<symmetry::Symmetry> symmetry_pars;
     if constexpr (SYMMETRY) {
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
         params.symmetry_pars = std::vector<symmetry::Symmetry>(symmetries->symmetries.size());
@@ -59,9 +58,9 @@ ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody:
             }
 
             if (symmetries->optimize_rotate) {
-                current_sym.initial_relation.orientation.x() = rotation_symmetry_dist(random::generator())*scaling;
-                current_sym.initial_relation.orientation.y() = rotation_symmetry_dist(random::generator())*scaling;
-                current_sym.initial_relation.orientation.z() = rotation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.rotation.x() = rotation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.rotation.y() = rotation_symmetry_dist(random::generator())*scaling;
+                current_sym.initial_relation.rotation.z() = rotation_symmetry_dist(random::generator())*scaling;
             }
         }
     }

@@ -13,23 +13,23 @@ TEST_CASE("Symmetry::Symmetry") {
     SECTION("_Relation") {
         Symmetry s({{1, 2, 3}, {0, 0, 0}});
         CHECK(s.initial_relation.translation == Vector3<double>{1, 2, 3});
-        CHECK(s.initial_relation.orientation == Vector3<double>{0, 0, 0});
+        CHECK(s.initial_relation.rotation == Vector3<double>{0, 0, 0});
         CHECK(s.repetitions == 1);
     }
 
     SECTION("_Relation, _Repeat") {
         Symmetry s({{1, 0, 0}, {0, 0, 0}}, {{0, 1, 0}, {0, 0, 0}}, 5);
         CHECK(s.initial_relation.translation == Vector3<double>{1, 0, 0});
-        CHECK(s.initial_relation.orientation == Vector3<double>{0, 0, 0});
-        CHECK(s.repeat_relation.translate == Vector3<double>{0, 1, 0});
-        CHECK(s.repeat_relation.rotate == Vector3<double>{0, 0, 0});
+        CHECK(s.initial_relation.rotation == Vector3<double>{0, 0, 0});
+        CHECK(s.repeat_relation.translation == Vector3<double>{0, 1, 0});
+        CHECK(s.repeat_relation.rotation == Vector3<double>{0, 0, 0});
         CHECK(s.repetitions == 5);
     }
 
     SECTION("_Relation, repetitions") {
         Symmetry s({{0, 0, 1}, {std::numbers::pi/4, 0, 0}}, 3);
         CHECK(s.initial_relation.translation == Vector3<double>{0, 0, 1});
-        CHECK_THAT(s.initial_relation.orientation.x(), Catch::Matchers::WithinAbs(std::numbers::pi/4, 1e-6));
+        CHECK_THAT(s.initial_relation.rotation.x(), Catch::Matchers::WithinAbs(std::numbers::pi/4, 1e-6));
         CHECK(s.repetitions == 3);
     }
 }
@@ -42,7 +42,7 @@ TEST_CASE("Symmetry::_Relation") {
     SECTION("rvalue construction") {
         Symmetry::_Relation r({1, 2, 3}, {4, 5, 6});
         CHECK(r.translation == Vector3<double>{1, 2, 3});
-        CHECK(r.orientation == Vector3<double>{4, 5, 6});
+        CHECK(r.rotation == Vector3<double>{4, 5, 6});
     }
 
     SECTION("lvalue construction") {
@@ -50,7 +50,7 @@ TEST_CASE("Symmetry::_Relation") {
         Vector3<double> o{4, 5, 6};
         Symmetry::_Relation r(t, o);
         CHECK(r.translation == Vector3<double>{1, 2, 3});
-        CHECK(r.orientation == Vector3<double>{4, 5, 6});
+        CHECK(r.rotation == Vector3<double>{4, 5, 6});
     }
 
     SECTION("equality") {
@@ -70,16 +70,16 @@ TEST_CASE("Symmetry::_Repeat") {
 
     SECTION("rvalue construction") {
         Symmetry::_Repeat r({1, 2, 3}, {4, 5, 6});
-        CHECK(r.translate == Vector3<double>{1, 2, 3});
-        CHECK(r.rotate == Vector3<double>{4, 5, 6});
+        CHECK(r.translation == Vector3<double>{1, 2, 3});
+        CHECK(r.rotation == Vector3<double>{4, 5, 6});
     }
 
     SECTION("lvalue construction") {
         Vector3<double> t{1, 2, 3};
         Vector3<double> r_vec{4, 5, 6};
         Symmetry::_Repeat r(t, r_vec);
-        CHECK(r.translate == Vector3<double>{1, 2, 3});
-        CHECK(r.rotate == Vector3<double>{4, 5, 6});
+        CHECK(r.translation == Vector3<double>{1, 2, 3});
+        CHECK(r.rotation == Vector3<double>{4, 5, 6});
     }
 
     SECTION("equality") {
