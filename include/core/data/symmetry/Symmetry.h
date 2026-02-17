@@ -109,21 +109,22 @@ inline std::function<ausaxs::Vector3<Q>(ausaxs::Vector3<Q>)> ausaxs::symmetry::S
             && "The translation vector must lie in the invariant space of the rotation matrix."
         );
 
-        // initial transform
-        // v' = R_r * (R_i * (v - t_cm) + t_cm + t_i) + t_r
-        //    = R_r*R_i*v - R_r*R_i*t_cm + R_r*t_cm + R_r*t_i + t_r
-        //    = R_r*R_i*v + (R_r*t_cm - R_r*R_i*t_cm + R_r*t_i + t_r)
+        // Repeat rotations should be around t_cm, so it must stay outside the rotation:
+        // v' = R_r * (R_i * (v - t_cm) + t_i) + t_cm + t_r
+        //    = R_r*R_i*v - R_r*R_i*t_cm + R_r*t_i + t_cm + t_r
+        //    = R_r*R_i*v + (R_r*(t_i - R_i*t_cm) + t_cm + t_r)
         //
         // subsequent transforms
-        // v' = R_r * v + t_r
+        // v' = R_r * (v - t_cm) + t_cm + t_r
+        //    = R_r*v + (t_cm - R_r*t_cm + t_r)
 
         R_final = r_r * r_i;
-        T_final = r_r*(t_cm + t_i - r_i*t_cm) + t_r;
+        T_final = r_r*(t_i - r_i*t_cm) + t_cm + t_r;
 
         // accumulate transformations from 1 to repeat
         for (int i = 1; i < repeat; ++i) {
-            R_final = r_r*R_final;          // accumulate the rotation
-            T_final = r_r*T_final + t_r;    // accumulate the translation
+            R_final = r_r*R_final;                      // accumulate the rotation
+            T_final = r_r*(T_final - t_cm) + t_cm + t_r;  // rotate around t_cm and add translation
         }
     }
 

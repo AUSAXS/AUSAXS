@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include "data/state/Signaller.h"
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/selection/BodySelectFactory.h>
@@ -21,7 +20,7 @@ using namespace ausaxs::rigidbody;
 
 Rigidbody::~Rigidbody() = default;
 
-Rigidbody::Rigidbody(data::Molecule&& molecule) {
+Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)) {
     // Convert all symmetry storages to OptimizableSymmetryStorage for parameter optimization
     for (int i = 0; i < static_cast<int>(molecule.size_body()); ++i) {
         auto& body = molecule.get_body(i);
@@ -113,43 +112,4 @@ void Rigidbody::refresh_grid() {
     logging::log("Rigidbody::refresh_grid: Refreshing grid to fit current conformation.");
     molecule.clear_grid();
     molecule.create_grid();
-}
-
-ausaxs::data::Body Rigidbody::generate_current_state(int ibody) const {
-    // Start with centered initial conformation
-    data::Body body = conformation->initial_conformation[ibody];
-    
-    // Apply absolute transformation (rotation + translation)
-    auto& params = conformation->absolute_parameters.parameters[ibody];
-    auto R = matrix::rotation_matrix(params.rotation);
-    auto T = params.translation;
-    auto cm = body.get_cm();
-    
-    // Transform: rotate around CM, then translate
-    body.translate(-cm);
-    body.rotate(R);
-    body.translate(cm + T);
-    
-    // Apply symmetry parameters
-    for (int i = 0; i < static_cast<int>(params.symmetry_pars.size()); ++i) {
-        auto& current_sym = body.symmetry().get(i);
-        current_sym.initial_relation.translation = params.symmetry_pars[i].initial_relation.translation;
-        current_sym.initial_relation.orientation = params.symmetry_pars[i].initial_relation.orientation;
-        body.get_signaller()->modified_symmetry(i);
-    }
-    
-    return body;
-}
-
-void Rigidbody::save(const io::File& path) const {
-    // Generate current state for all bodies and save
-    std::vector<data::Body> transformed_bodies;
-    transformed_bodies.reserve(conformation->initial_conformation.size());
-    
-    for (int i = 0; i < static_cast<int>(conformation->initial_conformation.size()); ++i) {
-        transformed_bodies.push_back(generate_current_state(i));
-    }
-    
-    data::Molecule output_molecule(std::move(transformed_bodies));
-    output_molecule.save(path);
 }

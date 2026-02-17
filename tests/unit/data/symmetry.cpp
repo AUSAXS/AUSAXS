@@ -297,6 +297,57 @@ TEST_CASE("Symmetry::get_transform") {
         CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));
         CHECK(f({-1, -1, -1}) == Vector3<double>(-1, -1, -1));
     }
+
+    SECTION("rotation around non-zero center of mass") {
+        // Ensure rotations happen around t_cm, not the origin
+        // With t_cm = (10, 20, 0), rotation by 90° around z should keep CM fixed
+        Vector3<double> t_cm{10, 20, 0};
+        
+        // C4 symmetry: 90° rotation around z-axis
+        Symmetry s({{0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, std::numbers::pi/2}}, 3);
+        
+        {   // First copy: rotate 90° around t_cm
+            auto f = s.get_transform<double>(t_cm, 1);
+            
+            // Point at CM should stay at CM
+            CHECK(f(t_cm) == t_cm);
+            
+            // Point 1 unit in +x from CM: (11, 20, 0) -> (10, 21, 0)
+            CHECK(f({11, 20, 0}) == Vector3<double>(10, 21, 0));
+            
+            // Point 1 unit in +y from CM: (10, 21, 0) -> (9, 20, 0)
+            CHECK(f({10, 21, 0}) == Vector3<double>(9, 20, 0));
+            
+            // Point 1 unit in +z from CM should stay offset in +z
+            CHECK(f({10, 20, 1}) == Vector3<double>(10, 20, 1));
+        }
+        
+        {   // Second copy: rotate 180° around t_cm
+            auto f = s.get_transform<double>(t_cm, 2);
+            
+            // Point at CM should stay at CM
+            CHECK(f(t_cm) == t_cm);
+            
+            // Point 1 unit in +x from CM: (11, 20, 0) -> (9, 20, 0)
+            CHECK(f({11, 20, 0}) == Vector3<double>(9, 20, 0));
+            
+            // Point 1 unit in +y from CM: (10, 21, 0) -> (10, 19, 0)
+            CHECK(f({10, 21, 0}) == Vector3<double>(10, 19, 0));
+        }
+        
+        {   // Third copy: rotate 270° around t_cm
+            auto f = s.get_transform<double>(t_cm, 3);
+            
+            // Point at CM should stay at CM
+            CHECK(f(t_cm) == t_cm);
+            
+            // Point 1 unit in +x from CM: (11, 20, 0) -> (10, 19, 0)
+            CHECK(f({11, 20, 0}) == Vector3<double>(10, 19, 0));
+            
+            // Point 1 unit in +y from CM: (10, 21, 0) -> (11, 20, 0)
+            CHECK(f({10, 21, 0}) == Vector3<double>(11, 20, 0));
+        }
+    }
 }
 
 TEST_CASE("Symmetry::equality") {
