@@ -207,7 +207,7 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get the radius of gyration of this molecule. 
 			 */
-			[[nodiscard]] double get_Rg() const;
+			[[nodiscard]] double get_Rg(bool include_waters = true) const;
 
 			/**
 			 * @brief Get the number of constituent bodies. 

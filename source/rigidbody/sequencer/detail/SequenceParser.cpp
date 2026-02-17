@@ -444,6 +444,11 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sym
 
     // anonymous arg support
     if (args.size() == 1) {
+        if (rigidbody->molecule.size_body() != 1) {
+            throw except::invalid_argument(
+                "SequenceParser::parse_arguments: Explicit body name must be provided for \"symmetry\" when there is more than one body in the molecule. "
+            );
+        }
         return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{"b1"}, std::vector{symmetry::get(args.begin()->second[0])});
     }
 

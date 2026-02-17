@@ -32,5 +32,20 @@ namespace ausaxs::rigidbody {
          *        This guarantees that there is room for the current conformation. 
          */
         void refresh_grid();
+
+        /**
+         * @brief Generate the current state of a body from its centered initial conformation
+         *        and absolute transformation parameters.
+         * @param ibody Index of the body to generate.
+         * @return Body in its current transformed state with symmetry applied.
+         */
+        data::Body generate_current_state(int ibody) const;
+
+        /**
+         * @brief Save the current optimized structure including symmetry transformations.
+         *        This applies symmetry to the centered initial conformation and then applies
+         *        the absolute transformation to get the actual optimized structure.
+         */
+        void save(const io::File& path) const;
     };
 }

@@ -27,14 +27,14 @@ ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, unsigned int iterations, double length_start, double rad_start) 
     : rigidbody(rigidbody), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
 ) {
-    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg());
+    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg(false));
 }
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) 
     : rigidbody(rigidbody), decay_strategy(std::move(decay_strategy)
 ) {
-    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg());
+    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg(false));
 }
 
 ParameterGenerationStrategy::~ParameterGenerationStrategy() = default;

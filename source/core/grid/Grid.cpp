@@ -307,7 +307,8 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
             bool out_of_bounds = 
                 x >= static_cast<int>(axes.x.bins) || 
                 y >= static_cast<int>(axes.y.bins) || 
-                z >= static_cast<int>(axes.z.bins)
+                z >= static_cast<int>(axes.z.bins) ||
+                x < 0 || y < 0 || z < 0
             ;
             if (out_of_bounds) [[unlikely]] {
                 throw except::out_of_bounds(

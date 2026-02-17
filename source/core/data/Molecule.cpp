@@ -108,8 +108,8 @@ double Molecule::get_total_atomic_charge() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_atomic_charge();});
 }
 
-double Molecule::get_Rg() const {
-    Vector3<double> cm = get_cm();
+double Molecule::get_Rg(bool include_waters) const {
+    Vector3<double> cm = get_cm(include_waters);
     double Rg = 0;
 
     // Rg is defined as the RMS average distance of each _electron_ from the center of mass, so multiply each atom by its effective charge

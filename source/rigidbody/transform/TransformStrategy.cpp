@@ -75,18 +75,12 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
     parameter::BodyTransformParametersAbsolute& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
     if (par.rotation.has_value()) {body_params.rotation = matrix::euler_angles(matrix::rotation_matrix(body_params.rotation)*matrix::rotation_matrix(par.rotation.value()));}
     if (par.translation.has_value()) {body_params.translation += par.translation.value();}
-
-    // apply transformations
-    body = rigidbody->conformation->initial_conformation[ibody];
-    if (par.rotation.has_value() || par.translation.has_value()) {
-        rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body.get_cm(), body);
-    }
-
-    // update and apply symmetry parameters
     if (par.symmetry_pars.has_value()) {
         body_params.symmetry_pars = add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
-        apply_symmetry(body_params.symmetry_pars, body);
     }
+
+    // generate current state from initial conformation and absolute parameters
+    body = rigidbody->generate_current_state(ibody);
 
     // re-add body and refresh grid
     grid->add(body);

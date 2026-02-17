@@ -14,8 +14,9 @@ ausaxs::symmetry::Symmetry ausaxs::symmetry::get(type t) {
                 },
                 {
                     {0, 0, 0},
-                    {0, 0, std::numbers::pi/2}
-                }
+                    {0, 0, std::numbers::pi}
+                },
+                1
             };
             break;
 
@@ -27,8 +28,9 @@ ausaxs::symmetry::Symmetry ausaxs::symmetry::get(type t) {
                 },
                 {
                     {0, 0, 0},
-                    {0, 0, std::numbers::pi/3}
-                }
+                    {0, 0, std::numbers::pi*2./3}
+                },
+                2
             };
             break;
 
@@ -40,8 +42,9 @@ ausaxs::symmetry::Symmetry ausaxs::symmetry::get(type t) {
                 },
                 {
                     {0, 0, 0},
-                    {0, 0, std::numbers::pi/4}
-                }
+                    {0, 0, std::numbers::pi/2}
+                },
+                3
             };
             break;
 

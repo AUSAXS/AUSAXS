@@ -24,6 +24,8 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
     auto rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
 
+    std::cout << "CM is " << molecule->get_cm(false) << std::endl;
+
     molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
     for (unsigned int i = 0; i < names.size(); ++i) {
         auto index = setup._get_body_index(names[i]);
@@ -35,7 +37,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         molecule->get_body(ibody).symmetry().add(symmetry[i]);
         rigidbody->conformation->initial_conformation[ibody].symmetry().add(symmetry[i]);
 
-        // add names for the symmetry bodies
+        // add names for the symmetric bodies
         auto& name_map = setup._get_body_names();
         int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::SymmetryElement: Inconsistent data structures.");
@@ -49,13 +51,17 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 
         // place the symmetry body at a sane distance from the original
         double Rg = molecule->get_Rg();
-        molecule->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
-        rigidbody->conformation->initial_conformation[ibody].symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
+        molecule->get_body(ibody).symmetry().get(isymmetry).initial_relation.translation = {0, 0, 0};
+        rigidbody->conformation->initial_conformation[ibody].symmetry().get(isymmetry).initial_relation.translation = {0, 0, 0};
         rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars.emplace_back(
-            molecule->get_body(ibody).symmetry().get(0)
+            molecule->get_body(ibody).symmetry().get(isymmetry)
         );
 
     }
+    
+    // Save the properly transformed structure for debugging
+    rigidbody->save("debug_loaded_molecule.pdb");
+    exit(1);
     
     // Refresh grid to accommodate symmetry bodies
     rigidbody->refresh_grid();
