@@ -237,7 +237,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body: equality") {
         }
         REQUIRE(b2.equals_content(b3));
 
-        b2.symmetry().add(symmetry::type::p3);
+        b2.symmetry().add(symmetry::type::c3);
         REQUIRE(!b2.equals_content(b3));
         b4 = b3;
         REQUIRE(b3.equals_content(b4));

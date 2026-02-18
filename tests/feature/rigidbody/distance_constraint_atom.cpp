@@ -99,7 +99,7 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate with symmetry", "[br
     Molecule protein = Molecule(ap);
 
     // Add dimer symmetry to body 0
-    protein.get_body(0).symmetry().add(symmetry::type::p2);
+    protein.get_body(0).symmetry().add(symmetry::type::c2);
 
     SECTION("symmetric constraint") {
         // Same-body symmetry constraints not supported by current DistanceConstraintAtom constructor
