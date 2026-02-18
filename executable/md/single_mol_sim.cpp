@@ -88,7 +88,7 @@ int main(int argc, char const *argv[]) {
         .add(MDPOptions::nstcomm = "0")
 
         // write frames often to get good sampling, while ensuring they are still uncorrelated
-        .add(MDPOptions::nstxout_compressed = 500)
+        .add(MDPOptions::nstxout_compressed = 100)
     .write(settings::general::output + "mdp/mol.mdp");
     auto molecule = simulate_molecule({
         .system = ss,
@@ -98,6 +98,25 @@ int main(int argc, char const *argv[]) {
         .equilibrate_runner = executor::local::construct(),
         .production_runner = executor::slurm::construct("temp/md/SmaugTemplateSampling.sh", pdb.stem() + "_mol"),
     });
-    molecule.job->wait();
+    auto res = molecule.job->result();
+    
+    // remove waters from xtc and gro; we don't need them anymore
+    auto[index] = md::select(res.gro)
+        .group("Protein")
+        .output(settings::general::output + "final.ndx")
+    .run();
+
+    trjconv(res.xtc)
+        .center()
+        .output(settings::general::output + "final.xtc")
+        .index(index)
+    .run();
+
+    editconf(res.gro)
+        .index(index)
+        .output(settings::general::output + "final.gro")
+    .run();
+
+    index.remove();
     return 0;
 } 

@@ -25,6 +25,16 @@ namespace ausaxs::md {
                 return *this;
             }
 
+            editconf& index(const NDXFile& ndx) {
+                options.push_back(std::make_shared<shell::Argument>("-n", ndx));
+                return *this;
+            }
+
+            editconf& select(const std::string& group) {
+                options.push_back(std::make_shared<shell::Argument>("-ndef", group));
+                return *this;
+            }
+
             editconf& box_type(option::BoxType type) {
                 options.push_back(std::make_shared<shell::Argument>("-bt", option::to_string(type)));
                 return *this;

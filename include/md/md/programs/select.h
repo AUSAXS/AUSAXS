@@ -25,6 +25,11 @@ namespace ausaxs::md {
                 return *this;
             }
 
+            select& group(const std::string& group) {
+                options.push_back(std::make_shared<shell::Argument>("-select", group));
+                return *this;
+            }
+
             select& define(const std::string& selection) {
                 if (group_set) {
                     throw except::duplicate_option("select: Group already set");
