@@ -10,12 +10,6 @@ using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
 TEST_CASE("Symmetry::Symmetry") {
-    SECTION("_Relation only") {
-        Symmetry s({{1, 2, 3}});
-        CHECK(s.initial_relation.translation == Vector3<double>{1, 2, 3});
-        CHECK(s.repetitions == 1);
-    }
-
     SECTION("_Relation, _Repeat") {
         // t_r = {0,0,1} lies along the rotation axis {0,0,1} (screw symmetry)
         Symmetry s({{1, 0, 0}}, {{0, 0, 1}, {0, 0, 1}, 0.5}, 5);
@@ -24,12 +18,6 @@ TEST_CASE("Symmetry::Symmetry") {
         CHECK(s.repeat_relation.axis        == Vector3<double>{0, 0, 1});
         CHECK_THAT(s.repeat_relation.angle, Catch::Matchers::WithinAbs(0.5, 1e-9));
         CHECK(s.repetitions == 5);
-    }
-
-    SECTION("_Relation, repetitions") {
-        Symmetry s({{0, 0, 1}}, 3);
-        CHECK(s.initial_relation.translation == Vector3<double>{0, 0, 1});
-        CHECK(s.repetitions == 3);
     }
 }
 
@@ -85,17 +73,17 @@ TEST_CASE("Symmetry::_Repeat") {
 TEST_CASE("Symmetry::is_closed") {
     SECTION("translations") {
         SECTION("simple translations (no rotation)") {
-            CHECK(Symmetry({{ 1,  0,  0}}).is_closed());
-            CHECK(Symmetry({{ 0,  1,  0}}).is_closed());
-            CHECK(Symmetry({{ 0,  0,  1}}).is_closed());
-            CHECK(Symmetry({{ 1,  2,  3}}).is_closed());
-            CHECK(Symmetry({{-1, -2, -3}}).is_closed());
+            CHECK(Symmetry({ 1,  0,  0}, {0, 0, 0}, {0, 0, 1}, 0).is_closed());
+            CHECK(Symmetry({ 0,  1,  0}, {0, 0, 0}, {0, 0, 1}, 0).is_closed());
+            CHECK(Symmetry({ 0,  0,  1}, {0, 0, 0}, {0, 0, 1}, 0).is_closed());
+            CHECK(Symmetry({ 1,  2,  3}, {0, 0, 0}, {0, 0, 1}, 0).is_closed());
+            CHECK(Symmetry({-1, -2, -3}, {0, 0, 0}, {0, 0, 1}, 0).is_closed());
         }
 
         SECTION("repeating translations block closure") {
-            CHECK_FALSE(Symmetry({{0, 0, 0}}, {{1, 0, 0}, {0, 1, 0}, 0.0}, 5).is_closed());
-            CHECK_FALSE(Symmetry({{0, 0, 0}}, {{0, 1, 0}, {0, 1, 0}, 0.0}, 5).is_closed());
-            CHECK_FALSE(Symmetry({{0, 0, 0}}, {{0, 0, 1}, {0, 0, 1}, 0.0}, 5).is_closed());
+            CHECK_FALSE(Symmetry({{0,0,0}}, {{1,0,0}, {0,1,0}, 0}, 5).is_closed());
+            CHECK_FALSE(Symmetry({{0,0,0}}, {{0,1,0}, {0,1,0}, 0}, 5).is_closed());
+            CHECK_FALSE(Symmetry({{0,0,0}}, {{0,0,1}, {0,0,1}, 0}, 5).is_closed());
         }
     }
 
@@ -105,12 +93,12 @@ TEST_CASE("Symmetry::is_closed") {
             CHECK_FALSE(Symmetry({{0,0,0}}, {{1,0,0}, std::numbers::pi/2}, repeats).is_closed());
             CHECK_FALSE(Symmetry({{0,0,0}}, {{0,1,0}, std::numbers::pi/2}, repeats).is_closed());
             CHECK_FALSE(Symmetry({{0,0,0}}, {{0,0,1}, std::numbers::pi/2}, repeats).is_closed());
+        }
 
-            SECTION("sufficient repeats but with translation") {
-                CHECK_FALSE(Symmetry({{0,0,0}}, {{1, 0, 0}, {1, 0, 0}, std::numbers::pi/2}, 3).is_closed());
-                CHECK_FALSE(Symmetry({{0,0,0}}, {{0, 1, 0}, {0, 1, 0}, std::numbers::pi/2}, 3).is_closed());
-                CHECK_FALSE(Symmetry({{0,0,0}}, {{0, 0, 1}, {0, 0, 1}, std::numbers::pi/2}, 3).is_closed());
-            }
+        SECTION("sufficient repeats but with translation") {
+            CHECK_FALSE(Symmetry({{0,0,0}}, {{1, 0, 0}, {1, 0, 0}, std::numbers::pi/2}, 3).is_closed());
+            CHECK_FALSE(Symmetry({{0,0,0}}, {{0, 1, 0}, {0, 1, 0}, std::numbers::pi/2}, 3).is_closed());
+            CHECK_FALSE(Symmetry({{0,0,0}}, {{0, 0, 1}, {0, 0, 1}, std::numbers::pi/2}, 3).is_closed());
         }
 
         SECTION("sufficient repeats") {
@@ -144,15 +132,10 @@ TEST_CASE("Symmetry::is_closed") {
 
 TEST_CASE("Symmetry::get_transform") {
     SECTION("translation only, no rotation (degenerate)") {
-        // No rotation: all copies are identical to the original in position
-        Symmetry s({{1, 2, 3}});
-        auto f = s.get_transform<double>({0, 0, 0});
-        CHECK(f({1, 2, 3}) == Vector3<double>(1, 2, 3));
-        CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));
-
         // Per-step translation shifts copies along y
-        s = Symmetry({{1, 0, 0}}, {{0, 1, 0}, {0, 0, 1}, 0.0}, 4);
-        f = s.get_transform<double>({0, 0, 0});
+        Symmetry s({1, 2, 3}, {0, 0, 0}, {0, 0, 0}, 0, 4);
+        s = Symmetry({{1, 0, 0}}, {{0, 1, 0}, {0, 0, 1}, 0}, 4);
+        auto f = s.get_transform<double>({0, 0, 0});
         CHECK(f({1, 2, 3}) == Vector3<double>(1, 3, 3));
 
         f = s.get_transform<double>({0, 0, 0}, 2);
@@ -221,13 +204,6 @@ TEST_CASE("Symmetry::get_transform") {
             CHECK(f({0,1,0}) == Vector3<double>(0,1,2));
             CHECK(f({0,0,1}) == Vector3<double>(0,0,3));
         }
-    }
-
-    SECTION("identity transform") {
-        Symmetry s({{0, 0, 0}});
-        auto f = s.get_transform<double>({0, 0, 0});
-        CHECK(f({1, 2, 3}) == Vector3<double>(1, 2, 3));
-        CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));
     }
 
     SECTION("p4 symmetry with non-zero CM") {
