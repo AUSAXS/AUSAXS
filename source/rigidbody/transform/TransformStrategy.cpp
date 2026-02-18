@@ -47,7 +47,7 @@ void TransformStrategy::apply_symmetry(const std::vector<symmetry::Symmetry>& sy
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
         auto& current_sym = body.symmetry().get(i);
         current_sym.initial_relation.translation = symmetry[i].initial_relation.translation;
-        current_sym.initial_relation.rotation = symmetry[i].initial_relation.rotation;
+        current_sym.repeat_relation.axis = symmetry[i].repeat_relation.axis;
         body.get_signaller()->modified_symmetry(i);
     }
 }
@@ -57,7 +57,7 @@ std::vector<ausaxs::symmetry::Symmetry> TransformStrategy::add_symmetries(const 
     std::vector<symmetry::Symmetry> result = current;
     for (int i = 0; i < static_cast<int>(current.size()); ++i) {
         result[i].initial_relation.translation += delta[i].initial_relation.translation;
-        result[i].initial_relation.rotation += delta[i].initial_relation.rotation;
+        result[i].repeat_relation.axis += delta[i].repeat_relation.axis;
     }
     return result;
 }
