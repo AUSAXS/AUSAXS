@@ -54,12 +54,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars.emplace_back(
             molecule->get_body(ibody).symmetry().get(isymmetry)
         );
-    }
-    
-    // Save the properly transformed structure for debugging
-    molecule->save("debug_loaded_molecule.pdb");
-    exit(1);
-    
+    }    
     // Refresh grid to accommodate symmetry bodies
     rigidbody->refresh_grid();
 }

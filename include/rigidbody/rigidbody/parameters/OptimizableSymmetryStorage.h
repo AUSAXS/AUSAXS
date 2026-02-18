@@ -26,9 +26,11 @@ inline std::unique_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::symmetry::Opti
 inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type symmetry) {
     symmetries.emplace_back(symmetry::get(symmetry));
     switch (symmetry) {
-        case symmetry::type::p2:
-        case symmetry::type::p3:
-        case symmetry::type::p4:
+        case symmetry::type::c2:
+        case symmetry::type::c3:
+        case symmetry::type::c4:
+        case symmetry::type::c5:
+        case symmetry::type::c6:
             optimize_rotate = true;
             optimize_translate = true;
             break;

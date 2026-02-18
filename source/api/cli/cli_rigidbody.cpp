@@ -48,7 +48,9 @@ int cli_rigidbody(int argc, char const *argv[]) {
     app.add_option("--iterations", settings::rigidbody::iterations, "Maximum number of iterations. Default: 1000.");
     app.add_option("--constraints", settings::rigidbody::detail::constraints, "Constraints to apply to the rigid body.");
     app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered. Default: true.");
+    app.add_flag("--use-occupancy,!--no-use-occupancy", settings::molecule::use_occupancy, "Decides whether the atom occupancy will be taken into account when calculating the histogram. Default: false.");
     app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms, "Decides whether the program will quit if an unknown atom is found. Default: true.");
+    app.add_flag("--allow-unknown-residues", settings::molecule::allow_unknown_residues, "Decides whether the program will quit if an unknown residue is found. Default: true.");
     CLI11_PARSE(app, argc, argv);
 
     console::print_info("Running AUSAXS " + std::string(constants::version));

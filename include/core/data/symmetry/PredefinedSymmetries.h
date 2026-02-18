@@ -9,9 +9,11 @@
 
 namespace ausaxs::symmetry {
     enum class type {
-        p2,
-        p3,
-        p4
+        c2,
+        c3,
+        c4,
+        c5,
+        c6
     };
 
     /**
