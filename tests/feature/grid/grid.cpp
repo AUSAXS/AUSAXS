@@ -192,8 +192,8 @@ TEST_CASE("Grid::add") {
             Body body{std::vector{
                 AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
             }};
-            // Explicit constructor: initial offset = {1,1,1}, per-step translation = {0,0,0}
-            body.symmetry().add(symmetry::Symmetry({1, 1, 1}, {0, 0, 0}, {0, 0, 1}, 0));
+            // per-step translation = {1,1,1}, no rotation
+            body.symmetry().add(symmetry::Symmetry({0, 0, 0}, {1, 1, 1}, {0, 0, 1}, 0));
             grid.add(body, false);
             GridObj& g = grid.grid;
 
@@ -496,8 +496,8 @@ TEST_CASE("Grid::remove") {
         Body b{std::vector{
             AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
         }};
-        // initial offset = {1,1,1}, no per-step translation
-        b.symmetry().add(symmetry::Symmetry({1, 1, 1}, {0, 0, 0}, {0, 0, 1}, 0));
+        // per-step translation = {1,1,1}, no rotation
+        b.symmetry().add(symmetry::Symmetry({0, 0, 0}, {1, 1, 1}, {0, 0, 1}, 0));
         grid.add(b, true);
         grid.remove(b);
         GridObj& g = grid.grid;

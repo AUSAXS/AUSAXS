@@ -73,7 +73,7 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("one copy") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({1, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {1, 0, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -83,8 +83,8 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("two copies") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({ 1, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0));
-            m.get_body(0).symmetry().add(symmetry::Symmetry({-1, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, { 1, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {-1, 0, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -95,10 +95,10 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("four copies") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({-1, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0));
-            m.get_body(0).symmetry().add(symmetry::Symmetry({ 1, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0));
-            m.get_body(0).symmetry().add(symmetry::Symmetry({ 0,-1, 0}, {0, 0, 0}, {0, 0, 1}, 0));
-            m.get_body(0).symmetry().add(symmetry::Symmetry({ 0, 1, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {-1, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, { 1, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, { 0,-1, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, { 0, 1, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -126,7 +126,7 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("one copy") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({ 0, 1, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 1, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -137,8 +137,8 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("two copies") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({-1, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0));
-            m.get_body(0).symmetry().add(symmetry::Symmetry({ 1, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 1, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 2, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -167,7 +167,7 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("one copy of body1") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 1, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 1, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -178,8 +178,8 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("one copy of each #1") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 1, 0}, {0, 0, 0}, {0, 0, 1}, 0));
-            m.get_body(1).symmetry().add(symmetry::Symmetry({0, 1, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 1, 0}, {0, 0, 1}, 0));
+            m.get_body(1).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 1, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -190,8 +190,8 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("one copy of each #2") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({ 1, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0));
-            m.get_body(0).symmetry().add(symmetry::Symmetry({ 0,-1, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, { 1, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(1).symmetry().add(symmetry::Symmetry({0, 0, 0}, {-1, 0, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -237,7 +237,7 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("one copy") {
-            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 1, 0}, {0, 0, 0}, {0, 0, 1}, 0));
+            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 1, 0}, {0, 0, 1}, 0));
 
             auto h = m.get_histogram();
             auto htot = h->get_weighted_counts();
@@ -282,7 +282,7 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
         set_unity_charge(m);
 
         SECTION("single copy") {
-            symmetry::Symmetry s({10, 0, 0}, {0, 0, 0}, {0, 0, 1}, 0); 
+            symmetry::Symmetry s({0, 0, 0}, {10, 0, 0}, {0, 0, 1}, 0); 
             m.get_body(0).symmetry().add(symmetry::Symmetry(s));
 
             auto h = m.get_histogram();
@@ -293,7 +293,7 @@ auto test_translation = [] (settings::hist::HistogramManagerChoice choice) {
             data::Body& b_copy = m_copy.get_body(0);
             std::vector<AtomFF> a_copy = b_copy.get_atoms();
             for (auto& a : b_copy.get_atoms()) {                
-                a.coordinates() += s.initial_relation.translation; 
+                a.coordinates() += s.repeat_relation.translation; 
                 a_copy.push_back(a);
             }
             b_copy.get_atoms() = std::move(a_copy);
@@ -407,8 +407,8 @@ auto test_rotations = [] (settings::hist::HistogramManagerChoice choice) {
         set_unity_charge(m);
 
         SECTION("one copy") {
-            // rotation about Y by +90deg: axis {0,1,0}, angle std::numbers::pi/2
-            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 0, 0}, {0, 1, 0}, std::numbers::pi/2));
+            // rotation about Y axis through the world origin; body cm={1,0,0} so t_i=cm
+            m.get_body(0).symmetry().add(symmetry::Symmetry({1, 0, 0}, {0, 0, 0}, {0, 1, 0}, std::numbers::pi/2));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -418,8 +418,8 @@ auto test_rotations = [] (settings::hist::HistogramManagerChoice choice) {
         }
 
         SECTION("three copies") {
-            // rotation about Y by +90deg, 3 repeats
-            m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 0, 0}, {0, 1, 0}, std::numbers::pi/2, 3));
+            // rotation about Y axis through the world origin, 3 repeats; body cm={1,0,0} so t_i=cm
+            m.get_body(0).symmetry().add(symmetry::Symmetry({1, 0, 0}, {0, 0, 0}, {0, 1, 0}, std::numbers::pi/2, 3));
 
             auto h = m.get_histogram()->get_weighted_counts();
             check_hist(h, {
@@ -462,8 +462,8 @@ auto test_multi_atom = [] (settings::hist::HistogramManagerChoice choice) {
         //         x
         //         x
         //
-        // rotation about Z by +90deg, 3 repeats
-        m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 0, 0}, {0, 0, 1}, std::numbers::pi/2, 3));
+        // rotation about Z axis through the world origin, 3 repeats; body cm={2,0,0} so t_i=cm
+        m.get_body(0).symmetry().add(symmetry::Symmetry({2, 0, 0}, {0, 0, 0}, {0, 0, 1}, std::numbers::pi/2, 3));
 
         auto h = m.get_histogram()->get_weighted_counts();
         check_hist(h, {
@@ -488,8 +488,8 @@ auto test_multi_atom = [] (settings::hist::HistogramManagerChoice choice) {
         Molecule m({Body{std::vector{a1}}});
         m.set_histogram_manager(choice);
         set_unity_charge(m);
-        // rotation about Z by +90deg with per-step translation {0,0,1}, 4 repeats
-        m.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {0, 0, 1}, {0, 0, 1}, std::numbers::pi/2, 4));
+        // rotation about Z axis through the world origin + per-step translation {0,0,1}, 4 repeats; body cm={1,0,0} so t_i=cm
+        m.get_body(0).symmetry().add(symmetry::Symmetry({1, 0, 0}, {0, 0, 1}, {0, 0, 1}, std::numbers::pi/2, 4));
 
         auto h = m.get_histogram()->get_weighted_counts();
 
