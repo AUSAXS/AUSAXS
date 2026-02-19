@@ -66,6 +66,7 @@ namespace ausaxs::rigidbody::parameter {
             std::uniform_real_distribution<double> rotation_dist;
             std::uniform_real_distribution<double> translation_symmetry_dist;
             std::uniform_real_distribution<double> rotation_symmetry_dist;
+            std::uniform_real_distribution<double> angle_symmetry_dist;
             std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy;
     };
 }

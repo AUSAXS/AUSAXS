@@ -13,7 +13,8 @@ namespace ausaxs::symmetry {
         c3,
         c4,
         c5,
-        c6
+        c6,
+        p2  // dimer with freely-optimizable rotation angle
     };
 
     /**

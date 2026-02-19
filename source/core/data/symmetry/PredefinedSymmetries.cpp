@@ -42,6 +42,13 @@ ausaxs::symmetry::Symmetry ausaxs::symmetry::get(type t) {
                 5
             };
 
+        case type::p2:
+            return {
+                {{0, 0, 0}},
+                {{0, 0, 1}, std::numbers::pi},
+                1
+            };
+
         default: 
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
     }
@@ -53,5 +60,6 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "c4") {return type::c4;}
     if (name == "c5") {return type::c5;}
     if (name == "c6") {return type::c6;}
+    if (name == "p2") {return type::p2;}
     throw std::runtime_error("Unknown symmetry name \"" + std::string(name) + "\".");
 }

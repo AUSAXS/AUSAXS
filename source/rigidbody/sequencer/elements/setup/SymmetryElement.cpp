@@ -48,7 +48,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         }
 
         // place the symmetry body at a sane distance from the original
-        auto start = Vector3<double>{molecule->get_Rg(false), 0, 0};
+        auto start = Vector3<double>{2*molecule->get_Rg(false), 0, 0};
         molecule->get_body(ibody).symmetry().get(isymmetry).initial_relation.translation = start;
         rigidbody->conformation->initial_conformation[ibody].symmetry().get(isymmetry).initial_relation.translation = start;
         rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars.emplace_back(

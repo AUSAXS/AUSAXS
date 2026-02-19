@@ -57,10 +57,14 @@ ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody:
                 current_sym.initial_relation.translation.z() = translation_symmetry_dist(random::generator())*scaling;
             }
 
-            if (symmetries->optimize_rotate) {
+            if (symmetries->optimize_rot_axis) {
                 current_sym.repeat_relation.axis.x() = rotation_symmetry_dist(random::generator())*scaling;
                 current_sym.repeat_relation.axis.y() = rotation_symmetry_dist(random::generator())*scaling;
                 current_sym.repeat_relation.axis.z() = rotation_symmetry_dist(random::generator())*scaling;
+            }
+
+            if (symmetries->optimize_rot_angle) {
+                current_sym.repeat_relation.angle = angle_symmetry_dist(random::generator())*scaling;
             }
         }
     }

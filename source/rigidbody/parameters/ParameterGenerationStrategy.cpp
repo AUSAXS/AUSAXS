@@ -8,33 +8,36 @@
 #include <utility/Random.h>
 
 #include <random>
+#include <numbers>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::parameter;
 
 std::tuple<
     std::uniform_real_distribution<double>, std::uniform_real_distribution<double>, 
-    std::uniform_real_distribution<double>, std::uniform_real_distribution<double>
+    std::uniform_real_distribution<double>, std::uniform_real_distribution<double>,
+    std::uniform_real_distribution<double>
 > create_distributions(double length_start, double rad_start, double Rg) {
     std::uniform_real_distribution<double> translation_dist(-length_start, length_start);
     std::uniform_real_distribution<double> rotation_dist(-rad_start, rad_start);
-    std::uniform_real_distribution<double> translation_symmetry_dist(-Rg, Rg);
+    std::uniform_real_distribution<double> translation_symmetry_dist(-2*Rg, 2*Rg);
     std::uniform_real_distribution<double> rotation_symmetry_dist(-3, 3);
-    return {std::move(translation_dist), std::move(rotation_dist), std::move(translation_symmetry_dist), std::move(rotation_symmetry_dist)};
+    std::uniform_real_distribution<double> angle_symmetry_dist(-std::numbers::pi/2, std::numbers::pi/2);
+    return {std::move(translation_dist), std::move(rotation_dist), std::move(translation_symmetry_dist), std::move(rotation_symmetry_dist), std::move(angle_symmetry_dist)};
 }
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, unsigned int iterations, double length_start, double rad_start) 
     : rigidbody(rigidbody), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
 ) {
-    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg(false));
+    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist, angle_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg(false));
 }
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) 
     : rigidbody(rigidbody), decay_strategy(std::move(decay_strategy)
 ) {
-    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg(false));
+    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist, angle_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg(false));
 }
 
 ParameterGenerationStrategy::~ParameterGenerationStrategy() = default;
