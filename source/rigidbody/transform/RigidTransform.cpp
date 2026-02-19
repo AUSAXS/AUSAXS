@@ -111,21 +111,22 @@ TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDi
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size() && path1 == path2) {
-        return TransformGroup({&rigidbody->molecule.get_body(static_cast<unsigned int>(pivot->ibody1))}, {static_cast<unsigned int>(pivot->ibody1)}, pivot, pivot->get_atom1().coordinates());
+        return TransformGroup(
+            {&rigidbody->molecule.get_body(static_cast<unsigned int>(pivot->ibody1))}, 
+            {static_cast<unsigned int>(pivot->ibody1)}, 
+            pivot, 
+            pivot->get_atom1().coordinates()
+        );
     }
 
     // create a vector of pointers to the bodies in the paths
     std::vector<observer_ptr<data::Body>> bodies1, bodies2;
-    for (const auto& ibody : path1) {
-        bodies1.push_back(&rigidbody->molecule.get_body(ibody));
-    }
-    for (const auto& ibody : path2) {
-        bodies2.push_back(&rigidbody->molecule.get_body(ibody));
-    }
+    for (const auto& ibody : path1) {bodies1.push_back(&rigidbody->molecule.get_body(ibody));}
+    for (const auto& ibody : path2) {bodies2.push_back(&rigidbody->molecule.get_body(ibody));}
 
     // check if the system is overconstrained
     if (0.5*rigidbody->molecule.size_body() < path1.size() && 0.5*rigidbody->molecule.size_body() < path2.size()) {
-        throw except::size_error("TransformStrategy::get_connected: The system is overconstrained. Use a different TransformStrategy.");
+        throw except::size_error("RigidTransform::get_connected: The system is overconstrained. Use a different TransformStrategy.");
     }
 
     unsigned int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
