@@ -74,8 +74,8 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
     }
 
     // re-add bodies and refresh grid
-    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {grid->add(*group.bodies[i]);}
     rigidbody->refresh_grid();
+    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {grid->add(*group.bodies[i]);}
 }
 
 TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDistanceConstraint> pivot) {

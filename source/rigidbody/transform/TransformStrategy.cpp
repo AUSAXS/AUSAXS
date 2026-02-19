@@ -101,8 +101,8 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
     }
 
     // re-add body and refresh grid
-    grid->add(body);
     rigidbody->refresh_grid();
+    grid->add(body);
 }
 
 void TransformStrategy::undo() {

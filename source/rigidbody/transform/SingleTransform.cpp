@@ -56,6 +56,6 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, ob
     }
 
     // re-add body and refresh grid
-    grid->add(body);
     rigidbody->refresh_grid();
+    grid->add(body);
 }
