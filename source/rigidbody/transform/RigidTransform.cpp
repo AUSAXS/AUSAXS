@@ -26,7 +26,7 @@ RigidTransform::~RigidTransform() = default;
 
 void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) {
     auto group = get_connected(constraint);
-    backup(group);
+    backup(group); //? can be move-optimized?
 
     // remove bodies from grid since it does not track transforms
     auto grid = rigidbody->molecule.get_grid();
@@ -57,6 +57,11 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
             unsigned int ibody = group.indices[i];
             auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
             rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, group.bodies[i]->get_cm(), *group.bodies[i]);
+        }
+    } else { // no transformation, so just restore the original conformation
+        for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
+            *group.bodies[i] = std::move(bodybackup[i].body.value());
+            bodybackup[i].body.reset();
         }
     }
 

@@ -11,7 +11,7 @@ namespace ausaxs::rigidbody::parameter {
      * @brief A small structure for storing the absolute transform parameters of a single body. 
      */
     struct BodyTransformParametersAbsolute {
-        BodyTransformParametersAbsolute() = default;
+        BodyTransformParametersAbsolute() : translation{0, 0, 0}, rotation{0, 0, 0} {}
 
         /**
          * @param dr The translation vector.

@@ -29,7 +29,7 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
         }
     }
 
-    molecule.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
+    molecule.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
     constraints = std::make_unique<constraints::ConstraintManager>(this);
     conformation = std::make_unique<rigidbody::detail::SystemSpecification>(this);
     controller = factory::create_controller(this);

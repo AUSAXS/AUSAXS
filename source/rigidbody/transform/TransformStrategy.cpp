@@ -63,13 +63,21 @@ std::vector<ausaxs::symmetry::Symmetry> TransformStrategy::add_symmetries(const 
 }
 
 void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody) {
-    auto& body = rigidbody->molecule.get_body(ibody);
-    bodybackup.clear();
-    bodybackup.emplace_back(body, ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
+    assert(ibody < rigidbody->molecule.size_body() && "TransformStrategy::apply: Body index out of range.");
+    assert(
+        (par.rotation.has_value() || par.translation.has_value() || par.symmetry_pars.has_value()) 
+        && "TransformStrategy::apply: No transformation specified."
+    );
 
     // remove body from grid since it does not track transforms
     auto grid = rigidbody->molecule.get_grid();
-    grid->remove(body);
+    {   // backup body and parameters for undo
+        auto& body = rigidbody->molecule.get_body(ibody);
+        grid->remove(body);
+
+        bodybackup.clear();
+        bodybackup.emplace_back(std::move(body), ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
+    }
 
     // compute new absolute transform parameters for the body
     parameter::BodyTransformParametersAbsolute& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
@@ -77,9 +85,13 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
     if (par.translation.has_value()) {body_params.translation += par.translation.value();}
 
     // apply transformations
-    body = rigidbody->conformation->initial_conformation[ibody];
+    auto& body = rigidbody->molecule.get_body(ibody);
     if (par.rotation.has_value() || par.translation.has_value()) {
+        body = rigidbody->conformation->initial_conformation[ibody];
         rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body.get_cm(), body);
+    } else { // no transformation, so just restore the original conformation
+        body = std::move(bodybackup.front().body.value());
+        bodybackup.front().body.reset();
     }
 
     // update and apply symmetry parameters
@@ -95,7 +107,7 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
 
 void TransformStrategy::undo() {
     for (auto& body : bodybackup) {
-        rigidbody->molecule.get_body(body.index) = std::move(body.body);
+        if (body.body.has_value()) {rigidbody->molecule.get_body(body.index) = std::move(body.body.value());}
         rigidbody->conformation->absolute_parameters.parameters[body.index] = std::move(body.params);
     }
     bodybackup.clear();

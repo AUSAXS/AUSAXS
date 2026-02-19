@@ -42,7 +42,7 @@ void SimpleController::setup(const io::ExistingFile& measurement_path) {
 
     // initialize the best configuration with the current conformation
     rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
-    current_best_config->chi2 = rigidbody->conformation->absolute_parameters.chi2;
+    *current_best_config = rigidbody->conformation->absolute_parameters;
 }
 
 void SimpleController::update_fitter() {
