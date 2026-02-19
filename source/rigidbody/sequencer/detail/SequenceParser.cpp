@@ -54,15 +54,15 @@ ElementType get_type(std::string_view line) {
         {ElementType::OverlapStrength, {"overlap_strength"}},
         {ElementType::LoadElement, {"load", "open"}},
         {ElementType::SymmetryElement, {"symmetry"}},
-        {ElementType::Constraint, {"constraint", "constrain"}},
-        {ElementType::AutomaticConstraint, {"generate_constraints", "autoconstraints", "autoconstrain"}},
+        {ElementType::Constraint, {"constrain", "constraint"}},
+        {ElementType::AutomaticConstraint, {"autoconstrain", "autoconstraints"}},
         {ElementType::LoopBegin, {"loop"}},
         {ElementType::LoopEnd, {"end"}},
-        {ElementType::Parameter, {"parameter"}},
-        {ElementType::BodySelect, {"selection", "body_selection"}},
-        {ElementType::Transform, {"transform"}},
+        {ElementType::Parameter, {"parameter", "parameter_generator"}},
+        {ElementType::BodySelect, {"select", "selector"}},
+        {ElementType::Transform, {"transform", "transformer"}},
         {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
-        {ElementType::EveryNStep, {"every", "for_every"}},
+        {ElementType::EveryNStep, {"every"}},
         {ElementType::OnImprovement, {"on_improvement"}},
         {ElementType::Save, {"save", "write"}},
         {ElementType::RelativeHydration, {"relative_hydration"}},
@@ -73,7 +73,9 @@ ElementType get_type(std::string_view line) {
     };
     for (const auto& [type, prefixes] : type_map) {
         for (const auto& prefix : prefixes) {
-            if (line.starts_with(prefix)) {return type;}
+            if (
+                line.starts_with(prefix) && (line.size() == prefix.size() || !std::isalpha(line[prefix.size()]))
+            ) {return type;}
         }
     }
     throw except::invalid_argument("SequenceParser::get_type: Unknown element type \"" + std::string(line) + "\".");
@@ -83,6 +85,15 @@ settings::rigidbody::TransformationStrategyChoice get_transform_strategy(std::st
     if (line == "rigid_transform" || line == "rigid") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}
     if (line == "single_transform" || line == "single") {return settings::rigidbody::TransformationStrategyChoice::SingleTransform;}
     throw except::invalid_argument("SequenceParser::get_transform_strategy: Unknown strategy \"" + std::string(line) + "\"");
+}
+
+settings::rigidbody::ParameterMaskStrategyChoice get_parameter_mask_strategy(std::string_view line) {
+    if (line == "all")        {return settings::rigidbody::ParameterMaskStrategyChoice::All;}
+    if (line == "real")       {return settings::rigidbody::ParameterMaskStrategyChoice::Real;}
+    if (line == "symmetry")   {return settings::rigidbody::ParameterMaskStrategyChoice::Symmetry;}
+    if (line == "sequential") {return settings::rigidbody::ParameterMaskStrategyChoice::Sequential;}
+    if (line == "random")     {return settings::rigidbody::ParameterMaskStrategyChoice::Random;}
+    throw except::invalid_argument("SequenceParser::get_parameter_mask_strategy: Unknown mask strategy \"" + std::string(line) + "\"");
 }
 
 settings::rigidbody::BodySelectStrategyChoice get_body_select_strategy(std::string_view line) {
@@ -545,13 +556,26 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::BodySelect>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"body_select\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    settings::rigidbody::BodySelectStrategyChoice strategy = get_body_select_strategy(args.begin()->second[0]);
+    enum class Args {strategy, parameters};
+    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
+        {Args::strategy,   {"point", "body"}},
+        {Args::parameters, {"parameters", "parameter_mask", "mask"}},
+    };
+
+    if (args.size() < 1 || 2 < args.size()) {
+        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"body_select\". Expected 1 or 2, but got " + std::to_string(args.size()) + ".");
+    }
+
+    auto strategy = get_arg<std::string>(valid_args[Args::strategy], args);
+    auto mask_arg = get_arg<std::string>(valid_args[Args::parameters], args);
+    settings::rigidbody::BodySelectStrategyChoice body_strategy = strategy.found ? get_body_select_strategy(strategy.value) : settings::rigidbody::body_select_strategy;
+    settings::rigidbody::ParameterMaskStrategyChoice mask_strategy = mask_arg.found ? get_parameter_mask_strategy(mask_arg.value) : settings::rigidbody::parameter_mask_strategy;
     return std::make_unique<BodySelectElement>(
         loop_stack.back(),
         rigidbody::factory::create_selection_strategy(
             loop_stack.front()->_get_rigidbody(),
-            strategy
+            body_strategy,
+            mask_strategy
         )
     );
 }

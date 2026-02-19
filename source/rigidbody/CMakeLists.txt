@@ -36,6 +36,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"selection/BodySelectFactory.cpp"
 	"selection/BodySelectStrategy.cpp"
 	"selection/ManualSelect.cpp"
+	"selection/ParameterMask.cpp"
 	"selection/RandomBodySelect.cpp"
 	"selection/RandomConstraintSelect.cpp"
 	"selection/SequentialBodySelect.cpp"

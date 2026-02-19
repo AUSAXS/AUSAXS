@@ -12,6 +12,14 @@ namespace ausaxs::rigidbody {
     namespace factory {
         std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(observer_ptr<const Rigidbody> molecule);
 
-        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(observer_ptr<const Rigidbody> molecule, settings::rigidbody::BodySelectStrategyChoice choice);
+        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(
+            observer_ptr<const Rigidbody> molecule, settings::rigidbody::BodySelectStrategyChoice choice
+        );
+
+        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(
+            observer_ptr<const Rigidbody> molecule,
+            settings::rigidbody::BodySelectStrategyChoice body_choice,
+            settings::rigidbody::ParameterMaskStrategyChoice mask_choice
+        );
     }
 }

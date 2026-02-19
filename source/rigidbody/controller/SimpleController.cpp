@@ -5,6 +5,7 @@
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/selection/BodySelectStrategy.h>
+#include <rigidbody/selection/ParameterMask.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
@@ -60,14 +61,16 @@ bool SimpleController::prepare_step() {
     auto& molecule = rigidbody->molecule;
 
     // select a body to be modified this iteration
-    auto [ibody, iconstraint] = rigidbody->body_selector->next();
+    auto [ibody, iconstraint, mask] = rigidbody->body_selector->next_mask();
     if (iconstraint == -1) {    // transform free body
         auto param = rigidbody->parameter_generator->next(ibody);
+        mask.apply(param);
         rigidbody->transformer->apply(std::move(param), ibody);
     } else {                    // transform constrained body
         assert(iconstraint < static_cast<int>(rigidbody->constraints->get_body_constraints(ibody).size()));
         auto constraint = rigidbody->constraints->get_body_constraints(ibody)[iconstraint];
         auto param = rigidbody->parameter_generator->next(ibody);
+        mask.apply(param);
         rigidbody->transformer->apply(std::move(param), constraint);
     }
     molecule.generate_new_hydration();

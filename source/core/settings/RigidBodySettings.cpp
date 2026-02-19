@@ -11,6 +11,7 @@ unsigned int settings::rigidbody::iterations = 1000;
 double settings::rigidbody::bond_distance = 3;
 settings::rigidbody::TransformationStrategyChoice settings::rigidbody::transform_strategy = TransformationStrategyChoice::RigidTransform;
 settings::rigidbody::ParameterGenerationStrategyChoice settings::rigidbody::parameter_generation_strategy = ParameterGenerationStrategyChoice::Simple;
+settings::rigidbody::ParameterMaskStrategyChoice settings::rigidbody::parameter_mask_strategy = ParameterMaskStrategyChoice::All;
 settings::rigidbody::BodySelectStrategyChoice settings::rigidbody::body_select_strategy = BodySelectStrategyChoice::RandomBodySelect;
 settings::rigidbody::ConstraintGenerationStrategyChoice settings::rigidbody::constraint_generation_strategy = ConstraintGenerationStrategyChoice::Linear;
 settings::rigidbody::DecayStrategyChoice settings::rigidbody::decay_strategy = DecayStrategyChoice::Linear;
