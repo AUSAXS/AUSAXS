@@ -26,6 +26,10 @@ namespace {
                 return std::make_unique<SequentialMaskStrategy>();
             case settings::rigidbody::ParameterMaskStrategyChoice::Random:
                 return std::make_unique<RandomMaskStrategy>();
+            case settings::rigidbody::ParameterMaskStrategyChoice::SequentialSymmetry:
+                return std::make_unique<SequentialSymmetryMaskStrategy>();
+            case settings::rigidbody::ParameterMaskStrategyChoice::SequentialReal:
+                return std::make_unique<SequentialRealMaskStrategy>();
             default:
                 throw except::unknown_argument("rigidbody::factory::create_mask_strategy: Unknown mask strategy. Did you forget to add it?");
         }

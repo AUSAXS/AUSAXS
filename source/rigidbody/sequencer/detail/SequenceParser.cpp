@@ -88,11 +88,13 @@ settings::rigidbody::TransformationStrategyChoice get_transform_strategy(std::st
 }
 
 settings::rigidbody::ParameterMaskStrategyChoice get_parameter_mask_strategy(std::string_view line) {
-    if (line == "all")        {return settings::rigidbody::ParameterMaskStrategyChoice::All;}
-    if (line == "real")       {return settings::rigidbody::ParameterMaskStrategyChoice::Real;}
-    if (line == "symmetry")   {return settings::rigidbody::ParameterMaskStrategyChoice::Symmetry;}
-    if (line == "sequential") {return settings::rigidbody::ParameterMaskStrategyChoice::Sequential;}
-    if (line == "random")     {return settings::rigidbody::ParameterMaskStrategyChoice::Random;}
+    if (line == "all")                  {return settings::rigidbody::ParameterMaskStrategyChoice::All;}
+    if (line == "real")                 {return settings::rigidbody::ParameterMaskStrategyChoice::Real;}
+    if (line == "symmetry")             {return settings::rigidbody::ParameterMaskStrategyChoice::Symmetry;}
+    if (line == "sequential")           {return settings::rigidbody::ParameterMaskStrategyChoice::Sequential;}
+    if (line == "sequential_symmetry")  {return settings::rigidbody::ParameterMaskStrategyChoice::SequentialSymmetry;}
+    if (line == "sequential_real")      {return settings::rigidbody::ParameterMaskStrategyChoice::SequentialReal;}
+    if (line == "random")               {return settings::rigidbody::ParameterMaskStrategyChoice::Random;}
     throw except::invalid_argument("SequenceParser::get_parameter_mask_strategy: Unknown mask strategy \"" + std::string(line) + "\"");
 }
 

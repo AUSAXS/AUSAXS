@@ -45,11 +45,13 @@ namespace ausaxs::settings {
         static ParameterGenerationStrategyChoice parameter_generation_strategy;
 
         enum class ParameterMaskStrategyChoice {
-            All,        // All parameter components are active every step (default).
-            Real,       // Only the real body transform (translation + rotation) is active.
-            Symmetry,   // Only symmetry parameters (offset, axis, angle) are active.
-            Sequential, // Alternates between real-only and symmetry-only steps.
-            Random      // Randomly picks real-only or symmetry-only each step.
+            All,                // All parameter components are active every step (default).
+            Real,               // Only the real body transform (translation + rotation) is active.
+            Symmetry,           // Only symmetry parameters (offset, axis, angle) are active.
+            Sequential,         // Alternates between real-only and symmetry-only steps.
+            SequentialSymmetry, // Alternates between all-symmetry and symmetry-only steps, isolating the effect of the symmetry parameters.
+            SequentialReal,     // Alternates between all-real and real-only steps, isolating the effect of the real body transform parameters.
+            Random              // Randomly picks real-only or symmetry-only each step.
         };
         static ParameterMaskStrategyChoice parameter_mask_strategy;
 
