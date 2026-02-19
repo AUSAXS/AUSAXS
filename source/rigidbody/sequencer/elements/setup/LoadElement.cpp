@@ -78,6 +78,9 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names) : owner(owner) {
     rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(lookup_file(path).first));
+    if (rigidbody->molecule.size_body() <= 1) {
+        throw std::runtime_error("LoadElement::LoadElement: Could not split \"" + path + "\" by chain, as it contains only one.");
+    }
 
     // add default names
     for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
