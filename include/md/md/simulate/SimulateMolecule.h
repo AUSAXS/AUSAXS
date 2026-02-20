@@ -10,7 +10,8 @@ namespace ausaxs::md {
     struct SimulateMoleculeOptions {
         SystemSettings system;
         PDBFile pdbfile;
-        MDPFile mdp;
+        MDPFile mdp_equilibration;
+        MDPFile mdp_production;
         std::unique_ptr<executor::type> minimize_runner;
         std::unique_ptr<executor::type> equilibrate_runner;
         std::unique_ptr<executor::type> production_runner;

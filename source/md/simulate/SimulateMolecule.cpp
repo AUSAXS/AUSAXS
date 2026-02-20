@@ -155,8 +155,7 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
         // }
 
         // prepare equilibration sim
-        MDPFile mdp = mdp::templates::equilibrate::mol().write(mdp_folder + "eqmol.mdp");
-        auto[eqtpr] = grompp(mdp, top, emgro)
+        auto[eqtpr] = grompp(options.mdp_equilibration, top, emgro)
             .output(eq_path + "eq.tpr")
             .index(index)
             .restraints(emgro)
@@ -192,7 +191,7 @@ SimulateMoleculeOutput md::simulate_molecule(SimulateMoleculeOptions&& options) 
 
         // prepare production sim
         console::print_text("Running production...");
-        auto cmd = grompp(options.mdp, top, eqgro)
+        auto cmd = grompp(options.mdp_production, top, eqgro)
             .output(prod_path + "prod.tpr")
             .index(index)
             .warnings(1);

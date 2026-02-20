@@ -48,10 +48,6 @@ namespace ausaxs::md {
             bool group_set = false;
             NDXFile ndx;
 
-            void validate() const override {
-                if (!group_set) {
-                    throw except::missing_option("select: Group not set");
-                }
-            }
+            void validate() const override {}
     };
 }
