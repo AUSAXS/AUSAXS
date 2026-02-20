@@ -91,9 +91,9 @@ int main(int argc, char const *argv[]) {
         // write frames often to get good sampling, while ensuring they are still uncorrelated
         .add(MDPOptions::nstxout_compressed = 100)
     ; 
+    auto mdp_prod_file = mdp_prod.write(settings::general::output + "mdp/mol.mdp");
     auto mdp_eq = mdp_prod.add(MDPOptions::nsteps = "50000");
     auto mdp_eq_file = mdp_eq.write(settings::general::output + "mdp/mol_eq.mdp");
-    auto mdp_prod_file = mdp_prod.write(settings::general::output + "mdp/mol.mdp");
 
     auto molecule = simulate_molecule({
         .system = ss,
