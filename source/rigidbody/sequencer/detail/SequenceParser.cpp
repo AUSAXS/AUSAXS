@@ -417,12 +417,12 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
         {Args::names, {"names", "name"}},
         {Args::saxs, {"saxs_path", "saxs"}}
     };
-    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Invalid number of arguments. Expected at least one.");}
+    if (args.empty()) {throw except::invalid_argument("Element \"load\": Invalid number of arguments. Expected at least one.");}
 
     auto paths = get_arg<std::vector<std::string>>(valid_args[Args::paths], args);
     auto names = get_arg<std::vector<std::string>>(valid_args[Args::names], args);
     auto saxs_path = get_arg<std::string>(valid_args[Args::saxs], args);
-    if (!paths.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Missing required argument \"paths\".");}
+    if (!paths.found) {throw except::invalid_argument("Element \"load\": Missing required argument \"path\".");}
 
     // Handle SAXS path separately through SetupElement
     if (saxs_path.found) {
@@ -432,14 +432,14 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
     {   // check the special case of splitting by chainID
         auto split_test = get_arg<std::string>(valid_args[Args::splits], args);
         if (split_test.found && split_test.value == "chain") {
-            if (paths.value.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Chain splitting can only be used with a single path.");}
+            if (paths.value.size() != 1) {throw except::invalid_argument("Element \"load\": Chain splitting can only be used with a single path.");}
             return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], names.value);
         }
     }
 
     auto splits = get_arg<std::vector<int>>(valid_args[Args::splits], args);
     if (splits.found) {
-        if (paths.value.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: \"load\": Splits can only be used with a single path.");}
+        if (paths.value.size() != 1) {throw except::invalid_argument("Element \"load\": Splits can only be used with a single path.");}
         return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], splits.value, names.value);
     }
     return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value, names.value);
@@ -450,7 +450,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sym
     auto rigidbody = loop_stack.front()->_get_rigidbody();
     if (rigidbody->molecule.size_body() < args.size()) {
         throw except::invalid_argument(
-            "SequenceParser::parse_arguments: Too many arguments for \"symmetry\". "
+            "Element \"symmetry\": Invalid number of arguments. "
             "Expected no more than " + std::to_string(rigidbody->molecule.size_body()) + "."
         );
     }
@@ -459,7 +459,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sym
     if (args.size() == 1) {
         if (rigidbody->molecule.size_body() != 1) {
             throw except::invalid_argument(
-                "SequenceParser::parse_arguments: Explicit body name must be provided for \"symmetry\" when there is more than one body in the molecule. "
+                "Element \"symmetry\": Explicit body name must be provided when there is more than one body in the molecule. "
             );
         }
         return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{"b1"}, std::vector{symmetry::get(args.begin()->second[0])});
@@ -476,13 +476,13 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sym
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"loop\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    if (args.size() != 1) {throw except::invalid_argument("Element \"loop\": Invalid number of arguments. Expected 1, but got " + std::to_string(args.size()) + ".");}
 
     int iterations;
     try {
         iterations = std::stoi(args.begin()->second[0]);
     } catch (std::invalid_argument& e) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid argument for loop iterations: \"" + args.begin()->second[0] + "\".");
+        throw except::invalid_argument("Element \"loop\": Argument \"" + args.begin()->second[0] + "\" could not be interpreted as an integer.");
     }
     return std::make_unique<LoopElement>(
         loop_stack.back(), 
@@ -500,10 +500,8 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
         {Args::strategy, {"strategy"}},
         {Args::decay_strategy, {"decay_strategy", "decay"}}
     };
-    if (args.size() < 2) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"parameter\". Expected at least 2, but got " + std::to_string(args.size()) + ".");
-    } else if (5 < args.size()) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Received too many arguments for \"parameter\". Expected at most 5, but got " + std::to_string(args.size()) + ".");
+    if (!(2 <= args.size() && args.size() <= 5)) {
+        throw except::invalid_argument("Element \"parameter\": Invalid number of arguments. Expected between 2 and 5, but got " + std::to_string(args.size()) + ".");
     }
 
     auto iterations = get_arg<int>(valid_args[Args::iterations], args);
@@ -516,7 +514,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
     bool has_rotate = rotate.found && rotate.value != 0;
 
     // validate arguments
-    if (!iterations.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing required argument \"iterations\".");}
+    if (!iterations.found) {throw except::invalid_argument("Element \"parameter\": Missing required argument \"iterations\".");}
     if (!strategy.found) {
         // automatic determination of strategy if not provided
         if (has_translate && !has_rotate) {strategy.value = ParameterStrategyDefs::TRANSLATE_ONLY;}
@@ -529,18 +527,18 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
                     "Defaulting to strategy \"symmetry_only\"."
                 );
             } else {
-                throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing one of \"strategy\", \"translate\", or \"rotate\".");
+                throw except::invalid_argument("Element \"parameter\": Missing one of \"strategy\", \"translate\", or \"rotate\".");
             }
         }
     } else {
         if (strategy.value == ParameterStrategyDefs::TRANSLATE_ONLY && !has_translate) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing required argument \"translate\" for strategy \"translate_only\".");
+            throw except::invalid_argument("Element \"parameter\" Missing required argument \"translate\" for strategy \"translate_only\".");
         } else if (strategy.value == ParameterStrategyDefs::ROTATE_ONLY && !has_rotate) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing required argument \"rotate\" for strategy \"rotate_only\".");
+            throw except::invalid_argument("Element \"parameter\" Missing required argument \"rotate\" for strategy \"rotate_only\".");
         } else if (strategy.value == ParameterStrategyDefs::BOTH && !(has_translate && has_rotate)) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Missing required arguments \"translate\" and \"rotate\" for strategy \"both\".");
+            throw except::invalid_argument("Element \"parameter\" Missing required arguments \"translate\" and \"rotate\" for strategy \"both\".");
         } else if (strategy.value == ParameterStrategyDefs::SYMMETRY_ONLY && (has_translate || has_rotate)) {
-            throw except::invalid_argument("SequenceParser::parse_arguments: \"parameter_strategy\": Unexpected arguments \"translate\" and/or \"rotate\" for strategy \"symmetry_only\".");
+            throw except::invalid_argument("Element \"parameter\" Unexpected arguments \"translate\" and/or \"rotate\" for strategy \"symmetry_only\".");
         }
     }
 
