@@ -32,7 +32,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     settings::grid::cubic = true;
     settings::general::verbose = true;
 
-    CLI::App app{"Rigid-body optimization."};
+    CLI::App app{"[EXPERIMENTAL] Perform rigid-body optimization."};
     io::File pdb, mfile, settings, config;
     std::vector<unsigned int> constraints;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
@@ -41,7 +41,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     auto p_cal = app.add_option("--calibrate", settings::rigidbody::detail::calibration_file, "Path to the calibration data.")->expected(0, 1)->check(CLI::ExistingFile);
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
     app.add_option("--grid_width,-w", settings::grid::cell_width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
-    app.add_option_function<std::string>("--placement-strategy,--ps", [] (const std::string& s) {settings::detail::parse_option("placement_strategy", {s});}, "The placement strategy to use. Options: Radial, Axes, Jan.");
+    app.add_option_function<std::string>("--hydration_strategy,--hs", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, "The placement strategy to use. Options: Radial, Axes, Jan.");
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from measurement file.");
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
