@@ -10,41 +10,41 @@ using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
 bool sanity_checks(const CyclicSymmetry& s) {
-    assert(1 <= s.repetitions && "Zero or negative repeats does not make sense.");
-    assert(s.initial_relation.translation.dot(s.repeat_relation.translation) == 0 && "The translation vectors must be orthogonal.");
+    assert(1 <= s._repetitions && "Zero or negative repeats does not make sense.");
+    assert(s._initial_relation.translation.dot(s._repeat_relation.translation) == 0 && "The translation vectors must be orthogonal.");
     assert([&]() -> bool {
-        if (1e-6 < std::abs(s.repeat_relation.angle)) { return 1e-6 < s.repeat_relation.axis.magnitude(); }
+        if (1e-6 < std::abs(s._repeat_relation.angle)) { return 1e-6 < s._repeat_relation.axis.magnitude(); }
         return true;
     }() && "Rotation angle is non-zero but rotation axis is zero vector.");
     assert([&]() -> bool {
-        auto normed_axis = s.repeat_relation.axis / s.repeat_relation.axis.magnitude();
-        auto R_r = matrix::rotation_matrix<double>(normed_axis, s.repeat_relation.angle);
-        return std::abs(s.repeat_relation.angle) < 1e-6 || R_r*s.repeat_relation.translation == s.repeat_relation.translation;
+        auto normed_axis = s._repeat_relation.axis / s._repeat_relation.axis.magnitude();
+        auto R_r = matrix::rotation_matrix<double>(normed_axis, s._repeat_relation.angle);
+        return std::abs(s._repeat_relation.angle) < 1e-6 || R_r*s._repeat_relation.translation == s._repeat_relation.translation;
     }() && "The translation vector must lie in the invariant space of the rotation matrix.");
     return true;
 }
 
 CyclicSymmetry::CyclicSymmetry() = default;
 CyclicSymmetry::CyclicSymmetry(_Relation initial_relation, _Repeat repeat_relation, int repetitions) {
-    this->initial_relation = initial_relation;
-    this->repeat_relation  = repeat_relation;
-    this->repetitions      = repetitions;
+    this->_initial_relation = initial_relation;
+    this->_repeat_relation  = repeat_relation;
+    this->_repetitions      = repetitions;
     assert(sanity_checks(*this));
 }
 
 CyclicSymmetry::CyclicSymmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions) {
-    this->initial_relation = _Relation{offset};
-    this->repeat_relation  = _Repeat{repeat_translation, repeat_axis, repeat_rotation};
-    this->repetitions      = repetitions;
+    this->_initial_relation = _Relation{offset};
+    this->_repeat_relation  = _Repeat{repeat_translation, repeat_axis, repeat_rotation};
+    this->_repetitions      = repetitions;
     assert(sanity_checks(*this));
 }
 
 ISymmetry& CyclicSymmetry::add(observer_ptr<const ISymmetry> other) {
     auto cast = dynamic_cast<const CyclicSymmetry*>(other);
     assert(cast != nullptr && "Can only add Symmetry with another Symmetry.");
-    this->initial_relation.translation += cast->initial_relation.translation;
-    this->repeat_relation.axis += cast->repeat_relation.axis;
-    this->repeat_relation.angle += cast->repeat_relation.angle;
+    this->_initial_relation.translation += cast->_initial_relation.translation;
+    this->_repeat_relation.axis += cast->_repeat_relation.axis;
+    this->_repeat_relation.angle += cast->_repeat_relation.angle;
     return *this;
 }
 
@@ -55,12 +55,12 @@ std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> CyclicSymmetry::
     Vector3<double> T_final;
 
     {
-        auto t_i = initial_relation.translation;
-        auto t_r = repeat_relation.translation;
-        auto normed_axis = repeat_relation.axis / repeat_relation.axis.magnitude();
+        auto t_i = _initial_relation.translation;
+        auto t_r = _repeat_relation.translation;
+        auto normed_axis = _repeat_relation.axis / _repeat_relation.axis.magnitude();
         assert(sanity_checks(*this));
         assert((
-            1e-6 < t_r.magnitude() || 1e-6 < std::abs(repeat_relation.angle)
+            1e-6 < t_r.magnitude() || 1e-6 < std::abs(_repeat_relation.angle)
             || (rep == 1 && 1e-6 < t_i.magnitude())
         ) && "The symmetry is trivial; no transformation to apply.");
 
@@ -71,7 +71,7 @@ std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> CyclicSymmetry::
         //   base_T = cm - r_r*cm + (r_r*t_i + t_r - t_i)   (k=1 translation)
         //   R_k    = r_r^k
         //   T_k    = r_r * T_{k-1} + base_T,   T_1 = base_T
-        auto R_r = matrix::rotation_matrix<double>(normed_axis, repeat_relation.angle);
+        auto R_r = matrix::rotation_matrix<double>(normed_axis, _repeat_relation.angle);
         auto base_T = cm - R_r * cm + (R_r * t_i + t_r - t_i);
         R_final = R_r;
         T_final = base_T;
@@ -86,12 +86,16 @@ std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> CyclicSymmetry::
     };
 }
 
+unsigned int CyclicSymmetry::repetitions() const {return 1;}
+std::span<double> CyclicSymmetry::span_translation() {return std::span<double>(_initial_relation.translation.begin(), _initial_relation.translation.end());}
+std::span<double> CyclicSymmetry::span_rotation() {return std::span<double>(_repeat_relation.axis.begin(), _repeat_relation.axis.begin());}
+
 bool CyclicSymmetry::is_closed() const {
-    if (repeat_relation.translation.magnitude() != 0) { return false; }
-    if (std::abs(repeat_relation.angle) < 1e-9) { return true; }
+    if (_repeat_relation.translation.magnitude() != 0) { return false; }
+    if (std::abs(_repeat_relation.angle) < 1e-9) { return true; }
 
     // (repetitions+1) steps must accumulate to a multiple of 2pi
-    double total = (repetitions + 1) * repeat_relation.angle;
+    double total = (_repetitions + 1)*_repeat_relation.angle;
     constexpr int cmp = 628; // 100*2pi rounded to nearest integer
     int rounded = static_cast<int>(std::round(100 * std::abs(total)));
     return (rounded % cmp) == 0;

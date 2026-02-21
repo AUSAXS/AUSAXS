@@ -61,10 +61,8 @@ namespace ausaxs::rigidbody::selection {
 
     struct SequentialSymmetryMaskStrategy : ParameterMaskStrategy {
         ParameterMask next() override {
-            step_ = (step_ + 1) % 3;
-            if (step_ == 0) return ParameterMask::symmetry_only_trans();
-            if (step_ == 1) return ParameterMask::symmetry_only_axis();
-            return ParameterMask::symmetry_only_angle();
+            step_ = !step_;
+            return step_ ? ParameterMask::symmetry_only() : ParameterMask::symmetry_only_axis();
         }
         private:
             int step_ = 0;

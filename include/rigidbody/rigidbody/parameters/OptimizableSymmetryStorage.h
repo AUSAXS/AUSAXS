@@ -16,7 +16,6 @@ namespace ausaxs::symmetry  {
 
         bool optimize_translate = false;
         bool optimize_rot_axis = false;
-        bool optimize_rot_angle = false;
     };
 }
 
@@ -25,7 +24,6 @@ inline std::unique_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::symmetry::Opti
     for (const auto& s : symmetries) { copy->symmetries.push_back(s->clone()); }
     copy->optimize_translate = optimize_translate;
     copy->optimize_rot_axis = optimize_rot_axis;
-    copy->optimize_rot_angle = optimize_rot_angle;
     return copy;
 }
 
@@ -37,14 +35,9 @@ inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type sym
         case symmetry::type::c4:
         case symmetry::type::c5:
         case symmetry::type::c6:
-            optimize_rot_axis = true;
-            optimize_translate = true;
-            break;
-
         case symmetry::type::p2:
             optimize_rot_axis = true;
             optimize_translate = true;
-            optimize_rot_angle = true;
             break;
 
         default:

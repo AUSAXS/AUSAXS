@@ -32,8 +32,8 @@ BodySymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transfor
 
         // for every symmetry, loop over how many times it should be repeated
         // it is then repeatedly applied to the same data
-        std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(symmetry->repetitions, data_a);
-        for (int i_repeat = 0; i_repeat < symmetry->repetitions; ++i_repeat) {
+        std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(static_cast<int>(symmetry->repetitions()), data_a);
+        for (int i_repeat = 0; i_repeat < static_cast<int>(symmetry->repetitions()); ++i_repeat) {
             auto t = symmetry->get_transform(cm, i_repeat+1);
             std::transform(
                 sym_atomic[i_repeat].get_data().begin(), 
@@ -57,8 +57,8 @@ SymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transformed_
     auto cm = body.get_cm();
     auto symmetry = body.symmetry().get(isym);
 
-    std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(symmetry->repetitions, data_a);
-    for (int i_repeat = 0; i_repeat < symmetry->repetitions; ++i_repeat) {
+    std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(static_cast<int>(symmetry->repetitions()), data_a);
+    for (int i_repeat = 0; i_repeat < static_cast<int>(symmetry->repetitions()); ++i_repeat) {
         auto t = symmetry->get_transform(cm, i_repeat+1);
         std::transform(
             sym_atomic[i_repeat].get_data().begin(), 

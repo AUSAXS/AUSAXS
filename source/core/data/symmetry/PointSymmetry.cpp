@@ -11,11 +11,9 @@ using namespace ausaxs::symmetry;
 
 PointSymmetry::PointSymmetry() = default;
 
-PointSymmetry::PointSymmetry(const Vector3<double>& offset, const Vector3<double>& orient_axis, double orient_angle) {
-    initial_relation.translation = offset;
-    repeat_relation.axis  = orient_axis;
-    repeat_relation.angle = orient_angle;
-    repeat_relation.translation = {0, 0, 0};
+PointSymmetry::PointSymmetry(const Vector3<double>& offset, const Vector3<double>& orient_axis) {
+    translation = offset;
+    rotation  = orient_axis;
 }
 
 bool PointSymmetry::is_closed() const { return false; }
@@ -25,28 +23,27 @@ std::unique_ptr<ISymmetry> PointSymmetry::clone() const {
 }
 
 std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> PointSymmetry::get_transform(const Vector3<double>& cm, int rep) const {
-    assert(rep == 1 && "PointSymmetry always generates exactly one copy (rep must be 1).");
+    assert(rep <= 1 && "PointSymmetry always generates exactly one copy (rep must be 1).");
 
-    const auto& d    = initial_relation.translation;
-    const auto& axis = repeat_relation.axis;
-    const double theta = repeat_relation.angle;
+    auto normed_axis = rotation.magnitude() > 1e-9 ? rotation / rotation.magnitude() : Vector3<double>{0, 0, 1};
+    auto R = matrix::rotation_matrix<double>(normed_axis);
 
-    auto normed_axis = axis.magnitude() > 1e-9 ? axis / axis.magnitude() : Vector3<double>{0, 0, 1};
-    auto R = matrix::rotation_matrix<double>(normed_axis, theta);
-
-    // T = (I - R)*cm + d
-    auto T = cm - R * cm + d;
-
+    // final transform is p' = R*(p - cm) + cm + d
+    //                       = R*p + (cm + d - R*cm)
+    auto T = cm + translation - R*cm;
     return [R=std::move(R), T=std::move(T)](Vector3<double> v) {
         return R * v + T;
     };
 }
 
+unsigned int PointSymmetry::repetitions() const {return 1;}
+std::span<double> PointSymmetry::span_translation() {return std::span<double>(translation.begin(), translation.end());}
+std::span<double> PointSymmetry::span_rotation() {return std::span<double>(rotation.begin(), rotation.end());}
+
 ISymmetry& PointSymmetry::add(observer_ptr<const ISymmetry> other) {
     auto cast = dynamic_cast<const PointSymmetry*>(other);
     assert(cast != nullptr && "Can only add PointSymmetry with another PointSymmetry.");
-    this->initial_relation.translation += cast->initial_relation.translation;
-    this->repeat_relation.axis += cast->repeat_relation.axis;
-    this->repeat_relation.angle += cast->repeat_relation.angle;
+    this->translation += cast->translation;
+    this->rotation += cast->rotation;
     return *this;
 }

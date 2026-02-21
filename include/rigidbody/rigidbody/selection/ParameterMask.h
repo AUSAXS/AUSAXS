@@ -18,16 +18,14 @@ namespace ausaxs::rigidbody::selection {
         bool real_rotation     = true; // Allow body rotation.
         bool sym_translation   = true; // Allow symmetry offset translation (initial_relation.translation).
         bool sym_axis          = true; // Allow symmetry rotation axis direction (repeat_relation.axis).
-        bool sym_angle         = true; // Allow symmetry rotation angle (repeat_relation.angle).
 
-        static ParameterMask all()                  { return {true,  true,  true,  true,  true }; }
-        static ParameterMask real_only()            { return {true,  true,  false, false, false}; }
-        static ParameterMask symmetry_only()        { return {false, false, true,  true,  true }; }
-        static ParameterMask real_only_rot ()       { return {false, true,  false, false, false}; }
-        static ParameterMask real_only_trans ()     { return {true,  false, false, false, false}; }
-        static ParameterMask symmetry_only_trans()  { return {false, false, true,  false, false}; }
-        static ParameterMask symmetry_only_axis()   { return {false, false, false, true,  false}; }
-        static ParameterMask symmetry_only_angle()  { return {false, false, false, false, true }; }
+        static ParameterMask all()                  { return {true,  true,  true,  true }; }
+        static ParameterMask real_only()            { return {true,  true,  false, false}; }
+        static ParameterMask symmetry_only()        { return {false, false, true,  true }; }
+        static ParameterMask real_only_rot ()       { return {false, true,  false, false}; }
+        static ParameterMask real_only_trans ()     { return {true,  false, false, false}; }
+        static ParameterMask symmetry_only_trans()  { return {false, false, true,  false}; }
+        static ParameterMask symmetry_only_axis()   { return {false, false, false, true }; }
 
         /**
          * @brief Apply this mask to relative transform parameters in-place.

@@ -49,9 +49,14 @@ void TransformStrategy::apply_symmetry(const std::vector<std::unique_ptr<symmetr
     assert(symmetry.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
         auto current_sym = body.symmetry().get(i);
-        current_sym->initial_relation.translation = symmetry[i]->initial_relation.translation;
-        current_sym->repeat_relation.axis = symmetry[i]->repeat_relation.axis;
-        current_sym->repeat_relation.angle = symmetry[i]->repeat_relation.angle;
+        auto src_t = symmetry[i]->span_translation();
+        auto src_r = symmetry[i]->span_rotation();
+        auto dst_t = current_sym->span_translation();
+        auto dst_r = current_sym->span_rotation();
+
+        assert(src_t.size() == dst_t.size() && src_r.size() == dst_r.size() && "TransformStrategy::apply_symmetry: Symmetry parameter size mismatch.");
+        std::copy(src_t.begin(), src_t.end(), dst_t.begin());
+        std::copy(src_r.begin(), src_r.end(), dst_r.begin());
         body.get_signaller()->modified_symmetry(i);
     }
 }

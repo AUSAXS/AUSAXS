@@ -68,7 +68,7 @@ void Rigidbody::refresh_grid() {
             auto sym = body.symmetry().get(j);
             auto cm = body.get_cm();
             
-            for (int rep = 1; rep <= sym->repetitions; ++rep) {
+            for (int rep = 1; rep <= static_cast<int>(sym->repetitions()); ++rep) {
                 auto transform = sym->get_transform(cm, rep);
                 
                 // Transform the 8 corners of the bounding box to get symmetry-transformed bounds

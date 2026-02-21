@@ -12,32 +12,32 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
     switch (t) {
         case type::c2:
             return std::make_unique<CyclicSymmetry>(
-                ISymmetry::_Relation{{0, 0, 0}},
-                ISymmetry::_Repeat{{0, 0, 1}, std::numbers::pi},
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, std::numbers::pi},
                 1
             );
         case type::c3:
             return std::make_unique<CyclicSymmetry>(
-                ISymmetry::_Relation{{0, 0, 0}},
-                ISymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/3},
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/3},
                 2
             );
         case type::c4:
             return std::make_unique<CyclicSymmetry>(
-                ISymmetry::_Relation{{0, 0, 0}},
-                ISymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/4},
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/4},
                 3
             );
         case type::c5:
             return std::make_unique<CyclicSymmetry>(
-                ISymmetry::_Relation{{0, 0, 0}},
-                ISymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/5},
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/5},
                 4
             );
         case type::c6:
             return std::make_unique<CyclicSymmetry>(
-                ISymmetry::_Relation{{0, 0, 0}},
-                ISymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/6},
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/6},
                 5
             );
         case type::p2:
@@ -45,8 +45,7 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
             // The optimiser will freely perturb translation (d) and orientation (axis/angle).
             return std::make_unique<PointSymmetry>(
                 Vector3<double>{0, 0, 0},
-                Vector3<double>{0, 0, 1},
-                std::numbers::pi
+                Vector3<double>{0, 0, 1}
             );
         default:
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");

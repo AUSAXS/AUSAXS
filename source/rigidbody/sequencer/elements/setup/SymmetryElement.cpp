@@ -39,7 +39,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         auto& name_map = setup._get_body_names();
         int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::SymmetryElement: Inconsistent data structures.");
-        if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry)->repetitions; reps == 1) { // single replica only: b1s1
+        if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry)->repetitions(); reps == 1) { // single replica only: b1s1
             name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 0));
         } else { // multiple replicas, so include replica index in name: b1s1r1, b1s1r2, ...
             for (int j = 0; j < reps; ++j) {
@@ -48,9 +48,8 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         }
 
         // place the symmetry body at a sane distance from the original
-        auto start = Vector3<double>{2*molecule->get_Rg(false), 0, 0};
-        molecule->get_body(ibody).symmetry().get(isymmetry)->initial_relation.translation = start;
-        rigidbody->conformation->initial_conformation[ibody].symmetry().get(isymmetry)->initial_relation.translation = start;
+        *molecule->get_body(ibody).symmetry().get(isymmetry)->span_translation().begin() = 2*molecule->get_Rg(false);
+        *rigidbody->conformation->initial_conformation[ibody].symmetry().get(isymmetry)->span_translation().begin() = 2*molecule->get_Rg(false);
         rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars.emplace_back(
             molecule->get_body(ibody).symmetry().get(isymmetry)->clone()
         );

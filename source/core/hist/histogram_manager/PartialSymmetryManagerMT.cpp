@@ -562,10 +562,10 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         if (isym2 == 0) {
             assert(isym1 < 1+static_cast<int>(body1.size_symmetry()) && "symmetry index out of bounds");
             auto sym1 = body1.symmetry().get(isym1-1);
-            bool closed = sym1->is_closed() && std::abs(sym1->repeat_relation.angle) > 1e-9;
-            for (int irepeat1 = 0; irepeat1 < std::max(1, sym1->repetitions - int(closed)); ++irepeat1) {
+            bool closed = sym1->is_closed();
+            for (int irepeat1 = 0; irepeat1 < std::max<int>(1, sym1->repetitions() - int(closed)); ++irepeat1) {
                 const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
-                int scale = sym1->repetitions - irepeat1;
+                int scale = sym1->repetitions() - irepeat1;
                 if (irepeat1 == 0 && closed) {scale += 1;}
                 calculator->enqueue_calculate_cross(coords[ibody2].atomic[0][0], body1_sym_atomic, scale, res_index);
 
@@ -590,7 +590,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
     } else if (isym1 == 0) {
         assert(isym2 < 1+static_cast<int>(body2.size_symmetry()) && "symmetry index out of bounds");
         const auto& sym2 = body2.symmetry().get(isym2-1);
-        for (int irepeat2 = 0; irepeat2 < sym2->repetitions; ++irepeat2) {
+        for (int irepeat2 = 0; irepeat2 < static_cast<int>(sym2->repetitions()); ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[isym2][irepeat2];
             calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, 1, res_index);
 
@@ -603,7 +603,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
     } else if (isym2 == 0) {
         assert(isym1 < 1+static_cast<int>(body1.size_symmetry()) && "symmetry index out of bounds");
         const auto& sym1 = body1.symmetry().get(isym1-1);
-        for (int irepeat1 = 0; irepeat1 < sym1->repetitions; ++irepeat1) {
+        for (int irepeat1 = 0; irepeat1 < static_cast<int>(sym1->repetitions()); ++irepeat1) {
             const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
             calculator->enqueue_calculate_cross(body1_sym_atomic, coords[ibody2].atomic[0][0], 1, res_index);
 
@@ -621,9 +621,9 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
     const auto& sym1 = body1.symmetry().get(isym1-1);
     const auto& sym2 = body2.symmetry().get(isym2-1);
 
-    for (int irepeat1 = 0; irepeat1 < sym1->repetitions; ++irepeat1) {
+    for (int irepeat1 = 0; irepeat1 < static_cast<int>(sym1->repetitions()); ++irepeat1) {
         const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
-        for (int irepeat2 = 0; irepeat2 < sym2->repetitions; ++irepeat2) {
+        for (int irepeat2 = 0; irepeat2 < static_cast<int>(sym2->repetitions()); ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[isym2][irepeat2];
             calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, res_index);
 
@@ -658,7 +658,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calcul
     // else iterate over its repititions
     assert(isym < 1+static_cast<int>(body.size_symmetry()) && "symmetry index out of bounds");
     const auto& sym = body.symmetry().get(isym-1);
-    for (int irepeat = 0; irepeat < sym->repetitions; ++irepeat) {
+    for (int irepeat = 0; irepeat < static_cast<int>(sym->repetitions()); ++irepeat) {
         const auto& body1_sym_atomic = coords[ibody].atomic[isym][irepeat];
         #if DEBUG_INFO_PSMMT
             std::cout << "\t[" << ibody << isym << irepeat << "]" << std::endl;

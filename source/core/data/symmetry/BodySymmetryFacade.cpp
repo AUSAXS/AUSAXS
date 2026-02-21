@@ -124,7 +124,7 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
     for (const auto& sym_ptr : get()) {
         assert(atom_span.data() == atoms.data() && "atoms span has been reallocated and invalidated atom_span");
         assert(water_span.data() == waters.data() && "waters span has been reallocated and invalidated water_span");
-        for (int i = 0; i < sym_ptr->repetitions; ++i) {
+        for (int i = 0; i < static_cast<int>(sym_ptr->repetitions()); ++i) {
             auto t = sym_ptr->get_transform(cm, i+1);
             for (const auto& a : atom_span) {
                 atoms.emplace_back(t(a.coordinates()), a.form_factor_type());

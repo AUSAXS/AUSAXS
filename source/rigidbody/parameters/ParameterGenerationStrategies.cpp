@@ -32,24 +32,18 @@ ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody:
 
     if constexpr (SYMMETRY) {
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
-        params.symmetry_pars = std::vector<std::unique_ptr<symmetry::ISymmetry>>(symmetries->symmetries.size());
-        for (int i = 0; i < static_cast<int>(params.symmetry_pars->size()); ++i) {
-            auto& current_sym = params.symmetry_pars.value()[i];
+        params.symmetry_pars.emplace();
+        for (int i = 0; i < static_cast<int>(symmetries->symmetries.size()); ++i) {
+            auto delta = symmetries->symmetries[i]->clone();
             if (symmetries->optimize_translate) {
-                current_sym->initial_relation.translation.x() = translation_symmetry_dist(random::generator())*scaling;
-                current_sym->initial_relation.translation.y() = translation_symmetry_dist(random::generator())*scaling;
-                current_sym->initial_relation.translation.z() = translation_symmetry_dist(random::generator())*scaling;
-            }
+                for (auto& t : delta->span_translation()) {t = translation_symmetry_dist(random::generator())*scaling;}
+            } else {for (auto& t : delta->span_translation()) {t = 0;}}
 
             if (symmetries->optimize_rot_axis) {
-                current_sym->repeat_relation.axis.x() = rotation_symmetry_dist(random::generator())*scaling;
-                current_sym->repeat_relation.axis.y() = rotation_symmetry_dist(random::generator())*scaling;
-                current_sym->repeat_relation.axis.z() = rotation_symmetry_dist(random::generator())*scaling;
-            }
+                for (auto& r : delta->span_rotation()) {r = rotation_symmetry_dist(random::generator())*scaling;}
+            } else {for (auto& r : delta->span_rotation()) {r = 0;}}
 
-            if (symmetries->optimize_rot_angle) {
-                current_sym->repeat_relation.angle = angle_symmetry_dist(random::generator())*scaling;
-            }
+            params.symmetry_pars->emplace_back(std::move(delta));
         }
     }
 
