@@ -35,11 +35,11 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         molecule->get_body(ibody).symmetry().add(symmetry[i]);
         rigidbody->conformation->initial_conformation[ibody].symmetry().add(symmetry[i]);
 
-        // add names for the symmetry bodies
+        // add names for the symmetric bodies
         auto& name_map = setup._get_body_names();
         int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::SymmetryElement: Inconsistent data structures.");
-        if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry).repetitions; reps == 1) { // single replica only: b1s1
+        if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry)->repetitions(); reps == 1) { // single replica only: b1s1
             name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 0));
         } else { // multiple replicas, so include replica index in name: b1s1r1, b1s1r2, ...
             for (int j = 0; j < reps; ++j) {
@@ -48,15 +48,12 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         }
 
         // place the symmetry body at a sane distance from the original
-        double Rg = molecule->get_Rg();
-        molecule->get_body(ibody).symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
-        rigidbody->conformation->initial_conformation[ibody].symmetry().get(0).initial_relation.translation = {2*Rg, 0, 0};
+        *molecule->get_body(ibody).symmetry().get(isymmetry)->span_translation().begin() = 2*molecule->get_Rg(false);
+        *rigidbody->conformation->initial_conformation[ibody].symmetry().get(isymmetry)->span_translation().begin() = 2*molecule->get_Rg(false);
         rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars.emplace_back(
-            molecule->get_body(ibody).symmetry().get(0)
+            molecule->get_body(ibody).symmetry().get(isymmetry)->clone()
         );
-
-    }
-    
+    }    
     // Refresh grid to accommodate symmetry bodies
     rigidbody->refresh_grid();
 }

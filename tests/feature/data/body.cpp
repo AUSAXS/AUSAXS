@@ -198,9 +198,11 @@ TEST_CASE("Body::rotate") {
 }
 
 #include <data/state/BoundSignaller.h>
+#include <data/state/StateManager.h>
 TEST_CASE("Body::register_probe") {
     Body body(std::vector<AtomFF>{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)});
-    auto probe = std::make_shared<signaller::BoundSignaller>(1, nullptr);
+    state::StateManager sm(1);
+    auto probe = std::make_shared<signaller::BoundSignaller>(0, &sm);
     body.register_probe(probe);
     REQUIRE(probe == body.get_signaller());
 }
@@ -237,7 +239,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body: equality") {
         }
         REQUIRE(b2.equals_content(b3));
 
-        b2.symmetry().add(symmetry::type::p3);
+        b2.symmetry().add(symmetry::type::c3);
         REQUIRE(!b2.equals_content(b3));
         b4 = b3;
         REQUIRE(b3.equals_content(b4));

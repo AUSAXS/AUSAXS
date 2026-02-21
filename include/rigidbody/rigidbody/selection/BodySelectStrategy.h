@@ -4,8 +4,11 @@
 #pragma once
 
 #include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/selection/ParameterMask.h>
+#include <rigidbody/selection/ParameterMaskStrategy.h>
 #include <utility/observer_ptr.h>
 
+#include <memory>
 #include <utility>
 
 namespace ausaxs::rigidbody {
@@ -19,6 +22,12 @@ namespace ausaxs::rigidbody {
                 BodySelectStrategy(observer_ptr<const Rigidbody> rigidbody);
                 virtual ~BodySelectStrategy() = default;
 
+                struct SelectionResult {
+                    unsigned int ibody;
+                    int iconstraint;
+                    ParameterMask mask;
+                };
+
                 /**
                  * @brief Get the index of the next body and constraint to be transformed. 
                  * 
@@ -27,9 +36,25 @@ namespace ausaxs::rigidbody {
                  */
                 virtual std::pair<unsigned int, int> next() = 0;
 
+                /**
+                 * @brief Like next(), but also returns a ParameterMask according to the configured mask strategy.
+                 *
+                 * The mask should be applied to the generated parameters before passing them to a transform strategy.
+                 * The default mask strategy (AllMaskStrategy) keeps all parameters active.
+                 */
+                SelectionResult next_mask();
+
+                /**
+                 * @brief Replace the mask strategy used by next_masked(). Takes ownership.
+                 */
+                void set_mask_strategy(std::unique_ptr<ParameterMaskStrategy> strategy);
+
             protected: 
                 observer_ptr<const Rigidbody> rigidbody;
                 unsigned int N;
+
+            private:
+                std::unique_ptr<ParameterMaskStrategy> mask_strategy;
         };
     }
 }

@@ -198,6 +198,7 @@ TEST_CASE("Molecule::simulate_dataset", "[files]") {
 
 TEST_CASE_METHOD(fixture, "Molecule::get_cm") {
     Molecule protein(bodies);
+    protein.translate({1, 2, 3});
     protein.center();
     Vector3<double> cm = protein.get_cm();
     REQUIRE(cm == Vector3<double>{0, 0, 0});
@@ -284,6 +285,7 @@ TEST_CASE("Molecule::save", "[files]") {
         REQUIRE(ok);
     }
 }
+
 TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
     settings::general::verbose = false;
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
@@ -406,6 +408,7 @@ TEST_CASE_METHOD(fixture, "Molecule::clear_hydration") {
 
 TEST_CASE_METHOD(fixture, "Molecule::center") {
     Molecule protein(bodies);
+    protein.translate({1, 2, 3});
     protein.center();
     REQUIRE(protein.get_cm() == Vector3<double>{0, 0, 0});
 

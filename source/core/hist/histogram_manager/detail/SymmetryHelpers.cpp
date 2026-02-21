@@ -28,13 +28,13 @@ BodySymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transfor
     // loop over its symmetries
     std::vector<std::vector<CompactCoordinates<variable_bin_width>>> atomic(1+body.size_symmetry());
     for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
-        const auto& symmetry = body.symmetry().get(i_sym_1);
+        auto symmetry = body.symmetry().get(i_sym_1);
 
         // for every symmetry, loop over how many times it should be repeated
         // it is then repeatedly applied to the same data
-        std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(symmetry.repetitions, data_a);
-        for (int i_repeat = 0; i_repeat < symmetry.repetitions; ++i_repeat) {
-            auto t = symmetry.get_transform<double>(cm, i_repeat+1);
+        std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(static_cast<int>(symmetry->repetitions()), data_a);
+        for (int i_repeat = 0; i_repeat < static_cast<int>(symmetry->repetitions()); ++i_repeat) {
+            auto t = symmetry->get_transform(cm, i_repeat+1);
             std::transform(
                 sym_atomic[i_repeat].get_data().begin(), 
                 sym_atomic[i_repeat].get_data().end(), 
@@ -55,11 +55,11 @@ template<bool variable_bin_width>
 SymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body, int isym) {
     CompactCoordinates<variable_bin_width> data_a(body.get_atoms());
     auto cm = body.get_cm();
-    const auto& symmetry = body.symmetry().get(isym);
+    auto symmetry = body.symmetry().get(isym);
 
-    std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(symmetry.repetitions, data_a);
-    for (int i_repeat = 0; i_repeat < symmetry.repetitions; ++i_repeat) {
-        auto t = symmetry.get_transform<double>(cm, i_repeat+1);
+    std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(static_cast<int>(symmetry->repetitions()), data_a);
+    for (int i_repeat = 0; i_repeat < static_cast<int>(symmetry->repetitions()); ++i_repeat) {
+        auto t = symmetry->get_transform(cm, i_repeat+1);
         std::transform(
             sym_atomic[i_repeat].get_data().begin(), 
             sym_atomic[i_repeat].get_data().end(), 

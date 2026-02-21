@@ -32,7 +32,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     settings::grid::cubic = true;
     settings::general::verbose = true;
 
-    CLI::App app{"Rigid-body optimization."};
+    CLI::App app{"[EXPERIMENTAL] Perform rigid-body optimization."};
     io::File pdb, mfile, settings, config;
     std::vector<unsigned int> constraints;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
@@ -41,14 +41,16 @@ int cli_rigidbody(int argc, char const *argv[]) {
     auto p_cal = app.add_option("--calibrate", settings::rigidbody::detail::calibration_file, "Path to the calibration data.")->expected(0, 1)->check(CLI::ExistingFile);
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
     app.add_option("--grid_width,-w", settings::grid::cell_width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
-    app.add_option_function<std::string>("--placement-strategy,--ps", [] (const std::string& s) {settings::detail::parse_option("placement_strategy", {s});}, "The placement strategy to use. Options: Radial, Axes, Jan.");
+    app.add_option_function<std::string>("--hydration_strategy,--hs", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, "The placement strategy to use. Options: Radial, Axes, Jan.");
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from measurement file.");
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_option("--iterations", settings::rigidbody::iterations, "Maximum number of iterations. Default: 1000.");
     app.add_option("--constraints", settings::rigidbody::detail::constraints, "Constraints to apply to the rigid body.");
     app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered. Default: true.");
+    app.add_flag("--use-occupancy,!--no-use-occupancy", settings::molecule::use_occupancy, "Decides whether the atom occupancy will be taken into account when calculating the histogram. Default: false.");
     app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms, "Decides whether the program will quit if an unknown atom is found. Default: true.");
+    app.add_flag("--allow-unknown-residues", settings::molecule::allow_unknown_residues, "Decides whether the program will quit if an unknown residue is found. Default: true.");
     CLI11_PARSE(app, argc, argv);
 
     console::print_info("Running AUSAXS " + std::string(constants::version));

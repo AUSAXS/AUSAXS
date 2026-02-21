@@ -2,57 +2,62 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <data/Body.h>
+#include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/PointSymmetry.h>
 
-ausaxs::symmetry::Symmetry ausaxs::symmetry::get(type t) {
+#include <numbers>
+#include <stdexcept>
+
+std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
     switch (t) {
+        case type::c2:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, std::numbers::pi},
+                1
+            );
+        case type::c3:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/3},
+                2
+            );
+        case type::c4:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/4},
+                3
+            );
+        case type::c5:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/5},
+                4
+            );
+        case type::c6:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::_Relation{{0, 0, 0}},
+                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/6},
+                5
+            );
         case type::p2:
-            return {
-                {
-                    {0, 0, 0},
-                    {0, 0, 0}
-                },
-                {
-                    {0, 0, 0},
-                    {0, 0, std::numbers::pi/2}
-                }
-            };
-            break;
-
-        case type::p3:
-            return {
-                {
-                    {0, 0, 0},
-                    {0, 0, 0}
-                },
-                {
-                    {0, 0, 0},
-                    {0, 0, std::numbers::pi/3}
-                }
-            };
-            break;
-
-        case type::p4:
-            return {
-                {
-                    {0, 0, 0},
-                    {0, 0, 0}
-                },
-                {
-                    {0, 0, 0},
-                    {0, 0, std::numbers::pi/4}
-                }
-            };
-            break;
-
-        default: 
+            // Decoupled dimer: zero initial offset and orientation along z-axis.
+            // The optimiser will freely perturb translation (d) and orientation (axis/angle).
+            return std::make_unique<PointSymmetry>(
+                Vector3<double>{0, 0, 0},
+                Vector3<double>{0, 0, 1}
+            );
+        default:
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
     }
 }
 
 ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
+    if (name == "c2") {return type::c2;}
+    if (name == "c3") {return type::c3;}
+    if (name == "c4") {return type::c4;}
+    if (name == "c5") {return type::c5;}
+    if (name == "c6") {return type::c6;}
     if (name == "p2") {return type::p2;}
-    if (name == "p3") {return type::p3;}
-    if (name == "p4") {return type::p4;}
     throw std::runtime_error("Unknown symmetry name \"" + std::string(name) + "\".");
 }

@@ -98,7 +98,7 @@ namespace ausaxs::data {
 			/** 
 			 * @brief Calculate the center-mass coordinates.
 			 */
-			[[nodiscard]] Vector3<double> get_cm(bool include_water = true) const;
+			[[nodiscard]] Vector3<double> get_cm(bool include_water = false) const;
 
 			/**
 			 * @brief Calculate the atomic molar mass of this molecule in Daltons.
@@ -207,7 +207,7 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get the radius of gyration of this molecule. 
 			 */
-			[[nodiscard]] double get_Rg() const;
+			[[nodiscard]] double get_Rg(bool include_waters = true) const;
 
 			/**
 			 * @brief Get the number of constituent bodies. 

@@ -15,13 +15,13 @@ double DistanceConstraintAtom::evaluate_distance(int iatom1, int iatom2) const {
     auto atom1 = molecule->get_body(ibody1).get_atom(iatom1).coordinates();
     auto atom2 = molecule->get_body(ibody2).get_atom(iatom2).coordinates();
     if (isym1.first != -1) {
-        const auto& sym = molecule->get_body(ibody1).symmetry().get(isym1.first);
-        auto transform = sym.get_transform<double>(atom1, isym1.second);
+        auto sym = molecule->get_body(ibody1).symmetry().get(isym1.first);
+        auto transform = sym->get_transform(atom1, isym1.second);
         atom1 = transform(atom1);
     }
     if (isym2.first != -1) {
-        const auto& sym = molecule->get_body(ibody2).symmetry().get(isym2.first);
-        auto transform = sym.get_transform<double>(atom2, isym2.second);
+        auto sym = molecule->get_body(ibody2).symmetry().get(isym2.first);
+        auto transform = sym->get_transform(atom2, isym2.second);
         atom2 = transform(atom2);
     }
     return atom1.distance(atom2);

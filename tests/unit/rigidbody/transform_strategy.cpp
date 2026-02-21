@@ -22,7 +22,7 @@ TEST_CASE("TransformStrategy::apply unconstrained body") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 25;
 
     SECTION("translate unconstrained body") {
         AtomFF a1({1, 2, 3}, form_factor::form_factor_t::C);
@@ -81,7 +81,7 @@ TEST_CASE("TransformStrategy::rotate_and_translate") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 10;
 
     SECTION("rotation then translation on single body") {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);
@@ -108,7 +108,7 @@ TEST_CASE("TransformStrategy::undo") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 50;
 
     SECTION("undo after single transformation") {
         AtomFF a1({3, 4, 5}, form_factor::form_factor_t::C);
@@ -120,7 +120,7 @@ TEST_CASE("TransformStrategy::undo") {
         auto cm_original = rigidbody.molecule.get_body(0).get_cm();
         auto params_original = rigidbody.conformation->absolute_parameters.parameters[0];
         
-        transformer->apply({{10, 20, 30}, {1, 2, 3}}, 0u);
+        transformer->apply({{5, 6, 7}, {1, 2, 3}}, 0u);
         
         // Verify change
         auto cm_after = rigidbody.molecule.get_body(0).get_cm();
@@ -152,7 +152,7 @@ TEST_CASE("TransformStrategy::undo") {
         auto cm_after_first = rigidbody.molecule.get_body(0).get_cm();
         
         transformer->apply({{1, 0, 0}, {0, 0, 0}}, 0u);
-        auto cm_after_second = rigidbody.molecule.get_body(0).get_cm();
+        // auto cm_after_second = rigidbody.molecule.get_body(0).get_cm();
         
         // Undo should restore to state after first transform
         transformer->undo();
@@ -167,7 +167,7 @@ TEST_CASE("TransformStrategy::reconstructed body matches current state after mul
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 10;
 
     SECTION("reconstructed body matches current state after multiple transformations") {
         AtomFF a1({2, 3, 4}, form_factor::form_factor_t::C);
@@ -207,7 +207,7 @@ TEST_CASE("TransformStrategy::parameter accumulation") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 10;
 
     SECTION("translations accumulate linearly") {
         AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);

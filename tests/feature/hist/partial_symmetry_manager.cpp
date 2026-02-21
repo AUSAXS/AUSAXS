@@ -32,13 +32,13 @@ auto test = [] (data::Molecule& protein) {
     // REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry
-    protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, 1, 0};
+    protein.get_body(0).symmetry().get(0).repeat_relation.translation = {0, 1, 0};
     phm_res = protein.get_histogram()->get_weighted_counts();
     p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & hydration simultanously
-    protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, -1, 0};
+    protein.get_body(0).symmetry().get(0).repeat_relation.translation = {0, -1, 0};
     protein.get_waters().clear();
     protein.signal_modified_hydration_layer();
     phm_res = protein.get_histogram()->get_weighted_counts();
@@ -46,14 +46,14 @@ auto test = [] (data::Molecule& protein) {
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & external simultanously
-    protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, 1, 0};
+    protein.get_body(0).symmetry().get(0).repeat_relation.translation = {0, 1, 0};
     protein.get_body(0).translate({2, 0, 0});
     phm_res = protein.get_histogram()->get_weighted_counts();
     p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & internal simultanously
-    protein.get_body(0).symmetry().get(0).repeat_relation.translate = {0, -1, 0};
+    protein.get_body(0).symmetry().get(0).repeat_relation.translation = {0, -1, 0};
     protein.get_body(0).get_atom(0).weight() = 2;
     protein.get_body(0).get_signaller()->modified_internal();
     phm_res = protein.get_histogram()->get_weighted_counts();
@@ -81,7 +81,7 @@ auto test_random = [] (data::Molecule& protein) {
             int body_index = ri(gen) % protein.size_body();
             if (protein.get_body(body_index).size_symmetry() != 0) {
                 int symmetry_index = ri(gen) % protein.get_body(body_index).size_symmetry();
-                protein.get_body(body_index).symmetry().get(symmetry_index).repeat_relation.translate = {rd(gen), rd(gen), rd(gen)};    
+                protein.get_body(body_index).symmetry().get(symmetry_index).repeat_relation.translation = {rd(gen), rd(gen), rd(gen)};    
             }
         }
 
@@ -121,7 +121,8 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}}
         });
         protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
+        // initial_relation = {0,0,0}, per-step translation = {-1,0,0}, no rotation, 1 repeat
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {-1, 0, 0}, {0, 0, 1}, 0, 1));
 
         test(protein);
         test_random(protein);
@@ -133,7 +134,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}}
         });
         protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {-1, 0, 0}, {0, 0, 1}, 0, 1));
 
         test(protein);
         test_random(protein);
@@ -145,7 +146,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}
         });
         protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {-1, 0, 0}, {0, 0, 1}, 0, 1));
         protein.generate_new_hydration();
 
         test(protein);
@@ -158,9 +159,9 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             Body{std::vector{AtomFF({1, 0, 0}, form_factor::form_factor_t::C)}, std::vector{Water({1, 0, 1})}},
         });
         protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{-1, 0, 0}, {0, 0, 0}}, 1}));
-        protein.get_body(0).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{0, -1, 0}, {0, 0, 0}}, 1}));
-        protein.get_body(1).symmetry().add(symmetry::Symmetry({{{0, 0, 0}, {0, 0, 0}}, {{0,  1, 0}, {0, 0, 0}}, 1}));
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, {-1, 0, 0}, {0, 0, 1}, 0, 1));
+        protein.get_body(0).symmetry().add(symmetry::Symmetry({0, 0, 0}, { 0,-1, 0}, {0, 0, 1}, 0, 1));
+        protein.get_body(1).symmetry().add(symmetry::Symmetry({0, 0, 0}, { 0, 1, 0}, {0, 0, 1}, 0, 1));
 
         test(protein);
         test_random(protein);
@@ -180,7 +181,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
             auto& body = protein.get_body(i);
             for (int j = 0; j < ri(gen); ++j) {
                 // symmetry with up to 4 repeats
-                symmetry::Symmetry sym({{0, 0, 0}, {0, 0, 0}}, {{rd(gen), rd(gen), rd(gen)}, {0, 0, 0}}, (ri(gen) % 4)+1);
+                symmetry::Symmetry sym({0, 0, 0}, {rd(gen), rd(gen), rd(gen)}, {0, 0, 1}, 0, (ri(gen) % 4)+1);
                 body.symmetry().add(std::move(sym));
             }
         }

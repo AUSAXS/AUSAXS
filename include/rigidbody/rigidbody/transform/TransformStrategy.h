@@ -92,7 +92,9 @@ namespace ausaxs::rigidbody::transform {
             /**
              * @brief Set a new set of absolute symmetry parameters for a given body. 
              */
-            virtual void apply_symmetry(const std::vector<symmetry::Symmetry>& symmetry, data::Body& body);
-            std::vector<symmetry::Symmetry> add_symmetries(const std::vector<symmetry::Symmetry>& current, const std::vector<symmetry::Symmetry>& delta);
+            virtual void apply_symmetry(const std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry, data::Body& body);
+            static void add_symmetries(
+                std::vector<std::unique_ptr<symmetry::ISymmetry>>& current, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta
+            );
     };
 }

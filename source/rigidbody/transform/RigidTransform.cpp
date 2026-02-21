@@ -26,7 +26,7 @@ RigidTransform::~RigidTransform() = default;
 
 void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) {
     auto group = get_connected(constraint);
-    backup(group);
+    backup(group); //? can be move-optimized?
 
     // remove bodies from grid since it does not track transforms
     auto grid = rigidbody->molecule.get_grid();
@@ -58,19 +58,24 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
             auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
             rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, group.bodies[i]->get_cm(), *group.bodies[i]);
         }
+    } else { // no transformation, so just restore the original conformation
+        for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
+            *group.bodies[i] = std::move(bodybackup[i].body.value());
+            bodybackup[i].body.reset();
+        }
     }
 
     // apply symmetry parameters to primary body
     if (par.symmetry_pars.has_value()) {
         unsigned int ibody = group.indices[0];
         auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-        body_params.symmetry_pars = add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
+        add_symmetries(body_params.symmetry_pars, std::move(par.symmetry_pars.value()));
         apply_symmetry(body_params.symmetry_pars, *group.bodies[0]);
     }
 
     // re-add bodies and refresh grid
-    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {grid->add(*group.bodies[i]);}
     rigidbody->refresh_grid();
+    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {grid->add(*group.bodies[i]);}
 }
 
 TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDistanceConstraint> pivot) {
@@ -106,21 +111,22 @@ TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDi
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size() && path1 == path2) {
-        return TransformGroup({&rigidbody->molecule.get_body(static_cast<unsigned int>(pivot->ibody1))}, {static_cast<unsigned int>(pivot->ibody1)}, pivot, pivot->get_atom1().coordinates());
+        return TransformGroup(
+            {&rigidbody->molecule.get_body(static_cast<unsigned int>(pivot->ibody1))}, 
+            {static_cast<unsigned int>(pivot->ibody1)}, 
+            pivot, 
+            pivot->get_atom1().coordinates()
+        );
     }
 
     // create a vector of pointers to the bodies in the paths
     std::vector<observer_ptr<data::Body>> bodies1, bodies2;
-    for (const auto& ibody : path1) {
-        bodies1.push_back(&rigidbody->molecule.get_body(ibody));
-    }
-    for (const auto& ibody : path2) {
-        bodies2.push_back(&rigidbody->molecule.get_body(ibody));
-    }
+    for (const auto& ibody : path1) {bodies1.push_back(&rigidbody->molecule.get_body(ibody));}
+    for (const auto& ibody : path2) {bodies2.push_back(&rigidbody->molecule.get_body(ibody));}
 
     // check if the system is overconstrained
     if (0.5*rigidbody->molecule.size_body() < path1.size() && 0.5*rigidbody->molecule.size_body() < path2.size()) {
-        throw except::size_error("TransformStrategy::get_connected: The system is overconstrained. Use a different TransformStrategy.");
+        throw except::size_error("RigidTransform::get_connected: The system is overconstrained. Use a different TransformStrategy.");
     }
 
     unsigned int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (unsigned int sum, unsigned int ibody) {

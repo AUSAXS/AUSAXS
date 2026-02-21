@@ -28,7 +28,7 @@ TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation
 
     SECTION("via direct construction") {
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-        bodies.get_body(0).symmetry().add(symmetry::type::p2);
+        bodies.get_body(0).symmetry().add(symmetry::type::c2);
         
         Rigidbody rigidbody(std::move(bodies));
         rigidbody.molecule.generate_new_hydration();
@@ -63,7 +63,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
 
     // Create a rigidbody with symmetry
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-    bodies.get_body(0).symmetry().add(symmetry::type::p2);
+    bodies.get_body(0).symmetry().add(symmetry::type::c2);
     
     Rigidbody rigidbody(std::move(bodies));
     rigidbody.molecule.generate_new_hydration();
@@ -74,7 +74,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     REQUIRE(original_sym_pars.size() == 1);
 
     auto original_sym_translation = original_sym_pars[0].initial_relation.translation;
-    auto original_sym_orientation = original_sym_pars[0].initial_relation.orientation;
+    auto original_sym_axis = original_sym_pars[0].repeat_relation.axis;
 
     // Apply a transformation that modifies symmetry parameters
     auto& transformer = rigidbody.transformer;
@@ -111,9 +111,9 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.x(), Catch::Matchers::WithinAbs(original_sym_translation.x(), 1e-6));
     REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.y(), Catch::Matchers::WithinAbs(original_sym_translation.y(), 1e-6));
     REQUIRE_THAT(restored_sym_pars[0].initial_relation.translation.z(), Catch::Matchers::WithinAbs(original_sym_translation.z(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.x(), Catch::Matchers::WithinAbs(original_sym_orientation.x(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.y(), Catch::Matchers::WithinAbs(original_sym_orientation.y(), 1e-6));
-    REQUIRE_THAT(restored_sym_pars[0].initial_relation.orientation.z(), Catch::Matchers::WithinAbs(original_sym_orientation.z(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].repeat_relation.axis.x(), Catch::Matchers::WithinAbs(original_sym_axis.x(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].repeat_relation.axis.y(), Catch::Matchers::WithinAbs(original_sym_axis.y(), 1e-6));
+    REQUIRE_THAT(restored_sym_pars[0].repeat_relation.axis.z(), Catch::Matchers::WithinAbs(original_sym_axis.z(), 1e-6));
 }
 
 TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformations") {
@@ -123,7 +123,7 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-    bodies.get_body(0).symmetry().add(symmetry::type::p2);
+    bodies.get_body(0).symmetry().add(symmetry::type::c2);
     
     Rigidbody rigidbody(std::move(bodies));
     rigidbody.molecule.generate_new_hydration();
@@ -174,7 +174,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-        bodies.get_body(0).symmetry().add(symmetry::type::p2);
+        bodies.get_body(0).symmetry().add(symmetry::type::c2);
         
         Rigidbody rigidbody(std::move(bodies));
         rigidbody.molecule.generate_new_hydration();
@@ -215,7 +215,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-        bodies.get_body(0).symmetry().add(symmetry::type::p2);
+        bodies.get_body(0).symmetry().add(symmetry::type::c2);
         
         Rigidbody rigidbody(std::move(bodies));
         rigidbody.molecule.generate_new_hydration();
@@ -260,7 +260,7 @@ TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity"
     settings::rigidbody::iterations = 10;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-    bodies.get_body(0).symmetry().add(symmetry::type::p2);
+    bodies.get_body(0).symmetry().add(symmetry::type::c2);
     
     Rigidbody rigidbody(std::move(bodies));
     rigidbody.molecule.generate_new_hydration();
@@ -294,7 +294,7 @@ TEST_CASE("SymmetryBackup: Grid properly sized for symmetry optimization") {
 
     // Create rigidbody with symmetry
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-    bodies.get_body(0).symmetry().add(symmetry::type::p2);
+    bodies.get_body(0).symmetry().add(symmetry::type::c2);
     
     Rigidbody rigidbody(std::move(bodies));
     rigidbody.molecule.generate_new_hydration();
