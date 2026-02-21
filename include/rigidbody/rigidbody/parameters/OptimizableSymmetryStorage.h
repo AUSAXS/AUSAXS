@@ -21,7 +21,12 @@ namespace ausaxs::symmetry  {
 }
 
 inline std::unique_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::symmetry::OptimizableSymmetryStorage::clone() {
-    return std::make_unique<ausaxs::symmetry::OptimizableSymmetryStorage>(*static_cast<ausaxs::symmetry::OptimizableSymmetryStorage*>(this));
+    auto copy = std::make_unique<ausaxs::symmetry::OptimizableSymmetryStorage>(ausaxs::symmetry::SymmetryStorage{});
+    for (const auto& s : symmetries) { copy->symmetries.push_back(s->clone()); }
+    copy->optimize_translate = optimize_translate;
+    copy->optimize_rot_axis = optimize_rot_axis;
+    copy->optimize_rot_angle = optimize_rot_angle;
+    return copy;
 }
 
 inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type symmetry) {

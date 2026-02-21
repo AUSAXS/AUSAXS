@@ -21,9 +21,9 @@ void ParameterMask::apply(parameter::BodyTransformParametersRelative& params) co
             params.symmetry_pars = std::nullopt;
         } else {
             for (auto& sym : params.symmetry_pars.value()) {
-                if (!sym_translation) {sym.initial_relation.translation = {0, 0, 0};}
-                if (!sym_axis) {sym.repeat_relation.axis = {0, 0, 0};}
-                if (!sym_angle) {sym.repeat_relation.angle = 0;}
+                if (!sym_translation) {sym->initial_relation.translation = {0, 0, 0};}
+                if (!sym_axis) {sym->repeat_relation.axis = {0, 0, 0};}
+                if (!sym_angle) {sym->repeat_relation.angle = 0;}
             }
         }
     }

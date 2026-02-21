@@ -69,7 +69,7 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
     if (par.symmetry_pars.has_value()) {
         unsigned int ibody = group.indices[0];
         auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-        body_params.symmetry_pars = add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
+        add_symmetries(body_params.symmetry_pars, std::move(par.symmetry_pars.value()));
         apply_symmetry(body_params.symmetry_pars, *group.bodies[0]);
     }
 

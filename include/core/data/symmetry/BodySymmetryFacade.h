@@ -5,6 +5,7 @@
 
 #include <data/DataFwd.h>
 #include <data/detail/SimpleBody.h>
+#include <data/symmetry/ISymmetry.h>
 #include <data/symmetry/Symmetry.h>
 #include <data/symmetry/SymmetryStorage.h>
 #include <data/symmetry/PredefinedSymmetries.h>
@@ -36,35 +37,36 @@ namespace ausaxs::symmetry::detail {
              * @brief Add a symmetry to this body.
              */
             void add(symmetry::Symmetry&& symmetry) requires (NONCONST);
+            void add(std::unique_ptr<symmetry::ISymmetry> symmetry) requires (NONCONST);
             void add(symmetry::type symmetry) requires (NONCONST); //< @copydoc add_symmetry()
 
             /**
-             * @brief Get the symmetries of this body.
+             * @brief Get the symmetries of this body as a vector of polymorphic pointers.
              *        This will also mark all symmetries as modified. Use the const version to avoid this signal. 
              */
-            [[nodiscard]] std::vector<symmetry::Symmetry>& get() requires (NONCONST);
+            [[nodiscard]] std::vector<std::unique_ptr<symmetry::ISymmetry>>& get() requires (NONCONST);
 
             /**
              * @brief Get the symmetries of this body.
              */
-            [[nodiscard]] const std::vector<symmetry::Symmetry>& get() const;
+            [[nodiscard]] const std::vector<std::unique_ptr<symmetry::ISymmetry>>& get() const;
 
             /**
              * @brief Get the symmetry at the specified index.
              *        This will also mark the symmetry as modified. Use the const version to avoid this signal. 
              */
-            [[nodiscard]] symmetry::Symmetry& get(unsigned int index) requires (NONCONST);
+            [[nodiscard]] observer_ptr<symmetry::ISymmetry> get(unsigned int index) requires (NONCONST);
 
             /**
              * @brief Get the symmetry at the specified index.
              */
-            [[nodiscard]] const symmetry::Symmetry& get(unsigned int index) const;
+            [[nodiscard]] observer_ptr<const symmetry::ISymmetry> get(unsigned int index) const;
 
-            [[nodiscard]] const symmetry::Symmetry& back() const;
-            [[nodiscard]] symmetry::Symmetry& back() requires (NONCONST);
+            [[nodiscard]] const symmetry::ISymmetry& back() const;
+            [[nodiscard]] symmetry::ISymmetry& back() requires (NONCONST);
 
-            [[nodiscard]] const symmetry::Symmetry& front() const;
-            [[nodiscard]] symmetry::Symmetry& front() requires (NONCONST);
+            [[nodiscard]] const symmetry::ISymmetry& front() const;
+            [[nodiscard]] symmetry::ISymmetry& front() requires (NONCONST);
 
             /**
              * @brief Get the symmetry storage object.

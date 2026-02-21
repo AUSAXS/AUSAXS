@@ -14,6 +14,7 @@
 
 #include <vector>
 
+using namespace ausaxs;
 using namespace ausaxs::rigidbody::transform;
 
 TransformStrategy::TransformStrategy(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody) {}
@@ -42,26 +43,36 @@ void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vect
     body.translate(pivot+t);
 }
 
-void TransformStrategy::apply_symmetry(const std::vector<symmetry::Symmetry>& symmetry, data::Body& body) {
+void TransformStrategy::apply_symmetry(const std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry, data::Body& body) {
     assert(symmetry.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
-        auto& current_sym = body.symmetry().get(i);
-        current_sym.initial_relation.translation = symmetry[i].initial_relation.translation;
-        current_sym.repeat_relation.axis = symmetry[i].repeat_relation.axis;
-        current_sym.repeat_relation.angle = symmetry[i].repeat_relation.angle;
+        auto current_sym = body.symmetry().get(i);
+        current_sym->initial_relation.translation = symmetry[i]->initial_relation.translation;
+        current_sym->repeat_relation.axis = symmetry[i]->repeat_relation.axis;
+        current_sym->repeat_relation.angle = symmetry[i]->repeat_relation.angle;
         body.get_signaller()->modified_symmetry(i);
     }
 }
 
-std::vector<ausaxs::symmetry::Symmetry> TransformStrategy::add_symmetries(const std::vector<symmetry::Symmetry>& current, const std::vector<symmetry::Symmetry>& delta) {
-    assert(current.size() == delta.size());
-    std::vector<symmetry::Symmetry> result = current;
-    for (int i = 0; i < static_cast<int>(current.size()); ++i) {
-        result[i].initial_relation.translation += delta[i].initial_relation.translation;
-        result[i].repeat_relation.axis += delta[i].repeat_relation.axis;
-        result[i].repeat_relation.angle += delta[i].repeat_relation.angle;
-    }
-    return result;
+void TransformStrategy::add_symmetries(
+    std::vector<std::unique_ptr<symmetry::ISymmetry>>& current, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta
+) {
+    // sanity checks to ensure compatible symmetries are being added
+    assert(current.size() == delta.size() && "TransformStrategy::add_symmetries: Symmetry parameter size mismatch.");
+    assert([&]() -> bool {
+        for (unsigned int i = 0; i < current.size(); ++i) {
+            assert(current[i] != nullptr && "TransformStrategy::add_symmetries: Current symmetry parameter cannot be null.");
+            assert(delta[i] != nullptr && "TransformStrategy::add_symmetries: Delta symmetry parameter cannot be null.");
+            if (auto cast = dynamic_cast<symmetry::Symmetry*>(current[i].get()); cast != nullptr) {
+                assert(dynamic_cast<symmetry::Symmetry*>(delta[i].get()) != nullptr && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            } else {
+                assert(false && "TransformStrategy::add_symmetries: Unchecked symmetry type.");
+            }
+        }
+        return true;
+    }());
+
+    for (unsigned int i = 0; i < current.size(); ++i) {current[i]->add(delta[i].get());}
 }
 
 void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody) {
@@ -98,7 +109,7 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
 
     // update and apply symmetry parameters
     if (par.symmetry_pars.has_value()) {
-        body_params.symmetry_pars = add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
+        add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
         apply_symmetry(body_params.symmetry_pars, body);
     }
 

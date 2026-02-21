@@ -24,8 +24,8 @@ namespace ausaxs::data {
 			Body();
 			Body(const Body& body);
 			Body(Body&& body) noexcept;
-			Body &operator=(const Body& rhs);
-			Body &operator=(Body&& rhs) noexcept;
+			Body& operator=(const Body& rhs);
+			Body& operator=(Body&& rhs) noexcept;
 			~Body();
 
 			/** 

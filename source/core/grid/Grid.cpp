@@ -52,11 +52,11 @@ Grid::Grid(const std::vector<Body>& bodies) {
         
         // Account for symmetry bodies by transforming bounding box corners
         for (std::size_t j = 0; j < body.size_symmetry(); ++j) {
-            auto& sym = body.symmetry().get(j);
+            auto sym = body.symmetry().get(j);
             auto cm = body.get_cm();
             
-            for (int rep = 1; rep <= sym.repetitions; ++rep) {
-                auto transform = sym.template get_transform<double>(cm, rep);
+            for (int rep = 1; rep <= sym->repetitions; ++rep) {
+                auto transform = sym->get_transform(cm, rep);
                 
                 // Transform the 8 corners of the bounding box
                 std::vector<Vector3<double>> corners = {

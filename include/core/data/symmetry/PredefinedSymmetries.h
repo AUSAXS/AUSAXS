@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include <data/DataFwd.h>
-#include <data/symmetry/Symmetry.h>
-#include <utility/observer_ptr.h>
+#include <data/symmetry/ISymmetry.h>
+
+#include <memory>
+#include <string_view>
 
 namespace ausaxs::symmetry {
     enum class type {
@@ -14,16 +15,17 @@ namespace ausaxs::symmetry {
         c4,
         c5,
         c6,
-        p2  // dimer with freely-optimizable rotation angle
+        p2  // dimer with freely-optimizable orientation (PointSymmetry)
     };
 
     /**
-     * @brief Apply a given symmetry to a body.
+     * @brief Create a predefined symmetry object of the given type.
+     *        Returns a Symmetry for c-type; returns a PointSymmetry for p-type.
      */
-    symmetry::Symmetry get(type t);
+    std::unique_ptr<ISymmetry> get(type t);
 
     /**
-     * @brief Get a predefined symmetry by name.
+     * @brief Get a predefined symmetry enum value by name string.
      */
     type get(std::string_view name);
 }

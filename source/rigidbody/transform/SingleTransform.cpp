@@ -51,7 +51,7 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, ob
 
     // apply symmetry parameters
     if (par.symmetry_pars.has_value()) {
-        body_params.symmetry_pars = add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
+        add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
         apply_symmetry(body_params.symmetry_pars, body);
     }
 

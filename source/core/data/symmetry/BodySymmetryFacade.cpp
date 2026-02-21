@@ -16,7 +16,14 @@ using namespace ausaxs::data::detail;
 template<typename BODY, bool NONCONST>
 void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::Symmetry&& symmetry) requires (NONCONST) {
     assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
-    body->symmetries->get().emplace_back(std::move(symmetry));
+    body->symmetries->symmetries.push_back(std::make_unique<ausaxs::symmetry::Symmetry>(std::move(symmetry)));
+    body->get_signaller()->set_symmetry_size(body->size_symmetry());
+}
+
+template<typename BODY, bool NONCONST>
+void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(std::unique_ptr<symmetry::ISymmetry> symmetry) requires (NONCONST) {
+    assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
+    body->symmetries->symmetries.push_back(std::move(symmetry));
     body->get_signaller()->set_symmetry_size(body->size_symmetry());
 }
 
@@ -28,53 +35,53 @@ void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::type sy
 }
 
 template<typename BODY, bool NONCONST>
-std::vector<symmetry::Symmetry>& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get() requires (NONCONST) {
+std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get() requires (NONCONST) {
     for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
     return body->symmetries->get();
 }
 
 template<typename BODY, bool NONCONST>
-const std::vector<symmetry::Symmetry>& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get() const {
+const std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get() const {
     return body->symmetries->get();
 }
 
 template<typename BODY, bool NONCONST>
-symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) requires (NONCONST) {
+observer_ptr<symmetry::ISymmetry> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) requires (NONCONST) {
     assert(index < body->symmetries->get().size());
     body->get_signaller()->modified_symmetry(index);
-    return body->symmetries->get()[index];
+    return body->symmetries->get(index);
 }
 
 template<typename BODY, bool NONCONST>
-const symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) const {
+observer_ptr<const symmetry::ISymmetry> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) const {
     assert(index < body->symmetries->get().size());
-    return body->symmetries->get()[index];
+    return body->symmetries->get(index);
 }
 
 template<typename BODY, bool NONCONST>
-const symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::back() const {
+const symmetry::ISymmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::back() const {
     assert(!body->symmetries->get().empty() && "BodySymmetryFacade::back: No symmetries available.");
-    return body->symmetries->get().back();
+    return *body->symmetries->get().back();
 }
 
 template<typename BODY, bool NONCONST>
-symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::back() requires (NONCONST) {
+symmetry::ISymmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::back() requires (NONCONST) {
     assert(!body->symmetries->get().empty() && "BodySymmetryFacade::back: No symmetries available.");
     body->get_signaller()->modified_symmetry(body->symmetries->get().size() - 1);
-    return body->symmetries->get().back();
+    return *body->symmetries->get().back();
 }
 
 template<typename BODY, bool NONCONST>
-const symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front() const {
+const symmetry::ISymmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front() const {
     assert(!body->symmetries->get().empty() && "BodySymmetryFacade::front: No symmetries available.");
-    return body->symmetries->get().front();
+    return *body->symmetries->get().front();
 }
 
 template<typename BODY, bool NONCONST>
-symmetry::Symmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front() requires (NONCONST) {
+symmetry::ISymmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front() requires (NONCONST) {
     assert(!body->symmetries->get().empty() && "BodySymmetryFacade::front: No symmetries available.");
     body->get_signaller()->modified_symmetry(0);
-    return body->symmetries->get().front();
+    return *body->symmetries->get().front();
 }
 
 template<typename BODY, bool NONCONST>
@@ -121,11 +128,11 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
     // static spans for iteration
     std::span<AtomFF> atom_span(atoms);
     std::span<Water> water_span(waters);
-    for (const auto& symmetry : get()) {
+    for (const auto& sym_ptr : get()) {
         assert(atom_span.data() == atoms.data() && "atoms span has been reallocated and invalidated atom_span");
         assert(water_span.data() == waters.data() && "waters span has been reallocated and invalidated water_span");
-        for (int i = 0; i < symmetry.repetitions; ++i) {
-            auto t = symmetry.template get_transform<double>(cm, i+1);
+        for (int i = 0; i < sym_ptr->repetitions; ++i) {
+            auto t = sym_ptr->get_transform(cm, i+1);
             for (const auto& a : atom_span) {
                 atoms.emplace_back(t(a.coordinates()), a.form_factor_type());
             }

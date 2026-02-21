@@ -20,7 +20,7 @@ SystemSpecification::SystemSpecification(observer_ptr<const Rigidbody> rigidbody
 
         // initialize symmetry parameters from the body's symmetries
         for (int j = 0; j < static_cast<int>(initial_conformation[i].size_symmetry()); ++j) {
-            absolute_parameters.parameters[i].symmetry_pars[j] = initial_conformation[i].symmetry().get(j);
+            absolute_parameters.parameters[i].symmetry_pars[j] = initial_conformation[i].symmetry().get(j)->clone();
         }
     }
 }
