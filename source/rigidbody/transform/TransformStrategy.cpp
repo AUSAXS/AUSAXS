@@ -10,6 +10,8 @@
 #include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
 #include <data/state/BoundSignaller.h>
+#include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/PointSymmetry.h>
 #include <math/MatrixUtils.h>
 
 #include <vector>
@@ -63,8 +65,10 @@ void TransformStrategy::add_symmetries(
         for (unsigned int i = 0; i < current.size(); ++i) {
             assert(current[i] != nullptr && "TransformStrategy::add_symmetries: Current symmetry parameter cannot be null.");
             assert(delta[i] != nullptr && "TransformStrategy::add_symmetries: Delta symmetry parameter cannot be null.");
-            if (auto cast = dynamic_cast<symmetry::Symmetry*>(current[i].get()); cast != nullptr) {
-                assert(dynamic_cast<symmetry::Symmetry*>(delta[i].get()) != nullptr && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            if (       dynamic_cast<symmetry::CyclicSymmetry*>(current[i].get())) {
+                assert(dynamic_cast<symmetry::CyclicSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            } else if (dynamic_cast<symmetry::PointSymmetry*>(current[i].get())) {
+                assert(dynamic_cast<symmetry::PointSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
             } else {
                 assert(false && "TransformStrategy::add_symmetries: Unchecked symmetry type.");
             }

@@ -6,7 +6,7 @@ target_sources(ausaxs_core PRIVATE
 	"symmetry/MoleculeSymmetryFacade.cpp"
 	"symmetry/PointSymmetry.cpp"
 	"symmetry/PredefinedSymmetries.cpp"
-	"symmetry/Symmetry.cpp"
+	"symmetry/CyclicSymmetry.cpp"
 
 	"state/BoundSignaller.cpp"
 	"state/StateManager.cpp"

@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <data/symmetry/Symmetry.h>
+#include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
 
 #include <numbers>
@@ -11,31 +11,31 @@
 std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
     switch (t) {
         case type::c2:
-            return std::make_unique<Symmetry>(
+            return std::make_unique<CyclicSymmetry>(
                 ISymmetry::_Relation{{0, 0, 0}},
                 ISymmetry::_Repeat{{0, 0, 1}, std::numbers::pi},
                 1
             );
         case type::c3:
-            return std::make_unique<Symmetry>(
+            return std::make_unique<CyclicSymmetry>(
                 ISymmetry::_Relation{{0, 0, 0}},
                 ISymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/3},
                 2
             );
         case type::c4:
-            return std::make_unique<Symmetry>(
+            return std::make_unique<CyclicSymmetry>(
                 ISymmetry::_Relation{{0, 0, 0}},
                 ISymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/4},
                 3
             );
         case type::c5:
-            return std::make_unique<Symmetry>(
+            return std::make_unique<CyclicSymmetry>(
                 ISymmetry::_Relation{{0, 0, 0}},
                 ISymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/5},
                 4
             );
         case type::c6:
-            return std::make_unique<Symmetry>(
+            return std::make_unique<CyclicSymmetry>(
                 ISymmetry::_Relation{{0, 0, 0}},
                 ISymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/6},
                 5

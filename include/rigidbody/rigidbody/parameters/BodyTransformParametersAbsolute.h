@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <data/symmetry/Symmetry.h>
+#include <data/symmetry/ISymmetry.h>
 #include <math/Vector3.h>
 
 namespace ausaxs::rigidbody::parameter {

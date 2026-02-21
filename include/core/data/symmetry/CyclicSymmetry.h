@@ -17,10 +17,10 @@ namespace ausaxs::symmetry {
      *   repeat_relation.axis / angle — per-step rotation for generating each copy.
      *   repeat_relation.translation  — optional per-step axial translation (screw symmetries).
      */
-    struct Symmetry : public ISymmetry {
-        Symmetry();
-        Symmetry(_Relation initial_relation, _Repeat repeat_relation, int repetitions = 1);
-        Symmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions = 1);
+    struct CyclicSymmetry : public ISymmetry {
+        CyclicSymmetry();
+        CyclicSymmetry(_Relation initial_relation, _Repeat repeat_relation, int repetitions = 1);
+        CyclicSymmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions = 1);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
         std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;

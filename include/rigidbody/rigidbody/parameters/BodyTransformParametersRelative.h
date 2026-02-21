@@ -4,7 +4,7 @@
 #pragma once
 
 #include <math/Vector3.h>
-#include <data/symmetry/Symmetry.h>
+#include <data/symmetry/ISymmetry.h>
 
 #include <vector>
 #include <optional>

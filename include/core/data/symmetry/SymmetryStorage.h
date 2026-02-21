@@ -4,7 +4,6 @@
 #pragma once
 
 #include <data/symmetry/ISymmetry.h>
-#include <data/symmetry/Symmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
 

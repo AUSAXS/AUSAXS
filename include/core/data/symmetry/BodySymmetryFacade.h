@@ -6,7 +6,6 @@
 #include <data/DataFwd.h>
 #include <data/detail/SimpleBody.h>
 #include <data/symmetry/ISymmetry.h>
-#include <data/symmetry/Symmetry.h>
 #include <data/symmetry/SymmetryStorage.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
@@ -36,7 +35,6 @@ namespace ausaxs::symmetry::detail {
             /**
              * @brief Add a symmetry to this body.
              */
-            void add(symmetry::Symmetry&& symmetry) requires (NONCONST);
             void add(std::unique_ptr<symmetry::ISymmetry> symmetry) requires (NONCONST);
             void add(symmetry::type symmetry) requires (NONCONST); //< @copydoc add_symmetry()
 

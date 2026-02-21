@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <data/symmetry/Symmetry.h>
+#include <data/symmetry/CyclicSymmetry.h>
 #include <math/MatrixUtils.h>
 
 #include <cassert>
@@ -9,7 +9,7 @@
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
-bool sanity_checks(const Symmetry& s) {
+bool sanity_checks(const CyclicSymmetry& s) {
     assert(1 <= s.repetitions && "Zero or negative repeats does not make sense.");
     assert(s.initial_relation.translation.dot(s.repeat_relation.translation) == 0 && "The translation vectors must be orthogonal.");
     assert([&]() -> bool {
@@ -24,23 +24,23 @@ bool sanity_checks(const Symmetry& s) {
     return true;
 }
 
-Symmetry::Symmetry() = default;
-Symmetry::Symmetry(_Relation initial_relation, _Repeat repeat_relation, int repetitions) {
+CyclicSymmetry::CyclicSymmetry() = default;
+CyclicSymmetry::CyclicSymmetry(_Relation initial_relation, _Repeat repeat_relation, int repetitions) {
     this->initial_relation = initial_relation;
     this->repeat_relation  = repeat_relation;
     this->repetitions      = repetitions;
     assert(sanity_checks(*this));
 }
 
-Symmetry::Symmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions) {
+CyclicSymmetry::CyclicSymmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions) {
     this->initial_relation = _Relation{offset};
     this->repeat_relation  = _Repeat{repeat_translation, repeat_axis, repeat_rotation};
     this->repetitions      = repetitions;
     assert(sanity_checks(*this));
 }
 
-ISymmetry& Symmetry::add(observer_ptr<const ISymmetry> other) {
-    auto cast = dynamic_cast<const Symmetry*>(other);
+ISymmetry& CyclicSymmetry::add(observer_ptr<const ISymmetry> other) {
+    auto cast = dynamic_cast<const CyclicSymmetry*>(other);
     assert(cast != nullptr && "Can only add Symmetry with another Symmetry.");
     this->initial_relation.translation += cast->initial_relation.translation;
     this->repeat_relation.axis += cast->repeat_relation.axis;
@@ -48,9 +48,9 @@ ISymmetry& Symmetry::add(observer_ptr<const ISymmetry> other) {
     return *this;
 }
 
-std::unique_ptr<ISymmetry> Symmetry::clone() const { return std::make_unique<Symmetry>(*this); }
+std::unique_ptr<ISymmetry> CyclicSymmetry::clone() const { return std::make_unique<CyclicSymmetry>(*this); }
 
-std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> Symmetry::get_transform(const Vector3<double>& cm, int rep) const {
+std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> CyclicSymmetry::get_transform(const Vector3<double>& cm, int rep) const {
     Matrix<double>  R_final;
     Vector3<double> T_final;
 
@@ -86,7 +86,7 @@ std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> Symmetry::get_tr
     };
 }
 
-bool Symmetry::is_closed() const {
+bool CyclicSymmetry::is_closed() const {
     if (repeat_relation.translation.magnitude() != 0) { return false; }
     if (std::abs(repeat_relation.angle) < 1e-9) { return true; }
 
