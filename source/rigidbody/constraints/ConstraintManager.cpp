@@ -48,6 +48,9 @@ void ConstraintManager::add_constraint(std::unique_ptr<Constraint> constraint) {
         discoverable_constraints.emplace_back(std::unique_ptr<DistanceConstraintBond>(cast));
         update_constraint_map();
         return;
+    } else if (auto cast = dynamic_cast<DistanceConstraintAtom*>(ptr); cast != nullptr) {
+        non_discoverable_constraints.emplace_back(std::unique_ptr<DistanceConstraintAtom>(cast));
+        return;
     }
     delete ptr;
     throw except::invalid_argument("ConstraintManager::add_constraint: Unknown constraint type.");

@@ -11,9 +11,9 @@ using namespace ausaxs::symmetry;
 
 PointSymmetry::PointSymmetry() = default;
 
-PointSymmetry::PointSymmetry(const Vector3<double>& offset, const Vector3<double>& orient_axis) {
-    translation = offset;
-    rotation  = orient_axis;
+PointSymmetry::PointSymmetry(const Vector3<double>& translation, const Vector3<double>& rotation) {
+    this->translation = translation;
+    this->rotation  = rotation;
 }
 
 bool PointSymmetry::is_closed() const { return false; }
@@ -28,11 +28,11 @@ std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> PointSymmetry::g
     auto normed_axis = rotation.magnitude() > 1e-9 ? rotation / rotation.magnitude() : Vector3<double>{0, 0, 1};
     auto R = matrix::rotation_matrix<double>(normed_axis);
 
-    // final transform is p' = R*(p - cm) + cm + d
-    //                       = R*p + (cm + d - R*cm)
+    // final transform is v' = R*(v - cm) + cm + d
+    //                       = R*v + (cm + d - R*cm)
     auto T = cm + translation - R*cm;
     return [R=std::move(R), T=std::move(T)](Vector3<double> v) {
-        return R * v + T;
+        return R*v + T;
     };
 }
 

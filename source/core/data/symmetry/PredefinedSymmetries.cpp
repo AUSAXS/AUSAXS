@@ -41,11 +41,9 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
                 5
             );
         case type::p2:
-            // Decoupled dimer: zero initial offset and orientation along z-axis.
-            // The optimiser will freely perturb translation (d) and orientation (axis/angle).
             return std::make_unique<PointSymmetry>(
                 Vector3<double>{0, 0, 0},
-                Vector3<double>{0, 0, 1}
+                Vector3<double>{0, 0, 0}
             );
         default:
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");

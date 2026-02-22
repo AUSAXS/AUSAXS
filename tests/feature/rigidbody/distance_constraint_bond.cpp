@@ -88,6 +88,20 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintBond::evaluate") {
         protein.get_body(0).translate(Vector3<double>(0, 0, -1));
         CHECK(c.evaluate() == 0);
     }
+
+    SECTION("unrelated body translation does not affect constraint") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1);
+        protein.get_body(2).translate(Vector3<double>(5, 0, 0));
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("symmetries on unrelated body do not affect constraint") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1);
+        protein.get_body(2).symmetry().add(symmetry::type::c2);
+        auto* sym2 = static_cast<symmetry::CyclicSymmetry*>(protein.get_body(2).symmetry().get(0));
+        sym2->_initial_relation.translation = {0.5, 0, 0};
+        CHECK(c.evaluate() == 0);
+    }
 }
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintBond::evaluate with symmetry") {
@@ -123,6 +137,99 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintBond::evaluate with symmetry") {
         CHECK(c.evaluate() != 0);
 
         protein.get_body(0).translate(Vector3<double>(0, 0, -1));
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("changing tracked symmetry translation changes result") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {-1, -1});
+        sym->_initial_relation.translation = {2.0, 0, 0}; // was 0.5
+        CHECK(c.evaluate() != 0);
+        sym->_initial_relation.translation = {0.5, 0, 0};
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("changing untracked symmetry on body0 does not affect result") {
+        protein.get_body(0).symmetry().add(symmetry::type::c2); // sym index 1, not tracked
+        auto* sym1 = static_cast<symmetry::CyclicSymmetry*>(protein.get_body(0).symmetry().get(1));
+        sym1->_initial_relation.translation = {0.5, 0, 0};
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {-1, -1});
+        sym1->_initial_relation.translation = {2.0, 0, 0}; // modify sym1 - constraint tracks sym0
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("symmetry and translation on unrelated body does not affect result") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {-1, -1});
+        protein.get_body(2).symmetry().add(symmetry::type::c2);
+        auto* sym2 = static_cast<symmetry::CyclicSymmetry*>(protein.get_body(2).symmetry().get(0));
+        sym2->_initial_relation.translation = {0.5, 0, 0};
+        protein.get_body(2).translate(Vector3<double>(5, 0, 0));
+        CHECK(c.evaluate() == 0);
+    }
+}
+
+TEST_CASE_METHOD(fixture, "DistanceConstraintBond::evaluate symmetry-symmetry") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+    Molecule protein = Molecule(ap);
+
+    // Both body0 and body1 get a c2 symmetry with a small initial translation.
+    // With t_i={0.5,0,0}: transformed a1(-1,-1,-1)->(-2,-1,-1), a3(-1,-1,1)->(-2,-1,1), d=2 ≤ 4.
+    protein.get_body(0).symmetry().add(symmetry::type::c2);
+    protein.get_body(1).symmetry().add(symmetry::type::c2);
+    auto* sym_b0 = static_cast<symmetry::CyclicSymmetry*>(protein.get_body(0).symmetry().get(0));
+    auto* sym_b1 = static_cast<symmetry::CyclicSymmetry*>(protein.get_body(1).symmetry().get(0));
+    sym_b0->_initial_relation.translation = {0.5, 0, 0};
+    sym_b1->_initial_relation.translation = {0.5, 0, 0};
+
+    SECTION("relaxed") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {0, 1});
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("translating body0 changes result") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {0, 1});
+        protein.get_body(0).translate(Vector3<double>(0, 0, 1));
+        CHECK(c.evaluate() != 0);
+        protein.get_body(0).translate(Vector3<double>(0, 0, -1));
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("translating body1 changes result") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {0, 1});
+        protein.get_body(1).translate(Vector3<double>(0, 0, 1));
+        CHECK(c.evaluate() != 0);
+        protein.get_body(1).translate(Vector3<double>(0, 0, -1));
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("translating unrelated body does not affect result") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {0, 1});
+        protein.get_body(2).translate(Vector3<double>(5, 0, 0));
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("changing tracked symmetry on body0 changes result") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {0, 1});
+        sym_b0->_initial_relation.translation = {1.5, 0, 0};
+        CHECK(c.evaluate() != 0);
+        sym_b0->_initial_relation.translation = {0.5, 0, 0};
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("changing tracked symmetry on body1 changes result") {
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {0, 1});
+        sym_b1->_initial_relation.translation = {1.5, 0, 0};
+        CHECK(c.evaluate() != 0);
+        sym_b1->_initial_relation.translation = {0.5, 0, 0};
+        CHECK(c.evaluate() == 0);
+    }
+
+    SECTION("changing untracked symmetry on body0 does not affect result") {
+        protein.get_body(0).symmetry().add(symmetry::type::c2); // sym index 1, not tracked
+        auto* sym1_b0 = static_cast<symmetry::CyclicSymmetry*>(protein.get_body(0).symmetry().get(1));
+        sym1_b0->_initial_relation.translation = {0.5, 0, 0};
+        constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {0, 1});
+        sym1_b0->_initial_relation.translation = {3, 0, 0}; // modify sym1 - constraint tracks sym0
         CHECK(c.evaluate() == 0);
     }
 }
