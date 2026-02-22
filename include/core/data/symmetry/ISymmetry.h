@@ -32,7 +32,7 @@ namespace ausaxs::symmetry {
         virtual bool is_closed() const = 0;
         virtual unsigned int repetitions() const = 0;
         virtual std::unique_ptr<ISymmetry> clone() const = 0;
-        bool operator==(const ISymmetry& rhs) const = default;
+        bool operator==(const ISymmetry& rhs) const = delete;
 
         virtual std::span<double> span_translation() = 0;
         virtual std::span<double> span_rotation() = 0;

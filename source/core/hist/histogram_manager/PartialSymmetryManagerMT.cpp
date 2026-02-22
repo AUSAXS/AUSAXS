@@ -142,7 +142,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
             }
 
             for (int isym = 0; isym < static_cast<int>(this->protein->get_body(ibody).size_symmetry()); ++isym) {
-                for (int irepeat = 0; irepeat < static_cast<int>(this->protein->get_body(ibody).symmetry().get(isym).repetitions); ++irepeat) {
+                for (int irepeat = 0; irepeat < static_cast<int>(this->protein->get_body(ibody).symmetry().get(isym)->repetitions()); ++irepeat) {
                     for (int iatom = 0; iatom < static_cast<int>(this->protein->get_body(ibody).get_atoms().size()); ++iatom) {
                         std::cout << "[" << ibody << isym+1 << irepeat << iatom << "]: ";
                         for (int i = 0; i < 4; ++i) {
@@ -678,7 +678,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aa(int
         std::cout << "combine_aa[" << ibody1 << isym1 << ", " << ibody2 << isym2 << "]" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << axis[i] << " ";
+            std::cout << std::setw(4) << axis.get_bin_value(i) << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {
@@ -706,7 +706,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aw(int
         std::cout << "combine_aw[" << ibody << isym << "]" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << axis[i] << " ";
+            std::cout << std::setw(4) << axis.get_bin_value(i) << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {
@@ -734,7 +734,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_ww(Gen
         std::cout << "combine_ww" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << axis[i] << " ";
+            std::cout << std::setw(4) << axis.get_bin_value(i) << " ";
         }
         std::cout << "\n\t\t" << std::flush;
         for (int i = 0; i < 20; ++i) {

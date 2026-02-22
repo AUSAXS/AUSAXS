@@ -19,8 +19,12 @@ SystemSpecification::SystemSpecification(observer_ptr<const Rigidbody> rigidbody
         absolute_parameters.parameters[i].translation = cm;
 
         // initialize symmetry parameters from the body's symmetries
+        assert(
+            absolute_parameters.parameters[i].symmetry_pars.size() == initial_conformation[i].size_symmetry() 
+            && "Symmetry parameter size mismatch with body symmetry size."
+        );
         for (int j = 0; j < static_cast<int>(initial_conformation[i].size_symmetry()); ++j) {
-            absolute_parameters.parameters[i].symmetry_pars.emplace_back(initial_conformation[i].symmetry().get(j)->clone());
+            absolute_parameters.parameters[i].symmetry_pars[j] = initial_conformation[i].symmetry().get(j)->clone();
         }
     }
 }

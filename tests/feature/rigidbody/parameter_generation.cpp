@@ -2,6 +2,9 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <rigidbody/parameters/ParameterGenerationStrategies.h>
+#include <rigidbody/Rigidbody.h>
+#include <data/Molecule.h>
+#include <data/Body.h>
 #include <settings/All.h>
 
 using namespace ausaxs;

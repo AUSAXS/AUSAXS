@@ -40,10 +40,10 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
         int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::SymmetryElement: Inconsistent data structures.");
         if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry)->repetitions(); reps == 1) { // single replica only: b1s1
-            name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 0));
+            name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 1));
         } else { // multiple replicas, so include replica index in name: b1s1r1, b1s1r2, ...
             for (int j = 0; j < reps; ++j) {
-                name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1) + "r" + std::to_string(j+1), detail::to_index(ibody, isymmetry, j));
+                name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1) + "r" + std::to_string(j+1), detail::to_index(ibody, isymmetry, j+1));
             }
         }
 

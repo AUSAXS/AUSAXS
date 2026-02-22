@@ -52,7 +52,6 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
 
 double DistanceConstraintBond::evaluate() const {
     double distance = evaluate_distance(iatom1, iatom2);
-    if (d_target < distance) {return 0;}
     double offset = distance - d_target;
-    return functions::attractor_repulsor(offset);
+    return functions::between_atoms(offset);
 }

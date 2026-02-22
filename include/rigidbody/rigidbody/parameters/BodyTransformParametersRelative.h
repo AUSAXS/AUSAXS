@@ -15,6 +15,12 @@ namespace ausaxs::rigidbody::parameter {
      */
     struct BodyTransformParametersRelative {
         BodyTransformParametersRelative();
+        BodyTransformParametersRelative(const BodyTransformParametersRelative& other);
+        BodyTransformParametersRelative(BodyTransformParametersRelative&&) noexcept;
+        BodyTransformParametersRelative& operator=(const BodyTransformParametersRelative& other);
+        BodyTransformParametersRelative& operator=(BodyTransformParametersRelative&&) noexcept;
+        ~BodyTransformParametersRelative();
+
         BodyTransformParametersRelative(
             const Vector3<double>& translation, 
             const Vector3<double>& rotation, 

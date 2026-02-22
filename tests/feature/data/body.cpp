@@ -15,7 +15,6 @@
 #include <io/Writer.h>
 
 #include <vector>
-#include <string>
 #include <numbers>
 
 using namespace ausaxs;
