@@ -448,15 +448,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     auto rigidbody = loop_stack.front()->_get_rigidbody();
-    if (rigidbody->molecule.size_body() < args.size()) {
-        throw except::invalid_argument(
-            "Element \"symmetry\": Invalid number of arguments. "
-            "Expected no more than " + std::to_string(rigidbody->molecule.size_body()) + "."
-        );
-    }
-
-    // anonymous arg support
-    if (args.size() == 1) {
+    if (args.begin()->first == "anonymous") { // anonymous arg support
         if (rigidbody->molecule.size_body() != 1) {
             throw except::invalid_argument(
                 "Element \"symmetry\": Explicit body name must be provided when there is more than one body in the molecule. "
@@ -465,9 +457,13 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sym
         return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{"b1"}, std::vector{symmetry::get(args.begin()->second[0])});
     }
 
+    // loop over args and apply each one individually
     std::vector<symmetry::type> symmetries;
     std::vector<std::string> names;
     for (const auto& [name, value] : args) {
+        if (value.size() != 1) {throw except::invalid_argument(
+            "Element \"symmetry\": Unexpected number of values for body \"" + name + "\". Expected 1, but got " + std::to_string(value.size()) + "."
+        );}
         names.push_back(name);
         symmetries.push_back(symmetry::get(value[0]));
     }
