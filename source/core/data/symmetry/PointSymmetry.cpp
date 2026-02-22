@@ -24,12 +24,11 @@ std::unique_ptr<ISymmetry> PointSymmetry::clone() const {
 
 std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> PointSymmetry::get_transform(const Vector3<double>& cm, int rep) const {
     assert(rep <= 1 && "PointSymmetry always generates exactly one copy (rep must be 1).");
-
-    auto normed_axis = rotation.magnitude() > 1e-9 ? rotation / rotation.magnitude() : Vector3<double>{0, 0, 1};
-    auto R = matrix::rotation_matrix<double>(normed_axis);
+    if (rep == 0) {return [](Vector3<double> v) {return v;};}
 
     // final transform is v' = R*(v - cm) + cm + d
     //                       = R*v + (cm + d - R*cm)
+    auto R = matrix::rotation_matrix<double>(rotation);
     auto T = cm + translation - R*cm;
     return [R=std::move(R), T=std::move(T)](Vector3<double> v) {
         return R*v + T;
