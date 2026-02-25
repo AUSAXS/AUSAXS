@@ -37,7 +37,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     std::vector<unsigned int> constraints;
     CLI::App app{"[EXPERIMENTAL] Perform rigid-body optimization."};
     app.fallthrough();
-    app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
+    app.add_option("input_structure", pdb, "Path to the structure or configuration file.")->check(CLI::ExistingFile);
     app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/rigidbody/")->group("General options");
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
