@@ -37,8 +37,8 @@ int cli_rigidbody(int argc, char const *argv[]) {
     std::vector<unsigned int> constraints;
     CLI::App app{"[EXPERIMENTAL] Perform rigid-body optimization."};
     app.fallthrough();
-    auto input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
-    auto input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
+    app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
+    app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/rigidbody/")->group("General options");
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
@@ -100,6 +100,11 @@ int cli_rigidbody(int argc, char const *argv[]) {
     app.add_flag("--weighted-bins", settings::hist::weighted_bins, 
         "Decides whether the weighted bins will be used."
     )->default_val(settings::hist::weighted_bins)->group("");
+
+    app.final_callback([&] () {if (save_settings) {
+        settings::write("settings.txt");
+        console::print_info("Settings saved to settings.txt in current directory.");
+    }});
 
     auto p_cal = app.add_option("--calibrate", settings::rigidbody::detail::calibration_file, "Path to the calibration data.")->expected(0, 1)->check(CLI::ExistingFile)->group("");
     app.add_option("--constraints", settings::rigidbody::detail::constraints, "Constraints to apply to the rigid body.")->group("");
