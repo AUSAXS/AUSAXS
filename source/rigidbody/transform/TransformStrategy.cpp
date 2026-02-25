@@ -124,7 +124,7 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
 
     // re-add body and refresh grid
     rigidbody->refresh_grid();
-    grid->add(body);
+    rigidbody->molecule.get_grid()->add(body); // refresh_grid may reallocate the grid, so re-fetch the pointer
 }
 
 void TransformStrategy::undo() {

@@ -59,8 +59,8 @@ namespace ausaxs::io::pdb {
 
 			bool operator==(const Terminate& rhs) const;
 
-			int serial, resSeq;
+			int serial = 0, resSeq = 0;
 			std::string resName, iCode;
-			char chainID;
+			char chainID = ' ';
 	};
 }

@@ -75,7 +75,8 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
 
     // re-add bodies and refresh grid
     rigidbody->refresh_grid();
-    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {grid->add(*group.bodies[i]);}
+    // refresh_grid may reallocate the grid, so re-fetch the pointer
+    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {rigidbody->molecule.get_grid()->add(*group.bodies[i]);}
 }
 
 TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDistanceConstraint> pivot) {
