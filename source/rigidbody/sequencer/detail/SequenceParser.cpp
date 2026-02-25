@@ -346,11 +346,27 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Copy>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"copy_body\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    if (args.size() != 1) {throw except::invalid_argument("Element \"copy\": Invalid number of arguments. Expected 1, but got " + std::to_string(args.size()) + ".");}
     if (args.begin()->second.size() != 1) {throw except::invalid_argument(
-        "SequenceParser::parse_arguments: Invalid number of values for \"copy_body\". "
+        "Element \"copy\": Invalid number of values. "
         "Expected 1 (source body name), but got " + std::to_string(args.begin()->second.size()) + "."
     );}
+
+    const auto& body_names = static_cast<Sequencer*>(loop_stack.front())->setup()._get_body_names();
+    std::string source = args.begin()->second[0];
+    std::string name = source;
+    if (!body_names.contains(source)) {
+        if (body_names.contains(name)) {
+            logging::log("Element \"copy\": Switching source and target.");
+            std::swap(source, name);
+        } else {
+            throw except::invalid_argument("Element \"copy\": Body name \"" + source + "\" not found.");
+        }
+    }
+    if (body_names.contains(name)) {
+        throw except::invalid_argument("Element \"copy\": Target body name \"" + name + "\" already exists.");
+    }
+
     return std::make_unique<CopyBodyElement>(
         static_cast<Sequencer*>(loop_stack.front()),
         args.begin()->first,
