@@ -21,7 +21,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 10;
 
     SECTION("translation only") {
         AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
@@ -100,7 +100,7 @@ TEST_CASE("SingleTransform::undo") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 25;
 
     SECTION("undo restores original state") {
         AtomFF a1({1, 1, 1}, form_factor::form_factor_t::C);
@@ -146,7 +146,7 @@ TEST_CASE("SingleTransform::reconstructed body from stored parameters matches tr
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 10;
 
     SECTION("reconstructed body from stored parameters matches transformed body") {
         AtomFF a1({3, 2, 1}, form_factor::form_factor_t::C);
@@ -188,7 +188,7 @@ TEST_CASE("SingleTransform::apply multiple sequential transformations") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 10;
 
     SECTION("multiple transformations accumulate correctly") {
         AtomFF a1({1, 0, 0}, form_factor::form_factor_t::C);

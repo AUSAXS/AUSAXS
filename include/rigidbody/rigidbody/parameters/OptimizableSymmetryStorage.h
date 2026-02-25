@@ -15,21 +15,28 @@ namespace ausaxs::symmetry  {
         std::unique_ptr<SymmetryStorage> clone() override;
 
         bool optimize_translate = false;
-        bool optimize_rotate = false;
+        bool optimize_rot_axis = false;
     };
 }
 
 inline std::unique_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::symmetry::OptimizableSymmetryStorage::clone() {
-    return std::make_unique<ausaxs::symmetry::OptimizableSymmetryStorage>(*static_cast<ausaxs::symmetry::OptimizableSymmetryStorage*>(this));
+    auto copy = std::make_unique<ausaxs::symmetry::OptimizableSymmetryStorage>(ausaxs::symmetry::SymmetryStorage{});
+    for (const auto& s : symmetries) { copy->symmetries.push_back(s->clone()); }
+    copy->optimize_translate = optimize_translate;
+    copy->optimize_rot_axis = optimize_rot_axis;
+    return copy;
 }
 
 inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type symmetry) {
     symmetries.emplace_back(symmetry::get(symmetry));
     switch (symmetry) {
+        case symmetry::type::c2:
+        case symmetry::type::c3:
+        case symmetry::type::c4:
+        case symmetry::type::c5:
+        case symmetry::type::c6:
         case symmetry::type::p2:
-        case symmetry::type::p3:
-        case symmetry::type::p4:
-            optimize_rotate = true;
+            optimize_rot_axis = true;
             optimize_translate = true;
             break;
 

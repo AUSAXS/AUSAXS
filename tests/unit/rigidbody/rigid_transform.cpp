@@ -21,7 +21,7 @@ TEST_CASE("RigidTransform::apply single body group") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 10;
 
     SECTION("single body behaves like SingleTransform") {
         AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
@@ -58,7 +58,7 @@ TEST_CASE("RigidTransform::apply multi-body group") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 10;
 
     SECTION("linear chain - transform smaller side") {
         // Create chain: 0 - 1 - 2 - 3
@@ -196,21 +196,11 @@ TEST_CASE("RigidTransform::apply branched structure") {
     }
 }
 
-TEST_CASE("RigidTransform::apply updates all body parameters") {
-    settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
-
-    // Note: Test skipped - RigidTransform behavior with equal-sized constraint groups
-    // depends on internal heuristics. Covered by other tests that verify core functionality.
-}
-
 TEST_CASE("RigidTransform::undo") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::grid::scaling = 2;
+    settings::grid::min_bins = 25;
 
     SECTION("undo restores all bodies in group") {
         AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);

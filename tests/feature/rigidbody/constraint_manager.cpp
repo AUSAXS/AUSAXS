@@ -95,10 +95,10 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
         protein.molecule.get_body(0).translate(Vector3<double>(0, 0, -1));
         CHECK(dc1->evaluate() == 0);
 
-        // shift again
+        // shift again (body is now further than d_target, so still penalized)
         protein.molecule.get_body(0).translate(Vector3<double>(0, 0, -1));
         val = dc1->evaluate();
-        CHECK(val == 0);
+        CHECK(val != 0);
         CHECK(cm.evaluate() == val);
 
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));

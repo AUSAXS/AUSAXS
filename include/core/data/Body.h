@@ -24,8 +24,8 @@ namespace ausaxs::data {
 			Body();
 			Body(const Body& body);
 			Body(Body&& body) noexcept;
-			Body &operator=(const Body& rhs);
-			Body &operator=(Body&& rhs) noexcept;
+			Body& operator=(const Body& rhs);
+			Body& operator=(Body&& rhs) noexcept;
 			~Body();
 
 			/** 
@@ -82,7 +82,7 @@ namespace ausaxs::data {
 			/** 
 			 * @brief Calculate the center-of-mass coordinates for the body.
 			 */
-			[[nodiscard]] Vector3<double> get_cm(bool include_water = true) const;
+			[[nodiscard]] Vector3<double> get_cm(bool include_water = false) const;
 			
 			/**
 			 * @brief Calculate the van der Waals volume of this body.

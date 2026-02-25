@@ -31,7 +31,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     io::ExistingFile pdb, mfile, exv_ref_file, settings;
     bool use_existing_hydration = false, save_settings = false, save_grid = false, save_exv = false;
 
-    CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
+    CLI::App app{"Perform SAXS fitting for a given structure and measurement."};
     app.fallthrough();
     auto input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
     auto input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);

@@ -104,6 +104,10 @@ std::vector<std::unique_ptr<GenericElement>>& LoopElement::_get_elements() {
     return elements;
 }
 
+unsigned int LoopElement::_get_loop_iterations() const {
+    return iterations;
+}
+
 OptimizeStepElement& LoopElement::optimize() {
     elements.push_back(std::make_unique<OptimizeStepElement>(this));
     return *static_cast<OptimizeStepElement*>(elements.back().get());

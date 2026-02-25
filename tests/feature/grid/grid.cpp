@@ -4,17 +4,17 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/symmetry/CyclicSymmetry.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <hydrate/generation/RadialHydration.h>
 #include <hydrate/generation/HydrationStrategy.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <hydrate/culling/CullingStrategy.h>
-#include <settings/All.h>
 #include <math/Vector3.h>
-#include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
 #include <rigidbody/BodySplitter.h>
+#include <settings/All.h>
 
 #include <vector>
 #include <string> 
@@ -192,7 +192,9 @@ TEST_CASE("Grid::add") {
             Body body{std::vector{
                 AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
             }};
-            body.symmetry().add(symmetry::Symmetry({{1, 1, 1}, {0, 0, 0}}));
+            // per-step translation = {1,1,1}, no rotation
+            auto sym = symmetry::CyclicSymmetry({0, 0, 0}, {1, 1, 1}, {0, 0, 1}, 0);
+            body.symmetry().add(std::make_unique<symmetry::CyclicSymmetry>(std::move(sym)));
             grid.add(body, false);
             GridObj& g = grid.grid;
 
@@ -214,7 +216,9 @@ TEST_CASE("Grid::add") {
             Body body{std::vector{
                 AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
             }};
-            body.symmetry().add(symmetry::Symmetry({{0, 0, 0}, {0, 0, 0}}, {{1, 1, 1}, {0, 0, 0}}, 5));
+            // initial_relation = {0,0,0}, per-step translation = {1,1,1}, axis defaults to z and angle=0
+            auto sym = symmetry::CyclicSymmetry({0, 0, 0}, {1, 1, 1}, {0, 0, 1}, 0, 5);
+            body.symmetry().add(std::make_unique<symmetry::CyclicSymmetry>(std::move(sym)));
             grid.add(body, false);
             GridObj& g = grid.grid;
 
@@ -494,7 +498,9 @@ TEST_CASE("Grid::remove") {
         Body b{std::vector{
             AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
         }};
-        b.symmetry().add(symmetry::Symmetry({{1, 1, 1}, {0, 0, 0}}));
+        // per-step translation = {1,1,1}, no rotation
+        auto sym = symmetry::CyclicSymmetry({0, 0, 0}, {1, 1, 1}, {0, 0, 1}, 0);
+        b.symmetry().add(std::make_unique<symmetry::CyclicSymmetry>(std::move(sym)));
         grid.add(b, true);
         grid.remove(b);
         GridObj& g = grid.grid;

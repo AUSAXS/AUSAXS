@@ -84,6 +84,7 @@ namespace ausaxs::rigidbody::sequencer {
             virtual observer_ptr<Sequencer> _get_sequencer();
 
             std::vector<std::unique_ptr<GenericElement>>& _get_elements();
+            unsigned int _get_loop_iterations() const;
 
             observer_ptr<LoopElement> _get_owner() const;
 
