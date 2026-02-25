@@ -1,6 +1,9 @@
 add_executable(simulate simulate.cpp)
 target_link_libraries(simulate ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)
 
+add_executable(bench bench.cpp)
+target_link_libraries(bench ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)
+
 add_executable(simulate_buffer simulate_buffer.cpp)
 target_link_libraries(simulate_buffer ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)
 

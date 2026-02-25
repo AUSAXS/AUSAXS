@@ -1,4 +1,5 @@
 #include <md/programs/options/water_models/IWaterModel.h>
+#include <md/programs/options/water_models/TIP3P.h>
 #include <md/programs/options/water_models/TIP4P.h>
 #include <md/programs/options/water_models/TIP4P2005.h>
 #include <md/programs/options/water_models/TIP5P.h>
@@ -15,6 +16,8 @@ using namespace ausaxs::md;
 
 std::unique_ptr<option::IWaterModel> option::IWaterModel::construct(WaterModel wm) {
     switch (wm) {
+        case WaterModel::TIP3P:
+            return std::make_unique<option::water_model::TIP3P>();
         case WaterModel::TIP4P:
             return std::make_unique<option::water_model::TIP4P>();
         case WaterModel::TIP4P2005:
