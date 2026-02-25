@@ -62,6 +62,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/elements/TransformElement.cpp"
 	"sequencer/elements/setup/AutoConstraintsElement.cpp"
 	"sequencer/elements/setup/ConstraintElement.cpp"
+	"sequencer/elements/setup/CopyBodyElement.cpp"
 	"sequencer/elements/setup/LoadElement.cpp"
 	"sequencer/elements/setup/LoadExistingElement.cpp"
 	"sequencer/elements/setup/RelativeHydrationElement.cpp"

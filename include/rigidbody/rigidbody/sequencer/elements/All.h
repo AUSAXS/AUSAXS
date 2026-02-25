@@ -11,6 +11,7 @@
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 #include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
+#include <rigidbody/sequencer/elements/setup/CopyBodyElement.h>
 
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
 #include <rigidbody/sequencer/elements/ConstraintIteratorElement.h>

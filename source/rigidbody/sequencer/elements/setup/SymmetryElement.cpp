@@ -54,7 +54,8 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
             molecule->get_body(ibody).symmetry().get(isymmetry)->clone()
         );
     }    
-    // Refresh grid to accommodate symmetry bodies
+    // Adding symmetry changes the body atom count, so the grid must be fully rebuilt
+    rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
 }
 

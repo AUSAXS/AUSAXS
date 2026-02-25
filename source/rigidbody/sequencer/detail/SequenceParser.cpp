@@ -28,48 +28,50 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 enum class rigidbody::sequencer::ElementType {
-    OverlapStrength,
-    LoadElement,
-    SymmetryElement,
-    Constraint,
     AutomaticConstraint,
+    BodySelect,
+    Constraint,
+    Copy,
+    EveryNStep,
+    LoadElement,
+    Log,
     LoopBegin,
     LoopEnd,
-    Parameter,
-    BodySelect,
-    Transform,
-    OptimizeStep,
-    EveryNStep,
-    OnImprovement,
-    Save,
-    RelativeHydration,
-    OutputFolder,
     Message,
-    Log,
+    OnImprovement,
+    OptimizeStep,
+    OutputFolder,
+    OverlapStrength,
+    Parameter,
+    RelativeHydration,
+    Save,
     Seed,
+    SymmetryElement,
+    Transform,
 };
 
 ElementType get_type(std::string_view line) {
     static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
-        {ElementType::OverlapStrength, {"overlap_strength"}},
-        {ElementType::LoadElement, {"load", "open"}},
-        {ElementType::SymmetryElement, {"symmetry"}},
-        {ElementType::Constraint, {"constrain", "constraint"}},
         {ElementType::AutomaticConstraint, {"autoconstrain", "autoconstraints"}},
+        {ElementType::BodySelect, {"select", "selector"}},
+        {ElementType::Constraint, {"constrain", "constraint"}},
+        {ElementType::Copy, {"copy", "copy_body"}},
+        {ElementType::EveryNStep, {"every"}},
+        {ElementType::LoadElement, {"load", "open"}},
+        {ElementType::Log, {"log"}},
         {ElementType::LoopBegin, {"loop"}},
         {ElementType::LoopEnd, {"end"}},
-        {ElementType::Parameter, {"parameter", "parameter_generator"}},
-        {ElementType::BodySelect, {"select", "selector"}},
-        {ElementType::Transform, {"transform", "transformer"}},
-        {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
-        {ElementType::EveryNStep, {"every"}},
-        {ElementType::OnImprovement, {"on_improvement"}},
-        {ElementType::Save, {"save", "write"}},
-        {ElementType::RelativeHydration, {"relative_hydration"}},
-        {ElementType::OutputFolder, {"output", "output_folder"}},
         {ElementType::Message, {"print"}},
-        {ElementType::Log, {"log"}},
+        {ElementType::OnImprovement, {"on_improvement"}},
+        {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
+        {ElementType::OutputFolder, {"output", "output_folder"}},
+        {ElementType::OverlapStrength, {"overlap_strength"}},
+        {ElementType::Parameter, {"parameter", "parameter_generator"}},
+        {ElementType::RelativeHydration, {"relative_hydration"}},
+        {ElementType::Save, {"save", "write"}},
         {ElementType::Seed, {"seed"}},
+        {ElementType::SymmetryElement, {"symmetry"}},
+        {ElementType::Transform, {"transform", "transformer"}},
     };
     for (const auto& [type, prefixes] : type_map) {
         for (const auto& prefix : prefixes) {
@@ -340,6 +342,20 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
         );
     }
     return nullptr;
+}
+
+template<>
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Copy>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
+    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"copy_body\". Expected 1, but got " + std::to_string(args.size()) + ".");}
+    if (args.begin()->second.size() != 1) {throw except::invalid_argument(
+        "SequenceParser::parse_arguments: Invalid number of values for \"copy_body\". "
+        "Expected 1 (source body name), but got " + std::to_string(args.begin()->second.size()) + "."
+    );}
+    return std::make_unique<CopyBodyElement>(
+        static_cast<Sequencer*>(loop_stack.front()),
+        args.begin()->first,
+        args.begin()->second[0]
+    );
 }
 
 template<>
@@ -803,6 +819,11 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
             args["anonymous"] = {tokens[1]};
         }
 
+        // else check if we have an inline key-value pair (e.g. "symmetry b1 p2" or "copy b2 b1")
+        else if (tokens.size() == 3) {
+            args[tokens[1]] = {tokens[2]};
+        }
+
         logging::log("Parsed script:");
         std::string parsed_script = tokens[0] + " " + (args.empty() ? "" : "{\n");
         for (const auto& [key, value] : args) {
@@ -848,6 +869,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
             case ElementType::BodySelect:
                 loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::BodySelect>(args));
+                break;
+
+            case ElementType::Copy:
+                parse_arguments<ElementType::Copy>(args);
                 break;
 
             case ElementType::Transform:
