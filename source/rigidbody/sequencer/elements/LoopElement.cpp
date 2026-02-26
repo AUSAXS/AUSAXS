@@ -134,3 +134,7 @@ unsigned int LoopElement::_get_current_iteration() {
 unsigned int LoopElement::_get_total_iterations() {
     return total_loop_count;
 }
+
+void LoopElement::_add_total_iterations(unsigned int n) {
+    total_loop_count += n;
+}
