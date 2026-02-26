@@ -90,6 +90,7 @@ namespace ausaxs::rigidbody::sequencer {
 
             static unsigned int _get_current_iteration();
             static unsigned int _get_total_iterations();
+            static void _add_total_iterations(unsigned int n);
 
         protected: 
             unsigned int iterations = 1;

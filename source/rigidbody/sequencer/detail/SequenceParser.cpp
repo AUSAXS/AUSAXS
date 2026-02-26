@@ -346,15 +346,18 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Copy>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("Element \"copy\": Invalid number of arguments. Expected 1, but got " + std::to_string(args.size()) + ".");}
-    if (args.begin()->second.size() != 1) {throw except::invalid_argument(
+    if (args.size() != 1 || !args.contains("anonymous")) {
+        throw except::invalid_argument("Element \"copy\": Invalid arguments. Expected two inline body names (e.g. \"copy new_body source_body\").");
+    }
+    const auto& vals = args.at("anonymous");
+    if (vals.size() != 2) {throw except::invalid_argument(
         "Element \"copy\": Invalid number of values. "
-        "Expected 1 (source body name), but got " + std::to_string(args.begin()->second.size()) + "."
+        "Expected 2 (new body name and source body name), but got " + std::to_string(vals.size()) + "."
     );}
 
     const auto& body_names = static_cast<Sequencer*>(loop_stack.front())->setup()._get_body_names();
-    std::string source = args.begin()->second[0];
-    std::string name = source;
+    std::string source = vals[0];
+    std::string name = vals[1];
     if (!body_names.contains(source)) {
         if (body_names.contains(name)) {
             logging::log("Element \"copy\": Switching source and target.");
@@ -369,8 +372,8 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Cop
 
     return std::make_unique<CopyBodyElement>(
         static_cast<Sequencer*>(loop_stack.front()),
-        args.begin()->first,
-        args.begin()->second[0]
+        name,
+        source
     );
 }
 
@@ -481,12 +484,21 @@ template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     auto rigidbody = loop_stack.front()->_get_rigidbody();
     if (args.begin()->first == "anonymous") { // anonymous arg support
-        if (rigidbody->molecule.size_body() != 1) {
-            throw except::invalid_argument(
-                "Element \"symmetry\": Explicit body name must be provided when there is more than one body in the molecule. "
-            );
+        const auto& vals = args.begin()->second;
+        if (vals.size() == 1) {
+            // single anonymous arg: just the symmetry type, default to b1
+            if (rigidbody->molecule.size_body() != 1) {
+                throw except::invalid_argument(
+                    "Element \"symmetry\": Explicit body name must be provided when there is more than one body in the molecule. "
+                );
+            }
+            return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{"b1"}, std::vector{symmetry::get(vals[0])});
+        } else if (vals.size() == 2) {
+            // two anonymous args: body name + symmetry type (e.g. "symmetry b1 p2")
+            return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{vals[0]}, std::vector{symmetry::get(vals[1])});
+        } else {
+            throw except::invalid_argument("Element \"symmetry\": Unexpected number of inline arguments. Expected 1 (symmetry type) or 2 (body name + symmetry type).");
         }
-        return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{"b1"}, std::vector{symmetry::get(args.begin()->second[0])});
     }
 
     // loop over args and apply each one individually
@@ -502,20 +514,70 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sym
     return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), names, symmetries);
 }
 
+// loop needs to know the last parameter element for automatic iteration determination
+observer_ptr<ParameterElement> last_parameter_element = nullptr;
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("Element \"loop\": Invalid number of arguments. Expected 1, but got " + std::to_string(args.size()) + ".");}
+    static std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
+    static observer_ptr<LoopElement> last_loop_element = nullptr;
 
-    int iterations;
-    try {
-        iterations = std::stoi(args.begin()->second[0]);
-    } catch (std::invalid_argument& e) {
-        throw except::invalid_argument("Element \"loop\": Argument \"" + args.begin()->second[0] + "\" could not be interpreted as an integer.");
+    auto deduce_iteration_count = [&]() -> int {
+        if (!last_parameter_element) {throw except::invalid_argument("Element \"loop\": Missing iteration count.");}
+        int iterations = last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations();
+        logging::log(
+            "Element \"loop\": No arguments provided, but a previous parameter element with a decay strategy was found. "
+            "Using the number of iterations from that decay strategy: " + std::to_string(iterations) + "."
+        );
+        return iterations;
+    };
+    if (args.empty()) { // no args - try to deduce iteration count
+        return std::make_unique<LoopElement>(loop_stack.back(), deduce_iteration_count());
+    } else if (args.size() == 1) {
+        // five options: 1) "[iteration]" 2) "[name]" 3) "[name] [iteration]" 4) "[duplicate]" 5) "[duplicate] [name]"
+        const auto& vals = args.begin()->second;
+        if (vals.size() == 1) { // option 1, 2, 4
+            try { // check option 1
+                int iterations = std::stoi(vals[0]);
+                return std::make_unique<LoopElement>(loop_stack.back(), iterations);
+            } catch (std::exception&) {
+                const auto& name = vals[0];
+
+                // check option 4
+                if (name == "duplicate" || name == "copy") {
+                    if (loop_names.empty()) {throw except::invalid_argument("Element \"loop\": No previous loops found to duplicate.");}
+                    return std::make_unique<CopyLoopElement>(loop_stack.back(), last_loop_element);
+                }
+
+                // else it must be option 2
+                if (loop_names.contains(name)) {throw except::invalid_argument("Element \"loop\": Loop name \"" + name + "\" already exists.");}
+                auto loop = std::make_unique<LoopElement>(loop_stack.back(), deduce_iteration_count());
+                loop_names[name] = loop.get();
+                last_loop_element = loop.get();
+                return loop;
+            }
+        } else if (vals.size() == 2) { // option 3, 5
+            // check option 5
+            if (vals[0] == "duplicate" || vals[0] == "copy") {
+                const auto& name = vals[1];
+                if (!loop_names.contains(name)) {throw except::invalid_argument("Element \"loop\": Loop name \"" + name + "\" not found.");}
+                return std::make_unique<CopyLoopElement>(loop_stack.back(), loop_names.at(name));
+            }
+
+            // else it must be option 3
+            try {
+                int iterations = std::stoi(vals[1]);
+                const auto& name = vals[0];
+                if (loop_names.contains(name)) {throw except::invalid_argument("Element \"loop\": Loop name \"" + name + "\" already exists.");}
+                auto loop = std::make_unique<LoopElement>(loop_stack.back(), iterations);
+                loop_names[name] = loop.get();
+                last_loop_element = loop.get();
+                return loop;
+            } catch (std::exception&) {
+                throw except::invalid_argument("Element \"loop\": Invalid combination of arguments.");
+            }
+        }
     }
-    return std::make_unique<LoopElement>(
-        loop_stack.back(), 
-        iterations
-    );
+    throw except::invalid_argument("Element \"loop\": Invalid number of arguments. Expected 0 or 1, but got " + std::to_string(args.size()) + ".");
 }
 
 template<>
@@ -653,6 +715,24 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Rel
     };
 
     auto rigidbody = loop_stack.front()->_get_rigidbody();
+
+    // handle anonymous inline: "relative_hydration b1 high" → args["anonymous"] = {"b1", "high"}
+    if (args.size() == 1 && args.begin()->first == "anonymous") {
+        const auto& vals = args.begin()->second;
+        if (vals.size() != 2) {
+            throw except::invalid_argument(
+                "Element \"relative_hydration\": Inline form expects exactly 2 arguments (body name and level), but got " + std::to_string(vals.size()) + "."
+            );
+        }
+        if (rigidbody->molecule.size_body() != 1) {
+            throw except::invalid_argument(
+                "Element \"relative_hydration\": Inline form can only be used when there is exactly one body in the molecule. "
+                "Use a brace block for multiple bodies."
+            );
+        }
+        return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{vals[0]}, std::vector<double>{to_value(options[vals[1]])});
+    }
+
     if (args.size() != rigidbody->molecule.size_body()) {
         throw except::invalid_argument(
             "SequenceParser::parse_arguments: Invalid number of arguments for \"relative_hydration\". "
@@ -727,7 +807,6 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
     // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
     sequencer->setup()._set_config_folder(config.directory());
-    observer_ptr<ParameterElement> last_parameter_element = nullptr; // loop needs to know the last parameter element for automatic iteration determination
 
     std::string line;
     while(!in.eof()) {
@@ -829,15 +908,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
             }
         }
 
-        // else check if we only have a single argument
-        else if (tokens.size() == 2) {
-            // allow for a single anonymous argument (already unquoted by tokenizer)
-            args["anonymous"] = {tokens[1]};
-        }
-
-        // else check if we have an inline key-value pair (e.g. "symmetry b1 p2" or "copy b2 b1")
-        else if (tokens.size() == 3) {
-            args[tokens[1]] = {tokens[2]};
+        // else: all remaining inline tokens are positional anonymous arguments
+        // (e.g. "loop 100", "loop copy l1", "copy b2 b1")
+        else if (tokens.size() >= 2) {
+            args["anonymous"] = std::vector<std::string>(tokens.begin()+1, tokens.end());
         }
 
         logging::log("Parsed script:");
@@ -861,20 +935,15 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                 break;
 
             case ElementType::LoopBegin:
-                if (args.size() == 0 && last_parameter_element) { // if no argument is provided, we can determine the number of iterations from the last parameter element
-                    args["iterations"] = {std::to_string(last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations())};
-                    logging::log(
-                        "SequenceParser::constructor: No iteration count provided for loop, but a previous parameter element with a decay strategy was found. "
-                        "Using the number of iterations from that decay strategy: " + args["iterations"][0] + "."
-                    );
-                }
                 loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::LoopBegin>(args));
-                loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
+                if (auto* loop = dynamic_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get())) {
+                    loop_stack.emplace_back(loop); // the returned element _may_ be a CopyLoopElement, which is not modifiable
+                }
                 break;
 
             case ElementType::LoopEnd:
                 parse_arguments<ElementType::LoopEnd>(args);
-                if (loop_stack.size() == 1) {throw except::invalid_argument("SequenceParser::constructor: Unmatched \"end\" statement.");}
+                if (loop_stack.size() == 1) {throw except::invalid_argument("Element \"end\": Too many \"end\" statements.");}
                 loop_stack.pop_back();
                 break;
 
