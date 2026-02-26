@@ -517,68 +517,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Sym
 // loop needs to know the last parameter element for automatic iteration determination
 observer_ptr<ParameterElement> last_parameter_element = nullptr;
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    static std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
-    static observer_ptr<LoopElement> last_loop_element = nullptr;
-
-    auto deduce_iteration_count = [&]() -> int {
-        if (!last_parameter_element) {throw except::invalid_argument("Element \"loop\": Missing iteration count.");}
-        int iterations = last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations();
-        logging::log(
-            "Element \"loop\": No arguments provided, but a previous parameter element with a decay strategy was found. "
-            "Using the number of iterations from that decay strategy: " + std::to_string(iterations) + "."
-        );
-        return iterations;
-    };
-    if (args.empty()) { // no args - try to deduce iteration count
-        return std::make_unique<LoopElement>(loop_stack.back(), deduce_iteration_count());
-    } else if (args.size() == 1) {
-        // five options: 1) "[iteration]" 2) "[name]" 3) "[name] [iteration]" 4) "[duplicate]" 5) "[duplicate] [name]"
-        const auto& vals = args.begin()->second;
-        if (vals.size() == 1) { // option 1, 2, 4
-            try { // check option 1
-                int iterations = std::stoi(vals[0]);
-                return std::make_unique<LoopElement>(loop_stack.back(), iterations);
-            } catch (std::exception&) {
-                const auto& name = vals[0];
-
-                // check option 4
-                if (name == "duplicate" || name == "copy") {
-                    if (loop_names.empty()) {throw except::invalid_argument("Element \"loop\": No previous loops found to duplicate.");}
-                    return std::make_unique<CopyLoopElement>(loop_stack.back(), last_loop_element);
-                }
-
-                // else it must be option 2
-                if (loop_names.contains(name)) {throw except::invalid_argument("Element \"loop\": Loop name \"" + name + "\" already exists.");}
-                auto loop = std::make_unique<LoopElement>(loop_stack.back(), deduce_iteration_count());
-                loop_names[name] = loop.get();
-                last_loop_element = loop.get();
-                return loop;
-            }
-        } else if (vals.size() == 2) { // option 3, 5
-            // check option 5
-            if (vals[0] == "duplicate" || vals[0] == "copy") {
-                const auto& name = vals[1];
-                if (!loop_names.contains(name)) {throw except::invalid_argument("Element \"loop\": Loop name \"" + name + "\" not found.");}
-                return std::make_unique<CopyLoopElement>(loop_stack.back(), loop_names.at(name));
-            }
-
-            // else it must be option 3
-            try {
-                int iterations = std::stoi(vals[1]);
-                const auto& name = vals[0];
-                if (loop_names.contains(name)) {throw except::invalid_argument("Element \"loop\": Loop name \"" + name + "\" already exists.");}
-                auto loop = std::make_unique<LoopElement>(loop_stack.back(), iterations);
-                loop_names[name] = loop.get();
-                last_loop_element = loop.get();
-                return loop;
-            } catch (std::exception&) {
-                throw except::invalid_argument("Element \"loop\": Invalid combination of arguments.");
-            }
-        }
-    }
-    throw except::invalid_argument("Element \"loop\": Invalid number of arguments. Expected 0 or 1, but got " + std::to_string(args.size()) + ".");
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {return nullptr;}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Parameter>(const std::unordered_map<std::string, std::vector<std::string>>& args) {

@@ -5,6 +5,7 @@
 
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <utility/observer_ptr.h>
 #include <fitter/FitterFwd.h>
@@ -91,6 +92,11 @@ namespace ausaxs::rigidbody::sequencer {
             static unsigned int _get_current_iteration();
             static unsigned int _get_total_iterations();
             static void _add_total_iterations(unsigned int n);
+
+            struct _parse {
+                static void validate(observer_ptr<LoopElement> owner, const ParsedArgs& args);
+                static std::unique_ptr<GenericElement> create(observer_ptr<LoopElement> owner, ParsedArgs&& args);
+            };
 
         protected: 
             unsigned int iterations = 1;
