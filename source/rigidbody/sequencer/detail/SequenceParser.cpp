@@ -111,13 +111,6 @@ settings::rigidbody::ParameterGenerationStrategyChoice get_parameter_strategy(st
     throw except::invalid_argument("SequenceParser::get_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
-settings::rigidbody::ConstraintGenerationStrategyChoice get_constraint_strategy(std::string_view line) {
-    if (line == "none") {return settings::rigidbody::ConstraintGenerationStrategyChoice::None;}
-    if (line == "linear") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;}
-    if (line == "volumetric") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric;}
-    throw except::invalid_argument("SequenceParser::get_constraint_strategy: Unknown strategy \"" + std::string(line) + "\"");
-}
-
 enum class ConstraintChoice {
     SpecificAtoms,
     Bond,
@@ -256,10 +249,7 @@ template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OutputFolder>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::AutomaticConstraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"auto_constraints\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    return std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(loop_stack.front()), get_constraint_strategy(args.begin()->second[0]));
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::AutomaticConstraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Seed>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
