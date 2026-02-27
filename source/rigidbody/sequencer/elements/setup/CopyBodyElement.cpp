@@ -2,8 +2,9 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/setup/CopyBodyElement.h>
-#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -38,3 +39,25 @@ CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view
 CopyBodyElement::~CopyBodyElement() = default;
 
 void CopyBodyElement::run() {}
+
+std::unique_ptr<GenericElement> CopyBodyElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+    if (!args.named.empty()) {throw except::parse_error("copy", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
+    if (args.inlined.size() != 2) {throw except::parse_error(
+        "copy", "Invalid number of inline arguments. Expected [new name] [target name], but got " + std::to_string(args.inlined.size()) + "."
+    );}
+
+    const auto& body_names = owner->_get_sequencer()->setup()._get_body_names();
+    std::string source = args.inlined[0];
+    std::string name = args.inlined[1];
+    if (!body_names.contains(source)) {
+        if (body_names.contains(name)) {std::swap(source, name);}
+        else {throw except::parse_error("copy", "Body name \"" + source + "\" not found.");}
+    }
+    if (body_names.contains(name)) {throw except::parse_error("copy", "Body name \"" + name + "\" already exists.");}
+
+    return std::make_unique<CopyBodyElement>(
+        owner->_get_sequencer(),
+        name,
+        source
+    );
+}

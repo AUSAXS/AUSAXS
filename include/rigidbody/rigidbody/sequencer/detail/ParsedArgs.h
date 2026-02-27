@@ -35,6 +35,7 @@ namespace ausaxs::rigidbody::sequencer {
         struct InlineArgs {
             std::size_t size() const {return values.size();}
             bool empty() const {return values.empty();}
+            Value& operator[](std::size_t index) {return values[index];}
 
             int line_number;
             std::vector<Value> values;

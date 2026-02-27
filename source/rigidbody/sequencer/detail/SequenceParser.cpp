@@ -250,37 +250,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Con
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Copy>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1 || !args.contains("anonymous")) {
-        throw except::invalid_argument("Element \"copy\": Invalid arguments. Expected two inline body names (e.g. \"copy new_body source_body\").");
-    }
-    const auto& vals = args.at("anonymous");
-    if (vals.size() != 2) {throw except::invalid_argument(
-        "Element \"copy\": Invalid number of values. "
-        "Expected 2 (new body name and source body name), but got " + std::to_string(vals.size()) + "."
-    );}
-
-    const auto& body_names = static_cast<Sequencer*>(loop_stack.front())->setup()._get_body_names();
-    std::string source = vals[0];
-    std::string name = vals[1];
-    if (!body_names.contains(source)) {
-        if (body_names.contains(name)) {
-            logging::log("Element \"copy\": Switching source and target.");
-            std::swap(source, name);
-        } else {
-            throw except::invalid_argument("Element \"copy\": Body name \"" + source + "\" not found.");
-        }
-    }
-    if (body_names.contains(name)) {
-        throw except::invalid_argument("Element \"copy\": Target body name \"" + name + "\" already exists.");
-    }
-
-    return std::make_unique<CopyBodyElement>(
-        static_cast<Sequencer*>(loop_stack.front()),
-        name,
-        source
-    );
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Copy>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OutputFolder>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
