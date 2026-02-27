@@ -253,29 +253,7 @@ template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Copy>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OutputFolder>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {path, mode};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::path, {"path", "folder", "anonymous"}},
-        {Args::mode, {"mode", "relative"}}
-    };
-    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"output_folder\": Missing required argument \"path\".");}
-    if (2 < args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"output_folder\": Too many arguments. Expected at most 2, but got " + std::to_string(args.size()) + ".");}
-
-    auto path = get_arg<std::string>(valid_args[Args::path], args);
-    auto mode = get_arg<std::string>(valid_args[Args::mode], args, "relative_terminal");
-    if (!path.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"output_folder\": Missing required argument \"path\".");}
-
-    if (mode.value == "relative" || mode.value == "relative_terminal") {
-        return std::make_unique<OutputFolderElement>(static_cast<Sequencer*>(loop_stack.front()), io::Folder(path.value), OutputFolderElement::Mode::RELATIVE_TERMINAL);
-    } else if (mode.value == "relative_config") {
-        return std::make_unique<OutputFolderElement>(static_cast<Sequencer*>(loop_stack.front()), io::Folder(path.value), OutputFolderElement::Mode::RELATIVE_CONFIG);
-    } else {
-        throw except::invalid_argument(
-            "SequenceParser::parse_arguments: \"output_folder\": Invalid argument for \"mode\": \"" + mode.value + "\". Expected one of {absolute, relative, relative_config}."
-        );
-    }
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OutputFolder>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::AutomaticConstraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
