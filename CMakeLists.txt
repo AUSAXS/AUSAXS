@@ -33,7 +33,7 @@ if (WIN32)
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 	elseif (MINGW)
 		add_compile_options(
-			-O3 -ffast-math -fno-finite-math-only -pipe -mavx
+			-O3 -ffast-math -fno-finite-math-only -pipe
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
@@ -53,21 +53,13 @@ elseif (APPLE)
 elseif (UNIX)
 #	add_compile_definitions("$<$<CONFIG:DEBUG>:_GLIBCXX_DEBUG>")
 	add_compile_options(
-		-Ofast -fno-finite-math-only -pipe -mavx
+		-Ofast -fno-finite-math-only -pipe
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
 		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3>"
 		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},native>>:-march=native>"
 	)
-endif()
-
-############################################
-##      Temporary External Library Fixes ##
-############################################
-# TODO: Remove once dlib fixes the missing template argument issue
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "17.0")
-    add_compile_options(-Wno-error=missing-template-arg-list-after-template-kw)
 endif()
 
 ############################################
