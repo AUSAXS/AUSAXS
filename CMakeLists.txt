@@ -63,6 +63,14 @@ elseif (UNIX)
 endif()
 
 ############################################
+##      Temporary External Library Fixes ##
+############################################
+# TODO: Remove once dlib fixes the missing template argument issue
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "17.0")
+    add_compile_options(-Wno-error=missing-template-arg-list-after-template-kw)
+endif()
+
+############################################
 ##            Dependencies                ##
 ############################################
 include(FetchContent)
