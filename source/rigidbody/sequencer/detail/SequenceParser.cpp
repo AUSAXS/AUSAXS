@@ -264,20 +264,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::See
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Message>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {message, color};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::message, {"message", "msg", "anonymous"}},
-        {Args::color, {"color", "colour", "col"}}
-    };
-    if (args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"message\": Missing required argument \"message\".");}
-    if (2 < args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: \"message\": Too many arguments. Expected at most 2, but got " + std::to_string(args.size()) + ".");}
-
-    auto message = get_arg<std::string>(valid_args[Args::message], args);
-    auto color = get_arg<std::string>(valid_args[Args::color], args, "white");
-    if (!message.found) {throw except::invalid_argument("SequenceParser::parse_arguments: \"message\": Missing required argument \"message\".");}
-    return std::make_unique<MessageElement>(static_cast<Sequencer*>(loop_stack.front()), message.value, color.value, false);
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Message>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Log>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
