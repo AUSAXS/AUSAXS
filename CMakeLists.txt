@@ -33,7 +33,7 @@ if (WIN32)
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 	elseif (MINGW)
 		add_compile_options(
-			-O3 -ffast-math -fno-finite-math-only -pipe -mavx
+			-O3 -ffast-math -pipe -mavx
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
@@ -43,7 +43,7 @@ if (WIN32)
 	endif()
 elseif (APPLE)
 	add_compile_options(
-		-O3 -ffast-math -fno-finite-math-only -pipe 
+		-O3 -ffast-math -pipe 
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
@@ -53,7 +53,7 @@ elseif (APPLE)
 elseif (UNIX)
 #	add_compile_definitions("$<$<CONFIG:DEBUG>:_GLIBCXX_DEBUG>")
 	add_compile_options(
-		-Ofast -fno-finite-math-only -pipe -mavx
+		-Ofast -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
