@@ -105,13 +105,6 @@ mini::Landscape Minimizer::landscape(unsigned int bins) {
             fval = function({vx});
             l.evals.emplace_back(Evaluation{{vx}, fval});
         }
-
-        // sanity check
-        if (std::isnan(fval) || std::isinf(fval)) {
-            if (settings::general::verbose) {std::cout << "Warning in Minimizer::landscape: Function value is nan or inf and will be skipped." << std::endl;}
-            l.evals.pop_back();
-            continue;
-        }
     }
     return l;
 }
