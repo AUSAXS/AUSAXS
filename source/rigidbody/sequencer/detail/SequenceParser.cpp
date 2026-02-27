@@ -89,25 +89,6 @@ settings::rigidbody::TransformationStrategyChoice get_transform_strategy(std::st
     throw except::invalid_argument("SequenceParser::get_transform_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
-settings::rigidbody::ParameterMaskStrategyChoice get_parameter_mask_strategy(std::string_view line) {
-    if (line == "all")                  {return settings::rigidbody::ParameterMaskStrategyChoice::All;}
-    if (line == "real")                 {return settings::rigidbody::ParameterMaskStrategyChoice::Real;}
-    if (line == "symmetry")             {return settings::rigidbody::ParameterMaskStrategyChoice::Symmetry;}
-    if (line == "sequential")           {return settings::rigidbody::ParameterMaskStrategyChoice::Sequential;}
-    if (line == "sequential_symmetry")  {return settings::rigidbody::ParameterMaskStrategyChoice::SequentialSymmetry;}
-    if (line == "sequential_real")      {return settings::rigidbody::ParameterMaskStrategyChoice::SequentialReal;}
-    if (line == "random")               {return settings::rigidbody::ParameterMaskStrategyChoice::Random;}
-    throw except::invalid_argument("SequenceParser::get_parameter_mask_strategy: Unknown mask strategy \"" + std::string(line) + "\"");
-}
-
-settings::rigidbody::BodySelectStrategyChoice get_body_select_strategy(std::string_view line) {
-    if (line == "random_body") {return settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect;}
-    if (line == "random_constraint") {return settings::rigidbody::BodySelectStrategyChoice::RandomConstraintSelect;}
-    if (line == "sequential_body") {return settings::rigidbody::BodySelectStrategyChoice::SequentialBodySelect;}
-    if (line == "sequential_constraint") {return settings::rigidbody::BodySelectStrategyChoice::SequentialConstraintSelect;}
-    throw except::invalid_argument("SequenceParser::get_body_select_strategy: Unknown strategy \"" + std::string(line) + "\"");
-}
-
 settings::rigidbody::DecayStrategyChoice get_decay_strategy(std::string_view line) {
     if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
     if (line == "exponential") {return settings::rigidbody::DecayStrategyChoice::Exponential;}
@@ -153,82 +134,6 @@ ConstraintChoice get_constraint_choice(std::string_view line) {
     if (line == "attract") {return ConstraintChoice::BodyCMAttractor;}
     if (line == "repel") {return ConstraintChoice::BodyCMRepeller;}
     throw except::invalid_argument("SequenceParser::get_constraint_choice: Unknown constraint choice \"" + std::string(line) + "\"");
-}
-
-template<typename T>
-struct ArgResult {T value; bool found;};
-
-/**
- * @brief Check for the presence of one of the given argument names in the provided argument map.
- * @param names Argument names to look for. 
- * @param args Argument map to search in.
- * @return {value, found} pairs. If found is true, value contains the argument value. If found is false, value is default constructed.
- */
-template<typename T>
-ArgResult<T> get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args, const T& default_value = T());
-
-template<>
-ArgResult<std::string> get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args, const std::string& default_value) {
-    for (const auto& name : names) {
-        if (args.contains(name)) {
-            return {args.at(name)[0], true};
-        }
-    }
-    return {default_value, false};
-}
-
-template<>
-ArgResult<std::vector<std::string>> get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args, const std::vector<std::string>& default_value) {
-    for (const auto& name : names) {
-        if (args.contains(name)) {
-            return {args.at(name), true};
-        }
-    }
-    return {default_value, false};
-}
-
-template<>
-ArgResult<int> get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args, const int& default_value) {
-    for (const auto& name : names) {
-        if (args.contains(name)) {
-            try {
-                return {std::stoi(args.at(name)[0]), true};
-            } catch (std::exception&) {
-                throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[0] + "\" cannot be interpreted as an integer.");
-            }
-        }
-    }
-    return {default_value, false};
-}
-
-template<>
-ArgResult<std::vector<int>> get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args, const std::vector<int>& default_value) {
-    for (const auto& name : names) {
-        if (args.contains(name)) {
-            std::vector<int> values;
-            try {
-                for (const auto& value : args.at(name)) {values.push_back(std::stoi(value));}
-            } catch (std::exception&) {
-                throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[values.size()] + "\" cannot be interpreted as an integer.");
-            }
-            return {std::move(values), true};
-        }
-    }
-    return {default_value, false};
-}
-
-template<>
-ArgResult<double> get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, std::vector<std::string>>& args, const double& default_value) {
-    for (const auto& name : names) {
-        if (args.contains(name)) {
-            try {
-                return {std::stod(args.at(name)[0]), true};
-            } catch (std::exception&) {
-                throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[0] + "\" cannot be interpreted as a decimal value.");
-            }
-        }
-    }
-    return {default_value, false};
 }
 
 template<>
@@ -584,30 +489,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Par
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::BodySelect>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {strategy, parameters};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::strategy,   {"point", "body"}},
-        {Args::parameters, {"parameters", "parameter_mask", "mask"}},
-    };
-
-    if (args.size() < 1 || 2 < args.size()) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"body_select\". Expected 1 or 2, but got " + std::to_string(args.size()) + ".");
-    }
-
-    auto strategy = get_arg<std::string>(valid_args[Args::strategy], args);
-    auto mask_arg = get_arg<std::string>(valid_args[Args::parameters], args);
-    settings::rigidbody::BodySelectStrategyChoice body_strategy = strategy.found ? get_body_select_strategy(strategy.value) : settings::rigidbody::body_select_strategy;
-    settings::rigidbody::ParameterMaskStrategyChoice mask_strategy = mask_arg.found ? get_parameter_mask_strategy(mask_arg.value) : settings::rigidbody::parameter_mask_strategy;
-    return std::make_unique<BodySelectElement>(
-        loop_stack.back(),
-        rigidbody::factory::create_selection_strategy(
-            loop_stack.front()->_get_rigidbody(),
-            body_strategy,
-            mask_strategy
-        )
-    );
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::BodySelect>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopEnd>(const std::unordered_map<std::string, std::vector<std::string>>& args) {

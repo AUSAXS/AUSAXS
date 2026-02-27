@@ -5,9 +5,12 @@
 
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <utility/observer_ptr.h>
 #include <io/ExistingFile.h>
+
+#include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
     class CopyBodyElement : public GenericElement {
@@ -25,7 +28,9 @@ namespace ausaxs::rigidbody::sequencer {
             ~CopyBodyElement() override;
 
             void run() override;
-        
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
+
         private:
             observer_ptr<Sequencer> owner;
     };

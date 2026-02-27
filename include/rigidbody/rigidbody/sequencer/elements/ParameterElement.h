@@ -6,6 +6,7 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
@@ -25,6 +26,8 @@ namespace ausaxs::rigidbody::sequencer {
             ParameterElement& decay_strategy(std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> strategy);
 
             observer_ptr<rigidbody::parameter::ParameterGenerationStrategy> get_parameter_strategy() const;
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
             std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy;

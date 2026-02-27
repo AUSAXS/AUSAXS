@@ -4,6 +4,7 @@
 #pragma once
 
 #include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 
 namespace ausaxs::rigidbody::sequencer {
     class OnImprovementElement;
@@ -23,6 +24,8 @@ namespace ausaxs::rigidbody::sequencer {
              * @brief Check if the current step was accepted (improved).
              */
             bool was_accepted() const {return step_accepted;}
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
             bool step_accepted = false;

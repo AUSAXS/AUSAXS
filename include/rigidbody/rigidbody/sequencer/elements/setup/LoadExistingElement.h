@@ -5,8 +5,11 @@
 
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <utility/observer_ptr.h>
+
+#include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
     /**
@@ -22,7 +25,9 @@ namespace ausaxs::rigidbody::sequencer {
             virtual ~LoadExistingElement() = default;
 
             void run() override;
-        
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
+
         private:
             observer_ptr<Sequencer> owner;
             observer_ptr<Rigidbody> rigidbody;

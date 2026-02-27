@@ -5,6 +5,7 @@
 
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/constraints/Constraint.h>
 #include <utility/observer_ptr.h>
 
@@ -18,5 +19,7 @@ namespace ausaxs::rigidbody::sequencer {
             ~ConstraintElement() override = default;
 
             void run() override;
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
     };
 }
