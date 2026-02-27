@@ -277,38 +277,7 @@ template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    auto rigidbody = loop_stack.front()->_get_rigidbody();
-    if (args.begin()->first == "anonymous") { // anonymous arg support
-        const auto& vals = args.begin()->second;
-        if (vals.size() == 1) {
-            // single anonymous arg: just the symmetry type, default to b1
-            if (rigidbody->molecule.size_body() != 1) {
-                throw except::invalid_argument(
-                    "Element \"symmetry\": Explicit body name must be provided when there is more than one body in the molecule. "
-                );
-            }
-            return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{"b1"}, std::vector{symmetry::get(vals[0])});
-        } else if (vals.size() == 2) {
-            // two anonymous args: body name + symmetry type (e.g. "symmetry b1 p2")
-            return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{vals[0]}, std::vector{symmetry::get(vals[1])});
-        } else {
-            throw except::invalid_argument("Element \"symmetry\": Unexpected number of inline arguments. Expected 1 (symmetry type) or 2 (body name + symmetry type).");
-        }
-    }
-
-    // loop over args and apply each one individually
-    std::vector<symmetry::type> symmetries;
-    std::vector<std::string> names;
-    for (const auto& [name, value] : args) {
-        if (value.size() != 1) {throw except::invalid_argument(
-            "Element \"symmetry\": Unexpected number of values for body \"" + name + "\". Expected 1, but got " + std::to_string(value.size()) + "."
-        );}
-        names.push_back(name);
-        symmetries.push_back(symmetry::get(value[0]));
-    }
-    return std::make_unique<SymmetryElement>(static_cast<Sequencer*>(loop_stack.front()), names, symmetries);
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 // loop needs to know the last parameter element for automatic iteration determination
 observer_ptr<ParameterElement> last_parameter_element = nullptr;

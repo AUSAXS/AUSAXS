@@ -20,13 +20,17 @@ namespace ausaxs::rigidbody::sequencer {
         using Key = std::string;
         using Value = std::string;
         struct Args {
-            std::size_t size() const {return args.size();}
-            bool empty() const {return args.empty();}
-
             struct Arg {
+                operator Value() const {return value;}
+                operator std::string_view() const {return value;}
+
                 int line_number;
                 Value value;
             };
+
+            std::size_t size() const {return args.size();}
+            bool empty() const {return args.empty();}
+            Arg& operator[] (std::size_t index) {return args[index];}
 
             int line_number;
             std::vector<Arg> args;
