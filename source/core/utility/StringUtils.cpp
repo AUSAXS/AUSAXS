@@ -170,3 +170,15 @@ bool utility::parse_bool(std::string_view s) {
     }
     throw except::invalid_argument("utility::parse_bool: \"" + std::string(s) + "\" cannot be interpreted as a boolean value.");
 }
+
+bool utility::isnumeric(std::string_view s) {
+    try {std::stod(std::string(s));
+    } catch (std::exception&) {return false;}
+    return true;
+}
+
+bool utility::isinteger(std::string_view s) {
+    try {std::stoi(std::string(s));
+    } catch (std::exception&) {return false;}
+    return true;
+}

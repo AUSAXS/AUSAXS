@@ -274,41 +274,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Log
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {paths, splits, names, saxs};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::paths, {"path", "paths", "load", "pdb", "anonymous"}},
-        {Args::splits, {"splits", "split"}},
-        {Args::names, {"names", "name"}},
-        {Args::saxs, {"saxs_path", "saxs"}}
-    };
-    if (args.empty()) {throw except::invalid_argument("Element \"load\": Invalid number of arguments. Expected at least one.");}
-
-    auto paths = get_arg<std::vector<std::string>>(valid_args[Args::paths], args);
-    auto names = get_arg<std::vector<std::string>>(valid_args[Args::names], args);
-    auto saxs_path = get_arg<std::string>(valid_args[Args::saxs], args);
-    if (!paths.found) {throw except::invalid_argument("Element \"load\": Missing required argument \"path\".");}
-
-    // Handle SAXS path separately through SetupElement
-    if (saxs_path.found) {
-        static_cast<Sequencer*>(loop_stack.front())->setup()._set_saxs_path(io::ExistingFile(saxs_path.value));
-    }
-
-    {   // check the special case of splitting by chainID
-        auto split_test = get_arg<std::string>(valid_args[Args::splits], args);
-        if (split_test.found && split_test.value == "chain") {
-            if (paths.value.size() != 1) {throw except::invalid_argument("Element \"load\": Chain splitting can only be used with a single path.");}
-            return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], names.value);
-        }
-    }
-
-    auto splits = get_arg<std::vector<int>>(valid_args[Args::splits], args);
-    if (splits.found) {
-        if (paths.value.size() != 1) {throw except::invalid_argument("Element \"load\": Splits can only be used with a single path.");}
-        return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value[0], splits.value, names.value);
-    }
-    return std::make_unique<LoadElement>(static_cast<Sequencer*>(loop_stack.front()), paths.value, names.value);
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {

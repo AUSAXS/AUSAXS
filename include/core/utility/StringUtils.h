@@ -73,4 +73,16 @@ namespace ausaxs::utility {
      *        Other input will throw an exception.
      */
     bool parse_bool(std::string_view s);
+
+    /**
+     * @brief Check if a string can be interpreted as a number.
+     *        std::stod is guaranteed to succeed.
+     */
+    bool isnumeric(std::string_view s);
+
+    /**
+     * @brief Check if a string can be interpreted as an integer.
+     *        std::stoi is guaranteed to succeed.
+     */
+    bool isinteger(std::string_view s);
 }
