@@ -169,50 +169,47 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
     };
 
     if (!args.named.empty()) {throw except::parse_error("loop", "Unexpected named argument.");}
-    if (args.inlined.values.empty()) { // no args - try to deduce iteration count
+    if (args.inlined.empty()) { // no args - try to deduce iteration count
         return std::make_unique<LoopElement>(owner, deduce_iteration_count());
-    } else if (args.inlined.values.size() == 1) {
-        // five options: 1) "[iteration]" 2) "[name]" 3) "[name] [iteration]" 4) "[duplicate]" 5) "[duplicate] [name]"
-        if (args.inlined.values.size() == 1) { // option 1, 2, 4
-            try { // check option 1
-                int iterations = std::stoi(args.inlined.values[0]);
-                return std::make_unique<LoopElement>(owner, iterations);
-            } catch (std::exception&) {
-                const auto& name = args.inlined.values[0];
+    } else if (args.inlined.size() == 1) { // option 1, 2, 4
+        try { // check option 1
+            int iterations = std::stoi(args.inlined[0]);
+            return std::make_unique<LoopElement>(owner, iterations);
+        } catch (std::exception&) {
+            const auto& name = args.inlined[0];
 
-                // check option 4
-                if (name == "duplicate" || name == "copy") {
-                    if (loop_names.empty()) {throw except::parse_error("loop", args.inlined, "No previous loop found to duplicate.");}
-                    return std::make_unique<CopyLoopElement>(owner, last_loop_element);
-                }
-
-                // else it must be option 2
-                if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
-                auto loop = std::make_unique<LoopElement>(owner, deduce_iteration_count());
-                loop_names[name] = loop.get();
-                last_loop_element = loop.get();
-                return loop;
-            }
-        } else if (args.inlined.values.size() == 2) { // option 3, 5
-            // check option 5
-            if (args.inlined.values[0] == "duplicate" || args.inlined.values[0] == "copy") {
-                const auto& name = args.inlined.values[1];
-                if (!loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Target loop name \"" + name + "\" does not exist.");}
-                return std::make_unique<CopyLoopElement>(owner, loop_names.at(name));
+            // check option 4
+            if (name == "duplicate" || name == "copy") {
+                if (loop_names.empty()) {throw except::parse_error("loop", args.inlined, "No previous loop found to duplicate.");}
+                return std::make_unique<CopyLoopElement>(owner, last_loop_element);
             }
 
-            // else it must be option 3
-            try {
-                int iterations = std::stoi(args.inlined.values[1]);
-                const auto& name = args.inlined.values[0];
-                if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
-                auto loop = std::make_unique<LoopElement>(owner, iterations);
-                loop_names[name] = loop.get();
-                last_loop_element = loop.get();
-                return loop;
-            } catch (std::exception&) {
-                throw except::parse_error("loop", args.inlined, "Could not determine deduce number of iterations.");
-            }
+            // else it must be option 2
+            if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
+            auto loop = std::make_unique<LoopElement>(owner, deduce_iteration_count());
+            loop_names[name] = loop.get();
+            last_loop_element = loop.get();
+            return loop;
+        }
+    } else if (args.inlined.size() == 2) { // option 3, 5
+        // check option 5
+        if (args.inlined[0] == "duplicate" || args.inlined[0] == "copy") {
+            const auto& name = args.inlined[1];
+            if (!loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Target loop name \"" + name + "\" does not exist.");}
+            return std::make_unique<CopyLoopElement>(owner, loop_names.at(name));
+        }
+
+        // else it must be option 3
+        try {
+            int iterations = std::stoi(args.inlined[1]);
+            const auto& name = args.inlined[0];
+            if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
+            auto loop = std::make_unique<LoopElement>(owner, iterations);
+            loop_names[name] = loop.get();
+            last_loop_element = loop.get();
+            return loop;
+        } catch (std::exception&) {
+            throw except::parse_error("loop", args.inlined, "Could not determine number of iterations.");
         }
     }
     throw except::parse_error("loop", args.inlined, "Invalid arguments.");

@@ -89,15 +89,15 @@ void MessageElement::run() {
 std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     enum class Args {message, color};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::message, {"message", "msg", "anonymous"}},
-        {Args::color, {"color", "colour", "col"}}
+        {Args::message, {"message", "msg"}},
+        {Args::color, {"color", "colour"}}
     };
     auto message = args.get<std::string>(valid_args[Args::message]);
     auto color = args.get<std::string>(valid_args[Args::color], "white");
 
     // inlined usage patterns
     if (!args.inlined.empty()) {
-        if (!args.named.empty()) {throw except::parse_error("message", "Cannot combine named and inline arguments.");}
+        if (!args.named.empty()) {throw except::parse_error("print", "Cannot combine named and inline arguments.");}
 
         // pattern 1: [message]
         if (args.inlined.size() == 1) {
@@ -108,8 +108,8 @@ std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement>
             color.found = true;
             message.value = args.inlined[1];
             message.found = true;
-        } else {throw except::parse_error("message", "Too many inline arguments. Expected at most 2, but got " + std::to_string(args.inlined.size()) + ".");}
+        } else {throw except::parse_error("print", "Too many inline arguments. Expected at most 2, but got " + std::to_string(args.inlined.size()) + ".");}
     }
-    if (!message.found) {throw except::parse_error("message", "Missing required argument \"message\".");}
+    if (!message.found) {throw except::parse_error("print", "Missing required argument \"message\".");}
     return std::make_unique<MessageElement>(owner->_get_sequencer(), message.value, color.value, false);
 }

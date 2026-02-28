@@ -20,6 +20,78 @@ using namespace ausaxs::rigidbody::sequencer;
 using ausaxs::except::io_error;
 using ausaxs::rigidbody::sequencer::except::parse_error;
 
+namespace {
+    // tokenize a line respecting quoted strings; '#' outside quotes starts a comment and discards the rest
+    std::vector<std::string> tokenize(const std::string& s) {
+        std::vector<std::string> result;
+        std::string current;
+        char in_quote = 0;
+        bool in_token = false;
+
+        for (size_t i = 0; i < s.size(); ++i) {
+            char c = s[i];
+
+            // unquoted '#' starts a comment - stop tokenizing
+            if (c == '#' && in_quote == 0) {break;}
+
+            // handle quotes
+            if ((c == '"' || c == '\'') && (i == 0 || s[i-1] != '\\')) {
+                if (in_quote == 0) {
+                    in_quote = c;
+                    in_token = true;
+                } else if (in_quote == c) {
+                    in_quote = 0;
+                } else {
+                    current += c;
+                }
+                continue;
+            }
+
+            // inside quotes: add everything
+            if (in_quote != 0) {
+                current += c;
+                continue;
+            }
+
+            // outside quotes: whitespace delimits tokens
+            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                if (in_token) {
+                    result.push_back(current);
+                    current.clear();
+                    in_token = false;
+                }
+                continue;
+            }
+
+            // regular character
+            current += c;
+            in_token = true;
+        }
+
+        if (in_token) {
+            result.push_back(current);
+        }
+
+        return result;
+    }
+
+    bool is_opening_brace(char c) {return c == '{' || c == '[' || c == '(';}
+    bool is_closing_brace(char c) {return c == '}' || c == ']' || c == ')';}
+
+    // check if the last token is a standalone opening/closing brace (not a value that happens to end with one)
+    bool ends_with_opening_brace(const std::vector<std::string>& tokens) {
+        if (tokens.empty()) {return false;}
+        const auto& t = tokens.back();
+        return t.size() == 1 && is_opening_brace(t[0]);
+    }
+
+    bool ends_with_closing_brace(const std::vector<std::string>& tokens) {
+        if (tokens.empty()) {return false;}
+        const auto& t = tokens.back();
+        return t.size() == 1 && is_closing_brace(t[0]);
+    }
+}
+
 enum class ElementType {
     AutomaticConstraint,
     BodySelect,
@@ -88,109 +160,41 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
     sequencer->setup()._set_config_folder(config.directory());
 
     std::string line;
+    int line_no = 0;
     while(!in.eof()) {
         std::getline(in, line);
+        ++line_no;
         if (line.empty()) {continue;}
 
-        // tokenize line respecting quoted strings
         ParsedArgs pargs;
-        static auto tokenize = [] (const std::string& s) -> std::vector<std::string> {
-            std::vector<std::string> result;
-            std::string current;
-            char in_quote = 0;
-            bool in_token = false;
-
-            for (size_t i = 0; i < s.size(); ++i) {
-                char c = s[i];
-
-                // handle quotes
-                if ((c == '"' || c == '\'') && (i == 0 || s[i-1] != '\\')) {
-                    if (in_quote == 0) {
-                        in_quote = c;
-                        in_token = true;
-                    } else if (in_quote == c) {
-                        in_quote = 0;
-                    } else {
-                        current += c;
-                    }
-                    continue;
-                }
-
-                // inside quotes: add everything
-                if (in_quote != 0) {
-                    current += c;
-                    continue;
-                }
-
-                // outside quotes: whitespace delimits tokens
-                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-                    if (in_token) {
-                        result.push_back(current);
-                        current.clear();
-                        in_token = false;
-                    }
-                    continue;
-                }
-
-                // regular character
-                current += c;
-                in_token = true;
-            }
-
-            if (in_token) {
-                result.push_back(current);
-            }
-
-            return result;
-        };
-
         auto tokens = tokenize(line);
-        if (tokens.empty() || tokens.front()[0] == '#') {continue;}
+        if (tokens.empty()) {continue;}
 
-        static auto is_opening_brace = [] (char c) {return c == '{' || c == '[' || c == '(';};
-        static auto is_closing_brace = [] (char c) {return c == '}' || c == ']' || c == ')';};
-
-        // check if the argument list spans over multiple lines by inspecting the last non-whitespace char
-        static auto last_non_ws = [] (const std::string& s) -> char {
-            for (int i = static_cast<int>(s.size()) - 1; i >= 0; --i) {
-                char c = s[i];
-                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {continue;}
-                return c;
-            }
-            return 0;
-        };
-
-        // if the last unquoted non-whitespace character is an opening brace, read a multiline arg block
-        if (is_opening_brace(last_non_ws(line))) {
+        if (ends_with_opening_brace(tokens)) { // if the last token ends with an opening brace, read a multiline arg block
             std::string argline;
             std::getline(in, argline);
-            while (!is_closing_brace(last_non_ws(argline))) {
-                if (!argline.empty()) {
-                    auto sub_tokens = tokenize(argline);
-                    if (!sub_tokens.empty()) {
-                        int end = static_cast<int>(sub_tokens.size());
-                        for (unsigned int i = 0; i < sub_tokens.size(); i++) {
-                            if (!sub_tokens[i].empty() && sub_tokens[i][0] == '#') {
-                                end = static_cast<int>(i);
-                                break;
-                            }
-                        }
-                        ParsedArgs::Args sub_args;
-                        for (int i = 1; i < end; ++i) {
-                            sub_args.args.push_back({0, sub_tokens[i]});
-                        }
-                        pargs.named[sub_tokens[0]] = std::move(sub_args);
+            ++line_no;
+            auto sub_tokens = tokenize(argline);
+            while (!ends_with_closing_brace(sub_tokens)) {
+                if (!sub_tokens.empty()) {
+                    ParsedArgs::Args sub_args;
+                    sub_args.line_number = line_no;
+                    for (size_t i = 1; i < sub_tokens.size(); ++i) {
+                        sub_args.args.push_back({line_no, sub_tokens[i]});
                     }
+                    pargs.named[sub_tokens[0]] = std::move(sub_args);
                 }
 
                 if (in.eof()) { throw io_error("SequenceParser::parse: Unescaped argument list starting in line \"" + line + "\"."); }
                 std::getline(in, argline);
+                ++line_no;
+                sub_tokens = tokenize(argline);
             }
         }
 
         // else: all remaining inline tokens are positional anonymous arguments
-        // (e.g. "loop 100", "loop copy l1", "copy b2 b1")
         else if (tokens.size() >= 2) {
+            pargs.inlined.line_number = line_no;
             pargs.inlined.values = std::vector<std::string>(tokens.begin()+1, tokens.end());
         }
 
