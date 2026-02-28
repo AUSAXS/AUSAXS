@@ -7,7 +7,6 @@
 #include <rigidbody/sequencer/elements/All.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
-#include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/symmetry/PredefinedSymmetries.h>
@@ -80,12 +79,6 @@ ElementType get_type(std::string_view line) {
         }
     }
     throw except::invalid_argument("SequenceParser::get_type: Unknown element type \"" + std::string(line) + "\".");
-}
-
-settings::rigidbody::TransformationStrategyChoice get_transform_strategy(std::string_view line) {
-    if (line == "rigid_transform" || line == "rigid") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}
-    if (line == "single_transform" || line == "single") {return settings::rigidbody::TransformationStrategyChoice::SingleTransform;}
-    throw except::invalid_argument("SequenceParser::get_transform_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
 enum class ConstraintChoice {
@@ -272,18 +265,7 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loo
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Transform>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"transform\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-
-    settings::rigidbody::TransformationStrategyChoice strategy = get_transform_strategy(args.begin()->second[0]);
-    return std::make_unique<TransformElement>(
-        loop_stack.back(),
-        rigidbody::factory::create_transform_strategy(
-            loop_stack.front()->_get_rigidbody(),
-            strategy
-        )
-    );
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Transform>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::RelativeHydration>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
