@@ -4,10 +4,11 @@
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/AdditionalElements.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/All.h>
 #include <utility/observer_ptr.h>
-#include <utility/Exceptions.h>
 #include <utility/Logging.h>
+#include <utility/Exceptions.h>
 #include <io/ExistingFile.h>
 
 #include <fstream>
@@ -15,6 +16,9 @@
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
+
+using ausaxs::except::io_error;
+using ausaxs::rigidbody::sequencer::except::parse_error;
 
 enum class ElementType {
     AutomaticConstraint,
@@ -69,17 +73,15 @@ ElementType get_type(std::string_view line) {
             ) {return type;}
         }
     }
-    throw except::invalid_argument("SequenceParser::get_type: Unknown element type \"" + std::string(line) + "\".");
+    throw parse_error("base", "Unknown element \"" + std::string(line) + "\".");
 }
 
 std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config) {
     std::ifstream in(config.path());
-    if (!in.is_open()) {throw except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}
+    if (!in.is_open()) {throw ausaxs::except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}
 
-    // the main sequencer object
-    std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>();
+    std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>(); // the main sequencer object
 
-    // the loop stack
     // the top element of this stack is the current loop element which new elements will be added to
     // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
@@ -87,23 +89,20 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
 
     std::string line;
     while(!in.eof()) {
-        // read the next line
         std::getline(in, line);
         if (line.empty()) {continue;}
 
-        // skip empty lines & comments
-        ParsedArgs pargs;
-        
         // tokenize line respecting quoted strings
+        ParsedArgs pargs;
         static auto tokenize = [] (const std::string& s) -> std::vector<std::string> {
             std::vector<std::string> result;
             std::string current;
             char in_quote = 0;
             bool in_token = false;
-            
+
             for (size_t i = 0; i < s.size(); ++i) {
                 char c = s[i];
-                
+
                 // handle quotes
                 if ((c == '"' || c == '\'') && (i == 0 || s[i-1] != '\\')) {
                     if (in_quote == 0) {
@@ -116,13 +115,13 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                     }
                     continue;
                 }
-                
+
                 // inside quotes: add everything
                 if (in_quote != 0) {
                     current += c;
                     continue;
                 }
-                
+
                 // outside quotes: whitespace delimits tokens
                 if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
                     if (in_token) {
@@ -132,19 +131,19 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                     }
                     continue;
                 }
-                
+
                 // regular character
                 current += c;
                 in_token = true;
             }
-            
+
             if (in_token) {
                 result.push_back(current);
             }
-            
+
             return result;
         };
-        
+
         auto tokens = tokenize(line);
         if (tokens.empty() || tokens.front()[0] == '#') {continue;}
 
@@ -184,7 +183,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                     }
                 }
 
-                if (in.eof()) { throw except::io_error("SequenceParser::parse: Unescaped argument list starting in line \"" + line + "\"."); }
+                if (in.eof()) { throw io_error("SequenceParser::parse: Unescaped argument list starting in line \"" + line + "\"."); }
                 std::getline(in, argline);
             }
         }
@@ -213,99 +212,59 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
         logging::log(parsed_script);
 
         auto& elements = loop_stack.back()->_get_elements();
-        switch (get_type(tokens[0])) {
-            case ElementType::Constraint:
-                ConstraintElement::_parse(loop_stack.back(), std::move(pargs));
-                break;
+        auto type = get_type(tokens[0]);
 
-            case ElementType::AutomaticConstraint:
-                elements.emplace_back(AutoConstraintsElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
+        // dispatch maps for the common cases
+        using ElementParser = std::unique_ptr<GenericElement>(*)(observer_ptr<LoopElement>, ParsedArgs&&);
+        using VoidParser = void(*)(observer_ptr<LoopElement>, ParsedArgs&&);
+        static const std::unordered_map<ElementType, ElementParser> element_parsers = {
+            {ElementType::AutomaticConstraint, AutoConstraintsElement::_parse},
+            {ElementType::BodySelect,          BodySelectElement::_parse},
+            {ElementType::Copy,                CopyBodyElement::_parse},
+            {ElementType::EveryNStep,           EveryNStepElement::_parse},
+            {ElementType::LoadElement,         LoadElement::_parse},
+            {ElementType::LoopBegin,           LoopElement::_parse},
+            {ElementType::Message,             MessageElement::_parse},
+            {ElementType::OnImprovement,       OnImprovementElement::_parse},
+            {ElementType::OptimizeStep,        OptimizeStepElement::_parse},
+            {ElementType::OutputFolder,        OutputFolderElement::_parse},
+            {ElementType::Parameter,           ParameterElement::_parse},
+            {ElementType::RelativeHydration,   RelativeHydrationElement::_parse},
+            {ElementType::Save,                SaveElement::_parse},
+            {ElementType::SymmetryElement,     SymmetryElement::_parse},
+            {ElementType::Transform,           TransformElement::_parse},
+            {ElementType::Log,                 detail::LogElement::_parse},
+        };
+        static const std::unordered_map<ElementType, VoidParser> void_parsers = {
+            {ElementType::Constraint,          ConstraintElement::_parse},
+            {ElementType::LoopEnd,             detail::LoopEndElement::_parse},
+            {ElementType::OverlapStrength,     detail::OverlapStrengthElement::_parse},
+            {ElementType::Seed,                detail::SeedElement::_parse},
+        };
 
+        if (element_parsers.contains(type)) {elements.emplace_back(element_parsers.at(type)(loop_stack.back(), std::move(pargs)));}
+        else if (void_parsers.contains(type)) {void_parsers.at(type)(loop_stack.back(), std::move(pargs));}
+        switch (type) { // additional work for elements that require it
             case ElementType::LoopBegin:
-                elements.emplace_back(LoopElement::_parse(loop_stack.back(), std::move(pargs)));
-                if (auto* loop = dynamic_cast<LoopElement*>(elements.back().get())) {
-                    loop_stack.emplace_back(loop); // the returned element _may_ be a CopyLoopElement, which is not modifiable
-                }
+                // the returned element _may_ be a CopyLoopElement which does not open a new scope
+                if (auto* loop = dynamic_cast<LoopElement*>(elements.back().get())) {loop_stack.emplace_back(loop);}
                 break;
 
             case ElementType::LoopEnd:
-                detail::LoopEndElement::_parse(loop_stack.back(), std::move(pargs));
-                if (loop_stack.size() == 1) {throw except::invalid_argument("Element \"end\": Too many \"end\" statements.");}
+                if (loop_stack.size() == 1) {throw except::parse_error("end", "Too many \"end\" statements.");}
                 loop_stack.pop_back();
                 break;
 
-            case ElementType::Parameter:
-                elements.emplace_back(ParameterElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::BodySelect:
-                elements.emplace_back(BodySelectElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::Copy:
-                elements.emplace_back(CopyBodyElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::Transform:
-                elements.emplace_back(TransformElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
             case ElementType::OptimizeStep:
-                elements.emplace_back(OptimizeStepElement::_parse(loop_stack.back(), std::move(pargs)));
-                loop_stack.emplace_back(static_cast<LoopElement*>(elements.back().get()));
-                break;
-
             case ElementType::EveryNStep:
-                elements.emplace_back(EveryNStepElement::_parse(loop_stack.back(), std::move(pargs)));
-                loop_stack.emplace_back(static_cast<LoopElement*>(elements.back().get()));
-                break;
-
             case ElementType::OnImprovement:
-                elements.emplace_back(OnImprovementElement::_parse(loop_stack.back(), std::move(pargs)));
                 loop_stack.emplace_back(static_cast<LoopElement*>(elements.back().get()));
-                break;
-
-            case ElementType::Save:
-                elements.emplace_back(SaveElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::LoadElement:
-                elements.emplace_back(LoadElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::SymmetryElement:
-                elements.emplace_back(SymmetryElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::OverlapStrength:
-                detail::OverlapStrengthElement::_parse(loop_stack.back(), std::move(pargs));
-                break;
-
-            case ElementType::RelativeHydration:
-                elements.emplace_back(RelativeHydrationElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::OutputFolder:
-                elements.emplace_back(OutputFolderElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-            
-            case ElementType::Message:
-                elements.emplace_back(MessageElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::Log:
-                elements.emplace_back(detail::LogElement::_parse(loop_stack.back(), std::move(pargs)));
-                break;
-
-            case ElementType::Seed:
-                detail::SeedElement::_parse(loop_stack.back(), std::move(pargs));
                 break;
 
             default:
-                throw except::invalid_argument("SequenceParser::constructor: Unknown element type \"" + tokens[0] + "\".");
+                break;
         }
     }
-    if (loop_stack.size() != 1) {throw except::invalid_argument("SequenceParser::constructor: Missing \"end\" statements.");}
+    if (loop_stack.size() != 1) {throw parse_error("base", "Missing \"end\" statement.");}
     return sequencer;
 }
