@@ -21,11 +21,11 @@ namespace ausaxs::rigidbody::sequencer {
         using Value = std::string;
         struct Args {
             struct Arg {
-                operator Value() const {return value;}
-                operator std::string_view() const {return value;}
+                operator Value() const {return str;}
+                operator std::string_view() const {return str;}
 
                 int line_number;
-                Value value;
+                Value str;
             };
 
             std::size_t size() const {return args.size();}

@@ -81,18 +81,6 @@ ElementType get_type(std::string_view line) {
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Constraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Copy>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OutputFolder>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::AutomaticConstraint>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Seed>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"seed\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     try {
@@ -105,9 +93,6 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::See
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Message>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Log>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"log\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     auto message = args.begin()->second[0];
@@ -115,86 +100,9 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Log
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoadElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Parameter>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::BodySelect>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopEnd>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 0) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"end\". Expected 0, but got " + std::to_string(args.size()) + ".");}
     return nullptr;
-}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Transform>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::RelativeHydration>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Options {Maximum, High, Normal, Low, Minimum};
-    std::unordered_map<std::string, Options> options = {
-        {"max",     Options::Maximum},
-        {"maximum", Options::Maximum},
-        {"high",    Options::High},
-        {"normal",  Options::Normal},
-        {"low",     Options::Low},
-        {"minimum", Options::Minimum},
-        {"min",     Options::Minimum}
-    };
-
-    auto to_value = [] (Options opt) {
-        switch (opt) {
-            case Options::Maximum:  return 1.75;
-            case Options::High:     return 1.5;
-            case Options::Normal:   return 1.0;
-            case Options::Low:      return 0.5;
-            case Options::Minimum:  return 0.25;
-        }
-        return 0.0;
-    };
-
-    auto rigidbody = loop_stack.front()->_get_rigidbody();
-
-    // handle anonymous inline: "relative_hydration b1 high" → args["anonymous"] = {"b1", "high"}
-    if (args.size() == 1 && args.begin()->first == "anonymous") {
-        const auto& vals = args.begin()->second;
-        if (vals.size() != 2) {
-            throw except::invalid_argument(
-                "Element \"relative_hydration\": Inline form expects exactly 2 arguments (body name and level), but got " + std::to_string(vals.size()) + "."
-            );
-        }
-        if (rigidbody->molecule.size_body() != 1) {
-            throw except::invalid_argument(
-                "Element \"relative_hydration\": Inline form can only be used when there is exactly one body in the molecule. "
-                "Use a brace block for multiple bodies."
-            );
-        }
-        return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), std::vector<std::string>{vals[0]}, std::vector<double>{to_value(options[vals[1]])});
-    }
-
-    if (args.size() != rigidbody->molecule.size_body()) {
-        throw except::invalid_argument(
-            "SequenceParser::parse_arguments: Invalid number of arguments for \"relative_hydration\". "
-            "Expected " + std::to_string(rigidbody->molecule.size_body()) + ", but got " + std::to_string(args.size()) + "."
-        );
-    }
-
-    std::vector<double> ratios;
-    std::vector<std::string> names;
-    for (const auto& [name, value] : args) {
-        names.push_back(name);
-        ratios.push_back(to_value(options[value[0]]));
-    }
-    return std::make_unique<RelativeHydrationElement>(static_cast<Sequencer*>(loop_stack.front()), names, ratios);
 }
 
 template<>
