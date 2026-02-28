@@ -118,16 +118,6 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Eve
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OnImprovement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (!args.empty()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"on_improvement\". Expected 0, but got " + std::to_string(args.size()) + ".");}
-    observer_ptr<OptimizeStepElement> optimize_step = nullptr;
-    if (loop_stack.empty() || !(optimize_step = dynamic_cast<OptimizeStepElement*>(loop_stack.back()))) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: \"on_improvement\" must be inside an \"optimize_step\" block.");
-    }
-    return std::make_unique<OnImprovementElement>(optimize_step);
-}
-
-template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Save>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     return std::make_unique<SaveElement>(loop_stack.back(), settings::general::output + args.begin()->second[0]);
