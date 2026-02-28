@@ -81,31 +81,6 @@ ElementType get_type(std::string_view line) {
 }
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Seed>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"seed\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    try {
-        int seed = std::stoi(args.begin()->second[0]);
-        random::set_seed(seed);
-        return nullptr;
-    } catch (std::exception&) {
-        throw except::invalid_argument("SequenceParser::parse_arguments: \"" + args.begin()->second[0] + "\" cannot be interpreted as an integer seed value.");
-    }
-}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Log>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"log\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    auto message = args.begin()->second[0];
-    return std::make_unique<MessageElement>(static_cast<Sequencer*>(loop_stack.front()), message, true);
-}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopEnd>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 0) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"end\". Expected 0, but got " + std::to_string(args.size()) + ".");}
-    return nullptr;
-}
-
-template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OptimizeStep>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 0) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"optimize_step\". Expected 0, but got " + std::to_string(args.size()) + ".");}
     return std::make_unique<OptimizeStepElement>(loop_stack.back());
@@ -121,24 +96,6 @@ template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Save>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
     if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save\". Expected 1, but got " + std::to_string(args.size()) + ".");}
     return std::make_unique<SaveElement>(loop_stack.back(), settings::general::output + args.begin()->second[0]);
-}
-
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::OverlapStrength>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {scaling, distance};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::scaling, {"scaling", "factor"}},
-        {Args::distance, {"max", "max_distance", "distance"}}
-    };
-    if (args.size() != valid_args.size()) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"overlap_strength\". Expected 2, but got " + std::to_string(args.size()) + ".");}
-
-    auto scaling  = get_arg<double>(valid_args[Args::scaling], args);
-    auto distance = get_arg<double>(valid_args[Args::distance], args);
-    if (!scaling.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"scaling\".");}
-    if (!distance.found) {throw except::invalid_argument("SequenceParser::parse_arguments: Missing required argument \"distance\".");}
-
-    static_cast<Sequencer*>(loop_stack.front())->setup().set_overlap_function([a=scaling.value, d=distance.value] (double x) {return x < d ? a*std::pow((d-x)/d, 2) : 0;});
-    return nullptr;
 }
 
 std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config) {
