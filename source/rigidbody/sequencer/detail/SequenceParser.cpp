@@ -80,12 +80,6 @@ ElementType get_type(std::string_view line) {
     throw except::invalid_argument("SequenceParser::get_type: Unknown element type \"" + std::string(line) + "\".");
 }
 
-template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Save>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    if (args.size() != 1) {throw except::invalid_argument("SequenceParser::parse_arguments: Invalid number of arguments for \"save\". Expected 1, but got " + std::to_string(args.size()) + ".");}
-    return std::make_unique<SaveElement>(loop_stack.back(), settings::general::output + args.begin()->second[0]);
-}
-
 std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config) {
     std::ifstream in(config.path());
     if (!in.is_open()) {throw except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}

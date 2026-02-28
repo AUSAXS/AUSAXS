@@ -4,6 +4,7 @@
 #include <rigidbody/sequencer/elements/SaveElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/Rigidbody.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <dataset/SimpleDataset.h>
@@ -54,4 +55,10 @@ void SaveElement::run() {
     } else {
         throw std::runtime_error("SaveElement::run: Unknown file format: \"" + ext + "\"");
     }
+}
+
+std::unique_ptr<GenericElement> SaveElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+    if (!args.named.empty()) {throw except::parse_error("save", "Unexpected named argument.");}
+    if (args.inlined.size() != 1) {throw except::parse_error("save", "Expected only a single inline argument.");}
+    return std::make_unique<SaveElement>(owner, settings::general::output + args.inlined[0]);
 }
