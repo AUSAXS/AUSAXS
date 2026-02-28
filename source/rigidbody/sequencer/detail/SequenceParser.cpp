@@ -6,7 +6,6 @@
 #include <rigidbody/constraints/ConstraintFactory.h>
 #include <rigidbody/sequencer/elements/All.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
-#include <rigidbody/parameters/decay/DecayFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/BodySplitter.h>
@@ -87,28 +86,6 @@ settings::rigidbody::TransformationStrategyChoice get_transform_strategy(std::st
     if (line == "rigid_transform" || line == "rigid") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}
     if (line == "single_transform" || line == "single") {return settings::rigidbody::TransformationStrategyChoice::SingleTransform;}
     throw except::invalid_argument("SequenceParser::get_transform_strategy: Unknown strategy \"" + std::string(line) + "\"");
-}
-
-settings::rigidbody::DecayStrategyChoice get_decay_strategy(std::string_view line) {
-    if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
-    if (line == "exponential") {return settings::rigidbody::DecayStrategyChoice::Exponential;}
-    if (line == "none") {return settings::rigidbody::DecayStrategyChoice::None;}
-    throw except::invalid_argument("SequenceParser::get_decay_strategy: Unknown strategy \"" + std::string(line) + "\"");
-}
-
-struct ParameterStrategyDefs {
-    static inline std::string ROTATE_ONLY = "rotate_only";
-    static inline std::string TRANSLATE_ONLY = "translate_only";
-    static inline std::string BOTH = "both";
-    static inline std::string SYMMETRY_ONLY = "symmetry_only";
-};
-
-settings::rigidbody::ParameterGenerationStrategyChoice get_parameter_strategy(std::string_view line) {
-    if (line == ParameterStrategyDefs::ROTATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}
-    if (line == ParameterStrategyDefs::TRANSLATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly;}
-    if (line == ParameterStrategyDefs::SYMMETRY_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::SymmetryOnly;}
-    if (line == ParameterStrategyDefs::BOTH || line == "rotate_and_translate") {return settings::rigidbody::ParameterGenerationStrategyChoice::Simple;}
-    throw except::invalid_argument("SequenceParser::get_strategy: Unknown strategy \"" + std::string(line) + "\"");
 }
 
 enum class ConstraintChoice {
@@ -279,74 +256,11 @@ std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Loa
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::SymmetryElement>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
-// loop needs to know the last parameter element for automatic iteration determination
-observer_ptr<ParameterElement> last_parameter_element = nullptr;
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {return nullptr;}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::LoopBegin>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
-std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Parameter>(const std::unordered_map<std::string, std::vector<std::string>>& args) {
-    enum class Args {iterations, translate, rotate, strategy, decay_strategy};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::iterations, {"iterations", "decay_over"}},
-        {Args::translate, {"angstroms", "translation_amplitude", "translate"}},
-        {Args::rotate, {"radians", "rotation_amplitude", "rotate"}},
-        {Args::strategy, {"strategy"}},
-        {Args::decay_strategy, {"decay_strategy", "decay"}}
-    };
-    if (!(2 <= args.size() && args.size() <= 5)) {
-        throw except::invalid_argument("Element \"parameter\": Invalid number of arguments. Expected between 2 and 5, but got " + std::to_string(args.size()) + ".");
-    }
-
-    auto iterations = get_arg<int>(valid_args[Args::iterations], args);
-    auto translate = get_arg<double>(valid_args[Args::translate], args, 0);
-    auto rotate = get_arg<double>(valid_args[Args::rotate], args, 0);
-    auto strategy = get_arg<std::string>(valid_args[Args::strategy], args, "both");
-    auto decay_strategy = get_arg<std::string>(valid_args[Args::decay_strategy], args, "linear");
-
-    bool has_translate = translate.found && translate.value != 0;
-    bool has_rotate = rotate.found && rotate.value != 0;
-
-    // validate arguments
-    if (!iterations.found) {throw except::invalid_argument("Element \"parameter\": Missing required argument \"iterations\".");}
-    if (!strategy.found) {
-        // automatic determination of strategy if not provided
-        if (has_translate && !has_rotate) {strategy.value = ParameterStrategyDefs::TRANSLATE_ONLY;}
-        else if (!has_translate && has_rotate) {strategy.value = ParameterStrategyDefs::ROTATE_ONLY;}
-        else if (!has_translate && !has_rotate) {
-            if (loop_stack.front()->_get_rigidbody()->molecule.symmetry().has_symmetries()) {
-                strategy.value = ParameterStrategyDefs::SYMMETRY_ONLY;
-                logging::log(
-                    "SequenceParser::parse_arguments: No strategy provided for \"parameter\" element, but symmetry parameters are available. "
-                    "Defaulting to strategy \"symmetry_only\"."
-                );
-            } else {
-                throw except::invalid_argument("Element \"parameter\": Missing one of \"strategy\", \"translate\", or \"rotate\".");
-            }
-        }
-    } else {
-        if (strategy.value == ParameterStrategyDefs::TRANSLATE_ONLY && !has_translate) {
-            throw except::invalid_argument("Element \"parameter\" Missing required argument \"translate\" for strategy \"translate_only\".");
-        } else if (strategy.value == ParameterStrategyDefs::ROTATE_ONLY && !has_rotate) {
-            throw except::invalid_argument("Element \"parameter\" Missing required argument \"rotate\" for strategy \"rotate_only\".");
-        } else if (strategy.value == ParameterStrategyDefs::BOTH && !(has_translate && has_rotate)) {
-            throw except::invalid_argument("Element \"parameter\" Missing required arguments \"translate\" and \"rotate\" for strategy \"both\".");
-        } else if (strategy.value == ParameterStrategyDefs::SYMMETRY_ONLY && (has_translate || has_rotate)) {
-            throw except::invalid_argument("Element \"parameter\" Unexpected arguments \"translate\" and/or \"rotate\" for strategy \"symmetry_only\".");
-        }
-    }
-
-    return std::make_unique<ParameterElement>(
-        loop_stack.back(),
-        rigidbody::factory::create_parameter_strategy(
-            loop_stack.front()->_get_rigidbody(),
-            rigidbody::factory::create_decay_strategy(iterations.value, get_decay_strategy(decay_strategy.value)),
-            translate.value,
-            rotate.value,
-            get_parameter_strategy(strategy.value)
-        )
-    );
-}
+std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::Parameter>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
 
 template<>
 std::unique_ptr<GenericElement> SequenceParser::parse_arguments<ElementType::BodySelect>(const std::unordered_map<std::string, std::vector<std::string>>& args) {}
