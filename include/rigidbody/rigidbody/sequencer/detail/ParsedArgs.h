@@ -11,9 +11,6 @@ namespace ausaxs::rigidbody::sequencer {
     namespace search {
         template<typename T>
         struct ArgResult {T value; bool found;};
-
-        template<typename T>
-        ArgResult<T> get_arg(std::vector<std::string>& valid_keys, const std::unordered_map<std::string, std::vector<std::string>>& args, const T& default_value = T());
     }
 
     struct ParsedArgs {
@@ -31,6 +28,7 @@ namespace ausaxs::rigidbody::sequencer {
             std::size_t size() const {return args.size();}
             bool empty() const {return args.empty();}
             Arg& operator[] (std::size_t index) {return args[index];}
+            const Arg& operator[] (std::size_t index) const {return args[index];}
 
             int line_number;
             std::vector<Arg> args;
@@ -40,6 +38,7 @@ namespace ausaxs::rigidbody::sequencer {
             std::size_t size() const {return values.size();}
             bool empty() const {return values.empty();}
             Value& operator[](std::size_t index) {return values[index];}
+            const Value& operator[](std::size_t index) const {return values[index];}
 
             int line_number;
             std::vector<Value> values;
@@ -51,6 +50,11 @@ namespace ausaxs::rigidbody::sequencer {
         InlineArgs inlined;
         std::unordered_map<Key, Args> named;
     };
+
+    namespace search {
+        template<typename T>
+        ArgResult<T> get_arg(std::vector<std::string>& valid_keys, const std::unordered_map<std::string, ParsedArgs::Args>& args, const T& default_value = T());
+    }
 }
 
 template<typename T>

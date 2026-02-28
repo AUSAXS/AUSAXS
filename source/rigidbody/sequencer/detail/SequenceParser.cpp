@@ -2,21 +2,13 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/sequencer/detail/AdditionalElements.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/All.h>
-#include <rigidbody/parameters/ParameterGenerationFactory.h>
-#include <rigidbody/selection/BodySelectFactory.h>
-#include <rigidbody/BodySplitter.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
-#include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
-#include <utility/Random.h>
 #include <io/ExistingFile.h>
-#include <settings/RigidBodySettings.h>
-#include <settings/GeneralSettings.h>
 
 #include <fstream>
 #include <unordered_map>
@@ -24,7 +16,7 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
-enum class rigidbody::sequencer::ElementType {
+enum class ElementType {
     AutomaticConstraint,
     BodySelect,
     Constraint,
@@ -100,7 +92,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
         if (line.empty()) {continue;}
 
         // skip empty lines & comments
-        std::unordered_map<std::string, std::vector<std::string>> args;
+        ParsedArgs pargs;
         
         // tokenize line respecting quoted strings
         static auto tokenize = [] (const std::string& s) -> std::vector<std::string> {
@@ -184,7 +176,11 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
                                 break;
                             }
                         }
-                        args[sub_tokens[0]] = std::vector<std::string>(sub_tokens.begin()+1, sub_tokens.begin()+end);
+                        ParsedArgs::Args sub_args;
+                        for (int i = 1; i < end; ++i) {
+                            sub_args.args.push_back({0, sub_tokens[i]});
+                        }
+                        pargs.named[sub_tokens[0]] = std::move(sub_args);
                     }
                 }
 
@@ -196,108 +192,114 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
         // else: all remaining inline tokens are positional anonymous arguments
         // (e.g. "loop 100", "loop copy l1", "copy b2 b1")
         else if (tokens.size() >= 2) {
-            args["anonymous"] = std::vector<std::string>(tokens.begin()+1, tokens.end());
+            pargs.inlined.values = std::vector<std::string>(tokens.begin()+1, tokens.end());
         }
 
         logging::log("Parsed script:");
-        std::string parsed_script = tokens[0] + " " + (args.empty() ? "" : "{\n");
-        for (const auto& [key, value] : args) {
+        std::string parsed_script = tokens[0] + " " + (pargs.named.empty() && pargs.inlined.empty() ? "" : "{\n");
+        for (const auto& [key, value] : pargs.named) {
             parsed_script += "\t" + key + ": ";
-            for (const auto& v : value) {
+            for (const auto& v : value.args) {
+                parsed_script += "\"" + v.str + "\" ";}
+                parsed_script += "\n";
+            }
+        if (!pargs.inlined.empty()) {
+            parsed_script += "\tinline: ";
+            for (const auto& v : pargs.inlined.values) {
                 parsed_script += "\"" + v + "\" ";}
                 parsed_script += "\n";
             }
-            parsed_script += (args.empty() ? "" : "}");
+            parsed_script += (pargs.named.empty() && pargs.inlined.empty() ? "" : "}");
         logging::log(parsed_script);
 
+        auto& elements = loop_stack.back()->_get_elements();
         switch (get_type(tokens[0])) {
             case ElementType::Constraint:
-                parse_arguments<ElementType::Constraint>(args);
+                ConstraintElement::_parse(loop_stack.back(), std::move(pargs));
                 break;
 
             case ElementType::AutomaticConstraint:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::AutomaticConstraint>(args));
+                elements.emplace_back(AutoConstraintsElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::LoopBegin:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::LoopBegin>(args));
-                if (auto* loop = dynamic_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get())) {
+                elements.emplace_back(LoopElement::_parse(loop_stack.back(), std::move(pargs)));
+                if (auto* loop = dynamic_cast<LoopElement*>(elements.back().get())) {
                     loop_stack.emplace_back(loop); // the returned element _may_ be a CopyLoopElement, which is not modifiable
                 }
                 break;
 
             case ElementType::LoopEnd:
-                parse_arguments<ElementType::LoopEnd>(args);
+                detail::LoopEndElement::_parse(loop_stack.back(), std::move(pargs));
                 if (loop_stack.size() == 1) {throw except::invalid_argument("Element \"end\": Too many \"end\" statements.");}
                 loop_stack.pop_back();
                 break;
 
             case ElementType::Parameter:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Parameter>(args));
-                last_parameter_element = dynamic_cast<ParameterElement*>(loop_stack.back()->_get_elements().back().get());
+                elements.emplace_back(ParameterElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::BodySelect:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::BodySelect>(args));
+                elements.emplace_back(BodySelectElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::Copy:
-                parse_arguments<ElementType::Copy>(args);
+                elements.emplace_back(CopyBodyElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::Transform:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Transform>(args));
+                elements.emplace_back(TransformElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::OptimizeStep:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::OptimizeStep>(args));
-                loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
+                elements.emplace_back(OptimizeStepElement::_parse(loop_stack.back(), std::move(pargs)));
+                loop_stack.emplace_back(static_cast<LoopElement*>(elements.back().get()));
                 break;
 
             case ElementType::EveryNStep:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::EveryNStep>(args));
-                loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
+                elements.emplace_back(EveryNStepElement::_parse(loop_stack.back(), std::move(pargs)));
+                loop_stack.emplace_back(static_cast<LoopElement*>(elements.back().get()));
                 break;
 
             case ElementType::OnImprovement:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::OnImprovement>(args));
-                loop_stack.emplace_back(static_cast<LoopElement*>(loop_stack.back()->_get_elements().back().get()));
+                elements.emplace_back(OnImprovementElement::_parse(loop_stack.back(), std::move(pargs)));
+                loop_stack.emplace_back(static_cast<LoopElement*>(elements.back().get()));
                 break;
 
             case ElementType::Save:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Save>(args));
+                elements.emplace_back(SaveElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::LoadElement:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::LoadElement>(args));
+                elements.emplace_back(LoadElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::SymmetryElement:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::SymmetryElement>(args));
+                elements.emplace_back(SymmetryElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::OverlapStrength:
-                parse_arguments<ElementType::OverlapStrength>(args);
+                detail::OverlapStrengthElement::_parse(loop_stack.back(), std::move(pargs));
                 break;
 
             case ElementType::RelativeHydration:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::RelativeHydration>(args));
+                elements.emplace_back(RelativeHydrationElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::OutputFolder:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::OutputFolder>(args));
+                elements.emplace_back(OutputFolderElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
             
             case ElementType::Message:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Message>(args));
+                elements.emplace_back(MessageElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::Log:
-                loop_stack.back()->_get_elements().emplace_back(parse_arguments<ElementType::Log>(args));
+                elements.emplace_back(detail::LogElement::_parse(loop_stack.back(), std::move(pargs)));
                 break;
 
             case ElementType::Seed:
-                parse_arguments<ElementType::Seed>(args);
+                detail::SeedElement::_parse(loop_stack.back(), std::move(pargs));
                 break;
 
             default:

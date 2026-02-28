@@ -14,7 +14,7 @@ namespace ausaxs::rigidbody::sequencer::except {
 
         explicit parse_error(std::string_view element, const ParsedArgs::Args::Arg& arg, std::string_view msg) : std::invalid_argument(
             "Error parsing element \"" + std::string(element) + "\" at line " + std::to_string(arg.line_number) + ": "
-            "Invalid argument \"" + arg.value + "\".\n\t" + std::string(msg)
+            "Invalid argument \"" + arg.str + "\".\n\t" + std::string(msg)
         ) {}
 
         explicit parse_error(std::string_view element, const ParsedArgs::InlineArgs& args, std::string_view msg) : std::invalid_argument(

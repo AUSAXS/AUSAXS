@@ -25,7 +25,7 @@ std::unique_ptr<GenericElement> detail::LogElement::_parse(observer_ptr<LoopElem
     return std::make_unique<MessageElement>(owner->_get_sequencer(), message, true);
 }
 
-void detail::LoopEndElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+void detail::LoopEndElement::_parse(observer_ptr<LoopElement>, ParsedArgs&& args) {
     if (!args.named.empty()) {throw except::parse_error("end", "Unexpected named argument.");}
     if (!args.inlined.empty()) {throw except::parse_error("end", "Unexpected inline argument.");}
 }
