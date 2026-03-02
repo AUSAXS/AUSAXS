@@ -72,7 +72,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
-            -DARCH=x86-64 \
             -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}\scripts\buildsystems\vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="x64-windows-static"
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
@@ -241,13 +240,11 @@ jobs:
             name: "Ubuntu latest with GCC"
             c_compiler: gcc
             cpp_compiler: g++
-            arch: x86-64
 
           - os: ubuntu-22.04
             name: "Ubuntu 22.04 with GCC"
             c_compiler: gcc-10
             cpp_compiler: g++-10
-            arch: x86-64
 
     steps:
       - uses: actions/checkout@v4
@@ -268,8 +265,7 @@ jobs:
             -DGUI=ON \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-            -DARCH=${{ matrix.arch }}
+            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
 
       - name: Build the GUI executables (${{ matrix.os }})
@@ -281,8 +277,7 @@ jobs:
             -DGUI=ON \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-            -DARCH=${{ matrix.arch }}
+            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
 
       - name: Configure output folders for upload

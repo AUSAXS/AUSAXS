@@ -20,7 +20,7 @@ function(setup_compile_commands)
     set(MARCH_FLAGS_ppc64le      "-mcpu=power9")
     set(MARCH_FLAGS_riscv64      "-march=rv64gc")
     set(MARCH_FLAGS_loong64      "-march=loongarch64")
-    set(MARCH_FLAGS_loongarch64 "-march=loongarch64")
+    set(MARCH_FLAGS_loongarch64  "-march=loongarch64")
     set(MARCH_FLAGS_s390x        "-march=z13")
 
     set(MARCH_FLAG "${MARCH_FLAGS_${SYS_ARCH}}")
