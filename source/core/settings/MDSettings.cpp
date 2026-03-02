@@ -11,11 +11,13 @@ using namespace ausaxs;
 std::string settings::md::gmx_path = "gmx";
 std::string settings::md::gmx_top_path = "";
 std::string settings::md::buffer_path = "";
+std::string settings::md::plumed_kernel = "";
 
 namespace ausaxs::settings::io {
     settings::io::SettingSection md_section("MD", {
         settings::io::create(md::gmx_path, {"gmx_exe", "gmx_executable", "gmx"}),
         settings::io::create(md::gmx_top_path, {"gmx_top_path"}),
         settings::io::create(md::buffer_path, {"buffer_path", "buffer"}),
+        settings::io::create(md::plumed_kernel, {"plumed_kernel", "plumed"}),
     });
 }

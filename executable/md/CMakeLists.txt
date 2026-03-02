@@ -21,3 +21,6 @@ target_link_libraries(background_schemes ausaxs_core ausaxs_math ausaxs_md CLI11
 
 add_executable(single_mol_sim single_mol_sim.cpp)
 target_link_libraries(single_mol_sim ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)
+
+add_executable(plumed plumed.cpp)
+target_link_libraries(plumed ausaxs_core ausaxs_math ausaxs_md CLI11::CLI11)
