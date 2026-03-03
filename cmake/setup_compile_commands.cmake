@@ -93,6 +93,12 @@ function(setup_compile_commands)
         list(APPEND CompilerFlags ${MARCH_FLAG})
     endif()
 
+    # Print chosen compile configuration for debugging/CI visibility
+    message(STATUS "Chosen compiler commands:")
+    message(STATUS "setup_compile_commands: Detected architecture: ${SYS_ARCH}")
+    message(STATUS "setup_compile_commands: using -march '${MARCH_FLAG}'")
+    message(STATUS "setup_compile_commands: and additional flags ${CompilerFlags}")
+
     add_compile_options(${CompilerFlags})
 
 endfunction()
