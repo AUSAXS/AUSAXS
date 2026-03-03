@@ -5,7 +5,7 @@ function(setup_compile_commands)
     )
 
     ############################################
-    ## 			Architecture mapping 		  ##
+    ##          Architecture mapping          ##
     ############################################
     string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" SYS_ARCH)
     set(MARCH_FLAGS_amd64        "-march=x86-64-v3")
@@ -23,9 +23,7 @@ function(setup_compile_commands)
     set(MARCH_FLAGS_loongarch64  "-march=loongarch64")
     set(MARCH_FLAGS_s390x        "-march=z13")
 
-    set(MARCH_FLAG "${MARCH_FLAGS_${SYS_ARCH}}")
-
-    if (NOT MARCH_FLAG)
+    if (NOT DEFINED MARCH_FLAGS_${SYS_ARCH})
         if (ALLOW_UNKNOWN_ARCHITECTURE)
             message(WARNING
                 "Unknown architecture '${SYS_ARCH}'. Proceeding without -march flag.")
@@ -35,42 +33,17 @@ function(setup_compile_commands)
                 "Enable -DALLOW_UNKNOWN_ARCHITECTURE=ON to proceed anyway.")
         endif()
     endif()
+    set(MARCH_FLAG "${MARCH_FLAGS_${SYS_ARCH}}")
 
     ############################################
-    ## 		Common optimisation flags 		  ##
+    ##    Per-compiler optimisation flags     ##
     ############################################
-    set(CONSTEXPR_FLAGS
-        "$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
-        "$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
-    )
+    set(CompilerFlags "")
 
-    set(DEBUG_FLAGS
-        "$<$<CONFIG:DEBUG>:-g -Wall -Wpedantic -Wextra -march=native>"
-    )
-
-    set(COMMON_OPT_FLAGS
-        -O3
-        -ffast-math
-        -fno-finite-math-only
-        -pipe
-        ${CONSTEXPR_FLAGS}
-		${DEBUG_FLAGS}
-    )
-
-    set(DEBUG_WARNINGS
-        "$<$<CONFIG:DEBUG>:-g -Wall -Wpedantic -Wextra>"
-    )
-
-    set(RELEASE_ARCH_FLAGS
-        "$<$<CONFIG:RELEASE>:${MARCH_FLAG}>"
-    )
-
-    ############################################
-    ##	   			Windows/MSVC	  		  ##
-    ############################################
-    if (WIN32 AND MSVC)
-        add_compile_definitions(NOMINMAX;BUILD_EXPORT_DLL)
-        add_compile_options(
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        # MSVC uses /arch: flags below; -march is not applicable
+        add_compile_definitions(NOMINMAX BUILD_EXPORT_DLL)
+        list(APPEND CompilerFlags
             /fp:fast
             /constexpr:steps10000000000
             /Zm500
@@ -81,16 +54,45 @@ function(setup_compile_commands)
         )
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded" PARENT_SCOPE)
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE PARENT_SCOPE)
-        return()
+
+    else()
+        list(APPEND CompilerFlags
+            -O3
+            -ffast-math
+            -fno-finite-math-only
+            -pipe
+            "$<$<CONFIG:Debug>:-g>"
+            "$<$<CONFIG:Debug>:-Wall>"
+            "$<$<CONFIG:Debug>:-Wpedantic>"
+            "$<$<CONFIG:Debug>:-Wextra>"
+        )
+
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            list(APPEND CompilerFlags "-fconstexpr-ops-limit=10000000000")
+
+        elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            list(APPEND CompilerFlags "-fconstexpr-steps=1000000000")
+
+        elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+            list(APPEND CompilerFlags "-fconstexpr-steps=1000000000")
+            # -march is not supported on arm64 Apple targets; the SDK/toolchain handles targeting.
+            # Use CMAKE_OSX_ARCHITECTURES when explicitly set (CI), otherwise fall back to the
+            # host processor. Suppress -march whenever the target includes arm64 (covers both
+            # single arm64 and universal arm64;x86_64 builds).
+            if (CMAKE_OSX_ARCHITECTURES)
+                set(_MARCH_TARGET "${CMAKE_OSX_ARCHITECTURES}")
+            else()
+                set(_MARCH_TARGET "${SYS_ARCH}")
+            endif()
+            if (_MARCH_TARGET MATCHES "arm64")
+                set(MARCH_FLAG "")
+            endif()
+
+        endif()
+
+        list(APPEND CompilerFlags ${MARCH_FLAG})
     endif()
 
-    ############################################
-    ##	 			Clang/GCC 				  ##
-    ############################################
-    add_compile_options(
-        ${COMMON_OPT_FLAGS}
-        ${DEBUG_WARNINGS}
-        ${RELEASE_ARCH_FLAGS}
-    )
+    add_compile_options(${CompilerFlags})
 
 endfunction()
