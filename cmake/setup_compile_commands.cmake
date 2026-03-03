@@ -44,9 +44,9 @@ function(setup_compile_commands)
         "$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
     )
 
-	set(DEBUG_FLAGS
-		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-	)
+    set(DEBUG_FLAGS
+        "$<$<CONFIG:DEBUG>:-g -Wall -Wpedantic -Wextra -march=native>"
+    )
 
     set(COMMON_OPT_FLAGS
         -O3
@@ -58,7 +58,7 @@ function(setup_compile_commands)
     )
 
     set(DEBUG_WARNINGS
-        "$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
+        "$<$<CONFIG:DEBUG>:-g -Wall -Wpedantic -Wextra>"
     )
 
     set(RELEASE_ARCH_FLAGS
