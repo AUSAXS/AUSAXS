@@ -19,48 +19,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 add_compile_definitions("CONSTEXPR_TABLES=${CONSTEXPR_TABLES};$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
-if (WIN32)
-	if (MSVC)
-		add_compile_definitions("NOMINMAX;BUILD_EXPORT_DLL")
-		add_compile_options(
-			/fp:fast /constexpr:steps10000000000 /Zm500 
-			/wd4267 # disable size_t --> int, unsigned int conversions
-			/wd4244 # disable double --> float,int conversions
-			"$<$<STREQUAL:${ARCH},x86-64>:/arch:AVX>"
-			"$<$<STREQUAL:${ARCH},arm64>:/arch:armv8.0>"
-		)
-		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
-		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-	elseif (MINGW)
-		add_compile_options(
-			-O3 -ffast-math -fno-finite-math-only -pipe
-			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
-			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
-			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-			"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3>"
-			"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},native>>:-march=native>"
-		)
-	endif()
-elseif (APPLE)
-	add_compile_options(
-		-O3 -ffast-math -fno-finite-math-only -pipe 
-		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
-		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
-		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
-		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64>"
-		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},arm64>>:-march=armv8-a>"
-	)
-elseif (UNIX)
-#	add_compile_definitions("$<$<CONFIG:DEBUG>:_GLIBCXX_DEBUG>")
-	add_compile_options(
-		-Ofast -fno-finite-math-only -pipe
-		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
-		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
-		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},x86-64>>:-march=x86-64-v3>"
-		"$<$<AND:$<CONFIG:RELEASE>,$<STREQUAL:${ARCH},native>>:-march=native>"
-	)
-endif()
+
+include(cmake/setup_compile_commands.cmake)
+setup_compile_commands()
 
 ############################################
 ##      Temporary External Library Fixes ##
