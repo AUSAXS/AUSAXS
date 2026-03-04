@@ -16,14 +16,17 @@ endfunction()
 add_executable(saxs_fitter "saxs_fitter.cpp")
 add_executable(em_fitter "em_fitter.cpp")
 add_executable(rigidbody_optimizer "rigidbody_optimizer.cpp")
+add_executable(ausaxs "ausaxs.cpp")
 
 target_link_libraries(saxs_fitter PRIVATE ausaxs_core ausaxs_api ausaxs_math ausaxs_em ausaxs_rigidbody)
 target_link_libraries(em_fitter PRIVATE ausaxs_core ausaxs_api ausaxs_math ausaxs_em ausaxs_rigidbody)
 target_link_libraries(rigidbody_optimizer PRIVATE ausaxs_core ausaxs_api ausaxs_math ausaxs_em ausaxs_rigidbody)
+target_link_libraries(ausaxs PRIVATE ausaxs_core ausaxs_api ausaxs_math ausaxs_em ausaxs_rigidbody)
 
 add_plot_scripts_to_target(saxs_fitter)
 add_plot_scripts_to_target(em_fitter)
 add_plot_scripts_to_target(rigidbody_optimizer)
+add_plot_scripts_to_target(ausaxs)
 
 if (GUI)
 	add_subdirectory(gui)
