@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/elements/CopyLoopElement.h>
 #include <rigidbody/sequencer/elements/ParameterElement.h>
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
 #include <rigidbody/sequencer/elements/TransformElement.h>
@@ -137,4 +139,78 @@ unsigned int LoopElement::_get_total_iterations() {
 
 void LoopElement::_add_total_iterations(unsigned int n) {
     total_loop_count += n;
+}
+
+std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+    static std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
+    static observer_ptr<LoopElement> last_loop_element = nullptr;
+
+    auto deduce_iteration_count = [&]() -> int {
+        // find the last parameter element by traversing backwards and upwards through the owner chain
+        auto find_last_parameter_element = [&]() -> observer_ptr<ParameterElement> {
+            observer_ptr<LoopElement> current = owner;
+            int escape_counter = 0;
+            while (current != nullptr) {
+                for (auto& e : current->_get_elements()) {
+                    if (auto* parameter_element = dynamic_cast<ParameterElement*>(e.get())) {
+                        return parameter_element;
+                    }
+                }
+                current = current->_get_owner();
+                if (100 < ++escape_counter) {throw std::runtime_error("LoopElement::_parse::create: owner chain too long while searching for last parameter element.");}
+            }
+            return nullptr;
+        };
+
+        auto* last_parameter_element = find_last_parameter_element();
+        if (!last_parameter_element) {throw except::parse_error("loop", "Could not deduce number of iterations.");}
+        int iterations = last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations();
+        return iterations;
+    };
+
+    if (!args.named.empty()) {throw except::parse_error("loop", "Unexpected named argument.");}
+    if (args.inlined.empty()) { // no args - try to deduce iteration count
+        return std::make_unique<LoopElement>(owner, deduce_iteration_count());
+    } else if (args.inlined.size() == 1) { // option 1, 2, 4
+        try { // check option 1
+            int iterations = std::stoi(args.inlined[0]);
+            return std::make_unique<LoopElement>(owner, iterations);
+        } catch (std::exception&) {
+            const auto& name = args.inlined[0];
+
+            // check option 4
+            if (name == "duplicate" || name == "copy") {
+                if (loop_names.empty()) {throw except::parse_error("loop", args.inlined, "No previous loop found to duplicate.");}
+                return std::make_unique<CopyLoopElement>(owner, last_loop_element);
+            }
+
+            // else it must be option 2
+            if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
+            auto loop = std::make_unique<LoopElement>(owner, deduce_iteration_count());
+            loop_names[name] = loop.get();
+            last_loop_element = loop.get();
+            return loop;
+        }
+    } else if (args.inlined.size() == 2) { // option 3, 5
+        // check option 5
+        if (args.inlined[0] == "duplicate" || args.inlined[0] == "copy") {
+            const auto& name = args.inlined[1];
+            if (!loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Target loop name \"" + name + "\" does not exist.");}
+            return std::make_unique<CopyLoopElement>(owner, loop_names.at(name));
+        }
+
+        // else it must be option 3
+        try {
+            int iterations = std::stoi(args.inlined[1]);
+            const auto& name = args.inlined[0];
+            if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
+            auto loop = std::make_unique<LoopElement>(owner, iterations);
+            loop_names[name] = loop.get();
+            last_loop_element = loop.get();
+            return loop;
+        } catch (std::exception&) {
+            throw except::parse_error("loop", args.inlined, "Could not determine number of iterations.");
+        }
+    }
+    throw except::parse_error("loop", args.inlined, "Invalid arguments.");
 }

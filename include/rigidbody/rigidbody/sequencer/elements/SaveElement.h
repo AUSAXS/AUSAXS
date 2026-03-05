@@ -3,11 +3,12 @@
 
 #pragma once
 
-#include <io/File.h>
-#include <utility/observer_ptr.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <utility/observer_ptr.h>
+#include <io/File.h>
 
 namespace ausaxs::rigidbody::sequencer {
     class SaveElement : public LoopElementCallback, public GenericElement {
@@ -16,6 +17,8 @@ namespace ausaxs::rigidbody::sequencer {
             ~SaveElement() override;
 
             void run() override;
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
             io::File path;

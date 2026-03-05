@@ -6,6 +6,7 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <utility/observer_ptr.h>
 
@@ -16,6 +17,8 @@ namespace ausaxs::rigidbody::sequencer {
             ~TransformElement();
 
             void run() override;
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
             std::shared_ptr<rigidbody::transform::TransformStrategy> strategy;

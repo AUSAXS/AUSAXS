@@ -173,12 +173,6 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         if (sub_grid_w->count() && !sub_exv_w->count() && settings::grid::exv::width < settings::grid::cell_width) {
             settings::grid::exv::width = settings::grid::cell_width;
         }
-
-        // save settings if requested
-        if (save_settings) {
-            settings::write("settings.txt");
-            console::print_info("Settings saved to settings.txt in current directory.");
-        }
     });
 
     CLI11_PARSE(app, argc, argv);

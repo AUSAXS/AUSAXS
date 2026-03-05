@@ -5,6 +5,7 @@
 
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <utility/observer_ptr.h>
 #include <io/ExistingFile.h>
@@ -34,7 +35,9 @@ namespace ausaxs::rigidbody::sequencer {
             ~LoadElement() override;
 
             void run() override;
-        
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
+
         private:
             observer_ptr<Sequencer> owner;
             std::unique_ptr<rigidbody::Rigidbody> rigidbody;

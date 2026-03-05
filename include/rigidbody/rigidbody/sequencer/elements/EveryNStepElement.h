@@ -4,6 +4,7 @@
 #pragma once
 
 #include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
@@ -13,6 +14,8 @@ namespace ausaxs::rigidbody::sequencer {
             ~EveryNStepElement() override;
 
             void run() override;
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
             int n;

@@ -4,6 +4,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
@@ -62,3 +63,40 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 SymmetryElement::~SymmetryElement() = default;
 
 void SymmetryElement::run() {}
+
+std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+    auto rigidbody = owner->_get_rigidbody();
+
+    // inline usage patterns
+    if (!args.inlined.empty()) {
+        if (!args.named.empty()) {throw except::parse_error("symmetry", "Cannot combine named and inline arguments.");}
+
+        // usage pattern: [symmetry], allowed for single-body systems (e.g. "symmetry p2")
+        if (args.inlined.size() == 1) {
+            if (rigidbody->molecule.size_body() != 1) {throw except::parse_error("symmetry", "Could not determine which body to apply the symmetry to.");}
+            return std::make_unique<SymmetryElement>(owner->_get_sequencer(), std::vector<std::string>{"b1"}, std::vector{symmetry::get(args.inlined[0])});
+        }
+        
+        // usage pattern: [body] [symmetry] (e.g. "symmetry b1 p2")
+        else if (args.inlined.size() == 2) {
+            return std::make_unique<SymmetryElement>(owner->_get_sequencer(), std::vector<std::string>{args.inlined[0]}, std::vector{symmetry::get(args.inlined[1])});
+        } else {
+            throw except::parse_error("symmetry", "Too many inline arguments.");
+        }
+    }
+
+    // named usage patterns; format is: 
+    // symmetry {
+    //    [body] [symmetry]
+    //    [body] [symmetry]
+    //    ...
+    // }
+    std::vector<symmetry::type> symmetries;
+    std::vector<std::string> names;
+    for (auto& [name, value] : args.named) {
+        if (value.size() != 1) {throw except::parse_error("symmetry", "Only one symmetry can be specified per body in each \"symmetry\" element.");}
+        names.emplace_back(name);
+        symmetries.emplace_back(symmetry::get(value[0]));
+    }
+    return std::make_unique<SymmetryElement>(owner->_get_sequencer(), names, symmetries);
+}

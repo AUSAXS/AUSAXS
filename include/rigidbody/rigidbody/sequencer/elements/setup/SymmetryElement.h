@@ -5,6 +5,7 @@
 
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
 
@@ -18,6 +19,8 @@ namespace ausaxs::rigidbody::sequencer {
             ~SymmetryElement() override;
 
             void run() override;
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
             observer_ptr<Sequencer> owner;

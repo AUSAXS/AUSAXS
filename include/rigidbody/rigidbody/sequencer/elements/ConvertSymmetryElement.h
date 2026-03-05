@@ -6,6 +6,7 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
@@ -19,5 +20,7 @@ namespace ausaxs::rigidbody::sequencer {
             ~ConvertSymmetryElement() override;
 
             void run() override;
+
+            static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
     };
 }

@@ -2,12 +2,14 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/setup/LoadElement.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/BodySplitter.h>
 #include <data/Molecule.h>
+#include <utility/StringUtils.h>
 #include <settings/GeneralSettings.h>
 
 #include <algorithm>
@@ -78,6 +80,9 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names) : owner(owner) {
     rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(lookup_file(path).first));
+    if (rigidbody->molecule.size_body() <= 1) {
+        throw std::runtime_error("LoadElement::LoadElement: Could not split \"" + path + "\" by chain, as it contains only one.");
+    }
 
     // add default names
     for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
@@ -166,4 +171,36 @@ std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
 
 void LoadElement::run() {
     owner->_get_sequencer()->_set_rigidbody(rigidbody.get());
+}
+
+std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+    enum class Args {paths, splits, names, saxs};
+    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
+        {Args::paths, {"pdb"}},
+        {Args::saxs, {"saxs"}},
+        {Args::splits, {"split"}},
+        {Args::names, {"names", "name"}}
+    };
+
+    auto pdb = args.get<std::vector<std::string>>(valid_args[Args::paths]);
+    auto saxs = args.get<std::string>(valid_args[Args::saxs]);
+    auto names = args.get<std::vector<std::string>>(valid_args[Args::names]);
+    auto split = args.get<std::string>(valid_args[Args::splits]);
+
+    if (!args.inlined.empty()) {throw except::parse_error("load", "Unexpected inline arguments.");}
+    if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}
+    if (!saxs.found) {throw except::parse_error("load", "Missing required argument \"saxs\".");}
+
+    owner->_get_sequencer()->setup()._set_saxs_path(io::ExistingFile(saxs.value));
+    if (split.found) {
+        if (split.value == "chain") {
+            if (pdb.value.size() != 1) {throw except::parse_error("load", "Chain splitting can only be used with a single path.");}
+            return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], names.value);
+        } else if (utility::isinteger(split.value)) {
+            return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], std::vector<int>{std::stoi(split.value)}, names.value);
+        } else {
+            throw except::parse_error("load", "Invalid argument for \"split\": \"" + split.value + "\". Expected \"chain\" or a positive integer.");
+        }
+    }
+    return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value, names.value);
 }
