@@ -6,28 +6,28 @@ if (DLIB)
 	target_link_libraries(ausaxs_core "dlib::dlib") 
 endif()
 
-add_library(ausaxs_static STATIC $<TARGET_OBJECTS:ausaxs_core>)
-target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
-set_target_properties(ausaxs_static PROPERTIES 
+add_library(libausaxs_static STATIC $<TARGET_OBJECTS:ausaxs_core>)
+target_include_directories(libausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
+set_target_properties(libausaxs_static PROPERTIES 
 	OUTPUT_NAME ausaxs_static
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
-add_library(ausaxs SHARED $<TARGET_OBJECTS:ausaxs_core>)
-target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
-set_target_properties(ausaxs 
+add_library(libausaxs SHARED $<TARGET_OBJECTS:ausaxs_core>)
+target_include_directories(libausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
+set_target_properties(libausaxs 
 	PROPERTIES OUTPUT_NAME ausaxs
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
 
 # windows-specific option to ensure DLL is located in /lib
-set_target_properties(ausaxs PROPERTIES
+set_target_properties(libausaxs PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib
 )
 
-target_link_libraries(ausaxs ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
-target_link_libraries(ausaxs_static ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
+target_link_libraries(libausaxs ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
+target_link_libraries(libausaxs_static ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
 
 add_subdirectory(constants)
 add_subdirectory(data)
