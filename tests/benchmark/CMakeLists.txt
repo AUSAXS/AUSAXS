@@ -1,44 +1,17 @@
 add_executable(benchmark_distance_calculation "distance_calculation_benchmark.cpp")
+target_link_libraries(benchmark_distance_calculation PRIVATE libausaxs Catch2::Catch2WithMain)
+target_include_directories(benchmark_distance_calculation PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/tests)
+set_target_properties(benchmark_distance_calculation PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-target_link_libraries(benchmark_distance_calculation
-    PRIVATE
-        libausaxs
-        Catch2::Catch2WithMain
-)
+add_executable(benchmark_pr "benchmark_pr.cpp")
+target_link_libraries(benchmark_pr PRIVATE libausaxs Catch2::Catch2WithMain)
+target_include_directories(benchmark_pr PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/tests)
+set_target_properties(benchmark_pr PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-target_include_directories(benchmark_distance_calculation
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/tests
-)
-
-set_target_properties(benchmark_distance_calculation PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
-)
-
-# Per-SIMD histogram benchmark variants.
-#
-# Each variant recompiles the hot histogram-manager TU with a specific -march flag so
-# the SIMD dispatch macros (__SSE2__, __AVX2__, __AVX512F__) reflect that level.  The
-# fresh object is linked first; GNU ld then skips the matching archive member from
-# libausaxs_static, so no duplicate-symbol issues arise.
-#
-# Variants:
-#   scalar  — -march=native + USE_SCALAR: lets GCC auto-vectorise the
-#             scalar fallback, giving a fair comparison against the hand-written paths
-#   sse2    — -msse2  (x86-64-v1/v2 baseline, SSE2 only)
-#   avx2    — -mavx2  (x86-64-v3: AVX2 + FMA)
-#   avx512  — -mavx512f  (x86-64-v4: AVX-512)
-
-set(_hist_hot_src
-    ${CMAKE_SOURCE_DIR}/source/core/hist/histogram_manager/HistogramManagerMT.cpp
-)
-set(_hist_includes
-    ${CMAKE_SOURCE_DIR}/include/core
-    ${CMAKE_SOURCE_DIR}/include/math
-)
+# benchmark histogram calculations using the various simd levels
+set(_hist_hot_src ${CMAKE_SOURCE_DIR}/source/core/hist/histogram_manager/HistogramManagerMT.cpp)
+set(_hist_includes ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/include/math)
 set(_base_flags -O3 -ffast-math -fno-finite-math-only)
-
 foreach(_variant scalar sse2 avx2 avx512)
     if(_variant STREQUAL "scalar")
         set(_march -march=native)
