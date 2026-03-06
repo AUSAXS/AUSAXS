@@ -26,6 +26,7 @@ namespace ausaxs::md {
             }
 
             std::tuple<NDXFile> run() {
+                cmd.prepend("echo 'q' |");
                 gmx::execute();
                 return std::make_tuple(ndx);
             }
@@ -34,14 +35,5 @@ namespace ausaxs::md {
             NDXFile ndx;
 
             void validate() const override {}
-
-            /**
-             * @brief Get the command object.
-             * 
-             * This is overridden since make_ndx would otherwise require user input.
-             */
-            shell::Command& command() override {
-                return gmx::command().prepend("echo 'q' |");
-            }
     };
 }

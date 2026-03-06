@@ -358,8 +358,8 @@ namespace ausaxs::md {
             enum class backend { local_be, templated_be, slurm_be };
 
             multi(int n_replicas, backend be, SHFile template_file = {}, std::string jobname = {})
-                : n_replicas(n_replicas), be(be),
-                  template_file(std::move(template_file)), jobname(std::move(jobname)) {}
+                : n_replicas(n_replicas), be(be), template_file(std::move(template_file)), jobname(std::move(jobname)) 
+            {}
 
             static std::unique_ptr<type> local(int n_replicas) {
                 return std::make_unique<multi>(n_replicas, backend::local_be);
