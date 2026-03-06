@@ -57,7 +57,7 @@ int main(int argc, char const *argv[]) {
     // The following settings are therefore tuned for maximum performance and fast decorrelation. 
     auto mdp_prod = mdp::templates::production::mol()
         .add(MDPOptions::integrator = "sd")
-        .add(MDPOptions::dt = "0.005")
+        .add(MDPOptions::dt = "0.004")
         .add(MDPOptions::nsteps = "500000")
         .add(MDPOptions::define = "") // remove posresbackbone
 
@@ -69,8 +69,8 @@ int main(int argc, char const *argv[]) {
         // constraints and vsites to allow for a large time step
         .add(MDPOptions::constraints = "all-bonds")
         .add(MDPOptions::constraint_algorithm = "lincs")
-        .add(MDPOptions::lincs_order = "2")
-        .add(MDPOptions::lincs_iter = "1")
+        .add(MDPOptions::lincs_order = "4")
+        .add(MDPOptions::lincs_iter = "2")
 
         // non-bonded settings to speed up the simulation, since we do not care about accuracy
         .add(MDPOptions::coulombtype = "Reaction-Field")
@@ -114,8 +114,9 @@ int main(int argc, char const *argv[]) {
     .run();
 
     trjconv(res.xtc)
-        .center()
+        .runfile(settings::general::output + "/protein/prod/prod.tpr")
         .output(settings::general::output + "final.xtc")
+        .pbc("whole")
         .index(index)
     .run();
 

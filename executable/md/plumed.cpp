@@ -1,18 +1,3 @@
-/*
- * GROMACS + PLUMED multi-replica maximum entropy simulation.
- *
- * Runs N independent replicas of a protein in solvent with PLUMED applying a
- * maximum entropy (MaxEnt) bias that enforces the ensemble-averaged end-to-end
- * distance to a predefined target value d.
- *
- * Requirements:
- *   - GROMACS built with PLUMED patch (gmx mdrun must accept -plumed)
- *   - PLUMED >= 2.4 (for MAXENT and ENSEMBLE actions)
- *
- * Usage:
- *   plumed <input.pdb> -d <target_distance_nm> [-N <replicas>] [options]
- */
-
 #include <md/simulate/GMXOptions.h>
 #include <md/programs/all.h>
 #include <md/programs/mdrun/MDExecutor.h>
@@ -34,10 +19,6 @@
 using namespace ausaxs;
 using namespace ausaxs::md;
 
-// ---------------------------------------------------------------------------
-// Utility: parse a GRO file and return the 1-based atom indices of the first
-// and last CA atoms encountered (i.e. N-terminal and C-terminal Cα).
-// ---------------------------------------------------------------------------
 static std::pair<int, int> find_terminal_ca_atoms(const GROFile& gro) {
     std::ifstream f(gro.absolute_path());
     if (!f) {throw std::runtime_error("find_terminal_ca_atoms: cannot open " + gro.path());}
@@ -132,8 +113,6 @@ int main(int argc, char const* argv[]) {
     double target_d    = 3.0;   // nm
     double kappa       = 10.0;  // kJ/mol/nm² per ps (lambda learning rate)
     double temperature = 300.0; // K
-    int    atom1_cli   = -1;    // override for first end-to-end atom (1-based)
-    int    atom2_cli   = -1;    // override for last  end-to-end atom (1-based)
 
     CLI::App app{"GROMACS+PLUMED multi-replica MaxEnt end-to-end distance bias."};
     app.add_option("input", s_pdb, "PDB structure file.")->required()->check(CLI::ExistingFile);
@@ -142,14 +121,6 @@ int main(int argc, char const* argv[]) {
     app.add_option("--nsteps",       nsteps,    "Production steps (default: 500000; use a small value for debugging).");
     app.add_option("--kappa",        kappa,     "MaxEnt lambda learning rate (kJ/mol/nm²/ps, default: 10).")->default_val(10.0);
     app.add_option("--temp",         temperature, "Simulation temperature in K (default: 300).")->default_val(300.0);
-    app.add_option("--atom1",        atom1_cli, "Override first end-to-end atom index (1-based GRO; default: first CA).");
-    app.add_option("--atom2",        atom2_cli, "Override last  end-to-end atom index (1-based GRO; default: last CA).");
-
-    // Executor options — mirrors single_mol_sim.cpp pattern
-    std::string s_slurm_template;
-    std::string s_slurm_jobname;
-    app.add_option("--slurm",         s_slurm_template, "Slurm batch script template for the production run (optional; if omitted, runs locally).");
-    app.add_option("--slurm-jobname", s_slurm_jobname,  "Slurm job name for the production run (default: <stem>_plumed).");
 
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_flag_callback("--licence", [] () {std::cout << constants::licence << std::endl; exit(0);}, "Print the licence.");
@@ -168,23 +139,17 @@ int main(int argc, char const* argv[]) {
         throw except::io_error("Invalid GROMACS path \"" + settings::md::gmx_path + "\"");
     }
 
-    settings::general::output += "md/plumed_maxent/" + s_pdb.stem() + "/";
+    settings::general::output += "md/plumed_maxent/" + s_pdb.stem() + "_" + std::to_string(N) + "/";
     if (io::Folder tmp("temp/md"); !tmp.exists()) {tmp.create();}
     gmx::gmx::set_logfile(settings::general::output + "output.log",
                            settings::general::output + "cmd.log");
 
     PDBFile pdb(s_pdb);
-    console::print_info("\nMaxEnt multi-replica simulation for " + pdb.filename()
-        + " (" + std::to_string(N) + " replicas, target d = "
-        + std::to_string(target_d) + " nm)");
+    console::print_info("\nMaxEnt multi-replica simulation for " + pdb.filename() + " (" + std::to_string(N) + " replicas, target d = " + std::to_string(target_d) + " nm)");
 
-    // Build production executor.
-    // executor::multi handles the mpirun -np N prefix and $(n_replicas) template substitution.
-    if (s_slurm_jobname.empty()) {s_slurm_jobname = pdb.stem() + "_plumed";}
-    std::unique_ptr<executor::type> prod_executor =
-        s_slurm_template.empty()
-            ? executor::multi::local(N)
-            : executor::multi::slurm(N, SHFile(s_slurm_template), s_slurm_jobname);
+    std::unique_ptr<executor::type> em_runner = executor::templated::construct("temp/md/lusiTemplate.sh");
+    std::unique_ptr<executor::type> eq_runner = executor::templated::construct("temp/md/lusiTemplate.sh");
+    std::unique_ptr<executor::type> prod_runner = executor::multi::slurm(N, "temp/md/SmaugTemplateMPI.sh", "plumed");
 
     //##################################//
     //###      SYSTEM PARAMETERS     ###//
@@ -319,7 +284,7 @@ int main(int argc, char const* argv[]) {
         .run();
         mdrun(emtpr)
             .output(em_path, "/em")
-        .run(executor::local::construct())->wait();
+        .run(std::move(em_runner))->wait();
     } else {
         console::print_text("Reusing previously generated energy minimization.");
     }
@@ -355,7 +320,7 @@ int main(int argc, char const* argv[]) {
         .run();
         mdrun(eqtpr)
             .output(eq_path, "/eq")
-        .run(executor::local::construct())->wait();
+        .run(std::move(eq_runner))->wait();
     } else {
         console::print_text("Reusing previously generated equilibration.");
     }
@@ -364,8 +329,6 @@ int main(int argc, char const* argv[]) {
     //###   END-TO-END ATOM INDICES  ###//
     //##################################//
     auto [ca_first, ca_last] = find_terminal_ca_atoms(eqgro);
-    if (atom1_cli > 0) {ca_first = atom1_cli;}
-    if (atom2_cli > 0) {ca_last  = atom2_cli;}
     if (ca_first < 0 || ca_last < 0) {
         throw std::runtime_error(
             "Could not identify Cα atoms for end-to-end distance. "
@@ -428,7 +391,7 @@ int main(int argc, char const* argv[]) {
     auto job = mdrun()
         .multidir(rep_dirs)
         .plumed(plumed_file)
-        .run_multi(std::move(prod_executor));
+        .run_multi(std::move(prod_runner));
     job->wait();
 
     //##################################//
