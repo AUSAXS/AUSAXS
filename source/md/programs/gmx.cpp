@@ -8,6 +8,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <fstream>
 #include <chrono>
 #include <ctime>
+#include <cassert>
 
 using namespace ausaxs;
 using namespace ausaxs::md;
@@ -18,6 +19,8 @@ shell::Command& gmx::command() {
         cmd.append(opt->get());
     }
     cmd.append("-nocopyright -quiet");
+    cmd.prepend("export GMXLIB=\"" + settings::md::gmx_top_path + "\";");
+    assert(!settings::md::gmx_top_path.ends_with("/") && "gmx_top_path should not end with a slash");
     return cmd;
 }
 
