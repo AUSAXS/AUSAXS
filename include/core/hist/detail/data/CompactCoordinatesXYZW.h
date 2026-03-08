@@ -479,28 +479,38 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_sse(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
-        __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
-        __m128 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), OutputControl::SECOND);
-        __m128 dist2_3 = squared_dot_product(this->data.data(), v3.data.data(), OutputControl::THIRD);
-        __m128 dist2_4 = squared_dot_product(this->data.data(), v4.data.data(), OutputControl::FOURTH);
+        __m128 sv = _mm_load_ps(this->data.data());
+        __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
+        __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
+        __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
+        __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
+        d1 = _mm_mul_ps(d1, d1);
+        d2 = _mm_mul_ps(d2, d2);
+        d3 = _mm_mul_ps(d3, d3);
+        d4 = _mm_mul_ps(d4, d4);
 
-        // since we masked the dot product to four different sections, we can just add the results to get |Δx1^2|Δx2^2|Δx3^2|Δx4^2|
-        __m128 dist2 = _mm_add_ps(dist2_1, dist2_2);
-        dist2 = _mm_add_ps(dist2, dist2_3);
-        dist2 = _mm_add_ps(dist2, dist2_4);
+        // 4x4 transpose: converts per-atom [dx²,dy²,dz²,dw²] to per-component rows, discarding w
+        __m128 t0 = _mm_unpacklo_ps(d1, d2);   // [dx1²,dx2²,dy1²,dy2²]
+        __m128 t1 = _mm_unpackhi_ps(d1, d2);   // [dz1²,dz2²,dw1²,dw2²]
+        __m128 t2 = _mm_unpacklo_ps(d3, d4);   // [dx3²,dx4²,dy3²,dy4²]
+        __m128 t3 = _mm_unpackhi_ps(d3, d4);   // [dz3²,dz4²,dw3²,dw4²]
+        __m128 row_x = _mm_movelh_ps(t0, t2);  // [dx1²,dx2²,dx3²,dx4²]
+        __m128 row_y = _mm_movehl_ps(t2, t0);  // [dy1²,dy2²,dy3²,dy4²]
+        __m128 row_z = _mm_movelh_ps(t1, t3);  // [dz1²,dz2²,dz3²,dz4²]
 
+        __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // convert to int
+        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
+        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
 
         __m128 w1 = _mm_set_ps1(value.w);
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
         xyzw::QuadEvaluatedResult result;
-        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);    // store distance bins
-        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);                // store weights
+        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);
+        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         return result;
     }
 
@@ -508,27 +518,36 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
-        __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
-        __m128 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), OutputControl::SECOND);
-        __m128 dist2_3 = squared_dot_product(this->data.data(), v3.data.data(), OutputControl::THIRD);
-        __m128 dist2_4 = squared_dot_product(this->data.data(), v4.data.data(), OutputControl::FOURTH);
+        __m128 sv = _mm_load_ps(this->data.data());
+        __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
+        __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
+        __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
+        __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
+        d1 = _mm_mul_ps(d1, d1);
+        d2 = _mm_mul_ps(d2, d2);
+        d3 = _mm_mul_ps(d3, d3);
+        d4 = _mm_mul_ps(d4, d4);
 
-        // since we masked the dot product to four different sections, we can just add the results to get |Δx1^2|Δx2^2|Δx3^2|Δx4^2|
-        __m128 dist2 = _mm_add_ps(dist2_1, dist2_2);
-        dist2 = _mm_add_ps(dist2, dist2_3);
-        dist2 = _mm_add_ps(dist2, dist2_4);
+        __m128 t0 = _mm_unpacklo_ps(d1, d2);
+        __m128 t1 = _mm_unpackhi_ps(d1, d2);
+        __m128 t2 = _mm_unpacklo_ps(d3, d4);
+        __m128 t3 = _mm_unpackhi_ps(d3, d4);
+        __m128 row_x = _mm_movelh_ps(t0, t2);
+        __m128 row_y = _mm_movehl_ps(t2, t0);
+        __m128 row_z = _mm_movelh_ps(t1, t3);
 
+        __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // cast to int
+        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
+        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
 
         __m128 w1 = _mm_set_ps1(value.w);
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
         xyzw::QuadEvaluatedResultRounded result;
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin); // efficient store of bins
-        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);         // efficient store of weights
+        _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin);
+        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         return result;
     }
 
@@ -537,20 +556,30 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
+        __m128 sv = _mm_load_ps(this->data.data());
         xyzw::OctoEvaluatedResult result;
-        __m128 inv_width = _mm_set_ps1(get_inv_width());
         {   // first four
-            __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
-            __m128 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), OutputControl::SECOND);
-            __m128 dist2_3 = squared_dot_product(this->data.data(), v3.data.data(), OutputControl::THIRD);
-            __m128 dist2_4 = squared_dot_product(this->data.data(), v4.data.data(), OutputControl::FOURTH);
+            __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
+            __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
+            __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
+            __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
+            d1 = _mm_mul_ps(d1, d1);
+            d2 = _mm_mul_ps(d2, d2);
+            d3 = _mm_mul_ps(d3, d3);
+            d4 = _mm_mul_ps(d4, d4);
 
-            __m128 dist2 = _mm_add_ps(dist2_1, dist2_2);
-            dist2 = _mm_add_ps(dist2, dist2_3);
-            dist2 = _mm_add_ps(dist2, dist2_4);
+            __m128 t0 = _mm_unpacklo_ps(d1, d2);
+            __m128 t1 = _mm_unpackhi_ps(d1, d2);
+            __m128 t2 = _mm_unpacklo_ps(d3, d4);
+            __m128 t3 = _mm_unpackhi_ps(d3, d4);
+            __m128 row_x = _mm_movelh_ps(t0, t2);
+            __m128 row_y = _mm_movehl_ps(t2, t0);
+            __m128 row_z = _mm_movelh_ps(t1, t3);
+
+            __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            __m128 dist_binf = _mm_mul_ps(dist_sqrt, inv_width);              // multiply by the inverse width
-            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                    // convert to int
+            __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
 
             __m128 w1 = _mm_set_ps1(value.w);
             __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
@@ -561,17 +590,27 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
             _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         }
         {   // last four
-            __m128 dist2_1 = squared_dot_product(this->data.data(), v5.data.data(), OutputControl::FIRST);
-            __m128 dist2_2 = squared_dot_product(this->data.data(), v6.data.data(), OutputControl::SECOND);
-            __m128 dist2_3 = squared_dot_product(this->data.data(), v7.data.data(), OutputControl::THIRD);
-            __m128 dist2_4 = squared_dot_product(this->data.data(), v8.data.data(), OutputControl::FOURTH);
+            __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v5.data.data()));
+            __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v6.data.data()));
+            __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v7.data.data()));
+            __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v8.data.data()));
+            d1 = _mm_mul_ps(d1, d1);
+            d2 = _mm_mul_ps(d2, d2);
+            d3 = _mm_mul_ps(d3, d3);
+            d4 = _mm_mul_ps(d4, d4);
 
-            __m128 dist2 = _mm_add_ps(dist2_1, dist2_2);
-            dist2 = _mm_add_ps(dist2, dist2_3);
-            dist2 = _mm_add_ps(dist2, dist2_4);
+            __m128 t0 = _mm_unpacklo_ps(d1, d2);
+            __m128 t1 = _mm_unpackhi_ps(d1, d2);
+            __m128 t2 = _mm_unpacklo_ps(d3, d4);
+            __m128 t3 = _mm_unpackhi_ps(d3, d4);
+            __m128 row_x = _mm_movelh_ps(t0, t2);
+            __m128 row_y = _mm_movehl_ps(t2, t0);
+            __m128 row_z = _mm_movelh_ps(t1, t3);
+
+            __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            __m128 dist_binf = _mm_mul_ps(dist_sqrt, inv_width);              // multiply by the inverse width
-            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                    // convert to int
+            __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
 
             __m128 w1 = _mm_set_ps1(value.w);
             __m128 w2 = _mm_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w);
@@ -589,19 +628,30 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
+        __m128 sv = _mm_load_ps(this->data.data());
         xyzw::OctoEvaluatedResultRounded result;
         {   // first four
-            __m128 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), OutputControl::FIRST);
-            __m128 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), OutputControl::SECOND);
-            __m128 dist2_3 = squared_dot_product(this->data.data(), v3.data.data(), OutputControl::THIRD);
-            __m128 dist2_4 = squared_dot_product(this->data.data(), v4.data.data(), OutputControl::FOURTH);
+            __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
+            __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
+            __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
+            __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
+            d1 = _mm_mul_ps(d1, d1);
+            d2 = _mm_mul_ps(d2, d2);
+            d3 = _mm_mul_ps(d3, d3);
+            d4 = _mm_mul_ps(d4, d4);
 
-            __m128 dist2 = _mm_add_ps(dist2_1, dist2_2);
-            dist2 = _mm_add_ps(dist2, dist2_3);
-            dist2 = _mm_add_ps(dist2, dist2_4);
+            __m128 t0 = _mm_unpacklo_ps(d1, d2);
+            __m128 t1 = _mm_unpackhi_ps(d1, d2);
+            __m128 t2 = _mm_unpacklo_ps(d3, d4);
+            __m128 t3 = _mm_unpackhi_ps(d3, d4);
+            __m128 row_x = _mm_movelh_ps(t0, t2);
+            __m128 row_y = _mm_movehl_ps(t2, t0);
+            __m128 row_z = _mm_movelh_ps(t1, t3);
+
+            __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
-            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // cast to int
+            __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
 
             __m128 w1 = _mm_set_ps1(value.w);
             __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
@@ -611,17 +661,27 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
             _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         }
         {   // last four
-            __m128 dist2_1 = squared_dot_product(this->data.data(), v5.data.data(), OutputControl::FIRST);
-            __m128 dist2_2 = squared_dot_product(this->data.data(), v6.data.data(), OutputControl::SECOND);
-            __m128 dist2_3 = squared_dot_product(this->data.data(), v7.data.data(), OutputControl::THIRD);
-            __m128 dist2_4 = squared_dot_product(this->data.data(), v8.data.data(), OutputControl::FOURTH);
+            __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v5.data.data()));
+            __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v6.data.data()));
+            __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v7.data.data()));
+            __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v8.data.data()));
+            d1 = _mm_mul_ps(d1, d1);
+            d2 = _mm_mul_ps(d2, d2);
+            d3 = _mm_mul_ps(d3, d3);
+            d4 = _mm_mul_ps(d4, d4);
 
-            __m128 dist2 = _mm_add_ps(dist2_1, dist2_2);
-            dist2 = _mm_add_ps(dist2, dist2_3);
-            dist2 = _mm_add_ps(dist2, dist2_4);
+            __m128 t0 = _mm_unpacklo_ps(d1, d2);
+            __m128 t1 = _mm_unpackhi_ps(d1, d2);
+            __m128 t2 = _mm_unpacklo_ps(d3, d4);
+            __m128 t3 = _mm_unpackhi_ps(d3, d4);
+            __m128 row_x = _mm_movelh_ps(t0, t2);
+            __m128 row_y = _mm_movehl_ps(t2, t0);
+            __m128 row_z = _mm_movelh_ps(t1, t3);
+
+            __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
-            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // cast to int
+            __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
+            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
 
             __m128 w1 = _mm_set_ps1(value.w);
             __m128 w2 = _mm_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w);
@@ -653,53 +713,14 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
-        __m256 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), v3.data.data(), OutputControl::FIRST); // |Δx1^2|0    |0    |0    |Δx3^2|0    |0    |0    |
-        __m256 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), v4.data.data(), OutputControl::SECOND);// |0    |Δx2^2|0    |0    |0    |Δx4^2|0    |0    |
-
-        __m256 dist2_256 = _mm256_add_ps(dist2_1, dist2_2);                     // |Δx1^2|Δx2^2|0    |0    |Δx3^2|Δx4^2|0    |0    |
-        __m256 dist2_256_shuffled = _mm256_permute_ps(dist2_256, 0b01001110);   // |0    |0    |Δx3^2|Δx4^2|0    |0    |Δx1^2|Δx2^2|
-        __m128 dist2_128_lower = _mm256_extractf128_ps(dist2_256, 0);           // |Δx1^2|Δx2^2|0    |0    |
-        __m128 dist2_128_upper = _mm256_extractf128_ps(dist2_256_shuffled, 1);  // |0    |0    |Δx3^2|Δx4^2|
-        __m128 dist2 = _mm_add_ps(dist2_128_lower, dist2_128_upper);            // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|
-        __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // convert to int
-
-        __m128 w1 = _mm_set1_ps(value.w);
-        __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
-        __m128 weights = _mm_mul_ps(w1, w2);
-
-        xyzw::QuadEvaluatedResult result;
-        _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);    // store distance bins
-        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);                // store weights
-        return result;
+        return evaluate_sse(v1, v2, v3, v4); // 128-bit transpose is optimal for 4 values
     }
 
     template<bool vbw>
     inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
-        __m256 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), v3.data.data(), OutputControl::FIRST); // |Δx1^2|0    |0    |0    |Δx3^2|0    |0    |0    |
-        __m256 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), v4.data.data(), OutputControl::SECOND);// |0    |Δx2^2|0    |0    |0    |Δx4^2|0    |0    |
-
-        __m256 dist2_256 = _mm256_add_ps(dist2_1, dist2_2);                     // |Δx1^2|Δx2^2|0    |0    |Δx3^2|Δx4^2|0    |0    |
-        __m256 dist2_256_shuffled = _mm256_permute_ps(dist2_256, 0b01001110);   // |0    |0    |Δx3^2|Δx4^2|0    |0    |Δx1^2|Δx2^2|
-        __m128 dist2_128_lower = _mm256_extractf128_ps(dist2_256, 0);           // |Δx1^2|Δx2^2|0    |0    |
-        __m128 dist2_128_upper = _mm256_extractf128_ps(dist2_256_shuffled, 1);  // |0    |0    |Δx3^2|Δx4^2|
-        __m128 dist2 = _mm_add_ps(dist2_128_lower, dist2_128_upper);            // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|
-        __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())); // multiply by the inverse width
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // cast to int
-
-        __m128 w1 = _mm_set1_ps(value.w);
-        __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
-        __m128 weights = _mm_mul_ps(w1, w2);
-
-        xyzw::QuadEvaluatedResultRounded result;
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.distances.data()), dist_bin);  // efficient store of bins
-        _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);          // efficient store of weights
-        return result;
+        return evaluate_rounded_sse(v1, v2, v3, v4); // 128-bit transpose is optimal for 4 values
     }
 
     template<bool vbw>
@@ -707,26 +728,39 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
-        __m256 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), v5.data.data(), OutputControl::FIRST); // |Δx1^2|0    |0    |0    |Δx5^2|0    |0    |0    |
-        __m256 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), v6.data.data(), OutputControl::SECOND);// |0    |Δx2^2|0    |0    |0    |Δx6^2|0    |0    |
-        __m256 dist2_3 = squared_dot_product(this->data.data(), v3.data.data(), v7.data.data(), OutputControl::THIRD); // |0    |0    |Δx3^2|0    |0    |0    |Δx7^2|0    |
-        __m256 dist2_4 = squared_dot_product(this->data.data(), v4.data.data(), v8.data.data(), OutputControl::FOURTH);// |0    |0    |0    |Δx4^2|0    |0    |0    |Δx8^2|
+        // pair atoms (1,5), (2,6), (3,7), (4,8) into 256-bit registers for parallel processing
+        __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
+        __m256 d15 = _mm256_sub_ps(svv, _mm256_set_m128(_mm_load_ps(v5.data.data()), _mm_load_ps(v1.data.data())));
+        __m256 d26 = _mm256_sub_ps(svv, _mm256_set_m128(_mm_load_ps(v6.data.data()), _mm_load_ps(v2.data.data())));
+        __m256 d37 = _mm256_sub_ps(svv, _mm256_set_m128(_mm_load_ps(v7.data.data()), _mm_load_ps(v3.data.data())));
+        __m256 d48 = _mm256_sub_ps(svv, _mm256_set_m128(_mm_load_ps(v8.data.data()), _mm_load_ps(v4.data.data())));
+        d15 = _mm256_mul_ps(d15, d15);
+        d26 = _mm256_mul_ps(d26, d26);
+        d37 = _mm256_mul_ps(d37, d37);
+        d48 = _mm256_mul_ps(d48, d48);
 
-        __m256 dist2_256 = _mm256_add_ps(dist2_1, dist2_2);                                                            // |Δx1^2|Δx2^2|0    |0    |Δx5^2|Δx6^2|0    |0    |
-        dist2_256 = _mm256_add_ps(dist2_256, dist2_3);                                                                 // |Δx1^2|Δx2^2|Δx3^2|0    |Δx5^2|Δx6^2|Δx7^2|0    |
-        dist2_256 = _mm256_add_ps(dist2_256, dist2_4);                                                                 // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|Δx5^2|Δx6^2|Δx7^2|Δx8^2|
-        __m256 dist_sqrt = _mm256_sqrt_ps(dist2_256);
-        __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())); // multiply by the inverse width
-        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);                             // convert to int
+        // in-lane 4x4 transpose (same operation on both 128-bit halves independently)
+        __m256 t0 = _mm256_unpacklo_ps(d15, d26);                        // lo: [dx1²,dx2²,dy1²,dy2²] hi: [dx5²,dx6²,dy5²,dy6²]
+        __m256 t1 = _mm256_unpackhi_ps(d15, d26);                        // lo: [dz1²,dz2²,dw1²,dw2²] hi: [dz5²,dz6²,dw5²,dw6²]
+        __m256 t2 = _mm256_unpacklo_ps(d37, d48);                        // lo: [dx3²,dx4²,dy3²,dy4²] hi: [dx7²,dx8²,dy7²,dy8²]
+        __m256 t3 = _mm256_unpackhi_ps(d37, d48);                        // lo: [dz3²,dz4²,dw3²,dw4²] hi: [dz7²,dz8²,dw7²,dw8²]
+        __m256 row_x = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1,0,1,0)); // lo: [dx1²,dx2²,dx3²,dx4²] hi: [dx5²,dx6²,dx7²,dx8²]
+        __m256 row_y = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3,2,3,2)); // lo: [dy1²,dy2²,dy3²,dy4²] hi: [dy5²,dy6²,dy7²,dy8²]
+        __m256 row_z = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1,0,1,0)); // lo: [dz1²,dz2²,dz3²,dz4²] hi: [dz5²,dz6²,dz7²,dz8²]
+
+        __m256 dist2 = _mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z);
+        __m256 dist_sqrt = _mm256_sqrt_ps(dist2);
+        __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width()));
+        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);
 
         __m256 w1 = _mm256_set1_ps(value.w);
         __m256 w2 = _mm256_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w, v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m256 weights = _mm256_mul_ps(w1, w2);
 
         xyzw::OctoEvaluatedResult result;
-        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);             // store distances
-        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distance_bins.data()), dist_bin);    // store distance bins
-        _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);                // store weights
+        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distance_bins.data()), dist_bin);
+        _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         return result;
     }
 
@@ -735,25 +769,36 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
         const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
     ) const noexcept {
-        __m256 dist2_1 = squared_dot_product(this->data.data(), v1.data.data(), v5.data.data(), OutputControl::FIRST); // |Δx1^2|0    |0    |0    |Δx5^2|0    |0    |0    |
-        __m256 dist2_2 = squared_dot_product(this->data.data(), v2.data.data(), v6.data.data(), OutputControl::SECOND);// |0    |Δx2^2|0    |0    |0    |Δx6^2|0    |0    |
-        __m256 dist2_3 = squared_dot_product(this->data.data(), v3.data.data(), v7.data.data(), OutputControl::THIRD); // |0    |0    |Δx3^2|0    |0    |0    |Δx7^2|0    |
-        __m256 dist2_4 = squared_dot_product(this->data.data(), v4.data.data(), v8.data.data(), OutputControl::FOURTH);// |0    |0    |0    |Δx4^2|0    |0    |0    |Δx8^2|
+        __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
+        __m256 d15 = _mm256_sub_ps(svv, _mm256_set_m128(_mm_load_ps(v5.data.data()), _mm_load_ps(v1.data.data())));
+        __m256 d26 = _mm256_sub_ps(svv, _mm256_set_m128(_mm_load_ps(v6.data.data()), _mm_load_ps(v2.data.data())));
+        __m256 d37 = _mm256_sub_ps(svv, _mm256_set_m128(_mm_load_ps(v7.data.data()), _mm_load_ps(v3.data.data())));
+        __m256 d48 = _mm256_sub_ps(svv, _mm256_set_m128(_mm_load_ps(v8.data.data()), _mm_load_ps(v4.data.data())));
+        d15 = _mm256_mul_ps(d15, d15);
+        d26 = _mm256_mul_ps(d26, d26);
+        d37 = _mm256_mul_ps(d37, d37);
+        d48 = _mm256_mul_ps(d48, d48);
 
-        __m256 dist2_256 = _mm256_add_ps(dist2_1, dist2_2);                                                            // |Δx1^2|Δx2^2|0    |0    |Δx5^2|Δx6^2|0    |0    |
-        dist2_256 = _mm256_add_ps(dist2_256, dist2_3);                                                                 // |Δx1^2|Δx2^2|Δx3^2|0    |Δx5^2|Δx6^2|Δx7^2|0    |
-        dist2_256 = _mm256_add_ps(dist2_256, dist2_4);                                                                 // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|Δx5^2|Δx6^2|Δx7^2|Δx8^2|
-        __m256 dist_sqrt = _mm256_sqrt_ps(dist2_256);
-        __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width()));   // multiply by the inverse width
-        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);                               // cast to int
+        __m256 t0 = _mm256_unpacklo_ps(d15, d26);
+        __m256 t1 = _mm256_unpackhi_ps(d15, d26);
+        __m256 t2 = _mm256_unpacklo_ps(d37, d48);
+        __m256 t3 = _mm256_unpackhi_ps(d37, d48);
+        __m256 row_x = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1,0,1,0));
+        __m256 row_y = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3,2,3,2));
+        __m256 row_z = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1,0,1,0));
+
+        __m256 dist2 = _mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z);
+        __m256 dist_sqrt = _mm256_sqrt_ps(dist2);
+        __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width()));
+        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);
 
         __m256 w1 = _mm256_set1_ps(value.w);
         __m256 w2 = _mm256_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w, v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m256 weights = _mm256_mul_ps(w1, w2);
 
         xyzw::OctoEvaluatedResultRounded result;
-        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distances.data()), dist_bin);   // efficient store of bins
-        _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);           // efficient store of weights
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distances.data()), dist_bin);
+        _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         return result;
     }
 #endif
