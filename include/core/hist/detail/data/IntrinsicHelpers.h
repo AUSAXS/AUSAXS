@@ -42,6 +42,28 @@ namespace ausaxs::hist::detail {
     #endif
     namespace ausaxs::hist::detail {
         /**
+        * @brief Route the scalar result in sums[0] to the single output lane requested by 'control',
+        *        zeroing all other lanes. This replicates the lower-nibble masking of _mm_dp_ps for
+        *        the SSE2/SSE3 fallback paths that lack that intrinsic.
+        *
+        *  FIRST  → [sum,   0,   0,   0]
+        *  SECOND → [  0, sum,   0,   0]
+        *  THIRD  → [  0,   0, sum,   0]
+        *  FOURTH → [  0,   0,   0, sum]
+        *  ALL    → [sum, sum, sum, sum]
+        */
+        static inline __m128 place_result_in_lane(__m128 sums, OutputControl control) noexcept {
+            switch (control) {
+                case OutputControl::ALL:    return _mm_shuffle_ps(sums, sums, _MM_SHUFFLE(0,0,0,0));
+                case OutputControl::FIRST:  return _mm_move_ss(_mm_setzero_ps(), sums);
+                case OutputControl::SECOND: { __m128 z = _mm_setzero_ps(); return _mm_unpacklo_ps(z, _mm_move_ss(z, sums)); }
+                case OutputControl::THIRD:  { __m128 z = _mm_setzero_ps(); return _mm_movelh_ps(z, _mm_move_ss(z, sums)); }
+                case OutputControl::FOURTH: { __m128 z = _mm_setzero_ps(); return _mm_shuffle_ps(z, _mm_move_ss(z, sums), _MM_SHUFFLE(0,1,0,0)); }
+                default: std::abort();
+            }
+        }
+
+        /**
         * @brief Calculate the squared distance between two CompactCoordinatesXYZW using 128-bit SSE2 instructions.
         */
         static inline __m128 squared_dot_product(const float* v1, const float* v2, OutputControl control) {
@@ -68,13 +90,13 @@ namespace ausaxs::hist::detail {
                 #if defined __SSE3__
                     __m128 sum = _mm_hadd_ps(multiplied, multiplied);
                     sum = _mm_hadd_ps(sum, sum);
-                    return sum;
+                    return place_result_in_lane(sum, control);
                 #else // SSE2 fallback
                     __m128 shuf = _mm_shuffle_ps(multiplied, multiplied, _MM_SHUFFLE(2,3,0,1));
                     __m128 sums = _mm_add_ps(multiplied, shuf);
                     shuf = _mm_shuffle_ps(sums, sums, _MM_SHUFFLE(1,0,3,2));
                     sums = _mm_add_ss(sums, shuf);
-                    return _mm_shuffle_ps(sums, sums, _MM_SHUFFLE(0,0,0,0));
+                    return place_result_in_lane(sums, control);
                 #endif
             #endif
         }
