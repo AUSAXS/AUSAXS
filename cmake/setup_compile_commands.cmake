@@ -8,8 +8,8 @@ function(setup_compile_commands)
     ##          Architecture mapping          ##
     ############################################
     string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" SYS_ARCH)
-    set(MARCH_FLAGS_amd64        "-march=x86-64-v3")
-    set(MARCH_FLAGS_x86_64       "-march=x86-64-v3")
+    set(MARCH_FLAGS_amd64        "")
+    set(MARCH_FLAGS_x86_64       "")
     set(MARCH_FLAGS_i386         "-march=i686")
     set(MARCH_FLAGS_i686         "-march=i686")
     set(MARCH_FLAGS_aarch64      "-march=armv8-a")

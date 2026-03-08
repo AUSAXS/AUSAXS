@@ -32,7 +32,14 @@ namespace ausaxs::hist::detail {
 }
 
 #if defined __SSE2__
-#include <nmmintrin.h>
+#include <emmintrin.h>
+    // include higher-level intrinsics only when available
+    #if defined __SSE3__
+        #include <pmmintrin.h>
+    #endif
+    #if defined __SSE4_1__
+        #include <smmintrin.h>
+    #endif
     namespace ausaxs::hist::detail {
         /**
         * @brief Calculate the squared distance between two CompactCoordinatesXYZW using 128-bit SSE2 instructions.
@@ -53,10 +60,22 @@ namespace ausaxs::hist::detail {
                     default: std::abort();
                 }
             #else
-                sv1[3] = sv2[3] = 0;                        // zero out the weights
-                __m128 diff = _mm_sub_ps(sv1, sv2);         // calculate the difference
-                __m128 multiplied = _mm_mul_ps(diff, diff); // square the difference
-                return _mm_hadd_ps(multiplied, multiplied); // sum the components
+                __m128 diff = _mm_sub_ps(sv1, sv2);
+                __m128 mask = _mm_castsi128_ps(_mm_set_epi32(0, -1, -1, -1));
+                diff = _mm_and_ps(diff, mask);
+                __m128 multiplied = _mm_mul_ps(diff, diff);
+
+                #if defined __SSE3__
+                    __m128 sum = _mm_hadd_ps(multiplied, multiplied);
+                    sum = _mm_hadd_ps(sum, sum);
+                    return sum;
+                #else // SSE2 fallback
+                    __m128 shuf = _mm_shuffle_ps(multiplied, multiplied, _MM_SHUFFLE(2,3,0,1));
+                    __m128 sums = _mm_add_ps(multiplied, shuf);
+                    shuf = _mm_shuffle_ps(sums, sums, _MM_SHUFFLE(1,0,3,2));
+                    sums = _mm_add_ss(sums, shuf);
+                    return _mm_shuffle_ps(sums, sums, _MM_SHUFFLE(0,0,0,0));
+                #endif
             #endif
         }
     }
