@@ -55,3 +55,5 @@
         #define AUSAXS_USE_AVX512
     #endif
 #endif
+
+#define AUSAXS_USE_AVX512 1

@@ -23,6 +23,7 @@
 
 #include <array>
 #include <cstdint>
+#include <span>
 
 namespace ausaxs::hist::detail::xyzw {
     /**
@@ -132,6 +133,42 @@ namespace ausaxs::hist::detail::xyzw {
     static_assert(sizeof(OctoEvaluatedResult)        == 96, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
     static_assert(sizeof(OctoEvaluatedResultRounded) == 64, "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
 
+    /**
+     * @brief Simple structure for storing the results of sixteen distance and weight calculations.
+     *        This is necessary to restructure the memory layout for more efficient 512-bit SIMD instructions.
+     */
+    struct alignas(64) HexaEvaluatedResult {
+        HexaEvaluatedResult() noexcept = default;
+        HexaEvaluatedResult(const OctoEvaluatedResult& lo, const OctoEvaluatedResult& hi) noexcept {
+            std::copy(lo.distances.begin(), lo.distances.end(), distances.begin());
+            std::copy(hi.distances.begin(), hi.distances.end(), distances.begin()+8);
+            std::copy(lo.distance_bins.begin(), lo.distance_bins.end(), distance_bins.begin());
+            std::copy(hi.distance_bins.begin(), hi.distance_bins.end(), distance_bins.begin()+8);
+            std::copy(lo.weights.begin(), lo.weights.end(), weights.begin());
+            std::copy(hi.weights.begin(), hi.weights.end(), weights.begin()+8);
+        }
+
+        std::array<float, 16> distances;
+        std::array<int32_t, 16> distance_bins;
+        std::array<float, 16> weights;
+    };
+
+    struct alignas(64) HexaEvaluatedResultRounded {
+        HexaEvaluatedResultRounded() noexcept = default;
+        HexaEvaluatedResultRounded(const OctoEvaluatedResultRounded& lo, const OctoEvaluatedResultRounded& hi) noexcept {
+            std::copy(lo.distances.begin(), lo.distances.end(), distances.begin());
+            std::copy(hi.distances.begin(), hi.distances.end(), distances.begin()+8);
+            std::copy(lo.weights.begin(), lo.weights.end(), weights.begin());
+            std::copy(hi.weights.begin(), hi.weights.end(), weights.begin()+8);
+        }
+
+        std::array<int32_t, 16> distances;
+        std::array<float, 16> weights;
+    };
+
+    static_assert(sizeof(HexaEvaluatedResult)        == 192, "hist::detail::HexaEvaluatedResult is not 192 bytes long");
+    static_assert(sizeof(HexaEvaluatedResultRounded) == 128, "hist::detail::HexaEvaluatedResultRounded is not 128 bytes long");
+
     // ensure our structures are trivially copyable
     static_assert(std::is_trivial_v<EvaluatedResult>,            "hist::detail::EvaluatedResult is not trivial");
     static_assert(std::is_trivial_v<EvaluatedResultRounded>,     "hist::detail::EvaluatedResultRounded is not trivial");
@@ -139,6 +176,8 @@ namespace ausaxs::hist::detail::xyzw {
     static_assert(std::is_trivial_v<QuadEvaluatedResultRounded>, "hist::detail::QuadEvaluatedResultRounded is not trivial");
     static_assert(std::is_trivial_v<OctoEvaluatedResult>,        "hist::detail::OctoEvaluatedResult is not trivial");
     static_assert(std::is_trivial_v<OctoEvaluatedResultRounded>, "hist::detail::OctoEvaluatedResultRounded is not trivial");
+    static_assert(std::is_trivial_v<HexaEvaluatedResult>,        "hist::detail::HexaEvaluatedResult is not trivial");
+    static_assert(std::is_trivial_v<HexaEvaluatedResultRounded>, "hist::detail::HexaEvaluatedResultRounded is not trivial");
 
     // check that the structures have a standard memory layout. this is required for the reinterpret_casts.
     static_assert(std::is_standard_layout_v<EvaluatedResult>,            "hist::detail::EvaluatedResult is not trivial");
@@ -147,6 +186,8 @@ namespace ausaxs::hist::detail::xyzw {
     static_assert(std::is_standard_layout_v<QuadEvaluatedResultRounded>, "hist::detail::QuadEvaluatedResultRounded is not trivial");
     static_assert(std::is_standard_layout_v<OctoEvaluatedResult>,        "hist::detail::OctoEvaluatedResult is not trivial");
     static_assert(std::is_standard_layout_v<OctoEvaluatedResultRounded>, "hist::detail::OctoEvaluatedResultRounded is not trivial");
+    static_assert(std::is_standard_layout_v<HexaEvaluatedResult>,        "hist::detail::HexaEvaluatedResult is not trivial");
+    static_assert(std::is_standard_layout_v<HexaEvaluatedResultRounded>, "hist::detail::HexaEvaluatedResultRounded is not trivial");
 }
 
 namespace ausaxs::hist::detail {
@@ -164,45 +205,17 @@ namespace ausaxs::hist::detail {
             CompactCoordinatesXYZW(const Vector3<T>& v, V w) noexcept : value{.pos={static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z())}, .w=static_cast<float>(w)} {}
             CompactCoordinatesXYZW(const Vector3<float>& v, float w) noexcept : value{.pos=v, .w=w} {}
 
-            /**
-             * @brief Calculate the @a binned distance and combined weight between this and a single other CompactCoordinatesXYZW.
-             */
             xyzw::EvaluatedResultRounded evaluate_rounded(const CompactCoordinatesXYZW& other) const noexcept;
-
-            /**
-             * @brief Calculate the distance and combined weight between this and a single other CompactCoordinatesXYZW.
-             */
             xyzw::EvaluatedResult evaluate(const CompactCoordinatesXYZW& other) const noexcept;
 
-            /**
-             * @brief Calculate the @a binned distance and combined weight between this and four other CompactCoordinatesXYZW.
-             *        This leverages more efficient SIMD instructions by using a 128-bit registers (SSE).
-             */
-            xyzw::QuadEvaluatedResultRounded evaluate_rounded(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+            xyzw::QuadEvaluatedResultRounded evaluate_rounded_4(std::span<const CompactCoordinatesXYZW, 4> others) const noexcept;
+            xyzw::QuadEvaluatedResult evaluate_4(std::span<const CompactCoordinatesXYZW, 4> others) const noexcept;
 
-            /**
-             * @brief Calculate the distance and combined weight between this and four other CompactCoordinatesXYZW.
-             *        This leverages more efficient SIMD instructions by using a 128-bit registers (SSE).
-             */
-            xyzw::QuadEvaluatedResult evaluate(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+            xyzw::OctoEvaluatedResultRounded evaluate_rounded_8(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
+            xyzw::OctoEvaluatedResult evaluate_8(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
 
-            /**
-             * @brief Calculate the @a binned distance and combined weight between this and four other CompactCoordinatesXYZW.
-             *        This leverages more efficient SIMD instructions by using either two 128-bit registers (SSE) or one 256-bit register (AVX).
-             */
-            xyzw::OctoEvaluatedResultRounded evaluate_rounded(
-                const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-            ) const noexcept;
-
-            /**
-             * @brief Calculate the distance and combined weight between this and four other CompactCoordinatesXYZW.
-             *        This leverages more efficient SIMD instructions by using either two 128-bit registers (SSE) or one 256-bit register (AVX).
-             */
-            xyzw::OctoEvaluatedResult evaluate(
-                const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-            ) const noexcept;
+            xyzw::HexaEvaluatedResultRounded evaluate_rounded_16(std::span<const CompactCoordinatesXYZW, 16> others) const noexcept;
+            xyzw::HexaEvaluatedResult evaluate_16(std::span<const CompactCoordinatesXYZW, 16> others) const noexcept;
 
             union {
                 struct {Vector3<float> pos; float w;} value;
@@ -213,61 +226,40 @@ namespace ausaxs::hist::detail {
             xyzw::EvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZW& other) const noexcept;
             xyzw::EvaluatedResult evaluate_scalar(const CompactCoordinatesXYZW& other) const noexcept;
 
-            xyzw::QuadEvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
-            xyzw::QuadEvaluatedResult evaluate_scalar(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+            xyzw::QuadEvaluatedResultRounded evaluate_rounded_4_scalar(std::span<const CompactCoordinatesXYZW, 4> others) const noexcept;
+            xyzw::QuadEvaluatedResult evaluate_4_scalar(std::span<const CompactCoordinatesXYZW, 4> others) const noexcept;
 
-            xyzw::OctoEvaluatedResultRounded evaluate_rounded_scalar(
-                const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-            ) const noexcept;
-            xyzw::OctoEvaluatedResult evaluate_scalar(
-                const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-            ) const noexcept;
+            xyzw::OctoEvaluatedResultRounded evaluate_rounded_8_scalar(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
+            xyzw::OctoEvaluatedResult evaluate_8_scalar(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
 
             #if defined AUSAXS_USE_SSE2
                 xyzw::EvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZW& other) const noexcept;
                 xyzw::EvaluatedResult evaluate_sse(const CompactCoordinatesXYZW& other) const noexcept;
 
-                xyzw::QuadEvaluatedResultRounded evaluate_rounded_sse(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
-                xyzw::QuadEvaluatedResult evaluate_sse(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+                xyzw::QuadEvaluatedResultRounded evaluate_rounded_4_sse(std::span<const CompactCoordinatesXYZW, 4> others) const noexcept;
+                xyzw::QuadEvaluatedResult evaluate_4_sse(std::span<const CompactCoordinatesXYZW, 4> others) const noexcept;
 
-                xyzw::OctoEvaluatedResultRounded evaluate_rounded_sse(
-                    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-                ) const noexcept;
-                xyzw::OctoEvaluatedResult evaluate_sse(
-                    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-                ) const noexcept;
+                xyzw::OctoEvaluatedResultRounded evaluate_rounded_8_sse(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
+                xyzw::OctoEvaluatedResult evaluate_8_sse(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
             #endif
 
             #if defined AUSAXS_USE_AVX2
                 xyzw::EvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesXYZW& other) const noexcept;
                 xyzw::EvaluatedResult evaluate_avx(const CompactCoordinatesXYZW& other) const noexcept;
 
-                xyzw::QuadEvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
-                xyzw::QuadEvaluatedResult evaluate_avx(const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4) const noexcept;
+                xyzw::QuadEvaluatedResultRounded evaluate_rounded_4_avx(std::span<const CompactCoordinatesXYZW, 4> others) const noexcept;
+                xyzw::QuadEvaluatedResult evaluate_4_avx(std::span<const CompactCoordinatesXYZW, 4> others) const noexcept;
 
-                xyzw::OctoEvaluatedResultRounded evaluate_rounded_avx(
-                    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-                ) const noexcept;
-                xyzw::OctoEvaluatedResult evaluate_avx(
-                    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-                ) const noexcept;
+                xyzw::OctoEvaluatedResultRounded evaluate_rounded_8_avx(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
+                xyzw::OctoEvaluatedResult evaluate_8_avx(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
             #endif
 
             #if defined AUSAXS_USE_AVX512
-                xyzw::OctoEvaluatedResultRounded evaluate_rounded_avx512(
-                    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-                ) const noexcept;
-                xyzw::OctoEvaluatedResult evaluate_avx512(
-                    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4,
-                    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
-                ) const noexcept;
+                xyzw::OctoEvaluatedResultRounded evaluate_rounded_8_avx512(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
+                xyzw::OctoEvaluatedResult evaluate_8_avx512(std::span<const CompactCoordinatesXYZW, 8> others) const noexcept;
+
+                xyzw::HexaEvaluatedResultRounded evaluate_rounded_16_avx512(std::span<const CompactCoordinatesXYZW, 16> others) const noexcept;
+                xyzw::HexaEvaluatedResult evaluate_16_avx512(std::span<const CompactCoordinatesXYZW, 16> others) const noexcept;
             #endif
     };
     static_assert(sizeof(CompactCoordinatesXYZW<true>) == 16,              "CompactCoordinatesXYZW is not 16 bytes. This is required for aligning SIMD instructions.");
@@ -305,60 +297,80 @@ inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate(
-    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
+inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_4(
+    std::span<const CompactCoordinatesXYZW, 4> others
 ) const noexcept {
     #if defined AUSAXS_USE_AVX2
-        return evaluate_avx(v1, v2, v3, v4);
+        return evaluate_4_avx(others);
     #elif defined AUSAXS_USE_SSE2
-        return evaluate_sse(v1, v2, v3, v4);
+        return evaluate_4_sse(others);
     #else
-        return evaluate_scalar(v1, v2, v3, v4);
+        return evaluate_4_scalar(others);
     #endif
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded(
-    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
+inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_4(
+    std::span<const CompactCoordinatesXYZW, 4> others
 ) const noexcept {
     #if defined AUSAXS_USE_AVX2
-        return evaluate_rounded_avx(v1, v2, v3, v4);
+        return evaluate_rounded_4_avx(others);
     #elif defined AUSAXS_USE_SSE2
-        return evaluate_rounded_sse(v1, v2, v3, v4);
+        return evaluate_rounded_4_sse(others);
     #else
-        return evaluate_rounded_scalar(v1, v2, v3, v4);
+        return evaluate_rounded_4_scalar(others);
     #endif
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate(
-    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_8(
+    std::span<const CompactCoordinatesXYZW, 8> others
 ) const noexcept {
     #if defined AUSAXS_USE_AVX512
-        return evaluate_avx512(v1, v2, v3, v4, v5, v6, v7, v8);
+        return evaluate_8_avx512(others);
     #elif defined AUSAXS_USE_AVX2
-        return evaluate_avx(v1, v2, v3, v4, v5, v6, v7, v8);
+        return evaluate_8_avx(others);
     #elif defined AUSAXS_USE_SSE2
-        return evaluate_sse(v1, v2, v3, v4, v5, v6, v7, v8);
+        return evaluate_8_sse(others);
     #else
-        return evaluate_scalar(v1, v2, v3, v4, v5, v6, v7, v8);
+        return evaluate_8_scalar(others);
     #endif
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded(
-    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_8(
+    std::span<const CompactCoordinatesXYZW, 8> others
 ) const noexcept {
     #if defined AUSAXS_USE_AVX512
-        return evaluate_rounded_avx512(v1, v2, v3, v4, v5, v6, v7, v8);
+        return evaluate_rounded_8_avx512(others);
     #elif defined AUSAXS_USE_AVX2
-        return evaluate_rounded_avx(v1, v2, v3, v4, v5, v6, v7, v8);
+        return evaluate_rounded_8_avx(others);
     #elif defined AUSAXS_USE_SSE2
-        return evaluate_rounded_sse(v1, v2, v3, v4, v5, v6, v7, v8);
+        return evaluate_rounded_8_sse(others);
     #else
-        return evaluate_rounded_scalar(v1, v2, v3, v4, v5, v6, v7, v8);
+        return evaluate_rounded_8_scalar(others);
+    #endif
+}
+
+template<bool vbw>
+inline ausaxs::hist::detail::xyzw::HexaEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_16(
+    std::span<const CompactCoordinatesXYZW, 16> others
+) const noexcept {
+    #if defined AUSAXS_USE_AVX512
+        return evaluate_16_avx512(others);
+    #else
+        return xyzw::HexaEvaluatedResult(evaluate_8(others.template first<8>()), evaluate_8(others.template last<8>()));
+    #endif
+}
+
+template<bool vbw>
+inline ausaxs::hist::detail::xyzw::HexaEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_16(
+    std::span<const CompactCoordinatesXYZW, 16> others
+) const noexcept {
+    #if defined AUSAXS_USE_AVX512
+        return evaluate_rounded_16_avx512(others);
+    #else
+        return xyzw::HexaEvaluatedResultRounded(evaluate_rounded_8(others.template first<8>()), evaluate_rounded_8(others.template last<8>()));
     #endif
 }
 
@@ -378,9 +390,10 @@ inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_scalar(
-    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
+inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_4_scalar(
+    std::span<const CompactCoordinatesXYZW, 4> others
 ) const noexcept {
+    const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
     float dx1 = std::sqrt(squared_dot_product(this->data.data(), v1.data.data()));
     float dx2 = std::sqrt(squared_dot_product(this->data.data(), v2.data.data()));
     float dx3 = std::sqrt(squared_dot_product(this->data.data(), v3.data.data()));
@@ -399,9 +412,10 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::Com
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_scalar(
-    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
+inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_4_scalar(
+    std::span<const CompactCoordinatesXYZW, 4> others
 ) const noexcept {
+    const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
     int32_t dx1 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v1.data.data())));
     int32_t dx2 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v2.data.data())));
     int32_t dx3 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v3.data.data())));
@@ -413,10 +427,11 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_scalar(
-    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_8_scalar(
+    std::span<const CompactCoordinatesXYZW, 8> others
 ) const noexcept {
+    const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
+    const auto& v5 = others[4]; const auto& v6 = others[5]; const auto& v7 = others[6]; const auto& v8 = others[7];
     float dx1 = std::sqrt(squared_dot_product(this->data.data(), v1.data.data()));
     float dx2 = std::sqrt(squared_dot_product(this->data.data(), v2.data.data()));
     float dx3 = std::sqrt(squared_dot_product(this->data.data(), v3.data.data()));
@@ -443,10 +458,11 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::Com
 }
 
 template<bool vbw>
-inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_scalar(
-    const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-    const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_8_scalar(
+    std::span<const CompactCoordinatesXYZW, 8> others
 ) const noexcept {
+    const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
+    const auto& v5 = others[4]; const auto& v6 = others[5]; const auto& v7 = others[6]; const auto& v8 = others[7];
     int32_t dx1 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v1.data.data())));
     int32_t dx2 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v2.data.data())));
     int32_t dx3 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v3.data.data())));
@@ -484,9 +500,10 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_sse(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
+    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_4_sse(
+        std::span<const CompactCoordinatesXYZW, 4> others
     ) const noexcept {
+        const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
         __m128 sv = _mm_load_ps(this->data.data());
         __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
         __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
@@ -523,9 +540,10 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
+    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_4_sse(
+        std::span<const CompactCoordinatesXYZW, 4> others
     ) const noexcept {
+        const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
         __m128 sv = _mm_load_ps(this->data.data());
         __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
         __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
@@ -560,10 +578,11 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_sse(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-        const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_8_sse(
+        std::span<const CompactCoordinatesXYZW, 8> others
     ) const noexcept {
+        const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
+        const auto& v5 = others[4]; const auto& v6 = others[5]; const auto& v7 = others[6]; const auto& v8 = others[7];
         __m128 sv = _mm_load_ps(this->data.data());
         xyzw::OctoEvaluatedResult result;
         {   // first four
@@ -632,10 +651,11 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_sse(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-        const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_8_sse(
+        std::span<const CompactCoordinatesXYZW, 8> others
     ) const noexcept {
+        const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
+        const auto& v5 = others[4]; const auto& v6 = others[5]; const auto& v7 = others[6]; const auto& v8 = others[7];
         __m128 sv = _mm_load_ps(this->data.data());
         xyzw::OctoEvaluatedResultRounded result;
         {   // first four
@@ -720,25 +740,24 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
+    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_4_avx(
+        std::span<const CompactCoordinatesXYZW, 4> others
     ) const noexcept {
-        return evaluate_sse(v1, v2, v3, v4); // 128-bit SSE path is optimal for 4 values
+        return evaluate_4_sse(others); // 128-bit SSE path is optimal for 4 values
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
+    inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_4_avx(
+        std::span<const CompactCoordinatesXYZW, 4> others
     ) const noexcept {
-        return evaluate_rounded_sse(v1, v2, v3, v4); // 128-bit transpose is optimal for 4 values
+        return evaluate_rounded_4_sse(others); // 128-bit transpose is optimal for 4 values
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-        const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_8_avx(
+        std::span<const CompactCoordinatesXYZW, 8> others
     ) const noexcept {
-        // 4x 256-bit loads from contiguous memory (v1..v8 must be adjacent)
+        const auto& v1 = others[0];
         const float* base = v1.data.data();
         __m256 v12 = _mm256_loadu_ps(base);
         __m256 v34 = _mm256_loadu_ps(base + 8);
@@ -784,10 +803,10 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-        const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_8_avx(
+        std::span<const CompactCoordinatesXYZW, 8> others
     ) const noexcept {
+        const auto& v1 = others[0];
         const float* base = v1.data.data();
         __m256 v12 = _mm256_loadu_ps(base);
         __m256 v34 = _mm256_loadu_ps(base + 8);
@@ -832,10 +851,10 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     #include <immintrin.h>
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx512(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-        const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_8_avx512(
+        std::span<const CompactCoordinatesXYZW, 8> others
     ) const noexcept {
+        const auto& v1 = others[0];
         const float* base = v1.data.data();
         __m512 v1234 = _mm512_loadu_ps(base);
         __m512 v5678 = _mm512_loadu_ps(base + 16);
@@ -848,18 +867,18 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
         __m512 d1234 = _mm512_sub_ps(svv, v1234);
         __m512 d5678 = _mm512_sub_ps(svv, v5678);
+        d1234 = _mm512_mul_ps(d1234, d1234);
+        d5678 = _mm512_mul_ps(d5678, d5678);
 
-        // cross-lane gather of dx, dy, dz from all 8 atoms, then FMA dist²
+        // cross-lane gather of x², y², z² from all 8 atoms
         const __m512i gather_x = _mm512_setr_epi32(0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0);
         const __m512i gather_y = _mm512_setr_epi32(1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0);
         const __m512i gather_z = _mm512_setr_epi32(2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0);
-        __m256 dx = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_x, d5678));
-        __m256 dy = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_y, d5678));
-        __m256 dz = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_z, d5678));
+        __m256 row_x = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_x, d5678));
+        __m256 row_y = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_y, d5678));
+        __m256 row_z = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_z, d5678));
 
-        __m256 dist2 = _mm256_mul_ps(dx, dx);
-        dist2 = _mm256_fmadd_ps(dy, dy, dist2);
-        dist2 = _mm256_fmadd_ps(dz, dz, dist2);
+        __m256 dist2 = _mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z);
 
         __m256 dist_sqrt = _mm256_sqrt_ps(dist2);
         __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())));
@@ -872,10 +891,10 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx512(
-        const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4, 
-        const CompactCoordinatesXYZW& v5, const CompactCoordinatesXYZW& v6, const CompactCoordinatesXYZW& v7, const CompactCoordinatesXYZW& v8
+    inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_8_avx512(
+        std::span<const CompactCoordinatesXYZW, 8> others
     ) const noexcept {
+        const auto& v1 = others[0];
         const float* base = v1.data.data();
         __m512 v1234 = _mm512_loadu_ps(base);
         __m512 v5678 = _mm512_loadu_ps(base + 16);
@@ -904,6 +923,114 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         xyzw::OctoEvaluatedResultRounded result;
         _mm256_store_si256(reinterpret_cast<__m256i*>(result.distances.data()), dist_bin);
         _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
+        return result;
+    }
+
+    template<bool vbw>
+    inline ausaxs::hist::detail::xyzw::HexaEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_16_avx512(
+        std::span<const CompactCoordinatesXYZW, 16> others
+    ) const noexcept {
+        const float* base = others[0].data.data();
+        __m512 v03   = _mm512_loadu_ps(base);
+        __m512 v47   = _mm512_loadu_ps(base + 16);
+        __m512 v811  = _mm512_loadu_ps(base + 32);
+        __m512 v1215 = _mm512_loadu_ps(base + 48);
+
+        // extract weights from raw data before computing differences
+        const __m512i gather_w = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
+        __m256 w_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(v03, gather_w, v47));
+        __m256 w_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(v811, gather_w, v1215));
+        __m512 weights = _mm512_mul_ps(_mm512_set1_ps(value.w),
+            _mm512_insertf32x8(_mm512_castps256_ps512(w_lo), w_hi, 1));
+
+        // compute squared differences (square-first for ILP)
+        __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
+        __m512 d03   = _mm512_sub_ps(svv, v03);
+        __m512 d47   = _mm512_sub_ps(svv, v47);
+        __m512 d811  = _mm512_sub_ps(svv, v811);
+        __m512 d1215 = _mm512_sub_ps(svv, v1215);
+        d03   = _mm512_mul_ps(d03, d03);
+        d47   = _mm512_mul_ps(d47, d47);
+        d811  = _mm512_mul_ps(d811, d811);
+        d1215 = _mm512_mul_ps(d1215, d1215);
+
+        // gather x², y², z² from each pair, then combine into full 512-bit vectors
+        const __m512i gather_x = _mm512_setr_epi32(0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0);
+        const __m512i gather_y = _mm512_setr_epi32(1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0);
+        const __m512i gather_z = _mm512_setr_epi32(2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0);
+
+        __m256 rx_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_x, d47));
+        __m256 rx_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_x, d1215));
+        __m512 row_x = _mm512_insertf32x8(_mm512_castps256_ps512(rx_lo), rx_hi, 1);
+
+        __m256 ry_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_y, d47));
+        __m256 ry_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_y, d1215));
+        __m512 row_y = _mm512_insertf32x8(_mm512_castps256_ps512(ry_lo), ry_hi, 1);
+
+        __m256 rz_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_z, d47));
+        __m256 rz_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_z, d1215));
+        __m512 row_z = _mm512_insertf32x8(_mm512_castps256_ps512(rz_lo), rz_hi, 1);
+
+        __m512 dist2 = _mm512_add_ps(_mm512_add_ps(row_x, row_y), row_z);
+        __m512 dist_sqrt = _mm512_sqrt_ps(dist2);
+        __m512i dist_bin = _mm512_cvtps_epi32(_mm512_mul_ps(dist_sqrt, _mm512_set1_ps(get_inv_width())));
+
+        xyzw::HexaEvaluatedResult result;
+        _mm512_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
+        _mm512_store_si512(reinterpret_cast<__m512i*>(result.distance_bins.data()), dist_bin);
+        _mm512_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
+        return result;
+    }
+
+    template<bool vbw>
+    inline ausaxs::hist::detail::xyzw::HexaEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_16_avx512(
+        std::span<const CompactCoordinatesXYZW, 16> others
+    ) const noexcept {
+        const float* base = others[0].data.data();
+        __m512 v03   = _mm512_loadu_ps(base);
+        __m512 v47   = _mm512_loadu_ps(base + 16);
+        __m512 v811  = _mm512_loadu_ps(base + 32);
+        __m512 v1215 = _mm512_loadu_ps(base + 48);
+
+        const __m512i gather_w = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
+        __m256 w_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(v03, gather_w, v47));
+        __m256 w_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(v811, gather_w, v1215));
+        __m512 weights = _mm512_mul_ps(_mm512_set1_ps(value.w),
+            _mm512_insertf32x8(_mm512_castps256_ps512(w_lo), w_hi, 1));
+
+        __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
+        __m512 d03   = _mm512_sub_ps(svv, v03);
+        __m512 d47   = _mm512_sub_ps(svv, v47);
+        __m512 d811  = _mm512_sub_ps(svv, v811);
+        __m512 d1215 = _mm512_sub_ps(svv, v1215);
+        d03   = _mm512_mul_ps(d03, d03);
+        d47   = _mm512_mul_ps(d47, d47);
+        d811  = _mm512_mul_ps(d811, d811);
+        d1215 = _mm512_mul_ps(d1215, d1215);
+
+        const __m512i gather_x = _mm512_setr_epi32(0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0);
+        const __m512i gather_y = _mm512_setr_epi32(1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0);
+        const __m512i gather_z = _mm512_setr_epi32(2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0);
+
+        __m256 rx_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_x, d47));
+        __m256 rx_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_x, d1215));
+        __m512 row_x = _mm512_insertf32x8(_mm512_castps256_ps512(rx_lo), rx_hi, 1);
+
+        __m256 ry_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_y, d47));
+        __m256 ry_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_y, d1215));
+        __m512 row_y = _mm512_insertf32x8(_mm512_castps256_ps512(ry_lo), ry_hi, 1);
+
+        __m256 rz_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_z, d47));
+        __m256 rz_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_z, d1215));
+        __m512 row_z = _mm512_insertf32x8(_mm512_castps256_ps512(rz_lo), rz_hi, 1);
+
+        __m512i dist_bin = _mm512_cvtps_epi32(_mm512_mul_ps(
+            _mm512_sqrt_ps(_mm512_add_ps(_mm512_add_ps(row_x, row_y), row_z)),
+            _mm512_set1_ps(get_inv_width())));
+
+        xyzw::HexaEvaluatedResultRounded result;
+        _mm512_store_si512(reinterpret_cast<__m512i*>(result.distances.data()), dist_bin);
+        _mm512_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         return result;
     }
 #endif

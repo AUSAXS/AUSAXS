@@ -90,6 +90,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             auto& p_xx = p_xx_all.get();
             for (int i = imin; i < imax; ++i) { // exv
                 int j = i+1;                    // exv
+                for (; j+15 < data_x_size; j+=16) {
+                    evaluate16<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
+                }
+
                 for (; j+7 < data_x_size; j+=8) {
                     evaluate8<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
                 }
@@ -110,6 +114,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             auto& p_ax = p_ax_all.get();
             for (int i = imin; i < imax; ++i) { // atoms
                 int j = 0;                      // exv
+                for (; j+15 < data_x_size; j+=16) {
+                    detail::grid::evaluate16<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
+                }
+
                 for (; j+7 < data_x_size; j+=8) {
                     detail::grid::evaluate8<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
@@ -130,6 +138,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             auto& p_wx = p_wx_all.get();
             for (int i = imin; i < imax; ++i) { // waters
                 int j = 0;                      // exv
+                for (; j+15 < data_x_size; j+=16) {
+                    evaluate16<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
+                }
+
                 for (; j+7 < data_x_size; j+=8) {
                     evaluate8<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
                 }

@@ -48,6 +48,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     // calculate aa distances
     for (int i = 0; i < data_a_size; ++i) {
         int j = i+1;
+        for (; j+15 < data_a_size; j+=16) {
+            evaluate16<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
+        }
+
         for (; j+7 < data_a_size; j+=8) {
             evaluate8<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
         }
@@ -64,6 +68,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     for (int i = 0; i < data_w_size; ++i) {
         {   // calculate ww distances
             int j = i+1;
+            for (; j+15 < data_w_size; j+=16) {
+                evaluate16<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
+            }
+
             for (; j+7 < data_w_size; j+=8) {
                 evaluate8<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
             }
@@ -79,6 +87,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
 
         {   // calculate aw distances
             int j = 0;
+            for (; j+15 < data_a_size; j+=16) {
+                evaluate16<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
+            }
+
             for (; j+7 < data_a_size; j+=8) {
                 evaluate8<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
             }

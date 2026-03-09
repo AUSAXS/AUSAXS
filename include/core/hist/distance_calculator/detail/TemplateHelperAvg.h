@@ -10,6 +10,12 @@
 namespace ausaxs::hist::detail {
     //### Weighted evaluators ###//
     template<bool variable_bin_widths, int factor, bool explicit_ff = false>
+    inline void evaluate16(WeightedDistribution1D& p, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_i, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_j, int i, int j) {
+        xyzff::HexaEvaluatedResult res = add16::evaluate_weighted(data_i, data_j, i, j);
+        for (int k = 0; k < 16; ++k) {p.increment_index<factor>(res.distance_bins[k], res.distances[k]);}
+    }
+
+    template<bool variable_bin_widths, int factor, bool explicit_ff = false>
     inline void evaluate8(WeightedDistribution1D& p, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_i, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_j, int i, int j) {
         xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_i, data_j, i, j);
         for (int k = 0; k < 8; ++k) {p.increment_index<factor>(res.distance_bins[k], res.distances[k]);}
@@ -28,6 +34,12 @@ namespace ausaxs::hist::detail {
     }
 
     //### Unweighted evaluators ###//
+    template<bool variable_bin_widths, int factor, bool explicit_ff = false>
+    inline void evaluate16(Distribution1D& p, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_i, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_j, int i, int j) {
+        xyzff::HexaEvaluatedResultRounded res = add16::evaluate_unweighted(data_i, data_j, i, j);
+        for (int k = 0; k < 16; ++k) {p.increment_index<factor>(res.distances[k]);}
+    }
+
     template<bool variable_bin_widths, int factor, bool explicit_ff = false>
     inline void evaluate8(Distribution1D& p, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_i, const CompactCoordinatesFF<variable_bin_widths, explicit_ff>& data_j, int i, int j) {
         xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_i, data_j, i, j);

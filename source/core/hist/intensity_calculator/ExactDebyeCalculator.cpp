@@ -6,11 +6,14 @@
 #include <hist/detail/CompactCoordinates.h>
 
 #include <cmath>
+#include <span>
 
 using namespace ausaxs;
 
 std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, const std::vector<double>& q_vals) {
-    auto data = hist::detail::CompactCoordinates<false>(molecule.get_bodies());
+    using CC = hist::detail::CompactCoordinates<false>;
+    auto data = CC(molecule.get_bodies());
+    using ElemType = std::remove_reference_t<decltype(data[0])>;
 
     auto contribution = [] (double qr, float w) -> double {
         if (qr < 1e-9) {
@@ -27,14 +30,14 @@ std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, 
         for (unsigned int i = 0; i < data.size(); ++i) {
             unsigned int j = i+1;
             for (; j+7 < data.size(); j+=8) {
-                auto res = data[i].evaluate(data[j], data[j+1], data[j+2], data[j+3], data[j+4], data[j+5], data[j+6], data[j+7]);
+                auto res = data[i].evaluate_8(std::span<const ElemType, 8>(&data[j], 8));
                 for (unsigned int k = 0; k < 8; ++k) {
                     sum += contribution(q*res.distances[k], 2*res.weights[k]);
                 }
             }
 
             for (; j+3 < data.size(); j+=4) {
-                auto res = data[i].evaluate(data[j], data[j+1], data[j+2], data[j+3]);
+                auto res = data[i].evaluate_4(std::span<const ElemType, 4>(&data[j], 4));
                 for (unsigned int k = 0; k < 4; ++k) {
                     sum += contribution(q*res.distances[k], 2*res.weights[k]);
                 }
