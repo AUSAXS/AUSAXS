@@ -19,9 +19,12 @@ shell::Command& gmx::command() {
         cmd.append(opt->get());
     }
     cmd.append("-nocopyright -quiet");
-    cmd.prepend("export GMXLIB=\"" + settings::md::gmx_top_path + "\";");
     assert(!settings::md::gmx_top_path.ends_with("/") && "gmx_top_path should not end with a slash");
     return cmd;
+}
+
+std::string gmx::env_string() {
+    return "export GMXLIB=\"" + settings::md::gmx_top_path + "\";";
 }
 
 // to encapsulate the entire command with '', we need to escape all ' characters in the command itself
@@ -46,6 +49,7 @@ std::string gmx::execute() {
         // this will crash if using a shell script, so run everything in bash and encapsulate entire cmd with ''
         cmd.set(escape_single_quotes(cmd.get()));
         cmd.prepend("exec bash -c 'set -o pipefail; ");
+        cmd.prepend(env_string());
         cmd.append("2>&1 | tee -a " + outputlog.str() + "'");
     }
 

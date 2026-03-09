@@ -22,6 +22,8 @@ namespace ausaxs::md {
 
             static void set_logfile(const io::File& log, const io::File& cmdlog);
 
+            static std::string env_string();
+
         protected:
             virtual void validate() const;
 

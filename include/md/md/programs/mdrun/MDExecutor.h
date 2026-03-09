@@ -45,6 +45,7 @@ namespace ausaxs::md {
     struct LocalExecutor : public Executor<T> {
         LocalExecutor(const io::Folder& output, std::string_view run_cmd) : Executor<T>(output), cmd(run_cmd){
             cmd.prepend("cd " + output.absolute_path() + "; ");
+            cmd.prepend(gmx::env_string());
         }
 
         void submit() override {
@@ -78,9 +79,12 @@ namespace ausaxs::md {
                 std::string line;
                 bool found = false;
                 while (std::getline(in, line) && !found) {
-                    if (line.starts_with("$(mdrun_cmd)")) {
+                    if (line.find("$(mdrun_cmd)") != std::string::npos) {
+                        out += gmx::env_string() + "\n"; // add env
                         line.replace(line.find("$(mdrun_cmd)"), 12, "cd " + folder.absolute_path() + "; " + std::string(run_cmd));
                         found = true;
+                    } else if (line.find("$(output)") != std::string::npos) {
+                        line.replace(line.find("$(output)"), 10, folder.absolute_path());
                     }
                     out += line + "\n";
                 }
@@ -107,8 +111,7 @@ namespace ausaxs::md {
      */
     template<MDResult T>
     struct MultiTemplateExecutor : public TemplateExecutor<T> {
-        MultiTemplateExecutor(const io::Folder& folder, const SHFile& template_file,
-                              std::string_view run_cmd, int n_replicas) : TemplateExecutor<T>(folder) {
+        MultiTemplateExecutor(const io::Folder& folder, const SHFile& template_file, std::string_view run_cmd, int n_replicas) : TemplateExecutor<T>(folder) {
             if (!template_file.exists()) {
                 throw except::io_error("MultiTemplateExecutor: The template file does not exist.");
             }
@@ -120,15 +123,14 @@ namespace ausaxs::md {
                 std::string line;
                 bool found = false;
                 while (std::getline(in, line) && !found) {
-                    if (line.starts_with("$(mdrun_cmd)")) {
+                    if (line.find("$(mdrun_cmd)") != std::string::npos) {
+                        out += gmx::env_string() + "\n"; // add env
                         line.replace(line.find("$(mdrun_cmd)"), 12, "cd " + folder.absolute_path() + "; " + std::string(run_cmd));
                         found = true;
-                    }
-                    // replace all occurrences of $(n_replicas) in every line
-                    std::string tok = "$(n_replicas)";
-                    std::size_t pos = 0;
-                    while ((pos = line.find(tok, pos)) != std::string::npos) {
-                        line.replace(pos, tok.size(), std::to_string(n_replicas));
+                    } else if (line.find("$(output)") != std::string::npos) {
+                        line.replace(line.find("$(output)"), 10, folder.absolute_path());
+                    } else if (line.find("$(n_replicas)") != std::string::npos) {
+                        line.replace(line.find("$(n_replicas)"), 12, std::to_string(n_replicas));
                     }
                     out += line + "\n";
                 }
@@ -151,11 +153,16 @@ namespace ausaxs::md {
                 std::string line;
                 bool found = false;
                 while (std::getline(in, line) && !found) {
-                    if (line.starts_with("$(mdrun_cmd)")) {
+                    if (line.find("$(mdrun_cmd)") != std::string::npos) {
+                        out += gmx::env_string() + "\n"; // add env
                         line.replace(line.find("$(mdrun_cmd)"), 12, "cd " + folder.absolute_path() + "; " + std::string(run_cmd));
                         found = true;
                     } else if (line.find("$(jobname)") != std::string::npos) {
                         line.replace(line.find("$(jobname)"), 10, jobname);
+                    } else if (line.find("$(output)") != std::string::npos) {
+                        line.replace(line.find("$(output)"), 10, folder.absolute_path());
+                    } else if (line.find("$(n_replicas)") != std::string::npos) {
+                        line.replace(line.find("$(n_replicas)"), 12, "1");
                     }
                     out += line + "\n";
                 }
@@ -222,17 +229,16 @@ namespace ausaxs::md {
                 std::string line;
                 bool found = false;
                 while (std::getline(in, line) && !found) {
-                    if (line.starts_with("$(mdrun_cmd)")) {
+                    if (line.find("$(mdrun_cmd)") != std::string::npos) {
+                        out += gmx::env_string() + "\n"; // add env
                         line.replace(line.find("$(mdrun_cmd)"), 12, "cd " + folder.absolute_path() + "; " + std::string(run_cmd));
                         found = true;
                     } else if (line.find("$(jobname)") != std::string::npos) {
                         line.replace(line.find("$(jobname)"), 10, jobname);
-                    }
-                    // replace all occurrences of $(n_replicas) in every line
-                    std::string tok = "$(n_replicas)";
-                    std::size_t pos = 0;
-                    while ((pos = line.find(tok, pos)) != std::string::npos) {
-                        line.replace(pos, tok.size(), std::to_string(n_replicas));
+                    } else if (line.find("$(output)") != std::string::npos) {
+                        line.replace(line.find("$(output)"), 10, folder.absolute_path());
+                    } else if (line.find("$(n_replicas)") != std::string::npos) {
+                        line.replace(line.find("$(n_replicas)"), 12, std::to_string(n_replicas));
                     }
                     out += line + "\n";
                 }
