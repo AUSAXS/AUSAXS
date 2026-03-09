@@ -326,10 +326,12 @@ template<bool vbw>
 inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_8(
     std::span<const CompactCoordinatesXYZW, 8> others
 ) const noexcept {
-    #if defined AUSAXS_USE_AVX512
-        return evaluate_8_avx512(others);
-    #elif defined AUSAXS_USE_AVX2
+    // Prefer AVX2 (256-bit ymm) even on AVX-512 hardware: 8 floats only fill half a ZMM
+    // register, so AVX-512 provides no width benefit and causes frequency throttling.
+    #if defined AUSAXS_USE_AVX2
         return evaluate_8_avx(others);
+    #elif defined AUSAXS_USE_AVX512
+        return evaluate_8_avx512(others);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_8_sse(others);
     #else
@@ -341,10 +343,10 @@ template<bool vbw>
 inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_8(
     std::span<const CompactCoordinatesXYZW, 8> others
 ) const noexcept {
-    #if defined AUSAXS_USE_AVX512
-        return evaluate_rounded_8_avx512(others);
-    #elif defined AUSAXS_USE_AVX2
+    #if defined AUSAXS_USE_AVX2
         return evaluate_rounded_8_avx(others);
+    #elif defined AUSAXS_USE_AVX512
+        return evaluate_rounded_8_avx512(others);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_rounded_8_sse(others);
     #else

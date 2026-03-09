@@ -334,10 +334,10 @@ template<bool vbw, bool explicit_ff>
 inline ausaxs::hist::detail::xyzff::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_8(
     std::span<const CompactCoordinatesXYZFF, 8> others
 ) const noexcept {
-    #if defined AUSAXS_USE_AVX512
-        return evaluate_8_avx512(others);
-    #elif defined AUSAXS_USE_AVX2
+    #if defined AUSAXS_USE_AVX2
         return evaluate_8_avx(others);
+    #elif defined AUSAXS_USE_AVX512
+        return evaluate_8_avx512(others);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_8_sse(others);
     #else
@@ -349,10 +349,10 @@ template<bool vbw, bool explicit_ff>
 inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_rounded_8(
     std::span<const CompactCoordinatesXYZFF, 8> others
 ) const noexcept {
-    #if defined AUSAXS_USE_AVX512
-        return evaluate_rounded_8_avx512(others);
-    #elif defined AUSAXS_USE_AVX2
+    #if defined AUSAXS_USE_AVX2
         return evaluate_rounded_8_avx(others);
+    #elif defined AUSAXS_USE_AVX512
+        return evaluate_rounded_8_avx512(others);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_rounded_8_sse(others);
     #else
