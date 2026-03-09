@@ -3,17 +3,7 @@
 
 #pragma once
 
-// When AUSAXS_FORCE_SCALAR is defined, suppress all SIMD dispatch so the compiler
-// auto-vectorizes the scalar fallback paths instead of using hand-written intrinsics.
-// Used in per-SIMD benchmark variants to obtain a fair comparison baseline.
-#if defined AUSAXS_FORCE_SCALAR
-    #undef __AVX512F__
-    #undef __AVX__
-    #undef __SSE4_1__
-    #undef __SSE2__
-#else
-
-// AVX implies SSE4.1 and SSE2, but the MSVC compiler doesn't seem to define the latter two
+// AVX implies SSE4.1 and SSE2, but MSVC doesn't always define the latter two
 #if defined __AVX__
     #if !defined __SSE2__
         #define __SSE2__
@@ -23,4 +13,44 @@
     #endif
 #endif
 
-#endif // AUSAXS_FORCE_SCALAR
+// Resolve the effective SIMD dispatch level into AUSAXS_USE_{SSE2,AVX,AVX512}.
+//
+// Benchmark builds define one of USE_SCALAR, USE_SSE2, USE_AVX, USE_AVX512
+// to set a ceiling on dispatch, acting as safeguards alongside compiler flags.
+// On Apple, SIMD dispatch is suppressed entirely (Clang compatibility).
+// Otherwise, auto-detect from compiler builtins.
+#if defined __APPLE__ || defined USE_SCALAR
+    // No SIMD dispatch
+#elif defined USE_SSE2
+    #if defined __SSE2__
+        #define AUSAXS_USE_SSE2
+    #endif
+#elif defined USE_AVX
+    #if defined __SSE2__
+        #define AUSAXS_USE_SSE2
+    #endif
+    #if defined __AVX__
+        #define AUSAXS_USE_AVX
+    #endif
+#elif defined USE_AVX512
+    #if defined __SSE2__
+        #define AUSAXS_USE_SSE2
+    #endif
+    #if defined __AVX__
+        #define AUSAXS_USE_AVX
+    #endif
+    #if defined __AVX512F__
+        #define AUSAXS_USE_AVX512
+    #endif
+#else
+    // Auto-detect from compiler builtins
+    #if defined __SSE2__
+        #define AUSAXS_USE_SSE2
+    #endif
+    #if defined __AVX__
+        #define AUSAXS_USE_AVX
+    #endif
+    #if defined __AVX512F__
+        #define AUSAXS_USE_AVX512
+    #endif
+#endif
