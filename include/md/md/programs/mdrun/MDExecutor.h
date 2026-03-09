@@ -84,7 +84,7 @@ namespace ausaxs::md {
                         line.replace(line.find("$(mdrun_cmd)"), 12, "cd " + folder.absolute_path() + "; " + std::string(run_cmd));
                         found = true;
                     } else if (line.find("$(output)") != std::string::npos) {
-                        line.replace(line.find("$(output)"), 10, folder.absolute_path());
+                        line.replace(line.find("$(output)"), 9, folder.absolute_path());
                     }
                     out += line + "\n";
                 }
@@ -128,9 +128,9 @@ namespace ausaxs::md {
                         line.replace(line.find("$(mdrun_cmd)"), 12, "cd " + folder.absolute_path() + "; " + std::string(run_cmd));
                         found = true;
                     } else if (line.find("$(output)") != std::string::npos) {
-                        line.replace(line.find("$(output)"), 10, folder.absolute_path());
+                        line.replace(line.find("$(output)"), 9, folder.absolute_path());
                     } else if (line.find("$(n_replicas)") != std::string::npos) {
-                        line.replace(line.find("$(n_replicas)"), 12, std::to_string(n_replicas));
+                        line.replace(line.find("$(n_replicas)"), 13, std::to_string(n_replicas));
                     }
                     out += line + "\n";
                 }
@@ -160,9 +160,7 @@ namespace ausaxs::md {
                     } else if (line.find("$(jobname)") != std::string::npos) {
                         line.replace(line.find("$(jobname)"), 10, jobname);
                     } else if (line.find("$(output)") != std::string::npos) {
-                        line.replace(line.find("$(output)"), 10, folder.absolute_path());
-                    } else if (line.find("$(n_replicas)") != std::string::npos) {
-                        line.replace(line.find("$(n_replicas)"), 12, "1");
+                        line.replace(line.find("$(output)"), 9, folder.absolute_path());
                     }
                     out += line + "\n";
                 }
@@ -236,9 +234,9 @@ namespace ausaxs::md {
                     } else if (line.find("$(jobname)") != std::string::npos) {
                         line.replace(line.find("$(jobname)"), 10, jobname);
                     } else if (line.find("$(output)") != std::string::npos) {
-                        line.replace(line.find("$(output)"), 10, folder.absolute_path());
+                        line.replace(line.find("$(output)"), 9, folder.absolute_path()); 
                     } else if (line.find("$(n_replicas)") != std::string::npos) {
-                        line.replace(line.find("$(n_replicas)"), 12, std::to_string(n_replicas));
+                        line.replace(line.find("$(n_replicas)"), 13, std::to_string(n_replicas));
                     }
                     out += line + "\n";
                 }
