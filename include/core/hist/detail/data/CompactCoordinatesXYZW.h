@@ -242,7 +242,7 @@ namespace ausaxs::hist::detail {
                 ) const noexcept;
             #endif
 
-            #if defined AUSAXS_USE_AVX
+            #if defined AUSAXS_USE_AVX2
                 xyzw::EvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesXYZW& other) const noexcept;
                 xyzw::EvaluatedResult evaluate_avx(const CompactCoordinatesXYZW& other) const noexcept;
 
@@ -308,7 +308,7 @@ template<bool vbw>
 inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
 ) const noexcept {
-    #if defined AUSAXS_USE_AVX
+    #if defined AUSAXS_USE_AVX2
         return evaluate_avx(v1, v2, v3, v4);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_sse(v1, v2, v3, v4);
@@ -321,7 +321,7 @@ template<bool vbw>
 inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded(
     const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
 ) const noexcept {
-    #if defined AUSAXS_USE_AVX
+    #if defined AUSAXS_USE_AVX2
         return evaluate_rounded_avx(v1, v2, v3, v4);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_rounded_sse(v1, v2, v3, v4);
@@ -337,7 +337,7 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResult ausaxs::hist::detail::Com
 ) const noexcept {
     #if defined AUSAXS_USE_AVX512
         return evaluate_avx512(v1, v2, v3, v4, v5, v6, v7, v8);
-    #elif defined AUSAXS_USE_AVX
+    #elif defined AUSAXS_USE_AVX2
         return evaluate_avx(v1, v2, v3, v4, v5, v6, v7, v8);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_sse(v1, v2, v3, v4, v5, v6, v7, v8);
@@ -353,7 +353,7 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
 ) const noexcept {
     #if defined AUSAXS_USE_AVX512
         return evaluate_rounded_avx512(v1, v2, v3, v4, v5, v6, v7, v8);
-    #elif defined AUSAXS_USE_AVX
+    #elif defined AUSAXS_USE_AVX2
         return evaluate_rounded_avx(v1, v2, v3, v4, v5, v6, v7, v8);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_rounded_sse(v1, v2, v3, v4, v5, v6, v7, v8);
@@ -702,26 +702,28 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
     }
 #endif
 
-#if defined AUSAXS_USE_AVX
+#if defined AUSAXS_USE_AVX2
+    #include <immintrin.h>
+
     template<bool vbw>
     inline ausaxs::hist::detail::xyzw::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx(
         const CompactCoordinatesXYZW& other
     ) const noexcept {
-        return evaluate_sse(other); // no way to optimize a single evaluation with AVX
+        return evaluate_sse(other); // no way to optimize a single evaluation with AVX2
     }
 
     template<bool vbw>
     inline ausaxs::hist::detail::xyzw::EvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_avx(
         const CompactCoordinatesXYZW& other
     ) const noexcept {
-        return evaluate_rounded_sse(other); // no way to optimize a single evaluation with AVX
+        return evaluate_rounded_sse(other); // no way to optimize a single evaluation with AVX2
     }
 
     template<bool vbw>
     inline ausaxs::hist::detail::xyzw::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_avx(
         const CompactCoordinatesXYZW& v1, const CompactCoordinatesXYZW& v2, const CompactCoordinatesXYZW& v3, const CompactCoordinatesXYZW& v4
     ) const noexcept {
-        return evaluate_sse(v1, v2, v3, v4); // 128-bit transpose is optimal for 4 values
+        return evaluate_sse(v1, v2, v3, v4); // 128-bit SSE path is optimal for 4 values
     }
 
     template<bool vbw>
@@ -749,7 +751,8 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m256 w_all = _mm256_shuffle_ps(wt0, wt1, _MM_SHUFFLE(3,2,3,2));
         __m256 weights = _mm256_mul_ps(_mm256_set1_ps(value.w), w_all);
 
-        // compute differences and square
+        // compute squared differences (squaring before transpose gives better ILP:
+        // 4 independent mul ops overlap on separate execution ports)
         __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
         __m256 d12 = _mm256_sub_ps(svv, v12);
         __m256 d34 = _mm256_sub_ps(svv, v34);
@@ -771,8 +774,7 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
 
         __m256 dist2 = _mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z);
         __m256 dist_sqrt = _mm256_sqrt_ps(dist2);
-        __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width()));
-        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);
+        __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())));
 
         xyzw::OctoEvaluatedResult result;
         _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);

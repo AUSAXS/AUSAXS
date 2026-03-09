@@ -19,16 +19,16 @@ set_target_properties(benchmark_distance_calculation PROPERTIES
 # Per-SIMD histogram benchmark variants.
 #
 # Each variant recompiles the hot histogram-manager TU with a specific -march flag so
-# the SIMD dispatch macros (__SSE2__, __AVX__, __AVX512F__) reflect that level.  The
+# the SIMD dispatch macros (__SSE2__, __AVX2__, __AVX512F__) reflect that level.  The
 # fresh object is linked first; GNU ld then skips the matching archive member from
 # libausaxs_static, so no duplicate-symbol issues arise.
 #
 # Variants:
 #   scalar  — -march=native + USE_SCALAR: lets GCC auto-vectorise the
 #             scalar fallback, giving a fair comparison against the hand-written paths
-#   sse2    — -msse2  (x86-64 baseline with SSE2 only)
-#   avx     — -mavx   (AVX without AVX-512)
-#   avx512  — -mavx512f
+#   sse2    — -msse2  (x86-64-v1/v2 baseline, SSE2 only)
+#   avx2    — -mavx2  (x86-64-v3: AVX2 + FMA)
+#   avx512  — -mavx512f  (x86-64-v4: AVX-512)
 
 set(_hist_hot_src
     ${CMAKE_SOURCE_DIR}/source/core/hist/histogram_manager/HistogramManagerMT.cpp
@@ -39,16 +39,16 @@ set(_hist_includes
 )
 set(_base_flags -O3 -ffast-math -fno-finite-math-only)
 
-foreach(_variant scalar sse2 avx avx512)
+foreach(_variant scalar sse2 avx2 avx512)
     if(_variant STREQUAL "scalar")
         set(_march -march=native)
         set(_defs   USE_SCALAR)
     elseif(_variant STREQUAL "sse2")
         set(_march -msse2 -mno-avx)
         set(_defs   USE_SSE2)
-    elseif(_variant STREQUAL "avx")
-        set(_march -mavx)
-        set(_defs   USE_AVX)
+    elseif(_variant STREQUAL "avx2")
+        set(_march -mavx2)
+        set(_defs   USE_AVX2)
     elseif(_variant STREQUAL "avx512")
         set(_march -mavx512f)
         set(_defs   USE_AVX512)

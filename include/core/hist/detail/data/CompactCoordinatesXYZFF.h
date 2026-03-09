@@ -241,7 +241,7 @@ namespace ausaxs::hist::detail {
                 ) const noexcept;
             #endif
 
-            #if defined AUSAXS_USE_AVX
+            #if defined AUSAXS_USE_AVX2
                 xyzff::EvaluatedResultRounded evaluate_rounded_avx(const CompactCoordinatesXYZFF& other) const noexcept;
                 xyzff::EvaluatedResult evaluate_avx(const CompactCoordinatesXYZFF& other) const noexcept;
 
@@ -318,7 +318,7 @@ template<bool vbw, bool explicit_ff>
 inline ausaxs::hist::detail::xyzff::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate(
     const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4
 ) const noexcept {
-    #if defined AUSAXS_USE_AVX
+    #if defined AUSAXS_USE_AVX2
         return evaluate_avx(v1, v2, v3, v4);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_sse(v1, v2, v3, v4);
@@ -331,7 +331,7 @@ template<bool vbw, bool explicit_ff>
 inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_rounded(
     const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4
 ) const noexcept {
-    #if defined AUSAXS_USE_AVX
+    #if defined AUSAXS_USE_AVX2
         return evaluate_rounded_avx(v1, v2, v3, v4);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_rounded_sse(v1, v2, v3, v4);
@@ -347,7 +347,7 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResult ausaxs::hist::detail::Co
 ) const noexcept {
     #if defined AUSAXS_USE_AVX512
         return evaluate_avx512(v1, v2, v3, v4, v5, v6, v7, v8);
-    #elif defined AUSAXS_USE_AVX
+    #elif defined AUSAXS_USE_AVX2
         return evaluate_avx(v1, v2, v3, v4, v5, v6, v7, v8);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_sse(v1, v2, v3, v4, v5, v6, v7, v8);
@@ -363,7 +363,7 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
 ) const noexcept {
     #if defined AUSAXS_USE_AVX512
         return evaluate_rounded_avx512(v1, v2, v3, v4, v5, v6, v7, v8);
-    #elif defined AUSAXS_USE_AVX
+    #elif defined AUSAXS_USE_AVX2
         return evaluate_rounded_avx(v1, v2, v3, v4, v5, v6, v7, v8);
     #elif defined AUSAXS_USE_SSE2
         return evaluate_rounded_sse(v1, v2, v3, v4, v5, v6, v7, v8);
@@ -753,7 +753,7 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
     }
 #endif
 
-#if defined AUSAXS_USE_AVX
+#if defined AUSAXS_USE_AVX2
     #include <immintrin.h>
     namespace ausaxs::hist::detail::xyzff {
         template<bool vbw, bool explicit_ff>
