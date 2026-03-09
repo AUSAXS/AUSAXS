@@ -33,7 +33,23 @@ function(setup_compile_commands)
                 "Enable -DALLOW_UNKNOWN_ARCHITECTURE=ON to proceed anyway.")
         endif()
     endif()
-    set(MARCH_FLAG "${MARCH_FLAGS_${SYS_ARCH}}")
+
+    # Resolve the ARCH option:
+    #   "native" → -march=native
+    #   "auto"   → -march=native for Debug, per-architecture default otherwise
+    #   anything else → passed directly as -march=<value>
+    string(TOLOWER "${ARCH}" _arch_lower)
+    if (_arch_lower STREQUAL "native")
+        set(MARCH_FLAG "-march=native")
+    elseif (_arch_lower STREQUAL "auto")
+        if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+            set(MARCH_FLAG "-march=native")
+        else()
+            set(MARCH_FLAG "${MARCH_FLAGS_${SYS_ARCH}}")
+        endif()
+    else()
+        set(MARCH_FLAG "-march=${ARCH}")
+    endif()
 
     ############################################
     ##    Per-compiler optimisation flags     ##

@@ -95,7 +95,7 @@ namespace ausaxs::hist::detail::xyzff {
      * @brief Simple structure for storing the results of eight distance and form factor bin calculations.
      *        This is necessary to restructure the memory layout for more efficient 256-bit SIMD instructions.
      */
-    struct OctoEvaluatedResult {
+    struct alignas(32) OctoEvaluatedResult {
         OctoEvaluatedResult() noexcept = default;
         OctoEvaluatedResult(
             const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4, 
@@ -117,7 +117,7 @@ namespace ausaxs::hist::detail::xyzff {
      * @brief Simple structure for storing the results of eight distance and form factor bin calculations.
      *        This is necessary to restructure the memory layout for more efficient 256-bit SIMD instructions.
      */
-    struct OctoEvaluatedResultRounded {
+    struct alignas(32) OctoEvaluatedResultRounded {
         OctoEvaluatedResultRounded() noexcept = default;
         OctoEvaluatedResultRounded(
             const EvaluatedResultRounded& v1, const EvaluatedResultRounded& v2, const EvaluatedResultRounded& v3, const EvaluatedResultRounded& v4, 
@@ -267,6 +267,17 @@ namespace ausaxs::hist::detail {
                     const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
                 ) const noexcept;
             #endif
+
+            #if defined __AVX512F__
+                xyzff::OctoEvaluatedResultRounded evaluate_rounded_avx512(
+                    const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4,
+                    const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
+                ) const noexcept;
+                xyzff::OctoEvaluatedResult evaluate_avx512(
+                    const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4,
+                    const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
+                ) const noexcept;
+            #endif
     };
     static_assert(sizeof(CompactCoordinatesXYZFF<true>) == 16,              "CompactCoordinatesXYZFF is not 16 bytes. This is required for aligning SIMD instructions.");
     static_assert(std::is_trivial_v<CompactCoordinatesXYZFF<true>>,         "CompactCoordinatesXYZFF is not trivial");
@@ -286,6 +297,7 @@ namespace ausaxs::hist::detail {
 
 // undefine SSE2 & AVX for MacOS
 #if defined __APPLE__
+    #undef __AVX512F__
     #undef __AVX__
     #undef __SSE2__
     #undef __SSE4_2__
@@ -351,7 +363,9 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResult ausaxs::hist::detail::Co
     const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4, 
     const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
 ) const noexcept {
-    #if defined __AVX__
+    #if defined __AVX512F__
+        return evaluate_avx512(v1, v2, v3, v4, v5, v6, v7, v8);
+    #elif defined __AVX__
         return evaluate_avx(v1, v2, v3, v4, v5, v6, v7, v8);
     #elif defined __SSE2__
         return evaluate_sse(v1, v2, v3, v4, v5, v6, v7, v8);
@@ -365,7 +379,9 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
     const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4, 
     const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
 ) const noexcept {
-    #if defined __AVX__
+    #if defined __AVX512F__
+        return evaluate_rounded_avx512(v1, v2, v3, v4, v5, v6, v7, v8);
+    #elif defined __AVX__
         return evaluate_rounded_avx(v1, v2, v3, v4, v5, v6, v7, v8);
     #elif defined __SSE2__
         return evaluate_rounded_sse(v1, v2, v3, v4, v5, v6, v7, v8);
@@ -867,59 +883,51 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4, 
         const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
     ) const noexcept {
-        __m128 sv = _mm_load_ps(this->data.data());
+        // 4x 256-bit loads from contiguous memory (v1..v8 must be adjacent)
+        const float* base = v1.data.data();
+        __m256 v12 = _mm256_loadu_ps(base);
+        __m256 v34 = _mm256_loadu_ps(base + 8);
+        __m256 v56 = _mm256_loadu_ps(base + 16);
+        __m256 v78 = _mm256_loadu_ps(base + 24);
+
+        // extract ff values (int32 at position 3 in each lane) before computing differences
+        __m256 fft0 = _mm256_unpackhi_ps(v12, v34);
+        __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
+        __m256 ff_raw = _mm256_shuffle_ps(fft0, fft1, _MM_SHUFFLE(3,2,3,2));
+        __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
+        __m256 mul_fac;
+        if constexpr (explicit_ff) {
+            mul_fac = _mm256_set1_ps(form_factor::get_count_without_excluded_volume());
+        } else {
+            mul_fac = _mm256_set1_ps(form_factor::get_count());
+        }
+        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, _mm256_mul_ps(_mm256_set1_ps(this->value.ff), mul_fac)));
+
+        // compute differences and square
+        __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
+        __m256 d12 = _mm256_sub_ps(svv, v12);
+        __m256 d34 = _mm256_sub_ps(svv, v34);
+        __m256 d56 = _mm256_sub_ps(svv, v56);
+        __m256 d78 = _mm256_sub_ps(svv, v78);
+        d12 = _mm256_mul_ps(d12, d12);
+        d34 = _mm256_mul_ps(d34, d34);
+        d56 = _mm256_mul_ps(d56, d56);
+        d78 = _mm256_mul_ps(d78, d78);
+
+        // in-lane 4x4 transpose: lo lanes → atoms {1,3,5,7}, hi lanes → atoms {2,4,6,8}
+        __m256 t0 = _mm256_unpacklo_ps(d12, d34);
+        __m256 t1 = _mm256_unpackhi_ps(d12, d34);
+        __m256 t2 = _mm256_unpacklo_ps(d56, d78);
+        __m256 t3 = _mm256_unpackhi_ps(d56, d78);
+        __m256 row_x = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1,0,1,0));
+        __m256 row_y = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3,2,3,2));
+        __m256 row_z = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1,0,1,0));
+
+        __m256 dist2 = _mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z);
+        __m256 dist_sqrt = _mm256_sqrt_ps(dist2);
+        __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())));
+
         xyzff::OctoEvaluatedResult result;
-        __m128 dist_sqrt_lo, dist_sqrt_hi;
-        __m128i dist_bin_lo, dist_bin_hi;
-        {   // first four
-            __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
-            __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
-            __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
-            __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
-            d1 = _mm_mul_ps(d1, d1);
-            d2 = _mm_mul_ps(d2, d2);
-            d3 = _mm_mul_ps(d3, d3);
-            d4 = _mm_mul_ps(d4, d4);
-
-            __m128 t0 = _mm_unpacklo_ps(d1, d2);
-            __m128 t1 = _mm_unpackhi_ps(d1, d2);
-            __m128 t2 = _mm_unpacklo_ps(d3, d4);
-            __m128 t3 = _mm_unpackhi_ps(d3, d4);
-            __m128 row_x = _mm_movelh_ps(t0, t2);
-            __m128 row_y = _mm_movehl_ps(t2, t0);
-            __m128 row_z = _mm_movelh_ps(t1, t3);
-
-            __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
-            dist_sqrt_lo = _mm_sqrt_ps(dist2);
-            dist_bin_lo = _mm_cvtps_epi32(_mm_mul_ps(dist_sqrt_lo, _mm_set_ps1(get_inv_width())));
-        }
-        {   // last four
-            __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v5.data.data()));
-            __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v6.data.data()));
-            __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v7.data.data()));
-            __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v8.data.data()));
-            d1 = _mm_mul_ps(d1, d1);
-            d2 = _mm_mul_ps(d2, d2);
-            d3 = _mm_mul_ps(d3, d3);
-            d4 = _mm_mul_ps(d4, d4);
-
-            __m128 t0 = _mm_unpacklo_ps(d1, d2);
-            __m128 t1 = _mm_unpackhi_ps(d1, d2);
-            __m128 t2 = _mm_unpacklo_ps(d3, d4);
-            __m128 t3 = _mm_unpackhi_ps(d3, d4);
-            __m128 row_x = _mm_movelh_ps(t0, t2);
-            __m128 row_y = _mm_movehl_ps(t2, t0);
-            __m128 row_z = _mm_movelh_ps(t1, t3);
-
-            __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
-            dist_sqrt_hi = _mm_sqrt_ps(dist2);
-            dist_bin_hi = _mm_cvtps_epi32(_mm_mul_ps(dist_sqrt_hi, _mm_set_ps1(get_inv_width())));
-        }
-        __m256 dist_sqrt = _mm256_set_m128(dist_sqrt_hi, dist_sqrt_lo);
-        __m256i dist_bin = _mm256_set_m128i(dist_bin_hi, dist_bin_lo);
-        __m256 ff_bins_f = xyzff::ff_bin_index<vbw, explicit_ff>(*this, v1, v2, v3, v4, v5, v6, v7, v8);
-        __m256i ff_bins = _mm256_cvtps_epi32(ff_bins_f);
-
         _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
         _mm256_store_si256(reinterpret_cast<__m256i*>(result.distance_bins.data()), dist_bin);
         _mm256_store_si256(reinterpret_cast<__m256i*>(result.ff_bins.data()), ff_bins);
@@ -931,55 +939,136 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4, 
         const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
     ) const noexcept {
-        __m128 sv = _mm_load_ps(this->data.data());
-        __m128i dist_bin_lo, dist_bin_hi;
-        {   // first four
-            __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
-            __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
-            __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
-            __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
-            d1 = _mm_mul_ps(d1, d1);
-            d2 = _mm_mul_ps(d2, d2);
-            d3 = _mm_mul_ps(d3, d3);
-            d4 = _mm_mul_ps(d4, d4);
+        const float* base = v1.data.data();
+        __m256 v12 = _mm256_loadu_ps(base);
+        __m256 v34 = _mm256_loadu_ps(base + 8);
+        __m256 v56 = _mm256_loadu_ps(base + 16);
+        __m256 v78 = _mm256_loadu_ps(base + 24);
 
-            __m128 t0 = _mm_unpacklo_ps(d1, d2);
-            __m128 t1 = _mm_unpackhi_ps(d1, d2);
-            __m128 t2 = _mm_unpacklo_ps(d3, d4);
-            __m128 t3 = _mm_unpackhi_ps(d3, d4);
-            __m128 row_x = _mm_movelh_ps(t0, t2);
-            __m128 row_y = _mm_movehl_ps(t2, t0);
-            __m128 row_z = _mm_movelh_ps(t1, t3);
-
-            __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
-            __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            dist_bin_lo = _mm_cvtps_epi32(_mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())));
+        __m256 fft0 = _mm256_unpackhi_ps(v12, v34);
+        __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
+        __m256 ff_raw = _mm256_shuffle_ps(fft0, fft1, _MM_SHUFFLE(3,2,3,2));
+        __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
+        __m256 mul_fac;
+        if constexpr (explicit_ff) {
+            mul_fac = _mm256_set1_ps(form_factor::get_count_without_excluded_volume());
+        } else {
+            mul_fac = _mm256_set1_ps(form_factor::get_count());
         }
-        {   // last four
-            __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v5.data.data()));
-            __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v6.data.data()));
-            __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v7.data.data()));
-            __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v8.data.data()));
-            d1 = _mm_mul_ps(d1, d1);
-            d2 = _mm_mul_ps(d2, d2);
-            d3 = _mm_mul_ps(d3, d3);
-            d4 = _mm_mul_ps(d4, d4);
+        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, _mm256_mul_ps(_mm256_set1_ps(this->value.ff), mul_fac)));
 
-            __m128 t0 = _mm_unpacklo_ps(d1, d2);
-            __m128 t1 = _mm_unpackhi_ps(d1, d2);
-            __m128 t2 = _mm_unpacklo_ps(d3, d4);
-            __m128 t3 = _mm_unpackhi_ps(d3, d4);
-            __m128 row_x = _mm_movelh_ps(t0, t2);
-            __m128 row_y = _mm_movehl_ps(t2, t0);
-            __m128 row_z = _mm_movelh_ps(t1, t3);
+        __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
+        __m256 d12 = _mm256_sub_ps(svv, v12);
+        __m256 d34 = _mm256_sub_ps(svv, v34);
+        __m256 d56 = _mm256_sub_ps(svv, v56);
+        __m256 d78 = _mm256_sub_ps(svv, v78);
+        d12 = _mm256_mul_ps(d12, d12);
+        d34 = _mm256_mul_ps(d34, d34);
+        d56 = _mm256_mul_ps(d56, d56);
+        d78 = _mm256_mul_ps(d78, d78);
 
-            __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
-            __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            dist_bin_hi = _mm_cvtps_epi32(_mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width())));
+        __m256 t0 = _mm256_unpacklo_ps(d12, d34);
+        __m256 t1 = _mm256_unpackhi_ps(d12, d34);
+        __m256 t2 = _mm256_unpacklo_ps(d56, d78);
+        __m256 t3 = _mm256_unpackhi_ps(d56, d78);
+        __m256 row_x = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1,0,1,0));
+        __m256 row_y = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3,2,3,2));
+        __m256 row_z = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1,0,1,0));
+
+        __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(_mm256_sqrt_ps(_mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z)), _mm256_set1_ps(get_inv_width())));
+
+        xyzff::OctoEvaluatedResultRounded result;
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distances.data()), dist_bin);
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.ff_bins.data()), ff_bins);
+        return result;
+    }
+#endif
+
+#if defined __AVX512F__
+    #include <immintrin.h>
+
+    template<bool vbw, bool explicit_ff>
+    inline ausaxs::hist::detail::xyzff::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_avx512(
+        const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4, 
+        const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
+    ) const noexcept {
+        const float* base = v1.data.data();
+        __m512 v1234 = _mm512_loadu_ps(base);
+        __m512 v5678 = _mm512_loadu_ps(base + 16);
+
+        // extract ff values (int32 at position 3 in each atom)
+        const __m512i gather_w = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
+        __m256 ff_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v1234, gather_w, v5678));
+        __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
+        __m256 mul_fac;
+        if constexpr (explicit_ff) {
+            mul_fac = _mm256_set1_ps(form_factor::get_count_without_excluded_volume());
+        } else {
+            mul_fac = _mm256_set1_ps(form_factor::get_count());
         }
-        __m256i dist_bin = _mm256_set_m128i(dist_bin_hi, dist_bin_lo);
-        __m256 ff_bins_f = xyzff::ff_bin_index<vbw, explicit_ff>(*this, v1, v2, v3, v4, v5, v6, v7, v8);
-        __m256i ff_bins = _mm256_cvtps_epi32(ff_bins_f);
+        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, _mm256_mul_ps(_mm256_set1_ps(this->value.ff), mul_fac)));
+
+        __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
+        __m512 d1234 = _mm512_sub_ps(svv, v1234);
+        __m512 d5678 = _mm512_sub_ps(svv, v5678);
+        d1234 = _mm512_mul_ps(d1234, d1234);
+        d5678 = _mm512_mul_ps(d5678, d5678);
+
+        // cross-lane gather of x, y, z components from all 8 atoms into sequential order
+        const __m512i gather_x = _mm512_setr_epi32(0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0);
+        const __m512i gather_y = _mm512_setr_epi32(1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0);
+        const __m512i gather_z = _mm512_setr_epi32(2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0);
+        __m256 row_x = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_x, d5678));
+        __m256 row_y = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_y, d5678));
+        __m256 row_z = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_z, d5678));
+
+        __m256 dist2 = _mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z);
+        __m256 dist_sqrt = _mm256_sqrt_ps(dist2);
+        __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())));
+
+        xyzff::OctoEvaluatedResult result;
+        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distance_bins.data()), dist_bin);
+        _mm256_store_si256(reinterpret_cast<__m256i*>(result.ff_bins.data()), ff_bins);
+        return result;
+    }
+
+    template<bool vbw, bool explicit_ff>
+    inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_rounded_avx512(
+        const CompactCoordinatesXYZFF& v1, const CompactCoordinatesXYZFF& v2, const CompactCoordinatesXYZFF& v3, const CompactCoordinatesXYZFF& v4, 
+        const CompactCoordinatesXYZFF& v5, const CompactCoordinatesXYZFF& v6, const CompactCoordinatesXYZFF& v7, const CompactCoordinatesXYZFF& v8
+    ) const noexcept {
+        const float* base = v1.data.data();
+        __m512 v1234 = _mm512_loadu_ps(base);
+        __m512 v5678 = _mm512_loadu_ps(base + 16);
+
+        const __m512i gather_w = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
+        __m256 ff_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v1234, gather_w, v5678));
+        __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
+        __m256 mul_fac;
+        if constexpr (explicit_ff) {
+            mul_fac = _mm256_set1_ps(form_factor::get_count_without_excluded_volume());
+        } else {
+            mul_fac = _mm256_set1_ps(form_factor::get_count());
+        }
+        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, _mm256_mul_ps(_mm256_set1_ps(this->value.ff), mul_fac)));
+
+        __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
+        __m512 d1234 = _mm512_sub_ps(svv, v1234);
+        __m512 d5678 = _mm512_sub_ps(svv, v5678);
+        d1234 = _mm512_mul_ps(d1234, d1234);
+        d5678 = _mm512_mul_ps(d5678, d5678);
+
+        const __m512i gather_x = _mm512_setr_epi32(0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0);
+        const __m512i gather_y = _mm512_setr_epi32(1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0);
+        const __m512i gather_z = _mm512_setr_epi32(2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0);
+        __m256 row_x = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_x, d5678));
+        __m256 row_y = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_y, d5678));
+        __m256 row_z = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_z, d5678));
+
+        __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(
+            _mm256_sqrt_ps(_mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z)),
+            _mm256_set1_ps(get_inv_width())));
 
         xyzff::OctoEvaluatedResultRounded result;
         _mm256_store_si256(reinterpret_cast<__m256i*>(result.distances.data()), dist_bin);
