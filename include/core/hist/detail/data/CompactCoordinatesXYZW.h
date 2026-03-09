@@ -885,20 +885,18 @@ inline ausaxs::hist::detail::xyzw::OctoEvaluatedResultRounded ausaxs::hist::deta
         __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
         __m512 d1234 = _mm512_sub_ps(svv, v1234);
         __m512 d5678 = _mm512_sub_ps(svv, v5678);
+        d1234 = _mm512_mul_ps(d1234, d1234);
+        d5678 = _mm512_mul_ps(d5678, d5678);
 
         const __m512i gather_x = _mm512_setr_epi32(0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0);
         const __m512i gather_y = _mm512_setr_epi32(1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0);
         const __m512i gather_z = _mm512_setr_epi32(2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0);
-        __m256 dx = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_x, d5678));
-        __m256 dy = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_y, d5678));
-        __m256 dz = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_z, d5678));
-
-        __m256 dist2 = _mm256_mul_ps(dx, dx);
-        dist2 = _mm256_fmadd_ps(dy, dy, dist2);
-        dist2 = _mm256_fmadd_ps(dz, dz, dist2);
+        __m256 row_x = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_x, d5678));
+        __m256 row_y = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_y, d5678));
+        __m256 row_z = _mm512_castps512_ps256(_mm512_permutex2var_ps(d1234, gather_z, d5678));
 
         __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(
-            _mm256_sqrt_ps(dist2),
+            _mm256_sqrt_ps(_mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z)),
             _mm256_set1_ps(get_inv_width())));
 
         xyzw::OctoEvaluatedResultRounded result;
