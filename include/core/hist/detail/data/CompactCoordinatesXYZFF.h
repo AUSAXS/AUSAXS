@@ -59,13 +59,13 @@ namespace ausaxs::hist::detail::xyzff {
         std::array<int32_t, 8> ff_bins;     // The form factor bin indices
     };
 
-    struct alignas(64) HexaEvaluatedResult {
+    struct alignas(32) HexaEvaluatedResult {
         std::array<float, 16> distances;       // The raw distances
         std::array<int32_t, 16> distance_bins; // The distance bin indices
         std::array<int32_t, 16> ff_bins;       // The form factor bin indices
     };
 
-    struct alignas(64) HexaEvaluatedResultRounded {
+    struct alignas(32) HexaEvaluatedResultRounded {
         std::array<int32_t, 16> distances;   // The distance bin
         std::array<int32_t, 16> ff_bins;     // The form factor bin indices
     };
@@ -375,19 +375,16 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
     #include <nmmintrin.h>
     namespace ausaxs::hist::detail::xyzff {
         template<bool vbw, bool explicit_ff>
-        inline static __m128 ff_bin_index(
-            const CompactCoordinatesXYZFF<vbw, explicit_ff>& v, 
-            const CompactCoordinatesXYZFF<vbw, explicit_ff>& v1, const CompactCoordinatesXYZFF<vbw, explicit_ff>& v2, const CompactCoordinatesXYZFF<vbw, explicit_ff>& v3, const CompactCoordinatesXYZFF<vbw, explicit_ff>& v4) noexcept {
+        inline static __m128i ff_bin_index(int32_t ff_self, __m128 ff_others_raw) noexcept {
             __m128 mul_fac;
             if constexpr (explicit_ff) {
                 mul_fac = _mm_set_ps1(form_factor::get_count_without_excluded_volume());
             } else {
                 mul_fac = _mm_set_ps1(form_factor::get_count());
             }
-            __m128 ff1 = _mm_set_ps1(v.value.ff);
-            __m128 ff2 = _mm_set_ps(v4.value.ff, v3.value.ff, v2.value.ff, v1.value.ff);
-            __m128 ff1_scaled = _mm_mul_ps(ff1, mul_fac);
-            return _mm_add_ps(ff2, ff1_scaled);
+            __m128 ff_others = _mm_cvtepi32_ps(_mm_castps_si128(ff_others_raw));
+            __m128 ff1_scaled = _mm_mul_ps(_mm_set_ps1(static_cast<float>(ff_self)), mul_fac);
+            return _mm_cvtps_epi32(_mm_add_ps(ff_others, ff1_scaled));
         }
     }
 
@@ -396,12 +393,21 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
         std::span<const CompactCoordinatesXYZFF, 4> others,
         float* dist_out, int32_t* bin_out, int32_t* ff_out
     ) const noexcept {
-        const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
+        const float* p = reinterpret_cast<const float*>(others.data());
+        __m128 r1 = _mm_loadu_ps(p);
+        __m128 r2 = _mm_loadu_ps(p + 4);
+        __m128 r3 = _mm_loadu_ps(p + 8);
+        __m128 r4 = _mm_loadu_ps(p + 12);
+
+        // extract ff values (position 3, stored as int32) before computing differences
+        __m128i ff_bins = xyzff::ff_bin_index<vbw, explicit_ff>(this->value.ff,
+            _mm_movehl_ps(_mm_unpackhi_ps(r3, r4), _mm_unpackhi_ps(r1, r2)));
+
         __m128 sv = _mm_load_ps(this->data.data());
-        __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
-        __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
-        __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
-        __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
+        __m128 d1 = _mm_sub_ps(sv, r1);
+        __m128 d2 = _mm_sub_ps(sv, r2);
+        __m128 d3 = _mm_sub_ps(sv, r3);
+        __m128 d4 = _mm_sub_ps(sv, r4);
         d1 = _mm_mul_ps(d1, d1);
         d2 = _mm_mul_ps(d2, d2);
         d3 = _mm_mul_ps(d3, d3);
@@ -420,8 +426,6 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
         __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
-        __m128 ff_bins_f = xyzff::ff_bin_index<vbw, explicit_ff>(*this, v1, v2, v3, v4);
-        __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);
 
         _mm_store_ps(dist_out, dist_sqrt);
         _mm_store_si128(reinterpret_cast<__m128i*>(bin_out), dist_bin);
@@ -442,12 +446,21 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
         std::span<const CompactCoordinatesXYZFF, 4> others,
         int32_t* dist_out, int32_t* ff_out
     ) const noexcept {
-        const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
+        const float* p = reinterpret_cast<const float*>(others.data());
+        __m128 r1 = _mm_loadu_ps(p);
+        __m128 r2 = _mm_loadu_ps(p + 4);
+        __m128 r3 = _mm_loadu_ps(p + 8);
+        __m128 r4 = _mm_loadu_ps(p + 12);
+
+        // extract ff values (position 3, stored as int32) before computing differences
+        __m128i ff_bins = xyzff::ff_bin_index<vbw, explicit_ff>(this->value.ff,
+            _mm_movehl_ps(_mm_unpackhi_ps(r3, r4), _mm_unpackhi_ps(r1, r2)));
+
         __m128 sv = _mm_load_ps(this->data.data());
-        __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
-        __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
-        __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
-        __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
+        __m128 d1 = _mm_sub_ps(sv, r1);
+        __m128 d2 = _mm_sub_ps(sv, r2);
+        __m128 d3 = _mm_sub_ps(sv, r3);
+        __m128 d4 = _mm_sub_ps(sv, r4);
         d1 = _mm_mul_ps(d1, d1);
         d2 = _mm_mul_ps(d2, d2);
         d3 = _mm_mul_ps(d3, d3);
@@ -465,8 +478,6 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
         __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
-        __m128 ff_bins_f = xyzff::ff_bin_index<vbw, explicit_ff>(*this, v1, v2, v3, v4);
-        __m128i ff_bins = _mm_cvtps_epi32(ff_bins_f);
 
         _mm_store_si128(reinterpret_cast<__m128i*>(dist_out), dist_bin);
         _mm_store_si128(reinterpret_cast<__m128i*>(ff_out), ff_bins);
@@ -490,12 +501,11 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
         std::span<const CompactCoordinatesXYZFF, 8> others,
         float* dist_out, int32_t* bin_out, int32_t* ff_out
     ) const noexcept {
-        const auto& v1 = others[0];
-        const float* base = v1.data.data();
-        __m256 v12 = _mm256_loadu_ps(base);
-        __m256 v34 = _mm256_loadu_ps(base + 8);
-        __m256 v56 = _mm256_loadu_ps(base + 16);
-        __m256 v78 = _mm256_loadu_ps(base + 24);
+        const float* p = reinterpret_cast<const float*>(others.data());
+        __m256 v12 = _mm256_loadu_ps(p);
+        __m256 v34 = _mm256_loadu_ps(p + 8);
+        __m256 v56 = _mm256_loadu_ps(p + 16);
+        __m256 v78 = _mm256_loadu_ps(p + 24);
 
         // extract ff values (int32 at position 3 in each lane) before computing differences
         __m256 fft0 = _mm256_unpackhi_ps(v12, v34);
@@ -553,12 +563,11 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
         std::span<const CompactCoordinatesXYZFF, 8> others,
         int32_t* dist_out, int32_t* ff_out
     ) const noexcept {
-        const auto& v1 = others[0];
-        const float* base = v1.data.data();
-        __m256 v12 = _mm256_loadu_ps(base);
-        __m256 v34 = _mm256_loadu_ps(base + 8);
-        __m256 v56 = _mm256_loadu_ps(base + 16);
-        __m256 v78 = _mm256_loadu_ps(base + 24);
+        const float* p = reinterpret_cast<const float*>(others.data());
+        __m256 v12 = _mm256_loadu_ps(p);
+        __m256 v34 = _mm256_loadu_ps(p + 8);
+        __m256 v56 = _mm256_loadu_ps(p + 16);
+        __m256 v78 = _mm256_loadu_ps(p + 24);
 
         __m256 fft0 = _mm256_unpackhi_ps(v12, v34);
         __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
@@ -613,11 +622,11 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
     inline ausaxs::hist::detail::xyzff::HexaEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_16_avx512(
         std::span<const CompactCoordinatesXYZFF, 16> others
     ) const noexcept {
-        const float* base = others[0].data.data();
-        __m512 v03   = _mm512_loadu_ps(base);
-        __m512 v47   = _mm512_loadu_ps(base + 16);
-        __m512 v811  = _mm512_loadu_ps(base + 32);
-        __m512 v1215 = _mm512_loadu_ps(base + 48);
+        const float* p = reinterpret_cast<float*>(others.data());
+        __m512 v03   = _mm512_loadu_ps(p);
+        __m512 v47   = _mm512_loadu_ps(p + 16);
+        __m512 v811  = _mm512_loadu_ps(p + 32);
+        __m512 v1215 = _mm512_loadu_ps(p + 48);
 
         // extract ff values from raw data before computing differences
         const __m512i gather_ff = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -676,11 +685,11 @@ inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::det
     inline ausaxs::hist::detail::xyzff::HexaEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_rounded_16_avx512(
         std::span<const CompactCoordinatesXYZFF, 16> others
     ) const noexcept {
-        const float* base = others[0].data.data();
-        __m512 v03   = _mm512_loadu_ps(base);
-        __m512 v47   = _mm512_loadu_ps(base + 16);
-        __m512 v811  = _mm512_loadu_ps(base + 32);
-        __m512 v1215 = _mm512_loadu_ps(base + 48);
+        const float* p = reinterpret_cast<float*>(others.data());
+        __m512 v03   = _mm512_loadu_ps(p);
+        __m512 v47   = _mm512_loadu_ps(p + 16);
+        __m512 v811  = _mm512_loadu_ps(p + 32);
+        __m512 v1215 = _mm512_loadu_ps(p + 48);
 
         const __m512i gather_ff = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
         __m256 ff_lo_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v03, gather_ff, v47));

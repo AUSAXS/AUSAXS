@@ -59,13 +59,13 @@ namespace ausaxs::hist::detail::xyzw {
         std::array<float, 8> weights;       // The combined weight
     };
 
-    struct alignas(64) HexaEvaluatedResult {
+    struct alignas(32) HexaEvaluatedResult {
         std::array<float, 16> distances;
         std::array<int32_t, 16> distance_bins;
         std::array<float, 16> weights;
     };
 
-    struct alignas(64) HexaEvaluatedResultRounded {
+    struct alignas(32) HexaEvaluatedResultRounded {
         std::array<int32_t, 16> distances;
         std::array<float, 16> weights;
     };
@@ -350,12 +350,21 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
         std::span<const CompactCoordinatesXYZW, 4> others,
         float* dist_out, int32_t* bin_out, float* wt_out
     ) const noexcept {
-        const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
+        const float* p = reinterpret_cast<const float*>(others.data());
+        __m128 r1 = _mm_loadu_ps(p);
+        __m128 r2 = _mm_loadu_ps(p + 4);
+        __m128 r3 = _mm_loadu_ps(p + 8);
+        __m128 r4 = _mm_loadu_ps(p + 12);
+
+        // extract w values (position 3) before computing differences
+        __m128 weights = _mm_mul_ps(_mm_set_ps1(value.w),
+            _mm_movehl_ps(_mm_unpackhi_ps(r3, r4), _mm_unpackhi_ps(r1, r2)));
+
         __m128 sv = _mm_load_ps(this->data.data());
-        __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
-        __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
-        __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
-        __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
+        __m128 d1 = _mm_sub_ps(sv, r1);
+        __m128 d2 = _mm_sub_ps(sv, r2);
+        __m128 d3 = _mm_sub_ps(sv, r3);
+        __m128 d4 = _mm_sub_ps(sv, r4);
         d1 = _mm_mul_ps(d1, d1);
         d2 = _mm_mul_ps(d2, d2);
         d3 = _mm_mul_ps(d3, d3);
@@ -374,10 +383,6 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
         __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
-
-        __m128 w1 = _mm_set_ps1(value.w);
-        __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
-        __m128 weights = _mm_mul_ps(w1, w2);
 
         _mm_store_ps(dist_out, dist_sqrt);
         _mm_store_si128(reinterpret_cast<__m128i*>(bin_out), dist_bin);
@@ -398,12 +403,21 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
         std::span<const CompactCoordinatesXYZW, 4> others,
         int32_t* dist_out, float* wt_out
     ) const noexcept {
-        const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
+        const float* p = reinterpret_cast<const float*>(others.data());
+        __m128 r1 = _mm_loadu_ps(p);
+        __m128 r2 = _mm_loadu_ps(p + 4);
+        __m128 r3 = _mm_loadu_ps(p + 8);
+        __m128 r4 = _mm_loadu_ps(p + 12);
+
+        // extract w values (position 3) before computing differences
+        __m128 weights = _mm_mul_ps(_mm_set_ps1(value.w),
+            _mm_movehl_ps(_mm_unpackhi_ps(r3, r4), _mm_unpackhi_ps(r1, r2)));
+
         __m128 sv = _mm_load_ps(this->data.data());
-        __m128 d1 = _mm_sub_ps(sv, _mm_load_ps(v1.data.data()));
-        __m128 d2 = _mm_sub_ps(sv, _mm_load_ps(v2.data.data()));
-        __m128 d3 = _mm_sub_ps(sv, _mm_load_ps(v3.data.data()));
-        __m128 d4 = _mm_sub_ps(sv, _mm_load_ps(v4.data.data()));
+        __m128 d1 = _mm_sub_ps(sv, r1);
+        __m128 d2 = _mm_sub_ps(sv, r2);
+        __m128 d3 = _mm_sub_ps(sv, r3);
+        __m128 d4 = _mm_sub_ps(sv, r4);
         d1 = _mm_mul_ps(d1, d1);
         d2 = _mm_mul_ps(d2, d2);
         d3 = _mm_mul_ps(d3, d3);
@@ -421,10 +435,6 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
         __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
-
-        __m128 w1 = _mm_set_ps1(value.w);
-        __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
-        __m128 weights = _mm_mul_ps(w1, w2);
 
         _mm_store_si128(reinterpret_cast<__m128i*>(dist_out), dist_bin);
         _mm_store_ps(wt_out, weights);
@@ -449,12 +459,11 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
         std::span<const CompactCoordinatesXYZW, 8> others,
         float* dist_out, int32_t* bin_out, float* wt_out
     ) const noexcept {
-        const auto& v1 = others[0];
-        const float* base = v1.data.data();
-        __m256 v12 = _mm256_loadu_ps(base);
-        __m256 v34 = _mm256_loadu_ps(base + 8);
-        __m256 v56 = _mm256_loadu_ps(base + 16);
-        __m256 v78 = _mm256_loadu_ps(base + 24);
+        const float* p = reinterpret_cast<const float*>(others.data());
+        __m256 v12 = _mm256_loadu_ps(p);
+        __m256 v34 = _mm256_loadu_ps(p + 8);
+        __m256 v56 = _mm256_loadu_ps(p + 16);
+        __m256 v78 = _mm256_loadu_ps(p + 24);
 
         // extract w values (position 3 in each lane) before computing differences
         __m256 wt0 = _mm256_unpackhi_ps(v12, v34);
@@ -506,12 +515,11 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
         std::span<const CompactCoordinatesXYZW, 8> others,
         int32_t* dist_out, float* wt_out
     ) const noexcept {
-        const auto& v1 = others[0];
-        const float* base = v1.data.data();
-        __m256 v12 = _mm256_loadu_ps(base);
-        __m256 v34 = _mm256_loadu_ps(base + 8);
-        __m256 v56 = _mm256_loadu_ps(base + 16);
-        __m256 v78 = _mm256_loadu_ps(base + 24);
+        const float* p = reinterpret_cast<const float*>(others.data());
+        __m256 v12 = _mm256_loadu_ps(p);
+        __m256 v34 = _mm256_loadu_ps(p + 8);
+        __m256 v56 = _mm256_loadu_ps(p + 16);
+        __m256 v78 = _mm256_loadu_ps(p + 24);
 
         // extract w values (position 3 in each lane) before computing differences
         __m256 wt0 = _mm256_unpackhi_ps(v12, v34);
@@ -561,11 +569,11 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
     inline ausaxs::hist::detail::xyzw::HexaEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_16_avx512(
         std::span<const CompactCoordinatesXYZW, 16> others
     ) const noexcept {
-        const float* base = others[0].data.data();
-        __m512 v03   = _mm512_loadu_ps(base);
-        __m512 v47   = _mm512_loadu_ps(base + 16);
-        __m512 v811  = _mm512_loadu_ps(base + 32);
-        __m512 v1215 = _mm512_loadu_ps(base + 48);
+        const float* p = reinterpret_cast<float*>(others.data());
+        __m512 v03   = _mm512_loadu_ps(p);
+        __m512 v47   = _mm512_loadu_ps(p + 16);
+        __m512 v811  = _mm512_loadu_ps(p + 32);
+        __m512 v1215 = _mm512_loadu_ps(p + 48);
 
         // extract weights from raw data before computing differences
         const __m512i gather_w = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -617,11 +625,11 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
     inline ausaxs::hist::detail::xyzw::HexaEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_rounded_16_avx512(
         std::span<const CompactCoordinatesXYZW, 16> others
     ) const noexcept {
-        const float* base = others[0].data.data();
-        __m512 v03   = _mm512_loadu_ps(base);
-        __m512 v47   = _mm512_loadu_ps(base + 16);
-        __m512 v811  = _mm512_loadu_ps(base + 32);
-        __m512 v1215 = _mm512_loadu_ps(base + 48);
+        const float* p = reinterpret_cast<float*>(others.data());
+        __m512 v03   = _mm512_loadu_ps(p);
+        __m512 v47   = _mm512_loadu_ps(p + 16);
+        __m512 v811  = _mm512_loadu_ps(p + 32);
+        __m512 v1215 = _mm512_loadu_ps(p + 48);
 
         const __m512i gather_w = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
         __m256 w_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(v03, gather_w, v47));
