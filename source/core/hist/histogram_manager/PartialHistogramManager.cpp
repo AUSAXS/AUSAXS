@@ -192,6 +192,10 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_corre
     GenericDistribution1D_t p_aa(this->master.axis.bins);
     for (unsigned int i = 0; i < current.size(); i++) {
         unsigned int j = i+1;
+        for (; j+15 < current.size(); j+=16) {
+            evaluate16<variable_bin_width, 2>(p_aa, current, current, i, j);
+        }
+
         for (; j+7 < current.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
@@ -236,6 +240,10 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aa(unsigne
     GenericDistribution1D_t p_aa(this->master.axis.bins);
     for (unsigned int i = 0; i < coords_n.size(); i++) {
         unsigned int j = 0;
+        for (; j+15 < coords_m.size(); j+=16) {
+            evaluate16<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
+        }
+
         for (; j+7 < coords_m.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
@@ -279,6 +287,10 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aw(unsigne
     GenericDistribution1D_t p_aw(this->master.axis.bins);
     for (unsigned int i = 0; i < coords.size(); i++) {
         unsigned int j = 0;
+        for (; j+15 < this->coords_w.size(); j+=16) {
+            evaluate16<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
+        }
+
         for (; j+7 < this->coords_w.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
@@ -304,6 +316,10 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
     // calculate internal distances for the hydration layer
     for (unsigned int i = 0; i < this->coords_w.size(); i++) {
         unsigned int j = i+1;
+        for (; j+15 < this->coords_w.size(); j+=16) {
+            evaluate16<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
+        }
+
         for (; j+7 < this->coords_w.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }

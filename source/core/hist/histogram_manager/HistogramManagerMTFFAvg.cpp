@@ -23,6 +23,28 @@ using namespace ausaxs::hist::detail;
 // Local evaluation helpers for FFAvg - atom-atom (3D: ff1, ff2, distance)
 namespace {
     template<bool vbw, int factor>
+    void evaluate_aa16(WeightedDistribution3D& p, const CompactCoordinatesFF<vbw>& data_a, int i, int j) {
+        xyzff::HexaEvaluatedResult res = add16::evaluate_weighted(data_a, data_a, i, j);
+        int ff_i = data_a.get_ff_type(i);
+        for (int k = 0; k < 16; ++k) {
+            p.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
+        }
+    }
+
+    template<bool vbw, int factor>
+    void evaluate_aa16(Distribution3D& p, const CompactCoordinatesFF<vbw>& data_a, int i, int j) {
+        xyzff::HexaEvaluatedResultRounded res = add16::evaluate_unweighted(data_a, data_a, i, j);
+        int ff_i = data_a.get_ff_type(i);
+        for (int k = 0; k < 16; ++k) {
+            p.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
+            p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distances[k]);
+            p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distances[k]);
+        }
+    }
+
+    template<bool vbw, int factor>
     void evaluate_aa8(WeightedDistribution3D& p, const CompactCoordinatesFF<vbw>& data_a, int i, int j) {
         xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_a, i, j);
         int ff_i = data_a.get_ff_type(i);
@@ -82,6 +104,26 @@ namespace {
         p.increment_linear_index<factor>(res.ff_bin, res.distance);
         p.increment_index<factor>(ff_i, form_factor::exv_bin, res.distance);
         p.increment_index<factor>(form_factor::exv_bin, form_factor::exv_bin, res.distance);
+    }
+
+    template<bool vbw, int factor>
+    void evaluate_aw16(WeightedDistribution2D& p, const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
+        xyzff::HexaEvaluatedResult res = add16::evaluate_weighted(data_a, data_w, i, j);
+        int ff_i = data_a.get_ff_type(i);
+        for (int k = 0; k < 16; ++k) {
+            p.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
+            p.increment_index<factor>(form_factor::exv_bin, res.distance_bins[k], res.distances[k]);
+        }
+    }
+
+    template<bool vbw, int factor>
+    void evaluate_aw16(Distribution2D& p, const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j) {
+        xyzff::HexaEvaluatedResultRounded res = add16::evaluate_unweighted(data_a, data_w, i, j);
+        int ff_i = data_a.get_ff_type(i);
+        for (int k = 0; k < 16; ++k) {
+            p.increment_index<factor>(ff_i, res.distances[k]);
+            p.increment_index<factor>(form_factor::exv_bin, res.distances[k]);
+        }
     }
 
     template<bool vbw, int factor>
@@ -172,6 +214,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         auto& p_aa = p_aa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
             int j = i+1;                    // atom
+            for (; j+15 < data_a_size; j+=16) {
+                evaluate_aa16<vbw, 2>(p_aa, data_a, i, j);
+            }
+
             for (; j+7 < data_a_size; j+=8) {
                 evaluate_aa8<vbw, 2>(p_aa, data_a, i, j);
             }
@@ -191,6 +237,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         auto& p_aw = p_aw_all.get();
         for (int i = imin; i < imax; ++i) { // atom
             int j = 0;                      // water
+            for (; j+15 < data_w_size; j+=16) {
+                evaluate_aw16<vbw, 1>(p_aw, data_a, data_w, i, j);
+            }
+
             for (; j+7 < data_w_size; j+=8) {
                 evaluate_aw8<vbw, 1>(p_aw, data_a, data_w, i, j);
             }
@@ -210,6 +260,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         auto& p_ww = p_ww_all.get();
         for (int i = imin; i < imax; ++i) { // water
             int j = i+1;                    // water
+            for (; j+15 < data_w_size; j+=16) {
+                evaluate16<vbw, 2>(p_ww, data_w, data_w, i, j);
+            }
+
             for (; j+7 < data_w_size; j+=8) {
                 evaluate8<vbw, 2>(p_ww, data_w, data_w, i, j);
             }

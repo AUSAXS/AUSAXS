@@ -27,6 +27,28 @@ using namespace ausaxs::hist::detail;
 namespace {
     // Local evaluation helpers for FFExplicit - atom-atom (3D histogram)
     template<bool vbw, bool explicit_ff = true, int factor>
+    void evaluate_aa16(
+        WeightedDistribution3D& p_aa,
+        const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
+    ) {
+        xyzff::HexaEvaluatedResult res = add16::evaluate_weighted(data_a, data_a, i, j);
+        for (int k = 0; k < 16; ++k) {
+            p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
+        }
+    }
+
+    template<bool vbw, bool explicit_ff = true, int factor>
+    void evaluate_aa16(
+        Distribution3D& p_aa,
+        const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
+    ) {
+        xyzff::HexaEvaluatedResultRounded res = add16::evaluate_unweighted(data_a, data_a, i, j);
+        for (int k = 0; k < 16; ++k) {
+            p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
+        }
+    }
+
+    template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_aa8(
         WeightedDistribution3D& p_aa,
         const CompactCoordinatesFF<vbw, explicit_ff>& data_a, int i, int j
@@ -89,6 +111,30 @@ namespace {
     }
 
     // Local evaluation helpers for FFExplicit - atom-water (2D histogram)
+    template<bool vbw, bool explicit_ff = true, int factor>
+    void evaluate_wa16(
+        WeightedDistribution2D& p_wa,
+        const CompactCoordinatesFF<vbw, explicit_ff>& data_a, const CompactCoordinatesFF<vbw, explicit_ff>& data_w, int i, int j
+    ) {
+        xyzff::HexaEvaluatedResult res = add16::evaluate_weighted(data_a, data_w, i, j);
+        int ff_i = data_a.get_ff_type(i);
+        for (int k = 0; k < 16; ++k) {
+            p_wa.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
+        }
+    }
+
+    template<bool vbw, bool explicit_ff = true, int factor>
+    void evaluate_wa16(
+        Distribution2D& p_wa,
+        const CompactCoordinatesFF<vbw, explicit_ff>& data_a, const CompactCoordinatesFF<vbw, explicit_ff>& data_w, int i, int j
+    ) {
+        xyzff::HexaEvaluatedResultRounded res = add16::evaluate_unweighted(data_a, data_w, i, j);
+        int ff_i = data_a.get_ff_type(i);
+        for (int k = 0; k < 16; ++k) {
+            p_wa.increment_index<factor>(ff_i, res.distances[k]);
+        }
+    }
+
     template<bool vbw, bool explicit_ff = true, int factor>
     void evaluate_wa8(
         WeightedDistribution2D& p_wa,
@@ -190,6 +236,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         auto& p_aa = p_aa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
             int j = i+1;                    // atom
+            for (; j+15 < data_a_size; j+=16) {
+                evaluate_aa16<vbw, true, 2>(p_aa, data_a, i, j);
+            }
+
             for (; j+7 < data_a_size; j+=8) {
                 evaluate_aa8<vbw, true, 2>(p_aa, data_a, i, j);
             }
@@ -209,6 +259,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         auto& p_wa = p_wa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
             int j = 0;                      // water
+            for (; j+15 < data_w_size; j+=16) {
+                evaluate_wa16<vbw, true, 1>(p_wa, data_a, data_w, i, j);
+            }
+
             for (; j+7 < data_w_size; j+=8) {
                 evaluate_wa8<vbw, true, 1>(p_wa, data_a, data_w, i, j);
             }
@@ -228,6 +282,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         auto& p_ww = p_ww_all.get();
         for (int i = imin; i < imax; ++i) { // water
             int j = i+1;                    // water
+            for (; j+15 < data_w_size; j+=16) {
+                evaluate16<vbw, 2>(p_ww, data_w, data_w, i, j);
+            }
+
             for (; j+7 < data_w_size; j+=8) {
                 evaluate8<vbw, 2>(p_ww, data_w, data_w, i, j);
             }

@@ -109,6 +109,10 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
                 auto& p_aa = res_ptr->get();
                 for (int i = imin; i < imax; ++i) { // atom
                     int j = i+1;                    // atom
+                    for (; j+15 < data_size; j+=16) {
+                        evaluate16<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
+                    }
+
                     for (; j+7 < data_size; j+=8) {
                         evaluate8<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
                     }
@@ -176,6 +180,10 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_
                 auto& p_ab = res_ptr->get();
                 for (int i = imin; i < imax; ++i) { // b
                     int j = 0;                      // a
+                    for (; j+15 < data_1_size; j+=16) {
+                        evaluate16<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
+                    }
+
                     for (; j+7 < data_1_size; j+=8) {
                         evaluate8<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
                     }

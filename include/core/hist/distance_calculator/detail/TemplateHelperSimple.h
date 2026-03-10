@@ -12,6 +12,12 @@
 namespace ausaxs::hist::detail {
     //### Weighted evaluators ###//
     template<bool variable_bin_widths, int factor>
+    inline void evaluate16(WeightedDistribution1D& p, const CompactCoordinates<variable_bin_widths>& data_i, const CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
+        xyzw::HexaEvaluatedResult res = add16::evaluate_weighted(data_i, data_j, i, j);
+        for (int k = 0; k < 16; ++k) {p.add_index<factor>(res.distance_bins[k], res.distances[k], res.weights[k]);}
+    }
+
+    template<bool variable_bin_widths, int factor>
     inline void evaluate8(WeightedDistribution1D& p, const CompactCoordinates<variable_bin_widths>& data_i, const CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
         xyzw::OctoEvaluatedResult res = add8::evaluate_weighted(data_i, data_j, i, j);
         for (int k = 0; k < 8; ++k) {p.add_index<factor>(res.distance_bins[k], res.distances[k], res.weights[k]);}
@@ -30,6 +36,12 @@ namespace ausaxs::hist::detail {
     }
 
     //### Unweighted evaluators ###//
+    template<bool variable_bin_widths, int factor>
+    inline void evaluate16(Distribution1D& p, const CompactCoordinates<variable_bin_widths>& data_i, const CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
+        xyzw::HexaEvaluatedResultRounded res = add16::evaluate_unweighted(data_i, data_j, i, j);
+        for (int k = 0; k < 16; ++k) {p.add_index<factor>(res.distances[k], res.weights[k]);}
+    }
+
     template<bool variable_bin_widths, int factor>
     inline void evaluate8(Distribution1D& p, const CompactCoordinates<variable_bin_widths>& data_i, const CompactCoordinates<variable_bin_widths>& data_j, int i, int j) {
         xyzw::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_i, data_j, i, j);
