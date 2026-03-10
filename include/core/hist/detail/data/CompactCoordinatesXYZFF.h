@@ -26,100 +26,35 @@
 #include <span>
 
 namespace ausaxs::hist::detail::xyzff {
-    /**
-     * @brief Simple structure for storing the results of a distance and form factor bin calculation.
-     */
     struct EvaluatedResult {
-        EvaluatedResult() noexcept = default;
-        EvaluatedResult(float distance, int32_t distance_bin, int32_t ff_bin) noexcept : distance(distance), distance_bin(distance_bin), ff_bin(ff_bin) {}
         float distance;      // The exact distance 
         int32_t distance_bin; // The distance bin index
         int32_t ff_bin;      // The form factor bin index
     };
 
     struct EvaluatedResultRounded {
-        EvaluatedResultRounded() noexcept = default;
-        EvaluatedResultRounded(int32_t distance_bin, float ff_bin) noexcept : distance(distance_bin), ff_bin(ff_bin) {}
         int32_t distance;   // The distance bin 
         int32_t ff_bin;     // The form factor bin index
     };
 
-    /**
-     * @brief Simple structure for storing the results of four distance and form factor bin calculations.
-     *        This is necessary to restructure the memory layout for more efficient 128-bit SIMD instructions.
-     */
     struct QuadEvaluatedResult {
-        QuadEvaluatedResult() noexcept = default;
-        QuadEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4) noexcept
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, 
-              distance_bins{v1.distance_bin, v2.distance_bin, v3.distance_bin, v4.distance_bin},
-              ff_bins{v1.ff_bin, v2.ff_bin, v3.ff_bin, v4.ff_bin}
-        {}
-        QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<int32_t, 4>& distance_bins, const std::array<int32_t, 4>& ff_bins) noexcept 
-            : distances(distances), distance_bins(distance_bins), ff_bins(ff_bins) 
-        {}
-
         std::array<float, 4> distances;       // The raw distances (for weighted bin center calculation)
         std::array<int32_t, 4> distance_bins; // The distance bin indices (for array indexing)
         std::array<int32_t, 4> ff_bins;       // The form factor bin indices
     };
 
-    /**
-     * @brief Simple structure for storing the results of four distance and form factor bin calculations.
-     *        This is necessary to restructure the memory layout for more efficient 128-bit SIMD instructions.
-     */
     struct QuadEvaluatedResultRounded {
-        QuadEvaluatedResultRounded() noexcept = default;
-        QuadEvaluatedResultRounded(const EvaluatedResultRounded& v1, const EvaluatedResultRounded& v2, const EvaluatedResultRounded& v3, const EvaluatedResultRounded& v4) noexcept 
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, 
-                ff_bins{v1.ff_bin, v2.ff_bin, v3.ff_bin, v4.ff_bin} 
-        {}
-        QuadEvaluatedResultRounded(const std::array<int32_t, 4>& distances, const std::array<int32_t, 4>& ff_bins) noexcept 
-            : distances(distances), ff_bins(ff_bins) 
-        {}
-
         std::array<int32_t, 4> distances;   // The distance bin
         std::array<int32_t, 4> ff_bins;     // The form factor bin indices
     };
 
-    /**
-     * @brief Simple structure for storing the results of eight distance and form factor bin calculations.
-     *        This is necessary to restructure the memory layout for more efficient 256-bit SIMD instructions.
-     */
     struct alignas(32) OctoEvaluatedResult {
-        OctoEvaluatedResult() noexcept = default;
-        OctoEvaluatedResult(
-            const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4, 
-            const EvaluatedResult& v5, const EvaluatedResult& v6, const EvaluatedResult& v7, const EvaluatedResult& v8) noexcept 
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance},
-              distance_bins{v1.distance_bin, v2.distance_bin, v3.distance_bin, v4.distance_bin, v5.distance_bin, v6.distance_bin, v7.distance_bin, v8.distance_bin},
-              ff_bins{v1.ff_bin, v2.ff_bin, v3.ff_bin, v4.ff_bin, v5.ff_bin, v6.ff_bin, v7.ff_bin, v8.ff_bin}
-        {}
-        OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<int32_t, 8>& distance_bins, const std::array<int32_t, 8>& ff_bins) noexcept 
-            : distances(distances), distance_bins(distance_bins), ff_bins(ff_bins) 
-        {}
-
         std::array<float, 8> distances;       // The raw distances (for weighted bin center calculation)
         std::array<int32_t, 8> distance_bins; // The distance bin indices (for array indexing)
         std::array<int32_t, 8> ff_bins;       // The form factor bin indices
     };
 
-    /**
-     * @brief Simple structure for storing the results of eight distance and form factor bin calculations.
-     *        This is necessary to restructure the memory layout for more efficient 256-bit SIMD instructions.
-     */
     struct alignas(32) OctoEvaluatedResultRounded {
-        OctoEvaluatedResultRounded() noexcept = default;
-        OctoEvaluatedResultRounded(
-            const EvaluatedResultRounded& v1, const EvaluatedResultRounded& v2, const EvaluatedResultRounded& v3, const EvaluatedResultRounded& v4, 
-            const EvaluatedResultRounded& v5, const EvaluatedResultRounded& v6, const EvaluatedResultRounded& v7, const EvaluatedResultRounded& v8) noexcept 
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance}, 
-              ff_bins{v1.ff_bin, v2.ff_bin, v3.ff_bin, v4.ff_bin, v5.ff_bin, v6.ff_bin, v7.ff_bin, v8.ff_bin} 
-        {}
-        OctoEvaluatedResultRounded(const std::array<int32_t, 8>& distances, const std::array<int32_t, 8>& ff_bins) noexcept 
-            : distances(distances), ff_bins(ff_bins) 
-        {}
-
         std::array<int32_t, 8> distances;   // The distance bin
         std::array<int32_t, 8> ff_bins;     // The form factor bin indices
     };
@@ -136,12 +71,12 @@ namespace ausaxs::hist::detail::xyzff {
     };
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
-    static_assert(sizeof(EvaluatedResult)            == 12, "hist::detail::EvaluatedResult is not 12 bytes long");
-    static_assert(sizeof(EvaluatedResultRounded)     == 8,  "hist::detail::EvaluatedResultRounded is not 8 bytes long");
-    static_assert(sizeof(QuadEvaluatedResult)        == 48, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
-    static_assert(sizeof(QuadEvaluatedResultRounded) == 32, "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
-    static_assert(sizeof(OctoEvaluatedResult)        == 96, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
-    static_assert(sizeof(OctoEvaluatedResultRounded) == 64, "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
+    static_assert(sizeof(EvaluatedResult)            == 12,  "hist::detail::EvaluatedResult is not 12 bytes long");
+    static_assert(sizeof(EvaluatedResultRounded)     == 8,   "hist::detail::EvaluatedResultRounded is not 8 bytes long");
+    static_assert(sizeof(QuadEvaluatedResult)        == 48,  "hist::detail::QuadEvaluatedResult is not 48 bytes long");
+    static_assert(sizeof(QuadEvaluatedResultRounded) == 32,  "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
+    static_assert(sizeof(OctoEvaluatedResult)        == 96,  "hist::detail::OctoEvaluatedResult is not 96 bytes long");
+    static_assert(sizeof(OctoEvaluatedResultRounded) == 64,  "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
     static_assert(sizeof(HexaEvaluatedResult)        == 192, "hist::detail::HexaEvaluatedResult is not 192 bytes long");
     static_assert(sizeof(HexaEvaluatedResultRounded) == 128, "hist::detail::HexaEvaluatedResultRounded is not 128 bytes long");
 

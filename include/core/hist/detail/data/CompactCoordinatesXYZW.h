@@ -26,125 +26,39 @@
 #include <span>
 
 namespace ausaxs::hist::detail::xyzw {
-    /**
-     * @brief Simple structure for storing the results of a distance and weight calculation.
-     */
     struct EvaluatedResult {
-        EvaluatedResult() noexcept = default;
-        EvaluatedResult(float distance, int32_t distance_bin, float weight) noexcept : distance(distance), distance_bin(distance_bin), weight(weight) {}
         float distance;         // The raw distance 
         int32_t distance_bin;   // The distance bin index
         float weight;           // The combined weight
     };
 
     struct EvaluatedResultRounded {
-        EvaluatedResultRounded() noexcept = default;
-        EvaluatedResultRounded(int32_t distance_bin, float weight) noexcept : distance(distance_bin), weight(weight) {}
         int32_t distance;       // The distance bin 
         float weight;           // The combined weight
     };
 
-    /**
-     * @brief Simple structure for storing the results of four distance and weight calculations.
-     *        This is necessary to restructure the memory layout for more efficient 128-bit SIMD instructions.
-     */
     struct QuadEvaluatedResult {
-        QuadEvaluatedResult() noexcept = default;
-        QuadEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4) noexcept 
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, 
-              distance_bins{v1.distance_bin, v2.distance_bin, v3.distance_bin, v4.distance_bin},
-              weights{v1.weight, v2.weight, v3.weight, v4.weight}
-        {}
-        QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<int32_t, 4>& distance_bins, const std::array<float, 4>& weights) noexcept 
-            : distances(distances), distance_bins(distance_bins), weights(weights) 
-        {}
-
         std::array<float, 4> distances;       // The raw distances (for weighted bin center calculation)
         std::array<int32_t, 4> distance_bins; // The distance bin indices (for array indexing)
         std::array<float, 4> weights;         // The combined weight
     };
 
-    /**
-     * @brief Simple structure for storing the results of four distance and weight calculations.
-     *        This is necessary to restructure the memory layout for more efficient 128-bit SIMD instructions.
-     */
     struct QuadEvaluatedResultRounded {
-        QuadEvaluatedResultRounded() noexcept = default;
-        QuadEvaluatedResultRounded(const EvaluatedResultRounded& v1, const EvaluatedResultRounded& v2, const EvaluatedResultRounded& v3, const EvaluatedResultRounded& v4) noexcept 
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, 
-                weights{v1.weight, v2.weight, v3.weight, v4.weight} 
-        {}
-        QuadEvaluatedResultRounded(const std::array<int32_t, 4>& distances, const std::array<float, 4>& weights) noexcept 
-            : distances(distances), weights(weights) 
-        {}
-
         std::array<int32_t, 4> distances;   // The distance bin
         std::array<float, 4> weights;       // The combined weight
     };
 
-    /**
-     * @brief Simple structure for storing the results of eight distance and weight calculations.
-     *        This is necessary to restructure the memory layout for more efficient 256-bit SIMD instructions.
-     */
     struct alignas(32) OctoEvaluatedResult {
-        OctoEvaluatedResult() noexcept = default;
-        OctoEvaluatedResult(
-            const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4, 
-            const EvaluatedResult& v5, const EvaluatedResult& v6, const EvaluatedResult& v7, const EvaluatedResult& v8) noexcept 
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance},
-              distance_bins{v1.distance_bin, v2.distance_bin, v3.distance_bin, v4.distance_bin, v5.distance_bin, v6.distance_bin, v7.distance_bin, v8.distance_bin},
-              weights{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight}
-        {}
-        OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<int32_t, 8>& distance_bins, const std::array<float, 8>& weights) noexcept 
-            : distances(distances), distance_bins(distance_bins), weights(weights) 
-        {}
-        OctoEvaluatedResult(QuadEvaluatedResult&& lo, QuadEvaluatedResult&& hi) noexcept {
-            std::move(lo.distances.begin(), lo.distances.end(), distances.begin());
-            std::move(hi.distances.begin(), hi.distances.end(), distances.begin()+4);
-            std::move(lo.distance_bins.begin(), lo.distance_bins.end(), distance_bins.begin());
-            std::move(hi.distance_bins.begin(), hi.distance_bins.end(), distance_bins.begin()+4);
-            std::move(lo.weights.begin(), lo.weights.end(), weights.begin());
-            std::move(hi.weights.begin(), hi.weights.end(), weights.begin()+4);
-        }
-
         std::array<float, 8> distances;       // The raw distances (for weighted bin center calculation)
         std::array<int32_t, 8> distance_bins; // The distance bin indices (for array indexing)
         std::array<float, 8> weights;         // The combined weight
     };
 
-    /**
-     * @brief Simple structure for storing the results of eight distance and weight calculations.
-     *        This is necessary to restructure the memory layout for more efficient 256-bit SIMD instructions.
-     */
     struct alignas(32) OctoEvaluatedResultRounded {
-        OctoEvaluatedResultRounded() noexcept = default;
-        OctoEvaluatedResultRounded(
-            const EvaluatedResultRounded& v1, const EvaluatedResultRounded& v2, const EvaluatedResultRounded& v3, const EvaluatedResultRounded& v4, 
-            const EvaluatedResultRounded& v5, const EvaluatedResultRounded& v6, const EvaluatedResultRounded& v7, const EvaluatedResultRounded& v8) noexcept 
-            : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance}, 
-              weights{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight} 
-        {}
-        OctoEvaluatedResultRounded(const std::array<int32_t, 8>& distances, const std::array<float, 8>& weights) noexcept 
-            : distances(distances), weights(weights) 
-        {}
-
         std::array<int32_t, 8> distances;   // The distance bin
         std::array<float, 8> weights;       // The combined weight
     };
 
-    // assert that it is safe to perform memcpy and reinterpret_cast on these structures
-    // sizes - EvaluatedResult must be exactly 1 int32_t larger than EvaluatedResultRounded for storing the exact distance
-    static_assert(sizeof(EvaluatedResult)            == 12, "hist::detail::EvaluatedResult is not 12 bytes long");
-    static_assert(sizeof(EvaluatedResultRounded)     == 8,  "hist::detail::EvaluatedResultRounded is not 8 bytes long");
-    static_assert(sizeof(QuadEvaluatedResult)        == 48, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
-    static_assert(sizeof(QuadEvaluatedResultRounded) == 32, "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
-    static_assert(sizeof(OctoEvaluatedResult)        == 96, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
-    static_assert(sizeof(OctoEvaluatedResultRounded) == 64, "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
-
-    /**
-     * @brief Simple structure for storing the results of sixteen distance and weight calculations.
-     *        This is necessary to restructure the memory layout for more efficient 512-bit SIMD instructions.
-     */
     struct alignas(64) HexaEvaluatedResult {
         std::array<float, 16> distances;
         std::array<int32_t, 16> distance_bins;
@@ -156,6 +70,13 @@ namespace ausaxs::hist::detail::xyzw {
         std::array<float, 16> weights;
     };
 
+    // assert that it is safe to perform memcpy and reinterpret_cast on these structures
+    static_assert(sizeof(EvaluatedResult)            == 12,  "hist::detail::EvaluatedResult is not 12 bytes long");
+    static_assert(sizeof(EvaluatedResultRounded)     == 8,   "hist::detail::EvaluatedResultRounded is not 8 bytes long");
+    static_assert(sizeof(QuadEvaluatedResult)        == 48,  "hist::detail::QuadEvaluatedResult is not 48 bytes long");
+    static_assert(sizeof(QuadEvaluatedResultRounded) == 32,  "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
+    static_assert(sizeof(OctoEvaluatedResult)        == 96,  "hist::detail::OctoEvaluatedResult is not 96 bytes long");
+    static_assert(sizeof(OctoEvaluatedResultRounded) == 64,  "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
     static_assert(sizeof(HexaEvaluatedResult)        == 192, "hist::detail::HexaEvaluatedResult is not 192 bytes long");
     static_assert(sizeof(HexaEvaluatedResultRounded) == 128, "hist::detail::HexaEvaluatedResultRounded is not 128 bytes long");
 
@@ -423,6 +344,7 @@ inline ausaxs::hist::detail::xyzw::QuadEvaluatedResultRounded ausaxs::hist::deta
 }
 
 #if defined AUSAXS_USE_SSE2
+    #include <nmmintrin.h>
     template<bool vbw>
     inline void ausaxs::hist::detail::CompactCoordinatesXYZW<vbw>::evaluate_4_sse_into(
         std::span<const CompactCoordinatesXYZW, 4> others,
