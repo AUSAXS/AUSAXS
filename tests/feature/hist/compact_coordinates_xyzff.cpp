@@ -34,35 +34,23 @@ struct DebugData : CompactCoordinatesXYZFF<vbw> {
 
     EvaluatedResult evaluate_scalar(const CC& other) const {return CC::evaluate_scalar(other);}
     QuadEvaluatedResult evaluate_4_scalar(std::span<const CC, 4> others) const {return CC::evaluate_4_scalar(others);}
-    OctoEvaluatedResult evaluate_8_scalar(std::span<const CC, 8> others) const {return CC::evaluate_8_scalar(others);}
+    OctoEvaluatedResult evaluate_8_scalar(std::span<const CC, 8> others) const {return CC::evaluate_8(others);}
 
     EvaluatedResultRounded evaluate_rounded_scalar(const CC& other) const {return CC::evaluate_rounded_scalar(other);}
     QuadEvaluatedResultRounded evaluate_rounded_4_scalar(std::span<const CC, 4> others) const {return CC::evaluate_rounded_4_scalar(others);}
-    OctoEvaluatedResultRounded evaluate_rounded_8_scalar(std::span<const CC, 8> others) const {return CC::evaluate_rounded_8_scalar(others);}
+    OctoEvaluatedResultRounded evaluate_rounded_8_scalar(std::span<const CC, 8> others) const {return CC::evaluate_rounded_8(others);}
 
     #if defined AUSAXS_USE_SSE2
-        EvaluatedResult evaluate_sse(const CC& other) const {return CC::evaluate_sse(other);}
         QuadEvaluatedResult evaluate_4_sse(std::span<const CC, 4> others) const {return CC::evaluate_4_sse(others);}
-        OctoEvaluatedResult evaluate_8_sse(std::span<const CC, 8> others) const {return CC::evaluate_8_sse(others);}
-
-        EvaluatedResultRounded evaluate_rounded_sse(const CC& other) const {return CC::evaluate_rounded_sse(other);}
         QuadEvaluatedResultRounded evaluate_rounded_4_sse(std::span<const CC, 4> others) const {return CC::evaluate_rounded_4_sse(others);}
-        OctoEvaluatedResultRounded evaluate_rounded_8_sse(std::span<const CC, 8> others) const {return CC::evaluate_rounded_8_sse(others);}
     #endif
 
     #if defined AUSAXS_USE_AVX2
-        EvaluatedResult evaluate_avx(const CC& other) const {return CC::evaluate_avx(other);}
-        QuadEvaluatedResult evaluate_4_avx(std::span<const CC, 4> others) const {return CC::evaluate_4_avx(others);}
         OctoEvaluatedResult evaluate_8_avx(std::span<const CC, 8> others) const {return CC::evaluate_8_avx(others);}
-
-        EvaluatedResultRounded evaluate_rounded_avx(const CC& other) const {return CC::evaluate_rounded_avx(other);}
-        QuadEvaluatedResultRounded evaluate_rounded_4_avx(std::span<const CC, 4> others) const {return CC::evaluate_rounded_4_avx(others);}
         OctoEvaluatedResultRounded evaluate_rounded_8_avx(std::span<const CC, 8> others) const {return CC::evaluate_rounded_8_avx(others);}
     #endif
 
     #if defined AUSAXS_USE_AVX512
-        OctoEvaluatedResult evaluate_8_avx512(std::span<const CC, 8> others) const {return CC::evaluate_8_avx512(others);}
-        OctoEvaluatedResultRounded evaluate_rounded_8_avx512(std::span<const CC, 8> others) const {return CC::evaluate_rounded_8_avx512(others);}
         HexaEvaluatedResult evaluate_16_avx512(std::span<const CC, 16> others) const {return CC::evaluate_16_avx512(others);}
         HexaEvaluatedResultRounded evaluate_rounded_16_avx512(std::span<const CC, 16> others) const {return CC::evaluate_rounded_16_avx512(others);}
     #endif
@@ -325,32 +313,20 @@ void run_tests() {
 
     #if defined AUSAXS_USE_SSE2
         SECTION("sse") {
-            single_tests<vbw>([](const DebugData<vbw>& d1, const DebugData<vbw>& d2) { return d1.evaluate_sse(d2); });
             quad_tests<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 4>& o) { return d.evaluate_4_sse(std::span<const CC<vbw>, 4>(o)); });
-            octo_tests<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 8>& o) { return d.evaluate_8_sse(std::span<const CC<vbw>, 8>(o)); });
-
-            single_tests_rounded<vbw>([](const DebugData<vbw>& d1, const DebugData<vbw>& d2) { return d1.evaluate_rounded_sse(d2); });
             quad_tests_rounded<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 4>& o) { return d.evaluate_rounded_4_sse(std::span<const CC<vbw>, 4>(o)); });
-            octo_tests_rounded<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 8>& o) { return d.evaluate_rounded_8_sse(std::span<const CC<vbw>, 8>(o)); });
         }
     #endif
 
     #if defined AUSAXS_USE_AVX2
         SECTION("avx") {
-            single_tests<vbw>([](const DebugData<vbw>& d1, const DebugData<vbw>& d2) { return d1.evaluate_avx(d2); });
-            quad_tests<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 4>& o) { return d.evaluate_4_avx(std::span<const CC<vbw>, 4>(o)); });
             octo_tests<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 8>& o) { return d.evaluate_8_avx(std::span<const CC<vbw>, 8>(o)); });
-
-            single_tests_rounded<vbw>([](const DebugData<vbw>& d1, const DebugData<vbw>& d2) { return d1.evaluate_rounded_avx(d2); });
-            quad_tests_rounded<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 4>& o) { return d.evaluate_rounded_4_avx(std::span<const CC<vbw>, 4>(o)); });
             octo_tests_rounded<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 8>& o) { return d.evaluate_rounded_8_avx(std::span<const CC<vbw>, 8>(o)); });
         }
     #endif
 
     #if defined AUSAXS_USE_AVX512
         SECTION("avx512") {
-            octo_tests<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 8>& o) { return d.evaluate_8_avx512(std::span<const CC<vbw>, 8>(o)); });
-            octo_tests_rounded<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 8>& o) { return d.evaluate_rounded_8_avx512(std::span<const CC<vbw>, 8>(o)); });
             hexa_tests<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 16>& o) { return d.evaluate_16_avx512(std::span<const CC<vbw>, 16>(o)); });
             hexa_tests_rounded<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 16>& o) { return d.evaluate_rounded_16_avx512(std::span<const CC<vbw>, 16>(o)); });
         }
