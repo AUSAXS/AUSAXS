@@ -38,7 +38,6 @@ struct DebugData : CompactCoordinatesXYZFF<vbw> {
 
     EvaluatedResultRounded evaluate_rounded_scalar(const CC& other) const {return CC::evaluate_rounded_scalar(other);}
     QuadEvaluatedResultRounded evaluate_rounded_4_scalar(std::span<const CC, 4> others) const {return CC::evaluate_rounded_4_scalar(others);}
-    OctoEvaluatedResultRounded evaluate_rounded_8_scalar(std::span<const CC, 8> others) const {return CC::evaluate_rounded_8(others);}
 
     #if defined AUSAXS_USE_SSE2
         QuadEvaluatedResult evaluate_4_sse(std::span<const CC, 4> others) const {return CC::evaluate_4_sse(others);}
@@ -308,7 +307,6 @@ void run_tests() {
 
         single_tests_rounded<vbw>([](const DebugData<vbw>& d1, const DebugData<vbw>& d2) { return d1.evaluate_rounded_scalar(d2); });
         quad_tests_rounded<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 4>& o) { return d.evaluate_rounded_4_scalar(std::span<const CC<vbw>, 4>(o)); });
-        octo_tests_rounded<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 8>& o) { return d.evaluate_rounded_8_scalar(std::span<const CC<vbw>, 8>(o)); });
     }
 
     #if defined AUSAXS_USE_SSE2

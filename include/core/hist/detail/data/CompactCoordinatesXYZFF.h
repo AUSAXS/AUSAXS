@@ -142,6 +142,10 @@ namespace ausaxs::hist::detail {
 
             xyzff::QuadEvaluatedResultRounded evaluate_rounded_4_scalar(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
             xyzff::QuadEvaluatedResult evaluate_4_scalar(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
+            void evaluate_rounded_4_scalar_into(std::span<const CompactCoordinatesXYZFF, 4> others, int32_t* dist_out, int32_t* ff_out) const noexcept;
+            void evaluate_4_scalar_into(std::span<const CompactCoordinatesXYZFF, 4> others, float* dist_out, int32_t* bin_out, int32_t* ff_out) const noexcept;
+            void evaluate_rounded_8_scalar_into(std::span<const CompactCoordinatesXYZFF, 8> others, int32_t* dist_out, int32_t* ff_out) const noexcept;
+            void evaluate_8_scalar_into(std::span<const CompactCoordinatesXYZFF, 8> others, float* dist_out, int32_t* bin_out, int32_t* ff_out) const noexcept;
 
             #if defined AUSAXS_USE_SSE2
                 xyzff::QuadEvaluatedResultRounded evaluate_rounded_4_sse(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
@@ -233,10 +237,9 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResult ausaxs::hist::detail::Co
         evaluate_4_sse_into(others.template last<4>(), result.distances.data()+4, result.distance_bins.data()+4, result.ff_bins.data()+4);
         return result;
     #else
-        return xyzff::OctoEvaluatedResult(
-            evaluate_4_scalar(others.template first<4>()),
-            evaluate_4_scalar(others.template last<4>())
-        );
+        xyzff::OctoEvaluatedResult result;
+        evaluate_8_scalar_into(others, result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
+        return result;
     #endif
 }
 
@@ -252,10 +255,9 @@ inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::det
         evaluate_rounded_4_sse_into(others.template last<4>(), result.distances.data()+4, result.ff_bins.data()+4);
         return result;
     #else
-        return xyzff::OctoEvaluatedResultRounded(
-            evaluate_rounded_4_scalar(others.template first<4>()),
-            evaluate_rounded_4_scalar(others.template last<4>())
-        );
+        xyzff::OctoEvaluatedResultRounded result;
+        evaluate_rounded_8_scalar_into(others, result.distances.data(), result.ff_bins.data());
+        return result;
     #endif
 }
 
@@ -278,7 +280,10 @@ inline ausaxs::hist::detail::xyzff::HexaEvaluatedResult ausaxs::hist::detail::Co
         evaluate_4_sse_into(others.template last<4>(), result.distances.data()+12, result.distance_bins.data()+12, result.ff_bins.data()+12);
         return result;
     #else
-        return xyzff::HexaEvaluatedResult(evaluate_8(others.template first<8>()), evaluate_8(others.template last<8>()));
+        xyzff::HexaEvaluatedResult result;
+        evaluate_8_scalar_into(others.template first<8>(), result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
+        evaluate_8_scalar_into(others.template last<8>(), result.distances.data()+8, result.distance_bins.data()+8, result.ff_bins.data()+8);
+        return result;
     #endif
 }
 
@@ -301,7 +306,10 @@ inline ausaxs::hist::detail::xyzff::HexaEvaluatedResultRounded ausaxs::hist::det
         evaluate_rounded_4_sse_into(others.template last<4>(), result.distances.data()+12, result.ff_bins.data()+12);
         return result;
     #else
-        return xyzff::HexaEvaluatedResultRounded(evaluate_rounded_8(others.template first<8>()), evaluate_rounded_8(others.template last<8>()));
+        xyzff::HexaEvaluatedResultRounded result;
+        evaluate_rounded_8_scalar_into(others.template first<8>(), result.distances.data(), result.ff_bins.data());
+        evaluate_rounded_8_scalar_into(others.template last<8>(), result.distances.data()+8, result.ff_bins.data()+8);
+        return result;
     #endif
 }
 
@@ -325,50 +333,65 @@ inline ausaxs::hist::detail::xyzff::EvaluatedResultRounded ausaxs::hist::detail:
 }
 
 template<bool vbw, bool explicit_ff>
+inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_4_scalar_into(
+    std::span<const CompactCoordinatesXYZFF, 4> others,
+    float* dist_out, int32_t* bin_out, int32_t* ff_out
+) const noexcept {
+    float inv_width = get_inv_width();
+    for (int i = 0; i < 4; ++i) {
+        float dist = std::sqrt(squared_dot_product(this->data.data(), others[i].data.data()));
+        dist_out[i] = dist;
+        bin_out[i] = static_cast<int32_t>(std::round(inv_width * dist));
+        ff_out[i] = xyzff::ff_bin_index<explicit_ff>(this->value.ff, others[i].value.ff);
+    }
+}
+
+template<bool vbw, bool explicit_ff>
 inline ausaxs::hist::detail::xyzff::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_4_scalar(
     std::span<const CompactCoordinatesXYZFF, 4> others
 ) const noexcept {
-    const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
-    float dx1 = std::sqrt(squared_dot_product(this->data.data(), v1.data.data()));
-    float dx2 = std::sqrt(squared_dot_product(this->data.data(), v2.data.data()));
-    float dx3 = std::sqrt(squared_dot_product(this->data.data(), v3.data.data()));
-    float dx4 = std::sqrt(squared_dot_product(this->data.data(), v4.data.data()));
+    xyzff::QuadEvaluatedResult result;
+    evaluate_4_scalar_into(others, result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
+    return result;
+}
+
+template<bool vbw, bool explicit_ff>
+inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_rounded_4_scalar_into(
+    std::span<const CompactCoordinatesXYZFF, 4> others,
+    int32_t* dist_out, int32_t* ff_out
+) const noexcept {
     float inv_width = get_inv_width();
-    return xyzff::QuadEvaluatedResult(
-        std::array<float, 4>{dx1, dx2, dx3, dx4},
-        std::array<int32_t, 4>{
-            static_cast<int32_t>(std::round(inv_width * dx1)),
-            static_cast<int32_t>(std::round(inv_width * dx2)),
-            static_cast<int32_t>(std::round(inv_width * dx3)),
-            static_cast<int32_t>(std::round(inv_width * dx4))
-        },
-        std::array<int32_t, 4>{
-            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v1.value.ff),
-            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v2.value.ff),
-            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v3.value.ff),
-            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v4.value.ff)
-        }
-    );
+    for (int i = 0; i < 4; ++i) {
+        dist_out[i] = static_cast<int32_t>(std::round(inv_width * std::sqrt(squared_dot_product(this->data.data(), others[i].data.data()))));
+        ff_out[i] = xyzff::ff_bin_index<explicit_ff>(this->value.ff, others[i].value.ff);
+    }
 }
 
 template<bool vbw, bool explicit_ff>
 inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_rounded_4_scalar(
     std::span<const CompactCoordinatesXYZFF, 4> others
 ) const noexcept {
-    const auto& v1 = others[0]; const auto& v2 = others[1]; const auto& v3 = others[2]; const auto& v4 = others[3];
-    int32_t dx1 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v1.data.data())));
-    int32_t dx2 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v2.data.data())));
-    int32_t dx3 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v3.data.data())));
-    int32_t dx4 = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), v4.data.data())));
-    return xyzff::QuadEvaluatedResultRounded(
-        std::array<int32_t, 4>{dx1, dx2, dx3, dx4},
-        std::array<int32_t, 4>{
-            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v1.value.ff),
-            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v2.value.ff),
-            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v3.value.ff),
-            xyzff::ff_bin_index<explicit_ff>(this->value.ff, v4.value.ff)
-        }
-    );
+    xyzff::QuadEvaluatedResultRounded result;
+    evaluate_rounded_4_scalar_into(others, result.distances.data(), result.ff_bins.data());
+    return result;
+}
+
+template<bool vbw, bool explicit_ff>
+inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_8_scalar_into(
+    std::span<const CompactCoordinatesXYZFF, 8> others,
+    float* dist_out, int32_t* bin_out, int32_t* ff_out
+) const noexcept {
+    evaluate_4_scalar_into(others.template first<4>(), dist_out,     bin_out,     ff_out);
+    evaluate_4_scalar_into(others.template last<4>(),  dist_out + 4, bin_out + 4, ff_out + 4);
+}
+
+template<bool vbw, bool explicit_ff>
+inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_rounded_8_scalar_into(
+    std::span<const CompactCoordinatesXYZFF, 8> others,
+    int32_t* dist_out, int32_t* ff_out
+) const noexcept {
+    evaluate_rounded_4_scalar_into(others.template first<4>(), dist_out,     ff_out);
+    evaluate_rounded_4_scalar_into(others.template last<4>(),  dist_out + 4, ff_out + 4);
 }
 
 #if defined AUSAXS_USE_SSE2
