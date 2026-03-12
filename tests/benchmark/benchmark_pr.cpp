@@ -5,6 +5,7 @@
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <data/symmetry/PointSymmetry.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <io/File.h>
@@ -15,11 +16,6 @@
 using namespace ausaxs;
 
 struct MolSpec { const char* pdb; const char* label; };
-
-// Source PDBs for the full-recalculation benchmark (ausaxs_bench dataset).
-// Each entry is loaded once during setup to write a stripped file and record
-// the real atom count. The stripped files are reusable by external tools
-// (CRYSOL, FoXS, Pepsi-SAXS).
 static constexpr MolSpec bench_molecules[] = {
     {"data/SASDE35/SASDE35.pdb",       "SASDE35"},
     {"data/SASDJG5/SASDJG5.pdb",       "SASDJG5"},
@@ -40,13 +36,10 @@ static std::string stripped_path(const MolSpec& s) {
 // Atom counts filled in by the setup test case and consumed by test 1.
 static std::vector<std::size_t> g_atom_counts;
 
-// ────────────────────────────────────────────────────────────────────────────
-// 0. Setup: load each molecule once, record atom counts, write stripped PDBs.
-//    Run this before the benchmark tests by including "[benchmark]" in the filter.
-// ────────────────────────────────────────────────────────────────────────────
 TEST_CASE("Benchmark setup: write stripped PDB files", "[.][benchmark]") {
     settings::general::verbose = false;
     settings::molecule::allow_unknown_residues = true;
+    settings::molecule::implicit_hydrogens = false;
     g_atom_counts.clear();
     for (const auto& s : bench_molecules) {
         data::Molecule mol(s.pdb);
@@ -56,15 +49,10 @@ TEST_CASE("Benchmark setup: write stripped PDB files", "[.][benchmark]") {
     SUCCEED(); // no assertions — just setup
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// 1. Basic histogram manager benchmark — full recalculation on every call.
-//    Tests Simple (HistogramManagerMT), Fraser (FFExplicit), and Grid (FFGrid)
-//    against the full range of real molecules from the ausaxs_bench dataset.
-//    File loading is included in the timed section.
-// ────────────────────────────────────────────────────────────────────────────
 TEST_CASE("Distance calculation benchmark: real molecules", "[.][benchmark]") {
     settings::general::verbose = false;
     settings::molecule::allow_unknown_residues = true;
+    settings::molecule::implicit_hydrogens = false;
 
     auto idx = GENERATE(0, 1, 2, 3, 4, 5);
     const MolSpec& spec = bench_molecules[idx];
@@ -100,20 +88,59 @@ TEST_CASE("Distance calculation benchmark: real molecules", "[.][benchmark]") {
     }
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// 2. Partial histogram manager benchmark — incremental update cost.
-//    Models the inner loop of rigidbody optimisation: one body is translated
-//    and only the affected partial histograms are recomputed.
-//
-//    Each BENCHMARK_ADVANCED re-initialises the manager and does one full
-//    warm-up calculation before timing begins, so only the incremental update
-//    cost is measured.  Two variants are compared:
-//      • Full (baseline) – HistogramManagerMT, full recalculation every call
-//      • PartialMT       – PartialHistogramManagerMT, multi-threaded incremental
-// ────────────────────────────────────────────────────────────────────────────
+TEST_CASE("Symmetry histogram benchmark", "[.][benchmark]") {
+    settings::general::verbose = false;
+    settings::molecule::allow_unknown_residues = true;
+    settings::molecule::implicit_hydrogens = false;
+
+    SECTION("SASDJG5 (dimer symmetry)") {
+        auto mol = rigidbody::BodySplitter::split("data/SASDJG5/SASDJG5_single.pdb");
+        auto mol_full = rigidbody::BodySplitter::split("data/SASDJG5/SASDJG5.pdb");
+        mol.get_body(0).symmetry().add(symmetry::type::p2);
+        INFO(mol.size_atom() << " atoms");
+
+        BENCHMARK_ADVANCED("HistogramManagerMT") (Catch::Benchmark::Chronometer meter) {
+            mol_full.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+            meter.measure([&] {
+                mol_full.get_body(0).translate(Vector3<double>(0.1, 0, 0));
+                return mol_full.get_histogram()->debye_transform();
+            });
+        };
+
+        BENCHMARK_ADVANCED("PartialHistogramManagerMT") (Catch::Benchmark::Chronometer meter) {
+            mol_full.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+            [[maybe_unused]] auto warmup = mol_full.get_histogram();
+            meter.measure([&] {
+                mol_full.get_body(0).translate(Vector3<double>(0.1, 0, 0));
+                return mol_full.get_histogram()->debye_transform();
+            });
+        };
+
+        BENCHMARK_ADVANCED("HistogramSymmetryManagerMT") (Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
+            meter.measure([&] {
+                auto s = mol.get_body(0).symmetry().get(0);
+                static_cast<symmetry::PointSymmetry*>(s)->translation += Vector3<double>{0.1, 0, 0};
+                return mol.get_histogram()->debye_transform();
+            });
+        };
+
+        BENCHMARK_ADVANCED("PartialHistogramSymmetryManagerMT") (Catch::Benchmark::Chronometer meter) {
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
+            [[maybe_unused]] auto warmup = mol.get_histogram();
+            meter.measure([&] {
+                auto s = mol.get_body(0).symmetry().get(0);
+                static_cast<symmetry::PointSymmetry*>(s)->translation += Vector3<double>{0.1, 0, 0};
+                return mol.get_histogram()->debye_transform();
+            });
+        };
+    }    
+}
+
 TEST_CASE("Partial histogram benchmark: rigidbody body translation", "[.][benchmark]") {
     settings::general::verbose = false;
     settings::molecule::allow_unknown_residues = true;
+    settings::molecule::implicit_hydrogens = false;
 
     SECTION("SASDJG5 (chain split, 2 bodies)") {
         auto mol = rigidbody::BodySplitter::split("data/SASDJG5/SASDJG5.pdb");
