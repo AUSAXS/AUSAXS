@@ -645,7 +645,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::eva
     inline ausaxs::hist::detail::xyzff::HexaEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_16_avx512(
         std::span<const CompactCoordinatesXYZFF, 16> others
     ) const noexcept {
-        const float* p = reinterpret_cast<float*>(others.data());
+        const float* p = reinterpret_cast<const float*>(others.data());
         __m512 v03   = _mm512_loadu_ps(p);
         __m512 v47   = _mm512_loadu_ps(p + 16);
         __m512 v811  = _mm512_loadu_ps(p + 32);
@@ -708,7 +708,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::eva
     inline ausaxs::hist::detail::xyzff::HexaEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw, explicit_ff>::evaluate_rounded_16_avx512(
         std::span<const CompactCoordinatesXYZFF, 16> others
     ) const noexcept {
-        const float* p = reinterpret_cast<float*>(others.data());
+        const float* p = reinterpret_cast<const float*>(others.data());
         __m512 v03   = _mm512_loadu_ps(p);
         __m512 v47   = _mm512_loadu_ps(p + 16);
         __m512 v811  = _mm512_loadu_ps(p + 32);
