@@ -44,7 +44,7 @@ std::span<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explici
             int jm = std::max(j-r_eff, 0), jp = std::min(j+r_eff, bins.y()-1); // yminus and yplus
 
             for (int k = min.z(); k < max.z(); k++) {
-                if (gref.is_only_empty_or_volume(i, j, k)) {continue;}
+                if (!gref.is_atom_area(i, j, k)) {continue;} // skip if this is not an atom location
                 int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, bins.z()-1); // zminus and zplus
 
                 // check collisions for x ± r_eff                
