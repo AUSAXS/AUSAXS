@@ -13,8 +13,8 @@ using namespace ausaxs;
 using namespace ausaxs::form_factor;
 
 namespace {
-    auto ff_xx_default_table = lookup::detail::generate_exv_table<lookup::exv::table_t>(lookup::exv::standard);
-    auto ff_ax_default_table = lookup::detail::generate_cross_table<lookup::cross::table_t, lookup::detail::NormalizedFormFactorLookup>(lookup::exv::standard);
+    auto ff_xx_default_table = lookup::detail::generate_exv_table<lookup::exv::table_t>();
+    auto ff_ax_default_table = lookup::detail::generate_cross_table<lookup::cross::table_t, lookup::detail::NormalizedFormFactorLookup>();
 }
 
 const NormalizedFormFactorProduct& form_factor::lookup::exv::normalized::get_product(unsigned int i, unsigned int j) {
@@ -24,7 +24,7 @@ const NormalizedFormFactorProduct& form_factor::lookup::exv::normalized::get_pro
 const form_factor::lookup::exv::table_t& form_factor::lookup::exv::normalized::get_table() {
     return lookup::detail::get_exv_table_for_settings(
         ff_xx_default_table, lookup::exv::detail::custom_table_xx_normalized,
-        [](const form_factor::detail::ExvFormFactorSet& set) { return lookup::detail::generate_exv_table<lookup::exv::table_t>(set); }
+        [] (const form_factor::detail::ExvFormFactorSet& set) { return lookup::detail::generate_exv_table<lookup::exv::table_t>(set); }
     );
 }
 

@@ -129,7 +129,7 @@ namespace ausaxs::constants::exv {
      */
     detail::ExvSet get_exv_set();
 
-    //! Remember to update settings::molecule::DisplacedVolumeSet::Default if this is changed
+    //! Remember to update settings::exv::ExvSet::Default if this is changed
     inline constexpr const detail::ExvSet& standard = MinimumFluctuation_implicit_H;
     constexpr double OH2 = 2.98*constexpr_math::pow(10., -23)*constexpr_math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = detail::volume(constants::radius::vdw::Ar);

@@ -49,5 +49,21 @@ namespace ausaxs::settings {
             None
         };
         static ExvMethod exv_method; // The method used to model the excluded volume.
+
+        enum class ExvSet {
+            Traube,                         // Traube 1895 as used by CRYSOL, Pepsi-SAXS & FoXS
+            Voronoi_implicit_H,             // Voronoi volume with implicit hydrogens from Schaefer et al.
+            Voronoi_explicit_H,             // Voronoi volume with explicit hydrogens from Schaefer et al.
+            MinimumFluctutation_implicit_H, // Minimum fluctuation volume with implicit hydrogens from Schaefer et al.
+            MinimumFluctutation_explicit_H, // Minimum fluctuation volume with explicit hydrogens from Schaefer et al.
+            vdw,                            // Volumes calculated from the van der Waals radii
+
+            //? Custom displaced volume set. Make sure to define it first with form_factor::storage::detail::set_custom_displaced_volume_set
+            Custom,
+
+            //! Remember to update constants::exv::standard if this is changed
+            Default = MinimumFluctutation_implicit_H // Default displaced volume set
+        };
+        static ExvSet exv_set;
     };
 }
