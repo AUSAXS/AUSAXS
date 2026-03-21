@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
+#include <form_factor/lookup/FormFactorManager.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -34,7 +35,7 @@ CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
 }
 
 void CompositeDistanceHistogramCrysol::initialize() {
-    ffaa_table = form_factor::lookup::atomic::raw::get_table();
+    ffaa_table = form_factor::FormFactorManager::raw_atomic_table();
     ffax_table = form_factor::crysol::storage::cross::generate_table();
     ffxx_table = form_factor::crysol::storage::exv::generate_table();
 }

@@ -4,7 +4,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
-#include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
@@ -17,7 +17,7 @@ namespace ausaxs::hist {
 
         protected:
             const form_factor::lookup::atomic::table_t& get_ff_table() const override {
-                return form_factor::lookup::atomic::raw::get_table();
+                return form_factor::FormFactorManager::raw_atomic_table();
             }
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFAvg>, "CompositeDistanceHistogramAvg should support nothrow move semantics.");

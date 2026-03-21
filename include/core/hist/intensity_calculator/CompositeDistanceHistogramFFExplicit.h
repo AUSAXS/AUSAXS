@@ -4,7 +4,6 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicitBase.h>
-#include <form_factor/lookup/ExvFormFactorProduct.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
@@ -19,15 +18,15 @@ namespace ausaxs::hist {
             using CompositeDistanceHistogramFFExplicitBase::CompositeDistanceHistogramFFExplicitBase;
 
             const form_factor::lookup::atomic::table_t& get_ff_table() const override {
-                return form_factor::lookup::atomic::raw::get_table();
+                return form_factor::FormFactorManager::raw_atomic_table();
             }
 
             const form_factor::lookup::cross::table_t& get_ffax_table() const override {
-                return form_factor::lookup::cross::raw::get_table();
+                return form_factor::FormFactorManager::raw_cross_table();
             }
 
             const form_factor::lookup::exv::table_t& get_ffxx_table() const override {
-                return form_factor::lookup::exv::raw::get_table();
+                return form_factor::FormFactorManager::raw_exv_table();
             }
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFExplicit>, "CompositeDistanceHistogramFFExplicit should be nothrow move constructible");

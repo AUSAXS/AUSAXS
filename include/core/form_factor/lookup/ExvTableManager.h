@@ -11,11 +11,20 @@ namespace ausaxs::form_factor {
     class ExvTableManager {
         public:
             static observer_ptr<const constants::exv::detail::ExvSet> get_current_exv_table();
-            static const detail::ExvFormFactorSet& get_current_exv_form_factor_set();
-            void set_custom_exv_table(const constants::exv::detail::ExvSet& set);
+            static constexpr detail::ExvFormFactorSet get_current_exv_form_factor_set();
+            static void set_custom_exv_table(const constants::exv::detail::ExvSet& set);
 
         private:
-            bool _use_custom_exv_table = false;
-            static std::unique_ptr<constants::exv::detail::ExvSet> custom_exv_tables;
+            static inline bool _use_custom_exv_table = false;
+            static inline std::unique_ptr<constants::exv::detail::ExvSet> custom_exv_tables;
+            static const detail::ExvFormFactorSet& _nonconstexpr_get_current_exv_form_factor_set();
     };
+}
+
+constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_current_exv_form_factor_set() {
+    if constexpr (true) {
+        return detail::ExvFormFactorSet(constants::exv::standard);
+    } else {
+        return _nonconstexpr_get_current_exv_form_factor_set();
+    }
 }

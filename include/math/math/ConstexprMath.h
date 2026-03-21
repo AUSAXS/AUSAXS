@@ -5,7 +5,9 @@
 
 #include <gcem.hpp>
 
+#include <cmath>
 #include <numbers>
+#include <version>
 
 namespace ausaxs::gcem {
     namespace fast {
@@ -38,5 +40,9 @@ namespace ausaxs::gcem {
 }
 
 namespace ausaxs {
-    namespace constexpr_math = ::gcem;
+    #if defined __cpp_lib_constexpr_cmath
+        namespace constexpr_math = std;
+    #else
+        namespace constexpr_math = ::gcem;
+    #endif
 }

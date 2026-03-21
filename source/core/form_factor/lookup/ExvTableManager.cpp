@@ -1,5 +1,3 @@
-#pragma once
-
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <settings/ExvSettings.h>
@@ -28,23 +26,24 @@ observer_ptr<const constants::exv::detail::ExvSet> ExvTableManager::get_current_
     }
 }
 
-const detail::ExvFormFactorSet& ExvTableManager::get_current_exv_form_factor_set() {
+const detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_form_factor_set() {
+    static auto standard = detail::ExvFormFactorSet(constants::exv::standard);
     static auto available_sets = std::unordered_map<settings::exv::ExvSet, detail::ExvFormFactorSet>{
-        {settings::exv::ExvSet::Default, lookup::exv::standard}
+        {settings::exv::ExvSet::Default, standard}
     };
 
     // always update custom sets to ensure they reflect changes to the exv table
     if (settings::exv::exv_set == settings::exv::ExvSet::Custom) {
         //? add caching for custom tables? 
-        available_sets[settings::exv::ExvSet::Custom] = detail::ExvFormFactorSet(*get_current_exv_table());
-        return available_sets[settings::exv::ExvSet::Custom];
+            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, detail::ExvFormFactorSet(*get_current_exv_table()));
+            return available_sets.at(settings::exv::ExvSet::Custom);
     } else {
         // check if the current set is already available, otherwise create it
         if (auto it = available_sets.find(settings::exv::exv_set); it != available_sets.end()) {
             return it->second;
         }
-        available_sets[settings::exv::exv_set] = detail::ExvFormFactorSet(*get_current_exv_table());
-        return available_sets[settings::exv::exv_set];
+            available_sets.insert_or_assign(settings::exv::exv_set, detail::ExvFormFactorSet(*get_current_exv_table()));
+            return available_sets.at(settings::exv::exv_set);
     }
 }
 

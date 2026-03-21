@@ -4,13 +4,9 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
 #include <form_factor/NormalizedFormFactor.h>
-#include <form_factor/ExvFormFactor.h>
-#include <table/ArrayDebyeTable.h>
+#include <utility/MultiThreading.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
-#include <dataset/SimpleDataset.h>
-#include <utility/Exceptions.h>
-#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/ExvTable.h>
 #include <constants/Constants.h>
@@ -173,7 +174,7 @@ TEST_CASE("ExvFormFactorSet::get") {
 
 TEST_CASE("lookup::exv::standard") {
     SECTION("standard set is accessible") {
-        const auto& set = lookup::exv::standard;
+        const auto& set = ExvTableManager::get_current_exv_form_factor_set();
         CHECK(set.C.is_initialized());
         CHECK(set.N.is_initialized());
         CHECK(set.O.is_initialized());
@@ -181,7 +182,7 @@ TEST_CASE("lookup::exv::standard") {
     }
 
     SECTION("all form factors evaluate properly") {
-        const auto& set = lookup::exv::standard;
+        const auto& set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
             const ExvFormFactor& exv = set.get(static_cast<form_factor_t>(i));
             if (exv.is_initialized()) {

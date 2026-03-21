@@ -4,7 +4,6 @@
 #pragma once
 
 #include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/ExvFormFactorProduct.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/ExvFormFactor.h>

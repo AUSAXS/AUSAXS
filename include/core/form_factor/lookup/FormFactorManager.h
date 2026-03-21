@@ -1,10 +1,8 @@
 #pragma once
 
-#include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/ExvFormFactorProduct.h>
-#include <form_factor/lookup/NormalizedFormFactorProduct.h>
-#include <form_factor/lookup/NormalizedExvFormFactorProduct.h>
 #include <utility/observer_ptr.h>
+#include <container/ArrayContainer2D.h>
+#include <form_factor/lookup/FormFactorLookupFwd.h>
 
 #include <memory>
 
@@ -25,18 +23,18 @@ namespace ausaxs::form_factor {
 
             static observer_ptr<const _CustomTables> get_all_tables() noexcept;
             static constexpr std::array<int, form_factor::get_count_without_excluded_volume()> get_ff_indices() noexcept;
-            const lookup::atomic::table_t& normalized_atomic_table() const noexcept;
-            const lookup::exv::table_t& normalized_exv_table() const noexcept;
-            const lookup::cross::table_t& normalized_cross_table() const noexcept;
-            const lookup::atomic::table_t& raw_atomic_table() const noexcept;
-            const lookup::exv::table_t& raw_exv_table() const noexcept;
-            const lookup::cross::table_t& raw_cross_table() const noexcept;
-            void use_custom_form_factors(bool choice);
-            void set_custom_form_factors(std::vector<int> ff_indices);
+            static const lookup::atomic::table_t& normalized_atomic_table() noexcept;
+            static const lookup::exv::table_t& normalized_exv_table() noexcept;
+            static const lookup::cross::table_t& normalized_cross_table() noexcept;
+            static const lookup::atomic::table_t& raw_atomic_table() noexcept;
+            static const lookup::exv::table_t& raw_exv_table() noexcept;
+            static const lookup::cross::table_t& raw_cross_table() noexcept;
+            static void use_custom_form_factors(bool choice);
+            static void set_custom_form_factors(std::vector<int> ff_indices);
 
         private:
             static inline bool _use_custom_form_factors = false;
-            static std::unique_ptr<_CustomTables> custom_tables;
+            static inline std::unique_ptr<_CustomTables> custom_tables;
 
             static void refresh_custom_state();
     };

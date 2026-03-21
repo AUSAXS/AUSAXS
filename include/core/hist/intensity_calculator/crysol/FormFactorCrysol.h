@@ -7,9 +7,8 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorTable.h>
 #include <form_factor/ExvTable.h>
-#include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/ExvFormFactorProduct.h>
 #include <form_factor/NormalizedFormFactor.h>
+#include <form_factor/lookup/FormFactorLookupFwd.h>
 #include <container/ArrayContainer2D.h>
 #include <math/ConstexprMath.h>
 
