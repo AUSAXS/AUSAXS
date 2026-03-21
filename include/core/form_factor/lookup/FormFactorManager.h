@@ -19,9 +19,7 @@ namespace ausaxs::form_factor {
         };
 
         public:
-            static inline bool _needs_refresh = false;
-
-            static observer_ptr<const _CustomTables> get_all_tables() noexcept;
+            static observer_ptr<const _CustomTables> get_custom_tables() noexcept;
             static constexpr std::array<int, form_factor::get_count_without_excluded_volume()> get_ff_indices() noexcept;
             static const lookup::atomic::table_t& normalized_atomic_table() noexcept;
             static const lookup::exv::table_t& normalized_exv_table() noexcept;
@@ -31,10 +29,13 @@ namespace ausaxs::form_factor {
             static const lookup::cross::table_t& raw_cross_table() noexcept;
             static void use_custom_form_factors(bool choice);
             static void set_custom_form_factors(std::vector<int> ff_indices);
+            static void refresh();
 
         private:
+            static inline bool _needs_refresh = false;
             static inline bool _use_custom_form_factors = false;
             static inline std::unique_ptr<_CustomTables> custom_tables;
+            static bool is_using_custom_form_factors() noexcept;
 
             static void refresh_custom_state();
     };
@@ -49,14 +50,7 @@ constexpr std::array<int, ausaxs::form_factor::get_count_without_excluded_volume
         return indices;
     };
 
-    // enable compile-time generation of ff tables
-    if constexpr (true) {
-        return generator();
-    }
-
-    if (_use_custom_form_factors) {
-        return custom_tables->ff_indices;
-    }
-
+    if (std::is_constant_evaluated()) {return generator();}
+    if (_use_custom_form_factors) {return custom_tables->ff_indices;}
     return generator();
 }

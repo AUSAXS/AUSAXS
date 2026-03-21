@@ -15,6 +15,7 @@ namespace ausaxs::constants::exv {
             double N, NH, NH2, NH3;
             double O, OH;
             double S, SH;
+            constexpr bool operator==(const ExvSet& other) const = default;
         };
 
         constexpr double volume(double radius) {

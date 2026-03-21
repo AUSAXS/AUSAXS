@@ -8,10 +8,13 @@
 #include <form_factor/lookup/detail/FormFactorProductBase.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
 
+#include <cassert>
+#include <numeric>
+
 using namespace ausaxs;
 using namespace ausaxs::form_factor; 
 
-observer_ptr<const FormFactorManager::_CustomTables> FormFactorManager::get_all_tables() noexcept {
+observer_ptr<const FormFactorManager::_CustomTables> FormFactorManager::get_custom_tables() noexcept {
     return custom_tables.get();
 }
 
@@ -31,7 +34,7 @@ namespace {
 }
 
 const lookup::atomic::table_t& FormFactorManager::normalized_atomic_table() noexcept {
-    if (_use_custom_form_factors) {
+    if (is_using_custom_form_factors()) {
         refresh_custom_state();
         return custom_tables->custom_normalized_atomic_table;
     }
@@ -39,7 +42,7 @@ const lookup::atomic::table_t& FormFactorManager::normalized_atomic_table() noex
 }
 
 const lookup::exv::table_t& FormFactorManager::normalized_exv_table() noexcept {
-    if (_use_custom_form_factors) {
+    if (is_using_custom_form_factors()) {
         refresh_custom_state();
         return custom_tables->custom_normalized_exv_table;
     }
@@ -47,7 +50,7 @@ const lookup::exv::table_t& FormFactorManager::normalized_exv_table() noexcept {
 }
 
 const lookup::cross::table_t& FormFactorManager::normalized_cross_table() noexcept {
-    if (_use_custom_form_factors) {
+    if (is_using_custom_form_factors()) {
         refresh_custom_state();
         return custom_tables->custom_normalized_cross_table;
     }
@@ -55,7 +58,7 @@ const lookup::cross::table_t& FormFactorManager::normalized_cross_table() noexce
 }
 
 const lookup::atomic::table_t& FormFactorManager::raw_atomic_table() noexcept {
-    if (_use_custom_form_factors) {
+    if (is_using_custom_form_factors()) {
         refresh_custom_state();
         return custom_tables->custom_raw_atomic_table;
     }
@@ -63,7 +66,7 @@ const lookup::atomic::table_t& FormFactorManager::raw_atomic_table() noexcept {
 }
 
 const lookup::exv::table_t& FormFactorManager::raw_exv_table() noexcept {
-    if (_use_custom_form_factors) {
+    if (is_using_custom_form_factors()) {
         refresh_custom_state();
         return custom_tables->custom_raw_exv_table;
     }
@@ -71,7 +74,7 @@ const lookup::exv::table_t& FormFactorManager::raw_exv_table() noexcept {
 }
 
 const lookup::cross::table_t& FormFactorManager::raw_cross_table() noexcept {
-    if (_use_custom_form_factors) {
+    if (is_using_custom_form_factors()) {
         refresh_custom_state();
         return custom_tables->custom_raw_cross_table;
     }
@@ -79,15 +82,30 @@ const lookup::cross::table_t& FormFactorManager::raw_cross_table() noexcept {
 }
 
 void FormFactorManager::use_custom_form_factors(bool choice) {
-    if (!custom_tables) {throw std::logic_error("Custom form factors must be set before they can be used.");}
+    if (choice && !custom_tables) {
+        std::vector<int> indices(form_factor::get_count_without_excluded_volume());
+        std::iota(indices.begin(), indices.end(), 0);
+        set_custom_form_factors(indices);
+    }
     _use_custom_form_factors = choice;
 }
 
 void FormFactorManager::set_custom_form_factors(std::vector<int> ff_indices) {
+    assert(!ff_indices.empty() && "Custom form factors cannot be empty.");
+    assert(ff_indices.size() <= form_factor::get_count_without_excluded_volume() && "Custom form factors cannot exceed the total number of available form factors.");
+
+    _use_custom_form_factors = true;
     custom_tables = std::make_unique<_CustomTables>();
+    std::copy(ff_indices.begin(), ff_indices.end(), custom_tables->ff_indices.begin());
+    refresh();
+}
+
+void FormFactorManager::refresh() {
     _needs_refresh = true;
-    assert(!custom_form_factors.empty() && "Custom form factors cannot be empty.");
-    assert(custom_form_factors.size() <= form_factor::get_count() && "Custom form factors cannot exceed the total number of available form factors.");
+}
+
+bool FormFactorManager::is_using_custom_form_factors() noexcept {
+    return _use_custom_form_factors || !ExvTableManager::is_default();
 }
 
 void FormFactorManager::refresh_custom_state() {

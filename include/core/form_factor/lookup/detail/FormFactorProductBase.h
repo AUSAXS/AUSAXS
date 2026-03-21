@@ -10,6 +10,11 @@
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
 
+#if CONSTEXPR_TABLES
+    #define CONST constexpr
+#else
+    #define CONST const
+#endif
 namespace ausaxs::form_factor::lookup::detail {
     /**
      * @brief Generate an atomic form factor product table.
@@ -17,7 +22,7 @@ namespace ausaxs::form_factor::lookup::detail {
      * @tparam FormFactorLookup A type providing a static `get(form_factor_t)` method.
      */
     template<typename FormFactorLookup>
-    constexpr form_factor::lookup::atomic::table_t generate_atomic_table() {
+    CONST form_factor::lookup::atomic::table_t generate_atomic_table() {
         auto ff_indices = FormFactorManager::get_ff_indices();
 
         form_factor::lookup::atomic::table_t table;
@@ -60,7 +65,7 @@ namespace ausaxs::form_factor::lookup::detail {
      * @param set The excluded volume form factor set to use.
      */
     template<typename TableType>
-    constexpr TableType generate_exv_table() {
+    CONST TableType generate_exv_table() {
         auto ff_indices = FormFactorManager::get_ff_indices();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
@@ -89,7 +94,7 @@ namespace ausaxs::form_factor::lookup::detail {
      * @param exv_set The excluded volume form factor set to use.
      */
     template<typename TableType, typename AtomicFormFactorLookup>
-    constexpr TableType generate_cross_table() {
+    CONST TableType generate_cross_table() {
         auto ff_indices = FormFactorManager::get_ff_indices();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 

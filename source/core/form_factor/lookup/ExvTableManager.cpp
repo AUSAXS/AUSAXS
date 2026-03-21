@@ -22,8 +22,13 @@ observer_ptr<const constants::exv::detail::ExvSet> ExvTableManager::get_current_
         default: 
             throw std::runtime_error(
                 "constants::displaced_volume::get_exv_set: Invalid displaced volume set" 
-                "(enum " + std::to_string(static_cast<int>(settings::exv::exv_set)) + ")");
+                "(enum " + std::to_string(static_cast<int>(settings::exv::exv_set.value)) + ")"
+            );
     }
+}
+
+bool ExvTableManager::is_default() {
+    return !_use_custom_exv_table;
 }
 
 const detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_form_factor_set() {
@@ -48,6 +53,8 @@ const detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_f
 }
 
 void ExvTableManager::set_custom_exv_table(const constants::exv::detail::ExvSet& set) {
+    if (set == constants::exv::standard) {_use_custom_exv_table = false; return;}
     custom_exv_tables = std::make_unique<constants::exv::detail::ExvSet>(set);
-    FormFactorManager::_needs_refresh = true;
+    settings::exv::exv_set = settings::exv::ExvSet::Custom;
+    _use_custom_exv_table = true;
 }

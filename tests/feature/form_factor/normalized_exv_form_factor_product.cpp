@@ -102,32 +102,32 @@ TEST_CASE("ExvFormFactor: switch volumes") {
     };
 
     SECTION("Traube") {
-        settings::molecule::exv_set = settings::molecule::ExvSet::Traube;
+        settings::exv::exv_set = settings::exv::ExvSet::Traube;
         test(constants::exv::Traube);
     }
 
     SECTION("Voronoi_explicit_H") {
-        settings::molecule::exv_set = settings::molecule::ExvSet::Voronoi_explicit_H;
+        settings::exv::exv_set = settings::exv::ExvSet::Voronoi_explicit_H;
         test(constants::exv::Voronoi_explicit_H);
     }
 
     SECTION("Voronoi_implicit_H") {
-        settings::molecule::exv_set = settings::molecule::ExvSet::Voronoi_implicit_H;
+        settings::exv::exv_set = settings::exv::ExvSet::Voronoi_implicit_H;
         test(constants::exv::Voronoi_implicit_H);
     }
 
     SECTION("MinimumFluctutation_explicit_H") {
-        settings::molecule::exv_set = settings::molecule::ExvSet::MinimumFluctutation_explicit_H;
+        settings::exv::exv_set = settings::exv::ExvSet::MinimumFluctutation_explicit_H;
         test(constants::exv::MinimumFluctuation_explicit_H);
     }
 
     SECTION("MinimumFluctutation_implicit_H") {
-        settings::molecule::exv_set = settings::molecule::ExvSet::MinimumFluctutation_implicit_H;
+        settings::exv::exv_set = settings::exv::ExvSet::MinimumFluctutation_implicit_H;
         test(constants::exv::MinimumFluctuation_implicit_H);
     }
 
     SECTION("vdw") {
-        settings::molecule::exv_set = settings::molecule::ExvSet::vdw;
+        settings::exv::exv_set = settings::exv::ExvSet::vdw;
         test(constants::exv::vdw);
     }
 }

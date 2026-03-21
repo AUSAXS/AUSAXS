@@ -13,6 +13,7 @@ namespace ausaxs::form_factor {
             static observer_ptr<const constants::exv::detail::ExvSet> get_current_exv_table();
             static constexpr detail::ExvFormFactorSet get_current_exv_form_factor_set();
             static void set_custom_exv_table(const constants::exv::detail::ExvSet& set);
+            static bool is_default();
 
         private:
             static inline bool _use_custom_exv_table = false;
@@ -22,9 +23,8 @@ namespace ausaxs::form_factor {
 }
 
 constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_current_exv_form_factor_set() {
-    if constexpr (true) {
+    if (std::is_constant_evaluated()) {
         return detail::ExvFormFactorSet(constants::exv::standard);
-    } else {
-        return _nonconstexpr_get_current_exv_form_factor_set();
     }
+    return _nonconstexpr_get_current_exv_form_factor_set();
 }

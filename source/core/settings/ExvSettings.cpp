@@ -5,11 +5,20 @@
 #include <settings/SettingsIORegistry.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
+#include <form_factor/lookup/FormFactorManager.h>
 
 using namespace ausaxs;
 
 settings::exv::ExvMethod settings::exv::exv_method = settings::exv::ExvMethod::Simple;
-settings::exv::ExvSet settings::exv::exv_set = settings::exv::ExvSet::Default;
+
+settings::detail::Setting<settings::exv::ExvSet> settings::exv::exv_set = {
+    settings::exv::ExvSet::Default,
+    [] (settings::exv::ExvSet& new_set) {
+        form_factor::FormFactorManager::use_custom_form_factors(new_set != settings::exv::ExvSet::Default);
+        form_factor::FormFactorManager::refresh();
+    }
+};
+
 settings::io::SettingSection exv_section("Excluded volume", {
     settings::io::create(settings::exv::exv_method, "exv_model"),
     settings::io::create(settings::exv::exv_set, "exv_volume")

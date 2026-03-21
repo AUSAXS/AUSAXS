@@ -4,6 +4,7 @@
 #pragma once
 
 #include <settings/ExportMacro.h>
+#include <settings/SettingsHelper.h>
 
 namespace ausaxs::settings {
     struct EXPORT exv {
@@ -64,6 +65,6 @@ namespace ausaxs::settings {
             //! Remember to update constants::exv::standard if this is changed
             Default = MinimumFluctutation_implicit_H // Default displaced volume set
         };
-        static ExvSet exv_set;
+        static detail::Setting<ExvSet> exv_set;
     };
 }

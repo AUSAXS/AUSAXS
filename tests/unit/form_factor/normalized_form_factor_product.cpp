@@ -118,7 +118,7 @@ TEST_CASE("lookup::atomic::normalized::get_product") {
 
 TEST_CASE("lookup::atomic::normalized::get_table") {
     SECTION("table access") {
-        auto& table = FormFactorManager::raw_atomic_table();
+        auto& table = FormFactorManager::normalized_atomic_table();
 
         const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
         const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
@@ -135,7 +135,7 @@ TEST_CASE("lookup::atomic::normalized::get_table") {
     }
 
     SECTION("table completeness") {
-        auto& table = FormFactorManager::raw_atomic_table();
+        auto& table = FormFactorManager::normalized_atomic_table();
         for (unsigned int ff1 = 0; ff1 < get_count(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count(); ++ff2) {
                 const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
