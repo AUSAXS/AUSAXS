@@ -3,11 +3,14 @@
 
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
+#include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/ExvTableManager.h>
 #include <constants/Constants.h>
 #include <dataset/SimpleDataset.h>
 #include <plots/PlotDataset.h>
 
 using namespace ausaxs;
+using namespace ausaxs::form_factor;
 
 const auto& q_vals = constants::axes::q_vals;
 TEST_CASE("ExvFormFactor::evaluate") {}
@@ -24,8 +27,9 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
         plot.plot(dataset, plots::PlotOptions({{"legend", "average exv"}, {"xlabel", "q"}, {"ylabel", "Amplitude"}, {"logx", true}, {"logy", true}, {"color", style::color::next()}, {"linewidth", 2}}));
     }
 
+    auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
     for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {
-        const form_factor::ExvFormFactor& ff_obj = form_factor::lookup::exv::standard.get(static_cast<form_factor::form_factor_t>(ff));
+        const form_factor::ExvFormFactor& ff_obj = exv_set.get(static_cast<form_factor::form_factor_t>(ff));
         SimpleDataset dataset;
         for (const double& q : q_vals) {
             dataset.push_back(q, ff_obj.evaluate_normalized(q));
@@ -37,9 +41,10 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
 
 // compare each exv form factor with its real one
 TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
+    auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
     for (unsigned int ffi = 0; ffi < form_factor::get_count_without_excluded_volume(); ++ffi) {
         const form_factor::NormalizedFormFactor& ff = form_factor::lookup::atomic::normalized::get(static_cast<form_factor::form_factor_t>(ffi));
-        const form_factor::ExvFormFactor& ffx = form_factor::lookup::exv::standard.get(static_cast<form_factor::form_factor_t>(ffi));
+        const form_factor::ExvFormFactor& ffx = exv_set.get(static_cast<form_factor::form_factor_t>(ffi));
 
         SimpleDataset dataset, datasetx;
         for (const double& q : q_vals) {

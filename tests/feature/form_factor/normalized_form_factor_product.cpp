@@ -3,6 +3,7 @@
 
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorManager.h>
 
 using namespace ausaxs;
 using namespace form_factor;
@@ -21,7 +22,7 @@ TEST_CASE("PrecalculatedFormFactorProduct::evaluate") {
 }
 
 TEST_CASE("PrecalculatedFormFactorProduct::table") {
-    const auto& table = lookup::atomic::normalized::get_table();
+    auto& table = FormFactorManager::normalized_atomic_table();
     for (unsigned int ff1 = 0; ff1 < get_count(); ++ff1) {
         for (unsigned int ff2 = 0; ff2 < get_count(); ++ff2) {
             const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
