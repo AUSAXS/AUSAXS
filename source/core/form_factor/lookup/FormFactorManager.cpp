@@ -26,11 +26,11 @@ observer_ptr<const FormFactorManager::_CustomTables> FormFactorManager::get_cust
 namespace {
     // Default tables. These _must_ be initialized statically to ensure default settings. 
     CONST auto raw_atomic_table        = lookup::detail::generate_atomic_table<lookup::detail::RawFormFactorLookup>();
-    CONST auto raw_exv_table           = lookup::detail::generate_exv_table<lookup::exv::table_t>();
-    CONST auto raw_cross_table         = lookup::detail::generate_cross_table<lookup::exv::table_t, lookup::detail::RawFormFactorLookup>();
+    CONST auto raw_exv_table           = lookup::detail::generate_exv_table();
+    CONST auto raw_cross_table         = lookup::detail::generate_cross_table<lookup::detail::RawFormFactorLookup>();
     CONST auto normalized_atomic_table = lookup::detail::generate_atomic_table<lookup::detail::NormalizedFormFactorLookup>();
-    CONST auto normalized_exv_table    = lookup::detail::generate_exv_table<lookup::exv::table_t>();
-    CONST auto normalized_cross_table  = lookup::detail::generate_cross_table<lookup::exv::table_t, lookup::detail::NormalizedFormFactorLookup>();
+    CONST auto normalized_exv_table    = lookup::detail::generate_exv_table();
+    CONST auto normalized_cross_table  = lookup::detail::generate_cross_table<lookup::detail::NormalizedFormFactorLookup>();
 }
 
 const lookup::atomic::table_t& FormFactorManager::normalized_atomic_table() noexcept {
@@ -112,10 +112,10 @@ void FormFactorManager::refresh_custom_state() {
     if (!_needs_refresh) {return;}
     assert(custom_tables && "Custom tables must be set before they can be used.");
     custom_tables->custom_raw_atomic_table = lookup::detail::generate_atomic_table<lookup::detail::RawFormFactorLookup>();
-    custom_tables->custom_raw_cross_table = lookup::detail::generate_cross_table<lookup::cross::table_t, lookup::detail::RawFormFactorLookup>();
-    custom_tables->custom_raw_exv_table = lookup::detail::generate_exv_table<lookup::exv::table_t>();
+    custom_tables->custom_raw_cross_table = lookup::detail::generate_cross_table<lookup::detail::RawFormFactorLookup>();
+    custom_tables->custom_raw_exv_table = lookup::detail::generate_exv_table();
     custom_tables->custom_normalized_atomic_table = lookup::detail::generate_atomic_table<lookup::detail::NormalizedFormFactorLookup>();
-    custom_tables->custom_normalized_cross_table = lookup::detail::generate_cross_table<lookup::cross::table_t, lookup::detail::NormalizedFormFactorLookup>();
-    custom_tables->custom_normalized_exv_table = lookup::detail::generate_exv_table<lookup::exv::table_t>();
+    custom_tables->custom_normalized_cross_table = lookup::detail::generate_cross_table<lookup::detail::NormalizedFormFactorLookup>();
+    custom_tables->custom_normalized_exv_table = lookup::detail::generate_exv_table();
     _needs_refresh = false;
 }

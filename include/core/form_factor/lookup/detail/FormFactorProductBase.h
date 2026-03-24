@@ -18,7 +18,6 @@
 namespace ausaxs::form_factor::lookup::detail {
     /**
      * @brief Generate an atomic form factor product table.
-     * 
      * @tparam FormFactorLookup A type providing a static `get(form_factor_t)` method.
      */
     template<typename FormFactorLookup>
@@ -60,16 +59,13 @@ namespace ausaxs::form_factor::lookup::detail {
     /**
      * @brief Generate an excluded volume form factor product table (exv-exv).
      *        This is a symmetric table.
-     * 
-     * @tparam TableType The table type to generate.
      * @param set The excluded volume form factor set to use.
      */
-    template<typename TableType>
-    CONST TableType generate_exv_table() {
+    CONST inline form_factor::lookup::exv::table_t generate_exv_table() {
         auto ff_indices = FormFactorManager::get_ff_indices();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
-        TableType table;
+        form_factor::lookup::exv::table_t table;
         for (unsigned int i = 0; i < ff_indices.size(); ++i) {
             for (unsigned int j = 0; j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(
@@ -88,17 +84,14 @@ namespace ausaxs::form_factor::lookup::detail {
 
     /**
      * @brief Generate a cross form factor product table (atomic-exv).
-     * 
-     * @tparam TableType The table type to generate.
      * @tparam AtomicFormFactorLookup A type providing a static `get(form_factor_t)` method for atomic form factors.
-     * @param exv_set The excluded volume form factor set to use.
      */
-    template<typename TableType, typename AtomicFormFactorLookup>
-    CONST TableType generate_cross_table() {
+    template<typename AtomicFormFactorLookup>
+    CONST form_factor::lookup::cross::table_t generate_cross_table() {
         auto ff_indices = FormFactorManager::get_ff_indices();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
-        TableType table;
+        form_factor::lookup::cross::table_t table;
         for (unsigned int i = 0; i < ff_indices.size(); ++i) {
             for (unsigned int j = 0; j < ff_indices.size(); ++j) {
                 table.index(i, j) = FormFactorProduct(
