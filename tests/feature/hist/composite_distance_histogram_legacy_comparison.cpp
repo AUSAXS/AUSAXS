@@ -257,11 +257,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
             double cx = exv_factor(constants::axes::q_vals[q]);
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                    // Use aa histogram but subtract self-correlations at distance bin 0
-                    double self_correlation = this->distance_profiles.aa.index(ff1, ff2, 0);
                     double aa_sum = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
-                    double ax_sum = aa_sum - self_correlation * sinqd_table->lookup(q, 0);
-                    Iq[q-q0] += 2*cx*ax_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
+                    Iq[q-q0] += cx*aa_sum*(ff_ax_table.index(ff1, ff2).evaluate(q) + ff_ax_table.index(ff2, ff1).evaluate(q));
                 }
             }
         }
@@ -301,9 +298,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(constants::axes::q_vals[q]);
             for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-                // wx uses the same histogram as aw (no self-correlations for atom-water)
                 double wx_sum = std::inner_product(this->distance_profiles.aw.begin(ff1), this->distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
-                Iq[q-q0] += 2*cx*this->free_params.cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
+                Iq[q-q0] += cx*this->free_params.cw*wx_sum*(ff_ax_table.index(ff_w_index, ff1).evaluate(q) + ff_ax_table.index(ff1, ff_w_index).evaluate(q));
             }
         }
         return ScatteringProfile(std::move(Iq), debye_axis);
@@ -330,9 +326,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
                     Iq[q-q0] += aa_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
 
                     // atom-exv (use aa histogram but subtract self-correlations)
-                    double self_correlation = this->distance_profiles.aa.index(ff1, ff2, 0);
-                    double ax_sum = aa_sum - self_correlation * sinqd_table->lookup(q, 0);
-                    Iq[q-q0] -= 2*cx*ax_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
+                    Iq[q-q0] -= cx*aa_sum*(ff_ax_table.index(ff1, ff2).evaluate(q) + ff_ax_table.index(ff2, ff1).evaluate(q));
 
                     // exv-exv (same as aa, includes self-correlations)
                     double xx_sum = aa_sum;
@@ -345,7 +339,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
 
                 // exv-water (same as aw, no self-correlations)
                 double wx_sum = aw_sum;
-                Iq[q-q0] -= 2*cx*this->free_params.cw*wx_sum*ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q);
+                Iq[q-q0] -= cx*this->free_params.cw*wx_sum*(ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q) + ff_ax_table.index(ff1, form_factor::water_bin).evaluate(q));
             }
 
             // water-water
@@ -448,7 +442,7 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(q);
             double ew_sum = std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] += 2*cx*free_params.cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
+            Iq[q-q0] += cx*free_params.cw*ew_sum*(ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q) + ff_table.index(form_factor::water_bin, form_factor::exv_bin).evaluate(q));
         }
         return ScatteringProfile(std::move(Iq), debye_axis);
     }

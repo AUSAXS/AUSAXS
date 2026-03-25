@@ -17,9 +17,10 @@ CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution3D&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
+    hist::Distribution1D&& p_aa_self,
     hist::Distribution1D&& p_tot,
     double V
-) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(V) {
+) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_aa_self), std::move(p_tot)), average_displaced_V(V) {
     initialize();
 }
 
@@ -27,9 +28,10 @@ CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution3D&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
+    hist::Distribution1D&& p_aa_self,
     hist::WeightedDistribution1D&& p_tot,
     double V
-) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(V) {
+) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_aa_self), std::move(p_tot)), average_displaced_V(V) {
     initialize();
 }
 
