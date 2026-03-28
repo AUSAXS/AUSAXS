@@ -38,7 +38,6 @@ namespace ausaxs::hist {
                 hist::Distribution3D&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww,
-                hist::Distribution1D&& p_aa_self,
                 hist::Distribution1D&& p_tot
             );
 
@@ -56,7 +55,6 @@ namespace ausaxs::hist {
                 hist::Distribution3D&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
-                hist::Distribution1D&& p_aa_self,
                 hist::WeightedDistribution1D&& p_tot
             );
 
@@ -75,12 +73,10 @@ namespace ausaxs::hist {
         protected:
             // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
             double exv_factor(double q) const override;
-            hist::Distribution1D p_aa_self;
 
             //#################################//
             //###           CACHE           ###//
             //#################################//
-
             mutable struct {
                 // cached sinqd vals for each form factor combination
                 // indexing as [ff1][ff2] for 3D, [ff1] for 2D

@@ -34,7 +34,6 @@ namespace ausaxs::hist {
                 hist::Distribution3D&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww,
-                hist::Distribution1D&& p_aa_self,
                 hist::Distribution1D&& p_tot,
                 double avg_displaced_V
             );
@@ -54,7 +53,6 @@ namespace ausaxs::hist {
                 hist::Distribution3D&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
-                hist::Distribution1D&& p_aa_self,
                 hist::WeightedDistribution1D&& p_tot,
                 double avg_displaced_V
             );
