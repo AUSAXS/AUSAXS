@@ -77,7 +77,6 @@ namespace ausaxs::hist {
             //#################################//
             //###           CACHE           ###//
             //#################################//
-
             mutable struct {
                 // cached sinqd vals for each form factor combination
                 // indexing as [ff1][ff2] for 3D, [ff1] for 2D

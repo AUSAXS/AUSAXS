@@ -328,6 +328,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     //###################//
     // SELF-CORRELATIONS //
     //###################//
+    // save the self-correlations for later use in the intensity calculation
     for (int i = 0; i < data_a_size; ++i) {
         if constexpr (wb) {
             p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 0.0f);
@@ -335,21 +336,19 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
             p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
         }
     }
+
     if constexpr (wb) {
         p_ww.add_index(0, WeightedEntry(data_w_size, data_w_size, 0));
     } else {
         p_ww.add_index(0, data_w_size);
     }
 
-    // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
     GenericDistribution1D_t p_tot(settings::axes::bin_count);
     {   // sum all elements to the total
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 std::transform(p_tot.begin(), p_tot.end(), p_aa.begin(ff1, ff2), p_tot.begin(), std::plus<>());
             }
-        }
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             std::transform(p_tot.begin(), p_tot.end(), p_wa.begin(ff1), p_tot.begin(), std::plus<>());
         }
         std::transform(p_tot.begin(), p_tot.end(), p_ww.begin(), p_tot.begin(), std::plus<>());
