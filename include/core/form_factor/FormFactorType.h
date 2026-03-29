@@ -51,8 +51,29 @@ namespace ausaxs::form_factor {
             case form_factor_t::EXCLUDED_VOLUME: return "EXV";
             case form_factor_t::COUNT: return "CNT";
             case form_factor_t::UNKNOWN: return "UNK";
-            default: throw std::runtime_error("form_factor::to_string: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+            default: throw std::runtime_error("form_factor::to_string: Unknown form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
         }
+    }
+
+    [[maybe_unused]] static form_factor_t from_string(const std::string& str) {
+        if (str == "H") return form_factor_t::H;
+        if (str == "C") return form_factor_t::C;
+        if (str == "CH") return form_factor_t::CH;
+        if (str == "CH2") return form_factor_t::CH2;
+        if (str == "CH3") return form_factor_t::CH3;
+        if (str == "N") return form_factor_t::N;
+        if (str == "NH") return form_factor_t::NH;
+        if (str == "NH2") return form_factor_t::NH2;
+        if (str == "NH3") return form_factor_t::NH3;
+        if (str == "O") return form_factor_t::O;
+        if (str == "OH") return form_factor_t::OH;
+        if (str == "S") return form_factor_t::S;
+        if (str == "SH") return form_factor_t::SH;
+        if (str == "OTH") return form_factor_t::OTHER;
+        if (str == "EXV") return form_factor_t::EXCLUDED_VOLUME;
+        if (str == "CNT") return form_factor_t::COUNT;
+        if (str == "UNK") return form_factor_t::UNKNOWN;
+        throw std::runtime_error("form_factor::from_string: Unknown form factor string \"" + str + "\"");
     }
 
     /**
