@@ -62,7 +62,7 @@ namespace ausaxs::settings {
             //? Custom displaced volume set. Make sure to define it first with form_factor::storage::detail::set_custom_displaced_volume_set
             Custom,
 
-            //! Remember to update constants::exv::standard if this is changed
+            //! Keep this in sync with form_factor::ExvTableManager::get_default_exv_table.
             Default = MinimumFluctutation_implicit_H // Default displaced volume set
         };
         static detail::Setting<ExvSet> exv_set;

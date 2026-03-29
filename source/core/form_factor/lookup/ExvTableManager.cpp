@@ -10,6 +10,18 @@
 using namespace ausaxs;
 using namespace ausaxs::form_factor; 
 
+const constants::exv::detail::ExvSet& ExvTableManager::get_default_exv_table() {
+    switch (settings::exv::ExvSet::Default) {
+        case settings::exv::ExvSet::Traube: return constants::exv::Traube;
+        case settings::exv::ExvSet::Voronoi_explicit_H: return constants::exv::Voronoi_explicit_H;
+        case settings::exv::ExvSet::Voronoi_implicit_H: return constants::exv::Voronoi_implicit_H;
+        case settings::exv::ExvSet::MinimumFluctutation_explicit_H: return constants::exv::MinimumFluctuation_explicit_H;
+        case settings::exv::ExvSet::MinimumFluctutation_implicit_H: return constants::exv::MinimumFluctuation_implicit_H;
+        case settings::exv::ExvSet::vdw: return constants::exv::vdw;
+        default: return constants::exv::MinimumFluctuation_implicit_H;
+    }
+}
+
 observer_ptr<const constants::exv::detail::ExvSet> ExvTableManager::get_current_exv_table() {
     switch (settings::exv::exv_set) {
         case settings::exv::ExvSet::Traube: return &constants::exv::Traube;
@@ -35,7 +47,7 @@ bool ExvTableManager::is_default() {
 }
 
 const detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_form_factor_set() {
-    static auto standard = detail::ExvFormFactorSet(constants::exv::standard);
+    static auto standard = detail::ExvFormFactorSet(get_default_exv_table());
     static auto available_sets = std::unordered_map<settings::exv::ExvSet, detail::ExvFormFactorSet>{
         {settings::exv::ExvSet::Default, standard}
     };
@@ -56,7 +68,7 @@ const detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_f
 }
 
 void ExvTableManager::set_custom_exv_table(const constants::exv::detail::ExvSet& set) {
-    if (set == constants::exv::standard) {_use_custom_exv_table = false; return;}
+    if (set == get_default_exv_table()) {_use_custom_exv_table = false; return;}
     custom_exv_tables = std::make_unique<constants::exv::detail::ExvSet>(set);
     settings::exv::exv_set = settings::exv::ExvSet::Custom;
     _use_custom_exv_table = true;

@@ -59,11 +59,11 @@ namespace ausaxs::form_factor::lookup::detail {
     /**
      * @brief Generate an excluded volume form factor product table (exv-exv).
      *        This is a symmetric table.
-     * @param set The excluded volume form factor set to use.
+     * @param use_default_table If true, always use the default EXV set.
      */
-    CONST inline form_factor::lookup::exv::table_t generate_exv_table() {
+    CONST inline form_factor::lookup::exv::table_t generate_exv_table(bool use_default_table = false) {
         auto ff_indices = FormFactorManager::get_ff_indices();
-        auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
+        auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::exv::table_t table;
         for (unsigned int i = 0; i < ff_indices.size(); ++i) {
@@ -85,11 +85,12 @@ namespace ausaxs::form_factor::lookup::detail {
     /**
      * @brief Generate a cross form factor product table (atomic-exv).
      * @tparam AtomicFormFactorLookup A type providing a static `get(form_factor_t)` method for atomic form factors.
+     * @param use_default_table If true, always use the default EXV set.
      */
     template<typename AtomicFormFactorLookup>
-    CONST form_factor::lookup::cross::table_t generate_cross_table() {
+    CONST form_factor::lookup::cross::table_t generate_cross_table(bool use_default_table = false) {
         auto ff_indices = FormFactorManager::get_ff_indices();
-        auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
+        auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::cross::table_t table;
         for (unsigned int i = 0; i < ff_indices.size(); ++i) {

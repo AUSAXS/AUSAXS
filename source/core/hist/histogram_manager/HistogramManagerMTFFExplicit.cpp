@@ -11,6 +11,7 @@
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
 #include <settings/ExvSettings.h>
@@ -370,27 +371,28 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     pool->wait();
 
     auto displaced_avg = [&] () {
+        const auto& default_exv = form_factor::ExvTableManager::get_default_exv_table();
         auto V = std::accumulate(
             data_a.get_data().begin(), 
             data_a.get_data().end(), 
             0.0, 
-            [] (double sum, const auto& data_point) {
+            [&default_exv] (double sum, const auto& data_point) {
                 auto ff = static_cast<form_factor::form_factor_t>(data_point.value.ff);
                 switch (ff) {
-                    case form_factor::form_factor_t::H: return constants::exv::standard.H + sum;
-                    case form_factor::form_factor_t::C: return constants::exv::standard.C + sum;
-                    case form_factor::form_factor_t::CH: return constants::exv::standard.C + sum;
-                    case form_factor::form_factor_t::CH2: return constants::exv::standard.C + sum;
-                    case form_factor::form_factor_t::CH3: return constants::exv::standard.C + sum;
-                    case form_factor::form_factor_t::N: return constants::exv::standard.N + sum;
-                    case form_factor::form_factor_t::NH: return constants::exv::standard.N + sum;
-                    case form_factor::form_factor_t::NH2: return constants::exv::standard.N + sum;
-                    case form_factor::form_factor_t::NH3: return constants::exv::standard.N + sum;
-                    case form_factor::form_factor_t::O: return constants::exv::standard.O + sum;
-                    case form_factor::form_factor_t::OH: return constants::exv::standard.O + sum;
-                    case form_factor::form_factor_t::S: return constants::exv::standard.S + sum;
-                    case form_factor::form_factor_t::SH: return constants::exv::standard.S + sum;
-                    default: return sum + constants::exv::standard.OH;
+                    case form_factor::form_factor_t::H: return default_exv.H + sum;
+                    case form_factor::form_factor_t::C: return default_exv.C + sum;
+                    case form_factor::form_factor_t::CH: return default_exv.C + sum;
+                    case form_factor::form_factor_t::CH2: return default_exv.C + sum;
+                    case form_factor::form_factor_t::CH3: return default_exv.C + sum;
+                    case form_factor::form_factor_t::N: return default_exv.N + sum;
+                    case form_factor::form_factor_t::NH: return default_exv.N + sum;
+                    case form_factor::form_factor_t::NH2: return default_exv.N + sum;
+                    case form_factor::form_factor_t::NH3: return default_exv.N + sum;
+                    case form_factor::form_factor_t::O: return default_exv.O + sum;
+                    case form_factor::form_factor_t::OH: return default_exv.O + sum;
+                    case form_factor::form_factor_t::S: return default_exv.S + sum;
+                    case form_factor::form_factor_t::SH: return default_exv.S + sum;
+                    default: return sum + default_exv.OH;
                 }
             }
         );

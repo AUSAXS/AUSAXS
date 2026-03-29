@@ -127,7 +127,7 @@ TEST_CASE("ExvFormFactor::volume_relationship") {
 
 TEST_CASE("ExvFormFactorSet::constructor") {
     SECTION("from standard set") {
-        auto set = detail::ExvFormFactorSet(constants::exv::standard);
+        auto set = detail::ExvFormFactorSet(ExvTableManager::get_default_exv_table());
         CHECK(set.C.is_initialized());
         CHECK(set.N.is_initialized());
         CHECK(set.O.is_initialized());
@@ -149,7 +149,7 @@ TEST_CASE("ExvFormFactorSet::constructor") {
 
 TEST_CASE("ExvFormFactorSet::get") {
     SECTION("all standard types") {
-        auto set = detail::ExvFormFactorSet(constants::exv::standard);
+        auto set = detail::ExvFormFactorSet(ExvTableManager::get_default_exv_table());
         
         CHECK(set.get(form_factor_t::C).is_initialized());
         CHECK(set.get(form_factor_t::CH).is_initialized());
@@ -167,7 +167,7 @@ TEST_CASE("ExvFormFactorSet::get") {
     }
 
     SECTION("invalid type throws") {
-        auto set = detail::ExvFormFactorSet(constants::exv::standard);
+        auto set = detail::ExvFormFactorSet(ExvTableManager::get_default_exv_table());
         CHECK_THROWS(set.get(form_factor_t::EXCLUDED_VOLUME));
     }
 }

@@ -16,7 +16,6 @@ namespace ausaxs::form_factor {
             lookup::exv::table_t    custom_raw_exv_table;
             lookup::cross::table_t  custom_raw_cross_table;
             lookup::atomic::table_t custom_raw_atomic_table;
-            lookup::exv::table_t    custom_normalized_exv_table;
             lookup::cross::table_t  custom_normalized_cross_table;
             lookup::atomic::table_t custom_normalized_atomic_table;
         };
