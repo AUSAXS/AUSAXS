@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
 #include <form_factor/lookup/FormFactorManager.h>
 #include <container/Container2D.h>
 #include <form_factor/FormFactor.h>
