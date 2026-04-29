@@ -155,29 +155,21 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
         settings::exv::exv_set = original_setting;
     }
 
-    SECTION("raw and normalized tables stay in sync") {
+    SECTION("products match direct calculation after custom table is set") {
         auto original_setting = settings::exv::exv_set;
 
-        // Set custom table using normalized interface
         constants::exv::detail::ExvSet custom_set = constants::exv::Traube;
         ExvTableManager::set_custom_exv_table(custom_set);
 
-        // Verify both raw and normalized tables are updated
-        const auto& norm_table = FormFactorManager::raw_exv_table();
-        const auto& raw_table = FormFactorManager::raw_exv_table();
-
-        // The excluded volume form factors are the same for raw and normalized
-        // (normalization only affects atomic form factors)
+        const auto& table = FormFactorManager::raw_exv_table();
         auto ffset = form_factor::detail::ExvFormFactorSet(custom_set);
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
                 const ExvFormFactor& ff1_obj = ffset.get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
-                
-                for (unsigned int i = 0; i < 10; ++i) { // Check first 10 q-values
+                for (unsigned int i = 0; i < 10; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
-                    REQUIRE_THAT(norm_table.index(ff1, ff2).evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
-                    REQUIRE_THAT(raw_table.index(ff1, ff2).evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
+                    REQUIRE_THAT(table.index(ff1, ff2).evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
         }
@@ -209,26 +201,26 @@ TEST_CASE("ExvSet switching") {
         settings::exv::exv_set = original_setting;
     }
 
-    // SECTION("vdw") {
-    //     auto original_setting = settings::exv::exv_set;
-    //     settings::exv::exv_set = settings::exv::ExvSet::vdw;
+    SECTION("vdw") {
+        auto original_setting = settings::exv::exv_set;
+        settings::exv::exv_set = settings::exv::ExvSet::vdw;
 
-    //     const auto& table = FormFactorManager::raw_cross_table();
-    //     auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::vdw);
+        const auto& table = FormFactorManager::raw_exv_table();
+        auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::vdw);
 
-    //     for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
-    //         for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
-    //             const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
-    //             const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
-    //             const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
+        for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
+                const ExvFormFactor& ff1_obj = ffset.get(static_cast<form_factor_t>(ff1));
+                const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
+                const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 
-    //             for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
-    //                 double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
-    //                 CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
-    //             }
-    //         }
-    //     }
+                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                    double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
+                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
+                }
+            }
+        }
 
-    //     settings::exv::exv_set = original_setting;
-    // }
+        settings::exv::exv_set = original_setting;
+    }
 }

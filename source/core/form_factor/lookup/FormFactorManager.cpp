@@ -32,7 +32,6 @@ namespace {
     CONST auto raw_exv_table           = lookup::detail::generate_exv_table(true);
     CONST auto raw_cross_table         = lookup::detail::generate_cross_table<lookup::detail::RawFormFactorLookup>(true);
     CONST auto normalized_atomic_table = lookup::detail::generate_atomic_table<lookup::detail::NormalizedFormFactorLookup>();
-    CONST auto normalized_exv_table    = lookup::detail::generate_exv_table(true);
     CONST auto normalized_cross_table  = lookup::detail::generate_cross_table<lookup::detail::NormalizedFormFactorLookup>(true);
 }
 
