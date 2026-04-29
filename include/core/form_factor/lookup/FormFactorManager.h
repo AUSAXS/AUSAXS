@@ -24,7 +24,6 @@ namespace ausaxs::form_factor {
             static observer_ptr<const _CustomTables> get_custom_tables() noexcept;
             static constexpr std::array<int, form_factor::get_count_without_excluded_volume()> get_ff_indices() noexcept;
             static const lookup::atomic::table_t& normalized_atomic_table() noexcept;
-            static const lookup::exv::table_t& normalized_exv_table() noexcept;
             static const lookup::cross::table_t& normalized_cross_table() noexcept;
             static const lookup::atomic::table_t& raw_atomic_table() noexcept;
             static const lookup::exv::table_t& raw_exv_table() noexcept;

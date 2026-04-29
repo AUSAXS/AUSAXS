@@ -43,7 +43,7 @@ TEST_CASE("FormFactorProduct::evaluate") {
 
 TEST_CASE("FormFactorProduct::table") {
     SECTION("exv") {
-        auto& table = FormFactorManager::normalized_exv_table();
+        auto& table = FormFactorManager::raw_exv_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
@@ -76,7 +76,7 @@ TEST_CASE("FormFactorProduct::table") {
 TEST_CASE("ExvFormFactor: switch volumes") {
     auto test = [] (const constants::exv::detail::ExvSet& vols) {
         SECTION("exv") {
-            auto& table = FormFactorManager::normalized_exv_table();
+            auto& table = FormFactorManager::raw_exv_table();
             auto ffset = form_factor::detail::ExvFormFactorSet(vols);
             for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
                 for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {

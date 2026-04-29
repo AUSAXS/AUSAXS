@@ -13,7 +13,7 @@ using namespace ausaxs;
 using namespace form_factor;
 
 TEST_CASE("lookup::exv::normalized::get_product") {
-    auto& table = FormFactorManager::normalized_exv_table();
+    auto& table = FormFactorManager::raw_exv_table();
     SECTION("single access") {
         const auto& ff = table.index(
             static_cast<unsigned int>(form_factor_t::C),
@@ -40,7 +40,7 @@ TEST_CASE("lookup::exv::normalized::get_product") {
 
 TEST_CASE("lookup::exv::normalized::get_table") {
     SECTION("table access") {
-        auto& table = FormFactorManager::normalized_exv_table();
+        auto& table = FormFactorManager::raw_exv_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         const ExvFormFactor& C = exv_set.get(form_factor_t::C);
         const ExvFormFactor& N = exv_set.get(form_factor_t::N);
@@ -56,7 +56,7 @@ TEST_CASE("lookup::exv::normalized::get_table") {
     }
 
     SECTION("table completeness") {
-        const auto& table = FormFactorManager::normalized_exv_table();
+        const auto& table = FormFactorManager::raw_exv_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
         for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
@@ -146,7 +146,7 @@ TEST_CASE("lookup::detail::set_custom_exv_table") {
         constants::exv::detail::ExvSet custom_set = constants::exv::vdw;
         ExvTableManager::set_custom_exv_table(custom_set);
 
-        const auto& table_exv = FormFactorManager::normalized_exv_table();
+        const auto& table_exv = FormFactorManager::raw_exv_table();
         const auto& table_cross = FormFactorManager::raw_cross_table();
 
         REQUIRE(table_exv.index(0, 0).evaluate(0) > 0);
@@ -163,7 +163,7 @@ TEST_CASE("lookup::detail::set_custom_exv_table") {
         ExvTableManager::set_custom_exv_table(custom_set);
 
         // Verify both raw and normalized tables are updated
-        const auto& norm_table = FormFactorManager::normalized_exv_table();
+        const auto& norm_table = FormFactorManager::raw_exv_table();
         const auto& raw_table = FormFactorManager::raw_exv_table();
 
         // The excluded volume form factors are the same for raw and normalized
