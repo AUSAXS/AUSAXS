@@ -12,7 +12,7 @@
 using namespace ausaxs;
 using namespace form_factor;
 
-TEST_CASE("lookup::exv::normalized::get_product") {
+TEST_CASE("FormFactorManager::raw_exv_table") {
     auto& table = FormFactorManager::raw_exv_table();
     SECTION("single access") {
         const auto& ff = table.index(
@@ -38,7 +38,7 @@ TEST_CASE("lookup::exv::normalized::get_product") {
     }
 }
 
-TEST_CASE("lookup::exv::normalized::get_table") {
+TEST_CASE("FormFactorManager::raw_exv_table: completeness") {
     SECTION("table access") {
         auto& table = FormFactorManager::raw_exv_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
@@ -74,7 +74,7 @@ TEST_CASE("lookup::exv::normalized::get_table") {
     }
 }
 
-TEST_CASE("lookup::cross::normalized::get_product") {
+TEST_CASE("FormFactorManager::normalized_cross_table") {
     auto& table = FormFactorManager::normalized_cross_table();
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
     SECTION("single access") {
@@ -101,7 +101,7 @@ TEST_CASE("lookup::cross::normalized::get_product") {
     }
 }
 
-TEST_CASE("lookup::cross::normalized::get_table") {
+TEST_CASE("FormFactorManager::normalized_cross_table: completeness") {
     SECTION("table access") {
         const auto& table = FormFactorManager::normalized_cross_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
@@ -139,7 +139,7 @@ TEST_CASE("lookup::cross::normalized::get_table") {
     }
 }
 
-TEST_CASE("lookup::detail::set_custom_exv_table") {
+TEST_CASE("ExvTableManager::set_custom_exv_table") {
     SECTION("set custom table") {
         auto original_setting = settings::exv::exv_set;
 

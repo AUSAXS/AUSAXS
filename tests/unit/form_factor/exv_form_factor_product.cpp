@@ -11,8 +11,8 @@
 using namespace ausaxs;
 using namespace form_factor;
 
-TEST_CASE("ExvFormFactorProduct::lookup::exv::raw") {
-    SECTION("get_product returns correct product") {
+TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
+    SECTION("product entries match direct calculation") {
         auto& table = FormFactorManager::raw_exv_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
@@ -30,7 +30,7 @@ TEST_CASE("ExvFormFactorProduct::lookup::exv::raw") {
         }
     }
 
-    SECTION("get_table returns correct table") {
+    SECTION("all table entries match direct calculation") {
         auto& table = FormFactorManager::raw_exv_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {

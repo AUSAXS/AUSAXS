@@ -172,7 +172,7 @@ TEST_CASE("ExvFormFactorSet::get") {
     }
 }
 
-TEST_CASE("lookup::exv::standard") {
+TEST_CASE("ExvTableManager::get_current_exv_form_factor_set") {
     SECTION("standard set is accessible") {
         const auto& set = ExvTableManager::get_current_exv_form_factor_set();
         CHECK(set.C.is_initialized());

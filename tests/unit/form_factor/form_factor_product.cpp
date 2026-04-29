@@ -70,8 +70,8 @@ TEST_CASE("FormFactorProduct::symmetry") {
     }
 }
 
-TEST_CASE("FormFactorProduct::lookup::atomic::raw") {
-    SECTION("get_product returns correct product") {
+TEST_CASE("FormFactorProduct::raw_atomic_table") {
+    SECTION("product entries match direct calculation") {
         auto& table = FormFactorManager::raw_atomic_table();
         for (unsigned int i = 0; i < get_count(); ++i) {
             for (unsigned int j = 0; j < get_count(); ++j) {
@@ -87,7 +87,7 @@ TEST_CASE("FormFactorProduct::lookup::atomic::raw") {
         }
     }
 
-    SECTION("get_table returns correct table") {
+    SECTION("all table entries match direct calculation") {
         auto& table = FormFactorManager::raw_atomic_table();
         for (unsigned int i = 0; i < get_count(); ++i) {
             for (unsigned int j = 0; j < get_count(); ++j) {

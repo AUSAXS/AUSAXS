@@ -90,7 +90,7 @@ TEST_CASE("NormalizedFormFactorProduct::all_pairs") {
     }
 }
 
-TEST_CASE("lookup::atomic::normalized::get_product") {
+TEST_CASE("FormFactorManager::raw_atomic_table") {
     auto& table = FormFactorManager::raw_atomic_table();
     SECTION("single access") {
         const auto& ff = table.index(
@@ -116,7 +116,7 @@ TEST_CASE("lookup::atomic::normalized::get_product") {
     }
 }
 
-TEST_CASE("lookup::atomic::normalized::get_table") {
+TEST_CASE("FormFactorManager::normalized_atomic_table") {
     SECTION("table access") {
         auto& table = FormFactorManager::normalized_atomic_table();
 
