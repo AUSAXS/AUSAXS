@@ -72,8 +72,10 @@ SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) c
     if (constants::axes::q_axis.min < q.front() && q.back() < constants::axes::q_axis.max) {
         return debye_transform().as_dataset().interpolate(q);
     }
-    sinc_table.set_q_axis(q);
-    const auto& sinqd_table = sinc_table.get_sinc_table();
+    static table::DebyeTableManager sinc_table_extended;
+    sinc_table_extended.set_q_axis(q);
+    sinc_table.set_d_axis(this->d_axis);
+    const auto& sinqd_table = sinc_table_extended.get_sinc_table();
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(q.size(), 0);
