@@ -5,7 +5,7 @@
 #include <api/ObjectStorage.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorTable.h>
-#include <form_factor/ExvTable.h>
+#include <form_factor/lookup/ExvTableManager.h>
 
 #include <functional>
 #include <array>
@@ -81,21 +81,21 @@ void ff_get_current_exv_volume(
     int* status
 ) {return execute_with_catch([&]() {
     form_factor::form_factor_t type = from_string(element);
-    const auto& exv_table = constants::exv::get_exv_set();
+    const auto& exv_table = ExvTableManager::get_current_exv_table();
     switch (type) {
-        case form_factor::form_factor_t::H: *volume = exv_table.H; break;
-        case form_factor::form_factor_t::C: *volume = exv_table.C; break;
-        case form_factor::form_factor_t::N: *volume = exv_table.N; break;
-        case form_factor::form_factor_t::O: *volume = exv_table.O; break;
-        case form_factor::form_factor_t::S: *volume = exv_table.S; break;
-        case form_factor::form_factor_t::CH: *volume = exv_table.CH; break;
-        case form_factor::form_factor_t::CH2: *volume = exv_table.CH2; break;
-        case form_factor::form_factor_t::CH3: *volume = exv_table.CH3; break;
-        case form_factor::form_factor_t::NH: *volume = exv_table.NH; break;
-        case form_factor::form_factor_t::NH2: *volume = exv_table.NH2; break;
-        case form_factor::form_factor_t::NH3: *volume = exv_table.NH3; break;
-        case form_factor::form_factor_t::OH: *volume = exv_table.OH; break;
-        case form_factor::form_factor_t::SH: *volume = exv_table.SH; break;
+        case form_factor::form_factor_t::H: *volume = exv_table->H; break;
+        case form_factor::form_factor_t::C: *volume = exv_table->C; break;
+        case form_factor::form_factor_t::N: *volume = exv_table->N; break;
+        case form_factor::form_factor_t::O: *volume = exv_table->O; break;
+        case form_factor::form_factor_t::S: *volume = exv_table->S; break;
+        case form_factor::form_factor_t::CH: *volume = exv_table->CH; break;
+        case form_factor::form_factor_t::CH2: *volume = exv_table->CH2; break;
+        case form_factor::form_factor_t::CH3: *volume = exv_table->CH3; break;
+        case form_factor::form_factor_t::NH: *volume = exv_table->NH; break;
+        case form_factor::form_factor_t::NH2: *volume = exv_table->NH2; break;
+        case form_factor::form_factor_t::NH3: *volume = exv_table->NH3; break;
+        case form_factor::form_factor_t::OH: *volume = exv_table->OH; break;
+        case form_factor::form_factor_t::SH: *volume = exv_table->SH; break;
         case form_factor::form_factor_t::OTHER: *volume = constants::exv::Ar; break;
         default: throw std::runtime_error("ff_get_current_exv_volume: Unknown form factor type \"" + std::string(element) + "\"");
     }
