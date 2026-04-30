@@ -14,8 +14,6 @@ bool settings::molecule::use_occupancy = true;
 bool settings::molecule::allow_unknown_residues = false;
 bool settings::molecule::allow_unknown_atoms = false;
 
-settings::molecule::ExvSet settings::molecule::exv_set = settings::molecule::ExvSet::Default;
-
 namespace ausaxs::settings::io {
     settings::io::SettingSection molecule_section("Molecule", {
         settings::io::create(molecule::center, "center"),
@@ -23,7 +21,6 @@ namespace ausaxs::settings::io {
         settings::io::create(molecule::allow_unknown_residues, "allow_unknown_residues"),
         settings::io::create(molecule::implicit_hydrogens, "implicit_hydrogens"),
         settings::io::create(molecule::use_occupancy, "use_occupancy"),
-        settings::io::create(molecule::exv_set, "exv_volume")
     });
 
     settings::io::SettingSection hydrate_section("Hydrate", {
@@ -63,30 +60,4 @@ template<> void settings::io::detail::SettingRef<settings::hydrate::HydrationStr
 template<> std::string settings::io::detail::SettingRef<settings::hydrate::CullingStrategy>::get() const {return std::to_string(static_cast<int>(settingref));}
 template<> void settings::io::detail::SettingRef<settings::hydrate::CullingStrategy>::set(const std::vector<std::string>& val) {
     settingref = static_cast<settings::hydrate::CullingStrategy>(std::stoi(val[0]));
-}
-
-template<> std::string settings::io::detail::SettingRef<settings::molecule::ExvSet>::get() const {
-    switch (settingref) {
-        case settings::molecule::ExvSet::Traube: return "traube";
-        case settings::molecule::ExvSet::Voronoi_implicit_H: return "voronoi_implicit_h";
-        case settings::molecule::ExvSet::Voronoi_explicit_H: return "voronoi_explicit_h";
-        case settings::molecule::ExvSet::MinimumFluctutation_implicit_H: return "minimum_fluctuation_implicit_h";
-        case settings::molecule::ExvSet::MinimumFluctutation_explicit_H: return "minimum_fluctuation_explicit_h";
-        case settings::molecule::ExvSet::vdw: return "vdw";
-        default: return std::to_string(static_cast<int>(settingref));
-    }
-}
-
-template<> void settings::io::detail::SettingRef<settings::molecule::ExvSet>::set(const std::vector<std::string>& val) {
-    auto str = utility::to_lowercase(val[0]); 
-    if (str == "traube") {settingref = settings::molecule::ExvSet::Traube;}
-    else if (str == "voronoi_implicit_h" || str == "voronoi") {settingref = settings::molecule::ExvSet::Voronoi_implicit_H;}
-    else if (str == "voronoi_explicit_h") {settingref = settings::molecule::ExvSet::Voronoi_explicit_H;}
-    else if (str == "minimum_fluctuation_implicit_h" || str == "mf") {settingref = settings::molecule::ExvSet::MinimumFluctutation_implicit_H;}
-    else if (str == "minimum_fluctuation_explicit_h") {settingref = settings::molecule::ExvSet::MinimumFluctutation_explicit_H;}
-    else if (str == "vdw") {settingref = settings::molecule::ExvSet::vdw;}
-    else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::molecule::ExvSet>(std::stoi(val[0]));}
-    else {
-        throw except::io_error("settings::molecule::displaced_volume_set: Unkown DisplacedVolumeSet \"" + str + "\". Did you forget to add parsing support for it in MoleculeSettings.cpp?");
-    }
 }

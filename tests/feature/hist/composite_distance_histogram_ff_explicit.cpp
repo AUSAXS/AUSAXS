@@ -7,6 +7,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
+#include <form_factor/lookup/ExvTableManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <io/ExistingFile.h>
@@ -27,8 +28,8 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
     auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
     auto ff_w = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::OH);
-    auto ff_Cx = form_factor::lookup::exv::standard.get(form_factor::form_factor_t::C);
-    auto ff_wx = form_factor::lookup::exv::standard.get(form_factor::form_factor_t::OH);
+    auto ff_Cx = form_factor::ExvTableManager::get_current_exv_form_factor_set().get(form_factor::form_factor_t::C);
+    auto ff_wx = form_factor::ExvTableManager::get_current_exv_form_factor_set().get(form_factor::form_factor_t::OH);
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
     auto d = SimpleCube::d;

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <constants/ConstantsFwd.h>
+#include <constants/Constants.h>
 
 #include <string>
 #include <stdexcept>
@@ -127,7 +127,6 @@ namespace ausaxs::form_factor {
     }
 }
 
-#include <constants/Constants.h>
 namespace ausaxs::constants::mass {
     /**
     * @brief Get the mass of an atom in amu.

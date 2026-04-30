@@ -3,6 +3,7 @@
 
 #include <form_factor/FormFactor.h>
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/lookup/FormFactorManager.h>
 
 using namespace ausaxs;
 using namespace form_factor;
@@ -25,7 +26,7 @@ TEST_CASE("FormFactorProduct::comprehensive_evaluation") {
 
 TEST_CASE("FormFactorProduct::table_comprehensive") {
     SECTION("all table entries match direct calculation") {
-        const auto& table = lookup::atomic::raw::get_table();
+        const auto& table = FormFactorManager::raw_atomic_table();
         for (unsigned int ff1 = 0; ff1 < get_count(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < get_count(); ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));

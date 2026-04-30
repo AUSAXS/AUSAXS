@@ -79,8 +79,4 @@ namespace ausaxs::form_factor {
             ExvFormFactor Ar;
         };
     }
-
-    namespace lookup::exv {
-        constexpr form_factor::detail::ExvFormFactorSet standard(constants::exv::standard);
-    }
 }

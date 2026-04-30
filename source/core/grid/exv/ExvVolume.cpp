@@ -5,6 +5,7 @@
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/lookup/ExvTableManager.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
@@ -23,7 +24,7 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
         double volume = 0;
 
         // we extract the volumes from the form factors since they have a better interface than the raw volume sets
-        auto ff_table = form_factor::detail::ExvFormFactorSet(constants::exv::get_exv_set());
+        auto ff_table = form_factor::detail::ExvFormFactorSet(*form_factor::ExvTableManager::get_current_exv_table());
         for (const auto& body : m->get_bodies()) {
             volume += std::accumulate(body.get_atoms().begin(), body.get_atoms().end(), 0.0, [&ff_table] (double sum, const data::AtomFF& atom) {
                 return sum + ff_table.get(atom.form_factor_type()).evaluate(0);

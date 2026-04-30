@@ -2,11 +2,9 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
-#include <hist/Histogram.h>
-#include <dataset/SimpleDataset.h>
 #include <table/ArrayDebyeTable.h>
 #include <form_factor/FormFactorType.h>
-#include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/lookup/FormFactorLookupFwd.h>
 #include <utility/MultiThreading.h>
 #include <settings/HistogramSettings.h>
 
