@@ -5,6 +5,7 @@
 
 #include <api/pyausaxs/api_data.h>
 #include <api/pyausaxs/api_fit.h>
+#include <api/pyausaxs/api_form_factor.h>
 #include <api/pyausaxs/api_iterative_fit.h>
 #include <api/pyausaxs/api_molecule.h>
 #include <api/pyausaxs/api_pdb.h>
