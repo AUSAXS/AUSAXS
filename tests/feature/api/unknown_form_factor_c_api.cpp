@@ -22,10 +22,12 @@ TEST_CASE("test_unknown_form_factor_c_api: UNKNOWN form factors with Fraser exv 
     REQUIRE(mol_id >= 0);
 
     // Set problematic settings via C API
-    set_exv_settings("Fraser", &status);
+    set_setting("exv_model", "Fraser", &status);
     REQUIRE(status == 0);
 
-    set_fit_settings(10, 100, true, true, true, false, false, &status);
+    set_setting("N", "10", &status);
+    set_setting("fit_excluded_volume", "true", &status);
+    set_setting("fit_solvent_density", "true", &status);
     REQUIRE(status == 0);
 
     // This should fail when trying to create the histogram because Fraser ExV requires form factor info
