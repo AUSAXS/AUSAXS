@@ -31,6 +31,11 @@ namespace ausaxs::settings::io::detail {
          */
         virtual std::string get() const = 0;
 
+        /**
+         * @brief Get the type of the setting as a string. This is primarily used for introspection in the Python wrapper. 
+         */
+        virtual std::string type() const = 0;
+
         std::vector<std::string> names; // The name of the setting.
 
         /**
@@ -48,25 +53,20 @@ namespace ausaxs::settings::io::detail {
         SettingRef(T& setting, const std::vector<std::string>& names) : ISettingRef(names), settingref(setting) {}
         virtual ~SettingRef() = default;
 
-        /**
-         * @brief Set the setting value.
-         */
         void set(const std::vector<std::string>&) override {
-            throw std::runtime_error("settings::io::detail::SettingRef::set: missing implementation for type \"" + type(settingref) + "\".");
+            throw std::runtime_error("settings::io::detail::SettingRef::set: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
         }
 
-        /**
-         * @brief Get the setting value as a string.
-         */
         std::string get() const override {
-            throw std::runtime_error("settings::io::detail::SettingRef::get: missing implementation for type \"" + type(settingref) + "\".");
+            throw std::runtime_error("settings::io::detail::SettingRef::get: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
+        }
+
+        std::string type() const override {
+            throw std::runtime_error("settings::io::detail::SettingRef::type: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
         }
 
         T& settingref; // A reference to the setting.
     };
-
-    template<typename T>
-    std::string type_as_string(const T&);
 
     // Specialization for Setting<T> wrapper
     template<typename T>
@@ -87,19 +87,25 @@ namespace ausaxs::settings::io::detail {
             return ref.get();
         }
 
+        std::string type() const override {
+            // Delegate to SettingRef<T>
+            SettingRef<T> ref(const_cast<T&>(settingref.value), names);
+            return ref.type();
+        }
+
         ausaxs::settings::detail::Setting<T>& settingref;
     };
 }
 
-template<> std::string ausaxs::settings::io::detail::type_as_string<std::string>(const std::string&);
-template<> std::string ausaxs::settings::io::detail::type_as_string<double>(const double&);
-template<> std::string ausaxs::settings::io::detail::type_as_string<int>(const int&);
-template<> std::string ausaxs::settings::io::detail::type_as_string<unsigned int>(const unsigned int&);
-template<> std::string ausaxs::settings::io::detail::type_as_string<bool>(const bool&);
-template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<std::string>>(const std::vector<std::string>&);
-template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<double>>(const std::vector<double>&);
-template<> std::string ausaxs::settings::io::detail::type_as_string<std::vector<int>>(const std::vector<int>&);
-template<> std::string ausaxs::settings::io::detail::type_as_string<ausaxs::Limit>(const ausaxs::Limit&);
+template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<double>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<int>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<unsigned int>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<double>>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<int>>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::type() const;
 
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<double>::get() const;

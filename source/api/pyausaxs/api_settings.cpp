@@ -25,7 +25,7 @@ int get_setting(
     const auto& setting = map.at(name_str);
     auto obj_id = api::ObjectStorage::register_object(_get_setting_obj{
         .value = setting->get(),
-        .type = settings::io::detail::type_as_string(setting->get()) //! fix; always returns string
+        .type = setting->type()
     });
     auto obj = api::ObjectStorage::get_object<_get_setting_obj>(obj_id);
     *value = obj->value.c_str();
