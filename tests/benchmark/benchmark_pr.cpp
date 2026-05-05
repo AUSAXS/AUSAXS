@@ -5,6 +5,8 @@
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -14,6 +16,19 @@
 #include <settings/All.h>
 
 using namespace ausaxs;
+
+// Expose cache.sinqd.valid for Fraser and Grid intensity calculators.
+struct BenchFFExplicit : public hist::CompositeDistanceHistogramFFExplicit {
+    BenchFFExplicit(hist::CompositeDistanceHistogramFFExplicit&& o)
+        : hist::CompositeDistanceHistogramFFExplicit(std::move(o)) {}
+    void invalidate_sinqd() { cache.sinqd.valid = false; }
+};
+
+struct BenchFFGrid : public hist::CompositeDistanceHistogramFFGrid {
+    BenchFFGrid(hist::CompositeDistanceHistogramFFGrid&& o)
+        : hist::CompositeDistanceHistogramFFGrid(std::move(o)) {}
+    void invalidate_sinqd() { cache.sinqd.valid = false; }
+};
 
 struct MolSpec { const char* pdb; const char* label; };
 static constexpr MolSpec bench_molecules[] = {
@@ -83,6 +98,87 @@ TEST_CASE("Distance calculation benchmark: real molecules", "[.][benchmark]") {
                 data::Molecule mol(path);
                 mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid);
                 return mol.get_histogram()->debye_transform();
+            });
+        };
+    }
+}
+
+TEST_CASE("Intensity calculation benchmark: debye_transform only", "[.][benchmark]") {
+    settings::general::verbose = false;
+    settings::molecule::allow_unknown_residues = true;
+    settings::molecule::implicit_hydrogens = false;
+
+    auto idx = GENERATE(0, 1, 2, 3, 4, 5);
+    const MolSpec& spec = bench_molecules[idx];
+    std::string path  = stripped_path(spec);
+    std::size_t n_atoms = g_atom_counts.empty() ? 0 : g_atom_counts[idx];
+    std::string section_label = std::string(spec.label)
+        + (n_atoms ? " (" + std::to_string(n_atoms) + " atoms)" : "");
+
+    SECTION(section_label) {
+        // Simple has no sinqd cache — every call IS the full Debye summation.
+        BENCHMARK_ADVANCED("Simple") (Catch::Benchmark::Chronometer meter) {
+            data::Molecule mol(path);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+            auto hist = mol.get_histogram();
+            meter.measure([&] {
+                return hist->debye_transform();
+            });
+        };
+
+        // Fraser: sinqd cache warm — measures only intensity-profile assembly from cached sinqd values.
+        BENCHMARK_ADVANCED("Fraser (sinqd warm)") (Catch::Benchmark::Chronometer meter) {
+            data::Molecule mol(path);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFExplicit>(
+                dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(mol.get_histogram().release()));
+            BenchFFExplicit bench(std::move(*ptr));
+            bench.debye_transform(); // prime: allocate containers and fill sinqd cache
+            meter.measure([&] {
+                return bench.debye_transform();
+            });
+        };
+
+        // Fraser: sinqd cache cold — measures the full Debye inner-product pass + assembly.
+        BENCHMARK_ADVANCED("Fraser (sinqd cold)") (Catch::Benchmark::Chronometer meter) {
+            data::Molecule mol(path);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFExplicit>(
+                dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(mol.get_histogram().release()));
+            BenchFFExplicit bench(std::move(*ptr));
+            bench.debye_transform(); // prime: allocate containers
+            bench.invalidate_sinqd();
+            meter.measure([&] {
+                bench.invalidate_sinqd();
+                return bench.debye_transform();
+            });
+        };
+
+        // Grid: sinqd cache warm.
+        BENCHMARK_ADVANCED("Grid (sinqd warm)") (Catch::Benchmark::Chronometer meter) {
+            data::Molecule mol(path);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid);
+            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFGrid>(
+                dynamic_cast<hist::CompositeDistanceHistogramFFGrid*>(mol.get_histogram().release()));
+            BenchFFGrid bench(std::move(*ptr));
+            bench.debye_transform(); // prime
+            meter.measure([&] {
+                return bench.debye_transform();
+            });
+        };
+
+        // Grid: sinqd cache cold.
+        BENCHMARK_ADVANCED("Grid (sinqd cold)") (Catch::Benchmark::Chronometer meter) {
+            data::Molecule mol(path);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid);
+            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFGrid>(
+                dynamic_cast<hist::CompositeDistanceHistogramFFGrid*>(mol.get_histogram().release()));
+            BenchFFGrid bench(std::move(*ptr));
+            bench.debye_transform(); // prime
+            bench.invalidate_sinqd();
+            meter.measure([&] {
+                bench.invalidate_sinqd();
+                return bench.debye_transform();
             });
         };
     }

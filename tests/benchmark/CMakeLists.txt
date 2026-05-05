@@ -3,6 +3,11 @@ target_link_libraries(benchmark_pr PRIVATE libausaxs Catch2::Catch2WithMain)
 target_include_directories(benchmark_pr PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/tests)
 set_target_properties(benchmark_pr PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
+add_executable(benchmark_rigidbody "benchmark_rigidbody.cpp")
+target_link_libraries(benchmark_rigidbody PRIVATE libausaxs Catch2::Catch2WithMain)
+target_include_directories(benchmark_rigidbody PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/tests)
+set_target_properties(benchmark_rigidbody PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+
 # benchmark histogram calculations using the various simd levels
 set(_hist_hot_src ${CMAKE_SOURCE_DIR}/source/core/hist/histogram_manager/HistogramManagerMT.cpp)
 set(_hist_includes ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/include/math)
