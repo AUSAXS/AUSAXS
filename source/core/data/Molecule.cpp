@@ -113,10 +113,8 @@ double Molecule::get_Rg(bool include_waters) const {
     double Rg = 0;
 
     // Rg is defined as the RMS average distance of each _electron_ from the center of mass, so multiply each atom by its effective charge
-    for (auto& body : get_bodies()) {
-        for (auto& a : body.get_atoms()) {
-            Rg += cm.distance2(a.coordinates())*a.weight();
-        }
+    for (auto& a : iterate_atoms()) {
+        Rg += cm.distance2(a.coordinates())*a.weight();
     }
 
     // return the RMS
@@ -165,16 +163,11 @@ observer_ptr<grid::Grid> Molecule::create_grid() const {
 }
 
 std::vector<AtomFF> Molecule::get_atoms() const {
-    std::size_t N = std::accumulate(bodies.begin(), bodies.end(), std::size_t{0}, [] (std::size_t sum, const Body& body) {return sum + body.size_atom();});
-    std::vector<AtomFF> atoms(N);
-    int n = 0; // current index
-    for (const auto& body : bodies) {
-        for (const auto& a : body.get_atoms()) {
-            atoms[n] = a;
-            n++;
-        }
+    std::vector<AtomFF> atoms;
+    atoms.reserve(size_atom());
+    for (const auto& a : this->iterate_atoms()) {
+        atoms.push_back(a);
     }
-    if (n != static_cast<int>(N)) [[unlikely]] {throw except::size_error("Molecule::atoms: incorrect number of atoms. This should never happen.");}
     return atoms;
 }
 

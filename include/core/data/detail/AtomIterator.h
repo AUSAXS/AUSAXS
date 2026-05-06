@@ -19,14 +19,14 @@ namespace ausaxs {
         using ref_body_t  = std::conditional_t<std::is_const_v<TBody>, const body_t, body_t>;
         using body_iter_t = std::conditional_t<std::is_const_v<TBody>, typename std::vector<body_t>::const_iterator, typename std::vector<body_t>::iterator>;
         using atom_vec_t  = std::remove_reference_t<decltype(std::declval<ref_body_t&>().get_atoms())>;
-        using atom_iter_t = typename atom_vec_t::iterator;
+        using atom_iter_t = std::conditional_t<std::is_const_v<atom_vec_t>, typename atom_vec_t::const_iterator, typename atom_vec_t::iterator>;
 
     public:
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
-        using value_type        = typename atom_vec_t::value_type;
-        using pointer           = typename atom_vec_t::pointer;
-        using reference         = typename atom_vec_t::reference;
+        using value_type        = typename std::remove_cv_t<atom_vec_t>::value_type;
+        using pointer           = std::conditional_t<std::is_const_v<atom_vec_t>, const value_type*, value_type*>;
+        using reference         = std::conditional_t<std::is_const_v<atom_vec_t>, const value_type&, value_type&>;
 
         MoleculeAtomIterator() = default;
 

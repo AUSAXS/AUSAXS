@@ -286,11 +286,9 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
         SECTION("real data (" + std::string(data) + ")") {
             data::Molecule protein("tests/files/" + std::string(data) + ".pdb");
             protein.clear_hydration();
-            for (auto& body : protein.get_bodies()) {
-                for (auto& atom : body.get_atoms()) {
-                    atom.form_factor_type() = form_factor::form_factor_t::C;
-                    atom.weight() = 1;
-                }
+            for (auto& atom : protein.iterate_atoms()) {
+                atom.form_factor_type() = form_factor::form_factor_t::C;
+                atom.weight() = 1;
             }
 
             auto exact = exact_aa_carbon(protein);
