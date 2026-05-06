@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include <utility/observer_ptr.h>
+#include <data/DataFwd.h>
 #include <container/ArrayContainer2D.h>
 #include <form_factor/lookup/FormFactorLookupFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <memory>
 
@@ -30,6 +31,11 @@ namespace ausaxs::form_factor {
             static const lookup::cross::table_t& raw_cross_table() noexcept;
             static void use_custom_form_factors(bool choice);
             static void set_custom_form_factors(std::vector<int> ff_indices);
+
+            /**
+             * @brief Determine the most important set of form factors to use for a given molecule, and set them as the custom form factors.
+             */
+            static void set_custom_form_factors(const data::Molecule& molecule);
             static void refresh();
 
         private:

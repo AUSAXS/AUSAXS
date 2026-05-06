@@ -2,7 +2,6 @@
 // Author: Kristian Lytje
 
 #include <form_factor/lookup/FormFactorManager.h>
-#include <container/Container2D.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/NormalizedFormFactor.h>
@@ -10,6 +9,9 @@
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/detail/FormFactorProductBase.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
+#include <container/Container2D.h>
+#include <data/Molecule.h>
+#include <data/Body.h>
 
 #include <cassert>
 #include <numeric>
@@ -111,4 +113,23 @@ void FormFactorManager::refresh_custom_state() {
     custom_tables->custom_normalized_atomic_table = lookup::detail::generate_atomic_table<lookup::detail::NormalizedFormFactorLookup>();
     custom_tables->custom_normalized_cross_table = lookup::detail::generate_cross_table<lookup::detail::NormalizedFormFactorLookup>();
     _needs_refresh = false;
+}
+
+#include <iostream>
+void FormFactorManager::set_custom_form_factors(const data::Molecule& molecule) {
+    std::vector<int> ff_counts(form_factor::get_count(), 0);
+    for (auto& b : molecule.get_bodies()) {
+        for (auto& a : b.get_atoms()) {
+            ++ff_counts[static_cast<int>(a.form_factor_type())];
+        }
+    }
+    std::vector<int> ff_indices(form_factor::get_count_without_excluded_volume());
+    std::iota(ff_indices.begin(), ff_indices.end(), 0);
+    std::sort(ff_indices.begin(), ff_indices.end(), [&ff_counts](int a, int b) {
+        return ff_counts[a] > ff_counts[b];
+    });
+    for (unsigned int i = 0; i < ff_indices.size(); ++i) {
+        std::cout << "Selected form factor: " << form_factor::to_string(static_cast<form_factor_t>(ff_indices[i])) << " with count " << ff_counts[ff_indices[i]] << std::endl;
+    }
+    set_custom_form_factors(ff_indices);
 }
