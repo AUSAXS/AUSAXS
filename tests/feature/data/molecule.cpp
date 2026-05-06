@@ -863,9 +863,11 @@ TEST_CASE("Molecule::iterate_waters") {
 
         // assign to individual bodies
         int stride = waters.size() / molecule.size_body();
-        for (size_t i = 0; i < molecule.size_body(); i++) {
+        for (size_t i = 0; i < molecule.size_body()-1; i++) {
             molecule.get_body(i).set_hydration(hydrate::Hydration::create(std::vector<Water>(waters.begin() + i*stride, waters.begin() + (i+1)*stride)));
         }
+        // assign remainder to the last body
+        molecule.get_bodies().back().set_hydration(hydrate::Hydration::create(std::vector<Water>(waters.begin() + (molecule.size_body()-1)*stride, waters.end())));
 
         size_t count = 0;
         for (const auto& water : molecule.iterate_waters()) {
