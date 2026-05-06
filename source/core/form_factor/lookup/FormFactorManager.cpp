@@ -12,6 +12,7 @@
 #include <container/Container2D.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <utility/Logging.h>
 
 #include <cassert>
 #include <numeric>
@@ -37,8 +38,9 @@ namespace {
     CONST auto normalized_cross_table  = lookup::detail::generate_cross_table<lookup::detail::NormalizedFormFactorLookup>(true);
 }
 
-std::vector<int> FormFactorManager::_CustomTables::get_ff_mapping() const {
+std::vector<int> FormFactorManager::get_ff_mapping() {
     // default to OTHER which is always last
+    auto ff_indices = is_using_custom_form_factors() ? custom_tables->ff_indices : get_ff_indices();
     std::vector<int> mapping(form_factor::get_count(), settings::molecule::max_ff_types);
     for (unsigned int i = 0; i < ff_indices.size(); ++i) {
         mapping[ff_indices[i]] = i;
@@ -124,13 +126,10 @@ void FormFactorManager::refresh_custom_state() {
     _needs_refresh = false;
 }
 
-#include <iostream>
 void FormFactorManager::set_custom_form_factors(data::Molecule& molecule) {
     std::vector<int> ff_counts(form_factor::get_count(), 0);
-    for (auto& b : molecule.get_bodies()) {
-        for (auto& a : b.get_atoms()) {
-            ++ff_counts[static_cast<int>(a.form_factor_type())];
-        }
+    for (auto& a : molecule.iterate_atoms()) {
+        ++ff_counts[static_cast<int>(a.form_factor_type())];
     }
     ff_counts[static_cast<int>(form_factor::form_factor_t::OTHER)] = -1;
     std::vector<int> ff_indices(form_factor::get_count_without_excluded_volume());
@@ -140,19 +139,13 @@ void FormFactorManager::set_custom_form_factors(data::Molecule& molecule) {
     });
     ff_indices.resize(settings::molecule::max_ff_types); // limit the number of form factors to the user-defined maximum
     ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // ensure OTHER is always the last form factor
-    for (unsigned int i = 0; i < settings::molecule::max_ff_types; ++i) {
-        std::cout << "Selected form factor: " << form_factor::to_string(static_cast<form_factor_t>(ff_indices[i])) << " with count " << ff_counts[ff_indices[i]] << std::endl;
+
+    {   // logging
+        std::string log_msg = "Setting form factors based on detected molecular composition:";
+        for (unsigned int i = 0; i < settings::molecule::max_ff_types; ++i) {
+            log_msg += "\n\t" + form_factor::to_string(static_cast<form_factor_t>(ff_indices[i])) + " with count " + std::to_string(ff_counts[ff_indices[i]]);
+        }
+        logging::log(log_msg);
     }
     set_custom_form_factors(ff_indices);
-
-    // Re-map all atoms in the molecule to the new form factor indices. 
-    // This ensures all calculations will be consistent with the new form factor tables.
-    auto old_to_new_index = custom_tables->get_ff_mapping();
-    for (auto& b : molecule.get_bodies()) {
-        for (auto& a : b.get_atoms()) {
-            int old_index = static_cast<int>(a.form_factor_type());
-            int new_index = old_to_new_index[old_index];
-            a.form_factor_type() = static_cast<form_factor_t>(new_index);
-        }
-    }
 }

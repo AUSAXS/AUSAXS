@@ -52,32 +52,8 @@ namespace ausaxs::hist::detail {
 
         public:
             CompactCoordinatesTemplate() = default;
-
-            /**
-             * @brief Create a compact coordinate representation of the given coordinates.
-             *        The weights are assumed to be unity.
-             */
-            CompactCoordinatesTemplate(std::vector<Vector3<double>>&& coordinates, double weight);
-
-            /**
-             * @brief Create a CompactCoordinates object with a given size.
-             */
-            CompactCoordinatesTemplate(unsigned int size);
-
-            /**
-             * @brief Extract the necessary coordinates and weights from a body. 
-             */
-            CompactCoordinatesTemplate(const std::vector<data::Atom>& body);
             CompactCoordinatesTemplate(const std::vector<data::AtomFF>& body);
-
-            /**
-             * @brief Extract the necessary coordinates and weights from a vector of bodies. 
-             */
             CompactCoordinatesTemplate(const std::vector<data::Body>& bodies);
-
-            /**
-             * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
-             */
             CompactCoordinatesTemplate(const std::vector<data::Water>& atoms);
 
             /**
@@ -89,6 +65,7 @@ namespace ausaxs::hist::detail {
              * @brief Get the non-coordinate (fourth-column) value. 
              */
             NonCoordinateType get_non_coordinate_value(unsigned int i) const;
+            NonCoordinateType& get_non_coordinate_value(unsigned int i);
 
             std::size_t size() const;
 
@@ -132,8 +109,7 @@ namespace ausaxs::hist::detail {
     }
 }
 
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::CompactCoordinatesTemplate(unsigned int size) : data(size) {}
+
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
 inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::NonCoordinateType ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::get_non_coordinate_value(unsigned int i) const {
@@ -143,9 +119,11 @@ inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::CompactCoordinatesTemplate(std::vector<Vector3<double>>&& coordinates, double weight) : data(coordinates.size()) {
-    std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return DataType(v, weight);});
+inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::NonCoordinateType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::get_non_coordinate_value(unsigned int i) {
+    return *reinterpret_cast<ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::NonCoordinateType*>(&data[i].data[3]);
 }
+
+
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw, bool explicit_ff>
 inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw, explicit_ff>::CompactCoordinatesTemplate(const std::vector<data::AtomFF>& atoms) : data(atoms.size()) {
