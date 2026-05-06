@@ -14,6 +14,8 @@
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
+#include <io/pdb/PDBStructure.h>
+#include <rigidbody/BodySplitter.h>
 
 #include <vector>
 #include <string>
@@ -692,7 +694,6 @@ TEST_CASE_METHOD(fixture, "Molecule::signal_modified_hydration_layer") {
     REQUIRE(manager->is_modified_hydration() == true);
 }
 
-#include <io/pdb/PDBStructure.h>
 TEST_CASE("Molecule: implicit hydrogens") {
     auto generate_molecule = [] () {
         std::vector<io::pdb::PDBAtom> a = {
@@ -770,6 +771,16 @@ TEST_CASE("Molecule: implicit hydrogens") {
 }
 
 TEST_CASE("Molecule::iterate_atoms") {
+    SECTION("empty") {
+        Molecule molecule;
+        size_t count = 0;
+        for (const auto& atom : molecule.iterate_atoms()) {
+            (void)atom; // to silence unused variable warning
+            ++count;
+        }
+        REQUIRE(count == 0);
+    }
+
     SECTION("simple") {
         std::vector<AtomFF> atoms = {
             AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::NH2),
@@ -777,10 +788,10 @@ TEST_CASE("Molecule::iterate_atoms") {
             AtomFF({-1, -1,  1}, form_factor::form_factor_t::CH3), AtomFF({-1, 1,  1}, form_factor::form_factor_t::CH2),
             AtomFF({ 1, -1,  1}, form_factor::form_factor_t::N), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::O)
         };
-        Molecule protein({Body{atoms}});
+        Molecule molecule({Body{atoms}});
 
         size_t count = 0;
-        for (const auto& atom : protein.iterate_atoms()) {
+        for (const auto& atom : molecule.iterate_atoms()) {
             CHECK(atom == atoms[count++]);
         }
         REQUIRE(count == atoms.size());
@@ -794,5 +805,72 @@ TEST_CASE("Molecule::iterate_atoms") {
             CHECK(atom == atoms[count++]);
         }
         REQUIRE(count == atoms.size());
+    }
+
+    SECTION("multiple bodies") {
+        auto molecule = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", {1, 15, 35, 55, 75, 95});
+        auto atoms = molecule.get_atoms();
+        size_t count = 0;
+        for (const auto& atom : molecule.iterate_atoms()) {
+            CHECK(atom == atoms[count++]);
+        }
+        REQUIRE(count == atoms.size());
+    }
+}
+
+TEST_CASE("Molecule::iterate_waters") {
+    SECTION("empty") {
+        Molecule molecule;
+        size_t count = 0;
+        for (const auto& water : molecule.iterate_waters()) {
+            (void)water; // to silence unused variable warning
+            ++count;
+        }
+        REQUIRE(count == 0);
+    }
+
+    SECTION("simple") {
+        std::vector<Water> waters = {
+            Water(Vector3<double>(-1, -1, -1)), Water(Vector3<double>(-1, 1, -1)),
+            Water(Vector3<double>(1, -1, -1)), Water(Vector3<double>(1, 1, -1)),
+            Water(Vector3<double>(-1, -1, 1)), Water(Vector3<double>(-1, 1, 1)),
+            Water(Vector3<double>(1, -1, 1)), Water(Vector3<double>(1, 1, 1))
+        };
+        Molecule molecule(std::vector{Body{{}, waters}});
+
+        size_t count = 0;
+        for (const auto& water : molecule.iterate_waters()) {
+            CHECK(water == waters[count++]);
+        }
+        REQUIRE(count == waters.size());
+    }
+
+    SECTION("real system") {
+        Molecule molecule("tests/files/2epe.pdb");
+        molecule.generate_new_hydration();
+        auto waters = molecule.get_waters();
+        size_t count = 0;
+        for (const auto& water : molecule.iterate_waters()) {
+            CHECK(water == waters[count++]);
+        }
+        REQUIRE(count == waters.size());
+    }
+
+    SECTION("multiple bodies") {
+        auto molecule = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", {1, 15, 35, 55, 75, 95});
+        molecule.generate_new_hydration();
+        auto waters = molecule.get_waters();
+
+        // assign to individual bodies
+        int stride = waters.size() / molecule.size_body();
+        for (size_t i = 0; i < molecule.size_body(); i++) {
+            molecule.get_body(i).set_hydration(hydrate::Hydration::create(std::vector<Water>(waters.begin() + i*stride, waters.begin() + (i+1)*stride)));
+        }
+
+        size_t count = 0;
+        for (const auto& water : molecule.iterate_waters()) {
+            CHECK(water == waters[count++]);
+        }
+        REQUIRE(count == waters.size());
     }
 }

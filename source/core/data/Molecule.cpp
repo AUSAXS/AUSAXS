@@ -166,7 +166,7 @@ std::vector<AtomFF> Molecule::get_atoms() const {
     std::vector<AtomFF> atoms;
     atoms.reserve(size_atom());
     for (const auto& a : this->iterate_atoms()) {
-        atoms.push_back(a);
+        atoms.emplace_back(a);
     }
     return atoms;
 }
@@ -179,43 +179,39 @@ MoleculeAtomRange<const Body> Molecule::iterate_atoms() const {
     return MoleculeAtomRange<const Body>(bodies);
 }
 
+MoleculeWaterRange<Body> Molecule::iterate_waters() {
+    return MoleculeWaterRange<Body>(bodies);
+}
+
+MoleculeWaterRange<const Body> Molecule::iterate_waters() const {
+    return MoleculeWaterRange<const Body>(bodies);
+}
+
 Vector3<double> Molecule::get_cm(bool include_water) const {
     Vector3<double> cm{0, 0, 0};
     double M = 0; // total mass
 
-    // iterate through all constituent bodies
-    for (const auto& body : bodies) {
-        // iterate through their molecule atoms
-        std::for_each(body.get_atoms().begin(), body.get_atoms().end(), [&M, &cm] (const auto& atom) {
-            double m = constants::mass::get_mass(atom.form_factor_type());
-            M += m;
-            cm += atom.coordinates()*m;
-        });
-        if (!include_water) {continue;}
-
-        // iterate through their hydration atoms
-        auto w = body.get_waters();
-        if (!w.has_value()) {continue;}
-        std::for_each(w.value().get().begin(), w.value().get().end(), [&M, &cm] (const auto& water) {
+    for (const auto& atom : this->iterate_atoms()) {
+        double m = constants::mass::get_mass(atom.form_factor_type());
+        M += m;
+        cm += atom.coordinates()*m;
+    }
+    if (include_water) {
+        for (const auto& water : this->iterate_waters()) {
             double m = constants::mass::get_mass(water.form_factor_type());
             M += m;
             cm += water.coords*m;
-        });
+        }
     }
     assert(M != 0 && "Molecule::get_cm: Division by zero. The molecule has no atoms.");
     return cm/M;
 }
 
 std::vector<Water> Molecule::get_waters() const {
-    std::vector<Water> waters(size_water());
-    int n = 0; // current index
-    for (const auto& body : bodies) {
-        auto w = body.get_waters();
-        if (!w.has_value()) {continue;}
-        for (const auto& a : w.value().get()) {
-            waters[n] = a;
-            n++;
-        }
+    std::vector<Water> waters;
+    waters.reserve(size_water());
+    for (const auto& w : this->iterate_waters()) {
+        waters.emplace_back(w);
     }
     return waters;
 }

@@ -196,6 +196,14 @@ namespace ausaxs::data {
 			[[nodiscard]] ausaxs::MoleculeAtomRange<const Body> iterate_atoms() const;
 
 			/**
+			 * @brief Iterate over all water molecules across all bodies without copying.
+			 *        Bodies carrying no waters are silently skipped.
+			 *        Complexity: O(1) to obtain; O(n) to traverse.
+			 */
+			[[nodiscard]] ausaxs::MoleculeWaterRange<Body> iterate_waters();
+			[[nodiscard]] ausaxs::MoleculeWaterRange<const Body> iterate_waters() const;
+
+			/**
 			 * @brief Get a copy of all water molecules from the underlying bodies.
 			 *        Complexity: O(n)
 			 */
