@@ -178,6 +178,14 @@ std::vector<AtomFF> Molecule::get_atoms() const {
     return atoms;
 }
 
+MoleculeAtomRange<Body> Molecule::iterate_atoms() {
+    return MoleculeAtomRange<Body>(bodies);
+}
+
+MoleculeAtomRange<const Body> Molecule::iterate_atoms() const {
+    return MoleculeAtomRange<const Body>(bodies);
+}
+
 Vector3<double> Molecule::get_cm(bool include_water) const {
     Vector3<double> cm{0, 0, 0};
     double M = 0; // total mass

@@ -768,3 +768,31 @@ TEST_CASE("Molecule: implicit hydrogens") {
         CHECK(atoms[8].form_factor_type() == form_factor::form_factor_t::N);
     }
 }
+
+TEST_CASE("Molecule::iterate_atoms") {
+    SECTION("simple") {
+        std::vector<AtomFF> atoms = {
+            AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::NH2),
+            AtomFF({ 1, -1, -1}, form_factor::form_factor_t::H), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::SH),
+            AtomFF({-1, -1,  1}, form_factor::form_factor_t::CH3), AtomFF({-1, 1,  1}, form_factor::form_factor_t::CH2),
+            AtomFF({ 1, -1,  1}, form_factor::form_factor_t::N), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::O)
+        };
+        Molecule protein({Body{atoms}});
+
+        size_t count = 0;
+        for (const auto& atom : protein.iterate_atoms()) {
+            CHECK(atom == atoms[count++]);
+        }
+        REQUIRE(count == atoms.size());
+    }
+
+    SECTION("real system") {
+        Molecule molecule("tests/files/2epe.pdb");
+        auto atoms = molecule.get_atoms();
+        size_t count = 0;
+        for (const auto& atom : molecule.iterate_atoms()) {
+            CHECK(atom == atoms[count++]);
+        }
+        REQUIRE(count == atoms.size());
+    }
+}

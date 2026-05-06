@@ -5,6 +5,7 @@
 
 #include <hist/HistFwd.h>
 #include <data/DataFwd.h>
+#include <data/detail/AtomIterator.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
 #include <data/symmetry/MoleculeSymmetryFacade.h>
@@ -186,6 +187,13 @@ namespace ausaxs::data {
 			 *        Complexity: O(n)
 			 */
 			[[nodiscard]] std::vector<data::AtomFF> get_atoms() const;
+
+			/**
+			 * @brief Iterate over all atoms across all bodies without copying.
+			 *        Complexity: O(1) to obtain; O(n) to traverse.
+			 */
+			[[nodiscard]] ausaxs::MoleculeAtomRange<Body> iterate_atoms();
+			[[nodiscard]] ausaxs::MoleculeAtomRange<const Body> iterate_atoms() const;
 
 			/**
 			 * @brief Get a copy of all water molecules from the underlying bodies.
