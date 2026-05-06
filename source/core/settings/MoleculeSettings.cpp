@@ -3,6 +3,7 @@
 
 #include <settings/MoleculeSettings.h>
 #include <settings/SettingsIORegistry.h>
+#include <form_factor/FormFactorType.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 
@@ -13,6 +14,7 @@ bool settings::molecule::implicit_hydrogens = true;
 bool settings::molecule::use_occupancy = true;
 bool settings::molecule::allow_unknown_residues = false;
 bool settings::molecule::allow_unknown_atoms = false;
+int settings::molecule::max_ff_types = form_factor::get_count_without_excluded_volume();
 
 namespace ausaxs::settings::io {
     settings::io::SettingSection molecule_section("Molecule", {

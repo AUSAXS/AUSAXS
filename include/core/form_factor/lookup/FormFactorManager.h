@@ -19,6 +19,7 @@ namespace ausaxs::form_factor {
             lookup::atomic::table_t custom_raw_atomic_table;
             lookup::cross::table_t  custom_normalized_cross_table;
             lookup::atomic::table_t custom_normalized_atomic_table;
+            std::vector<int> get_ff_mapping() const;
         };
 
         public:
@@ -35,7 +36,7 @@ namespace ausaxs::form_factor {
             /**
              * @brief Determine the most important set of form factors to use for a given molecule, and set them as the custom form factors.
              */
-            static void set_custom_form_factors(const data::Molecule& molecule);
+            static void set_custom_form_factors(data::Molecule& molecule);
             static void refresh();
 
         private:
