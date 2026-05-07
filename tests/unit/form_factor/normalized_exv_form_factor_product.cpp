@@ -125,7 +125,7 @@ TEST_CASE("FormFactorManager::normalized_cross_table: completeness") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
         for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff2 = 1; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = exv_set.get(static_cast<form_factor_t>(ff2));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);

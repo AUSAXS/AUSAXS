@@ -46,8 +46,8 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
                 }
@@ -66,7 +66,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(q);
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double ax_sum = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*cx*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
             }
@@ -115,7 +115,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double aw_sum = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*free_params.cw*aw_sum*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
             }
@@ -150,9 +150,9 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(q);
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 // atom-atom
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
                 }
@@ -203,8 +203,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
                 }
@@ -222,7 +222,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double aw_sum = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*free_params.cw*aw_sum*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
             }
@@ -255,8 +255,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(constants::axes::q_vals[q]);
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     double aa_sum = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += cx*aa_sum*(ff_ax_table.index(ff1, ff2).evaluate(q) + ff_ax_table.index(ff2, ff1).evaluate(q));
                 }
@@ -275,8 +275,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx2 = std::pow(exv_factor(constants::axes::q_vals[q]), 2);
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     // xx uses the same histogram as aa (both include self-correlations)
                     double xx_sum = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += cx2*xx_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
@@ -297,7 +297,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
         unsigned int ff_w_index = static_cast<int>(form_factor::form_factor_t::OH);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(constants::axes::q_vals[q]);
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double wx_sum = std::inner_product(this->distance_profiles.aw.begin(ff1), this->distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += cx*this->free_params.cw*wx_sum*(ff_ax_table.index(ff_w_index, ff1).evaluate(q) + ff_ax_table.index(ff1, ff_w_index).evaluate(q));
             }
@@ -319,8 +319,8 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(constants::axes::q_vals[q]);
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     // atom-atom
                     double aa_sum = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
@@ -371,8 +371,8 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
                 }
@@ -390,7 +390,7 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double aw_sum = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*free_params.cw*aw_sum*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
             }
@@ -423,7 +423,7 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(q);
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double ax_sum = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*cx*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
             }
@@ -477,9 +477,9 @@ struct DebugCompositeDistanceHistogramFFGrid : public CompositeDistanceHistogram
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(q);
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 // atom-atom
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table_aa->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
                 }
@@ -530,8 +530,8 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
                 }
@@ -549,7 +549,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double aw_sum = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*free_params.cw*aw_sum*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
             }
@@ -583,7 +583,7 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             auto ax = evaluate_ax_distance_profile(exv_factor(constants::axes::q_vals[q]));
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] += 2*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
             }
@@ -643,9 +643,9 @@ struct DebugCompositeDistanceHistogramFFGridSurface : public CompositeDistanceHi
             auto wx = evaluate_wx_distance_profile(cx);
             auto ax = evaluate_ax_distance_profile(cx);
 
-            for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 // atom-atom
-                for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
                     double aa_sum = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table_aa->begin(q), 0.0);
                     Iq[q-q0] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
                 }

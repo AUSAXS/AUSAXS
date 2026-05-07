@@ -108,7 +108,7 @@ void FormFactorManager::use_custom_form_factors(bool choice) {
 
 void FormFactorManager::set_custom_form_factors(std::vector<int> ff_indices) {
     assert(!ff_indices.empty() && "Custom form factors cannot be empty.");
-    assert(ff_indices.size() <= form_factor::get_total_ff_count_without_exv() && "Custom form factors cannot exceed the total number of available form factors.");
+    assert(ff_indices.size() <= form_factor::get_total_ff_count() && "Custom form factors cannot exceed the total number of available form factors.");
 
     _use_custom_form_factors = true;
     custom_tables = std::make_unique<_CustomTables>();

@@ -14,8 +14,8 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_exv_evaluation") {
     SECTION("all exv form factor products match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         auto& table = FormFactorManager::raw_exv_table();
-        for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+        for (unsigned int ff1 = 1; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff2 = 1; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
@@ -33,7 +33,7 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         auto& table = FormFactorManager::raw_cross_table();
         for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff2 = 1; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
@@ -50,8 +50,8 @@ TEST_CASE("ExvFormFactorProduct::exv_table_comprehensive") {
     SECTION("all exv table entries match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         auto& table = FormFactorManager::raw_exv_table();
-        for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+        for (unsigned int ff1 = 1; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff2 = 1; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
@@ -69,7 +69,7 @@ TEST_CASE("ExvFormFactorProduct::cross_table_comprehensive") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         auto& table = FormFactorManager::raw_cross_table();
         for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            for (unsigned int ff2 = 1; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
@@ -84,14 +84,14 @@ TEST_CASE("ExvFormFactorProduct::cross_table_comprehensive") {
 
 TEST_CASE("ExvFormFactorProduct::specific_exv_pairs") {
     SECTION("C exv form factor product") {
-        const FormFactorProduct& ffp = FormFactorManager::raw_exv_table().index(1, 1);
+        const FormFactorProduct& ffp = FormFactorManager::raw_exv_table().index(static_cast<int>(form_factor_t::C), static_cast<int>(form_factor_t::C));
         CHECK(ffp.evaluate(0) > 0);
         CHECK(ffp.evaluate(constants::axes::q_axis.bins - 1) > 0);
         CHECK(ffp.evaluate(0) >= ffp.evaluate(constants::axes::q_axis.bins - 1));
     }
 
     SECTION("C-N exv cross product") {
-        const FormFactorProduct& ffp = FormFactorManager::raw_exv_table().index(1, 2);
+        const FormFactorProduct& ffp = FormFactorManager::raw_exv_table().index(static_cast<int>(form_factor_t::C), static_cast<int>(form_factor_t::N));
         CHECK(ffp.evaluate(0) > 0);
         CHECK(ffp.evaluate(constants::axes::q_axis.bins - 1) > 0);
         CHECK(ffp.evaluate(0) >= ffp.evaluate(constants::axes::q_axis.bins - 1));
@@ -100,14 +100,14 @@ TEST_CASE("ExvFormFactorProduct::specific_exv_pairs") {
 
 TEST_CASE("ExvFormFactorProduct::specific_cross_pairs") {
     SECTION("C atomic-exv cross product") {
-        const FormFactorProduct& ffp = FormFactorManager::raw_cross_table().index(1, 1);
+        const FormFactorProduct& ffp = FormFactorManager::raw_cross_table().index(static_cast<int>(form_factor_t::C), static_cast<int>(form_factor_t::C));
         CHECK(ffp.evaluate(0) > 0);
         CHECK(ffp.evaluate(constants::axes::q_axis.bins - 1) > 0);
         CHECK(ffp.evaluate(0) >= ffp.evaluate(constants::axes::q_axis.bins - 1));
     }
 
     SECTION("C-N atomic-exv cross product") {
-        const FormFactorProduct& ffp = FormFactorManager::raw_cross_table().index(1, 2);        
+        const FormFactorProduct& ffp = FormFactorManager::raw_cross_table().index(static_cast<int>(form_factor_t::C), static_cast<int>(form_factor_t::N));
         CHECK(ffp.evaluate(0) > 0);
         CHECK(ffp.evaluate(constants::axes::q_axis.bins - 1) > 0);
         CHECK(ffp.evaluate(0) >= ffp.evaluate(constants::axes::q_axis.bins - 1));

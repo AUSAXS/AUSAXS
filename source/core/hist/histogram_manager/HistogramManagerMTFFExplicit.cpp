@@ -348,8 +348,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     GenericDistribution1D_t p_tot(settings::axes::bin_count);
     {   // sum all elements to the total
         unsigned int n_active = form_factor::FormFactorManager::get_active_count();
-        for (unsigned int ff1 = 0; ff1 < n_active; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < n_active; ++ff2) {
+        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {
+            for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < n_active; ++ff2) {
                 std::transform(p_tot.begin(), p_tot.end(), p_aa.begin(ff1, ff2), p_tot.begin(), std::plus<>());
             }
             std::transform(p_tot.begin(), p_tot.end(), p_wa.begin(ff1), p_tot.begin(), std::plus<>());

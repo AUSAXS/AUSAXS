@@ -125,7 +125,7 @@ void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d
     auto ax = evaluate_ax_distance_profile(1);
 
     auto& aa = CompositeDistanceHistogramFFAvgBase::get_raw_aa_counts_by_ff();
-    for (unsigned int ff = 0; ff < form_factor::FormFactorManager::get_active_count(); ++ff) {
+    for (unsigned int ff = form_factor::start_index_for_explicit_exv(); ff < form_factor::FormFactorManager::get_active_count(); ++ff) {
         std::transform(aa.begin(ff, form_factor::exv_bin), aa.end(ff, form_factor::exv_bin), ax.begin(ff), aa.begin(ff, form_factor::exv_bin), std::plus<double>());
     }
     std::transform(aa.begin(form_factor::exv_bin, form_factor::exv_bin), aa.end(form_factor::exv_bin, form_factor::exv_bin), xx.begin(), aa.begin(form_factor::exv_bin, form_factor::exv_bin), std::plus<double>());
@@ -200,8 +200,8 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
     if (sinqd_changed) {
         // aa
         pool->detach_task([&] () {
-            for (unsigned int ff1 = 0; ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         this->cache.intensity_profiles.aa[q-q0] += 
                             this->cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_table.index(ff1, ff2).evaluate(q);
@@ -216,7 +216,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
         pool->detach_task([&] () {
             for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                 auto ax = evaluate_ax_distance_profile(cx[q-q0]);
-                for (unsigned int ff1 = 0; ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+                for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
                     double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table_ax->begin(q), 0.0);
                     this->cache.intensity_profiles.ax[q-q0] += 
                         2*this->free_params.crho*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
@@ -238,7 +238,7 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(b
     if (cw_changed) {
         // aw
         pool->detach_task([&] () {
-            for (unsigned int ff1 = 0; ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     this->cache.intensity_profiles.aw[q-q0] += 
                         2*this->free_params.cw*this->cache.sinqd.aw.index(ff1, q-q0)
