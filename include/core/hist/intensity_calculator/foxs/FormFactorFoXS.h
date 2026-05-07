@@ -6,6 +6,7 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <container/ArrayContainer2D.h>
+#include <settings/FormFactorSettings.h>
 
 #include <cmath>
 
@@ -47,10 +48,10 @@ namespace ausaxs::form_factor::foxs {
                 }
             }
 
-            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::get_count(), form_factor::get_count()> generate_table() {
-                container::ArrayContainer2D<FormFactorProduct, form_factor::get_count(), form_factor::get_count()> table;
-                for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
-                    for (unsigned int j = 0; j < i; ++j) {
+            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> generate_table() {
+                container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> table;
+                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < settings::form_factor::max_ff_types; ++i) {
+                    for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
                             get_form_factor(static_cast<form_factor_t>(i)), 
                             get_form_factor(static_cast<form_factor_t>(j))
@@ -88,10 +89,10 @@ namespace ausaxs::form_factor::foxs {
                 }
             }
 
-            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
-                container::ArrayContainer2D<FormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
-                for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
-                    for (unsigned int j = 0; j < i; ++j) {
+            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> generate_table() {
+                container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> table;
+                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < settings::form_factor::max_ff_types; ++i) {
+                    for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
                             get_form_factor(static_cast<form_factor_t>(i)), 
                             get_form_factor(static_cast<form_factor_t>(j))
@@ -108,10 +109,10 @@ namespace ausaxs::form_factor::foxs {
         }
 
         namespace cross {
-            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
-                container::ArrayContainer2D<FormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
-                for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
-                    for (unsigned int j = 0; j < i; ++j) {
+            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> generate_table() {
+                container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> table;
+                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < settings::form_factor::max_ff_types; ++i) {
+                    for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
                             atomic::get_form_factor(static_cast<form_factor_t>(i)), 
                             exv::get_form_factor(static_cast<form_factor_t>(j))

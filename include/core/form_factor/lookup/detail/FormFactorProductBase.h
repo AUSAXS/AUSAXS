@@ -39,20 +39,6 @@ namespace ausaxs::form_factor::lookup::detail {
             );
         }
 
-        // add excluded volume ff for the exv models using the same form factor for all
-        int i = form_factor::get_count()-1;
-        for (unsigned int j = 0; j < ff_indices.size(); ++j) {
-            table.index(i, j) = FormFactorProduct(
-                FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[j])), 
-                FormFactorLookup::get(form_factor_t::EXCLUDED_VOLUME)
-            );
-            table.index(j, i) = table.index(i, j);
-        }
-        table.index(i, i) = FormFactorProduct(
-            FormFactorLookup::get(form_factor_t::EXCLUDED_VOLUME), 
-            FormFactorLookup::get(form_factor_t::EXCLUDED_VOLUME)
-        );
-
         return table;
     }
 
@@ -66,8 +52,8 @@ namespace ausaxs::form_factor::lookup::detail {
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::exv::table_t table;
-        for (unsigned int i = 0; i < ff_indices.size(); ++i) {
-            for (unsigned int j = 0; j < i; ++j) {
+        for (unsigned int i = start_index_for_explicit_exv(); i < ff_indices.size(); ++i) {
+            for (unsigned int j = start_index_for_explicit_exv(); j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(
                     exv_set.get(static_cast<form_factor_t>(ff_indices[i])), 
                     exv_set.get(static_cast<form_factor_t>(ff_indices[j]))
@@ -94,7 +80,7 @@ namespace ausaxs::form_factor::lookup::detail {
 
         form_factor::lookup::cross::table_t table;
         for (unsigned int i = 0; i < ff_indices.size(); ++i) {
-            for (unsigned int j = 0; j < ff_indices.size(); ++j) {
+            for (unsigned int j = start_index_for_explicit_exv(); j < ff_indices.size(); ++j) {
                 table.index(i, j) = FormFactorProduct(
                     AtomicFormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i])), 
                     exv_set.get(static_cast<form_factor_t>(ff_indices[j]))

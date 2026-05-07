@@ -14,7 +14,7 @@ namespace ausaxs::form_factor {
     class FormFactorManager {
         struct _CustomTables{
             unsigned int active_count = 0; // number of valid entries in ff_indices
-            std::array<int, form_factor::get_count_without_excluded_volume()> ff_indices;
+            std::array<int, settings::form_factor::max_ff_types> ff_indices;
             lookup::exv::table_t    custom_raw_exv_table;
             lookup::cross::table_t  custom_raw_cross_table;
             lookup::atomic::table_t custom_raw_atomic_table;
@@ -24,7 +24,8 @@ namespace ausaxs::form_factor {
 
         public:
             static observer_ptr<const _CustomTables> get_custom_tables() noexcept;
-            static constexpr std::array<int, form_factor::get_count_without_excluded_volume()> get_ff_indices() noexcept;
+            static constexpr std::array<int, settings::form_factor::max_ff_types> get_ff_indices() noexcept;
+            static unsigned int get_active_count() noexcept;
             static const lookup::atomic::table_t& normalized_atomic_table() noexcept;
             static const lookup::cross::table_t& normalized_cross_table() noexcept;
             static const lookup::atomic::table_t& raw_atomic_table() noexcept;
@@ -50,9 +51,9 @@ namespace ausaxs::form_factor {
     };
 }
 
-constexpr std::array<int, ausaxs::form_factor::get_count_without_excluded_volume()> ausaxs::form_factor::FormFactorManager::get_ff_indices() noexcept {
+constexpr std::array<int, ausaxs::settings::form_factor::max_ff_types> ausaxs::form_factor::FormFactorManager::get_ff_indices() noexcept {
     auto generator = []() {
-        std::array<int, form_factor::get_count_without_excluded_volume()> indices{};
+        std::array<int, settings::form_factor::max_ff_types> indices{};
         for (unsigned int i = 0; i < indices.size(); ++i) {
             indices[i] = i;
         }

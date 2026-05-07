@@ -14,8 +14,8 @@ settings::exv::ExvMethod settings::exv::exv_method = settings::exv::ExvMethod::S
 settings::detail::Setting<settings::exv::ExvSet> settings::exv::exv_set = {
     settings::exv::ExvSet::Default,
     [] (settings::exv::ExvSet& new_set) {
-        form_factor::FormFactorManager::use_custom_form_factors(new_set != settings::exv::ExvSet::Default);
-        form_factor::FormFactorManager::refresh();
+        ausaxs::form_factor::FormFactorManager::use_custom_form_factors(new_set != settings::exv::ExvSet::Default);
+        ausaxs::form_factor::FormFactorManager::refresh();
     }
 };
 

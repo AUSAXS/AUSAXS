@@ -36,6 +36,8 @@ namespace ausaxs::form_factor {
     static_assert(exv_bin == 0, "form_factor::form_factor_t::EXCLUDED_VOLUME must be at index 0");
     static_assert(water_bin == 1, "form_factor::form_factor_t::WATER must be at index 1");
 
+    inline int start_index_for_explicit_exv() {return static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)+1;}
+
     [[maybe_unused]] static std::string to_string(form_factor_t type) {
         switch (type) {
             case form_factor_t::H: return "H";
@@ -81,21 +83,10 @@ namespace ausaxs::form_factor {
     }
 
     /**
-     * @brief Get the number of unique form factors.
-     * 
-     * This can be used to iterate over all form factors.
+     * @brief Get the total number of defined form factor types (including excluded volume).
      */
-    constexpr unsigned int get_count() {
+    constexpr unsigned int get_total_ff_count() {
         return static_cast<unsigned int>(form_factor_t::COUNT);
-    }
-
-    /**
-     * @brief Get the number of unique form factors, excluding the excluded volume form factor.
-     * 
-     * This can be used to iterate over all form factors except the excluded volume form factor.
-     */
-    constexpr unsigned int get_count_without_excluded_volume() {
-        return static_cast<unsigned int>(form_factor_t::COUNT)-1;
     }
 
     /**

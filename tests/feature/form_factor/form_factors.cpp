@@ -14,7 +14,7 @@ using namespace form_factor;
 
 // Check that we have the correct conversion of the s-values. The form factors are not supposed to change a lot over the span of our q-values.
 TEST_CASE("NormalizedFormFactor::evaluate") {
-    for (unsigned int ff = 0; ff < get_count_without_excluded_volume(); ++ff) {
+    for (unsigned int ff = 0; ff < get_total_ff_count(); ++ff) {
         const NormalizedFormFactor& ff_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0.0), Catch::Matchers::WithinAbs(1, 1e-6));
         if (ff_obj.evaluate(0.5) < 0.95) {
@@ -27,7 +27,7 @@ TEST_CASE("NormalizedFormFactor::evaluate") {
 
 // Check that the form factors are normalized. 
 TEST_CASE("NormalizedFormFactor: normalized") {
-    for (unsigned int ff = 0; ff < get_count_without_excluded_volume(); ++ff) {
+    for (unsigned int ff = 0; ff < get_total_ff_count(); ++ff) {
         const NormalizedFormFactor& ff_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0), Catch::Matchers::WithinAbs(1, 1e-6));
     }

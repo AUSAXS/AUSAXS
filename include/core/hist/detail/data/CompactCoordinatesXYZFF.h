@@ -526,7 +526,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
         __m256 ff_raw = _mm256_shuffle_ps(fft0, fft1, _MM_SHUFFLE(3,2,3,2));
         __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
-        __m256 mul_fac = _mm256_set1_ps(form_factor::max_ff_types);
+        __m256 mul_fac = _mm256_set1_ps(settings::form_factor::max_ff_types);
         __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, _mm256_mul_ps(_mm256_set1_ps(this->value.ff), mul_fac)));
 
         // compute differences and square
@@ -582,7 +582,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
         __m256 ff_raw = _mm256_shuffle_ps(fft0, fft1, _MM_SHUFFLE(3,2,3,2));
         __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
-        __m256 mul_fac = _mm256_set1_ps(form_factor::max_ff_types);
+        __m256 mul_fac = _mm256_set1_ps(settings::form_factor::max_ff_types);
         __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, _mm256_mul_ps(_mm256_set1_ps(this->value.ff), mul_fac)));
 
         __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));

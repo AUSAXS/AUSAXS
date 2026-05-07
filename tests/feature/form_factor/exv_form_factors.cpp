@@ -28,7 +28,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
     }
 
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-    for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {
+    for (unsigned int ff = 0; ff < settings::form_factor::max_ff_types; ++ff) {
         const form_factor::ExvFormFactor& ff_obj = exv_set.get(static_cast<form_factor::form_factor_t>(ff));
         SimpleDataset dataset;
         for (const double& q : q_vals) {
@@ -42,7 +42,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
 // compare each exv form factor with its real one
 TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-    for (unsigned int ffi = 0; ffi < form_factor::get_count_without_excluded_volume(); ++ffi) {
+    for (unsigned int ffi = 0; ffi < settings::form_factor::max_ff_types; ++ffi) {
         const form_factor::NormalizedFormFactor& ff = form_factor::lookup::atomic::normalized::get(static_cast<form_factor::form_factor_t>(ffi));
         const form_factor::ExvFormFactor& ffx = exv_set.get(static_cast<form_factor::form_factor_t>(ffi));
 

@@ -48,7 +48,7 @@ int ff_valid_form_factor_types(
     int* status
 ) {return execute_with_catch([&]() {
     _ff_valid_form_factor_types_obj obj;
-    for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
+    for (unsigned int i = 0; i < form_factor::get_total_ff_count(); ++i) {
         obj.types.emplace_back(form_factor::to_string(static_cast<form_factor::form_factor_t>(i)));
     }
     obj.types_ptr.resize(obj.types.size());

@@ -14,8 +14,8 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_exv_evaluation") {
     SECTION("all exv form factor products match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         auto& table = FormFactorManager::raw_exv_table();
-        for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
@@ -32,8 +32,8 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
     SECTION("all cross form factor products match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         auto& table = FormFactorManager::raw_cross_table();
-        for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
@@ -50,8 +50,8 @@ TEST_CASE("ExvFormFactorProduct::exv_table_comprehensive") {
     SECTION("all exv table entries match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         auto& table = FormFactorManager::raw_exv_table();
-        for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
@@ -68,8 +68,8 @@ TEST_CASE("ExvFormFactorProduct::cross_table_comprehensive") {
     SECTION("all cross table entries match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         auto& table = FormFactorManager::raw_cross_table();
-        for (unsigned int ff1 = 0; ff1 < get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < get_count_without_excluded_volume(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);

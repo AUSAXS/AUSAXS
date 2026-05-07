@@ -112,7 +112,7 @@ TEST_CASE("NormalizedFormFactor::set_normalization") {
 
 TEST_CASE("NormalizedFormFactor::storage::atomic") {
     SECTION("get_form_factor for all types") {
-        for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
+        for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
             const NormalizedFormFactor& ff = lookup::atomic::normalized::get(static_cast<form_factor_t>(i));
             CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
             CHECK(ff.I0() > 0);

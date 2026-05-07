@@ -44,7 +44,7 @@ form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_
 template<FormFactorType T>
 form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(T&& ffx) {
     form_factor::lookup::atomic::table_t table;
-    for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
+    for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = NormalizedFormFactorProduct(
                 lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
@@ -82,16 +82,16 @@ void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     if (cache.sinqd.aa.empty()) {
-        cache.sinqd.aa = container::Container3D<double>(form_factor::get_count(), form_factor::get_count(), debye_axis.bins);
-        cache.sinqd.ax = container::Container2D<double>(form_factor::get_count(), debye_axis.bins);
-        cache.sinqd.aw = container::Container2D<double>(form_factor::get_count(), debye_axis.bins);
+        cache.sinqd.aa = container::Container3D<double>(settings::form_factor::max_ff_types, settings::form_factor::max_ff_types, debye_axis.bins);
+        cache.sinqd.ax = container::Container2D<double>(settings::form_factor::max_ff_types, debye_axis.bins);
+        cache.sinqd.aw = container::Container2D<double>(settings::form_factor::max_ff_types, debye_axis.bins);
         cache.sinqd.xx = container::Container1D<double>(debye_axis.bins);
         cache.sinqd.wx = container::Container1D<double>(debye_axis.bins);
         cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
     }
 
-    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-        for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+    for (unsigned int ff1 = 0; ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+        for (unsigned int ff2 = 0; ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
             pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table_aa] () {
                 for (unsigned int q = q0; q < q0+bins; ++q) {
                     cache.sinqd.aa.index(ff1, ff2, q-q0) = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table_aa->begin(q), 0.0);

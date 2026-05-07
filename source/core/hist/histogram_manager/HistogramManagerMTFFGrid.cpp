@@ -88,7 +88,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         return p_xx;
     };
 
-    container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_count(), settings::axes::bin_count);
+    container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(settings::form_factor::max_ff_types, settings::axes::bin_count);
     auto calc_ax = [&data_a, &data_x, &p_ax_all, data_x_size] (int imin, int imax) {
         auto& p_ax = p_ax_all.get();
         for (int i = imin; i < imax; ++i) { // atoms

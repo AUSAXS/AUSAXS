@@ -13,6 +13,7 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <data/Molecule.h>
 #include <settings/ExvSettings.h>
 #include <settings/GeneralSettings.h>
@@ -230,7 +231,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     auto pool = utility::multi_threading::get_global_pool();
 
     container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(
-        form_factor::get_count(), form_factor::get_count(), settings::axes::bin_count
+        settings::form_factor::max_ff_types, settings::form_factor::max_ff_types, settings::axes::bin_count
     ); // ff_type1, ff_type2, distance
 
     auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
@@ -255,7 +256,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_wa_all(form_factor::get_count_without_excluded_volume(), settings::axes::bin_count); // ff_type, distance
+    container::ThreadLocalWrapper<GenericDistribution2D_t> p_wa_all(settings::form_factor::max_ff_types, settings::axes::bin_count); // ff_type, distance
     auto calc_wa = [&data_w, &data_a, &p_wa_all, data_w_size] (int imin, int imax) {
         auto& p_wa = p_wa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -346,8 +347,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
 
     GenericDistribution1D_t p_tot(settings::axes::bin_count);
     {   // sum all elements to the total
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+        unsigned int n_active = form_factor::FormFactorManager::get_active_count();
+        for (unsigned int ff1 = 0; ff1 < n_active; ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < n_active; ++ff2) {
                 std::transform(p_tot.begin(), p_tot.end(), p_aa.begin(ff1, ff2), p_tot.begin(), std::plus<>());
             }
             std::transform(p_tot.begin(), p_tot.end(), p_wa.begin(ff1), p_tot.begin(), std::plus<>());

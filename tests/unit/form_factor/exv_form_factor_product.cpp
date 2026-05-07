@@ -15,8 +15,8 @@ TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
     SECTION("product entries match direct calculation") {
         auto& table = FormFactorManager::raw_exv_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
-            for (unsigned int j = 0; j < get_count_without_excluded_volume(); ++j) {
+        for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
+            for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
                 const FormFactorProduct& product = table.index(i, j);
 
                 ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(i));
@@ -33,8 +33,8 @@ TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
     SECTION("all table entries match direct calculation") {
         auto& table = FormFactorManager::raw_exv_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
-            for (unsigned int j = 0; j < get_count_without_excluded_volume(); ++j) {
+        for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
+            for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
                 const FormFactorProduct& product = table.index(i, j);
                 
                 ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(i));
@@ -52,8 +52,8 @@ TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
 TEST_CASE("ExvFormFactorProduct::table symmetry") {
     SECTION("exv table is symmetric") {
         auto& table = FormFactorManager::raw_exv_table();
-        for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
-            for (unsigned int j = 0; j < get_count_without_excluded_volume(); ++j) {
+        for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
+            for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
                 const FormFactorProduct& product1 = table.index(i, j);
                 const FormFactorProduct& product2 = table.index(j, i);
                 
@@ -69,8 +69,8 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
     SECTION("cross products return correct values") {
         auto& table = FormFactorManager::raw_cross_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
-            for (unsigned int j = 0; j < get_count_without_excluded_volume(); ++j) {
+        for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
+            for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
                 const FormFactorProduct& product = table.index(i, j);
                 const FormFactor& ff_atomic = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
                 ExvFormFactor exv = exv_set.get(static_cast<form_factor_t>(j));
@@ -86,8 +86,8 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
     SECTION("cross table returns correct values") {
         auto& table = FormFactorManager::raw_cross_table();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        for (unsigned int i = 0; i < get_count_without_excluded_volume(); ++i) {
-            for (unsigned int j = 0; j < get_count_without_excluded_volume(); ++j) {
+        for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
+            for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
                 const FormFactorProduct& product = table.index(i, j);
                 const FormFactor& ff_atomic = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
                 ExvFormFactor exv = exv_set.get(static_cast<form_factor_t>(j));

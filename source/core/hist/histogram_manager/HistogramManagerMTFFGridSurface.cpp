@@ -141,7 +141,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         return p_xx;
     };
 
-    container::ThreadLocalWrapper<AXContainer> p_ax_all(form_factor::get_count(), settings::axes::bin_count);
+    container::ThreadLocalWrapper<AXContainer> p_ax_all(settings::form_factor::max_ff_types, settings::axes::bin_count);
     auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
         auto& p_ax = p_ax_all.get();
         for (int i = imin; i < imax; ++i) { // atoms

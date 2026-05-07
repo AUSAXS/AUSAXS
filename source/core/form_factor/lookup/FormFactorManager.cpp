@@ -43,11 +43,18 @@ std::vector<int> FormFactorManager::get_ff_mapping() {
     // default to OTHER which is always last
     auto ff_indices = is_using_custom_form_factors() ? custom_tables->ff_indices : get_ff_indices();
     unsigned int count = is_using_custom_form_factors() ? custom_tables->active_count : ff_indices.size();
-    std::vector<int> mapping(form_factor::get_count(), settings::form_factor::max_ff_types);
+    std::vector<int> mapping(form_factor::get_total_ff_count(), settings::form_factor::max_ff_types);
     for (unsigned int i = 0; i < count; ++i) {
         mapping[ff_indices[i]] = i;
     }
     return mapping;
+}
+
+unsigned int FormFactorManager::get_active_count() noexcept {
+    if (is_using_custom_form_factors() && custom_tables) {
+        return custom_tables->active_count;
+    }
+    return settings::form_factor::max_ff_types;
 }
 
 const lookup::atomic::table_t& FormFactorManager::normalized_atomic_table() noexcept {
@@ -92,7 +99,7 @@ const lookup::cross::table_t& FormFactorManager::raw_cross_table() noexcept {
 
 void FormFactorManager::use_custom_form_factors(bool choice) {
     if (choice && !custom_tables) {
-        std::vector<int> indices(form_factor::get_count_without_excluded_volume());
+        std::vector<int> indices(settings::form_factor::max_ff_types);
         std::iota(indices.begin(), indices.end(), 0);
         set_custom_form_factors(indices);
     }
@@ -101,7 +108,7 @@ void FormFactorManager::use_custom_form_factors(bool choice) {
 
 void FormFactorManager::set_custom_form_factors(std::vector<int> ff_indices) {
     assert(!ff_indices.empty() && "Custom form factors cannot be empty.");
-    assert(ff_indices.size() <= form_factor::get_count_without_excluded_volume() && "Custom form factors cannot exceed the total number of available form factors.");
+    assert(ff_indices.size() <= form_factor::get_total_ff_count_without_exv() && "Custom form factors cannot exceed the total number of available form factors.");
 
     _use_custom_form_factors = true;
     custom_tables = std::make_unique<_CustomTables>();
@@ -130,36 +137,31 @@ void FormFactorManager::refresh_custom_state() {
 }
 
 void FormFactorManager::set_custom_form_factors(data::Molecule& molecule) {
-    std::vector<int> ff_counts(form_factor::get_count(), 0);
+    std::vector<int> ff_counts(form_factor::get_total_ff_count(), 0);
     for (auto& a : molecule.iterate_atoms()) {
         ++ff_counts[static_cast<int>(a.form_factor_type())];
     }
-    ff_counts[static_cast<int>(form_factor::form_factor_t::OTHER)] = -1;
-    std::vector<int> ff_indices(form_factor::get_count_without_excluded_volume());
+    // ensure excluded volume and water are always at the front of the list, and OTHER is always at the end, regardless of abundance
+    ff_counts[static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)] = std::numeric_limits<int>::max();
+    ff_counts[static_cast<int>(form_factor::form_factor_t::WATER)] = std::numeric_limits<int>::max()-1;
+    ff_counts[static_cast<int>(form_factor::form_factor_t::OTHER)] = std::numeric_limits<int>::min();
+
+    std::vector<int> ff_indices(form_factor::get_total_ff_count());
     std::iota(ff_indices.begin(), ff_indices.end(), 0);
     std::sort(ff_indices.begin(), ff_indices.end(), [&ff_counts](int a, int b) {
         return ff_counts[a] > ff_counts[b];
     });
-    ff_indices.resize(settings::form_factor::max_ff_types); // limit the number of form factors to the user-defined maximum
-    ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // ensure OTHER is always the last form factor
-
-    // ensure OH (water) is always at index 0 so that water_bin is a fixed compile-time constant
-    const int oh_idx = static_cast<int>(form_factor::form_factor_t::OH);
-    auto oh_it = std::find(ff_indices.begin(), ff_indices.end(), oh_idx);
-    if (oh_it == ff_indices.end()) {
-        // OH was not selected by abundance; force it in at front, dropping the last non-OTHER entry
-        ff_indices.insert(ff_indices.begin(), oh_idx);
-        ff_indices.resize(settings::form_factor::max_ff_types);
-        ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER);
-    } else {
-        std::iter_swap(ff_indices.begin(), oh_it);
-    }
+    ff_indices.resize(settings::form_factor::max_ff_types);
+    ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // OTHER will never be selected, so it is safe to assign it here
 
     {   // logging
         std::string log_msg = "Setting form factors based on detected molecular composition:";
-        for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
+        log_msg += "\n\t" + form_factor::to_string(form_factor::form_factor_t::EXCLUDED_VOLUME) + " (forced)";
+        log_msg += "\n\t" + form_factor::to_string(form_factor::form_factor_t::WATER) + " (forced)";
+        for (unsigned int i = 2; i < ff_indices.size()-1; ++i) {
             log_msg += "\n\t" + form_factor::to_string(static_cast<form_factor_t>(ff_indices[i])) + " with count " + std::to_string(ff_counts[ff_indices[i]]);
         }
+        log_msg += "\n\t" + form_factor::to_string(form_factor::form_factor_t::OTHER) + " (forced)";
         logging::log(log_msg);
     }
     set_custom_form_factors(ff_indices);
