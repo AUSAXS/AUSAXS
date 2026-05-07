@@ -13,6 +13,7 @@
 namespace ausaxs::form_factor {
     class FormFactorManager {
         struct _CustomTables{
+            unsigned int active_count = 0; // number of valid entries in ff_indices
             std::array<int, form_factor::get_count_without_excluded_volume()> ff_indices;
             lookup::exv::table_t    custom_raw_exv_table;
             lookup::cross::table_t  custom_raw_cross_table;

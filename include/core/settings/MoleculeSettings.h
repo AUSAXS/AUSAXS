@@ -12,7 +12,6 @@ namespace ausaxs::settings {
         static bool allow_unknown_residues; // Decides whether to allow unknown residues (WARNING: implicit hydrogens will be skipped for these residues).
         static bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
         static bool use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
-        static int max_ff_types;            // The maximum number of form factor types to use. Increasing this limit may dramatically affect performance.
     };
 
     struct EXPORT hydrate {

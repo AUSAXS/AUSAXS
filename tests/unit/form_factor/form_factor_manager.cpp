@@ -10,16 +10,13 @@ using namespace form_factor;
 
 TEST_CASE("FormFactorManager::set_custom_form_factors") {
     data::Molecule molecule("tests/files/2epe.pdb");
-    std::vector<data::AtomFF> atoms(molecule.get_body(0).get_atoms().begin(), molecule.get_body(0).get_atoms().begin()+10);
-    int counter = 0;
-    for (auto& a : atoms) {
-        std::cout << "atoms[" << counter++ << "] = " << form_factor::to_string(a.form_factor_type()) << std::endl;
-    }
-    counter = 0;
-    FormFactorManager::set_custom_form_factors(molecule);
-    for (auto& a : atoms) {
-        std::cout << "atoms[" << counter++ << "] = " << form_factor::to_string(a.form_factor_type()) << std::endl;
+    std::vector<form_factor_t> original_ff_types, new_ff_types;
+
+    int counter = 1;
+    for (auto& a : molecule.iterate_atoms()) {
+        original_ff_types.emplace_back(a.form_factor_type());
+        if (10 < ++counter) {break;}
     }
 
-    // auto custom_tables = FormFactorManager::get_custom_tables();
+    FormFactorManager::set_custom_form_factors(molecule);
 }

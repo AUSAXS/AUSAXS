@@ -9,6 +9,7 @@
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/detail/FormFactorProductBase.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
+#include <settings/FormFactorSettings.h>
 #include <container/Container2D.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -41,8 +42,9 @@ namespace {
 std::vector<int> FormFactorManager::get_ff_mapping() {
     // default to OTHER which is always last
     auto ff_indices = is_using_custom_form_factors() ? custom_tables->ff_indices : get_ff_indices();
-    std::vector<int> mapping(form_factor::get_count(), settings::molecule::max_ff_types);
-    for (unsigned int i = 0; i < ff_indices.size(); ++i) {
+    unsigned int count = is_using_custom_form_factors() ? custom_tables->active_count : ff_indices.size();
+    std::vector<int> mapping(form_factor::get_count(), settings::form_factor::max_ff_types);
+    for (unsigned int i = 0; i < count; ++i) {
         mapping[ff_indices[i]] = i;
     }
     return mapping;
@@ -103,6 +105,7 @@ void FormFactorManager::set_custom_form_factors(std::vector<int> ff_indices) {
 
     _use_custom_form_factors = true;
     custom_tables = std::make_unique<_CustomTables>();
+    custom_tables->active_count = ff_indices.size();
     std::copy(ff_indices.begin(), ff_indices.end(), custom_tables->ff_indices.begin());
     refresh();
 }
@@ -137,12 +140,24 @@ void FormFactorManager::set_custom_form_factors(data::Molecule& molecule) {
     std::sort(ff_indices.begin(), ff_indices.end(), [&ff_counts](int a, int b) {
         return ff_counts[a] > ff_counts[b];
     });
-    ff_indices.resize(settings::molecule::max_ff_types); // limit the number of form factors to the user-defined maximum
+    ff_indices.resize(settings::form_factor::max_ff_types); // limit the number of form factors to the user-defined maximum
     ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // ensure OTHER is always the last form factor
+
+    // ensure OH (water) is always at index 0 so that water_bin is a fixed compile-time constant
+    const int oh_idx = static_cast<int>(form_factor::form_factor_t::OH);
+    auto oh_it = std::find(ff_indices.begin(), ff_indices.end(), oh_idx);
+    if (oh_it == ff_indices.end()) {
+        // OH was not selected by abundance; force it in at front, dropping the last non-OTHER entry
+        ff_indices.insert(ff_indices.begin(), oh_idx);
+        ff_indices.resize(settings::form_factor::max_ff_types);
+        ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER);
+    } else {
+        std::iter_swap(ff_indices.begin(), oh_it);
+    }
 
     {   // logging
         std::string log_msg = "Setting form factors based on detected molecular composition:";
-        for (unsigned int i = 0; i < settings::molecule::max_ff_types; ++i) {
+        for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
             log_msg += "\n\t" + form_factor::to_string(static_cast<form_factor_t>(ff_indices[i])) + " with count " + std::to_string(ff_counts[ff_indices[i]]);
         }
         logging::log(log_msg);

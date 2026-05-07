@@ -4,6 +4,7 @@
 #pragma once
 
 #include <constants/Constants.h>
+#include <settings/FormFactorSettings.h>
 
 #include <string>
 #include <stdexcept>
@@ -11,6 +12,9 @@
 namespace ausaxs::form_factor {
     // The form factor type of an atom. This is intended to be used as an index for best performance.
     enum class form_factor_t {
+        EXCLUDED_VOLUME,    // excluded volume
+        WATER,              // water
+        OH = WATER,         // neutral oxygen with hydrogen
         H,                  // neutral hydrogen
         C,                  // neutral carbon
         CH,                 // neutral carbon with hydrogen
@@ -21,16 +25,16 @@ namespace ausaxs::form_factor {
         NH2,                // neutral nitrogen with two hydrogens
         NH3,                // neutral nitrogen with three hydrogens
         O,                  // neutral oxygen
-        OH,                 // neutral oxygen with hydrogen
         S,                  // neutral sulfur
         SH,                 // neutral sulfur with hydrogen
         OTHER,              // all other atoms
-        EXCLUDED_VOLUME,    // excluded volume
         COUNT,              // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
         UNKNOWN,            // this is used to indicate that the form factor is unknown
     };
     constexpr int exv_bin   = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::OH);
+    constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::WATER);
+    static_assert(exv_bin == 0, "form_factor::form_factor_t::EXCLUDED_VOLUME must be at index 0");
+    static_assert(water_bin == 1, "form_factor::form_factor_t::WATER must be at index 1");
 
     [[maybe_unused]] static std::string to_string(form_factor_t type) {
         switch (type) {
