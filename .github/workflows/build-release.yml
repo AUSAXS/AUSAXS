@@ -89,7 +89,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=cl \
             -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="x64-windows-static"
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs saxs_fitter_gui em_fitter_gui -j12
 
       - name: Configure output folders for upload
         shell: bash
@@ -121,7 +121,7 @@ jobs:
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12  
+          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs -j12  
 
       - name: Sign the artifacts
         env: 
@@ -247,7 +247,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}" \
             -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs saxs_fitter_gui em_fitter_gui -j12
 
       - name: Clean up GUI binary folders for upload
         run: |
@@ -353,7 +353,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer saxs_fitter_gui em_fitter_gui -j12
+          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs saxs_fitter_gui em_fitter_gui -j12
 
       - name: Build the GUI executables (${{ matrix.os }})
         if: matrix.os != 'ubuntu-latest'
@@ -365,7 +365,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-          cmake --build build --config $BUILD_TYPE --target ausaxs saxs_fitter em_fitter rigidbody_optimizer -j12
+          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs -j12
 
       - name: Configure output folders for upload
         shell: bash
