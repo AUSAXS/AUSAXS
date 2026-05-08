@@ -143,23 +143,13 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PWD $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-          codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/saxs_fitter build/bin/em_fitter
+          codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/ausaxs
     
       - name: Notarize saxs_fitter
         uses: lando/notarize-action@v2
         with: 
-          product-path: build/bin/saxs_fitter
-          primary-bundle-id: "com.ausaxs.saxs_fitter"
-          appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
-          appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
-          appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
-          verbose: true
-
-      - name: Notarize em_fitter
-        uses: lando/notarize-action@v2
-        with: 
-          product-path: build/bin/em_fitter
-          primary-bundle-id: "com.ausaxs.em_fitter"
+          product-path: build/bin/ausaxs
+          primary-bundle-id: "com.ausaxs.ausaxs"
           appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
           appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
           appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
@@ -278,7 +268,17 @@ jobs:
             security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PWD $KEYCHAIN_PATH
             security list-keychain -d user -s $KEYCHAIN_PATH
 
-            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/saxs_fitter build/bin/em_fitter build/bin/saxs_fitter_gui build/bin/em_fitter_gui
+            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/ausaxs build/bin/saxs_fitter_gui build/bin/em_fitter_gui
+
+      - name: Notarize ausaxs
+        uses: lando/notarize-action@v2
+        with: 
+          product-path: build/bin/ausaxs
+          primary-bundle-id: "com.ausaxs.ausaxs"
+          appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
+          appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
+          appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
+          verbose: true
 
       - name: Notarize saxs_fitter_gui
         uses: lando/notarize-action@v2
