@@ -324,7 +324,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
 
     GenericDistribution1D_t p_tot(settings::axes::bin_count);
     {   // sum all elements to the total
-        unsigned int n_active = form_factor::FormFactorManager::get_active_count();
+        unsigned int n_active = form_factor::get_active_count();
         for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {
             for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < n_active; ++ff2) {
                 std::transform(p_tot.begin(), p_tot.end(), p_aa.begin(ff1, ff2), p_tot.begin(), std::plus<>());
@@ -357,7 +357,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         ? 0 
         : this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom()
     ;
-    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
         std::transform(p_aa.begin(ff1, form_factor::exv_bin), p_aa.end(ff1, form_factor::exv_bin), p_aa.begin(ff1, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
     }
     std::transform(p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), p_aa.end(form_factor::exv_bin, form_factor::exv_bin), p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg*Z_exv_avg;});

@@ -35,7 +35,7 @@ CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
 }
 
 void CompositeDistanceHistogramCrysol::initialize() {
-    ffaa_table = form_factor::FormFactorManager::raw_atomic_table();
+    ffaa_table = form_factor::manager::get_active_product_tables()->raw_atomic_table;
     ffax_table = form_factor::crysol::storage::cross::generate_table();
     ffxx_table = form_factor::crysol::storage::exv::generate_table();
 }

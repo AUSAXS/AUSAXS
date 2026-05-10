@@ -22,7 +22,7 @@ TEST_CASE("PrecalculatedFormFactorProduct::evaluate") {
 }
 
 TEST_CASE("PrecalculatedFormFactorProduct::table") {
-    auto& table = FormFactorManager::normalized_atomic_table();
+    auto& table = manager::get_active_product_tables()->normalized_atomic_table;
     for (unsigned int ff1 = 0; ff1 < get_total_ff_count(); ++ff1) {
         for (unsigned int ff2 = 0; ff2 < get_total_ff_count(); ++ff2) {
             const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));

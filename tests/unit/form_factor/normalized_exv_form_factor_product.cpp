@@ -12,8 +12,8 @@
 using namespace ausaxs;
 using namespace form_factor;
 
-TEST_CASE("FormFactorManager::raw_exv_table") {
-    auto& table = FormFactorManager::raw_exv_table();
+TEST_CASE("manager::raw_exv_table") {
+    auto& table = manager::get_active_product_tables()->raw_exv_table;
     SECTION("single access") {
         const auto& ff = table.index(
             static_cast<unsigned int>(form_factor_t::C),
@@ -38,9 +38,9 @@ TEST_CASE("FormFactorManager::raw_exv_table") {
     }
 }
 
-TEST_CASE("FormFactorManager::raw_exv_table: completeness") {
+TEST_CASE("manager::raw_exv_table: completeness") {
     SECTION("table access") {
-        auto& table = FormFactorManager::raw_exv_table();
+        auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         const ExvFormFactor& C = exv_set.get(form_factor_t::C);
         const ExvFormFactor& N = exv_set.get(form_factor_t::N);
@@ -56,7 +56,7 @@ TEST_CASE("FormFactorManager::raw_exv_table: completeness") {
     }
 
     SECTION("table completeness") {
-        const auto& table = FormFactorManager::raw_exv_table();
+        const auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
         for (unsigned int ff1 = 1; ff1 < settings::form_factor::max_ff_types; ++ff1) {
@@ -74,8 +74,8 @@ TEST_CASE("FormFactorManager::raw_exv_table: completeness") {
     }
 }
 
-TEST_CASE("FormFactorManager::normalized_cross_table") {
-    auto& table = FormFactorManager::normalized_cross_table();
+TEST_CASE("manager::normalized_cross_table") {
+    auto& table = manager::get_active_product_tables()->normalized_cross_table;
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
     SECTION("single access") {
         const auto& ff = table.index(
@@ -101,9 +101,9 @@ TEST_CASE("FormFactorManager::normalized_cross_table") {
     }
 }
 
-TEST_CASE("FormFactorManager::normalized_cross_table: completeness") {
+TEST_CASE("manager::normalized_cross_table: completeness") {
     SECTION("table access") {
-        const auto& table = FormFactorManager::normalized_cross_table();
+        const auto& table = manager::get_active_product_tables()->normalized_cross_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
         const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
@@ -121,7 +121,7 @@ TEST_CASE("FormFactorManager::normalized_cross_table: completeness") {
     }
 
     SECTION("table completeness") {
-        auto& table = FormFactorManager::normalized_cross_table();
+        auto& table = manager::get_active_product_tables()->normalized_cross_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
         for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
@@ -146,8 +146,8 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
         constants::exv::detail::ExvSet custom_set = constants::exv::vdw;
         ExvTableManager::set_custom_exv_table(custom_set);
 
-        const auto& table_exv = FormFactorManager::raw_exv_table();
-        const auto& table_cross = FormFactorManager::raw_cross_table();
+        const auto& table_exv = manager::get_active_product_tables()->raw_exv_table;
+        const auto& table_cross = manager::get_active_product_tables()->raw_cross_table;
 
         REQUIRE(table_exv.index(form_factor::water_bin, form_factor::water_bin).evaluate(0) > 0);
         REQUIRE(table_cross.index(form_factor::water_bin, form_factor::water_bin).evaluate(0) > 0);
@@ -161,7 +161,7 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
         constants::exv::detail::ExvSet custom_set = constants::exv::Traube;
         ExvTableManager::set_custom_exv_table(custom_set);
 
-        const auto& table = FormFactorManager::raw_exv_table();
+        const auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto ffset = form_factor::detail::ExvFormFactorSet(custom_set);
         for (unsigned int ff1 = 1; ff1 < get_total_ff_count(); ++ff1) {
             for (unsigned int ff2 = 1; ff2 < get_total_ff_count(); ++ff2) {
@@ -182,7 +182,7 @@ TEST_CASE("ExvSet switching") {
         auto original_setting = settings::exv::exv_set;
         settings::exv::exv_set = settings::exv::ExvSet::Traube;
 
-        const auto& table = FormFactorManager::raw_exv_table();
+        const auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::Traube);
 
         for (unsigned int ff1 = 1; ff1 < get_total_ff_count(); ++ff1) {
@@ -205,7 +205,7 @@ TEST_CASE("ExvSet switching") {
         auto original_setting = settings::exv::exv_set;
         settings::exv::exv_set = settings::exv::ExvSet::vdw;
 
-        const auto& table = FormFactorManager::raw_exv_table();
+        const auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::vdw);
 
         for (unsigned int ff1 = 1; ff1 < get_total_ff_count(); ++ff1) {

@@ -76,8 +76,8 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         exv_cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
     }
 
-    for (unsigned int ff1 = 0; ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-        for (unsigned int ff2 = 0; ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_active_count(); ++ff1) {
+        for (unsigned int ff2 = 0; ff2 < form_factor::get_active_count(); ++ff2) {
             pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table] () {
                 for (unsigned int q = q0; q < q0+bins; ++q) {
                     // Single sinqd calculation - the same histogram is used for aa, ax, and xx
@@ -132,8 +132,8 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
 
     if (sinqd_changed) {
         pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         this->cache.intensity_profiles.aa[q-q0] += 
                             exv_cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_aa_table.index(ff1, ff2).evaluate(q)
@@ -148,8 +148,8 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         // Use the same sinqd.aa values but with different form factor tables for ax and xx
         // For ax: subtract self-correlations at distance bin 0
         pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         double sinqd_ax = exv_cache.sinqd.aa.index(ff1, ff2, q-q0);
                         this->cache.intensity_profiles.ax[q-q0] += 
@@ -160,8 +160,8 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
             }
         });
         pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         this->cache.intensity_profiles.xx[q-q0] += 
                             std::pow(cx[q-q0]*this->free_params.crho, 2)*exv_cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_xx_table.index(ff1, ff2).evaluate(q)
@@ -174,7 +174,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
 
     if (cw_changed) {
         pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     this->cache.intensity_profiles.aw[q-q0] += 
                         2*this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)*ff_aa_table.index(ff1, form_factor::water_bin).evaluate(q)
@@ -194,7 +194,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     if (cw_changed || cx_changed) {
         // Use the same sinqd.aw values but with different form factor table for wx
         pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     this->cache.intensity_profiles.wx[q-q0] += 
                         this->free_params.crho*cx[q-q0]*this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)

@@ -80,8 +80,8 @@ const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableTy
     p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);
     
     // aa contribution: sum over all form factor pairs, weighted by ff_product(q=0)
-    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-        for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
+        for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
             double weight = ff_table.index(ff1, ff2).evaluate(0);
             for (unsigned int i = 0; i < p.size(); ++i) {
                 p[i] += distance_profiles.aa.index(ff1, ff2, i) * weight;
@@ -90,7 +90,7 @@ const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableTy
     }
     
     // aw contribution: sum over all atom form factors, weighted by ff_product(atom, water, q=0)
-    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
         double weight = 2 * free_params.cw * ff_table.index(ff1, form_factor::water_bin).evaluate(0);
         for (unsigned int i = 0; i < p.size(); ++i) {
             p[i] += distance_profiles.aw.index(ff1, i) * weight;
@@ -186,8 +186,8 @@ template<typename FormFactorTableType>
 const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() const {
     static Distribution3D ret;
     ret = distance_profiles.aa;
-    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-        for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
+        for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
             double weight = get_ff_table().index(ff1, ff2).evaluate(0);
             std::transform(ret.begin(ff1, ff2), ret.end(ff1, ff2), ret.begin(ff1, ff2), [weight](auto val) { return val*weight; });
         }
@@ -204,7 +204,7 @@ template<typename FormFactorTableType>
 const Distribution2D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aw_counts_by_ff() const {
     static Distribution2D ret;
     ret = distance_profiles.aw;
-    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
         double weight = 2 * free_params.cw * get_ff_table().index(ff1, form_factor::water_bin).evaluate(0);
         std::transform(ret.begin(ff1), ret.end(ff1), ret.begin(ff1), [weight](auto val) { return val*weight; });
     }
@@ -403,14 +403,14 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_dis
     cache.distance_profiles.p_ww = Distribution1D(axis.bins, 0);
     
     pool->detach_task([this] () {
-        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-            for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
+            for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
                 std::transform(cache.distance_profiles.p_aa.begin(), cache.distance_profiles.p_aa.end(), distance_profiles.aa.begin(ff1, ff2), cache.distance_profiles.p_aa.begin(), std::plus<>());
             }
         }
     });
     pool->detach_task([this] () {
-        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
             std::transform(cache.distance_profiles.p_aw.begin(), cache.distance_profiles.p_aw.end(), distance_profiles.aw.begin(ff1), cache.distance_profiles.p_aw.begin(), std::plus<>());
         }
     });
@@ -438,8 +438,8 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
         cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
     }
 
-    for (unsigned int ff1 = 0; ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-        for (unsigned int ff2 = 0; ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_active_count(); ++ff1) {
+        for (unsigned int ff2 = 0; ff2 < form_factor::get_active_count(); ++ff2) {
             pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table] () {
                 for (unsigned int q = q0; q < q0+bins; ++q) {
                     cache.sinqd.aa.index(ff1, ff2, q-q0) = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
@@ -494,8 +494,8 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     if (sinqd_changed) {
         // aa
         pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
+                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
                     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                         cache.intensity_profiles.aa[q-q0] += cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_table.index(ff1, ff2).evaluate(q);
                     }
@@ -507,7 +507,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     if (cx_changed) {
         // ax
         pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     cache.intensity_profiles.ax[q-q0] += 2*free_params.crho*cx[q-q0]*cache.sinqd.ax.index(ff1, q-q0)*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
                 }
@@ -525,7 +525,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     if (cw_changed) {
         // aw
         pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
+            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
                     cache.intensity_profiles.aw[q-q0] += 2*free_params.cw*cache.sinqd.aw.index(ff1, q-q0)*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
                 }

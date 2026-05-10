@@ -8,7 +8,7 @@
 using namespace ausaxs;
 using namespace form_factor;
 
-TEST_CASE("FormFactorManager::set_custom_form_factors") {
+TEST_CASE("manager::set_custom_form_factors") {
     data::Molecule molecule("tests/files/2epe.pdb");
     std::vector<form_factor_t> original_ff_types, new_ff_types;
 
@@ -18,5 +18,5 @@ TEST_CASE("FormFactorManager::set_custom_form_factors") {
         if (10 < ++counter) {break;}
     }
 
-    FormFactorManager::set_custom_form_factors(molecule);
+    manager::use_form_factors(molecule);
 }

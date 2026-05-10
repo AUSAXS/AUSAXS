@@ -43,7 +43,7 @@ TEST_CASE("FormFactorProduct::evaluate") {
 
 TEST_CASE("FormFactorProduct::table") {
     SECTION("exv") {
-        auto& table = FormFactorManager::raw_exv_table();
+        auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int ff1 = 1; ff1 < get_total_ff_count(); ++ff1) {
             for (unsigned int ff2 = 1; ff2 < get_total_ff_count(); ++ff2) {
@@ -58,7 +58,7 @@ TEST_CASE("FormFactorProduct::table") {
     }
 
     SECTION("cross") {
-        auto& table = FormFactorManager::normalized_cross_table();
+        auto& table = manager::get_active_product_tables()->normalized_cross_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int ff1 = 0; ff1 < get_total_ff_count(); ++ff1) {
             for (unsigned int ff2 = 1; ff2 < get_total_ff_count(); ++ff2) {
@@ -76,7 +76,7 @@ TEST_CASE("FormFactorProduct::table") {
 TEST_CASE("ExvFormFactor: switch volumes") {
     auto test = [] (const constants::exv::detail::ExvSet& vols) {
         SECTION("exv") {
-            auto& table = FormFactorManager::raw_exv_table();
+            auto& table = manager::get_active_product_tables()->raw_exv_table;
             auto ffset = form_factor::detail::ExvFormFactorSet(vols);
             for (unsigned int ff1 = 1; ff1 < get_total_ff_count(); ++ff1) {
                 for (unsigned int ff2 = 1; ff2 < get_total_ff_count(); ++ff2) {
@@ -91,7 +91,7 @@ TEST_CASE("ExvFormFactor: switch volumes") {
         }
 
         SECTION("cross") {
-            auto& table = FormFactorManager::normalized_cross_table();
+            auto& table = manager::get_active_product_tables()->normalized_cross_table;
             auto ffset = form_factor::detail::ExvFormFactorSet(vols);
             for (unsigned int ff1 = 0; ff1 < get_total_ff_count(); ++ff1) {
                 for (unsigned int ff2 = 1; ff2 < get_total_ff_count(); ++ff2) {

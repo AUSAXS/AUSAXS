@@ -18,15 +18,15 @@ namespace ausaxs::hist {
             using CompositeDistanceHistogramFFExplicitBase::CompositeDistanceHistogramFFExplicitBase;
 
             const form_factor::lookup::atomic::table_t& get_ff_table() const override {
-                return form_factor::FormFactorManager::raw_atomic_table();
+                return form_factor::manager::get_active_product_tables()->raw_atomic_table;
             }
 
             const form_factor::lookup::cross::table_t& get_ffax_table() const override {
-                return form_factor::FormFactorManager::raw_cross_table();
+                return form_factor::manager::get_active_product_tables()->raw_cross_table;
             }
 
             const form_factor::lookup::exv::table_t& get_ffxx_table() const override {
-                return form_factor::FormFactorManager::raw_exv_table();
+                return form_factor::manager::get_active_product_tables()->raw_exv_table;
             }
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFExplicit>, "CompositeDistanceHistogramFFExplicit should be nothrow move constructible");

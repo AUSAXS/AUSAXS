@@ -13,7 +13,7 @@ using namespace form_factor;
 
 TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
     SECTION("product entries match direct calculation") {
-        auto& table = FormFactorManager::raw_exv_table();
+        auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
             for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
@@ -31,7 +31,7 @@ TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
     }
 
     SECTION("all table entries match direct calculation") {
-        auto& table = FormFactorManager::raw_exv_table();
+        auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
             for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
@@ -51,7 +51,7 @@ TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
 
 TEST_CASE("ExvFormFactorProduct::table symmetry") {
     SECTION("exv table is symmetric") {
-        auto& table = FormFactorManager::raw_exv_table();
+        auto& table = manager::get_active_product_tables()->raw_exv_table;
         for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
             for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
                 const FormFactorProduct& product1 = table.index(i, j);
@@ -67,7 +67,7 @@ TEST_CASE("ExvFormFactorProduct::table symmetry") {
 
 TEST_CASE("ExvFormFactorProduct::cross products") {
     SECTION("cross products return correct values") {
-        auto& table = FormFactorManager::raw_cross_table();
+        auto& table = manager::get_active_product_tables()->raw_cross_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
             for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
@@ -84,7 +84,7 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
     }
 
     SECTION("cross table returns correct values") {
-        auto& table = FormFactorManager::raw_cross_table();
+        auto& table = manager::get_active_product_tables()->raw_cross_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (unsigned int i = 1; i < get_total_ff_count(); ++i) {
             for (unsigned int j = 1; j < get_total_ff_count(); ++j) {
@@ -103,7 +103,7 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
 
 TEST_CASE("ExvFormFactorProduct::product decreases with q") {
     SECTION("exv products decrease") {
-        auto& table = FormFactorManager::raw_exv_table();
+        auto& table = manager::get_active_product_tables()->raw_exv_table;
         const FormFactorProduct& product = table.index(0, 0);
 
         double val1 = product.evaluate(0);
@@ -115,7 +115,7 @@ TEST_CASE("ExvFormFactorProduct::product decreases with q") {
     }
 
     SECTION("cross products decrease") {
-        auto& table = FormFactorManager::raw_cross_table();
+        auto& table = manager::get_active_product_tables()->raw_cross_table;
         const FormFactorProduct& product = table.index(0, 0);
 
         double val1 = product.evaluate(0);

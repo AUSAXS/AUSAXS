@@ -17,7 +17,7 @@ namespace ausaxs::hist {
 
         protected:
             const form_factor::lookup::atomic::table_t& get_ff_table() const override {
-                return form_factor::FormFactorManager::raw_atomic_table();
+                return form_factor::manager::get_active_product_tables()->raw_atomic_table;
             }
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFAvg>, "CompositeDistanceHistogramAvg should support nothrow move semantics.");

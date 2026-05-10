@@ -10,19 +10,14 @@
 #include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
 
-#if CONSTEXPR_TABLES
-    #define CONST constexpr
-#else
-    #define CONST const
-#endif
 namespace ausaxs::form_factor::lookup::detail {
     /**
      * @brief Generate an atomic form factor product table.
      * @tparam FormFactorLookup A type providing a static `get(form_factor_t)` method.
      */
     template<typename FormFactorLookup>
-    CONST form_factor::lookup::atomic::table_t generate_atomic_table() {
-        auto ff_indices = FormFactorManager::get_ff_indices();
+    const form_factor::lookup::atomic::table_t generate_atomic_table() {
+        auto ff_indices = manager::get_active_product_tables()->ff_indices;
 
         form_factor::lookup::atomic::table_t table;
         for (unsigned int i = 0; i < ff_indices.size(); ++i) {
@@ -47,8 +42,8 @@ namespace ausaxs::form_factor::lookup::detail {
      *        This is a symmetric table.
      * @param use_default_table If true, always use the default EXV set.
      */
-    CONST inline form_factor::lookup::exv::table_t generate_exv_table(bool use_default_table = false) {
-        auto ff_indices = FormFactorManager::get_ff_indices();
+    const inline form_factor::lookup::exv::table_t generate_exv_table(bool use_default_table = false) {
+        auto ff_indices = manager::get_active_product_tables()->ff_indices;
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::exv::table_t table;
@@ -74,8 +69,8 @@ namespace ausaxs::form_factor::lookup::detail {
      * @param use_default_table If true, always use the default EXV set.
      */
     template<typename AtomicFormFactorLookup>
-    CONST form_factor::lookup::cross::table_t generate_cross_table(bool use_default_table = false) {
-        auto ff_indices = FormFactorManager::get_ff_indices();
+    const form_factor::lookup::cross::table_t generate_cross_table(bool use_default_table = false) {
+        auto ff_indices = manager::get_active_product_tables()->ff_indices;
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::cross::table_t table;

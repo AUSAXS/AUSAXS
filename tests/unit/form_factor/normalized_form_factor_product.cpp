@@ -90,8 +90,8 @@ TEST_CASE("NormalizedFormFactorProduct::all_pairs") {
     }
 }
 
-TEST_CASE("FormFactorManager::raw_atomic_table") {
-    auto& table = FormFactorManager::raw_atomic_table();
+TEST_CASE("manager::raw_atomic_table") {
+    auto& table = manager::get_active_product_tables()->raw_atomic_table;
     SECTION("single access") {
         const auto& ff = table.index(
             static_cast<unsigned int>(form_factor_t::C),
@@ -116,9 +116,9 @@ TEST_CASE("FormFactorManager::raw_atomic_table") {
     }
 }
 
-TEST_CASE("FormFactorManager::normalized_atomic_table") {
+TEST_CASE("manager::normalized_atomic_table") {
     SECTION("table access") {
-        auto& table = FormFactorManager::normalized_atomic_table();
+        auto& table = manager::get_active_product_tables()->normalized_atomic_table;
 
         const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
         const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
@@ -135,7 +135,7 @@ TEST_CASE("FormFactorManager::normalized_atomic_table") {
     }
 
     SECTION("table completeness") {
-        auto& table = FormFactorManager::normalized_atomic_table();
+        auto& table = manager::get_active_product_tables()->normalized_atomic_table;
         for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
             for (unsigned int ff2 = 0; ff2 < settings::form_factor::max_ff_types; ++ff2) {
                 const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));

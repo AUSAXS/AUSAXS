@@ -90,8 +90,8 @@ void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
         cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
     }
 
-    for (unsigned int ff1 = 0; ff1 < form_factor::FormFactorManager::get_active_count(); ++ff1) {
-        for (unsigned int ff2 = 0; ff2 < form_factor::FormFactorManager::get_active_count(); ++ff2) {
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_active_count(); ++ff1) {
+        for (unsigned int ff2 = 0; ff2 < form_factor::get_active_count(); ++ff2) {
             pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table_aa] () {
                 for (unsigned int q = q0; q < q0+bins; ++q) {
                     cache.sinqd.aa.index(ff1, ff2, q-q0) = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table_aa->begin(q), 0.0);
