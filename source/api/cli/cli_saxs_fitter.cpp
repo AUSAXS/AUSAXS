@@ -17,6 +17,7 @@
 #include <mini/detail/FittedParameter.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
@@ -218,6 +219,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();
         }
+        form_factor::manager::use_form_factors(protein);
         std::string msg_exv_vol, msg_solv_dens;
 
         // simulation mode
