@@ -12,12 +12,16 @@
 using namespace ausaxs;
 using namespace ausaxs::form_factor;
 
-TEST_CASE("manager::get_active_product_tables lazy init") {
-    // reset to a known default state
-    std::vector<int> identity(get_total_ff_count());
-    std::iota(identity.begin(), identity.end(), 0);
-    manager::detail::use_form_factors(identity);
+const std::vector<int>& identity() {
+    static std::vector<int> identity;
+    if (identity.empty()) {
+        identity = std::vector<int>(get_total_ff_count());
+        std::iota(identity.begin(), identity.end(), 0);
+    }
+    return identity;
+}
 
+TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
     auto* tables = manager::get_active_product_tables();
     REQUIRE(tables != nullptr);
 
@@ -33,9 +37,6 @@ TEST_CASE("manager::get_active_product_tables lazy init") {
 }
 
 TEST_CASE("form_factor::get_active_count") {
-    std::vector<int> identity(get_total_ff_count());
-    std::iota(identity.begin(), identity.end(), 0);
-    manager::detail::use_form_factors(identity);
     REQUIRE(get_active_count() == manager::get_active_product_tables()->active_count);
 
     SECTION("reflects custom subset") {
@@ -46,17 +47,11 @@ TEST_CASE("form_factor::get_active_count") {
         });
         REQUIRE(get_active_count() == 3);
         REQUIRE(get_active_count() == manager::get_active_product_tables()->active_count);
-
-        // restore
-        manager::detail::use_form_factors(identity);
+        manager::detail::use_form_factors(identity());
     }
 }
 
-TEST_CASE("manager::get_active_mapping default") {
-    std::vector<int> identity(get_total_ff_count());
-    std::iota(identity.begin(), identity.end(), 0);
-    manager::detail::use_form_factors(identity);
-
+TEST_CASE("form_factor_manager::get_active_mapping default") {
     auto mapping = manager::get_active_mapping();
     REQUIRE(mapping.size() == get_total_ff_count());
 
@@ -67,7 +62,7 @@ TEST_CASE("manager::get_active_mapping default") {
     }
 }
 
-TEST_CASE("manager::get_active_mapping custom subset") {
+TEST_CASE("form_factor_manager::get_active_mapping custom subset") {
     const int exv   = static_cast<int>(form_factor_t::EXCLUDED_VOLUME);
     const int water = static_cast<int>(form_factor_t::WATER);
     const int C     = static_cast<int>(form_factor_t::C);
@@ -90,18 +85,14 @@ TEST_CASE("manager::get_active_mapping custom subset") {
     }
 
     SECTION("OTHER slot is last in the padded array") {
-        // padding fills trailing slots with OTHER, so the mapping for OTHER is
-        // overwritten repeatedly and ends at the last padded index
+        // padding fills trailing slots with OTHER, so the mapping for OTHER is overwritten repeatedly and ends at the last padded index
         REQUIRE(mapping[other] == settings::form_factor::max_ff_types - 1);
     }
 
-    // restore
-    std::vector<int> identity(get_total_ff_count());
-    std::iota(identity.begin(), identity.end(), 0);
-    manager::detail::use_form_factors(identity);
+    manager::detail::use_form_factors(identity());
 }
 
-TEST_CASE("manager::detail::use_form_factors padding") {
+TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
     manager::detail::use_form_factors({
         static_cast<int>(form_factor_t::EXCLUDED_VOLUME),
         static_cast<int>(form_factor_t::WATER),
@@ -128,13 +119,10 @@ TEST_CASE("manager::detail::use_form_factors padding") {
         }
     }
 
-    // restore
-    std::vector<int> identity(get_total_ff_count());
-    std::iota(identity.begin(), identity.end(), 0);
-    manager::detail::use_form_factors(identity);
+    manager::detail::use_form_factors(identity());
 }
 
-TEST_CASE("manager::use_form_factors(Molecule) ordering") {
+TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
     data::Molecule molecule("tests/files/2epe.pdb");
     manager::use_form_factors(molecule);
 
@@ -157,13 +145,10 @@ TEST_CASE("manager::use_form_factors(Molecule) ordering") {
         REQUIRE(tables->active_count == static_cast<unsigned int>(settings::form_factor::max_ff_types));
     }
 
-    // restore
-    std::vector<int> identity(get_total_ff_count());
-    std::iota(identity.begin(), identity.end(), 0);
-    manager::detail::use_form_factors(identity);
+    manager::detail::use_form_factors(identity());
 }
 
-TEST_CASE("manager::rebuild preserves indices and regenerates tables") {
+TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables") {
     // set a custom subset
     manager::detail::use_form_factors({
         static_cast<int>(form_factor_t::EXCLUDED_VOLUME),
@@ -195,22 +180,14 @@ TEST_CASE("manager::rebuild preserves indices and regenerates tables") {
         REQUIRE(exv_val_before == exv_val_after);
     }
 
-    // restore
-    std::vector<int> identity(get_total_ff_count());
-    std::iota(identity.begin(), identity.end(), 0);
-    manager::detail::use_form_factors(identity);
+    manager::detail::use_form_factors(identity());
 }
 
-TEST_CASE("manager::rebuild after EXV set change updates exv table") {
-    std::vector<int> identity(get_total_ff_count());
-    std::iota(identity.begin(), identity.end(), 0);
-    manager::detail::use_form_factors(identity);
-
+TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table") {
     // capture exv product at (1,1) which is WATER vs WATER excluded volume — should differ between sets
     double exv_val_default = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
 
-    // directly update the setting value to avoid the stale-read bug in the callback,
-    // then manually call rebuild so it reads the new value
+    // directly update the setting value to avoid the stale-read bug in the callback, then manually call rebuild so it reads the new value
     settings::exv::exv_set.value = settings::exv::ExvSet::Traube;
     manager::rebuild();
 
@@ -218,7 +195,6 @@ TEST_CASE("manager::rebuild after EXV set change updates exv table") {
 
     REQUIRE(exv_val_default != exv_val_traube);
 
-    // restore
     settings::exv::exv_set.value = settings::exv::ExvSet::Default;
     manager::rebuild();
 }

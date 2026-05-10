@@ -116,3 +116,18 @@ TEST_CASE("manager ff set change scattering consistent for special exv calculato
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
     manager::detail::use_form_factors(identity());
 }
+
+TEST_CASE("form_factor_manager: single form factor") {
+    data::Molecule molecule("tests/files/2epe.pdb");
+    molecule.clear_hydration();
+    for (auto& a : molecule.iterate_atoms()) {a.form_factor_type() = form_factor_t::C;}
+    auto I = molecule.get_total_histogram()->debye_transform();
+
+    data::Molecule molecule2("tests/files/2epe.pdb");
+    molecule2.clear_hydration();
+    manager::detail::use_form_factors({static_cast<int>(form_factor_t::C)});
+    auto I2 = molecule2.get_total_histogram()->debye_transform();
+
+    REQUIRE(compare_hist(I, I2));
+    manager::detail::use_form_factors(identity());
+}
