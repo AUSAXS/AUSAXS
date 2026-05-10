@@ -109,11 +109,7 @@ observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGridSurface::g
 }
 
 void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
-    static bool initialized = false;
-    if (!initialized) {
-        CompositeDistanceHistogramFFGrid::ff_table = CompositeDistanceHistogramFFGrid::generate_ff_table();
-        initialized = true;
-    }
+    CompositeDistanceHistogramFFGrid::ff_table = CompositeDistanceHistogramFFGrid::generate_ff_table();
 
     this->distance_axes = {.xx=std::move(d_axis_xx), .ax=std::move(d_axis_ax)};
     sinc_tables.ax.set_d_axis(this->distance_axes.ax);

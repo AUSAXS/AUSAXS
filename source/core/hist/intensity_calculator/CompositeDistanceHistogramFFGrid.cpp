@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <utility/MultiThreading.h>
@@ -43,22 +44,23 @@ form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_
 
 template<FormFactorType T>
 form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(T&& ffx) {
+    auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
     form_factor::lookup::atomic::table_t table;
     for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = NormalizedFormFactorProduct(
-                lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
-                lookup::atomic::raw::get(static_cast<form_factor_t>(j))
+                lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[i])), 
+                lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[j]))
             );
             table.index(j, i) = table.index(i, j);
         }
         table.index(i, i) = NormalizedFormFactorProduct(
-            lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
-            lookup::atomic::raw::get(static_cast<form_factor_t>(i))
+            lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[i])), 
+            lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[i]))
         );
 
         table.index(i, form_factor::exv_bin) = NormalizedFormFactorProduct(
-            lookup::atomic::raw::get(static_cast<form_factor_t>(i)), 
+            lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[i])), 
             ffx
         );
         table.index(form_factor::exv_bin, i) = table.index(i, form_factor::exv_bin);
@@ -125,11 +127,7 @@ observer_ptr<const table::DebyeTable> CompositeDistanceHistogramFFGrid::get_sinc
 }
 
 void CompositeDistanceHistogramFFGrid::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
-    static bool init_table = false;
-    if (!init_table) {
-        ff_table = generate_ff_table();
-        init_table = true;
-    }
+    ff_table = generate_ff_table();
 
     this->distance_axes = {.xx=std::move(d_axis_xx), .ax=std::move(d_axis_ax)};
     sinc_tables.ax.set_d_axis(this->distance_axes.ax);

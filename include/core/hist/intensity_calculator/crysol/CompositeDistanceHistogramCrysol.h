@@ -78,8 +78,8 @@ namespace ausaxs::hist {
             double exv_factor(double q) const override;
             void initialize();
 
-            inline static form_factor::lookup::atomic::table_t ffaa_table;
-            inline static form_factor::lookup::cross::table_t  ffax_table;
-            inline static form_factor::lookup::exv::table_t    ffxx_table;
+            form_factor::lookup::atomic::table_t ffaa_table;
+            form_factor::lookup::cross::table_t  ffax_table;
+            form_factor::lookup::exv::table_t    ffxx_table;
     };
 }

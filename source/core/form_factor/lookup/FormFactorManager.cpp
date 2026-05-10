@@ -28,11 +28,11 @@ namespace {
 manager::detail::ActiveTables::ActiveTables(std::array<int, settings::form_factor::max_ff_types>&& ff_indices, unsigned int active_count) 
     : ff_indices(std::move(ff_indices)), active_count(active_count)
 {
-    this->raw_atomic_table         = lookup::detail::generate_atomic_table<lookup::detail::RawFormFactorLookup>();
-    this->raw_cross_table          = lookup::detail::generate_cross_table<lookup::detail::RawFormFactorLookup>();
-    this->raw_exv_table            = lookup::detail::generate_exv_table();
-    this->normalized_atomic_table  = lookup::detail::generate_atomic_table<lookup::detail::NormalizedFormFactorLookup>();
-    this->normalized_cross_table   = lookup::detail::generate_cross_table<lookup::detail::NormalizedFormFactorLookup>();
+    this->raw_atomic_table         = lookup::detail::generate_atomic_table<lookup::detail::RawFormFactorLookup>(this->ff_indices);
+    this->raw_cross_table          = lookup::detail::generate_cross_table<lookup::detail::RawFormFactorLookup>(this->ff_indices);
+    this->raw_exv_table            = lookup::detail::generate_exv_table(this->ff_indices);
+    this->normalized_atomic_table  = lookup::detail::generate_atomic_table<lookup::detail::NormalizedFormFactorLookup>(this->ff_indices);
+    this->normalized_cross_table   = lookup::detail::generate_cross_table<lookup::detail::NormalizedFormFactorLookup>(this->ff_indices);
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() noexcept {
