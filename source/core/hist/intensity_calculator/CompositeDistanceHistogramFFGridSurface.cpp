@@ -68,7 +68,7 @@ const std::vector<double>& CompositeDistanceHistogramFFGridSurface::get_d_axis_a
     return distance_axes.ax;
 }
 
-const form_factor::lookup::atomic::table_t& CompositeDistanceHistogramFFGridSurface::get_ff_table() const {
+const form_factor::lookup::table_t& CompositeDistanceHistogramFFGridSurface::get_ff_table() const {
     return CompositeDistanceHistogramFFGrid::ff_table;
 }
 

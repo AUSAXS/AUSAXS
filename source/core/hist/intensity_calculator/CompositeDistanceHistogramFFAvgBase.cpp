@@ -554,4 +554,4 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     cache.intensity_profiles.cached_cw = free_params.cw;
     pool->wait();
 }
-template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::lookup::atomic::table_t>;
+template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::lookup::table_t>;

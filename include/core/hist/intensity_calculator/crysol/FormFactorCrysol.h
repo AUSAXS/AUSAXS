@@ -80,7 +80,7 @@ namespace ausaxs::form_factor::crysol {
                 }
             }
 
-            [[maybe_unused]] static form_factor::lookup::exv::table_t generate_table(double average_displaced_V) {
+            [[maybe_unused]] static form_factor::lookup::table_t generate_table(double average_displaced_V) {
                 auto ffx = form_factor::crysol::ExvFormFactorCrysol(average_displaced_V);
                 container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> table;
                 for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < settings::form_factor::max_ff_types; ++i) {
@@ -99,7 +99,7 @@ namespace ausaxs::form_factor::crysol {
                 return table;
             }
 
-            [[maybe_unused]] static form_factor::lookup::exv::table_t generate_table() {
+            [[maybe_unused]] static form_factor::lookup::table_t generate_table() {
                 auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
                 container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> table;
                 for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < settings::form_factor::max_ff_types; ++i) {
@@ -120,7 +120,7 @@ namespace ausaxs::form_factor::crysol {
         };
 
         struct cross {
-            [[maybe_unused]] static form_factor::lookup::cross::table_t generate_table(double average_displaced_V) {
+            [[maybe_unused]] static form_factor::lookup::table_t generate_table(double average_displaced_V) {
                 auto ff_tables = form_factor::manager::get_active_product_tables();
                 auto ff_indices = ff_tables->ff_indices;
                 auto ffx = form_factor::crysol::ExvFormFactorCrysol(average_displaced_V);
@@ -135,7 +135,7 @@ namespace ausaxs::form_factor::crysol {
                 }
                 return table;
             }
-            [[maybe_unused]] static form_factor::lookup::cross::table_t generate_table() {
+            [[maybe_unused]] static form_factor::lookup::table_t generate_table() {
                 auto ff_tables = form_factor::manager::get_active_product_tables();
                 auto ff_indices = ff_tables->ff_indices;
                 container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types> table;

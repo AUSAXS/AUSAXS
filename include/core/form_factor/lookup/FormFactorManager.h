@@ -17,11 +17,11 @@ namespace ausaxs::form_factor::manager {
             ActiveTables(std::array<int, settings::form_factor::max_ff_types>&& ff_indices, unsigned int active_count);
             unsigned int active_count;
             std::array<int, settings::form_factor::max_ff_types> ff_indices;
-            lookup::exv::table_t    raw_exv_table;
-            lookup::cross::table_t  raw_cross_table;
-            lookup::atomic::table_t raw_atomic_table;
-            lookup::cross::table_t  normalized_cross_table;
-            lookup::atomic::table_t normalized_atomic_table;
+            lookup::table_t    raw_exv_table;
+            lookup::table_t  raw_cross_table;
+            lookup::table_t raw_atomic_table;
+            lookup::table_t  normalized_cross_table;
+            lookup::table_t normalized_atomic_table;
         };
 
         /**

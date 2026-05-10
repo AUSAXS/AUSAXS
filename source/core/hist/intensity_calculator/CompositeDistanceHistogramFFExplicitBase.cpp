@@ -212,5 +212,5 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
 }
 
 template class hist::CompositeDistanceHistogramFFExplicitBase<
-    form_factor::lookup::atomic::table_t, form_factor::lookup::cross::table_t, form_factor::lookup::exv::table_t
+    form_factor::lookup::table_t, form_factor::lookup::table_t, form_factor::lookup::table_t
 >;

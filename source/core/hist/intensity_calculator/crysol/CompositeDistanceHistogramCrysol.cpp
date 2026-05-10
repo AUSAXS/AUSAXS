@@ -54,14 +54,14 @@ Limit CompositeDistanceHistogramCrysol::get_excluded_volume_scaling_factor_limit
     return {0.8, 1.265};
 }
 
-const form_factor::lookup::atomic::table_t& CompositeDistanceHistogramCrysol::get_ff_table() const {
+const form_factor::lookup::table_t& CompositeDistanceHistogramCrysol::get_ff_table() const {
     return ffaa_table;
 }
 
-const form_factor::lookup::cross::table_t& CompositeDistanceHistogramCrysol::get_ffax_table() const {
+const form_factor::lookup::table_t& CompositeDistanceHistogramCrysol::get_ffax_table() const {
     return ffax_table;
 }
 
-const form_factor::lookup::exv::table_t& CompositeDistanceHistogramCrysol::get_ffxx_table() const {
+const form_factor::lookup::table_t& CompositeDistanceHistogramCrysol::get_ffxx_table() const {
     return ffxx_table;
 }

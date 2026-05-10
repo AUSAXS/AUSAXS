@@ -37,15 +37,15 @@ double CompositeDistanceHistogramFFGrid::exv_factor(double) const {
     return free_params.cx;
 }
 
-form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table() {
+form_factor::lookup::table_t CompositeDistanceHistogramFFGrid::generate_ff_table() {
     auto V = std::pow(settings::grid::exv::width, 3);
     return generate_ff_table(ExvFormFactor(V));
 }
 
 template<FormFactorType T>
-form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(T&& ffx) {
+form_factor::lookup::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(T&& ffx) {
     auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
-    form_factor::lookup::atomic::table_t table;
+    form_factor::lookup::table_t table;
     for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = NormalizedFormFactorProduct(
@@ -71,8 +71,8 @@ form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_
     }
     return table;
 }
-template form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(ExvFormFactor&&);
-template form_factor::lookup::atomic::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(NormalizedFormFactor&&);
+template form_factor::lookup::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(ExvFormFactor&&);
+template form_factor::lookup::table_t CompositeDistanceHistogramFFGrid::generate_ff_table(NormalizedFormFactor&&);
 
 void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd() const {
     auto pool = utility::multi_threading::get_global_pool();

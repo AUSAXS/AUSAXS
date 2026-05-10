@@ -8,7 +8,5 @@
 #include <settings/FormFactorSettings.h>
 
 namespace ausaxs::form_factor {
-    namespace lookup::exv    {using table_t = container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types>;}
-    namespace lookup::cross  {using table_t = container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types>;}
-    namespace lookup::atomic {using table_t = container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types>;}
+    namespace lookup {using table_t = container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types>;}
 }
