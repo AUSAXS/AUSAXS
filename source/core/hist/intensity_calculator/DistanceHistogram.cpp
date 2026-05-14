@@ -69,12 +69,12 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
 
 SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
     // if the q values are within the default range, we can just interpolate them for better performance
-    if (constants::axes::q_axis.min < q.front() && q.back() < constants::axes::q_axis.max) {
+    if (constants::axes::q_axis.min <= q.front() && q.back() <= constants::axes::q_axis.max) {
         return debye_transform().as_dataset().interpolate(q);
     }
     static table::DebyeTableManager sinc_table_extended;
     sinc_table_extended.set_q_axis(q);
-    sinc_table.set_d_axis(this->d_axis);
+    sinc_table_extended.set_d_axis(this->d_axis);
     const auto& sinqd_table = sinc_table_extended.get_sinc_table();
 
     // calculate the scattering intensity based on the Debye equation
