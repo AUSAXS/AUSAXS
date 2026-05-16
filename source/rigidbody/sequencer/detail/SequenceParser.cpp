@@ -17,6 +17,7 @@
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer::detail;
 
 using ausaxs::except::io_error;
 using ausaxs::rigidbody::sequencer::except::parse_error;

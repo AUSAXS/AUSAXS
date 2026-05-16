@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <cassert>
 
-using namespace ausaxs::rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer::detail;
 
 const std::unordered_map<ElementType, std::vector<std::string>>& get_type_map() {
     static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
@@ -37,7 +37,7 @@ const std::unordered_map<ElementType, std::vector<std::string>>& get_type_map() 
     return type_map;
 };
 
-std::vector<std::string> ausaxs::rigidbody::sequencer::valid_elements() {
+std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_elements() {
     const auto& type_map = get_type_map();
     std::vector<std::string> elements; 
     elements.reserve(type_map.size() * 2); // reserve space for all prefixes (most elements have 2)
@@ -51,7 +51,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::valid_elements() {
     return elements;
 }
 
-std::vector<std::string> ausaxs::rigidbody::sequencer::valid_arguments(ElementType type) {
+std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(ElementType type) {
     switch (type) {
         case ElementType::AutomaticConstraint: return AutoConstraintsElement::_valid_arguments();
         case ElementType::BodySelect:          return BodySelectElement::_valid_arguments();
@@ -77,7 +77,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::valid_arguments(ElementTy
     }
 }
 
-ElementType ausaxs::rigidbody::sequencer::get_type(std::string_view line) {
+ElementType ausaxs::rigidbody::sequencer::detail::get_type(std::string_view line) {
     const auto& type_map = get_type_map();
     for (const auto& [type, prefixes] : type_map) {
         for (const auto& prefix : prefixes) {

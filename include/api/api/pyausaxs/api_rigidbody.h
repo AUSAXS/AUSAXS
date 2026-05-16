@@ -10,12 +10,25 @@ extern "C" API int rigidbody_load_script(
     int* status
 );
 
-extern "C" API int rigidbody_validate(
+extern "C" API void rigidbody_validate(
     int rigidbody_id,
     int* status
 );
 
-extern "C" API int rigidbody_run(
+extern "C" API void rigidbody_run(
     int rigidbody_id,
+    int* status
+);
+
+extern "C" API void rigidbody_get_valid_elements(
+    const char*** elements,
+    int* size,
+    int* status
+);
+
+extern "C" API void rigidbody_get_valid_arguments(
+    const char* element_name,
+    const char*** arguments,
+    int* size,
     int* status
 );

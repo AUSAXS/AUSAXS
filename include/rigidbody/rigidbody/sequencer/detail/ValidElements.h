@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace ausaxs::rigidbody::sequencer {
+namespace ausaxs::rigidbody::sequencer::detail {
     enum class ElementType {
         AutomaticConstraint,
         BodySelect,
@@ -31,7 +31,7 @@ namespace ausaxs::rigidbody::sequencer {
         COUNT
     };
 
-    static std::vector<std::string> valid_elements();
-    static std::vector<std::string> valid_arguments(ElementType type);
+    std::vector<std::string> valid_elements();
+    std::vector<std::string> valid_arguments(ElementType type);
     ElementType get_type(std::string_view line);
 }
