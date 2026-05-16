@@ -47,8 +47,9 @@ add_library(ausaxs_rigidbody OBJECT
 
 	"sequencer/Sequencer.cpp"
 	"sequencer/detail/AdditionalElements.cpp"
-	"sequencer/detail/SequenceParser.cpp"
 	"sequencer/detail/ParsedArgs.cpp"
+	"sequencer/detail/SequenceParser.cpp"
+	"sequencer/detail/ValidElements.cpp"
 	"sequencer/elements/BodySelectElement.cpp"
 	"sequencer/elements/ConstraintIteratorElementCallback.cpp"
 	"sequencer/elements/ConvertSymmetryElement.cpp"
