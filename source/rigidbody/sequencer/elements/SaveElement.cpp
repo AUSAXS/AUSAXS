@@ -57,6 +57,10 @@ void SaveElement::run() {
     }
 }
 
+std::vector<std::string> SaveElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> SaveElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     if (!args.named.empty()) {throw except::parse_error("save", "Unexpected named argument.");}
     if (args.inlined.size() != 1) {throw except::parse_error("save", "Expected only a single inline argument.");}

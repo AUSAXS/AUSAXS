@@ -20,6 +20,7 @@ namespace ausaxs::rigidbody::sequencer {
 
             void run() override;
 
+            static std::vector<std::string> _valid_arguments();
             static void _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
     };
 }

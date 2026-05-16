@@ -64,6 +64,10 @@ SymmetryElement::~SymmetryElement() = default;
 
 void SymmetryElement::run() {}
 
+std::vector<std::string> SymmetryElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto rigidbody = owner->_get_rigidbody();
 

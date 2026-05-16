@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/elements/MessageElement.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
@@ -84,6 +85,19 @@ MessageElement::~MessageElement() = default;
 void MessageElement::run() {
     assert(message_func && "MessageElement::run: message_func is not set.");
     message_func();
+}
+
+namespace {
+    enum class Args {message, color};
+    std::unordered_map<Args, std::vector<std::string>> args_map = {
+        {Args::message, {"message", "msg"}},
+        {Args::color, {"color", "colour"}}
+    };
+}
+
+std::vector<std::string> MessageElement::_valid_arguments() {
+    static auto map = detail::get_arg_names<Args>(args_map);
+    return map;
 }
 
 std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {

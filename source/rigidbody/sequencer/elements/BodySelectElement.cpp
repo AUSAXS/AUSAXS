@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/Rigidbody.h>
@@ -14,6 +15,19 @@ BodySelectElement::~BodySelectElement() = default;
 
 void BodySelectElement::run() {
     owner->_get_rigidbody()->body_selector = strategy;
+}
+
+namespace {
+    enum class Args {strategy, parameters};
+    std::unordered_map<Args, std::vector<std::string>> args_map = {
+        {Args::strategy,   {"point", "body"}},
+        {Args::parameters, {"parameters", "parameter_mask", "mask"}},
+    };
+}
+
+std::vector<std::string> BodySelectElement::_valid_arguments() {
+    static auto map = detail::get_arg_names<Args>(args_map);
+    return map;
 }
 
 std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {

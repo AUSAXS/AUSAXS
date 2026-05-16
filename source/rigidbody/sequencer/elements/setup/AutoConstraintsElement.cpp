@@ -18,6 +18,10 @@ void AutoConstraintsElement::run() {
     owner->_get_rigidbody()->constraints->generate_constraints(rigidbody::factory::generate_constraints(owner->_get_rigidbody()->constraints.get(), strategy));
 }
 
+std::vector<std::string> AutoConstraintsElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> AutoConstraintsElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static auto get_constraint_strategy = [] (std::string_view line) {
         if (line == "none") {return settings::rigidbody::ConstraintGenerationStrategyChoice::None;}

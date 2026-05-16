@@ -40,6 +40,10 @@ void RelativeHydrationElement::run() {
     owner->_get_molecule()->generate_new_hydration();
 }
 
+std::vector<std::string> RelativeHydrationElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     enum class Options {Maximum, High, Normal, Low, Minimum};
     static std::unordered_map<std::string, Options> options = {

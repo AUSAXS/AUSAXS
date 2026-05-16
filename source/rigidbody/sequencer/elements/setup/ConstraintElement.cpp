@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
+#include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
@@ -26,6 +27,23 @@ namespace {
         BodyCMRepeller,
         Unknown
     };
+}
+
+namespace {
+    enum class Args {body1, body2, iatom1, iatom2, type, distance};
+    std::unordered_map<Args, std::vector<std::string>> args_map = {
+        {Args::body1, {"first", "body1"}},
+        {Args::body2, {"second", "body2"}},
+        {Args::iatom1, {"iatom1", "atom1"}},
+        {Args::iatom2, {"iatom2", "atom2"}},
+        {Args::type, {"type", "kind"}},
+        {Args::distance, {"distance", "dist"}}
+    };
+}
+
+std::vector<std::string> ConstraintElement::_valid_arguments() {
+    static auto map = detail::get_arg_names<Args>(args_map);
+    return map;
 }
 
 void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {

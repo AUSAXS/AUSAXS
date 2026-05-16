@@ -28,6 +28,10 @@ void OptimizeStepElement::run() {
     _get_sequencer()->_get_controller()->finish_step();
 }
 
+std::vector<std::string> OptimizeStepElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> OptimizeStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     if (!args.named.empty()) {throw except::parse_error("optimize_step", "Unexpected named argument.");}
     if (!args.inlined.empty()) {throw except::parse_error("optimize_step", "Unexpected inline argument.");}

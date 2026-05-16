@@ -93,6 +93,7 @@ namespace ausaxs::rigidbody::sequencer {
             static unsigned int _get_total_iterations();
             static void _add_total_iterations(unsigned int n);
 
+            static std::vector<std::string> _valid_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         protected: 

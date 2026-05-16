@@ -40,6 +40,10 @@ CopyBodyElement::~CopyBodyElement() = default;
 
 void CopyBodyElement::run() {}
 
+std::vector<std::string> CopyBodyElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> CopyBodyElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     if (!args.named.empty()) {throw except::parse_error("copy", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
     if (args.inlined.size() != 2) {throw except::parse_error(

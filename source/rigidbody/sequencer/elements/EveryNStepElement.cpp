@@ -19,6 +19,10 @@ void EveryNStepElement::run() {
     }
 }
 
+std::vector<std::string> EveryNStepElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> EveryNStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     if (!args.named.empty()) {throw except::parse_error("every_n_step", "Unexpected named argument.");}
     if (args.inlined.size() != 1) {throw except::parse_error("every_n_step", "Expected exactly one inline argument.");}

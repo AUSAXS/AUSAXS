@@ -5,6 +5,7 @@
 #include <rigidbody/sequencer/detail/AdditionalElements.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/detail/ValidElements.h>
 #include <rigidbody/sequencer/elements/All.h>
 #include <utility/observer_ptr.h>
 #include <utility/Logging.h>
@@ -90,62 +91,6 @@ namespace {
         const auto& t = tokens.back();
         return t.size() == 1 && is_closing_brace(t[0]);
     }
-}
-
-enum class ElementType {
-    AutomaticConstraint,
-    BodySelect,
-    Constraint,
-    Copy,
-    EveryNStep,
-    LoadElement,
-    Log,
-    LoopBegin,
-    LoopEnd,
-    Message,
-    OnImprovement,
-    OptimizeStep,
-    OutputFolder,
-    OverlapStrength,
-    Parameter,
-    RelativeHydration,
-    Save,
-    Seed,
-    SymmetryElement,
-    Transform,
-};
-
-ElementType get_type(std::string_view line) {
-    static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
-        {ElementType::AutomaticConstraint, {"autoconstrain", "autoconstraints"}},
-        {ElementType::BodySelect, {"select", "selector"}},
-        {ElementType::Constraint, {"constrain", "constraint"}},
-        {ElementType::Copy, {"copy", "copy_body"}},
-        {ElementType::EveryNStep, {"every"}},
-        {ElementType::LoadElement, {"load", "open"}},
-        {ElementType::Log, {"log"}},
-        {ElementType::LoopBegin, {"loop"}},
-        {ElementType::LoopEnd, {"end"}},
-        {ElementType::Message, {"print"}},
-        {ElementType::OnImprovement, {"on_improvement"}},
-        {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
-        {ElementType::OutputFolder, {"output", "output_folder"}},
-        {ElementType::OverlapStrength, {"overlap_strength"}},
-        {ElementType::Parameter, {"parameter", "parameter_generator"}},
-        {ElementType::RelativeHydration, {"relative_hydration"}},
-        {ElementType::Save, {"save", "write"}},
-        {ElementType::Seed, {"seed"}},
-        {ElementType::SymmetryElement, {"symmetry"}},
-        {ElementType::Transform, {"transform", "transformer"}},
-    };
-    for (const auto& [type, prefixes] : type_map) {
-        for (const auto& prefix : prefixes) {
-            if (
-                line.starts_with(prefix) && (line.size() == prefix.size() || !std::isalpha(line[prefix.size()]))
-            ) {return type;}
-        }
-    }
-    throw parse_error("base", "Unknown element \"" + std::string(line) + "\".");
 }
 
 std::unique_ptr<Sequencer> SequenceParser::parse_text(const std::string& script) {
