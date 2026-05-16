@@ -123,7 +123,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
 
         // check if pdb is a config script
         if (constants::filetypes::config.check(pdb)) {
-            auto res = rigidbody::sequencer::SequenceParser().parse(pdb)->execute();
+            auto res = rigidbody::sequencer::SequenceParser().parse_file(pdb)->execute();
             fitter::FitReporter::report(res.get());
             fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
             res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));

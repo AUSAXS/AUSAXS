@@ -148,16 +148,24 @@ ElementType get_type(std::string_view line) {
     throw parse_error("base", "Unknown element \"" + std::string(line) + "\".");
 }
 
-std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config) {
+std::unique_ptr<Sequencer> SequenceParser::parse_text(const std::string& script) {
+    std::istringstream in(script);
+    return parse(in);
+}
+
+std::unique_ptr<Sequencer> SequenceParser::parse_file(const io::ExistingFile& config) {
     std::ifstream in(config.path());
     if (!in.is_open()) {throw ausaxs::except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}
+    return parse(in, config.directory());
+}
 
+std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::string& config_folder) {
     std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>(); // the main sequencer object
 
     // the top element of this stack is the current loop element which new elements will be added to
     // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
-    sequencer->setup()._set_config_folder(config.directory());
+    sequencer->setup()._set_config_folder(config_folder);
 
     std::string line;
     int line_no = 0;
@@ -225,7 +233,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
             {ElementType::AutomaticConstraint, AutoConstraintsElement::_parse},
             {ElementType::BodySelect,          BodySelectElement::_parse},
             {ElementType::Copy,                CopyBodyElement::_parse},
-            {ElementType::EveryNStep,           EveryNStepElement::_parse},
+            {ElementType::EveryNStep,          EveryNStepElement::_parse},
             {ElementType::LoadElement,         LoadElement::_parse},
             {ElementType::LoopBegin,           LoopElement::_parse},
             {ElementType::Message,             MessageElement::_parse},
