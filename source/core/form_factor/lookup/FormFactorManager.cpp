@@ -46,11 +46,18 @@ observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_ta
 
 std::vector<int> manager::get_active_mapping() {
     auto ff_indices = get_active_product_tables()->ff_indices;
-    std::vector<int> mapping(form_factor::get_total_ff_count(), settings::form_factor::max_ff_types);
+    std::vector<int> mapping(form_factor::get_total_ff_count(), -1);
     assert(mapping.size() == ff_indices.size() && "Mapping size should match total form factor count.");
     for (unsigned int i = 0; i < ff_indices.size(); ++i) {
         mapping[ff_indices[i]] = i;
     }
+
+    // form factors not in the active set fall back to the OTHER slot (see header docs).
+    // mapping them to a real slot - rather than an out-of-range sentinel - keeps the
+    // generated histograms in-bounds once the enum is extended beyond max_ff_types.
+    int other_slot = mapping[static_cast<int>(form_factor::form_factor_t::OTHER)];
+    assert(other_slot != -1 && "OTHER must always be part of the active form factor set.");
+    for (auto& m : mapping) {if (m == -1) {m = other_slot;}}
     return mapping;
 }
 

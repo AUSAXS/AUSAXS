@@ -79,9 +79,10 @@ TEST_CASE("form_factor_manager::get_active_mapping custom subset") {
         REQUIRE(mapping[C]     == 2);
     }
 
-    SECTION("inactive types map to max_ff_types sentinel") {
-        REQUIRE(mapping[static_cast<int>(form_factor_t::N)] == settings::form_factor::max_ff_types);
-        REQUIRE(mapping[static_cast<int>(form_factor_t::H)] == settings::form_factor::max_ff_types);
+    SECTION("inactive types fall back to the OTHER slot") {
+        // types not in the active set must map to a real, in-bounds slot (the OTHER slot)
+        REQUIRE(mapping[static_cast<int>(form_factor_t::N)] == mapping[other]);
+        REQUIRE(mapping[static_cast<int>(form_factor_t::H)] == mapping[other]);
     }
 
     SECTION("OTHER slot is last in the padded array") {

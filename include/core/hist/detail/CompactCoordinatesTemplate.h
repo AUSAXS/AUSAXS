@@ -40,7 +40,6 @@ namespace ausaxs::hist::detail {
      *        The idea is that by only extracting the absolute necessities for the distance calculation such as the coordinates and weight,
      *        more values can be stored in the cache at any given time. This is further improved by storing the coordinates as floats instead of doubles.
      *        This is meant as a helper class to DistanceCalculator.
-     * @tparam explicit_ff If true, uses form factor count without excluded volume (for explicit FF managers). If false, includes excluded volume (for averaged FF managers).
      */
     template<CompactCoordinatesType CoordType, bool variable_bin_width>
     class CompactCoordinatesTemplate {

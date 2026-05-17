@@ -638,7 +638,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         __m256 ff_hi_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v811, gather_ff, v1215));
         __m512 ff_all_float = _mm512_cvtepi32_ps(_mm512_castps_si512(
             _mm512_insertf32x8(_mm512_castps256_ps512(ff_lo_raw), ff_hi_raw, 1)));
-        __m512 mul_fac = _mm512_set1_ps(form_factor::max_ff_types);
+        __m512 mul_fac = _mm512_set1_ps(settings::form_factor::max_ff_types);
         __m512i ff_bins = _mm512_cvtps_epi32(_mm512_add_ps(ff_all_float, _mm512_mul_ps(_mm512_set1_ps(this->value.ff), mul_fac)));
 
         // compute squared differences (square-first for ILP)
@@ -695,7 +695,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         __m256 ff_hi_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v811, gather_ff, v1215));
         __m512 ff_all_float = _mm512_cvtepi32_ps(_mm512_castps_si512(
             _mm512_insertf32x8(_mm512_castps256_ps512(ff_lo_raw), ff_hi_raw, 1)));
-        __m512 mul_fac = _mm512_set1_ps(form_factor::max_ff_types);
+        __m512 mul_fac = _mm512_set1_ps(settings::form_factor::max_ff_types);
         __m512i ff_bins = _mm512_cvtps_epi32(_mm512_add_ps(ff_all_float, _mm512_mul_ps(_mm512_set1_ps(this->value.ff), mul_fac)));
 
         __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));

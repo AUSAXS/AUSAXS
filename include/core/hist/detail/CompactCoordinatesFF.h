@@ -18,7 +18,6 @@ namespace ausaxs::hist::detail {
         int32_t get_ff_type(int i) const {return this->get_non_coordinate_value(i);}
         int32_t& get_ff_type(int i) {return this->get_non_coordinate_value(i);}
 
-
         void setup() {
             auto map = form_factor::manager::get_active_mapping();
             for (unsigned int i = 0; i < this->data.size(); ++i) {

@@ -8,6 +8,7 @@
 
 #include <hist/hist_test_helper.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 
 #include <numeric>
 #include <vector>
@@ -117,16 +118,21 @@ TEST_CASE("manager ff set change scattering consistent for special exv calculato
     manager::detail::use_form_factors(identity());
 }
 
-TEST_CASE("form_factor_manager: single form factor") {
-    data::Molecule molecule("tests/files/2epe.pdb");
-    molecule.clear_hydration();
-    for (auto& a : molecule.iterate_atoms()) {a.form_factor_type() = form_factor_t::C;}
-    auto I = molecule.get_total_histogram()->debye_transform();
+TEST_CASE("form_factor_manager: use_form_factors(Molecule) reproduces identity scattering") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
 
-    data::Molecule molecule2("tests/files/2epe.pdb");
-    molecule2.clear_hydration();
-    manager::detail::use_form_factors({static_cast<int>(form_factor_t::C)});
-    auto I2 = molecule2.get_total_histogram()->debye_transform();
+    data::Molecule protein("tests/files/2epe.pdb");
+    protein.generate_new_hydration();
+
+    // baseline: the default identity form factor ordering
+    manager::detail::use_form_factors(identity());
+    auto I = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all()->debye_transform();
+
+    // the form factor set selected from the molecular composition is a permutation
+    // of the same complete set, so the resulting scattering must be unchanged
+    manager::use_form_factors(protein);
+    auto I2 = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all()->debye_transform();
 
     REQUIRE(compare_hist(I, I2));
     manager::detail::use_form_factors(identity());
