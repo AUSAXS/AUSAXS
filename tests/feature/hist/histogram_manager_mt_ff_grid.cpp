@@ -50,8 +50,8 @@ auto test_normalized = [] (Molecule& protein, std::function<std::unique_ptr<ICom
     {
         auto aa = h_cast->get_raw_aa_counts_by_ff();
         hist::Distribution1D temp_aa(aa.size_z()), temp_ax(aa.size_z()), temp_xx(aa.size_z());
-        for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
-            for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
+        for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < settings::form_factor::max_ff_types; ++i) {
+            for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < settings::form_factor::max_ff_types; ++j) {
                 std::transform(aa.begin(i, j), aa.end(i, j), temp_aa.begin(), temp_aa.begin(), std::plus<>());
             }
             // atom-exv cross term (multiplied by 2 for symmetry)
@@ -101,8 +101,8 @@ auto test_absolute_aa = [] (Molecule& protein, std::function<std::unique_ptr<ICo
     
     // Sum all form factor contributions
     hist::Distribution1D aa1(aa_by_ff.size_z());
-    for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
-        for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
+    for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < settings::form_factor::max_ff_types; ++i) {
+        for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < settings::form_factor::max_ff_types; ++j) {
             std::transform(aa_by_ff.begin(i, j), aa_by_ff.end(i, j), aa1.begin(), aa1.begin(), std::plus<>());
         }
     }

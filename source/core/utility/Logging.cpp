@@ -56,3 +56,7 @@ void logging::log(std::string_view msg) {
 void logging::log_console(std::string_view msg) {
     logobj.log_console(msg);
 }
+
+bool logging::logging_enabled() {
+    return logobj.log_file.is_open();
+}

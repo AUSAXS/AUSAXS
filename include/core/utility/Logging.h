@@ -29,4 +29,9 @@ namespace ausaxs::logging {
      * @brief Start a new log named `name`_log.
      */
     void start(std::string_view name);
+
+    /**
+     * @brief Check if logging is currently enabled (i.e. if start() has been called).
+     */
+    bool logging_enabled();
 }

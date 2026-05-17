@@ -99,12 +99,12 @@ void single_tests(std::function<EvaluatedResult(const DebugData<vbw>&, const Deb
         DebugData<vbw> data2(Vector3<double>{2, 1, 1}, 4);
         auto result = evaluate(data1, data2);
         CHECK(result.distance == 1);
-        CHECK(result.ff_bin == ff_bin_index<false>(2, 4));
+        CHECK(result.ff_bin == ff_bin_index(2, 4));
 
         DebugData<vbw> data3(Vector3<double>{2, 2, 2}, 8);
         result = evaluate(data1, data3);
         CHECK_THAT(result.distance, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
-        CHECK(result.ff_bin == ff_bin_index<false>(2, 8));
+        CHECK(result.ff_bin == ff_bin_index(2, 8));
     }
 }
 
@@ -116,12 +116,12 @@ void single_tests_rounded(std::function<EvaluatedResultRounded(const DebugData<v
         DebugData<vbw> data2(Vector3<double>{2, 1, 1}, 4);
         auto result = evaluate(data1, data2);
         CHECK(result.distance == std::round(1./width));
-        CHECK(result.ff_bin == ff_bin_index<false>(2, 4));
+        CHECK(result.ff_bin == ff_bin_index(2, 4));
 
         DebugData<vbw> data3(Vector3<double>{2, 2, 2}, 8);
         result = evaluate(data1, data3);
         CHECK(result.distance == std::round(std::sqrt(3)/width));
-        CHECK(result.ff_bin == ff_bin_index<false>(2, 8));
+        CHECK(result.ff_bin == ff_bin_index(2, 8));
     }
 }
 
@@ -137,8 +137,8 @@ void quad_tests(std::function<QuadEvaluatedResult(const DebugData<vbw>&, const s
         };
         auto result = evaluate(data, others);
         check_unordered<4>(result.distances, result.ff_bins, {
-            {1.0, ff_bin_index<false>(2, 4)}, {std::sqrt(3.0), ff_bin_index<false>(2, 8)},
-            {std::sqrt(12.0), ff_bin_index<false>(2, 16)}, {std::sqrt(27.0), ff_bin_index<false>(2, 3)}
+            {1.0, ff_bin_index(2, 4)}, {std::sqrt(3.0), ff_bin_index(2, 8)},
+            {std::sqrt(12.0), ff_bin_index(2, 16)}, {std::sqrt(27.0), ff_bin_index(2, 3)}
         }, 1e-6);
     }
 }
@@ -156,10 +156,10 @@ void quad_tests_rounded(std::function<QuadEvaluatedResultRounded(const DebugData
         };
         auto result = evaluate(data, others);
         check_unordered_rounded<4>(result.distances, result.ff_bins, {
-            {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index<false>(2, 4)},
-            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index<false>(2, 8)},
-            {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index<false>(2, 16)},
-            {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index<false>(2, 3)}
+            {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index(2, 4)},
+            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index(2, 8)},
+            {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index(2, 16)},
+            {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index(2, 3)}
         });
     }
 }
@@ -180,10 +180,10 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData<vbw>&, const s
         };
         auto result = evaluate(data, others);
         check_unordered<8>(result.distances, result.ff_bins, {
-            {1.0, ff_bin_index<false>(2, 4)}, {std::sqrt(3.0), ff_bin_index<false>(2, 8)},
-            {std::sqrt(12.0), ff_bin_index<false>(2, 16)}, {std::sqrt(27.0), ff_bin_index<false>(2, 32)},
-            {std::sqrt(48.0), ff_bin_index<false>(2, 64)}, {std::sqrt(75.0), ff_bin_index<false>(2, 128)},
-            {std::sqrt(108.0), ff_bin_index<false>(2, 15)}, {std::sqrt(147.0), ff_bin_index<false>(2, 5)}
+            {1.0, ff_bin_index(2, 4)}, {std::sqrt(3.0), ff_bin_index(2, 8)},
+            {std::sqrt(12.0), ff_bin_index(2, 16)}, {std::sqrt(27.0), ff_bin_index(2, 32)},
+            {std::sqrt(48.0), ff_bin_index(2, 64)}, {std::sqrt(75.0), ff_bin_index(2, 128)},
+            {std::sqrt(108.0), ff_bin_index(2, 15)}, {std::sqrt(147.0), ff_bin_index(2, 5)}
         }, 1e-5);
     }
 }
@@ -205,14 +205,14 @@ void octo_tests_rounded(std::function<OctoEvaluatedResultRounded(const DebugData
         };
         auto result = evaluate(data, others);
         check_unordered_rounded<8>(result.distances, result.ff_bins, {
-            {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index<false>(2, 4)},
-            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index<false>(2, 8)},
-            {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index<false>(2, 16)},
-            {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index<false>(2, 32)},
-            {static_cast<int32_t>(std::round(std::sqrt(48.0)/width)), ff_bin_index<false>(2, 64)},
-            {static_cast<int32_t>(std::round(std::sqrt(75.0)/width)), ff_bin_index<false>(2, 128)},
-            {static_cast<int32_t>(std::round(std::sqrt(108.0)/width)), ff_bin_index<false>(2, 15)},
-            {static_cast<int32_t>(std::round(std::sqrt(147.0)/width)), ff_bin_index<false>(2, 5)}
+            {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index(2, 4)},
+            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index(2, 8)},
+            {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index(2, 16)},
+            {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index(2, 32)},
+            {static_cast<int32_t>(std::round(std::sqrt(48.0)/width)), ff_bin_index(2, 64)},
+            {static_cast<int32_t>(std::round(std::sqrt(75.0)/width)), ff_bin_index(2, 128)},
+            {static_cast<int32_t>(std::round(std::sqrt(108.0)/width)), ff_bin_index(2, 15)},
+            {static_cast<int32_t>(std::round(std::sqrt(147.0)/width)), ff_bin_index(2, 5)}
         });
     }
 }
@@ -241,14 +241,14 @@ void hexa_tests(std::function<HexaEvaluatedResult(const DebugData<vbw>&, const s
         };
         auto result = evaluate(data, others);
         check_unordered<16>(result.distances, result.ff_bins, {
-            {1.0, ff_bin_index<false>(2, 4)}, {std::sqrt(3.0), ff_bin_index<false>(2, 8)},
-            {std::sqrt(12.0), ff_bin_index<false>(2, 3)}, {std::sqrt(27.0), ff_bin_index<false>(2, 5)},
-            {std::sqrt(48.0), ff_bin_index<false>(2, 6)}, {std::sqrt(75.0), ff_bin_index<false>(2, 7)},
-            {std::sqrt(108.0), ff_bin_index<false>(2, 1)}, {std::sqrt(147.0), ff_bin_index<false>(2, 9)},
-            {std::sqrt(192.0), ff_bin_index<false>(2, 10)}, {std::sqrt(243.0), ff_bin_index<false>(2, 11)},
-            {std::sqrt(300.0), ff_bin_index<false>(2, 12)}, {std::sqrt(363.0), ff_bin_index<false>(2, 13)},
-            {std::sqrt(432.0), ff_bin_index<false>(2, 14)}, {std::sqrt(507.0), ff_bin_index<false>(2, 15)},
-            {std::sqrt(588.0), ff_bin_index<false>(2, 16)}, {std::sqrt(675.0), ff_bin_index<false>(2, 0)}
+            {1.0, ff_bin_index(2, 4)}, {std::sqrt(3.0), ff_bin_index(2, 8)},
+            {std::sqrt(12.0), ff_bin_index(2, 3)}, {std::sqrt(27.0), ff_bin_index(2, 5)},
+            {std::sqrt(48.0), ff_bin_index(2, 6)}, {std::sqrt(75.0), ff_bin_index(2, 7)},
+            {std::sqrt(108.0), ff_bin_index(2, 1)}, {std::sqrt(147.0), ff_bin_index(2, 9)},
+            {std::sqrt(192.0), ff_bin_index(2, 10)}, {std::sqrt(243.0), ff_bin_index(2, 11)},
+            {std::sqrt(300.0), ff_bin_index(2, 12)}, {std::sqrt(363.0), ff_bin_index(2, 13)},
+            {std::sqrt(432.0), ff_bin_index(2, 14)}, {std::sqrt(507.0), ff_bin_index(2, 15)},
+            {std::sqrt(588.0), ff_bin_index(2, 16)}, {std::sqrt(675.0), ff_bin_index(2, 0)}
         }, 1e-3);
     }
 }
@@ -278,22 +278,22 @@ void hexa_tests_rounded(std::function<HexaEvaluatedResultRounded(const DebugData
         };
         auto result = evaluate(data, others);
         check_unordered_rounded<16>(result.distances, result.ff_bins, {
-            {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index<false>(2, 4)},
-            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index<false>(2, 8)},
-            {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index<false>(2, 3)},
-            {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index<false>(2, 5)},
-            {static_cast<int32_t>(std::round(std::sqrt(48.0)/width)), ff_bin_index<false>(2, 6)},
-            {static_cast<int32_t>(std::round(std::sqrt(75.0)/width)), ff_bin_index<false>(2, 7)},
-            {static_cast<int32_t>(std::round(std::sqrt(108.0)/width)), ff_bin_index<false>(2, 1)},
-            {static_cast<int32_t>(std::round(std::sqrt(147.0)/width)), ff_bin_index<false>(2, 9)},
-            {static_cast<int32_t>(std::round(std::sqrt(192.0)/width)), ff_bin_index<false>(2, 10)},
-            {static_cast<int32_t>(std::round(std::sqrt(243.0)/width)), ff_bin_index<false>(2, 11)},
-            {static_cast<int32_t>(std::round(std::sqrt(300.0)/width)), ff_bin_index<false>(2, 12)},
-            {static_cast<int32_t>(std::round(std::sqrt(363.0)/width)), ff_bin_index<false>(2, 13)},
-            {static_cast<int32_t>(std::round(std::sqrt(432.0)/width)), ff_bin_index<false>(2, 14)},
-            {static_cast<int32_t>(std::round(std::sqrt(507.0)/width)), ff_bin_index<false>(2, 15)},
-            {static_cast<int32_t>(std::round(std::sqrt(588.0)/width)), ff_bin_index<false>(2, 16)},
-            {static_cast<int32_t>(std::round(std::sqrt(675.0)/width)), ff_bin_index<false>(2, 0)}
+            {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index(2, 4)},
+            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index(2, 8)},
+            {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index(2, 3)},
+            {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index(2, 5)},
+            {static_cast<int32_t>(std::round(std::sqrt(48.0)/width)), ff_bin_index(2, 6)},
+            {static_cast<int32_t>(std::round(std::sqrt(75.0)/width)), ff_bin_index(2, 7)},
+            {static_cast<int32_t>(std::round(std::sqrt(108.0)/width)), ff_bin_index(2, 1)},
+            {static_cast<int32_t>(std::round(std::sqrt(147.0)/width)), ff_bin_index(2, 9)},
+            {static_cast<int32_t>(std::round(std::sqrt(192.0)/width)), ff_bin_index(2, 10)},
+            {static_cast<int32_t>(std::round(std::sqrt(243.0)/width)), ff_bin_index(2, 11)},
+            {static_cast<int32_t>(std::round(std::sqrt(300.0)/width)), ff_bin_index(2, 12)},
+            {static_cast<int32_t>(std::round(std::sqrt(363.0)/width)), ff_bin_index(2, 13)},
+            {static_cast<int32_t>(std::round(std::sqrt(432.0)/width)), ff_bin_index(2, 14)},
+            {static_cast<int32_t>(std::round(std::sqrt(507.0)/width)), ff_bin_index(2, 15)},
+            {static_cast<int32_t>(std::round(std::sqrt(588.0)/width)), ff_bin_index(2, 16)},
+            {static_cast<int32_t>(std::round(std::sqrt(675.0)/width)), ff_bin_index(2, 0)}
         });
     }
 }

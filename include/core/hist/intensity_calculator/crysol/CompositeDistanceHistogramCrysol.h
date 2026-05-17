@@ -10,7 +10,7 @@ namespace ausaxs::hist {
     /**
      * @brief An alternative to CompositeDistanceHistogramFFExplicit that mimics the CRYSOL excluded volume fitting. 
      */
-    class CompositeDistanceHistogramCrysol : public CompositeDistanceHistogramFFExplicitBase<form_factor::lookup::atomic::table_t, form_factor::lookup::cross::table_t, form_factor::lookup::exv::table_t>{
+    class CompositeDistanceHistogramCrysol : public CompositeDistanceHistogramFFExplicitBase<form_factor::lookup::table_t, form_factor::lookup::table_t, form_factor::lookup::table_t>{
         public:
             CompositeDistanceHistogramCrysol();
             CompositeDistanceHistogramCrysol(const CompositeDistanceHistogramCrysol&);
@@ -57,9 +57,9 @@ namespace ausaxs::hist {
                 double avg_displaced_V
             );
 
-            const form_factor::lookup::atomic::table_t& get_ff_table() const override;
-            const form_factor::lookup::cross::table_t& get_ffax_table() const override;
-            const form_factor::lookup::exv::table_t& get_ffxx_table() const override;
+            const form_factor::lookup::table_t& get_ff_table() const override;
+            const form_factor::lookup::table_t& get_ffax_table() const override;
+            const form_factor::lookup::table_t& get_ffxx_table() const override;
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
@@ -78,8 +78,8 @@ namespace ausaxs::hist {
             double exv_factor(double q) const override;
             void initialize();
 
-            inline static form_factor::lookup::atomic::table_t ffaa_table;
-            inline static form_factor::lookup::cross::table_t  ffax_table;
-            inline static form_factor::lookup::exv::table_t    ffxx_table;
+            form_factor::lookup::table_t ffaa_table;
+            form_factor::lookup::table_t  ffax_table;
+            form_factor::lookup::table_t    ffxx_table;
     };
 }

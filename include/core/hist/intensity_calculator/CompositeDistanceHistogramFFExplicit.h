@@ -13,20 +13,20 @@ namespace ausaxs::hist {
      *        Unique exluded volume form factors are used for each atomic type.
      *        For more information, see CompositeDistanceHistogram.
      */
-    class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFExplicitBase<form_factor::lookup::atomic::table_t, form_factor::lookup::cross::table_t, form_factor::lookup::exv::table_t> {
+    class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFExplicitBase<form_factor::lookup::table_t, form_factor::lookup::table_t, form_factor::lookup::table_t> {
         public: 
             using CompositeDistanceHistogramFFExplicitBase::CompositeDistanceHistogramFFExplicitBase;
 
-            const form_factor::lookup::atomic::table_t& get_ff_table() const override {
-                return form_factor::FormFactorManager::raw_atomic_table();
+            const form_factor::lookup::table_t& get_ff_table() const override {
+                return form_factor::manager::get_active_product_tables()->raw_atomic_table;
             }
 
-            const form_factor::lookup::cross::table_t& get_ffax_table() const override {
-                return form_factor::FormFactorManager::raw_cross_table();
+            const form_factor::lookup::table_t& get_ffax_table() const override {
+                return form_factor::manager::get_active_product_tables()->raw_cross_table;
             }
 
-            const form_factor::lookup::exv::table_t& get_ffxx_table() const override {
-                return form_factor::FormFactorManager::raw_exv_table();
+            const form_factor::lookup::table_t& get_ffxx_table() const override {
+                return form_factor::manager::get_active_product_tables()->raw_exv_table;
             }
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFExplicit>, "CompositeDistanceHistogramFFExplicit should be nothrow move constructible");

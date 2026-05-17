@@ -74,7 +74,7 @@ namespace ausaxs::hist {
              */
             const std::vector<double>& get_d_axis_ax() const;
 
-            const form_factor::lookup::atomic::table_t& get_ff_table() const override;
+            const form_factor::lookup::table_t& get_ff_table() const override;
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 

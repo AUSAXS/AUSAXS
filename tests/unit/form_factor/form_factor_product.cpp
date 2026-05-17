@@ -72,9 +72,9 @@ TEST_CASE("FormFactorProduct::symmetry") {
 
 TEST_CASE("FormFactorProduct::raw_atomic_table") {
     SECTION("product entries match direct calculation") {
-        auto& table = FormFactorManager::raw_atomic_table();
-        for (unsigned int i = 0; i < get_count(); ++i) {
-            for (unsigned int j = 0; j < get_count(); ++j) {
+        auto& table = manager::get_active_product_tables()->raw_atomic_table;
+        for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
+            for (unsigned int j = 0; j < settings::form_factor::max_ff_types; ++j) {
                 const FormFactor& ff1 = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
                 const FormFactor& ff2 = lookup::atomic::raw::get(static_cast<form_factor_t>(j));
                 const FormFactorProduct& product = table.index(i, j);
@@ -88,9 +88,9 @@ TEST_CASE("FormFactorProduct::raw_atomic_table") {
     }
 
     SECTION("all table entries match direct calculation") {
-        auto& table = FormFactorManager::raw_atomic_table();
-        for (unsigned int i = 0; i < get_count(); ++i) {
-            for (unsigned int j = 0; j < get_count(); ++j) {
+        auto& table = manager::get_active_product_tables()->raw_atomic_table;
+        for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
+            for (unsigned int j = 0; j < settings::form_factor::max_ff_types; ++j) {
                 const FormFactor& ff1 = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
                 const FormFactor& ff2 = lookup::atomic::raw::get(static_cast<form_factor_t>(j));
                 const FormFactorProduct& product = table.index(i, j);
@@ -106,9 +106,9 @@ TEST_CASE("FormFactorProduct::raw_atomic_table") {
 
 TEST_CASE("FormFactorProduct::table symmetry") {
     SECTION("table is symmetric") {
-        auto& table = FormFactorManager::raw_atomic_table();
-        for (unsigned int i = 0; i < get_count(); ++i) {
-            for (unsigned int j = 0; j < get_count(); ++j) {
+        auto& table = manager::get_active_product_tables()->raw_atomic_table;
+        for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
+            for (unsigned int j = 0; j < settings::form_factor::max_ff_types; ++j) {
                 const FormFactorProduct& product1 = table.index(i, j);
                 const FormFactorProduct& product2 = table.index(j, i);
 

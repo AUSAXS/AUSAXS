@@ -141,42 +141,42 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         return p_xx;
     };
 
-    container::ThreadLocalWrapper<AXContainer> p_ax_all(form_factor::get_count(), settings::axes::bin_count);
+    container::ThreadLocalWrapper<AXContainer> p_ax_all(settings::form_factor::max_ff_types, settings::axes::bin_count);
     auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
         auto& p_ax = p_ax_all.get();
         for (int i = imin; i < imax; ++i) { // atoms
             int j = 0;                      // exv interior
             for (; j+15 < data_x_i_size; j+=16) {
-                detail::grid::evaluate16<variable_bin_width, false, 1>(p_ax.interior, data_a, data_x_i, i, j);
+                detail::grid::evaluate16<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
             }
 
             for (; j+7 < data_x_i_size; j+=8) {
-                detail::grid::evaluate8<variable_bin_width, false, 1>(p_ax.interior, data_a, data_x_i, i, j);
+                detail::grid::evaluate8<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
             }
 
             for (; j+3 < data_x_i_size; j+=4) {
-                detail::grid::evaluate4<variable_bin_width, false, 1>(p_ax.interior, data_a, data_x_i, i, j);
+                detail::grid::evaluate4<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
             }
 
             for (; j < data_x_i_size; ++j) {
-                detail::grid::evaluate1<variable_bin_width, false, 1>(p_ax.interior, data_a, data_x_i, i, j);
+                detail::grid::evaluate1<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
             }
 
             j = 0;                          // exv surface
             for (; j+15 < data_x_s_size; j+=16) {
-                detail::grid::evaluate16<variable_bin_width, false, 1>(p_ax.surface, data_a, data_x_s, i, j);
+                detail::grid::evaluate16<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
             }
 
             for (; j+7 < data_x_s_size; j+=8) {
-                detail::grid::evaluate8<variable_bin_width, false, 1>(p_ax.surface, data_a, data_x_s, i, j);
+                detail::grid::evaluate8<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
             }
 
             for (; j+3 < data_x_s_size; j+=4) {
-                detail::grid::evaluate4<variable_bin_width, false, 1>(p_ax.surface, data_a, data_x_s, i, j);
+                detail::grid::evaluate4<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
             }
 
             for (; j < data_x_s_size; ++j) {
-                detail::grid::evaluate1<variable_bin_width, false, 1>(p_ax.surface, data_a, data_x_s, i, j);
+                detail::grid::evaluate1<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
             }
         }
         return p_ax;

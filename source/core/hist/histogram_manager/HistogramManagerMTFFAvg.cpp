@@ -9,6 +9,7 @@
 #include <hist/distribution/GenericDistribution3D.h>
 #include <container/ThreadLocalWrapper.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <data/Molecule.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
@@ -209,7 +210,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(form_factor::get_count(), form_factor::get_count(), settings::axes::bin_count); // ff_type1, ff_type2, distance
+    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(settings::form_factor::max_ff_types, settings::form_factor::max_ff_types, settings::axes::bin_count); // ff_type1, ff_type2, distance
     auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
         auto& p_aa = p_aa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -232,7 +233,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(form_factor::get_count(), settings::axes::bin_count); // ff_type, distance
+    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(settings::form_factor::max_ff_types, settings::axes::bin_count); // ff_type, distance
     auto calc_aw = [&data_w, &data_a, &p_aw_all, data_w_size] (int imin, int imax) {
         auto& p_aw = p_aw_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -321,15 +322,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         p_ww.add_index(0, data_w_size);
     }
 
-    // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
     GenericDistribution1D_t p_tot(settings::axes::bin_count);
     {   // sum all elements to the total
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+        unsigned int n_active = form_factor::get_active_count();
+        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {
+            for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < n_active; ++ff2) {
                 std::transform(p_tot.begin(), p_tot.end(), p_aa.begin(ff1, ff2), p_tot.begin(), std::plus<>());
             }
         }
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {
             std::transform(p_tot.begin(), p_tot.end(), p_aw.begin(ff1), p_tot.begin(), std::plus<>());
         }
         std::transform(p_tot.begin(), p_tot.end(), p_ww.begin(), p_tot.begin(), std::plus<>());
@@ -356,7 +357,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         ? 0 
         : this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom()
     ;
-    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
         std::transform(p_aa.begin(ff1, form_factor::exv_bin), p_aa.end(ff1, form_factor::exv_bin), p_aa.begin(ff1, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
     }
     std::transform(p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), p_aa.end(form_factor::exv_bin, form_factor::exv_bin), p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg*Z_exv_avg;});

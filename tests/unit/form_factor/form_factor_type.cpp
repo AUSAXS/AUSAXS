@@ -35,19 +35,11 @@ TEST_CASE("form_factor_t::to_string") {
     }
 }
 
-TEST_CASE("form_factor_t::get_count") {
+TEST_CASE("form_factor_t::get_total_ff_count") {
     SECTION("count value") {
-        unsigned int count = get_count();
+        unsigned int count = get_total_ff_count();
         CHECK(count == static_cast<unsigned int>(form_factor_t::COUNT));
         CHECK(count > 0);
-    }
-}
-
-TEST_CASE("form_factor_t::get_count_without_excluded_volume") {
-    SECTION("count without excluded volume") {
-        unsigned int count = get_count_without_excluded_volume();
-        CHECK(count == get_count() - 1);
-        CHECK(count == static_cast<unsigned int>(form_factor_t::COUNT) - 1);
     }
 }
 

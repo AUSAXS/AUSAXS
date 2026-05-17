@@ -3,55 +3,60 @@
 
 #pragma once
 
-#include <utility/observer_ptr.h>
+#include <data/DataFwd.h>
 #include <container/ArrayContainer2D.h>
 #include <form_factor/lookup/FormFactorLookupFwd.h>
+#include <utility/observer_ptr.h>
 
-#include <memory>
+#include <array>
+#include <vector>
 
-namespace ausaxs::form_factor {
-    class FormFactorManager {
-        struct _CustomTables{
-            std::array<int, form_factor::get_count_without_excluded_volume()> ff_indices;
-            lookup::exv::table_t    custom_raw_exv_table;
-            lookup::cross::table_t  custom_raw_cross_table;
-            lookup::atomic::table_t custom_raw_atomic_table;
-            lookup::cross::table_t  custom_normalized_cross_table;
-            lookup::atomic::table_t custom_normalized_atomic_table;
+namespace ausaxs::form_factor::manager {
+    namespace detail {
+        struct ActiveTables {
+            ActiveTables(std::array<int, settings::form_factor::max_ff_types>&& ff_indices, unsigned int active_count);
+            unsigned int active_count;
+            std::array<int, settings::form_factor::max_ff_types> ff_indices;
+            lookup::table_t raw_exv_table;
+            lookup::table_t raw_cross_table;
+            lookup::table_t raw_atomic_table;
+            lookup::table_t normalized_cross_table;
+            lookup::table_t normalized_atomic_table;
         };
 
-        public:
-            static observer_ptr<const _CustomTables> get_custom_tables() noexcept;
-            static constexpr std::array<int, form_factor::get_count_without_excluded_volume()> get_ff_indices() noexcept;
-            static const lookup::atomic::table_t& normalized_atomic_table() noexcept;
-            static const lookup::cross::table_t& normalized_cross_table() noexcept;
-            static const lookup::atomic::table_t& raw_atomic_table() noexcept;
-            static const lookup::exv::table_t& raw_exv_table() noexcept;
-            static const lookup::cross::table_t& raw_cross_table() noexcept;
-            static void use_custom_form_factors(bool choice);
-            static void set_custom_form_factors(std::vector<int> ff_indices);
-            static void refresh();
+        /**
+         * @brief Activate a custom form factor set.
+         */
+        void use_form_factors(std::vector<int> ff_indices);
+    }
 
-        private:
-            static inline bool _needs_refresh = false;
-            static inline bool _use_custom_form_factors = false;
-            static inline std::unique_ptr<_CustomTables> custom_tables;
-            static bool is_using_custom_form_factors() noexcept;
+    /**
+     * @brief Get the currently active form factor product tables. 
+     */
+    observer_ptr<const detail::ActiveTables> get_active_product_tables() noexcept;
 
-            static void refresh_custom_state();
-    };
+    /**
+     * @brief Get a mapping from form_factor_t enum index to active slot index.
+     *        All form factors not in the active set are mapped to OTHER. 
+     */
+    std::vector<int> get_active_mapping();
+
+    /**
+     * @brief Determine the most appropriate form factor set for the given molecule and activate it. 
+     */
+    void use_form_factors(data::Molecule& molecule);
+
+    /**
+     * @brief Rebuild the active product tables in-place, preserving the current form factor selection.
+     *        Should be called whenever the EXV parameter set changes.
+     */
+    void rebuild();
 }
 
-constexpr std::array<int, ausaxs::form_factor::get_count_without_excluded_volume()> ausaxs::form_factor::FormFactorManager::get_ff_indices() noexcept {
-    auto generator = []() {
-        std::array<int, form_factor::get_count_without_excluded_volume()> indices{};
-        for (unsigned int i = 0; i < indices.size(); ++i) {
-            indices[i] = i;
-        }
-        return indices;
-    };
-
-    if (std::is_constant_evaluated()) {return generator();}
-    if (_use_custom_form_factors) {return custom_tables->ff_indices;}
-    return generator();
+namespace ausaxs::form_factor {
+    /**
+     * @brief Get the number of active form factors. 
+     *        This is often smaller than settings::form_factor::max_ff_types when using custom form factors. 
+     */
+    unsigned int get_active_count() noexcept;
 }

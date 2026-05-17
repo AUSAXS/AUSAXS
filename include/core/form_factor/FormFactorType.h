@@ -4,13 +4,17 @@
 #pragma once
 
 #include <constants/Constants.h>
+#include <settings/FormFactorSettings.h>
 
 #include <string>
 #include <stdexcept>
 
 namespace ausaxs::form_factor {
     // The form factor type of an atom. This is intended to be used as an index for best performance.
-    enum class form_factor_t {
+    enum class form_factor_t : int {
+        EXCLUDED_VOLUME,    // excluded volume
+        WATER,              // water
+        OH = WATER,         // neutral oxygen with hydrogen
         H,                  // neutral hydrogen
         C,                  // neutral carbon
         CH,                 // neutral carbon with hydrogen
@@ -21,16 +25,18 @@ namespace ausaxs::form_factor {
         NH2,                // neutral nitrogen with two hydrogens
         NH3,                // neutral nitrogen with three hydrogens
         O,                  // neutral oxygen
-        OH,                 // neutral oxygen with hydrogen
         S,                  // neutral sulfur
         SH,                 // neutral sulfur with hydrogen
         OTHER,              // all other atoms
-        EXCLUDED_VOLUME,    // excluded volume
         COUNT,              // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
         UNKNOWN,            // this is used to indicate that the form factor is unknown
     };
     constexpr int exv_bin   = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::OH);
+    constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::WATER);
+    static_assert(exv_bin == 0, "form_factor::form_factor_t::EXCLUDED_VOLUME must be at index 0");
+    static_assert(water_bin == 1, "form_factor::form_factor_t::WATER must be at index 1");
+
+    inline int start_index_for_explicit_exv() {return static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)+1;}
 
     [[maybe_unused]] static std::string to_string(form_factor_t type) {
         switch (type) {
@@ -77,21 +83,10 @@ namespace ausaxs::form_factor {
     }
 
     /**
-     * @brief Get the number of unique form factors.
-     * 
-     * This can be used to iterate over all form factors.
+     * @brief Get the total number of defined form factor types (including excluded volume).
      */
-    constexpr unsigned int get_count() {
+    constexpr unsigned int get_total_ff_count() {
         return static_cast<unsigned int>(form_factor_t::COUNT);
-    }
-
-    /**
-     * @brief Get the number of unique form factors, excluding the excluded volume form factor.
-     * 
-     * This can be used to iterate over all form factors except the excluded volume form factor.
-     */
-    constexpr unsigned int get_count_without_excluded_volume() {
-        return static_cast<unsigned int>(form_factor_t::COUNT)-1;
     }
 
     /**

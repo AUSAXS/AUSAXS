@@ -3,6 +3,7 @@
 
 #include <settings/MoleculeSettings.h>
 #include <settings/SettingsIORegistry.h>
+#include <form_factor/FormFactorType.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 

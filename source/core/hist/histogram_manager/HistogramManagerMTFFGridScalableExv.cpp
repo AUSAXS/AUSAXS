@@ -109,25 +109,25 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             return p_xx;
         };
 
-        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_count(), settings::axes::bin_count);
+        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(settings::form_factor::max_ff_types, settings::axes::bin_count);
         auto calc_ax = [&data_a, &scaled_data_x, &p_ax_all, data_x_size] (int imin, int imax) {
             auto& p_ax = p_ax_all.get();
             for (int i = imin; i < imax; ++i) { // atoms
                 int j = 0;                      // exv
                 for (; j+15 < data_x_size; j+=16) {
-                    detail::grid::evaluate16<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate16<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j+7 < data_x_size; j+=8) {
-                    detail::grid::evaluate8<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j+3 < data_x_size; j+=4) {
-                    detail::grid::evaluate4<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
 
                 for (; j < data_x_size; ++j) {
-                    detail::grid::evaluate1<variable_bin_width, false, 1>(p_ax, data_a, scaled_data_x, i, j);
+                    detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
                 }
             }
             return p_ax;

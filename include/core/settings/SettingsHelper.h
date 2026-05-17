@@ -11,8 +11,8 @@ namespace ausaxs::settings::detail {
         T value;
         std::function<void(T&)> on_change;
         T& operator=(T other) {
-            if (on_change) {on_change(other);}
             value = std::move(other);
+            if (on_change) {on_change(value);}
             return value;
         }
         operator T() const {return value;}

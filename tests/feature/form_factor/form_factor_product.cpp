@@ -10,8 +10,8 @@ using namespace form_factor;
 
 TEST_CASE("FormFactorProduct::comprehensive_evaluation") {
     SECTION("all form factor products match direct calculation") {
-        for (unsigned int ff1 = 0; ff1 < get_count(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < get_count(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < get_total_ff_count(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < get_total_ff_count(); ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 const FormFactor& ff2_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff2));
                 FormFactorProduct ff(ff1_obj, ff2_obj);
@@ -26,9 +26,9 @@ TEST_CASE("FormFactorProduct::comprehensive_evaluation") {
 
 TEST_CASE("FormFactorProduct::table_comprehensive") {
     SECTION("all table entries match direct calculation") {
-        const auto& table = FormFactorManager::raw_atomic_table();
-        for (unsigned int ff1 = 0; ff1 < get_count(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < get_count(); ++ff2) {
+        const auto& table = manager::get_active_product_tables()->raw_atomic_table;
+        for (unsigned int ff1 = 0; ff1 < get_total_ff_count(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < get_total_ff_count(); ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 const FormFactor& ff2_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
