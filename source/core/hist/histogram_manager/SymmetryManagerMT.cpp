@@ -49,6 +49,13 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     const auto& waters = data_w;
     int self_merge_id_aa = 0, self_merge_id_ww = 1;
     int cross_merge_id_aa = 0, cross_merge_id_aw = 1, cross_merge_id_ww = 2;
+
+    // resolve a (body, symmetry, repetition) triple to its transformed coordinates;
+    // repetition 0 is the original body, 1..N are the generated copies
+    auto atomic_at = [&data](int i_body, int i_sym, int rep) -> const CompactCoordinates<variable_bin_width>& {
+        return rep == 0 ? data[i_body].atomic[0][0] : data[i_body].atomic[1+i_sym][rep-1];
+    };
+
     for (int i_body1 = 0; i_body1 < static_cast<int>(protein->size_body()); ++i_body1) {
         const auto& body = protein->get_body(i_body1);
         const auto& body1_atomic = data[i_body1].atomic[0][0];
@@ -59,19 +66,15 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
 
         for (int i_sym1 = 0; i_sym1 < static_cast<int>(body.size_symmetry()); ++i_sym1) {
             auto sym1 = body.symmetry().get(i_sym1);
-            bool closed = sym1->is_closed();
-            for (int i_repeat1 = 0; i_repeat1 < (static_cast<int>(sym1->repetitions()) - closed); ++i_repeat1) {
-                const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
 
-                // assume we have 3 repeats of symmetry B, so we have the bodies: A B1 B2 B3. Then
-                // AB1 == AB2 == AB3, (scale AB1 by 3)
-                // AB2 == B1B3        (scale B1B3 by 2)
-                // AB3                (scale AB3 by 1)
-                //
-                // if the symmetry is closed, AB3 == AB1
-                int scale = static_cast<int>(sym1->repetitions()) - i_repeat1;
-                if (i_repeat1 == 0 && closed) {scale += 1;}
-                calculator.enqueue_calculate_cross(body1_atomic, body1_sym_atomic, scale, cross_merge_id_aa);
+            // distinct distance pairs among {original, copy_1, ..., copy_N} of this symmetry;
+            // every other copy-pair is identical to a listed representative and folded into scale
+            for (const auto& pair : sym1->internal_pair_schedule()) {
+                calculator.enqueue_calculate_cross(
+                    atomic_at(i_body1, i_sym1, pair.repA),
+                    atomic_at(i_body1, i_sym1, pair.repB),
+                    pair.scale, cross_merge_id_aa
+                );
             }
 
             for (int i_repeat1 = 0; i_repeat1 < static_cast<int>(sym1->repetitions()); ++i_repeat1) {

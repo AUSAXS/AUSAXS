@@ -562,15 +562,16 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         if (isym2 == 0) {
             assert(isym1 < 1+static_cast<int>(body1.size_symmetry()) && "symmetry index out of bounds");
             auto sym1 = body1.symmetry().get(isym1-1);
-            bool closed = sym1->is_closed();
-            for (int irepeat1 = 0; irepeat1 < std::max<int>(1, sym1->repetitions() - int(closed)); ++irepeat1) {
-                const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
-                int scale = sym1->repetitions() - irepeat1;
-                if (irepeat1 == 0 && closed) {scale += 1;}
-                calculator->enqueue_calculate_cross(coords[ibody2].atomic[0][0], body1_sym_atomic, scale, res_index);
+
+            // distinct distance pairs among {original, copy_1, ..., copy_N}; repetition 0 is
+            // the original body (atomic[0][0]), 1..N are the copies (atomic[isym1][rep-1])
+            for (const auto& pair : sym1->internal_pair_schedule()) {
+                const auto& atomicA = pair.repA == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repA-1];
+                const auto& atomicB = pair.repB == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repB-1];
+                calculator->enqueue_calculate_cross(atomicA, atomicB, pair.scale, res_index);
 
                 #if DEBUG_INFO_PSMMT
-                    std::cout << "\t[" << ibody1 << isym1 << irepeat1 << "][" << ibody2 << isym2 << "0] x" << scale << std::endl;
+                    std::cout << "\t[" << ibody1 << isym1 << pair.repA << "][" << ibody1 << isym1 << pair.repB << "] x" << pair.scale << std::endl;
                     std::cout << "\t\tstored at cross index " << res_index << std::endl;
                 #endif
             }
