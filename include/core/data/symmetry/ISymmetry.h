@@ -9,8 +9,23 @@
 #include <functional>
 #include <memory>
 #include <span>
+#include <vector>
 
 namespace ausaxs::symmetry {
+    /**
+     * @brief One representative inter-copy distance correlation job.
+     *
+     * repA / repB are repetition indices: 0 denotes the original body, 1..repetitions()
+     * denote the generated copies. scale is the multiplicity: how many identical copy-pairs
+     * this single representative stands for. Every copy-pair not listed in a schedule is
+     * geometrically identical to one that is.
+     */
+    struct CopyPair {
+        int repA;
+        int repB;
+        int scale;
+    };
+
     /**
      * @brief Abstract base class for symmetry operations used in rigid-body optimisation.
      *
@@ -36,5 +51,16 @@ namespace ausaxs::symmetry {
 
         virtual std::span<double> span_translation() = 0;
         virtual std::span<double> span_rotation() = 0;
+
+        /**
+         * @brief Distinct inter-copy distance pairs within {original, copy_1, ..., copy_N}.
+         *
+         * The histogram backend evaluates one cross-correlation per returned CopyPair and
+         * weights it by CopyPair::scale; every other copy-pair is identical to a listed one.
+         * The default implementation reproduces the cyclic-chain reuse: copy k sits one
+         * fixed generator step from copy k-1, so the distance depends only on the index
+         * separation. Subclasses with a different group structure override this.
+         */
+        virtual std::vector<CopyPair> internal_pair_schedule() const;
     };
 }
