@@ -3,8 +3,11 @@
 
 #include <api/pyausaxs/api_rigidbody.h>
 #include <api/ObjectStorage.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
+#include <rigidbody/constraints/ConstrainedFitter.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 
 using namespace ausaxs;
 
@@ -30,14 +33,33 @@ void rigidbody_validate(
     rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
 }, status);}
 
-void rigidbody_run(
+struct _data_get_data_obj {
+    std::vector<double> q, I, I_err, I_inter;
+};
+int rigidbody_run(
     int rigidbody_id,
+    double** q, double** I, double** I_err, double** I_interp, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return;}
+    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
     auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
     sequencer->execute();
+
+    auto data = sequencer->_get_controller()->get_fitter()->fit()->curves.select_columns({0, 1, 2, 3});
+    _data_get_data_obj data_obj;
+    data_obj.q = data.col(0);
+    data_obj.I = data.col(1);
+    data_obj.I_err = data.col(2);
+    data_obj.I_inter = data.col(3);
+    int data_id = api::ObjectStorage::register_object(std::move(data_obj));
+    auto ref = api::ObjectStorage::get_object<_data_get_data_obj>(data_id);
+    *q = ref->q.data();
+    *I = ref->I.data();
+    *I_err = ref->I_err.data();
+    *I_interp = ref->I_inter.data();
+    *n_points = static_cast<int>(ref->q.size());
+    return data_id;
 }, status);}
 
 void rigidbody_get_valid_elements(

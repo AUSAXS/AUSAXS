@@ -15,8 +15,9 @@ extern "C" API void rigidbody_validate(
     int* status
 );
 
-extern "C" API void rigidbody_run(
+extern "C" API int rigidbody_run(
     int rigidbody_id,
+    double** q, double** I, double** I_err, double** I_interp, int* n_points,
     int* status
 );
 
