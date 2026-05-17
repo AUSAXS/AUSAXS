@@ -37,7 +37,7 @@ void rigidbody_run(
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return;}
     auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
-    sequencer->run();
+    sequencer->execute();
 }, status);}
 
 void rigidbody_get_valid_elements(

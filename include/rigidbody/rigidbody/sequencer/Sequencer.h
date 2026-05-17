@@ -26,6 +26,12 @@ namespace ausaxs::rigidbody::sequencer {
             std::shared_ptr<fitter::FitResult> execute() override;
 
             /**
+             * @brief Disabled. Sequencer must always be invoked via execute() to ensure proper setup.
+             *        Calling run() directly skips rigidbody and controller initialization.
+             */
+            void run() override;
+
+            /**
              * @brief Expose the setup element for configuration.
              */
             SetupElement& setup();
