@@ -22,13 +22,13 @@ namespace ausaxs::hist::detail {
         void setup() {
             auto map = form_factor::manager::get_active_mapping();
             for (unsigned int i = 0; i < this->data.size(); ++i) {
-                get_ff_type(i) = map[get_ff_type(i)]; // remap to current form factor indices
                 if (get_ff_type(i) == static_cast<int>(ausaxs::form_factor::form_factor_t::UNKNOWN)) {
                     throw std::runtime_error(
                         "CompactCoordinatesFF: Attempted to use an atom with UNKNOWN form factor type.\n"
                         "Form factor information is required for the selected excluded volume model."
                     );
                 }
+                get_ff_type(i) = map[get_ff_type(i)]; // remap to current form factor indices
             }
         }
     };
