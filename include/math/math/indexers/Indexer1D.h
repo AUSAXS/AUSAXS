@@ -9,6 +9,13 @@
 #endif
 
 namespace ausaxs::utility::indexer {
+    /**
+     * @brief CRTP mixin providing element access for a one-dimensional container.
+     *
+     * The deriving class must expose a contiguous @c data member and a @c size() method. When the
+     * SAFE_MATH macro is set, every access is bounds-checked and throws std::out_of_range on failure;
+     * otherwise the checks compile away to a plain indexed access.
+     */
     template<typename Derived>
     class Indexer1D {
         protected:

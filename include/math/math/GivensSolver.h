@@ -10,6 +10,12 @@
 #include <math.h>
 
 namespace ausaxs {
+    /**
+     * @brief Solves a linear system using a QR decomposition built from Givens rotations.
+     *
+     * The matrix is reduced to upper-triangular form by a sequence of Givens rotations, after which
+     * solve() applies the stored rotations to the right-hand side and back-substitutes.
+     */
     class GivensSolver : public LinearSolver {
         public:
             // GivensSolver(const Matrix<double>& A) : N(A.N), M(A.M) {decomp(A);}

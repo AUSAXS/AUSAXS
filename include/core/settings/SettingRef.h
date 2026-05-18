@@ -47,7 +47,14 @@ namespace ausaxs::settings::io::detail {
     };
 
     /**
-     * @brief A reference to a setting. 
+     * @brief A typed reference to a setting, allowing it to be read and written as strings.
+     *
+     * The primary template deliberately has no working implementation — set(), get(), and type()
+     * all throw. Support for a concrete type @c T is provided by explicitly specializing those
+     * three methods (see the declarations at the bottom of this file); using a type without such
+     * a specialization therefore fails loudly at runtime rather than silently doing nothing. The
+     * partial specialization below additionally unwraps the Setting<T> wrapper by delegating to
+     * SettingRef<T>.
      */
     template<typename T> struct SettingRef : public ISettingRef {
         SettingRef(T& setting, const std::vector<std::string>& names) : ISettingRef(names), settingref(setting) {}

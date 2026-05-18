@@ -7,8 +7,14 @@
 #include <constants/vdwTable.h>
 #include <math/ConstexprMath.h>
 
+// Per-atom-group displaced solvent volumes for the various excluded-volume sets.
+// Each set below is annotated with its literature source; see settings::exv::ExvSet for selection.
 namespace ausaxs::constants::exv {
     namespace detail {
+        /**
+         * @brief The displaced solvent volume of each atom group (a bare atom, or an atom with its
+         *        implicit hydrogens, e.g. CH3). Volumes are stored in Å³.
+         */
         struct ExvSet {
             double H;
             double C, CH, CH2, CH3;

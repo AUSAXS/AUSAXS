@@ -41,8 +41,13 @@ namespace ausaxs::rigidbody::controller {
              */
             virtual void finish_step() = 0;
 
+            /// @brief Get the best body configuration found so far.
             observer_ptr<detail::MoleculeTransformParametersAbsolute> get_current_best_config() const;
+
+            /// @brief Get the fitter used to evaluate candidate configurations.
             observer_ptr<fitter::ConstrainedFitter> get_fitter() const;
+
+            /// @brief Get the calibration fit result, if one was supplied.
             observer_ptr<const fitter::FitResult> get_calibration() const;
 
         protected:

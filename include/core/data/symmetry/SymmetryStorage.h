@@ -11,6 +11,13 @@
 #include <vector>
 
 namespace ausaxs::symmetry {
+    /**
+     * @brief Owns the collection of symmetries applied to a body.
+     *
+     * Symmetries are stored as polymorphic ISymmetry instances; this class provides indexed and
+     * whole-collection access to them. It is move-only since the contained symmetries are uniquely
+     * owned, and is virtual so that derived storages (e.g. optimisable variants) can extend it.
+     */
     struct SymmetryStorage {
         SymmetryStorage() = default;
         SymmetryStorage(const SymmetryStorage&) = delete;

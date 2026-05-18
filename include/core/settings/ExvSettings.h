@@ -7,7 +7,9 @@
 #include <settings/SettingsHelper.h>
 
 namespace ausaxs::settings {
+    /// @brief Settings controlling how the excluded volume of the solute is modelled.
     struct EXPORT exv {
+        /// @brief The available excluded-volume models. See each value for its trade-offs.
         enum class ExvMethod {
             // The simple method where the total charge of the excluded volume is subtracted from the atoms
             // An effective form factor of exp(-q*q) is used for all atoms
@@ -51,6 +53,7 @@ namespace ausaxs::settings {
         };
         static ExvMethod exv_method; // The method used to model the excluded volume.
 
+        /// @brief The available sets of per-atom displaced solvent volumes.
         enum class ExvSet {
             Traube,                         // Traube 1895 as used by CRYSOL, Pepsi-SAXS & FoXS
             Voronoi_implicit_H,             // Voronoi volume with implicit hydrogens from Schaefer et al.

@@ -64,6 +64,8 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::deby
     assert(xx.size() == Iq.size() && "CompositeDistanceHistogramFFAvgBase::debye_transform(): xx.size() != Iq.size()");
     assert(wx.size() == Iq.size() && "CompositeDistanceHistogramFFAvgBase::debye_transform(): wx.size() != Iq.size()");
     assert(ww.size() == Iq.size() && "CompositeDistanceHistogramFFAvgBase::debye_transform(): ww.size() != Iq.size()");
+    // Sum the six partial intensity profiles into the total. The signs result from the expansion:
+    // \rho = (\rho_a - \rho_x + \rho_w)
     std::transform(Iq.begin(), Iq.end(), aa.begin(), Iq.begin(), std::plus<>());
     std::transform(Iq.begin(), Iq.end(), ax.begin(), Iq.begin(), std::minus<>());
     std::transform(Iq.begin(), Iq.end(), aw.begin(), Iq.begin(), std::plus<>());

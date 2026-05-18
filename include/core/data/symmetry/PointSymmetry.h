@@ -9,6 +9,12 @@
 #include <cassert>
 
 namespace ausaxs::symmetry {
+    /**
+     * @brief A single symmetry operation generating one copy of a body.
+     *
+     * The copy is produced by applying a fixed translation and rotation relative to the original
+     * body. Unlike CyclicSymmetry it is not repeated, so it always contributes exactly one extra copy.
+     */
     struct PointSymmetry : public ISymmetry {
         PointSymmetry();
         PointSymmetry(const Vector3<double>& translation, const Vector3<double>& rotation);
@@ -19,8 +25,8 @@ namespace ausaxs::symmetry {
         unsigned int repetitions() const override;
         bool is_closed() const override;
 
-        Vector3<double> translation;
-        Vector3<double> rotation;
+        Vector3<double> translation; // Offset of the copy relative to the original body.
+        Vector3<double> rotation;    // Rotation of the copy, given as Euler angles.
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
     };
