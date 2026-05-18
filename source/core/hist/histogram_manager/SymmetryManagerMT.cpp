@@ -59,6 +59,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     for (int i_body1 = 0; i_body1 < static_cast<int>(protein->size_body()); ++i_body1) {
         const auto& body = protein->get_body(i_body1);
         const auto& body1_atomic = data[i_body1].atomic[0][0];
+        // every copy has identical internal distances, so evaluate once and scale
         calculator.enqueue_calculate_self(body1_atomic, 1 + body.size_symmetry_total(), self_merge_id_aa);
         if constexpr (contains_waters) {
             calculator.enqueue_calculate_cross(waters, body1_atomic, 1, cross_merge_id_aw);

@@ -8,6 +8,8 @@ target_sources(ausaxs_core PRIVATE
 	"symmetry/PointSymmetry.cpp"
 	"symmetry/PredefinedSymmetries.cpp"
 	"symmetry/CyclicSymmetry.cpp"
+	"symmetry/PolyhedralSymmetry.cpp"
+	"symmetry/PairScheduleUtil.cpp"
 
 	"state/BoundSignaller.cpp"
 	"state/StateManager.cpp"

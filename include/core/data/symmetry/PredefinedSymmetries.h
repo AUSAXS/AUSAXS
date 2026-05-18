@@ -15,7 +15,10 @@ namespace ausaxs::symmetry {
         c4,
         c5,
         c6,
-        p2  // dimer with freely-optimizable orientation (PointSymmetry)
+        p2, // dimer with freely-optimizable orientation (PointSymmetry)
+        t,  // chiral tetrahedral rotation group (PolyhedralSymmetry)
+        o,  // chiral octahedral rotation group (PolyhedralSymmetry)
+        i   // chiral icosahedral rotation group (PolyhedralSymmetry)
     };
 
     /**

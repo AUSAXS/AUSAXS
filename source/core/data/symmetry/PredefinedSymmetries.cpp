@@ -4,6 +4,7 @@
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
+#include <data/symmetry/PolyhedralSymmetry.h>
 
 #include <numbers>
 #include <stdexcept>
@@ -45,6 +46,12 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
                 Vector3<double>{0, 0, 0},
                 Vector3<double>{0, 0, 0}
             );
+        case type::t:
+            return std::make_unique<PolyhedralSymmetry>(PolyhedralGroup::tetrahedral);
+        case type::o:
+            return std::make_unique<PolyhedralSymmetry>(PolyhedralGroup::octahedral);
+        case type::i:
+            return std::make_unique<PolyhedralSymmetry>(PolyhedralGroup::icosahedral);
         default:
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
     }
@@ -57,5 +64,8 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "c5") {return type::c5;}
     if (name == "c6") {return type::c6;}
     if (name == "p2") {return type::p2;}
+    if (name == "t")  {return type::t;}
+    if (name == "o")  {return type::o;}
+    if (name == "i")  {return type::i;}
     throw std::runtime_error("Unknown symmetry name \"" + std::string(name) + "\".");
 }
