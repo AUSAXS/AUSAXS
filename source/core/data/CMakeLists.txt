@@ -9,6 +9,7 @@ target_sources(ausaxs_core PRIVATE
 	"symmetry/PredefinedSymmetries.cpp"
 	"symmetry/CyclicSymmetry.cpp"
 	"symmetry/PolyhedralSymmetry.cpp"
+	"symmetry/CompositeSymmetry.cpp"
 	"symmetry/PairScheduleUtil.cpp"
 
 	"state/BoundSignaller.cpp"
