@@ -121,8 +121,17 @@ TEST_CASE("File::empty") {
 }
 
 TEST_CASE("File::replace_extension") {
-    io::File file("tests/file.txt");
-    file.replace_extension(".dat");
-    CHECK(file.extension() == "dat");
-    CHECK(file.path() == "tests/filedat");
+    SECTION("with dot") {
+        io::File file("tests/file.txt");
+        file.replace_extension(".dat");
+        CHECK(file.extension() == ".dat");
+        CHECK(file.path() == "tests/file.dat");
+    }
+
+    SECTION("without dot") {
+        io::File file("tests/file.txt");
+        file.replace_extension("dat");
+        CHECK(file.extension() == ".dat");
+        CHECK(file.path() == "tests/file.dat");
+    }
 }
