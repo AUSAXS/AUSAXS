@@ -12,6 +12,7 @@
 #include <data/state/BoundSignaller.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
+#include <data/symmetry/PolyhedralSymmetry.h>
 #include <math/MatrixUtils.h>
 
 #include <vector>
@@ -74,6 +75,8 @@ void TransformStrategy::add_symmetries(
                 assert(dynamic_cast<symmetry::CyclicSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
             } else if (dynamic_cast<symmetry::PointSymmetry*>(current[i].get())) {
                 assert(dynamic_cast<symmetry::PointSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            } else if (dynamic_cast<symmetry::PolyhedralSymmetry*>(current[i].get())) {
+                assert(dynamic_cast<symmetry::PolyhedralSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
             } else {
                 assert(false && "TransformStrategy::add_symmetries: Unchecked symmetry type.");
             }

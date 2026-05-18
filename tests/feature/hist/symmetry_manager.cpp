@@ -6,6 +6,7 @@
 #include <data/Molecule.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
+#include <data/symmetry/PolyhedralSymmetry.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/histogram_manager/SymmetryManagerMT.h>
@@ -759,5 +760,53 @@ TEST_CASE("SymmetryManager: PointSymmetry") {
     }
     SECTION("PartialSymmetryManager") {
         test_point_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
+    }
+}
+
+auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<> d(-10, 10);
+    static std::uniform_real_distribution<> r(-std::numbers::pi, std::numbers::pi);
+
+    auto group = GENERATE(symmetry::PolyhedralGroup::tetrahedral, symmetry::PolyhedralGroup::octahedral, symmetry::PolyhedralGroup::icosahedral);
+    int n_atoms = GENERATE(1, 4);
+
+    // build a body, apply a polyhedral symmetry, and compare the reused-distance histogram
+    // against the ground truth obtained by explicitly materialising every copy
+    for (int i = 0; i < 3; ++i) {
+        std::vector<AtomFF> atoms;
+        for (int j = 0; j < n_atoms; ++j) {
+            atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));
+        }
+
+        Molecule m({Body{atoms}});
+        m.set_histogram_manager(choice);
+        set_unity_charge(m);
+
+        auto sym = std::make_unique<symmetry::PolyhedralSymmetry>(group);
+        sym->translation = {d(gen), d(gen), d(gen)};
+        sym->rotation = {r(gen), r(gen), r(gen)};
+        m.get_body(0).symmetry().add(std::move(sym));
+
+        auto h = m.get_histogram()->get_weighted_counts();
+
+        auto b = m.get_body(0).symmetry().explicit_structure();
+        auto m2 = Molecule({Body{std::move(b.atoms), std::move(b.waters)}});
+        set_unity_charge(m2);
+        auto h2 = m2.get_histogram()->get_weighted_counts();
+
+        CHECK(compare_hist_approx(h, h2));
+    }
+};
+
+TEST_CASE("SymmetryManager: PolyhedralSymmetry") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+    SECTION("SymmetryManager") {
+        test_polyhedral_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
+    }
+    SECTION("PartialSymmetryManager") {
+        test_polyhedral_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }

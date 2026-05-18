@@ -36,6 +36,9 @@ inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type sym
         case symmetry::type::c5:
         case symmetry::type::c6:
         case symmetry::type::p2:
+        case symmetry::type::t:
+        case symmetry::type::o:
+        case symmetry::type::i:
             optimize_rot_axis = true;
             optimize_translate = true;
             break;
