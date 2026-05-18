@@ -11,6 +11,12 @@
 #include <memory>
 
 namespace ausaxs {
+    /**
+     * @brief LUP decomposition (LU factorisation with partial pivoting) of a square matrix.
+     *
+     * Factorises the matrix into lower- and upper-triangular factors together with a permutation,
+     * from which the determinant can be obtained directly.
+     */
     class LUPDecomposition : public Decomposition {
         public: 
             LUPDecomposition(const Matrix<double>& A);

@@ -14,6 +14,15 @@
 #include <unordered_map>
 
 namespace ausaxs::rigidbody::constraints {
+    /**
+     * @brief Owns and evaluates the constraints applied during a rigidbody optimization.
+     *
+     * Constraints are kept in two groups. Discoverable constraints are distance constraints tied
+     * to specific bodies; they are additionally indexed in a per-body map so that all constraints
+     * affecting a given body can be looked up cheaply without scanning the full list. Non-
+     * discoverable constraints (such as the overlap constraint) are not tied to a body pair and
+     * are only evaluated globally. evaluate() sums the chi2 penalty contributed by both groups.
+     */
     struct ConstraintManager {
         ConstraintManager(observer_ptr<const Rigidbody> rigidbody);
         ~ConstraintManager();
@@ -40,6 +49,9 @@ namespace ausaxs::rigidbody::constraints {
          */
         double evaluate() const;
 
+        /**
+         * @brief Get all discoverable distance constraints that involve the given body.
+         */
         const std::vector<observer_ptr<IDistanceConstraint>>& get_body_constraints(unsigned int ibody) const;
 
         observer_ptr<const data::Molecule> molecule;

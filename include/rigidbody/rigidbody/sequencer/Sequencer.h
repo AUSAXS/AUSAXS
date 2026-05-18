@@ -12,6 +12,15 @@
 #include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
+    /**
+     * @brief The top-level driver of a rigidbody optimization.
+     *
+     * The optimization is described declaratively: a Sequencer is itself a LoopElement, and the run
+     * is assembled by chaining elements onto it. setup() exposes a SetupElement used to configure
+     * the molecule, constraints, and controller before the loop begins. The various `_get_*`
+     * accessors give the nested elements shared access to that state. execute() runs the assembled
+     * sequence and returns the resulting fit.
+     */
     class Sequencer : public LoopElement {
         friend class SetupElement;
         public:

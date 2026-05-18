@@ -6,6 +6,13 @@
 #include <data/atoms/AtomFF.h>
 
 namespace ausaxs::data {
+    /**
+     * @brief An AtomFF extended with an occupancy field.
+     *
+     * Used where the fractional occupancy of an atomic site must be retained, e.g. for partially
+     * occupied crystallographic structures. The layout is kept trivial and padding-free so it can
+     * be used interchangeably with the other atom types in the scattering calculations.
+     */
     class AtomExtended : public detail::AtomForwarder<AtomExtended> {
         using precision_t = constants::coords_precision_t;
         public:

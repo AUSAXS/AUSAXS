@@ -4,6 +4,12 @@
 #pragma once
 
 namespace ausaxs {
+    /**
+     * @brief Abstract base class for matrix decompositions.
+     *
+     * Derived classes implement decompose() to factorise a matrix; the shared @c precision constant
+     * defines the tolerance used when comparing values during the decomposition.
+     */
     class Decomposition {
         public: 
             Decomposition() {}

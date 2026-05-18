@@ -7,6 +7,7 @@
 #include <settings/SettingsHelper.h>
 
 namespace ausaxs::settings {
+    /// @brief Settings controlling the q-axis of the scattering curve and the distance-histogram binning.
     struct EXPORT axes {
         static unsigned int skip;                       // The number of points to skip from the top of the scattering curve.
         static detail::Setting<double> qmin;            // Lower limit on the used q-values
@@ -15,7 +16,9 @@ namespace ausaxs::settings {
         static detail::Setting<unsigned int> bin_count; // The number of bins to use for the distance histogram. 
     };
 
+    /// @brief Settings selecting how distance histograms are computed.
     struct hist {
+        /// @brief The available histogram-manager implementations; see get_histogram_manager().
         enum class HistogramManagerChoice {
             HistogramManager,                    // A simple manager that recalculates the entire histogram every time.
             HistogramManagerMT,                  // A multithreaded implementation of the simple manager.

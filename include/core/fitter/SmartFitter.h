@@ -16,6 +16,14 @@ namespace ausaxs::fitter {
      */
     class SmartFitter : public Fitter {
         public:
+            /**
+             * @brief The set of non-linear parameters the fit is currently optimizing.
+             *
+             * Each flag enables one optional parameter; initialize_from_settings() derives the set
+             * from the global settings, and apply_pars() maps a flat parameter vector onto the model
+             * accordingly. The linear parameters (scaling and background) are always fitted and are
+             * not represented here.
+             */
             struct EnabledFitParameters {
                 bool hydration, excluded_volume, solvent_density, atomic_debye_waller, exv_debye_waller;
                 unsigned int get_enabled_pars_count() const;

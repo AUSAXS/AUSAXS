@@ -9,6 +9,14 @@
 #endif
 
 namespace ausaxs::utility::indexer {
+    /**
+     * @brief CRTP mixin providing element access for a two-dimensional container.
+     *
+     * The deriving class must expose a contiguous @c data member (row-major, with row length @c M)
+     * and the dimensions @c N and @c M. Both 2D `(i, j)` and flat `linear_index(i)` access are
+     * offered. When the SAFE_MATH macro is set, every access is bounds-checked and throws
+     * std::out_of_range on failure; otherwise the checks compile away.
+     */
     template<typename Derived>
     class Indexer2D {
         protected:

@@ -10,6 +10,9 @@
 #include <version>
 
 namespace ausaxs::gcem {
+    // Fast, low-accuracy trigonometric approximations usable in constexpr contexts. Prefer these
+    // only where the ~0.001 maximum error is acceptable and compile-time evaluation or raw speed
+    // matters more than precision; otherwise use the constexpr_math alias defined below.
     namespace fast {
         /**
          * @brief Fast cosine function with a maximum error of 0.001.
@@ -40,6 +43,8 @@ namespace ausaxs::gcem {
 }
 
 namespace ausaxs {
+    // Alias for a constexpr-capable cmath: the standard library where it provides constexpr math
+    // functions, otherwise the third-party gcem library as a fallback.
     #if defined __cpp_lib_constexpr_cmath
         namespace constexpr_math = std;
     #else

@@ -15,9 +15,22 @@
 #include <cmath>
 
 namespace ausaxs {
-    template<numeric T, container_type Container> 
+    /**
+     * @brief A strided, non-owning view into a one-dimensional container.
+     *
+     * A Slice addresses elements of the backing array @c data as `data[offset + j*step]`, so by
+     * choosing @c offset and @c step it can represent e.g. a row (step 1) or a column (step equal
+     * to the row length) of a matrix without copying any data. @c length is the number of
+     * elements addressed.
+     *
+     * The rest of the hierarchy layers mutability and convenience on top: ConstSlice and
+     * MutableSlice fix whether the view is read-only or writable, while
+     * ConstRow/ConstColumn/MutableRow/MutableColumn are thin wrappers that derive the offset and
+     * step for a given matrix row or column.
+     */
+    template<numeric T, container_type Container>
     class Slice {
-        public: 
+        public:
             /**
              * @param data The raw data array.
              * @param offset The offset in the raw data array. 

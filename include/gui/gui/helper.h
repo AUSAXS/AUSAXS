@@ -29,45 +29,62 @@ namespace setup {
 	inline std::unique_ptr<SimpleDataset> saxs_dataset;
 }
 
+/**
+ * @brief Central registry for the GUI colour scheme and dark/light mode.
+ *
+ * The colour getters return the appropriate value for the currently active mode. Widgets that
+ * should follow mode changes register a callback via manage_text() / manage_background() (or the
+ * convenience helpers); switch_mode() then flips the mode and re-applies every registered callback.
+ */
 struct ColorManager {
+	/// @brief Get the background colour for the active mode.
 	static auto get_color_background() {
 		return dark_mode ? dark_bg : light_bg;
 	}
 
+	/// @brief Get the accent colour for the active mode.
 	static auto get_color_accent() {
 		return dark_mode ? dark_accent : light_accent;
 	}
 
+	/// @brief Get the text colour for the active mode.
 	static auto get_text_color() {
 		return dark_mode ? dark_txt : light_txt;
 	}
 
+	/// @brief Get the colour used to indicate a successful operation.
 	static auto get_color_success() {
 		return gui::colors::green.level(0.7).opacity(0.4);
 	}
 
+	/// @brief Get the colour used to indicate a failed operation.
 	static auto get_color_fail() {
 		return gui::colors::red.level(0.7).opacity(0.4);
 	}
 
+	/// @brief Toggle between dark and light mode, re-applying the new colours to all managed widgets.
 	static void switch_mode() {
 		dark_mode = !dark_mode;
 		for (auto& func : managed_text) {func(get_text_color());}
 		for (auto& func : managed_backgrounds) {func(get_color_background());}
 	}
 
+	/// @brief Register an input box so its text colour follows mode changes.
 	static void manage_input_box(std::shared_ptr<gui::basic_input_box> box) {
 		manage_text([box] (gui::color color) {box->set_color(color);});
 	}
 
+	/// @brief Register a callback to be invoked with the text colour on every mode change.
 	static void manage_text(std::function<void(gui::color)>&& func) {
 		managed_text.emplace_back(std::move(func));
 	}
 
+	/// @brief Register a callback to be invoked with the background colour on every mode change.
 	static void manage_background(std::function<void(gui::color)>&& func) {
 		managed_backgrounds.emplace_back(std::move(func));
 	}
 
+	/// @brief Create a new managed background box element that follows mode changes.
 	static auto new_background_color() {
 		auto bg = std::make_shared<gui::box_element>(get_color_background());
 		managed_backgrounds.emplace_back([bg] (gui::color color) {bg->_color = color;});
@@ -108,6 +125,12 @@ static auto background = ColorManager::new_background_color();
 // 	return true;
 // }
 
+/**
+ * @brief Locate a usable plotting command.
+ *
+ * Prefers a Python interpreter (paired with the bundled plotting script); on Windows it falls back
+ * to a standalone `plot.exe` on the system path. Throws io_error if neither can be found.
+ */
 inline shell::Command get_plotter_cmd() {
 	// first check if python is available
 	std::vector<std::string> python_cmds = {
@@ -137,13 +160,23 @@ inline shell::Command get_plotter_cmd() {
 	throw except::io_error("No valid python command found. Please ensure that python is installed and available in the system path.");
 }
 
+/// @brief Generate the plots for the given output folder by invoking the plotting command.
 inline auto perform_plot(const std::string& path) {
 	auto cmd = get_plotter_cmd().append("--folder " + path);
 	logging::log("performing plot by invoking command: \"" + cmd.get() + "\"");
 	logging::log(cmd.execute().out);
 };
 
+/// @brief Whether a native file dialog should select a file or a folder.
 enum class NFD_TARGET {FILE, FOLDER};
+
+/**
+ * @brief Build a folder/file picker button paired with a clear button, bound to a text field.
+ *
+ * Clicking the folder button opens a native dialog (a file picker filtered by @p filter when
+ * @p target is FILE, a folder picker otherwise) and writes the chosen path into @p text_field;
+ * the clear button empties it. Returns the assembled widget.
+ */
 template<NFD_TARGET target>
 inline auto make_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {
 	auto folder_button = gui::button("");
@@ -208,9 +241,13 @@ inline auto make_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::
 	);
 };
 
+/// @brief Build a dialog button that opens a file picker filtered by @p filter.
 inline auto make_file_dialog_button(auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {return make_dialog_button<NFD_TARGET::FILE>(text_field, bg, filter);}
+
+/// @brief Build a dialog button that opens a folder picker.
 inline auto make_folder_dialog_button(auto& text_field, auto& bg) {return make_dialog_button<NFD_TARGET::FOLDER>(text_field, bg, {});}
 
+/// @brief Build a tooltip panel displaying @p text.
 inline auto make_tip(std::string text) {
 	return gui::layer(
 		gui::margin({20, 8, 20, 8}, gui::basic_text_box(text)), 
@@ -236,15 +273,18 @@ inline auto qslider = gui::share(
 	)
 );
 
+/// @brief Map a q-value to the slider's [0, 1] position (inverse of qslider_axis_transform), using a log scale.
 inline auto qslider_axis_transform_inv = [] (float value) {
 	return (std::log10(value)-std::log10(constants::axes::q_axis.min))/(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min));
 };
 
+/// @brief Map a slider position in [0, 1] to the corresponding q-value, using a log scale.
 inline auto qslider_axis_transform = [] (float x) {
 	double logy = x*(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min)) + std::log10(constants::axes::q_axis.min);
 	return std::pow(10, logy);
 };
 
+/// @brief Set the q-slider range to span the q-values present in the currently loaded SAXS dataset.
 inline void qslider_update_range_from_file() {
 	if (!setup::saxs_dataset) {return;}
 	auto [min, max] = setup::saxs_dataset->span_x();
@@ -255,6 +295,13 @@ inline void qslider_update_range_from_file() {
 	}
 }
 
+/**
+ * @brief Build the q-range selection widget.
+ *
+ * Assembles a logarithmic range slider with linked min/max text boxes and a unit checkbox. The
+ * widget reports, with a short debounce, how many points of the loaded SAXS dataset fall outside
+ * the selected range.
+ */
 inline auto q_slider(gui::view& view) {
 	static auto qmin_textbox = gui::input_box("q_min");
 	static auto qmax_textbox = gui::input_box("q_max");

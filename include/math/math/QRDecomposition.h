@@ -9,7 +9,12 @@
 #include <math/slices/Slice.h>
 
 namespace ausaxs {
-	// QR decomposition by Gram-Schmidt orthogonalization
+	/**
+	 * @brief QR decomposition of a matrix via Gram-Schmidt orthogonalization.
+	 *
+	 * Produces an orthogonal factor @c Q and an upper-triangular factor @c R, which are used to
+	 * solve linear systems, compute the inverse, and evaluate the determinant up to a sign.
+	 */
 	class QRDecomposition : public Decomposition {
 		public: 
 			QRDecomposition(const Matrix<double>& A) : Q(A) {decompose();}

@@ -18,9 +18,20 @@
 
 namespace ausaxs::hist::distance_calculator {
     /**
-     * @brief Simple interface to queue histogram calculations. 
-     *        Submit the data and then call calculate to get the result.
-     *        The caller must guarantee the lifetime of all submitted data.
+     * @brief Queues and evaluates pairwise distance histograms on the global thread pool.
+     *
+     * Each enqueue call immediately dispatches its work: the calculation is split into chunks that
+     * are submitted to the thread pool right away, rather than being deferred until run(). run()
+     * therefore does not start any work — it only blocks until all previously enqueued tasks have
+     * finished, then merges the per-thread partial histograms and returns them. If the tasks have
+     * already completed by the time run() is called, it does not block at all.
+     *
+     * Jobs that share a @c merge_id accumulate into the same result histogram, which saves memory
+     * when many calculations contribute to a single histogram (e.g. symmetry copies). The optional
+     * integer @c scaling factor multiplies a job's contribution; it is dispatched to a templated
+     * implementation, so only a bounded set of values is supported (see the .tpp definitions).
+     *
+     * The caller must keep all submitted data alive until run() returns.
      */
     template<bool weighted_bins, bool variable_bin_width>
     class SimpleCalculator {
