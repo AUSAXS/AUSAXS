@@ -9,14 +9,21 @@
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
+#include <rigidbody/parameters/ParameterGenerationStrategies.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/symmetry/BodySymmetryFacade.h>
 #include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/CompositeSymmetry.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
+
+#include <algorithm>
+#include <numbers>
+#include <span>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -283,6 +290,90 @@ TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity"
         );
         REQUIRE(storage != nullptr);
     }
+}
+
+TEST_CASE("SymmetryBackup: CompositeSymmetry parameters are optimised") {
+    settings::general::verbose = false;
+    settings::grid::min_bins = 100;
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+
+    // a p2-3-style composite: an inner c2 (with an offset) nested inside an outer c3
+    auto make_composite = [] {
+        auto inner = std::make_unique<symmetry::CyclicSymmetry>(
+            Vector3<double>{4, 0, 0}, Vector3<double>{0, 0, 0}, Vector3<double>{0, 0, 1}, std::numbers::pi, 1
+        );
+        auto outer = std::make_unique<symmetry::CyclicSymmetry>(
+            Vector3<double>{0, 0, 0}, Vector3<double>{0, 0, 0}, Vector3<double>{0, 0, 1}, 2*std::numbers::pi/3, 2
+        );
+        return std::make_unique<symmetry::CompositeSymmetry>(std::move(inner), std::move(outer));
+    };
+
+    Molecule m({Body{std::vector{
+        AtomFF({1, 0, 0}, form_factor::form_factor_t::C),
+        AtomFF({0, 1, 0}, form_factor::form_factor_t::C),
+        AtomFF({0, 0, 1}, form_factor::form_factor_t::C)
+    }}});
+    m.get_body(0).symmetry().add(make_composite());
+
+    Rigidbody rb(std::move(m));
+    unsigned int ibody = 0;
+    REQUIRE(rb.molecule.get_body(ibody).size_symmetry() == 1);
+    REQUIRE(rb.conformation->absolute_parameters.parameters[ibody].symmetry_pars.size() == 1);
+
+    // enable optimisation of the symmetry parameters (composites cannot go through the
+    // type-based add() that normally sets these flags, so set them directly)
+    auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(rb.molecule.get_body(ibody).symmetry().get_obj());
+    REQUIRE(storage != nullptr);
+    storage->optimize_translate = true;
+    storage->optimize_rot_axis = true;
+
+    // generate a symmetry-only perturbation
+    rigidbody::parameter::SymmetryOnly gen(&rb, settings::rigidbody::iterations, 5, 0.5);
+    auto params = gen.next(ibody);
+    REQUIRE(params.symmetry_pars.has_value());
+    REQUIRE(params.symmetry_pars.value().size() == 1);
+
+    // the generated delta must be a composite whose inner AND outer parts both received a
+    // non-zero perturbation: this proves the recursion in ParameterGenerationStrategies
+    auto* delta = dynamic_cast<symmetry::CompositeSymmetry*>(params.symmetry_pars.value()[0].get());
+    REQUIRE(delta != nullptr);
+    auto nonzero = [](std::span<double> s) {
+        return std::any_of(s.begin(), s.end(), [](double v) {return v != 0;});
+    };
+    CHECK(nonzero(delta->inner->span_translation()));
+    CHECK(nonzero(delta->inner->span_rotation()));
+    CHECK(nonzero(delta->outer->span_translation()));
+    CHECK(nonzero(delta->outer->span_rotation()));
+
+    // capture the inner/outer offsets before applying, so we can confirm they change
+    auto* live = dynamic_cast<symmetry::CompositeSymmetry*>(rb.molecule.get_body(ibody).symmetry().get(0));
+    REQUIRE(live != nullptr);
+    std::vector<double> inner_before(live->inner->span_translation().begin(), live->inner->span_translation().end());
+
+    // apply: this exercises the recursion in TransformStrategy (add_symmetries + apply_symmetry)
+    rb.transformer->apply(std::move(params), ibody);
+
+    // apply move-reassigns the body, so re-fetch the live symmetry object
+    live = dynamic_cast<symmetry::CompositeSymmetry*>(rb.molecule.get_body(ibody).symmetry().get(0));
+    REQUIRE(live != nullptr);
+
+    // the live symmetry's inner offset must have changed, and must equal the accumulated
+    // absolute parameters that were recorded for the conformation
+    auto* accumulated = dynamic_cast<symmetry::CompositeSymmetry*>(
+        rb.conformation->absolute_parameters.parameters[ibody].symmetry_pars[0].get()
+    );
+    REQUIRE(accumulated != nullptr);
+
+    auto live_inner_t = live->inner->span_translation();
+    auto acc_inner_t = accumulated->inner->span_translation();
+    bool changed = false;
+    for (int i = 0; i < 3; ++i) {
+        REQUIRE_THAT(live_inner_t[i], Catch::Matchers::WithinAbs(acc_inner_t[i], 1e-9));
+        if (live_inner_t[i] != inner_before[i]) {changed = true;}
+    }
+    CHECK(changed);
 }
 
 TEST_CASE("SymmetryBackup: Grid properly sized for symmetry optimization") {
