@@ -11,6 +11,7 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
@@ -121,6 +122,46 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
         REQUIRE(comp != nullptr);
         // c2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
         CHECK(comp->repetitions() == 5);
+    }
+
+    SECTION("reference symmetry shares one symmetry across several bodies") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry {\n"
+            "    bodies \"b1 b2\" c3\n"
+            "}\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+
+        // the primary body owns a ReferenceSymmetry; the other holds a non-owning view of it
+        REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
+        REQUIRE(rb->molecule.get_body(1).size_symmetry() == 1);
+        auto* ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+        auto* view = dynamic_cast<symmetry::ReferenceSymmetryView*>(rb->molecule.get_body(1).symmetry().get(0));
+        REQUIRE(ref != nullptr);
+        REQUIRE(view != nullptr);
+
+        // the view forwards to the primary's symmetry, so both report the same repetitions (c3 -> 2)
+        CHECK(ref->repetitions() == 2);
+        CHECK(view->repetitions() == 2);
+        CHECK(view->target == ref);
+    }
+
+    SECTION("reference symmetry rejects a non-cyclic base") {
+        CHECK_THROWS(parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry {\n"
+            "    bodies \"b1 b2\" t\n"
+            "}\n"
+        ));
     }
 
     SECTION("symmetry applied to one body does not affect other bodies") {
