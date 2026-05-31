@@ -10,6 +10,7 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/histogram_manager/detail/SymmetryDetailFwd.h>
 
+#include <cassert>
 #include <memory>
 #include <mutex>
 
@@ -42,16 +43,23 @@ namespace ausaxs::hist {
 				SymmetryIndexer2D() = default;
 				SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::forward<T>(value))) {}
 				SymmetryIndexer2D(int size_x, int size_y, T&& value) : data(size_x, std::vector<T>(size_y, std::forward<T>(value))) {}
-				T& index(int isym1, int isym2) {return data[isym1][isym2];}
+				T& index(int isym1, int isym2) {
+					assert(isym1 >= 0 && isym1 < static_cast<int>(data.size()) && "SymmetryIndexer2D: isym1 out of range");
+					assert(isym2 >= 0 && isym2 < static_cast<int>(data[isym1].size()) && "SymmetryIndexer2D: isym2 out of range");
+					return data[isym1][isym2];
+				}
 				std::vector<std::vector<T>> data;
-			}; 
+			};
 
 			// 1D symmetry indexer to be stored within a BodyIndexer1D
 			template<typename T> struct SymmetryIndexer1D {
 				SymmetryIndexer1D() = default;
 				SymmetryIndexer1D(int size, T&& value) : data(size, std::forward<T>(value)) {}
 				template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
-				T& index(int isym) {return data[isym];}
+				T& index(int isym) {
+					assert(isym >= 0 && isym < static_cast<int>(data.size()) && "SymmetryIndexer1D: isym out of range");
+					return data[isym];
+				}
 				std::vector<T> data;
 			};
 
