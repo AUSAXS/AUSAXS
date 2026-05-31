@@ -10,6 +10,7 @@
 #include <rigidbody/constraints/IDistanceConstraint.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/symmetry/CompositeSymmetry.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
@@ -80,6 +81,46 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
         auto rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         CHECK(rb->molecule.get_body(0).size_symmetry() == 2);
+    }
+
+    SECTION("composite symmetry p2-c3 builds a nested CompositeSymmetry") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry p2-c3\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+        REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
+
+        auto* comp = dynamic_cast<symmetry::CompositeSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+        REQUIRE(comp != nullptr);
+        // p2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
+        CHECK(comp->repetitions() == 5);
+    }
+
+    SECTION("composite symmetry can be applied to a named body in a block") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry {\n"
+            "    b2 c2-c3\n"
+            "}\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+        CHECK(rb->molecule.get_body(0).size_symmetry() == 0);
+        REQUIRE(rb->molecule.get_body(1).size_symmetry() == 1);
+        auto* comp = dynamic_cast<symmetry::CompositeSymmetry*>(rb->molecule.get_body(1).symmetry().get(0));
+        REQUIRE(comp != nullptr);
+        // c2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
+        CHECK(comp->repetitions() == 5);
     }
 
     SECTION("symmetry applied to one body does not affect other bodies") {

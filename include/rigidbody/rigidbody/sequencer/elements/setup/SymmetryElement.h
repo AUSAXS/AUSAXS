@@ -16,6 +16,13 @@ namespace ausaxs::rigidbody::sequencer {
     class SymmetryElement : public GenericElement {
         public:
             SymmetryElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<symmetry::type>& symmetry);
+
+            /**
+             * @brief Define symmetries given by name string, one per body.
+             *
+             * Names may be composite (e.g. "p2-c3"); see symmetry::create.
+             */
+            SymmetryElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<std::string>& symmetry_names);
             ~SymmetryElement() override;
 
             void run() override;
@@ -23,6 +30,11 @@ namespace ausaxs::rigidbody::sequencer {
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
+            /**
+             * @brief Install one pre-built symmetry per body, wiring up names, parameters and the grid.
+             */
+            void _add(const std::vector<std::string>& names, std::vector<std::unique_ptr<symmetry::ISymmetry>> symmetries);
+
             observer_ptr<Sequencer> owner;
     };
 }
