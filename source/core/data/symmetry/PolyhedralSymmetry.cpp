@@ -83,7 +83,7 @@ namespace {
     // distance-reuse schedule, built once per process. The equivalence classes depend only
     // on the fixed group structure, not on the optimisable offset/frame, so the placements
     // are taken as the bare group rotations about the origin.
-    const std::vector<CopyPair>& group_schedule(PolyhedralGroup group) {
+    const std::vector<SymmetricDuplicatePair>& group_schedule(PolyhedralGroup group) {
         auto build = [](PolyhedralGroup g) {
             const auto& G = group_elements(g);
             std::vector<AffineTransform> placements;
@@ -91,9 +91,9 @@ namespace {
             for (const auto& M : G) {placements.push_back({M, {0, 0, 0}});}
             return compute_pair_schedule(placements);
         };
-        static const std::vector<CopyPair> t = build(PolyhedralGroup::tetrahedral);
-        static const std::vector<CopyPair> o = build(PolyhedralGroup::octahedral);
-        static const std::vector<CopyPair> i = build(PolyhedralGroup::icosahedral);
+        static const std::vector<SymmetricDuplicatePair> t = build(PolyhedralGroup::tetrahedral);
+        static const std::vector<SymmetricDuplicatePair> o = build(PolyhedralGroup::octahedral);
+        static const std::vector<SymmetricDuplicatePair> i = build(PolyhedralGroup::icosahedral);
         switch (group) {
             case PolyhedralGroup::tetrahedral: return t;
             case PolyhedralGroup::octahedral:  return o;
@@ -133,7 +133,7 @@ std::function<Vector3<double>(Vector3<double>)> PolyhedralSymmetry::get_transfor
 std::span<double> PolyhedralSymmetry::span_translation() {return std::span<double>(translation.begin(), translation.end());}
 std::span<double> PolyhedralSymmetry::span_rotation() {return std::span<double>(rotation.begin(), rotation.end());}
 
-std::vector<CopyPair> PolyhedralSymmetry::internal_pair_schedule() const {
+std::vector<SymmetricDuplicatePair> PolyhedralSymmetry::internal_pair_schedule() const {
     return group_schedule(group);
 }
 

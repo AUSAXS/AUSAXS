@@ -46,7 +46,7 @@ std::function<Vector3<double>(Vector3<double>)> CompositeSymmetry::get_transform
     };
 }
 
-std::vector<CopyPair> CompositeSymmetry::internal_pair_schedule() const {
+std::vector<SymmetricDuplicatePair> CompositeSymmetry::internal_pair_schedule() const {
     // The partition of copy-pairs into equal-distance classes is invariant to the body cm:
     // both sub-symmetries share it, so the whole composite is covariant under conjugation by
     // Trans(cm), which preserves the relative transforms the bucketer keys on. Any fixed cm

@@ -42,7 +42,7 @@ unsigned int ReferenceSymmetry::repetitions() const {return base.repetitions();}
 bool ReferenceSymmetry::is_closed() const {return base.is_closed();}
 std::span<double> ReferenceSymmetry::span_translation() {return base.span_translation();}
 std::span<double> ReferenceSymmetry::span_rotation() {return base.span_rotation();}
-std::vector<CopyPair> ReferenceSymmetry::internal_pair_schedule() const {return base.internal_pair_schedule();}
+std::vector<SymmetricDuplicatePair> ReferenceSymmetry::internal_pair_schedule() const {return base.internal_pair_schedule();}
 
 std::unique_ptr<ISymmetry> ReferenceSymmetry::clone() const {
     return std::make_unique<ReferenceSymmetry>(base, bodies, slots, molecule);
@@ -76,7 +76,7 @@ std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetryView::get_trans
 
 unsigned int ReferenceSymmetryView::repetitions() const {return target()->repetitions();}
 bool ReferenceSymmetryView::is_closed() const {return target()->is_closed();}
-std::vector<CopyPair> ReferenceSymmetryView::internal_pair_schedule() const {return target()->internal_pair_schedule();}
+std::vector<SymmetricDuplicatePair> ReferenceSymmetryView::internal_pair_schedule() const {return target()->internal_pair_schedule();}
 
 std::unique_ptr<ISymmetry> ReferenceSymmetryView::clone() const {
     return std::make_unique<ReferenceSymmetryView>(molecule, primary_body, symmetry_index);
