@@ -101,7 +101,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 update_compact_representation_body(ibody); //? unnecessary to update whole body; enough to update main body
             }
 
-            // if the external state was modified, we have to update the coordinate representations for later calculations 
+            // if the external state was modified, we have to update the coordinate representations for later calculations
             // (implicitly done in calc_self_correlation)
             else if (externally_modified[ibody]) {
                 pool->detach_task(
@@ -109,11 +109,15 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 );
             }
 
-            for (int isym = 0; isym < static_cast<int>(this->protein->get_body(ibody).size_symmetry()); ++isym) {
-                if (symmetry_modified[ibody][isym]) {
-                    pool->detach_task(
-                        [this, ibody, isym] () {update_compact_representation_symmetry(ibody, isym+1);}
-                    );
+            // only update individual symmetry copies when the body itself is not being fully regenerated;
+            // concurrent body + symmetry updates on the same body would race on coords[ibody]
+            else {
+                for (int isym = 0; isym < static_cast<int>(this->protein->get_body(ibody).size_symmetry()); ++isym) {
+                    if (symmetry_modified[ibody][isym]) {
+                        pool->detach_task(
+                            [this, ibody, isym] () {update_compact_representation_symmetry(ibody, isym+1);}
+                        );
+                    }
                 }
             }
         }

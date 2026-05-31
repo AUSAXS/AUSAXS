@@ -14,6 +14,14 @@ std::vector<CopyPair> ISymmetry::internal_pair_schedule() const {
     std::vector<CopyPair> out;
     bool closed = is_closed();
     int reps = static_cast<int>(repetitions());
+
+    // a closed 2-body symmetry (e.g. a 180-degree c2) is a special case: the cycle has a single
+    // distinct pair, since the wrap-around pair {copy, original} coincides with {original, copy}
+    if (closed && reps == 1) {
+        out.push_back({0, 1, 1});
+        return out;
+    }
+
     for (int k = 0; k < reps - static_cast<int>(closed); ++k) {
         int scale = reps - k;
         if (k == 0 && closed) {scale += 1;}
