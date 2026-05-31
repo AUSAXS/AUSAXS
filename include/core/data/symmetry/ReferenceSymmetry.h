@@ -23,7 +23,12 @@ namespace ausaxs::symmetry {
      * a ReferenceSymmetryView that forwards to it, so all of them share the same parameters.
      */
     struct ReferenceSymmetry : public ISymmetry {
-        ReferenceSymmetry(CyclicSymmetry base, std::vector<int> bodies, observer_ptr<const data::Molecule> molecule);
+        /**
+         * @param bodies The participating body indices; the first is the primary that owns this symmetry.
+         * @param slots  The symmetry-storage slot this symmetry occupies on each participating body
+         *               (the owning slot on the primary, the view slot on the others). Parallel to @p bodies.
+         */
+        ReferenceSymmetry(CyclicSymmetry base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
         std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;
@@ -33,7 +38,6 @@ namespace ausaxs::symmetry {
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
         std::vector<CopyPair> internal_pair_schedule() const override;
-        void signal_modified(observer_ptr<const signaller::Signaller> host, int index) const override;
 
         /**
          * @brief Combined centre of mass of all participating bodies (atom-count weighted).
@@ -41,7 +45,8 @@ namespace ausaxs::symmetry {
         Vector3<double> combined_cm() const;
 
         CyclicSymmetry base;                            //< the underlying cyclic symmetry parameters
-        std::vector<int> bodies;                        //< indices of the participating bodies
+        std::vector<int> bodies;                        //< indices of the participating bodies (primary first)
+        std::vector<int> slots;                         //< symmetry slot this symmetry occupies on each body (parallel to bodies)
         observer_ptr<const data::Molecule> molecule;    //< source for the combined centre of mass
     };
 
@@ -68,7 +73,6 @@ namespace ausaxs::symmetry {
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
         std::vector<CopyPair> internal_pair_schedule() const override;
-        void signal_modified(observer_ptr<const signaller::Signaller> host, int index) const override;
 
         /**
          * @brief Resolve the shared ReferenceSymmetry through the molecule. Done lazily on every

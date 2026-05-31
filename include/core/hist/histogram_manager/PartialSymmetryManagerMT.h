@@ -92,9 +92,24 @@ namespace ausaxs::hist {
 			std::unique_ptr<DistanceHistogram> _calculate();
 
 			/**
-			 * @brief Initialize the storage spaces of this object. 
+			 * @brief Initialize the storage spaces of this object.
 			 */
 			void initialize();
+
+			/**
+			 * @brief Expand the modification flags for shared reference symmetries.
+			 *
+			 * A ReferenceSymmetry is shared across several bodies through views, and its copies
+			 * depend on every participating body (the shared parameters and the group's combined
+			 * centre of mass). So if any participating body — or the shared symmetry itself — has
+			 * been modified, the symmetric copies of the whole group are stale. This marks the
+			 * owning slot and every linked view as symmetry-modified so they are all recomputed.
+			 */
+			void propagate_reference_symmetry_modifications(
+				const std::vector<bool>& externally_modified,
+				const std::vector<bool>& internally_modified,
+				std::vector<std::vector<bool>>& symmetry_modified
+			) const;
 
 			/**
 			 * @brief Calculate the self-correlation of a body. 

@@ -11,6 +11,7 @@
 #include <data/state/StateManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <utility/MultiThreading.h>
 #include <utility/Logging.h>
@@ -85,6 +86,11 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     auto internally_modified = this->statemanager->get_internally_modified_bodies();
     auto symmetry_modified = this->statemanager->get_symmetry_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
+
+    // shared reference symmetries couple several bodies; expand the flags so that a change to any
+    // participating body (or the shared symmetry) recomputes the whole group's copies
+    propagate_reference_symmetry_modifications(externally_modified, internally_modified, symmetry_modified);
+
     auto pool = utility::multi_threading::get_global_pool();
     auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>();
 
@@ -527,6 +533,35 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize() {
         update_compact_representation_body(ibody); //? unnecessary to update whole body; enough to update main body
     }
     pool->wait();
+}
+
+template<bool weighted_bins, bool variable_bin_width>
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::propagate_reference_symmetry_modifications(
+    const std::vector<bool>& externally_modified,
+    const std::vector<bool>& internally_modified,
+    std::vector<std::vector<bool>>& symmetry_modified
+) const {
+    for (int ibody = 0; ibody < static_cast<int>(this->body_size); ++ibody) {
+        const auto& body = this->protein->get_body(ibody);
+        for (int isym = 0; isym < static_cast<int>(body.size_symmetry()); ++isym) {
+            // a reference symmetry lives on its primary body; the view bodies hold a view that is
+            // skipped here, so each group is processed exactly once via its owning instance
+            auto ref = dynamic_cast<const symmetry::ReferenceSymmetry*>(body.symmetry().get(isym));
+            if (ref == nullptr) {continue;}
+
+            // the group's copies are stale if the shared symmetry itself or any participating body
+            // (which feeds the combined centre of mass) has changed. The symmetry already knows its
+            // members and the slot it occupies on each, so no body search is needed.
+            bool affected = false;
+            for (std::size_t k = 0; k < ref->bodies.size(); ++k) {
+                int b = ref->bodies[k], slot = ref->slots[k];
+                affected = affected || symmetry_modified[b][slot] || externally_modified[b] || internally_modified[b];
+            }
+            if (!affected) {continue;}
+
+            for (std::size_t k = 0; k < ref->bodies.size(); ++k) {symmetry_modified[ref->bodies[k]][ref->slots[k]] = true;}
+        }
+    }
 }
 
 template<bool weighted_bins, bool variable_bin_width>

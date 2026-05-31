@@ -4,17 +4,17 @@
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/state/Signaller.h>
 
 #include <cassert>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
-ReferenceSymmetry::ReferenceSymmetry(CyclicSymmetry base, std::vector<int> bodies, observer_ptr<const data::Molecule> molecule)
-    : base(std::move(base)), bodies(std::move(bodies)), molecule(molecule)
+ReferenceSymmetry::ReferenceSymmetry(CyclicSymmetry base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule)
+    : base(std::move(base)), bodies(std::move(bodies)), slots(std::move(slots)), molecule(molecule)
 {
     assert(!this->bodies.empty() && "ReferenceSymmetry: at least one participating body is required.");
+    assert(this->bodies.size() == this->slots.size() && "ReferenceSymmetry: bodies and slots must be parallel.");
     assert(this->molecule != nullptr && "ReferenceSymmetry: a molecule is required to determine the combined centre of mass.");
 }
 
@@ -45,7 +45,7 @@ std::span<double> ReferenceSymmetry::span_rotation() {return base.span_rotation(
 std::vector<CopyPair> ReferenceSymmetry::internal_pair_schedule() const {return base.internal_pair_schedule();}
 
 std::unique_ptr<ISymmetry> ReferenceSymmetry::clone() const {
-    return std::make_unique<ReferenceSymmetry>(base, bodies, molecule);
+    return std::make_unique<ReferenceSymmetry>(base, bodies, slots, molecule);
 }
 
 ISymmetry& ReferenceSymmetry::add(observer_ptr<const ISymmetry> other) {
@@ -53,26 +53,6 @@ ISymmetry& ReferenceSymmetry::add(observer_ptr<const ISymmetry> other) {
     assert(cast != nullptr && "Can only add ReferenceSymmetry with another ReferenceSymmetry.");
     base.add(&cast->base);
     return *this;
-}
-
-void ReferenceSymmetry::signal_modified(observer_ptr<const signaller::Signaller> host, int index) const {
-    // flag the primary body that owns this symmetry...
-    host->modified_symmetry(index);
-
-    // ...and every other participating body, whose view delegates to this shared symmetry, so the
-    // partial histogram manager recomputes their copies too. host is the primary's signaller and
-    // index its slot, which is exactly what the views point back to.
-    int primary = bodies.front();
-    for (int b : bodies) {
-        if (b == primary) {continue;}
-        const auto& body = molecule->get_body(b);
-        for (int j = 0; j < static_cast<int>(body.size_symmetry()); ++j) {
-            auto view = dynamic_cast<const ReferenceSymmetryView*>(body.symmetry().get(j));
-            if (view != nullptr && view->primary_body == primary && view->symmetry_index == index) {
-                body.get_signaller()->modified_symmetry(j);
-            }
-        }
-    }
 }
 
 ReferenceSymmetryView::ReferenceSymmetryView(observer_ptr<const data::Molecule> molecule, int primary_body, int symmetry_index)
@@ -108,9 +88,3 @@ std::span<double> ReferenceSymmetryView::span_translation() {return {};}
 std::span<double> ReferenceSymmetryView::span_rotation() {return {};}
 
 ISymmetry& ReferenceSymmetryView::add(observer_ptr<const ISymmetry>) {return *this;}
-
-void ReferenceSymmetryView::signal_modified(observer_ptr<const signaller::Signaller> host, int index) const {
-    // flag this body, then cascade through the owning symmetry so the whole group is recomputed
-    host->modified_symmetry(index);
-    target()->signal_modified(molecule->get_body(primary_body).get_signaller().get(), symmetry_index);
-}
