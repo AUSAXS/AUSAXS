@@ -5,6 +5,7 @@
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/PolyhedralSymmetry.h>
+#include <data/symmetry/CompositeSymmetry.h>
 
 #include <numbers>
 #include <stdexcept>
@@ -68,4 +69,15 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "o")  {return type::o;}
     if (name == "i")  {return type::i;}
     throw std::runtime_error("Unknown symmetry name \"" + std::string(name) + "\".");
+}
+
+std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::string_view name) {
+    // a hyphen denotes a nested composite: the first part is the inner symmetry, the remainder
+    // (recursively parsed) the outer one
+    if (auto pos = name.find('-'); pos != std::string_view::npos) {
+        auto inner = create(name.substr(0, pos));
+        auto outer = create(name.substr(pos + 1));
+        return std::make_unique<CompositeSymmetry>(std::move(inner), std::move(outer));
+    }
+    return get(get(name));
 }
