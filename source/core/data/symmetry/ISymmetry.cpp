@@ -2,8 +2,14 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/ISymmetry.h>
+#include <data/state/Signaller.h>
 
 using namespace ausaxs::symmetry;
+
+void ISymmetry::signal_modified(observer_ptr<const signaller::Signaller> host, int index) const {
+    // by default a symmetry only affects the body it lives on
+    host->modified_symmetry(index);
+}
 
 std::vector<CopyPair> ISymmetry::internal_pair_schedule() const {
     // Cyclic-chain reuse. With R = repetitions(), the bodies are {original, copy_1, ..., copy_R}.

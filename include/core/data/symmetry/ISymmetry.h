@@ -11,6 +11,8 @@
 #include <span>
 #include <vector>
 
+namespace ausaxs::signaller {class Signaller;}
+
 namespace ausaxs::symmetry {
     /**
      * @brief One representative inter-copy distance correlation job.
@@ -62,5 +64,15 @@ namespace ausaxs::symmetry {
          * separation. Subclasses with a different group structure override this.
          */
         virtual std::vector<CopyPair> internal_pair_schedule() const;
+
+        /**
+         * @brief Flag this symmetry as modified.
+         *
+         * Invoked by the facade whenever symmetry slot @p index of the host body (whose signaller
+         * is @p host) is touched. The default flags exactly that slot. Symmetries shared across
+         * several bodies (see ReferenceSymmetry) override this to additionally flag every other
+         * body that depends on them, so the partial histogram manager recomputes all of them.
+         */
+        virtual void signal_modified(observer_ptr<const signaller::Signaller> host, int index) const;
     };
 }
