@@ -4,6 +4,7 @@
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/state/Signaller.h>
 
 #include <cassert>
 
@@ -54,6 +55,26 @@ ISymmetry& ReferenceSymmetry::add(observer_ptr<const ISymmetry> other) {
     return *this;
 }
 
+void ReferenceSymmetry::signal_modified(observer_ptr<const signaller::Signaller> host, int index) const {
+    // flag the primary body that owns this symmetry...
+    host->modified_symmetry(index);
+
+    // ...and every other participating body, whose view delegates to this shared symmetry, so the
+    // partial histogram manager recomputes their copies too. host is the primary's signaller and
+    // index its slot, which is exactly what the views point back to.
+    int primary = bodies.front();
+    for (int b : bodies) {
+        if (b == primary) {continue;}
+        const auto& body = molecule->get_body(b);
+        for (int j = 0; j < static_cast<int>(body.size_symmetry()); ++j) {
+            auto view = dynamic_cast<const ReferenceSymmetryView*>(body.symmetry().get(j));
+            if (view != nullptr && view->primary_body == primary && view->symmetry_index == index) {
+                body.get_signaller()->modified_symmetry(j);
+            }
+        }
+    }
+}
+
 ReferenceSymmetryView::ReferenceSymmetryView(observer_ptr<const data::Molecule> molecule, int primary_body, int symmetry_index)
     : molecule(molecule), primary_body(primary_body), symmetry_index(symmetry_index)
 {
@@ -87,3 +108,9 @@ std::span<double> ReferenceSymmetryView::span_translation() {return {};}
 std::span<double> ReferenceSymmetryView::span_rotation() {return {};}
 
 ISymmetry& ReferenceSymmetryView::add(observer_ptr<const ISymmetry>) {return *this;}
+
+void ReferenceSymmetryView::signal_modified(observer_ptr<const signaller::Signaller> host, int index) const {
+    // flag this body, then cascade through the owning symmetry so the whole group is recomputed
+    host->modified_symmetry(index);
+    target()->signal_modified(molecule->get_body(primary_body).get_signaller().get(), symmetry_index);
+}
