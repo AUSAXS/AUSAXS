@@ -30,9 +30,9 @@ namespace {
     }
 }
 
-std::vector<CopyPair> ausaxs::symmetry::compute_pair_schedule(const std::vector<AffineTransform>& placements) {
+std::vector<SymmetricDuplicatePair> ausaxs::symmetry::compute_pair_schedule(const std::vector<AffineTransform>& placements) {
     int n = static_cast<int>(placements.size());
-    std::map<TransformKey, CopyPair> buckets; // representative pair + running scale per class
+    std::map<TransformKey, SymmetricDuplicatePair> buckets; // representative pair + running scale per class
 
     for (int i = 0; i < n; ++i) {
         for (int j = i+1; j < n; ++j) {
@@ -46,12 +46,12 @@ std::vector<CopyPair> ausaxs::symmetry::compute_pair_schedule(const std::vector<
             Vector3<double> Dinv_T = -(Dinv_R*D_T);
 
             TransformKey key = std::min(make_key(D_R, D_T), make_key(Dinv_R, Dinv_T));
-            auto [it, inserted] = buckets.try_emplace(key, CopyPair{i, j, 1});
+            auto [it, inserted] = buckets.try_emplace(key, SymmetricDuplicatePair{i, j, 1});
             if (!inserted) {++it->second.scale;}
         }
     }
 
-    std::vector<CopyPair> schedule;
+    std::vector<SymmetricDuplicatePair> schedule;
     schedule.reserve(buckets.size());
     for (const auto& [key, pair] : buckets) {schedule.push_back(pair);}
     return schedule;

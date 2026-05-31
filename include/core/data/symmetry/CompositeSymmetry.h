@@ -32,7 +32,7 @@ namespace ausaxs::symmetry {
         // span; the refinement pipeline recurses into inner/outer instead (see TransformStrategy)
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
-        std::vector<CopyPair> internal_pair_schedule() const override;
+        std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;
 
         std::unique_ptr<ISymmetry> inner;
         std::unique_ptr<ISymmetry> outer;

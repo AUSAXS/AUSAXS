@@ -20,7 +20,7 @@ namespace ausaxs::symmetry {
      * this single representative stands for. Every copy-pair not listed in a schedule is
      * geometrically identical to one that is.
      */
-    struct CopyPair {
+    struct SymmetricDuplicatePair {
         int repA;
         int repB;
         int scale;
@@ -61,6 +61,6 @@ namespace ausaxs::symmetry {
          * fixed generator step from copy k-1, so the distance depends only on the index
          * separation. Subclasses with a different group structure override this.
          */
-        virtual std::vector<CopyPair> internal_pair_schedule() const;
+        virtual std::vector<SymmetricDuplicatePair> internal_pair_schedule() const;
     };
 }

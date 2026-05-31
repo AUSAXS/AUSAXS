@@ -32,7 +32,7 @@ namespace ausaxs::symmetry {
 
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
-        std::vector<CopyPair> internal_pair_schedule() const override;
+        std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;
 
         PolyhedralGroup group;
         Vector3<double> translation{0, 0, 0};   //< offset of the body from the group centre

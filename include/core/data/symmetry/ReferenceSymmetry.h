@@ -37,7 +37,7 @@ namespace ausaxs::symmetry {
         bool is_closed() const override;
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
-        std::vector<CopyPair> internal_pair_schedule() const override;
+        std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;
 
         /**
          * @brief Combined centre of mass of all participating bodies (atom-count weighted).
@@ -72,7 +72,7 @@ namespace ausaxs::symmetry {
         bool is_closed() const override;
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
-        std::vector<CopyPair> internal_pair_schedule() const override;
+        std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;
 
         /**
          * @brief Resolve the shared ReferenceSymmetry through the molecule. Done lazily on every
