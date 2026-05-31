@@ -88,7 +88,7 @@ std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> CyclicSymmetry::
 
 unsigned int CyclicSymmetry::repetitions() const {return _repetitions;}
 std::span<double> CyclicSymmetry::span_translation() {return std::span<double>(_initial_relation.translation.begin(), _initial_relation.translation.end());}
-std::span<double> CyclicSymmetry::span_rotation() {return std::span<double>(_repeat_relation.axis.begin(), _repeat_relation.axis.begin());}
+std::span<double> CyclicSymmetry::span_rotation() {return std::span<double>(_repeat_relation.axis.begin(), _repeat_relation.axis.end());}
 
 bool CyclicSymmetry::is_closed() const {
     if (_repeat_relation.translation.magnitude() != 0) { return false; }

@@ -6,7 +6,10 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
+#include <data/symmetry/CompositeSymmetry.h>
 #include <utility/Random.h>
+
+#include <functional>
 
 template<bool TRANSLATE, bool ROTATE, bool SYMMETRY>
 ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody::parameter::LimitedParameterGenerator<TRANSLATE, ROTATE, SYMMETRY>::next(int ibody) {
@@ -33,16 +36,28 @@ ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody:
     if constexpr (SYMMETRY) {
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
         params.symmetry_pars.emplace();
-        for (int i = 0; i < static_cast<int>(symmetries->symmetries.size()); ++i) {
-            auto delta = symmetries->symmetries[i]->clone();
+
+        // assign a random delta to every leaf sub-symmetry. CompositeSymmetry has no parameter
+        // spans of its own (its two sets cannot be expressed as one contiguous span), so we
+        // descend into its inner/outer parts and perturb each of them.
+        std::function<void(ausaxs::symmetry::ISymmetry&)> randomize = [&](ausaxs::symmetry::ISymmetry& sym) {
+            if (auto* comp = dynamic_cast<ausaxs::symmetry::CompositeSymmetry*>(&sym)) {
+                randomize(*comp->inner);
+                randomize(*comp->outer);
+                return;
+            }
             if (symmetries->optimize_translate) {
-                for (auto& t : delta->span_translation()) {t = translation_symmetry_dist(random::generator())*scaling;}
-            } else {for (auto& t : delta->span_translation()) {t = 0;}}
+                for (auto& t : sym.span_translation()) {t = translation_symmetry_dist(random::generator())*scaling;}
+            } else {for (auto& t : sym.span_translation()) {t = 0;}}
 
             if (symmetries->optimize_rot_axis) {
-                for (auto& r : delta->span_rotation()) {r = rotation_symmetry_dist(random::generator())*scaling;}
-            } else {for (auto& r : delta->span_rotation()) {r = 0;}}
+                for (auto& r : sym.span_rotation()) {r = rotation_symmetry_dist(random::generator())*scaling;}
+            } else {for (auto& r : sym.span_rotation()) {r = 0;}}
+        };
 
+        for (int i = 0; i < static_cast<int>(symmetries->symmetries.size()); ++i) {
+            auto delta = symmetries->symmetries[i]->clone();
+            randomize(*delta);
             params.symmetry_pars->emplace_back(std::move(delta));
         }
     }
