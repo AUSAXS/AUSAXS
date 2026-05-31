@@ -19,6 +19,7 @@
 #include <settings/HistogramSettings.h>
 
 #include <list>
+#include <cassert>
 #include <functional>
 
 /**
@@ -65,7 +66,7 @@ namespace {
 template<bool weighted_bins, bool variable_bin_width>
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calculate() {
     logging::log("PartialSymmetryManagerMT::calculate: starting calculation");
-    if (protein->size_water() == 0) {
+    if (protein->size_water() == 0 && !this->statemanager->is_modified_hydration()) {
         return _calculate<false>();
     } else {
         return _calculate<true>();
@@ -400,6 +401,8 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact_representation_symmetry(int ibody, int isym) {
+    assert(ibody < static_cast<int>(coords.size()) && "update_compact_representation_symmetry: ibody out of range");
+    assert(isym > 0 && isym < static_cast<int>(coords[ibody].atomic.size()) && "update_compact_representation_symmetry: isym out of range");
     coords[ibody].atomic[isym] = symmetry::detail::generate_transformed_data<variable_bin_width>(this->protein->get_body(ibody), isym-1).data;
     for (auto& sym : coords[ibody].atomic[isym]) {
         hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
@@ -570,6 +573,8 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
             // distinct distance pairs among {original, copy_1, ..., copy_N}; repetition 0 is
             // the original body (atomic[0][0]), 1..N are the copies (atomic[isym1][rep-1])
             for (const auto& pair : sym1->internal_pair_schedule()) {
+                assert(pair.repA == 0 || pair.repA-1 < static_cast<int>(coords[ibody1].atomic[isym1].size()) && "internal_pair_schedule: repA out of range for atomic copies");
+                assert(pair.repB == 0 || pair.repB-1 < static_cast<int>(coords[ibody1].atomic[isym1].size()) && "internal_pair_schedule: repB out of range for atomic copies");
                 const auto& atomicA = pair.repA == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repA-1];
                 const auto& atomicB = pair.repB == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repB-1];
                 calculator->enqueue_calculate_cross(atomicA, atomicB, pair.scale, res_index);
