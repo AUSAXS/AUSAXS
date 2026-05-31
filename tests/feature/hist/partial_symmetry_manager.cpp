@@ -413,7 +413,7 @@ TEST_CASE("PartialSymmetryManagerMT: ReferenceSymmetry subsequent calculations")
     auto add_reference = [] (data::Molecule& protein, int reps, double angle) {
         symmetry::CyclicSymmetry base({6, 0, 0}, {0, 0, 0}, {0, 0, 1}, angle, reps);
         protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
-        protein.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base, std::vector<int>{0, 1}, &protein));
+        protein.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base, std::vector<int>{0, 1}, std::vector<int>{0, 0}, &protein));
         protein.get_body(1).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(&protein, 0, 0));
     };
 

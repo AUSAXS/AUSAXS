@@ -908,7 +908,7 @@ auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice choice
             reps
         );
         // body 0 owns the shared symmetry; body 1 holds a view onto it (located by body+slot)
-        m.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base, std::vector<int>{0, 1}, &m));
+        m.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base, std::vector<int>{0, 1}, std::vector<int>{0, 0}, &m));
         m.get_body(1).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(&m, 0, 0));
 
         auto h = m.get_histogram()->get_weighted_counts();

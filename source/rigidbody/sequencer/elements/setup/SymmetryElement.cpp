@@ -139,13 +139,20 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
 
     int primary = bodies.front();
 
+    // the slot each body's reference symmetry/view will occupy is its current symmetry count
+    // (we append exactly one to each participating body below)
+    std::vector<int> slots(bodies.size());
+    for (std::size_t k = 0; k < bodies.size(); ++k) {
+        slots[k] = static_cast<int>(molecule->get_body(bodies[k]).size_symmetry());
+    }
+    int primary_slot = slots.front();
+
     // the primary body owns the shared ReferenceSymmetry; install it on the live molecule and
     // the stored initial conformation
     enable_optimization(molecule->get_body(primary).symmetry().get_obj());
     enable_optimization(rigidbody->conformation->initial_conformation[primary].symmetry().get_obj());
-    molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, molecule));
-    rigidbody->conformation->initial_conformation[primary].symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, molecule));
-    int primary_slot = molecule->get_body(primary).size_symmetry()-1;
+    molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, slots, molecule));
+    rigidbody->conformation->initial_conformation[primary].symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, slots, molecule));
 
     auto mol_ref = static_cast<symmetry::ReferenceSymmetry*>(molecule->get_body(primary).symmetry().get(primary_slot));
     auto conf_ref = static_cast<symmetry::ReferenceSymmetry*>(
