@@ -145,21 +145,21 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     enable_optimization(rigidbody->conformation->initial_conformation[primary].symmetry().get_obj());
     molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, molecule));
     rigidbody->conformation->initial_conformation[primary].symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, molecule));
+    int primary_slot = molecule->get_body(primary).size_symmetry()-1;
 
-    auto mol_ref = static_cast<symmetry::ReferenceSymmetry*>(
-        molecule->get_body(primary).symmetry().get(molecule->get_body(primary).size_symmetry()-1)
-    );
+    auto mol_ref = static_cast<symmetry::ReferenceSymmetry*>(molecule->get_body(primary).symmetry().get(primary_slot));
     auto conf_ref = static_cast<symmetry::ReferenceSymmetry*>(
-        rigidbody->conformation->initial_conformation[primary].symmetry().get(rigidbody->conformation->initial_conformation[primary].size_symmetry()-1)
+        rigidbody->conformation->initial_conformation[primary].symmetry().get(primary_slot)
     );
 
-    // the remaining bodies link to the primary's symmetry through non-owning views
+    // the remaining bodies link to the primary's symmetry through non-owning views, located by
+    // (primary body, slot) and resolved through the live molecule so they survive refinement
     for (std::size_t k = 1; k < bodies.size(); ++k) {
         int b = bodies[k];
         enable_optimization(molecule->get_body(b).symmetry().get_obj());
         enable_optimization(rigidbody->conformation->initial_conformation[b].symmetry().get_obj());
-        molecule->get_body(b).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(mol_ref));
-        rigidbody->conformation->initial_conformation[b].symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(conf_ref));
+        molecule->get_body(b).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(molecule, primary, primary_slot));
+        rigidbody->conformation->initial_conformation[b].symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(molecule, primary, primary_slot));
     }
 
     // place the copies at a sane distance; only the primary's shared symmetry carries parameters

@@ -48,9 +48,16 @@ namespace ausaxs::symmetry {
      * @brief Non-owning facade so that every participating body's SymmetryStorage exposes the
      *        shared ReferenceSymmetry through the normal ISymmetry interface. All calls are
      *        forwarded to the single owned ReferenceSymmetry.
+     *
+     * The shared symmetry is located by (primary body index, symmetry slot) and resolved through
+     * the molecule on every call rather than cached as a raw pointer. This is deliberate: the
+     * rigid-body transform path replaces a body's symmetry objects (the body is restored from a
+     * clone), so a cached pointer to the owning ReferenceSymmetry would dangle after the primary
+     * body is transformed. The molecule and its bodies are stable for the program lifetime, so
+     * resolving through them is always valid.
      */
     struct ReferenceSymmetryView : public ISymmetry {
-        explicit ReferenceSymmetryView(observer_ptr<ReferenceSymmetry> target);
+        ReferenceSymmetryView(observer_ptr<const data::Molecule> molecule, int primary_body, int symmetry_index);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
         std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;
@@ -61,6 +68,14 @@ namespace ausaxs::symmetry {
         std::span<double> span_rotation() override;
         std::vector<CopyPair> internal_pair_schedule() const override;
 
-        observer_ptr<ReferenceSymmetry> target;
+        /**
+         * @brief Resolve the shared ReferenceSymmetry through the molecule. Done lazily on every
+         *        call so the view survives body reallocation during refinement.
+         */
+        observer_ptr<const ReferenceSymmetry> target() const;
+
+        observer_ptr<const data::Molecule> molecule;    //< source for the shared symmetry
+        int primary_body;                               //< body that owns the shared symmetry
+        int symmetry_index;                             //< slot of the shared symmetry on the primary body
     };
 }

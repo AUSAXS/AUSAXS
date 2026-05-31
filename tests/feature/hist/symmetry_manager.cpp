@@ -907,10 +907,9 @@ auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice choice
             symmetry::CyclicSymmetry::_Repeat{{0, 0, 1}, angle},
             reps
         );
-        // body 0 owns the shared symmetry; body 1 holds a view onto it
+        // body 0 owns the shared symmetry; body 1 holds a view onto it (located by body+slot)
         m.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base, std::vector<int>{0, 1}, &m));
-        auto ref = static_cast<symmetry::ReferenceSymmetry*>(m.get_body(0).symmetry().get(0));
-        m.get_body(1).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(ref));
+        m.get_body(1).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(&m, 0, 0));
 
         auto h = m.get_histogram()->get_weighted_counts();
 
