@@ -5,6 +5,7 @@
 #include <data/symmetry/PairSchedule.h>
 
 #include <cassert>
+#include <stdexcept>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
@@ -75,11 +76,23 @@ std::vector<SymmetricDuplicatePair> CompositeSymmetry::internal_pair_schedule() 
     return compute_pair_schedule(placements);
 }
 
-// a composite has two parameter sets; std::span cannot describe both at once. The refinement
-// pipeline recurses into inner/outer explicitly (TransformStrategy, ParameterGenerationStrategies),
-// so the span accessors are intentionally empty here.
-std::span<double> CompositeSymmetry::span_translation() {return {};}
-std::span<double> CompositeSymmetry::span_rotation() {return {};}
+// a composite has two parameter sets; std::span cannot describe both at once. Callers must reach
+// the sub-symmetries via for_each_leaf instead, so calling these directly is a programming error.
+std::span<double> CompositeSymmetry::span_translation() {
+    throw std::runtime_error("CompositeSymmetry::span_translation: a composite has no single contiguous parameter span; use symmetry::for_each_leaf to reach its sub-symmetries.");
+}
+std::span<double> CompositeSymmetry::span_rotation() {
+    throw std::runtime_error("CompositeSymmetry::span_rotation: a composite has no single contiguous parameter span; use symmetry::for_each_leaf to reach its sub-symmetries.");
+}
+
+void ausaxs::symmetry::for_each_leaf(ISymmetry& sym, const std::function<void(ISymmetry&)>& fn) {
+    if (auto* composite = dynamic_cast<CompositeSymmetry*>(&sym)) {
+        for_each_leaf(*composite->inner, fn);
+        for_each_leaf(*composite->outer, fn);
+        return;
+    }
+    fn(sym);
+}
 
 ISymmetry& CompositeSymmetry::add(observer_ptr<const ISymmetry> other) {
     auto cast = dynamic_cast<const CompositeSymmetry*>(other);

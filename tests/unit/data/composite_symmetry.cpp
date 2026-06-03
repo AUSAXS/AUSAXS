@@ -36,6 +36,26 @@ TEST_CASE("CompositeSymmetry: repetition count") {
     CHECK(c3_c3.repetitions() == 8);
 }
 
+TEST_CASE("CompositeSymmetry: parameters are reached via for_each_leaf, not span_*") {
+    CompositeSymmetry sym(
+        cyclic(std::numbers::pi, 1, {3, 0, 0}),    // inner c2
+        cyclic(2*std::numbers::pi/3, 2, {7, 0, 0}) // outer c3
+    );
+
+    // a composite has no single contiguous parameter span; calling span_*() directly is an error
+    CHECK_THROWS(sym.span_translation());
+    CHECK_THROWS(sym.span_rotation());
+
+    // for_each_leaf instead visits the two sub-symmetries
+    std::vector<ISymmetry*> leaves;
+    for_each_leaf(sym, [&](ISymmetry& leaf) {leaves.push_back(&leaf);});
+    REQUIRE(leaves.size() == 2);
+    CHECK(leaves[0] == sym.inner.get());
+    CHECK(leaves[1] == sym.outer.get());
+    // and each leaf does expose a usable span
+    CHECK(leaves[0]->span_translation().size() == 3);
+}
+
 TEST_CASE("CompositeSymmetry: pair schedule covers every copy-pair exactly once") {
     CompositeSymmetry sym(
         std::make_unique<PointSymmetry>(Vector3<double>{4, 1, 0}, Vector3<double>{0, 0, 0}),

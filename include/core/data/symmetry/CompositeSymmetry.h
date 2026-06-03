@@ -37,4 +37,14 @@ namespace ausaxs::symmetry {
         std::unique_ptr<ISymmetry> inner;
         std::unique_ptr<ISymmetry> outer;
     };
+
+    /**
+     * @brief Invoke @p fn on every leaf symmetry, recursing into the inner/outer parts of any
+     *        CompositeSymmetry.
+     *
+     * A composite has two parameter sets and therefore no single contiguous span of its own, so
+     * code that reads or writes the optimisable parameter spans of a (possibly nested) symmetry
+     * must reach the leaves through this helper rather than calling span_*() on the composite.
+     */
+    void for_each_leaf(ISymmetry& sym, const std::function<void(ISymmetry&)>& fn);
 }
