@@ -25,15 +25,12 @@ using namespace ausaxs::rigidbody::sequencer;
 namespace {
     using namespace ausaxs;
 
-    // Place the symmetric copies at a sane distance from the original by seeding the
-    // translation offset. CompositeSymmetry has no span of its own, so descend into its parts.
+    // Place the symmetric copies at a sane distance from the original by seeding the translation
+    // offset of each leaf symmetry (for_each_leaf descends into any composite's sub-symmetries).
     void seed_offset(symmetry::ISymmetry& sym, double offset) {
-        if (auto* comp = dynamic_cast<symmetry::CompositeSymmetry*>(&sym)) {
-            seed_offset(*comp->inner, offset);
-            seed_offset(*comp->outer, offset);
-            return;
-        }
-        if (auto t = sym.span_translation(); !t.empty()) {*t.begin() = offset;}
+        symmetry::for_each_leaf(sym, [offset](symmetry::ISymmetry& leaf) {
+            if (auto t = leaf.span_translation(); !t.empty()) {*t.begin() = offset;}
+        });
     }
 
     // Mark the body's symmetry storage as optimizable. All supported symmetry types expose
