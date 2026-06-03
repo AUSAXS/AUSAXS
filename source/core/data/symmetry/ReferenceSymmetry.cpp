@@ -33,8 +33,7 @@ Vector3<double> ReferenceSymmetry::combined_cm() const {
 }
 
 std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetry::get_transform(const Vector3<double>&, int rep) const {
-    // the per-body cm is ignored: every participating body must rotate about the shared
-    // combined centre so the whole assembly is replicated as one rigid unit
+    // the per-body cm is ignored: every participating body must rotate about the shared combined centre so the whole assembly is replicated as one rigid unit
     return base.get_transform(combined_cm(), rep);
 }
 
@@ -82,8 +81,7 @@ std::unique_ptr<ISymmetry> ReferenceSymmetryView::clone() const {
     return std::make_unique<ReferenceSymmetryView>(molecule, primary_body, symmetry_index);
 }
 
-// the shared symmetry is perturbed once, through the primary body that owns it; the view is
-// inert to the optimiser so the shared parameters are not updated twice
+// the shared symmetry is perturbed once, through the primary body that owns it; the view is inert to the optimiser so the shared parameters are not updated twice
 std::span<double> ReferenceSymmetryView::span_translation() {return {};}
 std::span<double> ReferenceSymmetryView::span_rotation() {return {};}
 

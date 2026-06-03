@@ -11,22 +11,17 @@
 
 namespace ausaxs::symmetry {
     /**
-     * @brief A symmetry shared by several bodies: a cyclic symmetry that replicates the whole
-     *        group of participating bodies as one rigid assembly.
+     * @brief A symmetry shared by several bodies: a cyclic symmetry that replicates the whole group of participating bodies as one rigid assembly.
      *
-     * Useful when a molecule is split across multiple files (one body per file) and a single
-     * symmetry should apply to all of them at once. The rotation centre is the combined
-     * centre of mass of the participating bodies, so it is independent of how many bodies
-     * take part — only their positions matter.
+     * The rotation centre is the combined centre of mass of the participating bodies.
      *
-     * The object is owned by one designated primary body; the other participating bodies hold
-     * a ReferenceSymmetryView that forwards to it, so all of them share the same parameters.
+     * The object is owned by one designated primary body; the other participating bodies must hold a ReferenceSymmetryView that forwards to it, 
+     * so all of them share the same parameters.
      */
     struct ReferenceSymmetry : public ISymmetry {
         /**
          * @param bodies The participating body indices; the first is the primary that owns this symmetry.
-         * @param slots  The symmetry-storage slot this symmetry occupies on each participating body
-         *               (the owning slot on the primary, the view slot on the others). Parallel to @p bodies.
+         * @param slots  The symmetry-storage slot this symmetry occupies on each participating body (the owning slot on the primary, the view slot on the others).
          */
         ReferenceSymmetry(CyclicSymmetry base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule);
 
@@ -51,16 +46,8 @@ namespace ausaxs::symmetry {
     };
 
     /**
-     * @brief Non-owning facade so that every participating body's SymmetryStorage exposes the
-     *        shared ReferenceSymmetry through the normal ISymmetry interface. All calls are
-     *        forwarded to the single owned ReferenceSymmetry.
-     *
-     * The shared symmetry is located by (primary body index, symmetry slot) and resolved through
-     * the molecule on every call rather than cached as a raw pointer. This is deliberate: the
-     * rigid-body transform path replaces a body's symmetry objects (the body is restored from a
-     * clone), so a cached pointer to the owning ReferenceSymmetry would dangle after the primary
-     * body is transformed. The molecule and its bodies are stable for the program lifetime, so
-     * resolving through them is always valid.
+     * @brief Non-owning facade so that every participating body's SymmetryStorage exposes the shared ReferenceSymmetry through the normal 
+     *        ISymmetry interface. All calls are forwarded to the single owned ReferenceSymmetry.
      */
     struct ReferenceSymmetryView : public ISymmetry {
         ReferenceSymmetryView(observer_ptr<const data::Molecule> molecule, int primary_body, int symmetry_index);
@@ -75,8 +62,7 @@ namespace ausaxs::symmetry {
         std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;
 
         /**
-         * @brief Resolve the shared ReferenceSymmetry through the molecule. Done lazily on every
-         *        call so the view survives body reallocation during refinement.
+         * @brief Resolve the shared ReferenceSymmetry through the molecule. Done lazily on every call so the view survives possible body reallocations. 
          */
         observer_ptr<const ReferenceSymmetry> target() const;
 
