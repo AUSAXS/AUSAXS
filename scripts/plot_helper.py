@@ -309,7 +309,7 @@ def plot_dataset(d: Dataset):
             markersize=d.options.markersize*marker_scaling,
             label=d.options.legend,
             capsize=2*marker_scaling,
-            zorder=5
+            zorder=d.options.zorder
         )
 
     if d.options.drawmarker and d.options.drawline:
