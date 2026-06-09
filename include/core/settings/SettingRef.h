@@ -86,6 +86,7 @@ namespace ausaxs::settings::io::detail {
             // Delegate to SettingRef<T>
             SettingRef<T> ref(settingref.value, names);
             ref.set(values);
+            if (settingref.on_change) {settingref.on_change(settingref.value);}
         }
 
         std::string get() const override {
