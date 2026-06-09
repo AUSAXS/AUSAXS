@@ -82,6 +82,8 @@ settings::detail::Setting<unsigned int> settings::axes::bin_count = {
     }
 };
 
+bool settings::axes::clamp_to_qrange = true;
+
 namespace ausaxs::settings::io {
     settings::io::SettingSection axes_section("Axes", {
         settings::io::create(axes::skip, "skip"),
