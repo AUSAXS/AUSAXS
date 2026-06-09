@@ -31,8 +31,8 @@ File::operator std::string() const {
 }
 
 File& File::replace_extension(std::string_view extension) noexcept {
-    if (extension.front() == '.') {
-        ext = extension.substr(1);
+    if (!extension.empty() && extension.front() != '.') {
+        ext = '.' + std::string(extension);
     } else {
         ext = extension;
     }
