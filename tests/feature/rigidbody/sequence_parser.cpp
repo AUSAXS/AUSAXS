@@ -32,7 +32,7 @@ TEST_CASE("SequenceParser: parse minimal config", "[files]") {
     }
 
     SequenceParser parser;
-    auto sequencer = parser.parse(io::ExistingFile(config_path));
+    auto sequencer = parser.parse_file(config_path);
     REQUIRE(sequencer != nullptr);
 
     auto result = sequencer->execute();
@@ -47,7 +47,7 @@ TEST_CASE("SequenceParser: parse normal config with output folder", "[files]") {
     settings::grid::min_bins = 250;
 
     SequenceParser parser;
-    auto sequencer = parser.parse(io::ExistingFile("tests/files/rigidbody/normal.conf"));
+    auto sequencer = parser.parse_file("tests/files/rigidbody/normal.conf");
     REQUIRE(sequencer != nullptr);
 
     auto result = sequencer->execute();
@@ -62,7 +62,7 @@ TEST_CASE("SequenceParser: parse symmetry config", "[files]") {
     settings::grid::min_bins = 250;
 
     SequenceParser parser;
-    auto sequencer = parser.parse(io::ExistingFile("tests/files/rigidbody/symmetry.conf"));
+    auto sequencer = parser.parse_file("tests/files/rigidbody/symmetry.conf");
     REQUIRE(sequencer != nullptr);
 
     auto result = sequencer->execute();

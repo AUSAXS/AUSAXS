@@ -17,6 +17,10 @@ void TransformElement::run() {
     owner->_get_rigidbody()->transformer = strategy;
 }
 
+std::vector<std::string> TransformElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> TransformElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     if (!args.named.empty()) {throw except::parse_error("transform", "Unexpected named arguments.");}
     if (args.inlined.size() != 1) {throw except::parse_error("transform", "Expected only a single inline argument.");}

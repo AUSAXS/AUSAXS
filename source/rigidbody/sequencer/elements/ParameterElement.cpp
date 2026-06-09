@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/elements/ParameterElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
@@ -46,6 +47,22 @@ namespace {
         static inline std::string BOTH = "both";
         static inline std::string SYMMETRY_ONLY = "symmetry_only";
     };
+}
+
+namespace {
+    enum class Args {iterations, translate, rotate, strategy, decay_strategy};
+    std::unordered_map<Args, std::vector<std::string>> args_map = {
+        {Args::iterations,      {"iterations"}},
+        {Args::translate,       {"translate"}},
+        {Args::rotate,          {"rotate"}},
+        {Args::strategy,        {"mode", "strategy"}},
+        {Args::decay_strategy,  {"decay"}}
+    };
+}
+
+std::vector<std::string> ParameterElement::_valid_arguments() {
+    static auto map = detail::get_arg_names<Args>(args_map);
+    return map;
 }
 
 std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {

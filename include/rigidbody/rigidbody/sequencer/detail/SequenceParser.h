@@ -10,9 +10,11 @@ namespace ausaxs::rigidbody::sequencer {
         public:
             SequenceParser() = default;
 
-            std::unique_ptr<Sequencer> parse(const io::ExistingFile& config);
+            std::unique_ptr<Sequencer> parse_file(const io::ExistingFile& config);
+            std::unique_ptr<Sequencer> parse_text(const std::string& script);
 
         private:
+            std::unique_ptr<Sequencer> parse(std::istream& in, const std::string& config_folder = "");
             std::vector<observer_ptr<LoopElement>> loop_stack;
     };
 }

@@ -16,3 +16,7 @@ ConvertSymmetryElement::~ConvertSymmetryElement() = default;
 void ConvertSymmetryElement::run() {
     assert(false && "ConvertSymmetryElement::run: Not implemented.");
 }
+
+std::vector<std::string> ConvertSymmetryElement::_valid_arguments() {
+    return {};
+}

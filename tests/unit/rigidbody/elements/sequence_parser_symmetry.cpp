@@ -35,7 +35,7 @@ struct SequenceParserSymmetryFixture {
         f << content;
         f.close();
         SequenceParser parser;
-        return parser.parse(io::ExistingFile(path));
+        return parser.parse_file(path);
     }
 };
 

@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>
+#include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/Rigidbody.h>
@@ -28,6 +29,19 @@ OutputFolderElement::OutputFolderElement(observer_ptr<Sequencer> owner, const io
 }
 
 void OutputFolderElement::run() {}
+
+namespace {
+    enum class Args {path, mode};
+    std::unordered_map<Args, std::vector<std::string>> args_map = {
+        {Args::path, {"path", "folder", "anonymous"}},
+        {Args::mode, {"mode", "relative"}}
+    };
+}
+
+std::vector<std::string> OutputFolderElement::_valid_arguments() {
+    static auto map = detail::get_arg_names<Args>(args_map);
+    return map;
+}
 
 std::unique_ptr<GenericElement> OutputFolderElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     enum class Args {path, mode};

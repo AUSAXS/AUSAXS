@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/setup/LoadElement.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
@@ -171,6 +172,21 @@ std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
 
 void LoadElement::run() {
     owner->_get_sequencer()->_set_rigidbody(rigidbody.get());
+}
+
+namespace {
+    enum class Args {paths, splits, names, saxs};
+    std::unordered_map<Args, std::vector<std::string>> args_map = {
+        {Args::paths, {"pdb"}},
+        {Args::saxs, {"saxs"}},
+        {Args::splits, {"split"}},
+        {Args::names, {"names", "name"}}
+    };
+}
+
+std::vector<std::string> LoadElement::_valid_arguments() {
+    static auto map = detail::get_arg_names<Args>(args_map);
+    return map;
 }
 
 std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {

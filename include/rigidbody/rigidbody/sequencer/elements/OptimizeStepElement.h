@@ -25,6 +25,7 @@ namespace ausaxs::rigidbody::sequencer {
              */
             bool was_accepted() const {return step_accepted;}
 
+            static std::vector<std::string> _valid_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:

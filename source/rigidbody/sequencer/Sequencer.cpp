@@ -25,6 +25,10 @@ LoopElement& Sequencer::end() {
     throw std::runtime_error("Sequencer::end: Too many end() calls detected.");
 }
 
+void Sequencer::run() {
+    throw std::logic_error("Sequencer::run: Use execute() to run the sequencer. Calling run() directly skips rigidbody and controller initialization.");
+}
+
 observer_ptr<rigidbody::Rigidbody> Sequencer::_get_rigidbody() const {
     assert(rigidbody != nullptr && "Sequencer::_get_rigidbody: Rigidbody not set.");
     return rigidbody;

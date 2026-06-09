@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/detail/AdditionalElements.h>
+#include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/MessageElement.h>
 #include <utility/StringUtils.h>
@@ -43,4 +44,20 @@ void detail::OverlapStrengthElement::_parse(observer_ptr<LoopElement> owner, Par
     if (!scaling.found) {throw except::parse_error("overlap_strength", "Missing required argument \"scaling\".");}
     if (!distance.found) {throw except::parse_error("overlap_strength", "Missing required argument \"distance\".");}
     owner->_get_sequencer()->setup().set_overlap_function([a=scaling.value, d=distance.value] (double x) {return x < d ? a*std::pow((d-x)/d, 2) : 0;});
+}
+
+namespace {
+    enum class OverlapArgs {scaling, distance};
+    std::unordered_map<OverlapArgs, std::vector<std::string>> overlap_args_map = {
+        {OverlapArgs::scaling, {"scaling", "factor"}},
+        {OverlapArgs::distance, {"max", "max_distance", "distance"}}
+    };
+}
+
+std::vector<std::string> detail::SeedElement::_valid_arguments() { return {}; }
+std::vector<std::string> detail::LoopEndElement::_valid_arguments() { return {}; }
+std::vector<std::string> detail::LogElement::_valid_arguments() { return {}; }
+std::vector<std::string> detail::OverlapStrengthElement::_valid_arguments() {
+    static auto map = get_arg_names<OverlapArgs>(overlap_args_map);
+    return map;
 }

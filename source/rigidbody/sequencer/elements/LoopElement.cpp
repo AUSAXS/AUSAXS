@@ -141,6 +141,10 @@ void LoopElement::_add_total_iterations(unsigned int n) {
     total_loop_count += n;
 }
 
+std::vector<std::string> LoopElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
     static observer_ptr<LoopElement> last_loop_element = nullptr;

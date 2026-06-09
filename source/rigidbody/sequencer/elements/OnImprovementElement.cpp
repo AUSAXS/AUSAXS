@@ -21,6 +21,10 @@ void OnImprovementElement::run() {
     }
 }
 
+std::vector<std::string> OnImprovementElement::_valid_arguments() {
+    return {};
+}
+
 std::unique_ptr<GenericElement> OnImprovementElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     if (!args.named.empty()) {throw except::parse_error("on_improvement", "Unexpected named argument.");}
     if (!args.inlined.empty()) {throw except::parse_error("on_improvement", "Unexpected inline argument.");}

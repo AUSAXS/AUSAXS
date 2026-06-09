@@ -5,6 +5,7 @@
 #include <rigidbody/sequencer/detail/AdditionalElements.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/detail/ValidElements.h>
 #include <rigidbody/sequencer/elements/All.h>
 #include <utility/observer_ptr.h>
 #include <utility/Logging.h>
@@ -16,6 +17,7 @@
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
+using namespace ausaxs::rigidbody::sequencer::detail;
 
 using ausaxs::except::io_error;
 using ausaxs::rigidbody::sequencer::except::parse_error;
@@ -92,72 +94,24 @@ namespace {
     }
 }
 
-enum class ElementType {
-    AutomaticConstraint,
-    BodySelect,
-    Constraint,
-    Copy,
-    EveryNStep,
-    LoadElement,
-    Log,
-    LoopBegin,
-    LoopEnd,
-    Message,
-    OnImprovement,
-    OptimizeStep,
-    OutputFolder,
-    OverlapStrength,
-    Parameter,
-    RelativeHydration,
-    Save,
-    Seed,
-    SymmetryElement,
-    Transform,
-};
-
-ElementType get_type(std::string_view line) {
-    static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
-        {ElementType::AutomaticConstraint, {"autoconstrain", "autoconstraints"}},
-        {ElementType::BodySelect, {"select", "selector"}},
-        {ElementType::Constraint, {"constrain", "constraint"}},
-        {ElementType::Copy, {"copy", "copy_body"}},
-        {ElementType::EveryNStep, {"every"}},
-        {ElementType::LoadElement, {"load", "open"}},
-        {ElementType::Log, {"log"}},
-        {ElementType::LoopBegin, {"loop"}},
-        {ElementType::LoopEnd, {"end"}},
-        {ElementType::Message, {"print"}},
-        {ElementType::OnImprovement, {"on_improvement"}},
-        {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
-        {ElementType::OutputFolder, {"output", "output_folder"}},
-        {ElementType::OverlapStrength, {"overlap_strength"}},
-        {ElementType::Parameter, {"parameter", "parameter_generator"}},
-        {ElementType::RelativeHydration, {"relative_hydration"}},
-        {ElementType::Save, {"save", "write"}},
-        {ElementType::Seed, {"seed"}},
-        {ElementType::SymmetryElement, {"symmetry"}},
-        {ElementType::Transform, {"transform", "transformer"}},
-    };
-    for (const auto& [type, prefixes] : type_map) {
-        for (const auto& prefix : prefixes) {
-            if (
-                line.starts_with(prefix) && (line.size() == prefix.size() || !std::isalpha(line[prefix.size()]))
-            ) {return type;}
-        }
-    }
-    throw parse_error("base", "Unknown element \"" + std::string(line) + "\".");
+std::unique_ptr<Sequencer> SequenceParser::parse_text(const std::string& script) {
+    std::istringstream in(script);
+    return parse(in);
 }
 
-std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config) {
+std::unique_ptr<Sequencer> SequenceParser::parse_file(const io::ExistingFile& config) {
     std::ifstream in(config.path());
     if (!in.is_open()) {throw ausaxs::except::io_error("SequenceParser::parse: Could not open file \"" + config.path() + "\".");}
+    return parse(in, config.directory());
+}
 
+std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::string& config_folder) {
     std::unique_ptr<Sequencer> sequencer = std::make_unique<Sequencer>(); // the main sequencer object
 
     // the top element of this stack is the current loop element which new elements will be added to
     // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
-    sequencer->setup()._set_config_folder(config.directory());
+    sequencer->setup()._set_config_folder(config_folder);
 
     std::string line;
     int line_no = 0;
@@ -225,7 +179,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(const io::ExistingFile& config)
             {ElementType::AutomaticConstraint, AutoConstraintsElement::_parse},
             {ElementType::BodySelect,          BodySelectElement::_parse},
             {ElementType::Copy,                CopyBodyElement::_parse},
-            {ElementType::EveryNStep,           EveryNStepElement::_parse},
+            {ElementType::EveryNStep,          EveryNStepElement::_parse},
             {ElementType::LoadElement,         LoadElement::_parse},
             {ElementType::LoopBegin,           LoopElement::_parse},
             {ElementType::Message,             MessageElement::_parse},
