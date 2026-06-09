@@ -201,7 +201,7 @@ std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> ow
     auto pdb = args.get<std::vector<std::string>>(valid_args[Args::paths]);
     auto saxs = args.get<std::string>(valid_args[Args::saxs]);
     auto names = args.get<std::vector<std::string>>(valid_args[Args::names]);
-    auto split = args.get<std::string>(valid_args[Args::splits]);
+    auto split = args.get<std::vector<std::string>>(valid_args[Args::splits]);
 
     if (!args.inlined.empty()) {throw except::parse_error("load", "Unexpected inline arguments.");}
     if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}
@@ -209,13 +209,22 @@ std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> ow
 
     owner->_get_sequencer()->setup()._set_saxs_path(io::ExistingFile(saxs.value));
     if (split.found) {
-        if (split.value == "chain") {
+        // strip trailing commas from each token to allow "split 15, 106, 206" style
+        for (auto& s : split.value) {
+            if (!s.empty() && s.back() == ',') { s.pop_back(); }
+        }
+        if (split.value.size() == 1 && split.value[0] == "chain") {
             if (pdb.value.size() != 1) {throw except::parse_error("load", "Chain splitting can only be used with a single path.");}
             return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], names.value);
-        } else if (utility::isinteger(split.value)) {
-            return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], std::vector<int>{std::stoi(split.value)}, names.value);
         } else {
-            throw except::parse_error("load", "Invalid argument for \"split\": \"" + split.value + "\". Expected \"chain\" or a positive integer.");
+            std::vector<int> splits;
+            for (const auto& s : split.value) {
+                if (!utility::isinteger(s)) {
+                    throw except::parse_error("load", "Invalid argument for \"split\": \"" + s + "\". Expected \"chain\" or a list of positive integers.");
+                }
+                splits.push_back(std::stoi(s));
+            }
+            return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], splits, names.value);
         }
     }
     return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value, names.value);

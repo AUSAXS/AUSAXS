@@ -21,9 +21,9 @@ SaveElement::~SaveElement() = default;
 
 void SaveElement::run() {
     // find and replace '%' with the current counter value
-    auto insert_counter = [] (io::File file, int count) {
+    auto insert_counter = [] (io::File file, int& count) {
         if (auto pos = file.stem().find('%'); pos != std::string::npos) {
-            file.stem().replace(pos, 1, std::to_string(count));
+            file.stem().replace(pos, 1, std::to_string(++count));
         }
         return file;
     };
@@ -31,7 +31,7 @@ void SaveElement::run() {
     // PDB
     if (const auto& ext = path.extension(); ext == ".pdb") {
         static int counter = 0;
-        owner->_get_molecule()->save(insert_counter(path, ++counter));
+        owner->_get_molecule()->save(insert_counter(path, counter));
     }
 
     // FIT
@@ -42,6 +42,22 @@ void SaveElement::run() {
             insert_counter(path, ++counter),
             "chi2=" + std::to_string(result->fval) + ", dof=" + std::to_string(result->dof)
         );
+    }
+
+    // PNG
+    else if (ext == ".png") {
+        static int counter = 0;
+        auto result = owner->_get_rigidbody()->controller->get_fitter()->fit();
+        plots::PlotDataset plot;
+        plot.plot(
+            result->curves.select_columns({0, 1, 2}),
+            plots::PlotOptions(style::draw::errors, {{"color", style::color::black}, {"logx", true}, {"logy", true}, {"xlabel", "q [$\\AA$]"}, {"ylabel", "$I(q)$"}, {"zorder", -1}})
+        );
+        plot.plot(
+            result->curves.select_columns({0, 3}),
+            plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"zorder", 1}, {"legend", "chi2=" + std::to_string(result->fval/result->dof) + ", dof=" + std::to_string(result->dof)}})
+        );
+        plot.save(insert_counter(path, counter));
     }
 
     // XYZ
