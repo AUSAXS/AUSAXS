@@ -6,6 +6,9 @@
 #include <data/Molecule.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
+#include <data/symmetry/PolyhedralSymmetry.h>
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/histogram_manager/SymmetryManagerMT.h>
@@ -759,5 +762,175 @@ TEST_CASE("SymmetryManager: PointSymmetry") {
     }
     SECTION("PartialSymmetryManager") {
         test_point_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
+    }
+}
+
+auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<> d(-10, 10);
+    static std::uniform_real_distribution<> r(-std::numbers::pi, std::numbers::pi);
+
+    auto group = GENERATE(symmetry::PolyhedralGroup::tetrahedral, symmetry::PolyhedralGroup::octahedral, symmetry::PolyhedralGroup::icosahedral);
+    int n_atoms = GENERATE(1, 4);
+
+    // build a body, apply a polyhedral symmetry, and compare the reused-distance histogram
+    // against the ground truth obtained by explicitly materialising every copy
+    for (int i = 0; i < 3; ++i) {
+        std::vector<AtomFF> atoms;
+        for (int j = 0; j < n_atoms; ++j) {
+            atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));
+        }
+
+        Molecule m({Body{atoms}});
+        m.set_histogram_manager(choice);
+        set_unity_charge(m);
+
+        auto sym = std::make_unique<symmetry::PolyhedralSymmetry>(group);
+        sym->translation = {d(gen), d(gen), d(gen)};
+        sym->rotation = {r(gen), r(gen), r(gen)};
+        m.get_body(0).symmetry().add(std::move(sym));
+
+        auto h = m.get_histogram()->get_weighted_counts();
+
+        auto b = m.get_body(0).symmetry().explicit_structure();
+        auto m2 = Molecule({Body{std::move(b.atoms), std::move(b.waters)}});
+        set_unity_charge(m2);
+        auto h2 = m2.get_histogram()->get_weighted_counts();
+
+        CHECK(compare_hist_approx(h, h2));
+    }
+};
+
+TEST_CASE("SymmetryManager: PolyhedralSymmetry") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+    SECTION("SymmetryManager") {
+        test_polyhedral_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
+    }
+    SECTION("PartialSymmetryManager") {
+        test_polyhedral_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
+    }
+}
+
+auto test_composite_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<> d(-8, 8);
+
+    // build inner/outer sub-symmetries; the nesting "inner-outer" replicates the inner unit
+    enum class kind {p2_c3, c2_c3, c3_c2};
+    auto nesting = GENERATE(kind::p2_c3, kind::c2_c3, kind::c3_c2);
+    int n_atoms = GENERATE(1, 3);
+
+    auto make_cyclic = [](double angle, int reps, Vector3<double> offset) {
+        return std::make_unique<symmetry::CyclicSymmetry>(
+            symmetry::CyclicSymmetry::_Relation{offset},
+            symmetry::CyclicSymmetry::_Repeat{{0, 0, 1}, angle},
+            reps
+        );
+    };
+
+    for (int i = 0; i < 3; ++i) {
+        std::vector<AtomFF> atoms;
+        for (int j = 0; j < n_atoms; ++j) {
+            atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));
+        }
+
+        Molecule m({Body{atoms}});
+        m.set_histogram_manager(choice);
+        set_unity_charge(m);
+
+        std::unique_ptr<symmetry::ISymmetry> inner, outer;
+        switch (nesting) {
+            case kind::p2_c3:
+                inner = std::make_unique<symmetry::PointSymmetry>(Vector3<double>{4, 1, 0}, Vector3<double>{0, 0, 0});
+                outer = make_cyclic(2*std::numbers::pi/3, 2, {6, 0, 0});
+                break;
+            case kind::c2_c3:
+                inner = make_cyclic(std::numbers::pi, 1, {3, 0, 0});
+                outer = make_cyclic(2*std::numbers::pi/3, 2, {7, 0, 0});
+                break;
+            case kind::c3_c2:
+                inner = make_cyclic(2*std::numbers::pi/3, 2, {3, 0, 0});
+                outer = make_cyclic(std::numbers::pi, 1, {8, 0, 0});
+                break;
+        }
+        m.get_body(0).symmetry().add(std::make_unique<symmetry::CompositeSymmetry>(std::move(inner), std::move(outer)));
+
+        auto h = m.get_histogram()->get_weighted_counts();
+
+        auto b = m.get_body(0).symmetry().explicit_structure();
+        auto m2 = Molecule({Body{std::move(b.atoms), std::move(b.waters)}});
+        set_unity_charge(m2);
+        auto h2 = m2.get_histogram()->get_weighted_counts();
+
+        CHECK(compare_hist_approx(h, h2));
+    }
+};
+
+TEST_CASE("SymmetryManager: CompositeSymmetry") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+    SECTION("SymmetryManager") {
+        test_composite_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
+    }
+    SECTION("PartialSymmetryManager") {
+        test_composite_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
+    }
+}
+
+auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<> d(-8, 8);
+
+    // a cyclic symmetry shared by two bodies, replicating the {body0, body1} pair as a unit
+    auto[angle, reps] = GENERATE(
+        std::make_pair(std::numbers::pi, 1),         // shared c2
+        std::make_pair(2*std::numbers::pi/3, 2)      // shared c3
+    );
+    int n_atoms = GENERATE(1, 3);
+
+    for (int i = 0; i < 3; ++i) {
+        auto random_atoms = [&](int n) {
+            std::vector<AtomFF> atoms;
+            for (int j = 0; j < n; ++j) {atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));}
+            return atoms;
+        };
+        Molecule m({Body{random_atoms(n_atoms)}, Body{random_atoms(n_atoms+1)}});
+        m.set_histogram_manager(choice);
+        set_unity_charge(m);
+
+        symmetry::CyclicSymmetry base(
+            symmetry::CyclicSymmetry::_Relation{{6, 0, 0}},
+            symmetry::CyclicSymmetry::_Repeat{{0, 0, 1}, angle},
+            reps
+        );
+        // body 0 owns the shared symmetry; body 1 holds a view onto it (located by body+slot)
+        m.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base, std::vector<int>{0, 1}, std::vector<int>{0, 0}, &m));
+        m.get_body(1).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(&m, 0, 0));
+
+        auto h = m.get_histogram()->get_weighted_counts();
+
+        // ground truth: materialise every copy of both bodies explicitly
+        auto b0 = m.get_body(0).symmetry().explicit_structure();
+        auto b1 = m.get_body(1).symmetry().explicit_structure();
+        Molecule m2({Body{std::move(b0.atoms), std::move(b0.waters)}, Body{std::move(b1.atoms), std::move(b1.waters)}});
+        set_unity_charge(m2);
+        auto h2 = m2.get_histogram()->get_weighted_counts();
+
+        CHECK(compare_hist_approx(h, h2));
+    }
+};
+
+TEST_CASE("SymmetryManager: ReferenceSymmetry") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+    SECTION("SymmetryManager") {
+        test_reference_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
+    }
+    SECTION("PartialSymmetryManager") {
+        test_reference_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }

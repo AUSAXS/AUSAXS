@@ -15,7 +15,10 @@ namespace ausaxs::symmetry {
         c4,
         c5,
         c6,
-        p2  // dimer with freely-optimizable orientation (PointSymmetry)
+        p2, // dimer with freely-optimizable orientation (PointSymmetry)
+        t,  // chiral tetrahedral rotation group (PolyhedralSymmetry)
+        o,  // chiral octahedral rotation group (PolyhedralSymmetry)
+        i   // chiral icosahedral rotation group (PolyhedralSymmetry)
     };
 
     /**
@@ -28,4 +31,14 @@ namespace ausaxs::symmetry {
      * @brief Get a predefined symmetry enum value by name string.
      */
     type get(std::string_view name);
+
+    /**
+     * @brief Build a symmetry object from a name string.
+     *
+     * A plain name (e.g. "c3", "p2", "t") maps to the corresponding predefined symmetry.
+     * A hyphenated name builds a nested CompositeSymmetry: the first part is the inner
+     * symmetry, the remainder (recursively parsed) the outer one. For example "p2-c3" nests
+     * a p2 dimer inside an outer c3, and "c2-c2-c3" nests left-to-right as c2-(c2-c3).
+     */
+    std::unique_ptr<ISymmetry> create(std::string_view name);
 }

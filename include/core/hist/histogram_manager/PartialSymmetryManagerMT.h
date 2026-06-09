@@ -10,6 +10,7 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/histogram_manager/detail/SymmetryDetailFwd.h>
 
+#include <cassert>
 #include <memory>
 #include <mutex>
 
@@ -42,16 +43,23 @@ namespace ausaxs::hist {
 				SymmetryIndexer2D() = default;
 				SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::forward<T>(value))) {}
 				SymmetryIndexer2D(int size_x, int size_y, T&& value) : data(size_x, std::vector<T>(size_y, std::forward<T>(value))) {}
-				T& index(int isym1, int isym2) {return data[isym1][isym2];}
+				T& index(int isym1, int isym2) {
+					assert(isym1 >= 0 && isym1 < static_cast<int>(data.size()) && "SymmetryIndexer2D: isym1 out of range");
+					assert(isym2 >= 0 && isym2 < static_cast<int>(data[isym1].size()) && "SymmetryIndexer2D: isym2 out of range");
+					return data[isym1][isym2];
+				}
 				std::vector<std::vector<T>> data;
-			}; 
+			};
 
 			// 1D symmetry indexer to be stored within a BodyIndexer1D
 			template<typename T> struct SymmetryIndexer1D {
 				SymmetryIndexer1D() = default;
 				SymmetryIndexer1D(int size, T&& value) : data(size, std::forward<T>(value)) {}
 				template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
-				T& index(int isym) {return data[isym];}
+				T& index(int isym) {
+					assert(isym >= 0 && isym < static_cast<int>(data.size()) && "SymmetryIndexer1D: isym out of range");
+					return data[isym];
+				}
 				std::vector<T> data;
 			};
 
@@ -84,9 +92,24 @@ namespace ausaxs::hist {
 			std::unique_ptr<DistanceHistogram> _calculate();
 
 			/**
-			 * @brief Initialize the storage spaces of this object. 
+			 * @brief Initialize the storage spaces of this object.
 			 */
 			void initialize();
+
+			/**
+			 * @brief Expand the modification flags for shared reference symmetries.
+			 *
+			 * A ReferenceSymmetry is shared across several bodies through views, and its copies
+			 * depend on every participating body (the shared parameters and the group's combined
+			 * centre of mass). So if any participating body — or the shared symmetry itself — has
+			 * been modified, the symmetric copies of the whole group are stale. This marks the
+			 * owning slot and every linked view as symmetry-modified so they are all recomputed.
+			 */
+			void propagate_reference_symmetry_modifications(
+				const std::vector<bool>& externally_modified,
+				const std::vector<bool>& internally_modified,
+				std::vector<std::vector<bool>>& symmetry_modified
+			) const;
 
 			/**
 			 * @brief Calculate the self-correlation of a body. 
