@@ -51,7 +51,13 @@ void SaveElement::run() {
         plots::PlotDataset plot;
         plot.plot_residuals(
             result->curves.select_columns({0, 1, 2, 3}),
-            plots::PlotOptions(style::draw::errors, {{"color", style::color::black}, {"logx", true}, {"logy", true}, {"xlabel", "q [$\\AA$]"}, {"ylabel", "$I(q)$"}, {"zorder", -1}})
+            plots::PlotOptions(
+                style::draw::errors, {
+                    {"color", style::color::black}, {"logx", true}, {"logy", true}, {"xlabel", "q [$\\AA$]"}, {"ylabel", "$I(q)$"}, {"zorder", -1},
+                    {"legend", "chi2=" + std::to_string(result->fval/result->dof) + ", dof=" + std::to_string(result->dof)},
+                    {"title", "Iteration " + std::to_string(owner->_get_current_iteration())}
+                }
+            )
         );
         plot.save(insert_counter(path, counter));
     }
