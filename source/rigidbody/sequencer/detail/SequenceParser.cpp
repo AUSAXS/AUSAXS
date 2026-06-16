@@ -130,6 +130,9 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             ++line_no;
             auto sub_tokens = tokenize(argline);
             while (!ends_with_closing_brace(sub_tokens)) {
+                if (sub_tokens.size() == 1) {
+                    throw std::runtime_error("SequenceParser::parse: Missing value for key \"" + sub_tokens[0] + "\" in line " + std::to_string(line_no) + ".");
+                }
                 if (!sub_tokens.empty()) {
                     ParsedArgs::Args sub_args;
                     sub_args.line_number = line_no;
