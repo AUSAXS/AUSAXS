@@ -15,25 +15,20 @@ namespace ausaxs::plots {
 	 */
 	class PlotDataset : public Plot {
 		public:
-			/**
-			 * @brief Default constructor.
-			 */
 			PlotDataset() = default;
-
-			/**
-			 * @brief Constructor.
-			 */
 			PlotDataset(const Dataset& d, const plots::PlotOptions& options);
-
-			/**
-			 * @brief Destructor.
-			 */
 			~PlotDataset() override;
 
 			/**
 			 * @brief Plot an additional Dataset. 
 			 */
 			PlotDataset& plot(const Dataset& data, const plots::PlotOptions& options);
+
+			/**
+			 * @brief Plot dataset of the form q | I | Ierr | model as a two-panel data + residuals plot
+			 *        This does not support chaining since .plot files currently cannot specify which panel to draw on.
+			 */
+			void plot_residuals(const Dataset& data, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot a vertical line at the specified x coordinate.

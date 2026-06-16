@@ -49,13 +49,9 @@ void SaveElement::run() {
         static int counter = 0;
         auto result = owner->_get_rigidbody()->controller->get_fitter()->fit();
         plots::PlotDataset plot;
-        plot.plot(
-            result->curves.select_columns({0, 1, 2}),
+        plot.plot_residuals(
+            result->curves.select_columns({0, 1, 2, 3}),
             plots::PlotOptions(style::draw::errors, {{"color", style::color::black}, {"logx", true}, {"logy", true}, {"xlabel", "q [$\\AA$]"}, {"ylabel", "$I(q)$"}, {"zorder", -1}})
-        );
-        plot.plot(
-            result->curves.select_columns({0, 3}),
-            plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"zorder", 1}, {"legend", "chi2=" + std::to_string(result->fval/result->dof) + ", dof=" + std::to_string(result->dof)}})
         );
         plot.save(insert_counter(path, counter));
     }
