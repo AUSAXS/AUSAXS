@@ -608,8 +608,8 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
             // distinct distance pairs among {original, copy_1, ..., copy_N}; repetition 0 is
             // the original body (atomic[0][0]), 1..N are the copies (atomic[isym1][rep-1])
             for (const auto& pair : sym1->internal_pair_schedule()) {
-                assert(pair.repA == 0 || pair.repA-1 < static_cast<int>(coords[ibody1].atomic[isym1].size()) && "internal_pair_schedule: repA out of range for atomic copies");
-                assert(pair.repB == 0 || pair.repB-1 < static_cast<int>(coords[ibody1].atomic[isym1].size()) && "internal_pair_schedule: repB out of range for atomic copies");
+                assert((pair.repA == 0 || pair.repA-1 < static_cast<int>(coords[ibody1].atomic[isym1].size())) && "internal_pair_schedule: repA out of range for atomic copies");
+                assert((pair.repB == 0 || pair.repB-1 < static_cast<int>(coords[ibody1].atomic[isym1].size())) && "internal_pair_schedule: repB out of range for atomic copies");
                 const auto& atomicA = pair.repA == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repA-1];
                 const auto& atomicB = pair.repB == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repB-1];
                 calculator->enqueue_calculate_cross(atomicA, atomicB, pair.scale, res_index);
