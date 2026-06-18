@@ -35,9 +35,8 @@ ausaxs::rigidbody::parameter::BodyTransformParametersRelative ausaxs::rigidbody:
         auto symmetries = static_cast<const ausaxs::symmetry::OptimizableSymmetryStorage*>(rigidbody->molecule.get_body(ibody).symmetry().get_obj());
         params.symmetry_pars.emplace();
 
-        // assign a random delta to every leaf sub-symmetry. CompositeSymmetry has no parameter
-        // spans of its own (its two sets cannot be expressed as one contiguous span), so we
-        // reach the leaves via for_each_leaf and perturb each of them.
+        // assign a random delta to every leaf sub-symmetry. CompositeSymmetry has no parameter spans of its own (its two 
+        // sets cannot be expressed as one contiguous span), so we reach the leaves via for_each_leaf and perturb each of them.
         auto randomize = [&](ausaxs::symmetry::ISymmetry& leaf) {
             if (symmetries->optimize_translate) {
                 for (auto& t : leaf.span_translation()) {t = translation_symmetry_dist(random::generator())*scaling;}
