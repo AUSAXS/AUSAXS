@@ -21,11 +21,12 @@ LoadElement::~LoadElement() = default;
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names) : owner(owner) {
     if (auto loc = paths[0].find("%"); loc != std::string::npos) {
-        rigidbody = std::make_unique<Rigidbody>(data::Molecule(load_wildcarded(paths[0])));
+        resolved_paths = load_wildcarded(paths[0]);
+        rigidbody = std::make_unique<Rigidbody>(data::Molecule(resolved_paths));
     } else {
-        auto rel_paths = paths;
-        std::transform(paths.begin(), paths.end(), rel_paths.begin(), [this] (const std::string& path) {return lookup_file(path).first;});
-        rigidbody = std::make_unique<Rigidbody>(data::Molecule(rel_paths));
+        resolved_paths = paths;
+        std::transform(paths.begin(), paths.end(), resolved_paths.begin(), [this] (const std::string& path) {return lookup_file(path).first;});
+        rigidbody = std::make_unique<Rigidbody>(data::Molecule(resolved_paths));
     }
 
     // add default names
@@ -53,9 +54,11 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     : owner(owner) 
 {
     if (auto loc = path.find("%"); loc != std::string::npos) {
-        rigidbody = std::make_unique<Rigidbody>(data::Molecule(load_wildcarded(path)));
+        resolved_paths = load_wildcarded(path);
+        rigidbody = std::make_unique<Rigidbody>(data::Molecule(resolved_paths));
     } else {
-        rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(lookup_file(path).first, splits));
+        resolved_paths = {lookup_file(path).first};
+        rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(resolved_paths[0], splits));
     }
 
     // add default names
@@ -80,7 +83,8 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
 }
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names) : owner(owner) {
-    rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(lookup_file(path).first));
+    resolved_paths = {lookup_file(path).first};
+    rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(resolved_paths[0]));
     if (rigidbody->molecule.size_body() <= 1) {
         throw std::runtime_error("LoadElement::LoadElement: Could not split \"" + path + "\" by chain, as it contains only one.");
     }

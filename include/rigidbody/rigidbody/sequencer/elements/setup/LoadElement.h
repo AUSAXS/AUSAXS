@@ -39,9 +39,13 @@ namespace ausaxs::rigidbody::sequencer {
             static std::vector<std::string> _valid_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
-        private:
+        protected:
             observer_ptr<Sequencer> owner;
             std::unique_ptr<rigidbody::Rigidbody> rigidbody;
+
+            // the actual files loaded (after wildcard expansion and path lookup), in body order;
+            // retained so subclasses (e.g. LoadElementWrapper) can re-read them for preview metadata
+            std::vector<std::string> resolved_paths;
 
             std::vector<std::string> load_wildcarded(const std::string& path);
             std::pair<std::string, bool> lookup_file(const std::string& path);

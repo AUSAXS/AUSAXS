@@ -13,6 +13,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         Constraint,
         Copy,
         EveryNStep,
+        LoadElementWithMetadata, // hidden variant of LoadElement that retains PDB metadata for previews; ordered before LoadElement so its longer keyword wins
         LoadElement,
         Log,
         LoopBegin,

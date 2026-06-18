@@ -6,18 +6,19 @@
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/All.h>
 
-#include <unordered_map>
+#include <map>
 #include <cassert>
 
 using namespace ausaxs::rigidbody::sequencer::detail;
 
-const std::unordered_map<ElementType, std::vector<std::string>>& get_type_map() {
-    static std::unordered_map<ElementType, std::vector<std::string>> type_map = {
+const std::map<ElementType, std::vector<std::string>>& get_type_map() {
+    static std::map<ElementType, std::vector<std::string>> type_map = {
         {ElementType::AutomaticConstraint, {"autoconstrain", "autoconstraints"}},
         {ElementType::BodySelect, {"select", "selector"}},
         {ElementType::Constraint, {"constrain", "constraint"}},
         {ElementType::Copy, {"copy", "copy_body"}},
         {ElementType::EveryNStep, {"every"}},
+        {ElementType::LoadElementWithMetadata, {"load_preview"}},
         {ElementType::LoadElement, {"load", "open"}},
         {ElementType::Log, {"log"}},
         {ElementType::LoopBegin, {"loop"}},
@@ -43,6 +44,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_elements() 
     elements.reserve(type_map.size() * 2); // reserve space for all prefixes (most elements have 2)
     for (int i = 0; i < static_cast<int>(ElementType::COUNT); ++i) {
         ElementType type = static_cast<ElementType>(i);
+        if (type == ElementType::LoadElementWithMetadata) {continue;} // internal-only; never exposed to users
         assert(type_map.contains(type));
         for (const auto& prefix : type_map.at(type)) {
             elements.emplace_back(prefix);
@@ -59,6 +61,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(E
         case ElementType::Copy:                return CopyBodyElement::_valid_arguments();
         case ElementType::EveryNStep:          return EveryNStepElement::_valid_arguments();
         case ElementType::LoadElement:         return LoadElement::_valid_arguments();
+        case ElementType::LoadElementWithMetadata: return LoadElement::_valid_arguments();
         case ElementType::Log:                 return detail::LogElement::_valid_arguments();
         case ElementType::LoopBegin:           return LoopElement::_valid_arguments();
         case ElementType::LoopEnd:             return detail::LoopEndElement::_valid_arguments();
