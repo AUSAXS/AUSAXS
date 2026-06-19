@@ -4,7 +4,9 @@
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/PolyhedralSymmetry.h>
+#include <data/symmetry/TetrahedralSymmetry.h>
+#include <data/symmetry/OctahedralSymmetry.h>
+#include <data/symmetry/IcosahedralSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
 
 #include <numbers>
@@ -48,11 +50,11 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
                 Vector3<double>{0, 0, 0}
             );
         case type::t:
-            return std::make_unique<PolyhedralSymmetry>(PolyhedralGroup::tetrahedral);
+            return std::make_unique<TetrahedralSymmetry>();
         case type::o:
-            return std::make_unique<PolyhedralSymmetry>(PolyhedralGroup::octahedral);
+            return std::make_unique<OctahedralSymmetry>();
         case type::i:
-            return std::make_unique<PolyhedralSymmetry>(PolyhedralGroup::icosahedral);
+            return std::make_unique<IcosahedralSymmetry>();
         default:
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
     }
