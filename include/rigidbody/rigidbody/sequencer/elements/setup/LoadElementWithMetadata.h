@@ -20,10 +20,6 @@ namespace ausaxs::rigidbody::sequencer {
 
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
-            // Per-base-atom metadata from the most recent parse, aligned with the molecule's base
-            // atoms in body order (before symmetry copies are realized). Stored as statics rather
-            // than on the molecule/setup since only one sequencer is ever parsed at a time, and the
-            // data is consumed immediately afterwards by the preview API.
             inline static std::vector<int> residue_seq;
             inline static std::vector<std::uint8_t> is_ca;
 

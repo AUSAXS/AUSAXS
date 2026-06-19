@@ -28,11 +28,11 @@ namespace ausaxs::rigidbody::sequencer {
             static void lock();
             static void unlock();
 
-            // latest published structure (explicit, symmetries realized), guarded by `mutex`. version is bumped on each publish and reset to 0 when a new sequence is parsed.
+            // latest versioned structure.
             inline static std::vector<double> x, y, z;
             inline static int version = 0;
 
-            // set true by a consumer (e.g. the GUI) that polls the live structure. If false, the element publishes nothing.
+            // set true by a consumer that polls the live structure. If false, this element is a no-op. 
             inline static bool live_consumer_connected = false;
     };
 }

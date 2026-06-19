@@ -21,19 +21,15 @@ extern "C" API int rigidbody_get_preview_structure(
     int* status
 );
 
-// Latest structure published by an `update structure` element during a run (coordinates only, in
-// the same atom order as rigidbody_get_preview_structure). `version` is bumped on each publish and
-// reset to 0 when a new sequence is parsed; poll it to detect new frames. Thread-safe.
+// Latest structure published by an `update structure` element during a run.
 extern "C" API int rigidbody_get_live_structure(
     double** x, double** y, double** z,
     int* n_atoms, int* version,
     int* status
 );
 
-// Register/unregister as a consumer of the live structure. While no consumer is registered, an
-// `update` element does nothing (and warns once at parse time) so it wastes no resources. A GUI
-// that polls rigidbody_get_live_structure should register on startup.
-extern "C" API void rigidbody_set_live_consumer(bool connected, int* status);
+// Register or unregister as a live consumer. `update` elements are no-ops unless this is set to true. 
+extern "C" API void rigidbody_register_live_consumer(bool connected, int* status);
 
 extern "C" API void rigidbody_validate(
     int rigidbody_id,

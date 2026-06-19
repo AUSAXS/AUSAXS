@@ -5,8 +5,6 @@
 #include <utility/StringUtils.h>
 #include <io/File.h>
 
-#include <stdexcept>
-
 using namespace ausaxs;
 
 template<std::size_t N>
