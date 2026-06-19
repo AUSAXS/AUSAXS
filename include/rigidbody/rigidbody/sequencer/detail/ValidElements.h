@@ -29,6 +29,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         Seed,
         SymmetryElement,
         Transform,
+        Update,
         COUNT
     };
 

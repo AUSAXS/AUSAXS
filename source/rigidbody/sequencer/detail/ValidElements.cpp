@@ -34,6 +34,7 @@ const std::map<ElementType, std::vector<std::string>>& get_type_map() {
         {ElementType::Seed, {"seed"}},
         {ElementType::SymmetryElement, {"symmetry"}},
         {ElementType::Transform, {"transform", "transformer"}},
+        {ElementType::Update, {"update"}},
     };
     return type_map;
 };
@@ -76,6 +77,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(E
         case ElementType::Seed:                return detail::SeedElement::_valid_arguments();
         case ElementType::SymmetryElement:     return SymmetryElement::_valid_arguments();
         case ElementType::Transform:           return TransformElement::_valid_arguments();
+        case ElementType::Update:              return UpdateElement::_valid_arguments();
         default: return {};
     }
 }

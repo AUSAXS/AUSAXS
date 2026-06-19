@@ -6,6 +6,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/LoadElementWithMetadata.h>
+#include <rigidbody/sequencer/elements/UpdateElement.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
@@ -117,6 +118,34 @@ int rigidbody_get_preview_structure(
     *residue_seq = ref->residue_seq.data();
     *is_ca = ref->is_ca.data();
     *n_atoms = static_cast<int>(ref->x.size());
+    return data_id;
+}, status);}
+
+struct _rigidbody_live_structure_obj {
+    std::vector<double> x, y, z;
+};
+int rigidbody_get_live_structure(
+    double** x, double** y, double** z,
+    int* n_atoms, int* version,
+    int* status
+) {return execute_with_catch([&]() {
+    _rigidbody_live_structure_obj data;
+    int ver = 0;
+    {
+        // copy the live buffer under the lock so the worker thread can keep overwriting it
+        std::lock_guard<std::mutex> lock(rigidbody::sequencer::UpdateElement::mutex);
+        data.x = rigidbody::sequencer::UpdateElement::x;
+        data.y = rigidbody::sequencer::UpdateElement::y;
+        data.z = rigidbody::sequencer::UpdateElement::z;
+        ver = rigidbody::sequencer::UpdateElement::version;
+    }
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_rigidbody_live_structure_obj>(data_id);
+    *x = ref->x.data();
+    *y = ref->y.data();
+    *z = ref->z.data();
+    *n_atoms = static_cast<int>(ref->x.size());
+    *version = ver;
     return data_id;
 }, status);}
 

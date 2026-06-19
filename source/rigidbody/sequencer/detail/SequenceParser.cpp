@@ -195,6 +195,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             {ElementType::Save,                SaveElement::_parse},
             {ElementType::SymmetryElement,     SymmetryElement::_parse},
             {ElementType::Transform,           TransformElement::_parse},
+            {ElementType::Update,              UpdateElement::_parse},
             {ElementType::Log,                 detail::LogElement::_parse},
         };
         static const std::unordered_map<ElementType, VoidParser> void_parsers = {

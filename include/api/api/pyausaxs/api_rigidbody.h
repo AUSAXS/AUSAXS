@@ -21,6 +21,15 @@ extern "C" API int rigidbody_get_preview_structure(
     int* status
 );
 
+// Latest structure published by an `update structure` element during a run (coordinates only, in
+// the same atom order as rigidbody_get_preview_structure). `version` is bumped on each publish and
+// reset to 0 when a new sequence is parsed; poll it to detect new frames. Thread-safe.
+extern "C" API int rigidbody_get_live_structure(
+    double** x, double** y, double** z,
+    int* n_atoms, int* version,
+    int* status
+);
+
 extern "C" API void rigidbody_validate(
     int rigidbody_id,
     int* status
