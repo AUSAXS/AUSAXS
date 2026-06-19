@@ -8,32 +8,37 @@
 #include <data/symmetry/MoleculeSymmetryFacade.h>
 #include <data/detail/SimpleBody.h>
 #include <utility/MultiThreading.h>
+#include <utility/Console.h>
 
 #include <string>
 #include <utility>
+#include <mutex>
 
 using namespace ausaxs::rigidbody::sequencer;
 
 UpdateElement::UpdateElement(observer_ptr<LoopElement> owner) : LoopElementCallback(owner) {
+    // warn (once, at parse time) if nobody is going to read what we publish
+    if (!live_consumer_connected) {
+        console::print_warning("update: no live consumer is connected, disabling updates.");
+    }
+
     // start each sequence with an empty buffer so stale frames from a previous run aren't served
-    std::lock_guard<std::mutex> lock(mutex);
+    lock();
     x.clear(); y.clear(); z.clear();
     version = 0;
+    unlock();
 }
 
 UpdateElement::~UpdateElement() = default;
 
 void UpdateElement::run() {
-    // Snapshot the current explicit structure (symmetries realized) synchronously: it is read from
-    // the molecule, which this same thread keeps mutating, so it cannot be read off-thread. The
-    // ordering matches rigidbody_get_preview_structure, so the GUI's precomputed backbone mask applies.
-    auto structure = owner->_get_molecule()->symmetry().explicit_structure();
+    // nothing is reading the live structure, so don't spend cycles building and publishing it
+    if (!live_consumer_connected) {return;}
 
-    // Publish the snapshot on a worker so the element-execution thread (which steps through the
-    // sequence) never blocks on the mutex while the GUI is mid-poll, which would stall the run.
+    auto structure = owner->_get_molecule()->symmetry().explicit_structure();
     utility::multi_threading::get_global_pool()->detach_task(
         [atoms = std::move(structure.atoms)]() {
-            std::lock_guard<std::mutex> lock(mutex);
+            lock();
             std::size_t n = atoms.size();
             x.resize(n); y.resize(n); z.resize(n);
             for (std::size_t i = 0; i < n; ++i) {
@@ -42,8 +47,18 @@ void UpdateElement::run() {
                 z[i] = atoms[i].z();
             }
             ++version;
+            unlock();
         }
     );
+}
+
+std::mutex mutex;
+void UpdateElement::lock() {
+    mutex.lock();
+}
+
+void UpdateElement::unlock() {
+    mutex.unlock();
 }
 
 std::vector<std::string> UpdateElement::_valid_arguments() {

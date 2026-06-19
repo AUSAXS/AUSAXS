@@ -30,6 +30,11 @@ extern "C" API int rigidbody_get_live_structure(
     int* status
 );
 
+// Register/unregister as a consumer of the live structure. While no consumer is registered, an
+// `update` element does nothing (and warns once at parse time) so it wastes no resources. A GUI
+// that polls rigidbody_get_live_structure should register on startup.
+extern "C" API void rigidbody_set_live_consumer(bool connected, int* status);
+
 extern "C" API void rigidbody_validate(
     int rigidbody_id,
     int* status

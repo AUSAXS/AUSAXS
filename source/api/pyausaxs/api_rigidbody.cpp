@@ -131,14 +131,14 @@ int rigidbody_get_live_structure(
 ) {return execute_with_catch([&]() {
     _rigidbody_live_structure_obj data;
     int ver = 0;
-    {
-        // copy the live buffer under the lock so the worker thread can keep overwriting it
-        std::lock_guard<std::mutex> lock(rigidbody::sequencer::UpdateElement::mutex);
-        data.x = rigidbody::sequencer::UpdateElement::x;
-        data.y = rigidbody::sequencer::UpdateElement::y;
-        data.z = rigidbody::sequencer::UpdateElement::z;
-        ver = rigidbody::sequencer::UpdateElement::version;
-    }
+
+    rigidbody::sequencer::UpdateElement::lock();
+    data.x = rigidbody::sequencer::UpdateElement::x;
+    data.y = rigidbody::sequencer::UpdateElement::y;
+    data.z = rigidbody::sequencer::UpdateElement::z;
+    ver = rigidbody::sequencer::UpdateElement::version;
+    rigidbody::sequencer::UpdateElement::unlock();
+
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto ref = api::ObjectStorage::get_object<_rigidbody_live_structure_obj>(data_id);
     *x = ref->x.data();
@@ -147,6 +147,10 @@ int rigidbody_get_live_structure(
     *n_atoms = static_cast<int>(ref->x.size());
     *version = ver;
     return data_id;
+}, status);}
+
+void rigidbody_set_live_consumer(bool connected, int* status) {execute_with_catch([&]() {
+    rigidbody::sequencer::UpdateElement::live_consumer_connected = connected;
 }, status);}
 
 void rigidbody_validate(
