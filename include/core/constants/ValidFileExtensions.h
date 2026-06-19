@@ -6,6 +6,7 @@
 #include <io/IOFwd.h>
 
 #include <array>
+#include <string>
 
 namespace ausaxs::constants::filetypes {
     namespace detail {
@@ -22,6 +23,12 @@ namespace ausaxs::constants::filetypes {
             private:
                 std::array<const char*, N> extensions;
         };
+
+        /**
+         * @brief Guess the file type of a file based on its extension.
+         * @return A string representing the file type, or an empty string if the file type could not be determined.
+         */
+        std::string guess_type(const io::File& path);
     }
 
     constexpr detail::FileType structure = {std::array{".pdb",    ".ent",  ".cif", ".xyz" }};

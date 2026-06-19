@@ -39,6 +39,20 @@ PlotDataset& PlotDataset::plot(const Dataset& data, const PlotOptions& options) 
     return *this;
 }
 
+void PlotDataset::plot_residuals(const Dataset& data, const plots::PlotOptions& options) {
+    if (!ss.str().empty()) {
+        throw std::runtime_error("PlotDataset::plot_residuals: Cannot plot residuals after plotting other datasets or lines. Please create a new PlotDataset for plotting residuals.");
+    }
+    if (data.size_cols() != 4) {
+        throw std::runtime_error("PlotDataset::plot_residuals: Input dataset must have exactly 4 columns (q | I | Ierr | model).");
+    }
+    ss << "PlotResiduals\n" 
+        << data.to_string() 
+        << "\n"
+        << options.to_string() 
+        << std::endl;
+}
+
 void PlotDataset::quick_plot(const Dataset& data, const PlotOptions& options, const io::File& path) {
     PlotDataset plot(data, options);
     plot.save(path);

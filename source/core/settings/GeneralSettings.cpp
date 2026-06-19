@@ -55,6 +55,7 @@ namespace ausaxs::settings::io {
         settings::io::create(general::warnings, {"warnings", "w"}),
         settings::io::create(general::threads, {"threads", "t"}),
         settings::io::create(general::output, {"output", "o"}),
+        settings::io::create(general::cache, {"cache"}),
         settings::io::create(general::keep_hydrogens, {"keep_hydrogens"}),
         settings::io::create(general::supplementary_plots, {"supplementary_plots"}),
         settings::io::create(general::input_q_unit, {"unit"}),

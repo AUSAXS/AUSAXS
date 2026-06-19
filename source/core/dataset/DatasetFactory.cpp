@@ -18,6 +18,9 @@ std::unique_ptr<Dataset> factory::DatasetFactory::construct(const io::ExistingFi
     } else if (detail::XVGReader::extensions.contains(ext)) {
         constructor = std::make_unique<detail::XVGReader>();
     } else {
+        if (auto format = constants::filetypes::detail::guess_type(file); !format.empty()) {
+            throw except::invalid_operation("DatasetFactory::construct: Expected a data file format, but got what appears to be a " + format + " file.");
+        }
         throw except::invalid_operation("factory::create: Unknown file extension \"" + ext + "\".");
     }
     return constructor->construct(file, expected_cols);

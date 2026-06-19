@@ -33,6 +33,11 @@ LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) 
     total_loop_count += this_will_run;
 }
 
+void LoopElement::_reset_counters() {
+    total_loop_count = 0;
+    global_counter = 0;
+}
+
 LoopElement::~LoopElement() = default;
 
 std::shared_ptr<fitter::FitResult> LoopElement::execute() {

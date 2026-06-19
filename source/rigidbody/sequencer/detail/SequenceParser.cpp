@@ -130,6 +130,9 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             ++line_no;
             auto sub_tokens = tokenize(argline);
             while (!ends_with_closing_brace(sub_tokens)) {
+                if (sub_tokens.size() == 1) {
+                    throw std::runtime_error("SequenceParser::parse: Missing value for key \"" + sub_tokens[0] + "\" in line " + std::to_string(line_no) + ".");
+                }
                 if (!sub_tokens.empty()) {
                     ParsedArgs::Args sub_args;
                     sub_args.line_number = line_no;
@@ -181,6 +184,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             {ElementType::Copy,                CopyBodyElement::_parse},
             {ElementType::EveryNStep,          EveryNStepElement::_parse},
             {ElementType::LoadElement,         LoadElement::_parse},
+            {ElementType::LoadElementWithMetadata, LoadElementWithMetadata::_parse},
             {ElementType::LoopBegin,           LoopElement::_parse},
             {ElementType::Message,             MessageElement::_parse},
             {ElementType::OnImprovement,       OnImprovementElement::_parse},
@@ -191,6 +195,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             {ElementType::Save,                SaveElement::_parse},
             {ElementType::SymmetryElement,     SymmetryElement::_parse},
             {ElementType::Transform,           TransformElement::_parse},
+            {ElementType::Update,              UpdateElement::_parse},
             {ElementType::Log,                 detail::LogElement::_parse},
         };
         static const std::unordered_map<ElementType, VoidParser> void_parsers = {

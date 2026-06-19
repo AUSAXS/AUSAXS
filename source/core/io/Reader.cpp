@@ -24,6 +24,9 @@ io::pdb::PDBStructure io::Reader::read(const io::File& path) {
     } else if (ext == ".xyz") { // .xyz structure
         return io::detail::xyz::read(path);
     } else { // anything else - we cannot handle this
+        if (auto format = constants::filetypes::detail::guess_type(path); !format.empty()) {
+            throw except::invalid_argument("PDBStructure::construct_reader: Expected a structure file format, but got what appears to be a " + format + " file.");
+        }
         throw except::invalid_argument("PDBStructure::construct_reader: Unsupported extension \"" + path.extension() + "\" of input file \"" + path.str() + "\".");
     }
 }

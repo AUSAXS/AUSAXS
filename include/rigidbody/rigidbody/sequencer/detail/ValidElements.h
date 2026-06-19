@@ -13,6 +13,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         Constraint,
         Copy,
         EveryNStep,
+        LoadElementWithMetadata,
         LoadElement,
         Log,
         LoopBegin,
@@ -28,6 +29,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         Seed,
         SymmetryElement,
         Transform,
+        Update,
         COUNT
     };
 
