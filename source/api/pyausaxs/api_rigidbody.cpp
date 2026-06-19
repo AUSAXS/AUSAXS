@@ -149,7 +149,7 @@ int rigidbody_get_live_structure(
     return data_id;
 }, status);}
 
-void rigidbody_set_live_consumer(bool connected, int* status) {execute_with_catch([&]() {
+void rigidbody_register_live_consumer(bool connected, int* status) {execute_with_catch([&]() {
     rigidbody::sequencer::UpdateElement::live_consumer_connected = connected;
 }, status);}
 
