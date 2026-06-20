@@ -5,9 +5,11 @@
 #include <data/symmetry/TetrahedralSymmetry.h>
 #include <data/symmetry/OctahedralSymmetry.h>
 #include <data/symmetry/IcosahedralSymmetry.h>
+#include <data/symmetry/PredefinedSymmetries.h>
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <memory>
 #include <vector>
 #include <functional>
@@ -23,9 +25,9 @@ namespace {
     const Vector3<double> cm = {0.0, 0.0, 0.0};
 
     // each concrete group, behind the shared PolyhedralSymmetry interface
-    std::function<std::unique_ptr<IPolyhedralSymmetry>()> make_tetra = [] () -> std::unique_ptr<IPolyhedralSymmetry> {return std::make_unique<TetrahedralSymmetry>();};
-    std::function<std::unique_ptr<IPolyhedralSymmetry>()> make_octa  = [] () -> std::unique_ptr<IPolyhedralSymmetry> {return std::make_unique<OctahedralSymmetry>();};
-    std::function<std::unique_ptr<IPolyhedralSymmetry>()> make_icosa = [] () -> std::unique_ptr<IPolyhedralSymmetry> {return std::make_unique<IcosahedralSymmetry>();};
+    std::function<std::unique_ptr<IPolyhedralSymmetry>()> make_tetra = [] () {return std::make_unique<TetrahedralSymmetry>();};
+    std::function<std::unique_ptr<IPolyhedralSymmetry>()> make_octa  = [] () {return std::make_unique<OctahedralSymmetry>();};
+    std::function<std::unique_ptr<IPolyhedralSymmetry>()> make_icosa = [] () {return std::make_unique<IcosahedralSymmetry>();};
 
     // every distance between two placements of the body, brute-force
     std::vector<double> cross_distances(const IPolyhedralSymmetry& s, int repA, int repB) {
@@ -55,6 +57,16 @@ namespace {
         }
         return n;
     }
+
+    // number of distinct images of a single atom under {original + all copies}; equals
+    // |group| / |stabilizer of p|, so it collapses when p lies on a symmetry axis
+    int orbit_size(const IPolyhedralSymmetry& s, Vector3<double> p) {
+        std::vector<Vector3<double>> orbit = {p}; // rep 0 = the original atom
+        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {orbit.push_back(s.get_transform({0, 0, 0}, rep)(p));}
+        return count_distinct(orbit);
+    }
+
+    const double phi = (1 + std::sqrt(5.0))/2; // golden ratio; (0, 1, phi) is an icosahedral 5-fold axis
 }
 
 TEST_CASE("PolyhedralSymmetry: group order") {
@@ -107,11 +119,13 @@ TEST_CASE("PolyhedralSymmetry: schedule representatives reproduce all inter-copy
     }
 }
 
-TEST_CASE("PolyhedralSymmetry::get_transform: tetrahedral") {
+TEST_CASE("PolyhedralSymmetry::get_transform: copies are proper rotations about the centre") {
+    auto make = GENERATE(make_tetra, make_octa, make_icosa);
+    auto s = make();
+
     SECTION("every copy is a proper rotation about the group centre") {
-        TetrahedralSymmetry s;
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {
-            auto f = s.get_transform({0, 0, 0}, rep);
+        for (int rep = 1; rep <= static_cast<int>(s->repetitions()); ++rep) {
+            auto f = s->get_transform({0, 0, 0}, rep);
             // with no offset the group centre is the origin, which every rotation fixes
             CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));
             // a proper rotation preserves lengths
@@ -121,43 +135,54 @@ TEST_CASE("PolyhedralSymmetry::get_transform: tetrahedral") {
     }
 
     SECTION("offset moves the fixed point to c = cm + translation") {
-        TetrahedralSymmetry s;
-        s.translation = {1, 2, 3};
-        auto f = s.get_transform({0, 0, 0});
+        s->translation = {1, 2, 3};
+        auto f = s->get_transform({0, 0, 0});
         CHECK(f({1, 2, 3}) == Vector3<double>(1, 2, 3));
     }
 }
 
-TEST_CASE("PolyhedralSymmetry: orbit sizes match the stabilizer at special positions") {
-    // a single atom is replicated to one point per group element (12), but when it sits on a
-    // symmetry axis the rotations about that axis map it to itself, collapsing the orbit. The
-    // surviving count is 12 / |stabilizer|, which is how the familiar low-vertex shapes appear.
-    TetrahedralSymmetry s;
-    auto orbit_size = [&](Vector3<double> p) {
-        std::vector<Vector3<double>> orbit = {p}; // rep 0 = the original atom
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {orbit.push_back(s.get_transform({0, 0, 0}, rep)(p));}
-        return count_distinct(orbit);
-    };
+// A single atom is replicated to one point per group element (|group| = 12 / 24 / 60), but when it
+// sits on a symmetry axis the rotations about that axis map it to itself, collapsing the orbit. The
+// surviving count is |group| / |stabilizer|, which is how the familiar low-vertex shapes appear.
+const Vector3<double> generic{0.31, 0.59, 0.83}; // off every symmetry axis of every group
 
-    CHECK(orbit_size({1, 1, 1})          == 4);  // on a 3-fold axis -> 4 tetrahedron vertices
-    CHECK(orbit_size({0, 0, 1})          == 6);  // on a 2-fold axis -> 6 octahedron vertices
-    CHECK(orbit_size({0.31, 0.59, 0.83}) == 12); // generic position -> full 12-element orbit
+TEST_CASE("PolyhedralSymmetry: tetrahedral orbit sizes at special positions") {
+    TetrahedralSymmetry s;
+    CHECK(orbit_size(s, {1, 1, 1}) == 4);  // 3-fold axis -> 4 tetrahedron vertices
+    CHECK(orbit_size(s, {0, 0, 1}) == 6);  // 2-fold axis -> 6 octahedron vertices
+    CHECK(orbit_size(s, generic)   == 12); // generic position -> full 12-element orbit
 }
 
-TEST_CASE("PolyhedralSymmetry: a rigid line shows the rotation of each tetrahedral copy") {
-    // Three collinear, equally-spaced atoms form a small "arrow" whose orientation is visible
-    // (unlike a single point). Placed off every symmetry axis, so its orbit is the full 12, this
-    // makes the rotation of each copy explicit: every copy is the same arrow pointing a new way.
+TEST_CASE("PolyhedralSymmetry: octahedral orbit sizes at special positions") {
+    OctahedralSymmetry s;
+    CHECK(orbit_size(s, {0, 0, 1}) == 6);  // 4-fold axis -> 6 octahedron vertices
+    CHECK(orbit_size(s, {1, 1, 1}) == 8);  // 3-fold axis -> 8 cube vertices
+    CHECK(orbit_size(s, {1, 1, 0}) == 12); // 2-fold axis -> 12 edge midpoints (cuboctahedron)
+    CHECK(orbit_size(s, generic)   == 24); // generic position -> full 24-element orbit
+}
+
+TEST_CASE("PolyhedralSymmetry: icosahedral orbit sizes at special positions") {
+    IcosahedralSymmetry s;
+    CHECK(orbit_size(s, {0, 1, phi}) == 12); // 5-fold axis -> 12 icosahedron vertices
+    CHECK(orbit_size(s, {1, 1, 1})   == 20); // 3-fold axis -> 20 dodecahedron vertices
+    CHECK(orbit_size(s, {1, 0, 0})   == 30); // 2-fold axis -> 30 edge midpoints
+    CHECK(orbit_size(s, generic)     == 60); // generic position -> full 60-element orbit
+}
+
+TEST_CASE("PolyhedralSymmetry: a rigid line shows the rotation of each copy") {
+    // Three collinear, equally-spaced atoms form a small "arrow" whose orientation is visible (unlike a
+    // single point). Placed off every symmetry axis its orbit is the full group, which makes the rotation
+    // of each copy explicit: every copy is the same arrow rigidly rotated to point a new way.
+    auto make = GENERATE(make_tetra, make_octa, make_icosa);
+    auto s = make();
+
     const Vector3<double> step{1.0, 0.5, 0.25};
     const Vector3<double> p0{0.3, 0.1, 0.7};
     const std::array<Vector3<double>, 3> line = {p0, p0 + step, p0 + 2*step};
 
-    TetrahedralSymmetry s;
-    REQUIRE(s.repetitions() == 11);
-
     std::vector<Vector3<double>> heads = {line[0]}; // rep 0 = the original arrow
-    for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {
-        auto t = s.get_transform({0, 0, 0}, rep);
+    for (int rep = 1; rep <= static_cast<int>(s->repetitions()); ++rep) {
+        auto t = s->get_transform({0, 0, 0}, rep);
         Vector3<double> q0 = t(line[0]), q1 = t(line[1]), q2 = t(line[2]);
 
         // the copy is still a straight, equally-spaced line: the two steps stay identical
@@ -170,6 +195,20 @@ TEST_CASE("PolyhedralSymmetry: a rigid line shows the rotation of each tetrahedr
         heads.emplace_back(q0);
     }
 
-    // the 12 rotations carry the arrow to 12 distinct positions (full orbit of a generic body)
-    CHECK(count_distinct(heads) == 12);
+    // every rotation carries the arrow to a distinct position (full orbit of a generic body): 12 / 24 / 60
+    CHECK(count_distinct(heads) == static_cast<int>(s->repetitions()) + 1);
+}
+
+TEST_CASE("PolyhedralSymmetry: name parsing maps to the right concrete group") {
+    CHECK(dynamic_cast<TetrahedralSymmetry*>(create("t").get())           != nullptr);
+    CHECK(dynamic_cast<TetrahedralSymmetry*>(create("tetrahedral").get()) != nullptr);
+    CHECK(dynamic_cast<OctahedralSymmetry*>(create("o").get())            != nullptr);
+    CHECK(dynamic_cast<OctahedralSymmetry*>(create("octahedral").get())   != nullptr);
+    CHECK(dynamic_cast<IcosahedralSymmetry*>(create("i").get())           != nullptr);
+    CHECK(dynamic_cast<IcosahedralSymmetry*>(create("icosahedral").get()) != nullptr);
+
+    CHECK(get("t") == type::tetrahedral);
+    CHECK(get("o") == type::octahedral);
+    CHECK(get("i") == type::icosahedral);
+    CHECK_THROWS(get("not-a-symmetry-name"));
 }

@@ -111,9 +111,9 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "c11") {return type::c11;}
     if (name == "c12") {return type::c12;}
     if (name == "p2") {return type::p2;}
-    if (name == "t" || "tetrahedral")  {return type::tetrahedral;}
-    if (name == "o" || "octahedral")  {return type::octahedral;}
-    if (name == "i" || "icosahedral")  {return type::icosahedral;}
+    if (name == "t" || name == "tetrahedral") {return type::tetrahedral;}
+    if (name == "o" || name == "octahedral")  {return type::octahedral;}
+    if (name == "i" || name == "icosahedral") {return type::icosahedral;}
     throw std::runtime_error("symmetry::get: Unknown symmetry name \"" + std::string(name) + "\".");
 }
 
