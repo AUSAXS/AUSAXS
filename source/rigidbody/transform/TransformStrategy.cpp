@@ -12,7 +12,7 @@
 #include <data/state/BoundSignaller.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/PolyhedralSymmetry.h>
+#include <data/symmetry/IPolyhedralSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <math/MatrixUtils.h>
@@ -91,8 +91,8 @@ void TransformStrategy::add_symmetries(
                 assert(dynamic_cast<symmetry::CyclicSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
             } else if (dynamic_cast<symmetry::PointSymmetry*>(current[i].get())) {
                 assert(dynamic_cast<symmetry::PointSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
-            } else if (dynamic_cast<symmetry::PolyhedralSymmetry*>(current[i].get())) {
-                assert(dynamic_cast<symmetry::PolyhedralSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            } else if (dynamic_cast<symmetry::IPolyhedralSymmetry*>(current[i].get())) {
+                assert(dynamic_cast<symmetry::IPolyhedralSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
             } else if (dynamic_cast<symmetry::CompositeSymmetry*>(current[i].get())) {
                 assert(dynamic_cast<symmetry::CompositeSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
             } else if (dynamic_cast<symmetry::ReferenceSymmetry*>(current[i].get())) {

@@ -771,7 +771,11 @@ auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoice choic
     static std::uniform_real_distribution<> d(-10, 10);
     static std::uniform_real_distribution<> r(-std::numbers::pi, std::numbers::pi);
 
-    auto group = GENERATE(symmetry::PolyhedralGroup::tetrahedral, symmetry::PolyhedralGroup::octahedral, symmetry::PolyhedralGroup::icosahedral);
+    auto make_group = GENERATE(
+        +[] () -> std::unique_ptr<symmetry::PolyhedralSymmetry> {return std::make_unique<symmetry::TetrahedralSymmetry>();},
+        +[] () -> std::unique_ptr<symmetry::PolyhedralSymmetry> {return std::make_unique<symmetry::OctahedralSymmetry>();},
+        +[] () -> std::unique_ptr<symmetry::PolyhedralSymmetry> {return std::make_unique<symmetry::IcosahedralSymmetry>();}
+    );
     int n_atoms = GENERATE(1, 4);
 
     // build a body, apply a polyhedral symmetry, and compare the reused-distance histogram
@@ -786,7 +790,7 @@ auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoice choic
         m.set_histogram_manager(choice);
         set_unity_charge(m);
 
-        auto sym = std::make_unique<symmetry::PolyhedralSymmetry>(group);
+        auto sym = make_group();
         sym->translation = {d(gen), d(gen), d(gen)};
         sym->rotation = {r(gen), r(gen), r(gen)};
         m.get_body(0).symmetry().add(std::move(sym));
