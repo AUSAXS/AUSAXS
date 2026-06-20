@@ -26,9 +26,10 @@ auto test_composite_symmetry = [] (settings::hist::HistogramManagerChoice choice
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-8, 8);
 
-    // build inner/outer sub-symmetries; the nesting "inner-outer" replicates the inner unit
-    enum class kind {p2_c3, c2_c3, c3_c2};
-    auto nesting = GENERATE(kind::p2_c3, kind::c2_c3, kind::c3_c2);
+    // build inner/outer sub-symmetries; the nesting "inner-outer" replicates the inner unit.
+    // p2_c2_c3 is a 3-level nesting Composite(p2, Composite(c2, c3)) -- the form the parser builds for "p2-c2-c3"
+    enum class kind {p2_c3, c2_c3, c3_c2, p2_c2_c3};
+    auto nesting = GENERATE(kind::p2_c3, kind::c2_c3, kind::c3_c2, kind::p2_c2_c3);
     int n_atoms = GENERATE(1, 3);
 
     auto make_cyclic = [](double angle, int reps, Vector3<double> offset) {
@@ -62,6 +63,14 @@ auto test_composite_symmetry = [] (settings::hist::HistogramManagerChoice choice
             case kind::c3_c2:
                 inner = make_cyclic(2*std::numbers::pi/3, 2, {3, 0, 0});
                 outer = make_cyclic(std::numbers::pi, 1, {8, 0, 0});
+                break;
+            case kind::p2_c2_c3:
+                // outer is itself a composite -> the final wrap below yields Composite(p2, Composite(c2, c3))
+                inner = std::make_unique<symmetry::PointSymmetry>(Vector3<double>{4, 1, 0}, Vector3<double>{0, 0, 0});
+                outer = std::make_unique<symmetry::CompositeSymmetry>(
+                    make_cyclic(std::numbers::pi, 1, {3, 0, 0}),   // c2
+                    make_cyclic(2*std::numbers::pi/3, 2, {7, 0, 0}) // c3
+                );
                 break;
         }
         m.get_body(0).symmetry().add(std::make_unique<symmetry::CompositeSymmetry>(std::move(inner), std::move(outer)));
