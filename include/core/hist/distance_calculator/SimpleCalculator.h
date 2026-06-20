@@ -286,9 +286,10 @@ inline typename ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bin
 // this approach is not sustainable
 // should higher scaling factors be needed, new add1, add4, and add8 functions should be created which accepts the scaling factor as a parameter
 // for now, this is primarily meant for rigidbody optimizations, where larger symmetries are not expected
+// case 60 is included specifically for the icosahedral PolyhedralSymmetry (60 copies)
 template<bool weighted_bins, bool variable_bin_width>
 inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::enqueue_calculate_self(
-    const hist::detail::CompactCoordinates<variable_bin_width>& data, 
+    const hist::detail::CompactCoordinates<variable_bin_width>& data,
     int scaling,
     int merge_id
 ) {
@@ -323,17 +324,19 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
         case 28: return enqueue_calculate_self<28>(data, merge_id);
         case 29: return enqueue_calculate_self<29>(data, merge_id);
         case 30: return enqueue_calculate_self<30>(data, merge_id);
-        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_self: too large scaling factor (" + std::to_string(scaling) + ")");
+        case 60: return enqueue_calculate_self<60>(data, merge_id);
+        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_self: unsupported scaling factor (" + std::to_string(scaling) + ")");
     }
 }
 
 // this approach is not sustainable
 // should higher scaling factors be needed, new add1, add4, and add8 functions should be created which accepts the scaling factor as a parameter
 // for now, this is primarily meant for rigidbody optimizations, where larger symmetries are not expected
+// case 60 is included specifically for the icosahedral PolyhedralSymmetry (60 copies)
 template<bool weighted_bins, bool variable_bin_width>
 inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::enqueue_calculate_cross(
-    const hist::detail::CompactCoordinates<variable_bin_width>& data_1, 
-    const hist::detail::CompactCoordinates<variable_bin_width>& data_2, 
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_1,
+    const hist::detail::CompactCoordinates<variable_bin_width>& data_2,
     int scaling,
     int merge_id
 ) {
@@ -368,6 +371,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
         case 28: return enqueue_calculate_cross<28>(data_1, data_2, merge_id);
         case 29: return enqueue_calculate_cross<29>(data_1, data_2, merge_id);
         case 30: return enqueue_calculate_cross<30>(data_1, data_2, merge_id);
-        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_cross: too large scaling factor (" + std::to_string(scaling) + ")");
+        case 60: return enqueue_calculate_cross<60>(data_1, data_2, merge_id);
+        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_cross: unsupported scaling factor (" + std::to_string(scaling) + ")");
     }
 }

@@ -11,6 +11,7 @@
 #include <data/state/StateManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <utility/MultiThreading.h>
 #include <utility/Logging.h>
@@ -19,6 +20,7 @@
 #include <settings/HistogramSettings.h>
 
 #include <list>
+#include <cassert>
 #include <functional>
 
 /**
@@ -65,7 +67,7 @@ namespace {
 template<bool weighted_bins, bool variable_bin_width>
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calculate() {
     logging::log("PartialSymmetryManagerMT::calculate: starting calculation");
-    if (protein->size_water() == 0) {
+    if (protein->size_water() == 0 && !this->statemanager->is_modified_hydration()) {
         return _calculate<false>();
     } else {
         return _calculate<true>();
@@ -84,6 +86,11 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     auto internally_modified = this->statemanager->get_internally_modified_bodies();
     auto symmetry_modified = this->statemanager->get_symmetry_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
+
+    // shared reference symmetries couple several bodies; expand the flags so that a change to any
+    // participating body (or the shared symmetry) recomputes the whole group's copies
+    propagate_reference_symmetry_modifications(externally_modified, internally_modified, symmetry_modified);
+
     auto pool = utility::multi_threading::get_global_pool();
     auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>();
 
@@ -101,7 +108,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 update_compact_representation_body(ibody); //? unnecessary to update whole body; enough to update main body
             }
 
-            // if the external state was modified, we have to update the coordinate representations for later calculations 
+            // if the external state was modified, we have to update the coordinate representations for later calculations
             // (implicitly done in calc_self_correlation)
             else if (externally_modified[ibody]) {
                 pool->detach_task(
@@ -109,11 +116,15 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 );
             }
 
-            for (int isym = 0; isym < static_cast<int>(this->protein->get_body(ibody).size_symmetry()); ++isym) {
-                if (symmetry_modified[ibody][isym]) {
-                    pool->detach_task(
-                        [this, ibody, isym] () {update_compact_representation_symmetry(ibody, isym+1);}
-                    );
+            // only update individual symmetry copies when the body itself is not being fully regenerated;
+            // concurrent body + symmetry updates on the same body would race on coords[ibody]
+            else {
+                for (int isym = 0; isym < static_cast<int>(this->protein->get_body(ibody).size_symmetry()); ++isym) {
+                    if (symmetry_modified[ibody][isym]) {
+                        pool->detach_task(
+                            [this, ibody, isym] () {update_compact_representation_symmetry(ibody, isym+1);}
+                        );
+                    }
                 }
             }
         }
@@ -396,6 +407,8 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact_representation_symmetry(int ibody, int isym) {
+    assert(ibody < static_cast<int>(coords.size()) && "update_compact_representation_symmetry: ibody out of range");
+    assert(isym > 0 && isym < static_cast<int>(coords[ibody].atomic.size()) && "update_compact_representation_symmetry: isym out of range");
     coords[ibody].atomic[isym] = symmetry::detail::generate_transformed_data<variable_bin_width>(this->protein->get_body(ibody), isym-1).data;
     for (auto& sym : coords[ibody].atomic[isym]) {
         hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
@@ -523,6 +536,35 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize() {
 }
 
 template<bool weighted_bins, bool variable_bin_width>
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::propagate_reference_symmetry_modifications(
+    const std::vector<bool>& externally_modified,
+    const std::vector<bool>& internally_modified,
+    std::vector<std::vector<bool>>& symmetry_modified
+) const {
+    for (int ibody = 0; ibody < static_cast<int>(this->body_size); ++ibody) {
+        const auto& body = this->protein->get_body(ibody);
+        for (int isym = 0; isym < static_cast<int>(body.size_symmetry()); ++isym) {
+            // a reference symmetry lives on its primary body; the view bodies hold a view that is
+            // skipped here, so each group is processed exactly once via its owning instance
+            auto ref = dynamic_cast<const symmetry::ReferenceSymmetry*>(body.symmetry().get(isym));
+            if (ref == nullptr) {continue;}
+
+            // the group's copies are stale if the shared symmetry itself or any participating body
+            // (which feeds the combined centre of mass) has changed. The symmetry already knows its
+            // members and the slot it occupies on each, so no body search is needed.
+            bool affected = false;
+            for (std::size_t k = 0; k < ref->bodies.size(); ++k) {
+                int b = ref->bodies[k], slot = ref->slots[k];
+                affected = affected || symmetry_modified[b][slot] || externally_modified[b] || internally_modified[b];
+            }
+            if (!affected) {continue;}
+
+            for (std::size_t k = 0; k < ref->bodies.size(); ++k) {symmetry_modified[ref->bodies[k]][ref->slots[k]] = true;}
+        }
+    }
+}
+
+template<bool weighted_bins, bool variable_bin_width>
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa_self(calculator_t calculator, int ibody) const {
     const auto& body = protein->get_body(ibody);
     #if DEBUG_INFO_PSMMT
@@ -562,15 +604,18 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         if (isym2 == 0) {
             assert(isym1 < 1+static_cast<int>(body1.size_symmetry()) && "symmetry index out of bounds");
             auto sym1 = body1.symmetry().get(isym1-1);
-            bool closed = sym1->is_closed();
-            for (int irepeat1 = 0; irepeat1 < std::max<int>(1, sym1->repetitions() - int(closed)); ++irepeat1) {
-                const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
-                int scale = sym1->repetitions() - irepeat1;
-                if (irepeat1 == 0 && closed) {scale += 1;}
-                calculator->enqueue_calculate_cross(coords[ibody2].atomic[0][0], body1_sym_atomic, scale, res_index);
+
+            // distinct distance pairs among {original, copy_1, ..., copy_N}; repetition 0 is
+            // the original body (atomic[0][0]), 1..N are the copies (atomic[isym1][rep-1])
+            for (const auto& pair : sym1->internal_pair_schedule()) {
+                assert((pair.repA == 0 || pair.repA-1 < static_cast<int>(coords[ibody1].atomic[isym1].size())) && "internal_pair_schedule: repA out of range for atomic copies");
+                assert((pair.repB == 0 || pair.repB-1 < static_cast<int>(coords[ibody1].atomic[isym1].size())) && "internal_pair_schedule: repB out of range for atomic copies");
+                const auto& atomicA = pair.repA == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repA-1];
+                const auto& atomicB = pair.repB == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repB-1];
+                calculator->enqueue_calculate_cross(atomicA, atomicB, pair.scale, res_index);
 
                 #if DEBUG_INFO_PSMMT
-                    std::cout << "\t[" << ibody1 << isym1 << irepeat1 << "][" << ibody2 << isym2 << "0] x" << scale << std::endl;
+                    std::cout << "\t[" << ibody1 << isym1 << pair.repA << "][" << ibody1 << isym1 << pair.repB << "] x" << pair.scale << std::endl;
                     std::cout << "\t\tstored at cross index " << res_index << std::endl;
                 #endif
             }

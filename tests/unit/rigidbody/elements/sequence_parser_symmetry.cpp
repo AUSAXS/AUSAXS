@@ -8,11 +8,17 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
+#include <rigidbody/parameters/ParameterGenerationStrategies.h>
+#include <rigidbody/transform/TransformStrategy.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
+#include <math/Vector3.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
+#include <algorithm>
 #include <fstream>
 
 using namespace ausaxs;
@@ -82,6 +88,86 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
         CHECK(rb->molecule.get_body(0).size_symmetry() == 2);
     }
 
+    SECTION("composite symmetry p2-c3 builds a nested CompositeSymmetry") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry p2-c3\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+        REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
+
+        auto* comp = dynamic_cast<symmetry::CompositeSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+        REQUIRE(comp != nullptr);
+        // p2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
+        CHECK(comp->repetitions() == 5);
+    }
+
+    SECTION("composite symmetry can be applied to a named body in a block") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry {\n"
+            "    b2 c2-c3\n"
+            "}\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+        CHECK(rb->molecule.get_body(0).size_symmetry() == 0);
+        REQUIRE(rb->molecule.get_body(1).size_symmetry() == 1);
+        auto* comp = dynamic_cast<symmetry::CompositeSymmetry*>(rb->molecule.get_body(1).symmetry().get(0));
+        REQUIRE(comp != nullptr);
+        // c2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
+        CHECK(comp->repetitions() == 5);
+    }
+
+    SECTION("reference symmetry shares one symmetry across several bodies") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry {\n"
+            "    bodies \"b1 b2\" c3\n"
+            "}\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+
+        // the primary body owns a ReferenceSymmetry; the other holds a non-owning view of it
+        REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
+        REQUIRE(rb->molecule.get_body(1).size_symmetry() == 1);
+        auto* ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+        auto* view = dynamic_cast<symmetry::ReferenceSymmetryView*>(rb->molecule.get_body(1).symmetry().get(0));
+        REQUIRE(ref != nullptr);
+        REQUIRE(view != nullptr);
+
+        // the view forwards to the primary's symmetry, so both report the same repetitions (c3 -> 2)
+        CHECK(ref->repetitions() == 2);
+        CHECK(view->repetitions() == 2);
+        CHECK(view->target() == ref);
+    }
+
+    SECTION("reference symmetry rejects a non-cyclic base") {
+        CHECK_THROWS(parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry {\n"
+            "    bodies \"b1 b2\" t\n"
+            "}\n"
+        ));
+    }
+
     SECTION("symmetry applied to one body does not affect other bodies") {
         auto seq = parse(
             "load {\n"
@@ -97,6 +183,68 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
         REQUIRE(rb != nullptr);
         CHECK(rb->molecule.get_body(0).size_symmetry() == 0);
         CHECK(rb->molecule.get_body(1).size_symmetry() == 1);
+    }
+}
+
+TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symmetry refinement") {
+    auto seq = parse(
+        "load {\n"
+        "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+        "    saxs tests/files/SASDJG5.dat\n"
+        "}\n"
+        "symmetry {\n"
+        "    bodies \"b1 b2\" c3\n"
+        "}\n"
+    );
+    REQUIRE(seq != nullptr);
+    auto rb = seq->_get_rigidbody();
+    REQUIRE(rb != nullptr);
+
+    auto* ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+    auto* view = dynamic_cast<symmetry::ReferenceSymmetryView*>(rb->molecule.get_body(1).symmetry().get(0));
+    REQUIRE(ref != nullptr);
+    REQUIRE(view != nullptr);
+
+    rigidbody::parameter::SymmetryOnly gen(rb, settings::rigidbody::iterations, 5, 0.5);
+    auto nonzero = [](std::span<double> s) {return std::any_of(s.begin(), s.end(), [](double v) {return v != 0;});};
+
+    SECTION("the shared symmetry is optimisable, the view is inert") {
+        // the primary body's symmetry is perturbed...
+        auto p_primary = gen.next(0);
+        REQUIRE(p_primary.symmetry_pars.has_value());
+        REQUIRE(p_primary.symmetry_pars.value().size() == 1);
+        auto* delta = dynamic_cast<symmetry::ReferenceSymmetry*>(p_primary.symmetry_pars.value()[0].get());
+        REQUIRE(delta != nullptr);
+        CHECK((nonzero(delta->span_translation()) || nonzero(delta->span_rotation())));
+
+        // ...but the view contributes no optimisable parameters of its own
+        auto p_view = gen.next(1);
+        REQUIRE(p_view.symmetry_pars.has_value());
+        REQUIRE(p_view.symmetry_pars.value().size() == 1);
+        auto* view_delta = dynamic_cast<symmetry::ReferenceSymmetryView*>(p_view.symmetry_pars.value()[0].get());
+        REQUIRE(view_delta != nullptr);
+        CHECK(view_delta->span_translation().empty());
+        CHECK(view_delta->span_rotation().empty());
+    }
+
+    SECTION("a view survives transformation of the primary body and tracks it") {
+        Vector3<double> probe{1, 2, 3};
+        auto before = view->get_transform({0, 0, 0}, 1)(probe);
+
+        // transforming the primary body reallocates its symmetry objects; a cached raw pointer
+        // would dangle here, but the view re-resolves through the (stable) molecule
+        unsigned int primary = 0;
+        auto params = gen.next(primary);
+        rb->transformer->apply(std::move(params), primary);
+
+        auto after = view->get_transform({0, 0, 0}, 1)(probe);
+        CHECK((after - before).magnitude() > 1e-6); // the view reflects the updated shared symmetry
+
+        // and it agrees with the primary's current (reallocated) symmetry
+        auto* live_ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+        REQUIRE(live_ref != nullptr);
+        auto ref_t = live_ref->get_transform({0, 0, 0}, 1)(probe);
+        CHECK((after - ref_t).magnitude() < 1e-9);
     }
 }
 

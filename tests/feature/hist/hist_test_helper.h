@@ -4,9 +4,12 @@
 #include <utility/Utility.h>
 #include <data/Molecule.h>
 #include <utility/Concepts.h>
+#include <settings/Flags.h>
 
+#include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 using namespace ausaxs;
 
@@ -217,4 +220,58 @@ void invoke_for_all_nongrid_histogram_manager_variants(F2&& f2, Args&&... args) 
 template<typename F1, typename ...Args>
 void invoke_for_all_grid_histogram_manager_variants(F1&& f1, Args&&... args) {
     invoke_for_all_histogram_manager_variants_one(std::forward<F1>(f1), (args)...);
+}
+
+/**
+ * @brief A single expected histogram entry: an exact bin count at the bin a given distance falls into.
+ *        Distances are binned the same way the histogram managers bin them (round(d * inv_bin_width)).
+ */
+struct RES {
+    RES(double d, int v) : index(std::round(d*settings::flags::inv_bin_width)), val(v) {}
+    int index;
+    int val;
+};
+
+/**
+ * @brief Assert that a weighted-count histogram matches an exact, analytically-derived spec.
+ *
+ * Each RES gives the expected integer count at the bin a known distance falls into; entries sharing a
+ * bin are summed. The match is exact: every listed bin must equal its count, and every other bin must
+ * be exactly zero. Intended for small cases whose distances are enumerable by hand; for larger or
+ * rotated geometries (where floating-point bin-edge drift makes exact counts flaky) compare two
+ * computed histograms with compare_hist_approx instead.
+ */
+inline void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
+    std::sort(checks.begin(), checks.end(), [](const RES& a, const RES& b) {return a.index < b.index;});
+    std::vector<RES> tmp;
+    for (int i = 0; i < static_cast<int>(checks.size()); ++i) {
+        if (i == 0 || checks[i].index != checks[i-1].index) {
+            tmp.push_back(checks[i]);
+        } else {
+            tmp.back().val += checks[i].val;
+        }
+    }
+    checks = tmp;
+    REQUIRE(checks.back().index < static_cast<int>(h.size()));
+    int j = 0;
+    for (int i = 0; i < static_cast<int>(h.size()); ++i) {
+        if (i == checks[j].index) {
+            if (h[i] != checks[j].val) {
+                INFO("i = " << i << ", dist = " << i*constants::axes::d_axis.width());
+                INFO("h[i] = " << h[i] << ", checks[j].val = " << checks[j].val);
+                CHECK(false);
+            }
+            ++j;
+            if (j == static_cast<int>(checks.size())) {
+                break;
+            }
+        } else {
+            if (h[i] != 0) {
+                INFO("i = " << i << ", dist = " << i*constants::axes::d_axis.width());
+                INFO("h[i] = " << h[i] << ", checks[j].val = " << 0);
+                CHECK(false);
+            }
+        }
+    }
+    SUCCEED();
 }

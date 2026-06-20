@@ -12,6 +12,9 @@
 #include <data/state/BoundSignaller.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
+#include <data/symmetry/IPolyhedralSymmetry.h>
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <math/MatrixUtils.h>
 
 #include <vector>
@@ -45,18 +48,32 @@ void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vect
     body.translate(pivot+t);
 }
 
+namespace {
+    // Recursively copy the optimisable parameters (translation + rotation spans) from src to dst.
+    // CompositeSymmetry exposes no spans of its own, so we descend into its inner/outer parts;
+    // their structure matches because both sides are clones of the same symmetry tree.
+    void copy_symmetry_parameters(symmetry::ISymmetry& dst, symmetry::ISymmetry& src) {
+        if (auto* cdst = dynamic_cast<symmetry::CompositeSymmetry*>(&dst)) {
+            auto* csrc = dynamic_cast<symmetry::CompositeSymmetry*>(&src);
+            assert(csrc != nullptr && "copy_symmetry_parameters: composite/non-composite mismatch.");
+            copy_symmetry_parameters(*cdst->inner, *csrc->inner);
+            copy_symmetry_parameters(*cdst->outer, *csrc->outer);
+            return;
+        }
+        auto src_t = src.span_translation();
+        auto src_r = src.span_rotation();
+        auto dst_t = dst.span_translation();
+        auto dst_r = dst.span_rotation();
+        assert(src_t.size() == dst_t.size() && src_r.size() == dst_r.size() && "copy_symmetry_parameters: span size mismatch.");
+        std::copy(src_t.begin(), src_t.end(), dst_t.begin());
+        std::copy(src_r.begin(), src_r.end(), dst_r.begin());
+    }
+}
+
 void TransformStrategy::apply_symmetry(const std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry, data::Body& body) {
     assert(symmetry.size() == body.size_symmetry());
     for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
-        auto current_sym = body.symmetry().get(i);
-        auto src_t = symmetry[i]->span_translation();
-        auto src_r = symmetry[i]->span_rotation();
-        auto dst_t = current_sym->span_translation();
-        auto dst_r = current_sym->span_rotation();
-
-        assert(src_t.size() == dst_t.size() && src_r.size() == dst_r.size() && "TransformStrategy::apply_symmetry: Symmetry parameter size mismatch.");
-        std::copy(src_t.begin(), src_t.end(), dst_t.begin());
-        std::copy(src_r.begin(), src_r.end(), dst_r.begin());
+        copy_symmetry_parameters(*body.symmetry().get(i), *symmetry[i]);
         body.get_signaller()->modified_symmetry(i);
     }
 }
@@ -74,6 +91,14 @@ void TransformStrategy::add_symmetries(
                 assert(dynamic_cast<symmetry::CyclicSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
             } else if (dynamic_cast<symmetry::PointSymmetry*>(current[i].get())) {
                 assert(dynamic_cast<symmetry::PointSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            } else if (dynamic_cast<symmetry::IPolyhedralSymmetry*>(current[i].get())) {
+                assert(dynamic_cast<symmetry::IPolyhedralSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            } else if (dynamic_cast<symmetry::CompositeSymmetry*>(current[i].get())) {
+                assert(dynamic_cast<symmetry::CompositeSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            } else if (dynamic_cast<symmetry::ReferenceSymmetry*>(current[i].get())) {
+                assert(dynamic_cast<symmetry::ReferenceSymmetry*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
+            } else if (dynamic_cast<symmetry::ReferenceSymmetryView*>(current[i].get())) {
+                assert(dynamic_cast<symmetry::ReferenceSymmetryView*>(delta[i].get()) && "TransformStrategy::add_symmetries: Symmetry type mismatch.");
             } else {
                 assert(false && "TransformStrategy::add_symmetries: Unchecked symmetry type.");
             }

@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/ParameterMask.h>
+#include <data/symmetry/CompositeSymmetry.h>
 
 #include <cassert>
 
@@ -20,8 +21,11 @@ void ParameterMask::apply(parameter::BodyTransformParametersRelative& params) co
         if (!sym_translation && !sym_axis) {params.symmetry_pars = std::nullopt;} 
         else {
             for (auto& sym : params.symmetry_pars.value()) {
-                if (!sym_translation) {for(auto& t : sym->span_translation()) {t = 0;}}
-                if (!sym_axis) {for(auto& r : sym->span_rotation()) {r = 0;}}
+                // recurse into composite sub-symmetries; they have no contiguous span of their own
+                symmetry::for_each_leaf(*sym, [&](symmetry::ISymmetry& leaf) {
+                    if (!sym_translation) {for (auto& t : leaf.span_translation()) {t = 0;}}
+                    if (!sym_axis) {for (auto& r : leaf.span_rotation()) {r = 0;}}
+                });
             }
         }
     }
