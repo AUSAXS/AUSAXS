@@ -22,11 +22,10 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-// Fuzz test: stack random symmetries of every type onto small random structures and verify the
-// reuse-based SymmetryManagers reproduce the brute-force explicit_structure histogram. The generators
-// respect the calculator's hard limit on the per-partial-histogram scale factor: at most x30 on any
-// job, except exactly x60 for a standalone icosahedral group. The dominant scale is the self-
-// correlation, 1 + size_symmetry_total() per body, so each body's total copy count is bounded below:
+// Fuzz test: stack random symmetries of every type onto small random structures and verify the reuse-based SymmetryManagers 
+// reproduce the brute-force explicit_structure histogram. The generators respect the calculator's hard limit on the 
+// per-partial-histogram scale factor: at most x30 on any job, except exactly x60 for a standalone icosahedral group. The 
+// dominant scale is the self-correlation, 1 + size_symmetry_total() per body, so each body's total copy count is bounded below:
 //   - cyclic/point/composite stacks keep the per-body copy sum well under 29 (self-scale <= 30)
 //   - polyhedral groups are applied standalone: T/O/I give self-scales 12/24/60 (60 is the special case)
 namespace {
@@ -79,7 +78,7 @@ namespace {
             case 0: body.symmetry().add(rnd_cyclic(6)); break;                 // single cyclic, self-scale <= 6
             case 1: body.symmetry().add(rnd_point()); break;                   // single point, self-scale 2
             case 2: body.symmetry().add(rnd_polyhedral(true)); break;          // standalone T/O/I, self-scale 12/24/60
-            case 3: body.symmetry().add(rnd_composite()); break;              // single composite, self-scale <= 9
+            case 3: body.symmetry().add(rnd_composite()); break;               // single composite, self-scale <= 9
             case 4: {                                                          // a stack of light cyclic/point symmetries
                 int budget = 10;                                               // keep self-scale = 1 + sum(copies) <= 11
                 for (int k = 0; k < 3; ++k) {
@@ -121,10 +120,9 @@ namespace {
             set_unity_charge(m2);
             auto h2 = m2.get_histogram()->get_weighted_counts();
 
-            // equalise lengths so compare_hist_approx's +-1 window is not truncated at the tail: a
-            // reuse representative and the individually-binned explicit pairs of the same group can
-            // differ by sub-bin FP (their relative transforms match only to the bucketer tolerance),
-            // and near a bin edge at the histogram tail that benign 1-bin drift would otherwise escape
+            // equalise lengths so compare_hist_approx's +-1 window is not truncated at the tail: a reuse representative and the 
+            // individually-binned explicit pairs of the same group can differ by sub-bin FP (their relative transforms match only 
+            // to the bucketer tolerance), and near a bin edge at the histogram tail that benign 1-bin drift would otherwise escape
             // the window where one histogram has already been trimmed to its last non-zero bin.
             std::size_t n = std::max(h.size(), h2.size());
             h.resize(n, 0); h2.resize(n, 0);

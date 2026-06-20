@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 
