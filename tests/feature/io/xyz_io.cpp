@@ -45,18 +45,18 @@ TEST_CASE("XYZReader::read") {
     }
 
     SECTION("real file") {
-        io::File file("tests/files/Au.xyz");
+        io::File file("tests/files/carbon_sphere.xyz");
         auto structure = io::detail::xyz::read(file);
-        REQUIRE(structure.atoms.size() == 201);
+        REQUIRE(structure.atoms.size() == 1985);
 
-        REQUIRE(structure.atoms[0].element == constants::atom_t::Au);
-        REQUIRE_THAT(structure.atoms[0].coordinates().x(), Catch::Matchers::WithinAbs(-3.81837662, 1e-6));
-        REQUIRE_THAT(structure.atoms[0].coordinates().y(), Catch::Matchers::WithinAbs(-7.63675324, 1e-6));
-        REQUIRE_THAT(structure.atoms[0].coordinates().z(), Catch::Matchers::WithinAbs(0., 1e-6));
+        REQUIRE(structure.atoms[0].element == constants::atom_t::C);
+        REQUIRE_THAT(structure.atoms[0].coordinates().x(), Catch::Matchers::WithinAbs(-18.35212500, 1e-6));
+        REQUIRE_THAT(structure.atoms[0].coordinates().y(), Catch::Matchers::WithinAbs(-6.11737500, 1e-6));
+        REQUIRE_THAT(structure.atoms[0].coordinates().z(), Catch::Matchers::WithinAbs(-4.07825000, 1e-6));
 
-        REQUIRE(structure.atoms[1].element == constants::atom_t::Au);
-        REQUIRE_THAT(structure.atoms[1].coordinates().x(), Catch::Matchers::WithinAbs(3.81837662, 1e-6));
-        REQUIRE_THAT(structure.atoms[1].coordinates().y(), Catch::Matchers::WithinAbs(-7.63675324, 1e-6));
-        REQUIRE_THAT(structure.atoms[1].coordinates().z(), Catch::Matchers::WithinAbs(0., 1e-6));
+        REQUIRE(structure.atoms[1].element == constants::atom_t::C);
+        REQUIRE_THAT(structure.atoms[1].coordinates().x(), Catch::Matchers::WithinAbs(-18.35212500, 1e-6));
+        REQUIRE_THAT(structure.atoms[1].coordinates().y(), Catch::Matchers::WithinAbs(-4.07825000, 1e-6));
+        REQUIRE_THAT(structure.atoms[1].coordinates().z(), Catch::Matchers::WithinAbs(-6.11737500, 1e-6));
     }
 }

@@ -18,10 +18,10 @@ TEST_CASE("Wide-angle scattering: gold nanoparticles") {
     settings::axes::bin_width = 0.1;
 
     // expected scattering
-    Dataset expected("tests/files/SphericalAuScattering.dat");
+    Dataset expected("tests/files/carbon_sphere_waxs.dat");
 
     // calculate scattering from the molecule
-    Molecule mol("tests/files/SphericalAuNP.xyz");
+    Molecule mol("tests/files/carbon_sphere.xyz");
     mol.clear_hydration();
     auto I = mol.get_total_histogram()->debye_transform(expected.x());
     std::transform(I.y().begin(), I.y().end(), I.x().begin(), I.y().begin(), [] (double I, double q) {
