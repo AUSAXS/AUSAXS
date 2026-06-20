@@ -10,15 +10,11 @@
 
 namespace ausaxs::symmetry {
     enum class type {
-        c2,
-        c3,
-        c4,
-        c5,
-        c6,
+        c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, // cyclic symmetries
         p2, // dimer with freely-optimizable orientation (PointSymmetry)
-        t,  // chiral tetrahedral rotation group (PolyhedralSymmetry)
-        o,  // chiral octahedral rotation group (PolyhedralSymmetry)
-        i   // chiral icosahedral rotation group (PolyhedralSymmetry)
+        tetrahedral,// chiral tetrahedral rotation group (PolyhedralSymmetry)
+        octahedral, // chiral octahedral rotation group (PolyhedralSymmetry)
+        icosahedral // chiral icosahedral rotation group (PolyhedralSymmetry)
     };
 
     /**

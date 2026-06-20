@@ -1,5 +1,3 @@
-#pragma once
-
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 
@@ -35,10 +33,16 @@ inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type sym
         case symmetry::type::c4:
         case symmetry::type::c5:
         case symmetry::type::c6:
+        case symmetry::type::c7:
+        case symmetry::type::c8:
+        case symmetry::type::c9:
+        case symmetry::type::c10:
+        case symmetry::type::c11:
+        case symmetry::type::c12:
         case symmetry::type::p2:
-        case symmetry::type::t:
-        case symmetry::type::o:
-        case symmetry::type::i:
+        case symmetry::type::tetrahedral:
+        case symmetry::type::octahedral:
+        case symmetry::type::icosahedral:
             optimize_rot_axis = true;
             optimize_translate = true;
             break;
