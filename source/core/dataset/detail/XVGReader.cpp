@@ -91,13 +91,15 @@ std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vect
     }
     
     // remove all rows outside the specified q-range
-    unsigned int N = dataset->size_rows();
-    dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
-    if (N != dataset->size_rows()) {
-        console::print_text(
-            "Removed " + std::to_string(N - dataset->size_rows()) + " data points outside specified q-range "
-            "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(settings::axes::qmax) + "]."
-        );
+    if (settings::axes::clamp_to_qrange) {
+        unsigned int N = dataset->size_rows();
+        dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
+        if (N != dataset->size_rows()) {
+            console::print_text(
+                "Removed " + std::to_string(N - dataset->size_rows()) + " data points outside specified q-range "
+                "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(settings::axes::qmax) + "]."
+            );
+        }
     }
 
     return dataset;

@@ -82,11 +82,14 @@ settings::detail::Setting<unsigned int> settings::axes::bin_count = {
     }
 };
 
+bool settings::axes::clamp_to_qrange = true;
+
 namespace ausaxs::settings::io {
     settings::io::SettingSection axes_section("Axes", {
         settings::io::create(axes::skip, "skip"),
         settings::io::create(axes::qmin, "qmin"),
         settings::io::create(axes::qmax, "qmax"),
+        settings::io::create(axes::clamp_to_qrange, "clamp_to_q"),
     });
 
     settings::io::SettingSection hist_section("Histogram", {

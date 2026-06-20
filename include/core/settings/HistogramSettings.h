@@ -14,6 +14,7 @@ namespace ausaxs::settings {
         static detail::Setting<double> qmax;            // Upper limit on the used q-values
         static detail::Setting<double> bin_width;       // The bin width to use for the distance histogram.
         static detail::Setting<unsigned int> bin_count; // The number of bins to use for the distance histogram. 
+        static bool clamp_to_qrange;                    // Whether to clamp the input q-range to the range defined by qmin and qmax.
     };
 
     /// @brief Settings selecting how distance histograms are computed.
