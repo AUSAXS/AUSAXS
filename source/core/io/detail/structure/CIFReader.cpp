@@ -262,6 +262,13 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
 
     int i_id = 0, i_label_alt_id = 0, i_label_atom_id = 0, i_label_asym_id = 0, i_label_seq_id = 0, 
         i_PDB_ins_code = 0, i_occupancy = 0, i_B_iso_or_equiv = 0, i_pdbx_formal_charge = 0;
+    if (labels.contains(s_atom_name)) {
+        console::print_warning(
+            "Warning: CIF is missing the atomic name label \"" + s_atom_name + "\". "
+            "Implicit hydrogens are disabled as the count cannot be inferred."
+        );
+        settings::molecule::implicit_hydrogens = false;
+    }
     if (optional_data) {
         i_id = labels.at("id");
         i_label_alt_id = labels.at("label_alt_id");
