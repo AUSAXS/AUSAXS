@@ -187,17 +187,17 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
     std::string s_coords_z = "Cartn_z";
     std::string default_to_ATOM = "";
     std::string default_to_UNK = ""; // residue
+    bool has_residue_name = labels.contains(s_residue_name);
     {   // mandatory data 
 
         // prefer author labels
-        if (!labels.contains(s_residue_name)) {s_residue_name = "label_comp_id";}
+        if (!has_residue_name) {s_residue_name = "label_comp_id"; has_residue_name = labels.contains(s_residue_name);}
 
         if (!labels.contains("group_PDB")) {        // HETATM or ATOM
-            console::print_text("CIFReader::parse_atom_site_section: Warning: Missing required label \"group_PDB\". Assuming all atoms are standard ATOM records.");
+            console::print_text("Warning: CIF file missing required label \"group_PDB\". Assuming all atoms are standard ATOM records.");
             default_to_ATOM = "ATOM";
-        } if (!labels.contains(s_residue_name)) {   // residue name
-            console::print_text("CIFReader::parse_atom_site_section: Warning: Missing required label \"" + s_residue_name + "\". No residue information will be used.");
-            console::print_text_minor("\tDisabling implicit hydrogens.");
+        } if (!has_residue_name) {                  // residue name
+            console::print_text("Warning: CIF file missing required label \"" + s_residue_name + "\". Disabling implicit hydrogens.");
             settings::molecule::implicit_hydrogens = false;
             default_to_UNK = "UNK";
         } if (!labels.contains(s_coords_x)) {        // x-coordinate
@@ -230,27 +230,14 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
     std::string s_atom_name = "auth_atom_id";
     std::string s_chainID = "auth_asym_id";
     std::string s_residue_sequence_number = "auth_seq_id";
-    {   // optional data
-
-        // prefer author labels
-        if (!labels.contains(s_atom_name)) {s_atom_name = "label_atom_id";}
-        if (!labels.contains(s_residue_name)) {s_residue_name = "label_comp_id";}
-        if (!labels.contains(s_chainID)) {s_chainID = "label_asym_id";}
-        if (!labels.contains(s_residue_sequence_number)) {s_residue_sequence_number = "label_seq_id";}
-        if (!(
-            labels.contains("id") &&                        // serial number
-            labels.contains("label_alt_id") &&              // alternate location
-            labels.contains(s_atom_name) &&                 // atom name
-            labels.contains(s_chainID) &&                   // chain ID
-            labels.contains(s_residue_sequence_number) &&   // residue sequence number
-            labels.contains("pdbx_PDB_ins_code") &&         // insertion code
-            labels.contains("occupancy") &&                 // occupancy
-            labels.contains("B_iso_or_equiv") &&            // temperature factor
-            labels.contains("pdbx_formal_charge")           // charge
-        )) {
-            console::print_text("CIFReader::parse_atom_site_section: Missing optional labels in \"_atom_site\" section. Non-critical data will not be loaded.");
-            optional_data = false;
-        }
+    bool has_atom_name = labels.contains(s_atom_name);
+    bool has_chainID = labels.contains(s_chainID);
+    bool has_resSeq = labels.contains(s_residue_sequence_number);
+    {   // prefer author labels
+        if (!has_atom_name) {s_atom_name = "label_atom_id"; has_atom_name = labels.contains(s_atom_name);}
+        if (!has_residue_name) {s_residue_name = "label_comp_id"; has_residue_name = labels.contains(s_residue_name);}
+        if (!has_chainID) {s_chainID = "label_asym_id"; has_chainID = labels.contains(s_chainID);}
+        if (!has_resSeq) {s_residue_sequence_number = "label_seq_id"; has_resSeq = labels.contains(s_residue_sequence_number);}
     }
 
     int i_group_PDB = default_to_ATOM.empty() ? labels.at("group_PDB") : -1;
@@ -260,31 +247,34 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
     int i_coord_z = labels.at(s_coords_z);
     int i_type_symbol = labels.at("type_symbol");
 
-    int i_id = 0, i_label_alt_id = 0, i_label_atom_id = 0, i_label_asym_id = 0, i_label_seq_id = 0, 
-        i_PDB_ins_code = 0, i_occupancy = 0, i_B_iso_or_equiv = 0, i_pdbx_formal_charge = 0;
-    if (labels.contains(s_atom_name)) {
-        console::print_warning(
-            "Warning: CIF is missing the atomic name label \"" + s_atom_name + "\". "
-            "Implicit hydrogens are disabled as the count cannot be inferred."
-        );
+    // resolve each optional field independently
+    bool has_serial = labels.contains("id");
+    bool has_alt_loc = labels.contains("label_alt_id");
+    bool has_ins_code = labels.contains("pdbx_PDB_ins_code");
+    bool has_occupancy = labels.contains("occupancy");
+    bool has_temp_factor = labels.contains("B_iso_or_equiv");
+    bool has_charge = labels.contains("pdbx_formal_charge");
+    optional_data = has_serial && has_alt_loc && has_atom_name && has_chainID && has_resSeq && has_ins_code && has_occupancy && has_temp_factor && has_charge;
+    if (!optional_data) {
+        console::print_text("CIFReader::parse_atom_site_section: Missing optional labels in \"_atom_site\" section. Loading whatever is available.");
+    }
+    if (!has_atom_name) {
+        console::print_warning("\tWarning: CIF file missing label \"" + s_atom_name + "\". Disabling implicit hydrogens.");
         settings::molecule::implicit_hydrogens = false;
     }
-    if (optional_data) {
-        i_id = labels.at("id");
-        i_label_alt_id = labels.at("label_alt_id");
-        i_label_atom_id = labels.at(s_atom_name);
-        i_label_asym_id = labels.at(s_chainID);
-        i_label_seq_id = labels.at(s_residue_sequence_number);
-        i_PDB_ins_code = labels.at("pdbx_PDB_ins_code");
-        i_occupancy = labels.at("occupancy");
-        i_B_iso_or_equiv = labels.at("B_iso_or_equiv");
-        i_pdbx_formal_charge = labels.at("pdbx_formal_charge");
-    }
 
-    //? not sure what the purpose of this guy is - truncating long input strings?
-    auto shorten = [] (const std::string& s) -> std::string {
-        return s.size() < 6 ? s : s.substr(0, 7);
-    };
+    int i_id = 0, i_label_atom_id = 0, i_label_alt_id = 0, i_label_asym_id = 0, i_label_seq_id = 0,
+        i_PDB_ins_code = 0, i_occupancy = 0, i_B_iso_or_equiv = 0, i_pdbx_formal_charge = 0
+    ;
+    if (has_atom_name)   {i_label_atom_id    = labels.at(s_atom_name);}
+    if (has_serial)      {i_id               = labels.at("id");}
+    if (has_alt_loc)     {i_label_alt_id     = labels.at("label_alt_id");}
+    if (has_chainID)     {i_label_asym_id    = labels.at(s_chainID);}
+    if (has_resSeq)      {i_label_seq_id     = labels.at(s_residue_sequence_number);}
+    if (has_ins_code)    {i_PDB_ins_code     = labels.at("pdbx_PDB_ins_code");}
+    if (has_occupancy)   {i_occupancy        = labels.at("occupancy");}
+    if (has_temp_factor) {i_B_iso_or_equiv   = labels.at("B_iso_or_equiv");}
+    if (has_charge)      {i_pdbx_formal_charge = labels.at("pdbx_formal_charge");}
 
     int discarded_hydrogens = 0;
     for (size_t i = 0; i < atom.data.size(); ++i) {
@@ -302,24 +292,22 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
 
         // load mandatory data
         try {
-            name = atom.data[i][i_label_atom_id];
+            name = has_atom_name ? atom.data[i][i_label_atom_id] : atom.data[i][i_type_symbol];
             resName = default_to_UNK.empty() ? atom.data[i][i_label_comp_id] : default_to_UNK;
             coords = {
-                std::stod(shorten(atom.data[i][i_coord_x])), 
-                std::stod(shorten(atom.data[i][i_coord_y])), 
-                std::stod(shorten(atom.data[i][i_coord_z])),
+                std::stod(atom.data[i][i_coord_x]), 
+                std::stod(atom.data[i][i_coord_y]), 
+                std::stod(atom.data[i][i_coord_z]),
             };
             element = constants::symbols::parse_element_string(atom.data[i][i_type_symbol]);
-            if (optional_data) {
-                altLoc = atom.data[i][i_label_alt_id];
-                chainID = atom.data[i][i_label_asym_id][0];
-                iCode = atom.data[i][i_PDB_ins_code];
-                charge = atom.data[i][i_pdbx_formal_charge];
-                if (!atom.data[i][i_id].starts_with('.')) {serial = std::stoi(atom.data[i][i_id]);}
-                if (!atom.data[i][i_label_seq_id].starts_with('.')) {resSeq = std::stoi(atom.data[i][i_label_seq_id]);}
-                if (!atom.data[i][i_occupancy].starts_with('.')) {occupancy = std::stod(shorten(atom.data[i][i_occupancy]));}
-                if (!atom.data[i][i_B_iso_or_equiv].starts_with('.')) {tempFactor = std::stod(shorten(atom.data[i][i_B_iso_or_equiv]));}
-            }
+            if (has_alt_loc)     {altLoc   = atom.data[i][i_label_alt_id];}
+            if (has_chainID)     {chainID  = atom.data[i][i_label_asym_id][0];}
+            if (has_ins_code)    {iCode    = atom.data[i][i_PDB_ins_code];}
+            if (has_charge)      {charge   = atom.data[i][i_pdbx_formal_charge];}
+            if (has_serial      && !atom.data[i][i_id].starts_with('.'))            {serial     = std::stoi(atom.data[i][i_id]);}
+            if (has_resSeq      && !atom.data[i][i_label_seq_id].starts_with('.'))  {resSeq     = std::stoi(atom.data[i][i_label_seq_id]);}
+            if (has_occupancy   && !atom.data[i][i_occupancy].starts_with('.'))     {occupancy  = std::stod(atom.data[i][i_occupancy]);}
+            if (has_temp_factor && !atom.data[i][i_B_iso_or_equiv].starts_with('.')) {tempFactor = std::stod(atom.data[i][i_B_iso_or_equiv]);}
         } catch (const std::exception&) {
             console::print_warning(
                 "CIFReader::parse_atom_site_section: Invalid field values in line: \n\"" + 
