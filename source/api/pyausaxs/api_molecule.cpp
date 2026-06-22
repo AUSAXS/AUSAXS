@@ -129,16 +129,16 @@ int molecule_distance_histogram(
     molecule->reset_histogram_manager();
     auto hist = molecule->get_histogram();
     _molecule_distance_histogram_obj data(settings::axes::bin_count);
-    {   // copy to avoid issues with mismatching sizes
-        //? is this necessary? I think these should always have the same size (or at least may be truncated to the same length)
+    {   // copy to avoid issues with mismatching sizes between the (possibly truncated) histogram and data
         auto& aa_dist = hist->get_aa_counts();
         auto& aw_dist = hist->get_aw_counts();
         auto& ww_dist = hist->get_ww_counts();
-        auto& axis = hist->get_d_axis();
         std::copy(aa_dist.get_content().begin(), aa_dist.get_content().end(), data.aa.begin());
         std::copy(aw_dist.get_content().begin(), aw_dist.get_content().end(), data.aw.begin());
         std::copy(ww_dist.get_content().begin(), ww_dist.get_content().end(), data.ww.begin());
-        std::copy(axis.begin(), axis.end(), data.axis.begin());
+        for (unsigned int i = 0; i < settings::axes::bin_count; ++i) {
+            data.axis[i] = i * settings::axes::bin_width;
+        }
     }
     assert(data.aa.size() == settings::axes::bin_count);
     assert(data.aw.size() == settings::axes::bin_count);
