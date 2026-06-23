@@ -94,7 +94,8 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
         assert(0 <= isymmetry && "SymmetryElement::_add: Inconsistent data structures.");
         if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry)->repetitions(); reps == 1) { // single replica only: b1s1
             name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 1));
-        } else { // multiple replicas, so include replica index in name: b1s1r1, b1s1r2, ...
+        } else { // multiple replicas: b1s1r1, b1s1r2, ...; b1s1 is an alias for b1s1r1
+            name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 1));
             for (int j = 0; j < reps; ++j) {
                 name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1) + "r" + std::to_string(j+1), detail::to_index(ibody, isymmetry, j+1));
             }
@@ -178,7 +179,8 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
         assert(0 <= isymmetry && "SymmetryElement::_add_reference: Inconsistent data structures.");
         if (int reps = molecule->get_body(b).symmetry().get(isymmetry)->repetitions(); reps == 1) {
             name_map.emplace(body_names[k] + "s" + std::to_string(isymmetry+1), detail::to_index(b, isymmetry, 1));
-        } else {
+        } else { // multiple replicas: b1s1r1, b1s1r2, ...; b1s1 is an alias for b1s1r1
+            name_map.emplace(body_names[k] + "s" + std::to_string(isymmetry+1), detail::to_index(b, isymmetry, 1));
             for (int j = 0; j < reps; ++j) {
                 name_map.emplace(body_names[k] + "s" + std::to_string(isymmetry+1) + "r" + std::to_string(j+1), detail::to_index(b, isymmetry, j+1));
             }
