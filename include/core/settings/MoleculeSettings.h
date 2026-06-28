@@ -12,6 +12,8 @@ namespace ausaxs::settings {
         static bool allow_unknown_residues; // Decides whether to allow unknown residues (WARNING: implicit hydrogens will be skipped for these residues).
         static bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
         static bool use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
+        static bool store_calpha;           // Decides whether C-alpha backbone metadata is retained per atom (needed for rigid-body constraints).
+        static bool store_occupancy;        // Decides whether per-atom occupancy is retained as metadata.
     };
 
     struct EXPORT hydrate {

@@ -3,6 +3,7 @@
 
 #include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/DistanceConstraintFunctions.h>
+#include <rigidbody/constraints/ConstraintAtomSelection.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
@@ -17,12 +18,12 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
     // find the closest atoms in the two bodies
     double min_distance = std::numeric_limits<double>::max();
     for (int i = 0; i < static_cast<int>(body1.size_atom()); ++i) {
-        if (form_factor::to_atom_type(body1.get_atom(i).form_factor_type()) != constants::atom_t::C) {
+        if (!is_constraint_candidate(body1, i)) {
             continue;
         }
 
         for (int j = 0; j < static_cast<int>(body2.size_atom()); ++j) {
-            if (form_factor::to_atom_type(body2.get_atom(j).form_factor_type()) != constants::atom_t::C) {
+            if (!is_constraint_candidate(body2, j)) {
                 continue;
             }
 
@@ -35,7 +36,7 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
         }
     }
     if (iatom1 == -1 || iatom2 == -1) {
-        throw except::invalid_argument("DistanceConstraintBond::DistanceConstraintBond: Could not find carbon atoms to represent the bond between the two bodies!");
+        throw except::invalid_argument("DistanceConstraintBond::DistanceConstraintBond: Could not find suitable atoms to represent the bond between the two bodies!");
     }
 
     d_target = min_distance;

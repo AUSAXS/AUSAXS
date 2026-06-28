@@ -4,6 +4,7 @@
 #pragma once
 
 #include <data/atoms/AtomFF.h>
+#include <data/atoms/AtomMetadata.h>
 #include <data/atoms/Water.h>
 #include <data/state/DataStateFwd.h>
 #include <data/DataFwd.h>
@@ -51,6 +52,22 @@ namespace ausaxs::data {
 			 */
 			[[nodiscard]] std::vector<data::AtomFF>& get_atoms();
 			[[nodiscard]] const std::vector<data::AtomFF>& get_atoms() const; //< @copydoc get_atoms()
+
+			/**
+			 * @brief Get the optional per-atom metadata of this body.
+			 *
+			 * Empty unless metadata retention was enabled at load time (see settings::molecule::store_calpha
+			 * and store_occupancy). When present, its fields are parallel-indexed to get_atoms().
+			 */
+			[[nodiscard]] const std::optional<AtomMetadata>& get_metadata() const;
+
+			/**
+			 * @brief Attach per-atom metadata to this body.
+			 *
+			 * The metadata fields must be parallel-indexed to the atom vector. It is the caller's
+			 * responsibility to clear or replace it if atoms are subsequently added or removed.
+			 */
+			void set_metadata(AtomMetadata metadata);
 
 			//? we use std::optional here to explicitly inform the user that it may be empty
 			//? principially this is equivalent to returning a potentially zero pointer, but the optional is more explicit
@@ -170,6 +187,7 @@ namespace ausaxs::data {
 
 		private:
 			std::vector<data::AtomFF> 					atoms;
+			std::optional<AtomMetadata> 				metadata;
 			std::unique_ptr<hydrate::Hydration> 		hydration;
 			std::unique_ptr<symmetry::SymmetryStorage> 	symmetries;
 

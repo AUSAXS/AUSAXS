@@ -61,13 +61,16 @@ Molecule BodySplitter::split(const io::File& input, const std::vector<int>& spli
         if (split_at[resSeq]) {
             std::vector<PDBAtom> a(begin, atoms.begin()+i);
             auto reduced = PDBStructure(a, {}).reduced_representation();
-            bodies[index_body++] = Body(reduced.atoms, reduced.waters);
+            bodies[index_body] = Body(reduced.atoms, reduced.waters);
+            if (reduced.metadata) {bodies[index_body].set_metadata(std::move(*reduced.metadata));}
+            ++index_body;
             split_at[resSeq] = false; // mark it as false so we won't split again on the next atom
             begin = atoms.begin() + i;
         }
     }
     auto reduced = PDBStructure(std::vector<PDBAtom>(begin, atoms.end()), {}).reduced_representation();
     bodies[index_body] = Body(reduced.atoms, reduced.waters);
+    if (reduced.metadata) {bodies[index_body].set_metadata(std::move(*reduced.metadata));}
     return Molecule(bodies);
 }
 
@@ -83,11 +86,13 @@ data::Molecule BodySplitter::split(const io::File& input) {
             std::vector<PDBAtom> a(begin, atoms.begin() + i);
             auto reduced = PDBStructure(a, {}).reduced_representation();
             bodies.push_back(Body(reduced.atoms, reduced.waters));
+            if (reduced.metadata) {bodies.back().set_metadata(std::move(*reduced.metadata));}
             begin = atoms.begin() + i;
             current_id = atoms[i].chainID;
         }
     }
     auto reduced = PDBStructure(std::vector<PDBAtom>(begin, atoms.end()), {}).reduced_representation();
     bodies.push_back(Body(reduced.atoms, reduced.waters));
+    if (reduced.metadata) {bodies.back().set_metadata(std::move(*reduced.metadata));}
     return Molecule(bodies);
 }

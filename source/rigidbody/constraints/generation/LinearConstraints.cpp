@@ -3,6 +3,7 @@
 
 #include <rigidbody/constraints/generation/LinearConstraints.h>
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
+#include <rigidbody/constraints/ConstraintAtomSelection.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <settings/GeneralSettings.h>
 #include <constants/Constants.h>
@@ -30,16 +31,16 @@ std::vector<std::unique_ptr<IDistanceConstraint>> LinearConstraints::generate() 
         double min_dist = std::numeric_limits<double>::max();
         unsigned int min_atom1 = -1, min_atom2 = -1;
         for (unsigned int iatom1 = 0; iatom1 < body1.size_atom(); iatom1++) {
-            const AtomFF& atom1 = body1.get_atom(iatom1);
-            if (form_factor::to_atom_type(atom1.form_factor_type()) != constants::atom_t::C) {
+            if (!is_constraint_candidate(body1, iatom1)) {
                 continue;
             }
+            const AtomFF& atom1 = body1.get_atom(iatom1);
 
             for (unsigned int iatom2 = 0; iatom2 < body2.size_atom(); iatom2++) {
-                const AtomFF& atom2 = body2.get_atom(iatom2);
-                if (form_factor::to_atom_type(atom2.form_factor_type()) != constants::atom_t::C) {
+                if (!is_constraint_candidate(body2, iatom2)) {
                     continue;
                 }
+                const AtomFF& atom2 = body2.get_atom(iatom2);
 
                 double dist = atom1.coordinates().distance(atom2.coordinates());
                 if (dist > min_dist) {continue;}
