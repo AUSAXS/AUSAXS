@@ -13,11 +13,16 @@ extern "C" API int rigidbody_load_script(
 // Explicit structure (symmetries realized) annotated with the per-atom metadata needed to draw
 // a preview: which body each atom belongs to, which symmetry copy (0 = original), its residue
 // number, and whether it is a Cα.
+// Also returns constraints as a flat array of (n_constraints * 3) ints: [idx1, idx2, type, ...],
+// where idx1/idx2 are indices into the returned atom arrays, and type is:
+//   0 = backbone/bond, 1 = center-of-mass, 2 = attractor, 3 = repulsor.
+// constraint_data is null when n_constraints == 0.
 extern "C" API int rigidbody_get_preview_structure(
     int rigidbody_id,
     double** x, double** y, double** z,
     int** body_index, int** copy_index, int** residue_seq, int** is_ca,
     int* n_atoms,
+    int** constraint_data, int* n_constraints,
     int* status
 );
 

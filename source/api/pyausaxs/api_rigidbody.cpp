@@ -10,6 +10,10 @@
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/AttractorConstraint.h>
+#include <rigidbody/constraints/RepellerConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -62,12 +66,14 @@ namespace {
 struct _rigidbody_preview_structure_obj {
     std::vector<double> x, y, z;
     std::vector<int> body_index, copy_index, residue_seq, is_ca;
+    std::vector<int> constraint_data; // flat triplets: [index1, index2, type, ...]
 };
 int rigidbody_get_preview_structure(
     int rigidbody_id,
     double** x, double** y, double** z,
     int** body_index, int** copy_index, int** residue_seq, int** is_ca,
     int* n_atoms,
+    int** constraint_data, int* n_constraints,
     int* status
 ) {return execute_with_catch([&]() {
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
@@ -84,6 +90,8 @@ int rigidbody_get_preview_structure(
     _rigidbody_preview_structure_obj data;
     int base_offset = 0; // running index into the per-base-atom metadata
     int bidx = 0;
+    // flat index of atom 0 of each body's copy 0; used below to map constraint atom indices
+    std::vector<int> body_atom0_starts;
     for (const auto& body : molecule->get_bodies()) {
         int na = static_cast<int>(body.size_atom());
 
@@ -91,6 +99,7 @@ int rigidbody_get_preview_structure(
         // [original, copy_1, copy_2, ...], each block reusing the base atom order
         auto bstruct = body.symmetry().explicit_structure();
         int blocks = (na > 0) ? static_cast<int>(bstruct.atoms.size()) / na : 0;
+        body_atom0_starts.push_back(static_cast<int>(data.x.size())); // copy 0 starts here
         for (int copy = 0; copy < blocks; ++copy) {
             for (int i = 0; i < na; ++i) {
                 const auto& atom = bstruct.atoms[copy*na + i];
@@ -108,6 +117,21 @@ int rigidbody_get_preview_structure(
         ++bidx;
     }
 
+    // constraint type codes: 0=backbone, 1=CM, 2=attractor, 3=repulsor
+    // user-generated constraints always use the base body (isym={-1,-1}, copy=0), so iatom directly indexes into copy 0's atom block
+    for (const auto& c : sequencer->_get_rigidbody()->constraints->discoverable_constraints) {
+        int idx1 = body_atom0_starts[c->ibody1] + c->iatom1;
+        int idx2 = body_atom0_starts[c->ibody2] + c->iatom2;
+        int type;
+        if      (dynamic_cast<const rigidbody::constraints::AttractorConstraint*>(c.get())) {type = 2;}
+        else if (dynamic_cast<const rigidbody::constraints::RepellerConstraint*> (c.get())) {type = 3;}
+        else if (dynamic_cast<const rigidbody::constraints::DistanceConstraintCM*>(c.get())) {type = 1;}
+        else {type = 0;}
+        data.constraint_data.push_back(idx1);
+        data.constraint_data.push_back(idx2);
+        data.constraint_data.push_back(type);
+    }
+
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto ref = api::ObjectStorage::get_object<_rigidbody_preview_structure_obj>(data_id);
     *x = ref->x.data();
@@ -118,6 +142,8 @@ int rigidbody_get_preview_structure(
     *residue_seq = ref->residue_seq.data();
     *is_ca = ref->is_ca.data();
     *n_atoms = static_cast<int>(ref->x.size());
+    *constraint_data = ref->constraint_data.empty() ? nullptr : ref->constraint_data.data();
+    *n_constraints = static_cast<int>(ref->constraint_data.size()) / 3;
     return data_id;
 }, status);}
 

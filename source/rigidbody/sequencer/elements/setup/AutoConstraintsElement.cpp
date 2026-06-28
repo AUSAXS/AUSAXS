@@ -11,12 +11,11 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy) : owner(owner), strategy(strategy) {}
-
-void AutoConstraintsElement::run() {
-    if (owner->_get_rigidbody() == nullptr) {throw std::runtime_error("AutoConstraintsElement::run: No body is currently loaded.");}
+AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy) : owner(owner), strategy(strategy) {
     owner->_get_rigidbody()->constraints->generate_constraints(rigidbody::factory::generate_constraints(owner->_get_rigidbody()->constraints.get(), strategy));
 }
+
+void AutoConstraintsElement::run() {}
 
 std::vector<std::string> AutoConstraintsElement::_valid_arguments() {
     return {};
