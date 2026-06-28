@@ -13,6 +13,7 @@
 #include <rigidbody/constraints/AttractorConstraint.h>
 #include <rigidbody/constraints/RepellerConstraint.h>
 #include <rigidbody/constraints/DistanceConstraintCM.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -100,17 +101,25 @@ int rigidbody_get_preview_structure(
 
     // constraint type codes: 0=backbone, 1=CM, 2=attractor, 3=repulsor
     // user-generated constraints always use the base body (isym={-1,-1}, copy=0), so iatom directly indexes into copy 0's atom block
-    for (const auto& c : sequencer->_get_rigidbody()->constraints->discoverable_constraints) {
+    auto emit_constraint = [&] (const rigidbody::constraints::IDistanceConstraint* c) {
         int idx1 = body_atom0_starts[c->ibody1] + c->iatom1;
         int idx2 = body_atom0_starts[c->ibody2] + c->iatom2;
         int type;
-        if      (dynamic_cast<const rigidbody::constraints::AttractorConstraint*>(c.get())) {type = 2;}
-        else if (dynamic_cast<const rigidbody::constraints::RepellerConstraint*> (c.get())) {type = 3;}
-        else if (dynamic_cast<const rigidbody::constraints::DistanceConstraintCM*>(c.get())) {type = 1;}
+        if      (dynamic_cast<const rigidbody::constraints::AttractorConstraint*>(c)) {type = 2;}
+        else if (dynamic_cast<const rigidbody::constraints::RepellerConstraint*> (c)) {type = 3;}
+        else if (dynamic_cast<const rigidbody::constraints::DistanceConstraintCM*>(c)) {type = 1;}
         else {type = 0;}
         data.constraint_data.push_back(idx1);
         data.constraint_data.push_back(idx2);
         data.constraint_data.push_back(type);
+    };
+    for (const auto& c : sequencer->_get_rigidbody()->constraints->discoverable_constraints) {
+        emit_constraint(c.get());
+    }
+    for (const auto& c : sequencer->_get_rigidbody()->constraints->non_discoverable_constraints) {
+        if (auto* dc = dynamic_cast<const rigidbody::constraints::IDistanceConstraint*>(c.get())) {
+            emit_constraint(dc);
+        }
     }
 
     int data_id = api::ObjectStorage::register_object(std::move(data));
