@@ -3,17 +3,27 @@
 
 #include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/DistanceConstraintFunctions.h>
-#include <rigidbody/constraints/ConstraintAtomSelection.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
+using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
+
+namespace {
+    bool is_constraint_candidate(const data::Body& body, unsigned int i) {
+        const auto& md = body.get_metadata();
+        return (*md->backbone)[i] == data::backbone_t::c_alpha;
+    }
+}
 
 DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule> molecule,
     int ibody1, int ibody2, std::pair<int, int> isym1, std::pair<int, int> isym2
 ) : DistanceConstraintAtom(molecule, ibody1, ibody2, std::move(isym1), std::move(isym2)) {
     const data::Body& body1 = molecule->get_body(ibody1);
     const data::Body& body2 = molecule->get_body(ibody2);
+
+    assert((body1.get_metadata() && body1.get_metadata()->backbone) && "Backbone metadata must be present for DistanceConstraintBond to work.");
+    assert((body2.get_metadata() && body2.get_metadata()->backbone) && "Backbone metadata must be present for DistanceConstraintBond to work.");
 
     // find the closest atoms in the two bodies
     double min_distance = std::numeric_limits<double>::max();

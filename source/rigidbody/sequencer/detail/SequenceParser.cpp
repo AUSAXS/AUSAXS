@@ -184,7 +184,6 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             {ElementType::Copy,                CopyBodyElement::_parse},
             {ElementType::EveryNStep,          EveryNStepElement::_parse},
             {ElementType::LoadElement,         LoadElement::_parse},
-            {ElementType::LoadElementWithMetadata, LoadElementWithMetadata::_parse},
             {ElementType::LoopBegin,           LoopElement::_parse},
             {ElementType::Message,             MessageElement::_parse},
             {ElementType::OnImprovement,       OnImprovementElement::_parse},

@@ -3,7 +3,6 @@
 
 #include <rigidbody/constraints/generation/LinearConstraints.h>
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
-#include <rigidbody/constraints/ConstraintAtomSelection.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <settings/GeneralSettings.h>
 #include <constants/Constants.h>
@@ -17,6 +16,14 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
 
+namespace {
+    bool is_constraint_candidate(const data::Body& body, unsigned int i) {
+        const auto& md = body.get_metadata();
+        assert((md && md->backbone) && "Backbone metadata must be present for LinearConstraints to work.");
+        return (*md->backbone)[i] == data::backbone_t::c_alpha;
+    }
+}
+
 std::vector<std::unique_ptr<IDistanceConstraint>> LinearConstraints::generate() const {
     if (settings::general::verbose) {console::print_info("\tGenerating simple constraints for rigid body optimization.");}
     std::vector<std::unique_ptr<IDistanceConstraint>> constraints;
@@ -27,6 +34,9 @@ std::vector<std::unique_ptr<IDistanceConstraint>> LinearConstraints::generate() 
 
         const Body& body1 = protein.get_body(ibody1);
         const Body& body2 = protein.get_body(ibody2);
+
+        assert((body1.get_metadata() && body1.get_metadata()->backbone) && "Backbone metadata must be present for LinearConstraints to work.");
+        assert((body2.get_metadata() && body2.get_metadata()->backbone) && "Backbone metadata must be present for LinearConstraints to work.");
 
         double min_dist = std::numeric_limits<double>::max();
         unsigned int min_atom1 = -1, min_atom2 = -1;
