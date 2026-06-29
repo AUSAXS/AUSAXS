@@ -6,6 +6,9 @@
 
 #include <plots/All.h>
 #include <em/ImageStack.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/Histogram.h>
+#include <dataset/SimpleDataset.h>
 #include <utility/Utility.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
@@ -66,6 +69,8 @@ int cli_em_fitter(int argc, char const *argv[]) {
     sub_em->add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
     sub_em->add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Generate a hydration shell for the protein before fitting.");
     sub_em->add_flag("--fixed-weight,!--dynamic-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
+    double sim_level = 0;
+    auto opt_level = sub_em->add_option("--level", sim_level, "Output the raw scattering profile computed at this cutoff level (in units of σ, i.e. RMS multiples). Used when no SAXS measurement is provided.");
 
     // fit subcommands
     auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
@@ -83,8 +88,13 @@ int cli_em_fitter(int argc, char const *argv[]) {
         }
 
         // required args (not marked ->required() since that interferes with the help flag for subcommands)
-        if (!input_map->count() || !input_saxs->count()) {
-            console::print_warning("Error: Both input_structure and input_measurement are required.");
+        if (!input_map->count()) {
+            console::print_warning("Error: An input EM map is required.");
+            exit(1);
+        }
+        // the SAXS measurement is optional: if omitted, a raw profile is computed at the cutoff given by 'em --level'
+        if (!input_saxs->count() && !opt_level->count()) {
+            console::print_warning("Error: Provide either a SAXS measurement to fit against, or 'em --level <σ>' to output a raw scattering profile.");
             exit(1);
         }
     });
@@ -107,23 +117,42 @@ int cli_em_fitter(int argc, char const *argv[]) {
             }
         }
 
+        bool simulate = !input_saxs->count(); // no SAXS measurement -> output a raw profile instead of fitting
+
         // validate input
         if (!constants::filetypes::em_map.check(mapfile)) {
-            if (constants::filetypes::em_map.check(mfile)) {
+            if (!simulate && constants::filetypes::em_map.check(mfile)) {
                 std::swap(mapfile, mfile);
             } else {
                 throw except::invalid_argument("Unknown EM extensions: \"" + mapfile.str() + "\" and \"" + mfile.str() + "\"");
             }
         }
-        if (!constants::filetypes::saxs_data.check(mfile)) {
+        if (!simulate && !constants::filetypes::saxs_data.check(mfile)) {
             throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile.str() + "\"");
         }
-        if (!settings::em::hydrate) {settings::fit::fit_hydration = false;} 
+        if (!settings::em::hydrate) {settings::fit::fit_hydration = false;}
         if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
+
+        // simulation mode: compute and save the raw scattering profile at the requested cutoff level
+        if (simulate) {
+            settings::general::output += "simulated/" + mapfile.stem() + "/";
+            console::print_text(
+                "Computing raw scattering profile for map \"" + mapfile.str() + "\" at cutoff level " + std::to_string(sim_level) + "σ"
+            );
+            em::ImageStack map(mapfile);
+            auto hist = map.get_histogram(map.from_level(sim_level));
+            hist->debye_transform().as_dataset().save(
+                settings::general::output + mapfile.stem() + ".dat",
+                "q I(q) (raw profile at cutoff level " + std::to_string(sim_level) + " sigma)"
+            );
+            console::print_info("Raw profile saved to " + settings::general::output + mapfile.stem() + ".dat");
+            return 0;
+        }
+
         settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 
         console::print_text("Performing EM fit with map \"" + mapfile.str() + "\" and measurement \"" + mfile.str() + "\"");
-        em::ImageStack map(mapfile); 
+        em::ImageStack map(mapfile);
         auto res = map.fit(mfile);
 
         fitter::FitReporter::report(res.get());
