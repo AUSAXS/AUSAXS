@@ -11,6 +11,8 @@
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
 
+#include <support/rb_metadata.h>
+
 #include <numbers>
 
 using namespace ausaxs;
@@ -31,6 +33,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         Body b2(std::vector<AtomFF>{a2});
         
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2}});
+        test::mark_backbone_carbons(rigidbody.molecule);
         rigidbody.constraints->add_constraint(
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
@@ -55,6 +58,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         Body b2(std::vector<AtomFF>{a2});
         
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2}});
+        test::mark_backbone_carbons(rigidbody.molecule);
         rigidbody.constraints->add_constraint(
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
@@ -79,6 +83,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         Body b2(std::vector<AtomFF>{a2});
         
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2}});
+        test::mark_backbone_carbons(rigidbody.molecule);
         rigidbody.constraints->add_constraint(
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
@@ -110,6 +115,7 @@ TEST_CASE("SingleTransform::undo") {
         Body b2(std::vector<AtomFF>{a2});
         
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2}});
+        test::mark_backbone_carbons(rigidbody.molecule);
         rigidbody.constraints->add_constraint(
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
@@ -156,6 +162,7 @@ TEST_CASE("SingleTransform::reconstructed body from stored parameters matches tr
         Body b2(std::vector<AtomFF>{a2});
         
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2}});
+        test::mark_backbone_carbons(rigidbody.molecule);
         rigidbody.constraints->add_constraint(
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
@@ -198,6 +205,7 @@ TEST_CASE("SingleTransform::apply multiple sequential transformations") {
         Body b2(std::vector<AtomFF>{a2});
         
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2}});
+        test::mark_backbone_carbons(rigidbody.molecule);
         rigidbody.constraints->add_constraint(
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
@@ -238,6 +246,7 @@ TEST_CASE("SingleTransform::apply only affects single body") {
         Body b3(std::vector<AtomFF>{a3});
         
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2, b3}});
+        test::mark_backbone_carbons(rigidbody.molecule);
         rigidbody.constraints->add_constraint(
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );

@@ -11,6 +11,8 @@
 #include <data/Body.h>
 #include <settings/All.h>
 
+#include <support/rb_metadata.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody::constraints;
@@ -39,6 +41,7 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "Constraints::basic_evaluate") {
     Molecule mol(ap);
+    test::mark_backbone_carbons(mol);
 
     SECTION("DistanceConstraintBond") {
         DistanceConstraintBond c(&mol, 0, 1);
