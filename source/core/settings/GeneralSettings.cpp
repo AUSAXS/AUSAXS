@@ -65,17 +65,21 @@ namespace ausaxs::settings::io {
 
 template<> std::string settings::io::detail::SettingRef<settings::general::QUnit>::get() const {
     switch (settingref) {
-        case settings::general::QUnit::A: return "A";
-        case settings::general::QUnit::NM: return "nm";
+        case settings::general::QUnit::A: return "default_to_A";
+        case settings::general::QUnit::NM: return "default_to_nm";
+        case settings::general::QUnit::USER_A: return "A";
+        case settings::general::QUnit::USER_NM: return "nm";
         default: return std::to_string(static_cast<int>(settingref));
     }
 }
 
 template<> void settings::io::detail::SettingRef<settings::general::QUnit>::set(const std::vector<std::string>& val) {
     auto str = utility::to_lowercase(val[0]);
-    if (str == "a" || str == "å") {settingref = settings::general::QUnit::A;}
-    else if (str == "nm") {settingref = settings::general::QUnit::NM;}
-    else {settingref = static_cast<settings::general::QUnit>(std::stoi(val[0]));}
+    if (str == "a" || str == "å") {settingref = settings::general::QUnit::USER_A;}
+    else if (str == "nm") {settingref = settings::general::QUnit::USER_NM;}
+    else if (str == "default_to_a") {settingref = settings::general::QUnit::A;}
+    else if (str == "default_to_nm") {settingref = settings::general::QUnit::NM;}
+    else {throw std::invalid_argument("settings: Unknown value for q-unit: \"" + val[0] + "\"");}
 }
 
 bool ausaxs::settings::general::helper::is_angstroms(QUnit u) {

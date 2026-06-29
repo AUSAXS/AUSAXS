@@ -9,14 +9,14 @@
 using namespace ausaxs::symmetry;
 
 OptimizableSymmetryStorage::OptimizableSymmetryStorage(SymmetryStorage&& other) : SymmetryStorage(std::move(other)) {
-    assert([] () {
-        for (const auto& s : symmetries) {
+    assert([this] () {
+        for (const auto& s : this->symmetries) {
             if (dynamic_cast<const ReferenceSymmetryView*>(s.get()) != nullptr) {
                 return false;
             }
         }
         return true;
-    } && "OptimizableSymmetryStorage::OptimizableSymmetryStorage: Cannot move from a SymmetryStorage that contains ReferenceSymmetryViews.");
+    }() && "OptimizableSymmetryStorage::OptimizableSymmetryStorage: Cannot move from a SymmetryStorage that contains ReferenceSymmetryViews.");
 }
 OptimizableSymmetryStorage::~OptimizableSymmetryStorage() = default;
 
