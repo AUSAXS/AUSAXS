@@ -9,6 +9,8 @@
 #include <data/Molecule.h>
 #include <settings/All.h>
 
+#include <support/rb_metadata.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
@@ -77,6 +79,7 @@ TEST_CASE("TransformGroup::TransformGroup") {
         Body b2(std::vector<AtomFF>{a2});
         
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2}});
+        test::mark_backbone_carbons(rigidbody.molecule);
         rigidbody.constraints->add_constraint(
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );

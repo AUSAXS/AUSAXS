@@ -5,7 +5,6 @@
 #include <api/ObjectStorage.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/setup/LoadElementWithMetadata.h>
 #include <rigidbody/sequencer/elements/UpdateElement.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
@@ -14,11 +13,14 @@
 #include <rigidbody/constraints/AttractorConstraint.h>
 #include <rigidbody/constraints/RepellerConstraint.h>
 #include <rigidbody/constraints/DistanceConstraintCM.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/atoms/AtomMetadata.h>
 #include <data/symmetry/BodySymmetryFacade.h>
 #include <data/detail/SimpleBody.h>
+#include <settings/MoleculeSettings.h>
 
 using namespace ausaxs;
 
@@ -34,34 +36,6 @@ int rigidbody_load_script(
     int data_id = api::ObjectStorage::register_object(std::move(data));
     return data_id;
 }, status);}
-
-namespace {
-    // Swap the load element keyword (`load`/`open`, as the first token on a line) for the hidden
-    // `load_preview` keyword, so the structure is loaded with the per-atom metadata previews need.
-    std::string substitute_load_with_metadata(const std::string& script) {
-        std::string result;
-        result.reserve(script.size() + 32);
-        std::size_t i = 0;
-        while (i < script.size()) {
-            std::size_t eol = script.find('\n', i);
-            std::size_t line_end = (eol == std::string::npos) ? script.size() : eol;
-
-            std::size_t token_begin = i;
-            while (token_begin < line_end && (script[token_begin] == ' ' || script[token_begin] == '\t')) {++token_begin;}
-            std::size_t token_end = token_begin;
-            while (token_end < line_end && script[token_end] != ' ' && script[token_end] != '\t' && script[token_end] != '{') {++token_end;}
-
-            result.append(script, i, token_begin - i); // leading whitespace
-            std::string token = script.substr(token_begin, token_end - token_begin);
-            result += (token == "load" || token == "open") ? "load_preview" : token;
-            result.append(script, token_end, line_end - token_end); // remainder of the line
-            if (eol != std::string::npos) {result += '\n';}
-            i = line_end + 1;
-            if (eol == std::string::npos) {break;}
-        }
-        return result;
-    }
-}
 
 struct _rigidbody_preview_structure_obj {
     std::vector<double> x, y, z;
@@ -79,21 +53,22 @@ int rigidbody_get_preview_structure(
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
 
-    auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(substitute_load_with_metadata(script_obj->script));
+    settings::molecule::store_calpha = true;
+    std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
+    sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
     auto molecule = sequencer->_get_molecule();
-    // the load_preview element refreshes these statics during the parse above; aligned with the
-    // molecule's base atoms in body order (i.e. before symmetry copies are realized)
-    const auto& meta_res = rigidbody::sequencer::LoadElementWithMetadata::residue_seq;
-    const auto& meta_ca  = rigidbody::sequencer::LoadElementWithMetadata::is_ca;
-    bool has_meta = !meta_res.empty();
 
     _rigidbody_preview_structure_obj data;
-    int base_offset = 0; // running index into the per-base-atom metadata
     int bidx = 0;
     // flat index of atom 0 of each body's copy 0; used below to map constraint atom indices
     std::vector<int> body_atom0_starts;
     for (const auto& body : molecule->get_bodies()) {
         int na = static_cast<int>(body.size_atom());
+
+        // each body's metadata is parallel-indexed to its own base atoms (symmetry copies reuse it)
+        const auto& md = body.get_metadata();
+        const std::vector<int>* res_seq = (md && md->residue_seq) ? &md->residue_seq.value() : nullptr;
+        const std::vector<data::backbone_t>* backbone = (md && md->backbone) ? &md->backbone.value() : nullptr;
 
         // explicit structure of this body: na*(1 + n_copies) atoms, laid out as
         // [original, copy_1, copy_2, ...], each block reusing the base atom order
@@ -108,28 +83,34 @@ int rigidbody_get_preview_structure(
                 data.z.push_back(atom.z());
                 data.body_index.push_back(bidx);
                 data.copy_index.push_back(copy);
-                int gi = base_offset + i; // copies share their original atom's metadata
-                data.residue_seq.push_back(has_meta && gi < static_cast<int>(meta_res.size()) ? meta_res[gi] : -1);
-                data.is_ca.push_back(has_meta && gi < static_cast<int>(meta_ca.size()) ? static_cast<int>(meta_ca[gi]) : 0);
+                data.residue_seq.push_back(res_seq ? (*res_seq)[i] : -1);
+                data.is_ca.push_back(backbone && (*backbone)[i] == data::backbone_t::c_alpha ? 1 : 0);
             }
         }
-        base_offset += na;
         ++bidx;
     }
 
     // constraint type codes: 0=backbone, 1=CM, 2=attractor, 3=repulsor
     // user-generated constraints always use the base body (isym={-1,-1}, copy=0), so iatom directly indexes into copy 0's atom block
-    for (const auto& c : sequencer->_get_rigidbody()->constraints->discoverable_constraints) {
+    auto emit_constraint = [&] (const rigidbody::constraints::IDistanceConstraint* c) {
         int idx1 = body_atom0_starts[c->ibody1] + c->iatom1;
         int idx2 = body_atom0_starts[c->ibody2] + c->iatom2;
         int type;
-        if      (dynamic_cast<const rigidbody::constraints::AttractorConstraint*>(c.get())) {type = 2;}
-        else if (dynamic_cast<const rigidbody::constraints::RepellerConstraint*> (c.get())) {type = 3;}
-        else if (dynamic_cast<const rigidbody::constraints::DistanceConstraintCM*>(c.get())) {type = 1;}
+        if      (dynamic_cast<const rigidbody::constraints::AttractorConstraint*>(c)) {type = 2;}
+        else if (dynamic_cast<const rigidbody::constraints::RepellerConstraint*> (c)) {type = 3;}
+        else if (dynamic_cast<const rigidbody::constraints::DistanceConstraintCM*>(c)) {type = 1;}
         else {type = 0;}
         data.constraint_data.push_back(idx1);
         data.constraint_data.push_back(idx2);
         data.constraint_data.push_back(type);
+    };
+    for (const auto& c : sequencer->_get_rigidbody()->constraints->discoverable_constraints) {
+        emit_constraint(c.get());
+    }
+    for (const auto& c : sequencer->_get_rigidbody()->constraints->non_discoverable_constraints) {
+        if (auto* dc = dynamic_cast<const rigidbody::constraints::IDistanceConstraint*>(c.get())) {
+            emit_constraint(dc);
+        }
     }
 
     int data_id = api::ObjectStorage::register_object(std::move(data));

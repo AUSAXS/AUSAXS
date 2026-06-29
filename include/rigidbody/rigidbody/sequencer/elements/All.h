@@ -6,7 +6,6 @@
 #include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
 #include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
 #include <rigidbody/sequencer/elements/setup/LoadElement.h>
-#include <rigidbody/sequencer/elements/setup/LoadElementWithMetadata.h>
 #include <rigidbody/sequencer/elements/setup/LoadExistingElement.h>
 #include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>

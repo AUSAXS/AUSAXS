@@ -22,8 +22,8 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 Body::Body() : hydration(hydrate::Hydration::create()), symmetries(std::make_unique<symmetry::SymmetryStorage>()), uid(uid_counter++) {initialize();}
-Body::Body(const Body& body) : atoms(body.atoms), hydration(body.hydration->clone()), symmetries(body.symmetries->clone()), uid(body.uid) {initialize();}
-Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), hydration(std::move(body.hydration)), symmetries(std::move(body.symmetries)), uid(body.uid) {initialize();}
+Body::Body(const Body& body) : atoms(body.atoms), metadata(body.metadata), hydration(body.hydration->clone()), symmetries(body.symmetries->clone()), uid(body.uid) {initialize();}
+Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), metadata(std::move(body.metadata)), hydration(std::move(body.hydration)), symmetries(std::move(body.symmetries)), uid(body.uid) {initialize();}
 Body::~Body() = default;
 
 Body::Body(const io::File& path) : uid(uid_counter++) {
@@ -31,6 +31,7 @@ Body::Body(const io::File& path) : uid(uid_counter++) {
     if (settings::molecule::implicit_hydrogens) {file.add_implicit_hydrogens();}
     auto data = file.reduced_representation();
     atoms = std::move(data.atoms);
+    metadata = std::move(data.metadata);
     if (data.waters.empty()) {
         hydration = hydrate::Hydration::create();
     } else {
@@ -173,6 +174,7 @@ double Body::get_absolute_mass() const {
 
 Body& Body::operator=(Body&& rhs) noexcept {
     atoms = std::move(rhs.atoms);
+    metadata = std::move(rhs.metadata);
     hydration = std::move(rhs.hydration);
     symmetries = std::move(rhs.symmetries);
     uid = rhs.uid;
@@ -184,6 +186,7 @@ Body& Body::operator=(Body&& rhs) noexcept {
 
 Body& Body::operator=(const Body& rhs) {
     atoms = rhs.atoms;
+    metadata = rhs.metadata;
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); h) {
         hydration = std::make_unique<hydrate::ExplicitHydration>(h->waters);
     } else if (auto h = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); h) {
@@ -258,6 +261,10 @@ void Body::clear_hydration() {
 }
 
 const std::vector<data::AtomFF>& Body::get_atoms() const {return atoms;}
+
+const std::optional<AtomMetadata>& Body::get_metadata() const {return metadata;}
+
+void Body::set_metadata(AtomMetadata metadata) {this->metadata = std::move(metadata);}
 
 data::AtomFF& Body::get_atom(unsigned int index) {return atoms[index];}
 

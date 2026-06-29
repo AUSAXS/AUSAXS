@@ -8,7 +8,7 @@ foreach(test ${TEST_SRC})
 	set(name "ftest_${testname}")
 	add_executable("${name}" ${test})
 	target_link_libraries("${name}" Catch2::Catch2WithMain libausaxs "$<$<CONFIG:Debug>:Backward::Interface>")
-	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/tests/feature")
+	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/tests/feature" "${CMAKE_SOURCE_DIR}/tests")
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${TEST_BIN_DIR}"
 		COMPILE_FLAGS "${CMAKE_CXX_FLAGS_TEST}"

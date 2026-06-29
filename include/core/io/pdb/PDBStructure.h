@@ -12,6 +12,7 @@
 #include <utility/TypeTraits.h>
 #include <data/DataFwd.h>
 #include <data/atoms/AtomFF.h>
+#include <data/atoms/AtomMetadata.h>
 #include <data/atoms/Water.h>
 
 #include <string>
@@ -25,6 +26,7 @@ namespace ausaxs::io::pdb {
         struct _res {
             std::vector<data::AtomFF> atoms;
             std::vector<data::Water> waters;
+            std::optional<data::AtomMetadata> metadata;     //< parallel-indexed to atoms; engaged iff metadata retention is enabled
         };
 
         public:

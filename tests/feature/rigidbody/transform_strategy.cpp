@@ -15,6 +15,8 @@
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
 
+#include <support/rb_metadata.h>
+
 #include <unordered_set>
 #include <numbers>
 
@@ -64,7 +66,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
     // NOTE: The test expectations for exact positions need recalculating for the new transform system
     // which centers bodies at origin in initial_conformation and applies absolute transforms.
     SECTION("SingleTransform::apply") {
-        Rigidbody rigidbody(Molecule{bodies});
+        Rigidbody rigidbody(Molecule{bodies}); test::mark_backbone_carbons(rigidbody.molecule);
         auto& manager = rigidbody.constraints;
 
         manager->add_constraint(std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)); // 0 <-- this one
@@ -95,7 +97,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
         AtomFF a11({3,  1, -1}, form_factor::form_factor_t::C);
         AtomFF a12({3, -1,  1}, form_factor::form_factor_t::C);
         Body b6(std::vector<AtomFF>{a11, a12});
-        Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2, b3, b4, b5, b6}});
+        Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2, b3, b4, b5, b6}}); test::mark_backbone_carbons(rigidbody.molecule);
         auto& manager = rigidbody.constraints;
 
         manager->add_constraint(std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)); // 0 <-- first this one
@@ -147,7 +149,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
     }
 
     SECTION("Parameters can reconstruct body after transformation") {
-        Rigidbody rigidbody(Molecule{bodies});
+        Rigidbody rigidbody(Molecule{bodies}); test::mark_backbone_carbons(rigidbody.molecule);
         auto& manager = rigidbody.constraints;
 
         manager->add_constraint(std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1));
@@ -202,7 +204,7 @@ TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
         };
 
         SECTION("simple") {
-            Rigidbody rigidbody(Molecule{bodies});
+            Rigidbody rigidbody(Molecule{bodies}); test::mark_backbone_carbons(rigidbody.molecule);
             auto& manager = rigidbody.constraints;
 
             manager->add_constraint(std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)); // 0
@@ -235,7 +237,7 @@ TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
             Body b7(std::vector<AtomFF>{AtomFF({0, 3, 0}, form_factor::form_factor_t::C), AtomFF({0, 4, 0}, form_factor::form_factor_t::C)});
             Body b8(std::vector<AtomFF>{AtomFF({1, 0, 0}, form_factor::form_factor_t::C), AtomFF({2, 0, 0}, form_factor::form_factor_t::C)});
             bodies = {b1, b2, b3, b4, b5, b6, b7, b8};
-            Rigidbody rigidbody(Molecule{bodies});
+            Rigidbody rigidbody(Molecule{bodies}); test::mark_backbone_carbons(rigidbody.molecule);
             auto& manager = rigidbody.constraints;
 
             manager->add_constraint(std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)); // 0

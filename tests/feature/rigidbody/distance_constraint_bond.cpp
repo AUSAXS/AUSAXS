@@ -11,6 +11,8 @@
 #include <data/symmetry/CyclicSymmetry.h>
 #include <settings/All.h>
 
+#include <support/rb_metadata.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
@@ -27,6 +29,8 @@ struct fixture {
     Body b2 = Body(std::vector<AtomFF>{a3, a4});
     Body b3 = Body(std::vector<AtomFF>{a5, a8}); // b3 has only one C atom
     std::vector<Body> ap = {b1, b2, b3};
+
+    fixture() {test::mark_backbone_carbons(ap);}
 };
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintBond::constructor") {
@@ -49,6 +53,7 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintBond::constructor") {
         Body far2 = Body(std::vector<AtomFF>{AtomFF({0, 10, 0}, form_factor::form_factor_t::C)});
         std::vector<Body> far_ap = {far1, far2};
         Molecule far_protein(far_ap);
+        test::mark_backbone_carbons(far_protein);
         CHECK_THROWS(constraints::DistanceConstraintBond(&far_protein, 0, 1));
     }
 

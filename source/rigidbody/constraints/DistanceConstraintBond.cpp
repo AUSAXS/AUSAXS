@@ -6,7 +6,15 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 
+using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
+
+namespace {
+    bool is_constraint_candidate(const data::Body& body, unsigned int i) {
+        const auto& md = body.get_metadata();
+        return (*md->backbone)[i] == data::backbone_t::c_alpha;
+    }
+}
 
 DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule> molecule,
     int ibody1, int ibody2, std::pair<int, int> isym1, std::pair<int, int> isym2
@@ -14,15 +22,18 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
     const data::Body& body1 = molecule->get_body(ibody1);
     const data::Body& body2 = molecule->get_body(ibody2);
 
+    assert((body1.get_metadata() && body1.get_metadata()->backbone) && "Backbone metadata must be present for DistanceConstraintBond to work.");
+    assert((body2.get_metadata() && body2.get_metadata()->backbone) && "Backbone metadata must be present for DistanceConstraintBond to work.");
+
     // find the closest atoms in the two bodies
     double min_distance = std::numeric_limits<double>::max();
     for (int i = 0; i < static_cast<int>(body1.size_atom()); ++i) {
-        if (form_factor::to_atom_type(body1.get_atom(i).form_factor_type()) != constants::atom_t::C) {
+        if (!is_constraint_candidate(body1, i)) {
             continue;
         }
 
         for (int j = 0; j < static_cast<int>(body2.size_atom()); ++j) {
-            if (form_factor::to_atom_type(body2.get_atom(j).form_factor_type()) != constants::atom_t::C) {
+            if (!is_constraint_candidate(body2, j)) {
                 continue;
             }
 
@@ -35,7 +46,7 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
         }
     }
     if (iatom1 == -1 || iatom2 == -1) {
-        throw except::invalid_argument("DistanceConstraintBond::DistanceConstraintBond: Could not find carbon atoms to represent the bond between the two bodies!");
+        throw except::invalid_argument("DistanceConstraintBond::DistanceConstraintBond: Could not find suitable atoms to represent the bond between the two bodies!");
     }
 
     d_target = min_distance;

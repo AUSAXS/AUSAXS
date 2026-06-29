@@ -178,9 +178,21 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     res.atoms.reserve(atoms.size());
     res.waters.reserve(waters.size());
 
+    // optionally retain per-atom metadata while the source information is still available;
+    // each field is parallel-indexed to res.atoms (see settings::molecule)
+    data::AtomMetadata md;
+    if (settings::molecule::store_calpha) {md.backbone.emplace().reserve(atoms.size());}
+    if (settings::molecule::store_residue_seq) {md.residue_seq.emplace().reserve(atoms.size());}
+    if (settings::molecule::store_occupancy) {md.occupancy.emplace().reserve(atoms.size());}
+
     for (auto& a : atoms) {
         res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);
+        if (md.backbone)    {md.backbone->emplace_back(a.name == "CA" && a.element == constants::atom_t::C ? data::backbone_t::c_alpha : data::backbone_t::none);}
+        if (md.residue_seq) {md.residue_seq->emplace_back(a.resSeq);}
+        if (md.occupancy)   {md.occupancy->emplace_back(static_cast<float>(a.occupancy));}
     }
+
+    if (md.backbone || md.occupancy) {res.metadata = std::move(md);}
 
     for (auto& w : waters) {
         res.waters.emplace_back(w.coords);
