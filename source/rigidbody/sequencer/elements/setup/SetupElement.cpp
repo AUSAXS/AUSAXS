@@ -151,13 +151,8 @@ SetupElement& SetupElement::fixed_constraint() {
     throw std::runtime_error("SetupElement::fixed_constraint: Not implemented.");
 }
 
-SetupElement& SetupElement::generate_linear_constraints() {
-    elements.push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Linear));
-    return *this;
-}
-
-SetupElement& SetupElement::generate_volumetric_constraints() {
-    elements.push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric));
+SetupElement& SetupElement::generate_backbone_constraints() {
+    elements.push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone));
     return *this;
 }
 

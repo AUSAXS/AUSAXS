@@ -65,8 +65,7 @@ namespace ausaxs::settings {
 
         enum class ConstraintGenerationStrategyChoice {
             None,       // Do not generate constraints. Only those supplied by the user will be used.
-            Linear,     // Generate a linear chain of constraints between bodies.
-            Volumetric  // Generate constraints between bodies based on proximity.
+            Backbone    // Generate a bond constraint between every pair of backbone-adjacent bodies.
         };
         static settings::detail::Setting<ConstraintGenerationStrategyChoice> constraint_generation_strategy;
 

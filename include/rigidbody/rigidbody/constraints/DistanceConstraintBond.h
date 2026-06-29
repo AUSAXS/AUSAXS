@@ -11,14 +11,12 @@ namespace ausaxs::rigidbody::constraints {
     class DistanceConstraintBond : public DistanceConstraintAtom {
         public: 
             /**
-             * @brief Create a new constraint between a pair of atoms in the two bodies.
-             * 
-             * Complexity: O(n)
+             * @brief Create a backbone bond constraint between the two bodies.
+             *
+             * The representative C-alpha pair is selected automatically: only the terminal C-alphas of each body are eligible. 
+             * Throws if no suitable pair is found or if the selected atoms are too far apart to represent a bond.
              */
-            DistanceConstraintBond(
-                observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2,
-                std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1}
-            );
+            DistanceConstraintBond(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2);
 
             virtual ~DistanceConstraintBond() override = default;
 

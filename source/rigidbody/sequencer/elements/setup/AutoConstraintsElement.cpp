@@ -24,8 +24,7 @@ std::vector<std::string> AutoConstraintsElement::_valid_arguments() {
 std::unique_ptr<GenericElement> AutoConstraintsElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static auto get_constraint_strategy = [] (std::string_view line) {
         if (line == "none") {return settings::rigidbody::ConstraintGenerationStrategyChoice::None;}
-        if (line == "linear") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;}
-        if (line == "volumetric") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric;}
+        if (line == "backbone") {return settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;}
         throw except::parse_error("autoconstrain", "Unknown choice \"" + std::string(line) + "\"");
     };
 

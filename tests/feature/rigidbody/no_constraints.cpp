@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/constraints/generation/LinearConstraints.h>
+#include <rigidbody/constraints/generation/BackboneConstraints.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
@@ -15,7 +15,7 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-TEST_CASE("LinearConstraints::generate") {
+TEST_CASE("NoConstraints::generate") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;

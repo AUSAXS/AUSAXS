@@ -23,7 +23,7 @@ std::unique_ptr<constraints::Constraint> factory::create_constraint_cm(
 std::unique_ptr<constraints::Constraint> factory::create_constraint_bond(
     observer_ptr<const data::Molecule> owner, BodySymmetrySelector body1, BodySymmetrySelector body2
 ) {
-    return std::make_unique<constraints::DistanceConstraintBond>(owner, body1.body, body2.body, std::pair{body1.symmetry, body1.replica}, std::pair{body2.symmetry, body2.replica});
+    return std::make_unique<constraints::DistanceConstraintBond>(owner, body1.body, body2.body);
 }
 
 std::unique_ptr<constraints::Constraint> factory::create_constraint_attractor(

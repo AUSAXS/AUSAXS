@@ -52,7 +52,7 @@ TEST_CASE("Sequencer: load_existing with pre-built Rigidbody", "[files]") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     Rigidbody rb(std::move(bodies));
@@ -192,7 +192,7 @@ TEST_CASE("Sequencer: with automatic constraints", "[files]") {
     auto result = seq
         .setup()
             .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-            .generate_linear_constraints()
+            .generate_backbone_constraints()
         .end()
         .loop(5)
             .optimize()

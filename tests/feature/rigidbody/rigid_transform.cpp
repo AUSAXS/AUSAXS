@@ -28,7 +28,7 @@ TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
@@ -94,7 +94,7 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
@@ -197,7 +197,7 @@ TEST_CASE("RigidTransform: Multi-step transformation consistency", "[broken]") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
