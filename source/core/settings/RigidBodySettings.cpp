@@ -19,10 +19,13 @@ settings::detail::Setting<settings::rigidbody::ConstraintGenerationStrategyChoic
     [] (settings::rigidbody::ConstraintGenerationStrategyChoice& val) {
         // backbone-based constraint generators rely on per-atom C-alpha metadata, which is only
         // retained at load time when store_calpha is enabled; couple the two so callers cannot forget.
+        // residue_seq is likewise enabled so the generators can prefer sequential C-alpha pairs when
+        // possible; it remains a soft preference (the generators degrade gracefully if it is absent).
         if (val == settings::rigidbody::ConstraintGenerationStrategyChoice::Linear ||
             val == settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric)
         {
             settings::molecule::store_calpha = true;
+            settings::molecule::store_residue_seq = true;
         }
     }
 };

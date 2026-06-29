@@ -5,6 +5,9 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/BodySplitter.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/symmetry/PredefinedSymmetries.h>
@@ -236,5 +239,37 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintBond::evaluate symmetry-symmetry") 
         constraints::DistanceConstraintBond c(&protein, 0, 1, {0, 1}, {0, 1});
         sym1_b0->_initial_relation.translation = {3, 0, 0}; // modify sym1 - constraint tracks sym0
         CHECK(c.evaluate() == 0);
+    }
+}
+
+TEST_CASE("DistanceConstraintBond: prefers sequential C-alpha pairs") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    // the Linear strategy enables store_calpha + store_residue_seq via the settings hook, so the
+    // generated bond constraints can prefer sequential C-alpha pairs over the merely-closest ones.
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+
+    // This structure used to produce bond constraints between non-sequential C-alpha atoms (the
+    // geometrically closest pair) instead of the sequential pair joining the two bodies.
+    Rigidbody rigidbody = BodySplitter::split("tests/files/LAR1-4.pdb", {9, 99, 202, 292});
+
+    const auto& constraints = rigidbody.constraints->discoverable_constraints;
+    REQUIRE(constraints.size() == 4); // one bond between each of the 5 sequential bodies
+
+    for (const auto& c : constraints) {
+        const auto& md1 = c->get_body1().get_metadata();
+        const auto& md2 = c->get_body2().get_metadata();
+        REQUIRE((md1 && md1->backbone && md1->residue_seq));
+        REQUIRE((md2 && md2->backbone && md2->residue_seq));
+
+        // both constrained atoms must be C-alpha backbone atoms...
+        CHECK((*md1->backbone)[c->iatom1] == data::backbone_t::c_alpha);
+        CHECK((*md2->backbone)[c->iatom2] == data::backbone_t::c_alpha);
+
+        // ...belonging to sequential residues (adjacent residue sequence ids)
+        int seq1 = (*md1->residue_seq)[c->iatom1];
+        int seq2 = (*md2->residue_seq)[c->iatom2];
+        INFO("constraint between residues " << seq1 << " and " << seq2);
+        CHECK((seq1 - seq2 == 1 || seq2 - seq1 == 1));
     }
 }
