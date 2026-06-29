@@ -22,7 +22,6 @@ struct ControllerFixture {
         settings::molecule::implicit_hydrogens = false;
         settings::grid::min_bins = 250;
         settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
-        settings::molecule::store_calpha = true; // required so the loaded bodies carry the backbone metadata the constraints need
 
         // Create a rigidbody for testing
         auto bodies = BodySplitter::split("tests/files/SASDJG5.pdb");

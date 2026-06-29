@@ -13,6 +13,8 @@
 #include <settings/MoleculeSettings.h>
 #include <settings/GeneralSettings.h>
 
+#include <support/rb_metadata.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 
@@ -33,6 +35,7 @@ TEST_CASE("LinearConstraints::generate") {
         Body b3 = Body(std::vector<AtomFF>{a3});
         Body b4 = Body(std::vector<AtomFF>{a4});
         std::vector<Body> ap = {b1, b2, b3, b4};
+        test::mark_backbone_carbons(ap); // generation runs in the Rigidbody ctor, so mark before constructing
         rigidbody::Rigidbody rigidbody(Molecule{ap});
         REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 3);
     }

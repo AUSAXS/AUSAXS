@@ -10,6 +10,8 @@
 #include <data/Body.h>
 #include <settings/All.h>
 
+#include <support/rb_metadata.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
@@ -39,6 +41,7 @@ struct fixture {
 TEST_CASE_METHOD(fixture, "ConstraintManager::ConstraintManager") {
     settings::general::verbose = false;
     Rigidbody protein(Molecule{ap});
+    test::mark_backbone_carbons(protein.molecule);
     SECTION("Protein*") {
         constraints::ConstraintManager cm(&protein);
         CHECK(cm.molecule == &protein.molecule);
@@ -48,6 +51,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::ConstraintManager") {
 TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
     settings::general::verbose = false;
     Rigidbody protein(Molecule{ap});
+    test::mark_backbone_carbons(protein.molecule);
 
     SECTION("OverlapConstraint") {
         constraints::ConstraintManager cm(&protein);
@@ -76,6 +80,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
 TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
     settings::general::verbose = false;
     Rigidbody protein(Molecule{ap});
+    test::mark_backbone_carbons(protein.molecule);
     SECTION("returns chi2 contribution of all constraints") {
         constraints::ConstraintManager cm(&protein);
         // Remove the automatically added OverlapConstraint so we can test distance constraints in isolation.

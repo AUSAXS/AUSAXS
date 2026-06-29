@@ -16,6 +16,8 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
+#include <support/rb_metadata.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
@@ -80,7 +82,9 @@ TEST_CASE("AbsoluteParameters: Initial configuration consistency") {
         Body b3 = Body(std::vector<AtomFF>{a3});
         Body b4 = Body(std::vector<AtomFF>{a4});
 
-        Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2, b3, b4}});
+        std::vector<Body> ap = {b1, b2, b3, b4};
+        test::mark_backbone_carbons(ap); // generation runs in the Rigidbody ctor, so mark before constructing
+        Rigidbody rigidbody(Molecule{ap});
 
         // initial configuration should satisfy the invariant
         verify_configuration_consistency(rigidbody);

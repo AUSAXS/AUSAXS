@@ -10,6 +10,8 @@
 #include <data/Body.h>
 #include <settings/All.h>
 
+#include <support/rb_metadata.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
@@ -35,6 +37,7 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     Rigidbody protein(Molecule{ap});
+    test::mark_backbone_carbons(protein.molecule);
 
     fitter::ConstrainedFitter fitter(protein.constraints.get(), SimpleDataset("tests/files/2epe.dat"), protein.molecule.get_histogram());
     CHECK(fitter.constraints == protein.constraints.get());
@@ -45,6 +48,7 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
     settings::molecule::implicit_hydrogens = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None; // make sure there's no other distance constraints
     Rigidbody protein(Molecule{ap});
+    test::mark_backbone_carbons(protein.molecule);
 
     fitter::ConstrainedFitter fitter(protein.constraints.get(), SimpleDataset("tests/files/2epe.dat"), protein.molecule.get_histogram());
     double chi2 = fitter.fit()->fval;

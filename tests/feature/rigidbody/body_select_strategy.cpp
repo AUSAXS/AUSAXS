@@ -12,6 +12,8 @@
 #include <settings/MoleculeSettings.h>
 #include <settings/GeneralSettings.h>
 
+#include <support/rb_metadata.h>
+
 using namespace ausaxs;
 using namespace data;
 using namespace rigidbody;
@@ -25,6 +27,7 @@ TEST_CASE("BodySelectStrategy::next") {
     std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
     std::vector<Body> atoms = {Body(b1), Body(b2), Body(b3), Body(b4)};
     Rigidbody rigidbody(Molecule{atoms});
+    test::mark_backbone_carbons(rigidbody.molecule);
     auto& manager = rigidbody.constraints;
 
     // add a varying number of constraints to each body

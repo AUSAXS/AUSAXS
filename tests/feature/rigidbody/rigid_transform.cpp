@@ -15,6 +15,8 @@
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
 
+#include <support/rb_metadata.h>
+
 #include <numbers>
 
 using namespace ausaxs;
@@ -148,7 +150,8 @@ TEST_CASE("RigidTransform: Orbital motion correctness") {
     Body b3 = Body(std::vector<AtomFF>{a3});
 
     Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2, b3}});
-    
+    test::mark_backbone_carbons(rigidbody.molecule);
+
     // Manually create constraints: 0 - 1 - 2 (only 0-1 constraint so transforming it affects only body 0)
     rigidbody.constraints->add_constraint(
         std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)

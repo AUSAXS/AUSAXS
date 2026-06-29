@@ -4,6 +4,7 @@
 #include <settings/RigidBodySettings.h>
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
+#include <settings/MoleculeSettings.h>
 
 using namespace ausaxs;
 
@@ -13,7 +14,18 @@ settings::rigidbody::TransformationStrategyChoice settings::rigidbody::transform
 settings::rigidbody::ParameterGenerationStrategyChoice settings::rigidbody::parameter_generation_strategy = ParameterGenerationStrategyChoice::Simple;
 settings::rigidbody::ParameterMaskStrategyChoice settings::rigidbody::parameter_mask_strategy = ParameterMaskStrategyChoice::All;
 settings::rigidbody::BodySelectStrategyChoice settings::rigidbody::body_select_strategy = BodySelectStrategyChoice::RandomBodySelect;
-settings::rigidbody::ConstraintGenerationStrategyChoice settings::rigidbody::constraint_generation_strategy = ConstraintGenerationStrategyChoice::None;
+settings::detail::Setting<settings::rigidbody::ConstraintGenerationStrategyChoice> settings::rigidbody::constraint_generation_strategy = {
+    settings::rigidbody::ConstraintGenerationStrategyChoice::None,
+    [] (settings::rigidbody::ConstraintGenerationStrategyChoice& val) {
+        // backbone-based constraint generators rely on per-atom C-alpha metadata, which is only
+        // retained at load time when store_calpha is enabled; couple the two so callers cannot forget.
+        if (val == settings::rigidbody::ConstraintGenerationStrategyChoice::Linear ||
+            val == settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric)
+        {
+            settings::molecule::store_calpha = true;
+        }
+    }
+};
 settings::rigidbody::DecayStrategyChoice settings::rigidbody::decay_strategy = DecayStrategyChoice::Linear;
 settings::rigidbody::ControllerChoice settings::rigidbody::controller_choice = ControllerChoice::Classic;
 
