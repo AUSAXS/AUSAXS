@@ -77,9 +77,9 @@ template<> void settings::io::detail::SettingRef<settings::general::QUnit>::set(
     auto str = utility::to_lowercase(val[0]);
     if (str == "a" || str == "å") {settingref = settings::general::QUnit::USER_A;}
     else if (str == "nm") {settingref = settings::general::QUnit::USER_NM;}
-    else if (str == "default_to_A") {settingref = settings::general::QUnit::A;}
+    else if (str == "default_to_a") {settingref = settings::general::QUnit::A;}
     else if (str == "default_to_nm") {settingref = settings::general::QUnit::NM;}
-    else {throw std::invalid_argument("settings: Invalid value for QUnit: \"" + val[0] + "\"");}
+    else {throw std::invalid_argument("settings: Unknown value for q-unit: \"" + val[0] + "\"");}
 }
 
 bool ausaxs::settings::general::helper::is_angstroms(QUnit u) {
