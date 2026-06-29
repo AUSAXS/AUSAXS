@@ -6,7 +6,10 @@
 #include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
 
 namespace ausaxs::rigidbody::constraints {
-    class LinearConstraints : public ConstraintGenerationStrategy {
+    /**
+     * @brief Generate a bond constraint between every pair of backbone-adjacent bodies.
+     */
+    class BackboneConstraints : public ConstraintGenerationStrategy {
         public:
             using ConstraintGenerationStrategy::ConstraintGenerationStrategy;
             std::vector<std::unique_ptr<IDistanceConstraint>> generate() const override;

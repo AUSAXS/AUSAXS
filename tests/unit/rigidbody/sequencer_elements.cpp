@@ -87,20 +87,11 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::OnImprovementElem
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::AutoConstraintsElement") {
     Sequencer seq(io::ExistingFile("tests/files/LAR1-2.pdb"));
     
-    SECTION("Generate linear constraints") {
+    SECTION("Generate backbone constraints") {
         REQUIRE_NOTHROW(
             seq.setup()
                 .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-                .generate_linear_constraints()
-            .end()
-        );
-    }
-    
-    SECTION("Generate volumetric constraints") {
-        REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-                .generate_volumetric_constraints()
+                .generate_backbone_constraints()
             .end()
         );
     }

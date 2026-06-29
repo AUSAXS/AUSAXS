@@ -16,9 +16,8 @@ add_library(ausaxs_rigidbody OBJECT
 	"constraints/RepellerConstraint.cpp"
 	"constraints/generation/ConstraintGenerationFactory.cpp"
 	"constraints/generation/ConstraintGenerationStrategy.cpp"
-	"constraints/generation/LinearConstraints.cpp"
+	"constraints/generation/BackboneConstraints.cpp"
 	"constraints/generation/NoConstraints.cpp"
-	"constraints/generation/VolumetricConstraints.cpp"
 
 	"controller/ControllerFactory.cpp"
 	"controller/IController.cpp"

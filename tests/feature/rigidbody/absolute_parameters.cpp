@@ -68,7 +68,7 @@ void verify_configuration_consistency(const Rigidbody& rigidbody) {
 TEST_CASE("AbsoluteParameters: Initial configuration consistency") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     SECTION("simple bodies") {
         // create a simple multi-body system
@@ -101,7 +101,7 @@ TEST_CASE("AbsoluteParameters: Initial configuration consistency") {
 TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
     settings::rigidbody::iterations = 10;
     settings::grid::min_bins = 250;
@@ -185,7 +185,7 @@ TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::iterations = 20;
 
     SECTION("with SingleTransform") {

@@ -67,7 +67,7 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     // Create a rigidbody with symmetry
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
@@ -125,7 +125,7 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     bodies.get_body(0).symmetry().add(symmetry::type::c2);
@@ -172,7 +172,7 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
 TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     SECTION("SingleTransform") {
         settings::grid::min_bins = 250;
@@ -261,7 +261,7 @@ TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity"
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::iterations = 10;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
@@ -379,7 +379,7 @@ TEST_CASE("SymmetryBackup: CompositeSymmetry parameters are optimised") {
 TEST_CASE("SymmetryBackup: Grid properly sized for symmetry optimization") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     // Create rigidbody with symmetry
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});

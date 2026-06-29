@@ -2,8 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
-#include <rigidbody/constraints/generation/LinearConstraints.h>
-#include <rigidbody/constraints/generation/VolumetricConstraints.h>
+#include <rigidbody/constraints/generation/BackboneConstraints.h>
 #include <rigidbody/constraints/generation/NoConstraints.h>
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
@@ -19,11 +18,9 @@ std::unique_ptr<ConstraintGenerationStrategy> rigidbody::factory::generate_const
     observer_ptr<const constraints::ConstraintManager> manager, const settings::rigidbody::ConstraintGenerationStrategyChoice& choice
 ) {
     switch (choice) {
-        case settings::rigidbody::ConstraintGenerationStrategyChoice::Linear:
-            return std::make_unique<LinearConstraints>(manager);
-        case settings::rigidbody::ConstraintGenerationStrategyChoice::Volumetric:
-            return std::make_unique<VolumetricConstraints>(manager);
-        case settings::rigidbody::ConstraintGenerationStrategyChoice::None: 
+        case settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone:
+            return std::make_unique<BackboneConstraints>(manager);
+        case settings::rigidbody::ConstraintGenerationStrategyChoice::None:
             return std::make_unique<NoConstraints>(manager);
         default: 
             throw except::unexpected("rigidbody::factory::generate_constraints: Unknown constraint generation strategy choice. Did you forget to add it to the switch statement?");

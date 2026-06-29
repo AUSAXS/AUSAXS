@@ -132,15 +132,9 @@ namespace ausaxs::rigidbody::sequencer {
             SetupElement& fixed_constraint();
 
             /**
-             * @brief Automatically create sequential distance constraints between all bodies. 
-             *        Given the three bodies A, B, C, the constraints will be A-B, and B-C.
+             * @brief Automatically create a bond constraint between every pair of backbone-adjacent bodies.
              */
-            SetupElement& generate_linear_constraints();
-
-            /**
-             * @brief Automatically create distance constraints between all bodies that are close to each other.
-             */
-            SetupElement& generate_volumetric_constraints();
+            SetupElement& generate_backbone_constraints();
 
             /**
              * @brief Add a custom constraint to the rigidbody.
