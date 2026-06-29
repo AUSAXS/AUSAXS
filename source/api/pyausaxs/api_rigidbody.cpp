@@ -18,9 +18,9 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/atoms/AtomMetadata.h>
-#include <settings/MoleculeSettings.h>
 #include <data/symmetry/BodySymmetryFacade.h>
 #include <data/detail/SimpleBody.h>
+#include <settings/MoleculeSettings.h>
 
 using namespace ausaxs;
 
@@ -53,18 +53,9 @@ int rigidbody_get_preview_structure(
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
 
-    // enable per-atom metadata capture so the loaded bodies carry the residue id + Cα flag the
-    // preview needs; restored afterwards to avoid leaking the setting into later API calls
-    bool prev_store_calpha = settings::molecule::store_calpha;
     settings::molecule::store_calpha = true;
     std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
-    try {
-        sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
-    } catch (...) {
-        settings::molecule::store_calpha = prev_store_calpha;
-        throw;
-    }
-    settings::molecule::store_calpha = prev_store_calpha;
+    sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
     auto molecule = sequencer->_get_molecule();
 
     _rigidbody_preview_structure_obj data;
