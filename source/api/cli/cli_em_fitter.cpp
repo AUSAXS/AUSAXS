@@ -6,6 +6,10 @@
 
 #include <plots/All.h>
 #include <em/ImageStack.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/Histogram.h>
+#include <data/Molecule.h>
+#include <dataset/SimpleDataset.h>
 #include <utility/Utility.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
@@ -60,8 +64,8 @@ int cli_em_fitter(int argc, char const *argv[]) {
 
     // em subcommands
     auto sub_em = app.add_subcommand("em", "See and set additional options for the EM map.");
-    sub_em->add_option("--levelmin", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance and memory load.");
-    sub_em->add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
+    auto levelmin = sub_em->add_option("--levelmin,--level", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance and memory load.");
+    auto levelmax = sub_em->add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
     sub_em->add_option("--charge-levels", settings::em::charge_levels, "Number of charge levels to use for the EM map.");
     sub_em->add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
     sub_em->add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Generate a hydration shell for the protein before fitting.");
@@ -83,8 +87,13 @@ int cli_em_fitter(int argc, char const *argv[]) {
         }
 
         // required args (not marked ->required() since that interferes with the help flag for subcommands)
-        if (!input_map->count() || !input_saxs->count()) {
-            console::print_warning("Error: Both input_structure and input_measurement are required.");
+        if (!input_map->count()) {
+            console::print_warning("Error: An input EM map is required.");
+            exit(1);
+        }
+        // the SAXS measurement is optional: if omitted, a raw profile is computed at the cutoff given by 'em --level'
+        if (!input_saxs->count() && !levelmin->count()) {
+            console::print_warning("Error: Provide either a SAXS measurement to fit against, or 'em --level <σ>' to output a raw scattering profile.");
             exit(1);
         }
     });
@@ -107,23 +116,48 @@ int cli_em_fitter(int argc, char const *argv[]) {
             }
         }
 
+        bool simulate = !input_saxs->count(); // no SAXS measurement -> output a raw profile instead of fitting
+
         // validate input
         if (!constants::filetypes::em_map.check(mapfile)) {
-            if (constants::filetypes::em_map.check(mfile)) {
+            if (!simulate && constants::filetypes::em_map.check(mfile)) {
                 std::swap(mapfile, mfile);
             } else {
                 throw except::invalid_argument("Unknown EM extensions: \"" + mapfile.str() + "\" and \"" + mfile.str() + "\"");
             }
         }
-        if (!constants::filetypes::saxs_data.check(mfile)) {
+        if (!simulate && !constants::filetypes::saxs_data.check(mfile)) {
             throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile.str() + "\"");
         }
-        if (!settings::em::hydrate) {settings::fit::fit_hydration = false;} 
+        if (!settings::em::hydrate) {settings::fit::fit_hydration = false;}
         if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
+
+        // simulation mode: compute and save the raw scattering profile at the requested cutoff level
+        if (simulate) {
+            console::print_info("\nSimulation mode enabled.");
+            console::print_text("Please note that the evaluated hydration shell contribution will be quite poor for most molecules in this mode. For more information, refer to the documentation.");
+            if (levelmax->count() && settings::em::alpha_levels.min != settings::em::alpha_levels.max) {console::print_warning("Warning: Ignoring --levelmax in simulation mode.");}
+            settings::general::output += "simulated/" + mapfile.stem() + "/";
+            console::print_text("Simulating scattering profile for map \"" + mapfile.str() + "\" at cutoff level " + std::to_string(settings::em::alpha_levels.min) + "σ");
+
+            em::ImageStack map(mapfile);
+            auto mol = map.get_protein(map.from_level(settings::em::alpha_levels.min));
+            if (settings::em::hydrate) {mol->generate_new_hydration();}
+            auto hist = mol->get_histogram();
+
+            hist->debye_transform().as_dataset().save(
+                settings::general::output + mapfile.stem() + ".dat",
+                "q I(q) (raw profile at cutoff level " + std::to_string(settings::em::alpha_levels.min) + " sigma)"
+            );
+            plots::PlotDistance::quick_plot(hist.get(), settings::general::output + "p(r)." + settings::plots::format);
+            plots::PlotProfiles::quick_plot(hist.get(), settings::general::output + "profiles." + settings::plots::format);
+            return 0;
+        }
+
         settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 
         console::print_text("Performing EM fit with map \"" + mapfile.str() + "\" and measurement \"" + mfile.str() + "\"");
-        em::ImageStack map(mapfile); 
+        em::ImageStack map(mapfile);
         auto res = map.fit(mfile);
 
         fitter::FitReporter::report(res.get());
