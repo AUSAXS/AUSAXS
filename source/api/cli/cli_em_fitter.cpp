@@ -8,6 +8,7 @@
 #include <em/ImageStack.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
+#include <data/Molecule.h>
 #include <dataset/SimpleDataset.h>
 #include <utility/Utility.h>
 #include <utility/Console.h>
@@ -63,14 +64,12 @@ int cli_em_fitter(int argc, char const *argv[]) {
 
     // em subcommands
     auto sub_em = app.add_subcommand("em", "See and set additional options for the EM map.");
-    sub_em->add_option("--levelmin", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance and memory load.");
-    sub_em->add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
+    auto levelmin = sub_em->add_option("--levelmin,--level", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance and memory load.");
+    auto levelmax = sub_em->add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
     sub_em->add_option("--charge-levels", settings::em::charge_levels, "Number of charge levels to use for the EM map.");
     sub_em->add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
     sub_em->add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Generate a hydration shell for the protein before fitting.");
     sub_em->add_flag("--fixed-weight,!--dynamic-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
-    double sim_level = 0;
-    auto opt_level = sub_em->add_option("--level", sim_level, "Output the raw scattering profile computed at this cutoff level (in units of σ, i.e. RMS multiples). Used when no SAXS measurement is provided.");
 
     // fit subcommands
     auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
@@ -93,7 +92,7 @@ int cli_em_fitter(int argc, char const *argv[]) {
             exit(1);
         }
         // the SAXS measurement is optional: if omitted, a raw profile is computed at the cutoff given by 'em --level'
-        if (!input_saxs->count() && !opt_level->count()) {
+        if (!input_saxs->count() && !levelmin->count()) {
             console::print_warning("Error: Provide either a SAXS measurement to fit against, or 'em --level <σ>' to output a raw scattering profile.");
             exit(1);
         }
@@ -135,17 +134,23 @@ int cli_em_fitter(int argc, char const *argv[]) {
 
         // simulation mode: compute and save the raw scattering profile at the requested cutoff level
         if (simulate) {
+            console::print_info("\nSimulation mode enabled.");
+            console::print_text("Please note that the evaluated hydration shell contribution will be quite poor for most molecules in this mode. For more information, refer to the documentation.");
+            if (levelmax->count() && settings::em::alpha_levels.min != settings::em::alpha_levels.max) {console::print_warning("Warning: Ignoring --levelmax in simulation mode.");}
             settings::general::output += "simulated/" + mapfile.stem() + "/";
-            console::print_text(
-                "Computing raw scattering profile for map \"" + mapfile.str() + "\" at cutoff level " + std::to_string(sim_level) + "σ"
-            );
+            console::print_text("Simulating scattering profile for map \"" + mapfile.str() + "\" at cutoff level " + std::to_string(settings::em::alpha_levels.min) + "σ");
+
             em::ImageStack map(mapfile);
-            auto hist = map.get_histogram(map.from_level(sim_level));
+            auto mol = map.get_protein(map.from_level(settings::em::alpha_levels.min));
+            if (settings::em::hydrate) {mol->generate_new_hydration();}
+            auto hist = mol->get_histogram();
+
             hist->debye_transform().as_dataset().save(
                 settings::general::output + mapfile.stem() + ".dat",
-                "q I(q) (raw profile at cutoff level " + std::to_string(sim_level) + " sigma)"
+                "q I(q) (raw profile at cutoff level " + std::to_string(settings::em::alpha_levels.min) + " sigma)"
             );
-            console::print_info("Raw profile saved to " + settings::general::output + mapfile.stem() + ".dat");
+            plots::PlotDistance::quick_plot(hist.get(), settings::general::output + "p(r)." + settings::plots::format);
+            plots::PlotProfiles::quick_plot(hist.get(), settings::general::output + "profiles." + settings::plots::format);
             return 0;
         }
 
