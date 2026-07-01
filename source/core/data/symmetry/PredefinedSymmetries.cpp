@@ -166,31 +166,11 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     throw std::runtime_error("symmetry::get: Unknown symmetry name \"" + std::string(name) + "\".");
 }
 
-namespace {
-    // parse a bare cyclic token "c<k>" into its order k; std::nullopt if it is not one
-    std::optional<int> parse_cyclic(const std::string& s) {
-        if (s.size() < 2 || s[0] != 'c') {return std::nullopt;}
-        if (!std::all_of(s.begin() + 1, s.end(), [](unsigned char c) {return std::isdigit(c);})) {return std::nullopt;}
-        return std::stoi(s.substr(1));
-    }
-
-    // "c2" combined with a single "c<n>" (either order) shares one centre with perpendicular axes,
-    // which is the dihedral group D_n; returns n when the two tokens match that pattern
-    std::optional<int> dihedral_order(const std::string& left, const std::string& right) {
-        auto a = parse_cyclic(left), b = parse_cyclic(right);
-        if (!a || !b || std::min(*a, *b) != 2) {return std::nullopt;}
-        return std::max(*a, *b);
-    }
-}
-
 std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::string_view name) {
     std::string lc = utility::to_lowercase(name);
     // a hyphen denotes a nested composite: the first part is the inner symmetry, the remainder (recursively parsed) the outer one
     if (auto pos = lc.find('-'); pos != std::string_view::npos) {
         std::string left = lc.substr(0, pos), right = lc.substr(pos + 1);
-        // ... except a bare "c2-cN" / "cN-c2" pair is the dihedral group D_N, built explicitly so
-        // it forms a genuine 2N-copy point group and its pair schedule exploits the full symmetry
-        if (auto n = dihedral_order(left, right)) {return get(get("d" + std::to_string(*n)));}
         return std::make_unique<CompositeSymmetry>(create(left), create(right));
     }
     return get(get(lc));
