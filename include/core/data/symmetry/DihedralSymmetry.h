@@ -20,12 +20,12 @@ namespace ausaxs::symmetry {
      * fixed group-element list, and — the entire point of the exercise — the distance-reuse pair
      * schedule that lets the SAXS backend evaluate one representative per equal-distance class.
      */
-    class DihedralSymmetry final : public IPolyhedralSymmetry {
+    class DihedralSymmetry : public IPolyhedralSymmetry {
         public:
             explicit DihedralSymmetry(int n);
             std::unique_ptr<ISymmetry> clone() const override;
 
-        private:
+        protected:
             const GroupData& group() const override;
 
             // group data depends only on n and is immutable; computed once in the constructor

@@ -15,7 +15,8 @@ namespace ausaxs::symmetry {
         tetrahedral,// chiral tetrahedral rotation group (PolyhedralSymmetry)
         octahedral, // chiral octahedral rotation group (PolyhedralSymmetry)
         icosahedral,// chiral icosahedral rotation group (PolyhedralSymmetry)
-        d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12 // chiral dihedral rotation groups (DihedralSymmetry)
+        d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, // chiral dihedral rotation groups (DihedralSymmetry)
+        dp2, dp3, dp4, dp5, dp6, dp7, dp8, dp9, dp10, dp11, dp12 // planar (coplanar) dihedral groups (PlanarDihedralSymmetry)
     };
 
     /**
@@ -32,7 +33,8 @@ namespace ausaxs::symmetry {
     /**
      * @brief Build a symmetry object from a name string.
      *
-     * A plain name (e.g. "c3", "p2", "t", "d3") maps to the corresponding predefined symmetry.
+     * A plain name (e.g. "c3", "p2", "t", "d3", "dp3") maps to the corresponding predefined symmetry;
+     * "dp<n>" is the planar (coplanar) variant of the dihedral group "d<n>".
      * A hyphenated name builds a nested CompositeSymmetry: the first part is the inner
      * symmetry, the remainder (recursively parsed) the outer one. For example "p2-c3" nests
      * a p2 dimer inside an outer c3, and "c2-c2-c3" nests left-to-right as c2-(c2-c3).

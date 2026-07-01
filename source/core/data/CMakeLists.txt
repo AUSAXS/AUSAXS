@@ -16,6 +16,7 @@ target_sources(ausaxs_core PRIVATE
 	"symmetry/PairScheduleUtil.cpp"
 	"symmetry/TetrahedralSymmetry.cpp"
 	"symmetry/DihedralSymmetry.cpp"
+	"symmetry/PlanarDihedralSymmetry.cpp"
 
 	"state/BoundSignaller.cpp"
 	"state/StateManager.cpp"

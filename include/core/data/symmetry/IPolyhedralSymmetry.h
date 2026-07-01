@@ -36,5 +36,11 @@ namespace ausaxs::symmetry {
 
         //< Build the group data from a set of generators by closing the group and bucketing its pairs.
         static GroupData build(const std::vector<Matrix<double>>& generators, int order);
+
+        //< World-space centre that every copy rotates about. The default places the body at
+        //< cm + translation (offset in world coordinates). Subclasses that constrain the offset
+        //< override this; the planar dihedral, for instance, interprets translation in the group
+        //< frame F and pins its axial component so the copies stay coplanar.
+        virtual Vector3<double> group_centre(const Vector3<double>& cm, const Matrix<double>& F) const;
     };
 }

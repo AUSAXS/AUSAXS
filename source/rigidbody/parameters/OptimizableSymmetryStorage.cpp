@@ -57,6 +57,17 @@ inline void ausaxs::symmetry::OptimizableSymmetryStorage::add(symmetry::type sym
         case symmetry::type::d10:
         case symmetry::type::d11:
         case symmetry::type::d12:
+        case symmetry::type::dp2:
+        case symmetry::type::dp3:
+        case symmetry::type::dp4:
+        case symmetry::type::dp5:
+        case symmetry::type::dp6:
+        case symmetry::type::dp7:
+        case symmetry::type::dp8:
+        case symmetry::type::dp9:
+        case symmetry::type::dp10:
+        case symmetry::type::dp11:
+        case symmetry::type::dp12:
             optimize_rot_axis = true;
             optimize_translate = true;
             break;

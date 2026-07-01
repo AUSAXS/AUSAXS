@@ -8,6 +8,7 @@
 #include <data/symmetry/OctahedralSymmetry.h>
 #include <data/symmetry/IcosahedralSymmetry.h>
 #include <data/symmetry/DihedralSymmetry.h>
+#include <data/symmetry/PlanarDihedralSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <utility/StringUtils.h>
 
@@ -107,6 +108,17 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
         case type::d10: return std::make_unique<DihedralSymmetry>(10);
         case type::d11: return std::make_unique<DihedralSymmetry>(11);
         case type::d12: return std::make_unique<DihedralSymmetry>(12);
+        case type::dp2:  return std::make_unique<PlanarDihedralSymmetry>(2);
+        case type::dp3:  return std::make_unique<PlanarDihedralSymmetry>(3);
+        case type::dp4:  return std::make_unique<PlanarDihedralSymmetry>(4);
+        case type::dp5:  return std::make_unique<PlanarDihedralSymmetry>(5);
+        case type::dp6:  return std::make_unique<PlanarDihedralSymmetry>(6);
+        case type::dp7:  return std::make_unique<PlanarDihedralSymmetry>(7);
+        case type::dp8:  return std::make_unique<PlanarDihedralSymmetry>(8);
+        case type::dp9:  return std::make_unique<PlanarDihedralSymmetry>(9);
+        case type::dp10: return std::make_unique<PlanarDihedralSymmetry>(10);
+        case type::dp11: return std::make_unique<PlanarDihedralSymmetry>(11);
+        case type::dp12: return std::make_unique<PlanarDihedralSymmetry>(12);
         default:
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
     }
@@ -140,6 +152,17 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "d10") {return type::d10;}
     if (name == "d11") {return type::d11;}
     if (name == "d12") {return type::d12;}
+    if (name == "dp2")  {return type::dp2;}
+    if (name == "dp3")  {return type::dp3;}
+    if (name == "dp4")  {return type::dp4;}
+    if (name == "dp5")  {return type::dp5;}
+    if (name == "dp6")  {return type::dp6;}
+    if (name == "dp7")  {return type::dp7;}
+    if (name == "dp8")  {return type::dp8;}
+    if (name == "dp9")  {return type::dp9;}
+    if (name == "dp10") {return type::dp10;}
+    if (name == "dp11") {return type::dp11;}
+    if (name == "dp12") {return type::dp12;}
     throw std::runtime_error("symmetry::get: Unknown symmetry name \"" + std::string(name) + "\".");
 }
 
