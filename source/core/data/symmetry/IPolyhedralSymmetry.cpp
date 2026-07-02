@@ -70,11 +70,15 @@ std::function<Vector3<double>(Vector3<double>)> IPolyhedralSymmetry::get_transfo
     // copy `rep` is  v -> c + F G_rep F^T (v - c),  with c = cm + offset and F the frame orientation
     Matrix<double> F = matrix::rotation_matrix<double>(rotation);
     Matrix<double> R = F*G[rep]*F.transpose();
-    Vector3<double> c = cm + translation;
+    Vector3<double> c = group_centre(cm, F);
     Vector3<double> T = c - R*c;
     return [R = std::move(R), T = std::move(T)](Vector3<double> v) {
         return R*v + T;
     };
+}
+
+Vector3<double> IPolyhedralSymmetry::group_centre(const Vector3<double>& cm, const Matrix<double>&) const {
+    return cm + translation;
 }
 
 std::span<double> IPolyhedralSymmetry::span_translation() {return std::span<double>(translation.begin(), translation.end());}

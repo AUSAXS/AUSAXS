@@ -7,10 +7,15 @@
 #include <data/symmetry/TetrahedralSymmetry.h>
 #include <data/symmetry/OctahedralSymmetry.h>
 #include <data/symmetry/IcosahedralSymmetry.h>
+#include <data/symmetry/DihedralSymmetry.h>
+#include <data/symmetry/PlanarDihedralSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <utility/StringUtils.h>
 
+#include <algorithm>
+#include <cctype>
 #include <numbers>
+#include <optional>
 #include <stdexcept>
 
 std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
@@ -92,6 +97,28 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
             return std::make_unique<OctahedralSymmetry>();
         case type::icosahedral:
             return std::make_unique<IcosahedralSymmetry>();
+        case type::d2:  return std::make_unique<DihedralSymmetry>(2);
+        case type::d3:  return std::make_unique<DihedralSymmetry>(3);
+        case type::d4:  return std::make_unique<DihedralSymmetry>(4);
+        case type::d5:  return std::make_unique<DihedralSymmetry>(5);
+        case type::d6:  return std::make_unique<DihedralSymmetry>(6);
+        case type::d7:  return std::make_unique<DihedralSymmetry>(7);
+        case type::d8:  return std::make_unique<DihedralSymmetry>(8);
+        case type::d9:  return std::make_unique<DihedralSymmetry>(9);
+        case type::d10: return std::make_unique<DihedralSymmetry>(10);
+        case type::d11: return std::make_unique<DihedralSymmetry>(11);
+        case type::d12: return std::make_unique<DihedralSymmetry>(12);
+        case type::dp2:  return std::make_unique<PlanarDihedralSymmetry>(2);
+        case type::dp3:  return std::make_unique<PlanarDihedralSymmetry>(3);
+        case type::dp4:  return std::make_unique<PlanarDihedralSymmetry>(4);
+        case type::dp5:  return std::make_unique<PlanarDihedralSymmetry>(5);
+        case type::dp6:  return std::make_unique<PlanarDihedralSymmetry>(6);
+        case type::dp7:  return std::make_unique<PlanarDihedralSymmetry>(7);
+        case type::dp8:  return std::make_unique<PlanarDihedralSymmetry>(8);
+        case type::dp9:  return std::make_unique<PlanarDihedralSymmetry>(9);
+        case type::dp10: return std::make_unique<PlanarDihedralSymmetry>(10);
+        case type::dp11: return std::make_unique<PlanarDihedralSymmetry>(11);
+        case type::dp12: return std::make_unique<PlanarDihedralSymmetry>(12);
         default:
             throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
     }
@@ -114,6 +141,28 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "t" || name == "tetrahedral") {return type::tetrahedral;}
     if (name == "o" || name == "octahedral")  {return type::octahedral;}
     if (name == "i" || name == "icosahedral") {return type::icosahedral;}
+    if (name == "d2")  {return type::d2;}
+    if (name == "d3")  {return type::d3;}
+    if (name == "d4")  {return type::d4;}
+    if (name == "d5")  {return type::d5;}
+    if (name == "d6")  {return type::d6;}
+    if (name == "d7")  {return type::d7;}
+    if (name == "d8")  {return type::d8;}
+    if (name == "d9")  {return type::d9;}
+    if (name == "d10") {return type::d10;}
+    if (name == "d11") {return type::d11;}
+    if (name == "d12") {return type::d12;}
+    if (name == "dp2")  {return type::dp2;}
+    if (name == "dp3")  {return type::dp3;}
+    if (name == "dp4")  {return type::dp4;}
+    if (name == "dp5")  {return type::dp5;}
+    if (name == "dp6")  {return type::dp6;}
+    if (name == "dp7")  {return type::dp7;}
+    if (name == "dp8")  {return type::dp8;}
+    if (name == "dp9")  {return type::dp9;}
+    if (name == "dp10") {return type::dp10;}
+    if (name == "dp11") {return type::dp11;}
+    if (name == "dp12") {return type::dp12;}
     throw std::runtime_error("symmetry::get: Unknown symmetry name \"" + std::string(name) + "\".");
 }
 
@@ -121,9 +170,8 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::strin
     std::string lc = utility::to_lowercase(name);
     // a hyphen denotes a nested composite: the first part is the inner symmetry, the remainder (recursively parsed) the outer one
     if (auto pos = lc.find('-'); pos != std::string_view::npos) {
-        auto inner = create(lc.substr(0, pos));
-        auto outer = create(lc.substr(pos + 1));
-        return std::make_unique<CompositeSymmetry>(std::move(inner), std::move(outer));
+        std::string left = lc.substr(0, pos), right = lc.substr(pos + 1);
+        return std::make_unique<CompositeSymmetry>(create(left), create(right));
     }
     return get(get(lc));
 }
