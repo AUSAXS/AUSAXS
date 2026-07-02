@@ -9,9 +9,7 @@
 
 using namespace ausaxs::symmetry;
 
-// C_n about the principal axis (z) + a C_2 about a perpendicular axis (x) generate the order-2n
-// dihedral rotation group. The perpendicular flip is essential: about a shared axis the two
-// rotations would only close into the cyclic group C_2n.
+// C_n about the principal axis (z) + a C_2 about a perpendicular axis (x) generate the order-2n dihedral rotation group. 
 DihedralSymmetry::DihedralSymmetry(int n)
     : data(build({
         matrix::rotation_matrix<double>({0, 0, 1}, 2*std::numbers::pi/n),

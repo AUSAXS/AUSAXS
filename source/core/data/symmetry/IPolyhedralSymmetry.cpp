@@ -27,9 +27,8 @@ namespace {
         return k;
     }
 
-    // generate a finite rotation group as the closure of a set of generators (BFS).
-    // element 0 is always the identity; the closure is hard-capped so inconsistent
-    // generators fail the assert below rather than looping forever.
+    // generate a finite rotation group as the closure of a set of generators (BFS). element 0 is always the identity; 
+    // the closure is hard-capped so inconsistent generators fail the assert below rather than looping forever.
     std::vector<Matrix<double>> close_group(const std::vector<Matrix<double>>& generators, int expected_order) {
         std::vector<Matrix<double>> elements;
         std::set<std::array<long, 9>> seen;
