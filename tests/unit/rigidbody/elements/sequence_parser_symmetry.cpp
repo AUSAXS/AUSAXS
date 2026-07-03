@@ -114,7 +114,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
             "symmetry {\n"
-            "    b2 c2-c3\n"
+            "    b2 p2-c3\n"
             "}\n"
         );
         REQUIRE(seq != nullptr);
@@ -124,7 +124,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
         REQUIRE(rb->molecule.get_body(1).size_symmetry() == 1);
         auto* comp = dynamic_cast<symmetry::CompositeSymmetry*>(rb->molecule.get_body(1).symmetry().get(0));
         REQUIRE(comp != nullptr);
-        // c2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
+        // p2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
         CHECK(comp->repetitions() == 5);
     }
 
