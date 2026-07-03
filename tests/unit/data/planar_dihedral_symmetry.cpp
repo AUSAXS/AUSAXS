@@ -9,12 +9,20 @@
 
 #include <cmath>
 #include <memory>
+#include <string>
 #include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
 namespace {
+    // the dihedral groups are templated on their order; build through the runtime factory and view
+    // via the shared base for the instance loops that vary n at runtime
+    std::unique_ptr<IPolyhedralSymmetry> make(const std::string& name) {
+        auto s = create(name);
+        return std::unique_ptr<IPolyhedralSymmetry>(dynamic_cast<IPolyhedralSymmetry*>(s.release()));
+    }
+
     // positions of a single body point p under {original + all copies}, for a body centred at cm
     std::vector<Vector3<double>> copy_positions(const IPolyhedralSymmetry& s, Vector3<double> cm, Vector3<double> p) {
         std::vector<Vector3<double>> out = {p};
@@ -31,14 +39,14 @@ namespace {
 
 TEST_CASE("PlanarDihedralSymmetry: same group as the general dihedral") {
     int n = GENERATE(2, 3, 4, 6);
-    PlanarDihedralSymmetry planar(n);
-    DihedralSymmetry general(n);
-    CHECK(planar.repetitions() == general.repetitions());                       // same 2n copies
-    CHECK(planar.internal_pair_schedule().size() == general.internal_pair_schedule().size()); // same reuse classes
+    auto planar = make("dp" + std::to_string(n));
+    auto general = make("d" + std::to_string(n));
+    CHECK(planar->repetitions() == general->repetitions());                       // same 2n copies
+    CHECK(planar->internal_pair_schedule().size() == general->internal_pair_schedule().size()); // same reuse classes
 }
 
 TEST_CASE("PlanarDihedralSymmetry: exposes only the two in-plane translation parameters") {
-    PlanarDihedralSymmetry s(3);
+    PlanarDihedralSymmetry<3> s;
     CHECK(s.span_translation().size() == 2);
     CHECK(s.span_rotation().size() == 3); // the frame orientation is still fully free
 }
@@ -48,7 +56,7 @@ TEST_CASE("PlanarDihedralSymmetry: exposes only the two in-plane translation par
 // rotated the copies stay in one plane -- the plane through the centre normal to the principal axis.
 TEST_CASE("PlanarDihedralSymmetry: copies are coplanar under an arbitrary frame orientation") {
     int n = GENERATE(2, 3, 4, 5, 6);
-    PlanarDihedralSymmetry s(n);
+    auto sp = make("dp" + std::to_string(n)); auto& s = *sp;
 
     // a deliberately generic frame + a generic in-plane offset
     s.rotation = {0.7, -1.3, 0.4};
@@ -72,7 +80,7 @@ TEST_CASE("PlanarDihedralSymmetry: copies are coplanar under an arbitrary frame 
 }
 
 TEST_CASE("PlanarDihedralSymmetry: writing the pinned axial parameter has no effect") {
-    PlanarDihedralSymmetry s(4);
+    PlanarDihedralSymmetry<4> s;
     s.rotation = {0.2, 0.5, -0.9};
     s.translation = {1.0, 2.0, 0.0};
     auto before = copy_positions(s, {0.5, -0.2, 0.4}, {0.3, 0.6, 0.1});
@@ -89,7 +97,7 @@ TEST_CASE("PlanarDihedralSymmetry: writing the pinned axial parameter has no eff
 TEST_CASE("PlanarDihedralSymmetry: general dihedral is genuinely non-planar (contrast)") {
     // sanity check that the constraint is doing something: a general D_n with an axial offset
     // produces two stacked rings, which are not coplanar
-    DihedralSymmetry s(3);
+    DihedralSymmetry<3> s;
     s.translation = {1.5, 0.0, 2.0}; // non-zero axial component -> stacked rings (principal axis = z here)
     auto pts = copy_centres(s, {0.4, 0.2, 0.9});
 
@@ -102,8 +110,8 @@ TEST_CASE("PlanarDihedralSymmetry: general dihedral is genuinely non-planar (con
 
 TEST_CASE("PlanarDihedralSymmetry: name parsing") {
     CHECK(get("dp3") == type::dp3);
-    CHECK(dynamic_cast<PlanarDihedralSymmetry*>(create("dp3").get()) != nullptr);
-    CHECK(dynamic_cast<PlanarDihedralSymmetry*>(create("dp2").get()) != nullptr);
+    CHECK(dynamic_cast<PlanarDihedralSymmetry<3>*>(create("dp3").get()) != nullptr);
+    CHECK(dynamic_cast<PlanarDihedralSymmetry<2>*>(create("dp2").get()) != nullptr);
     // the plain dihedral name stays the general (non-planar) group
-    CHECK(dynamic_cast<PlanarDihedralSymmetry*>(create("d3").get()) == nullptr);
+    CHECK(dynamic_cast<PlanarDihedralSymmetry<3>*>(create("d3").get()) == nullptr);
 }

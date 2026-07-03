@@ -9,12 +9,20 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <string>
 #include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
 namespace {
+    // D_n is now templated on its order, so construct through the runtime factory and view it via
+    // the shared base to exercise the same instance loops as before
+    std::unique_ptr<IPolyhedralSymmetry> make_dihedral(int n) {
+        auto s = create("d" + std::to_string(n));
+        return std::unique_ptr<IPolyhedralSymmetry>(dynamic_cast<IPolyhedralSymmetry*>(s.release()));
+    }
+
     // a small, deliberately asymmetric test body
     const std::vector<Vector3<double>> body = {
         {1.0, 0.0, 0.0}, {0.3, 1.7, 0.2}, {-0.5, 0.4, 2.1}
@@ -54,14 +62,14 @@ namespace {
 
 TEST_CASE("DihedralSymmetry: group order is 2n") {
     for (int n = 2; n <= 12; ++n) {
-        DihedralSymmetry s(n);
-        CHECK(s.repetitions() == static_cast<unsigned int>(2*n) - 1); // 2n copies including the original
+        auto s = make_dihedral(n);
+        CHECK(s->repetitions() == static_cast<unsigned int>(2*n) - 1); // 2n copies including the original
     }
 }
 
 TEST_CASE("DihedralSymmetry: pair schedule covers every copy-pair exactly once") {
     int n = GENERATE(2, 3, 4, 5, 6, 8, 12);
-    DihedralSymmetry s(n);
+    auto sp = make_dihedral(n); auto& s = *sp;
     int m = static_cast<int>(s.repetitions()) + 1;
 
     long total = 0;
@@ -78,7 +86,7 @@ TEST_CASE("DihedralSymmetry: schedule representatives reproduce all inter-copy d
     // the whole reason the group is modelled explicitly: one representative per equal-distance class,
     // weighted by scale, must reconstruct the full inter-copy distance multiset
     int n = GENERATE(2, 3, 4, 6);
-    DihedralSymmetry s(n);
+    auto sp = make_dihedral(n); auto& s = *sp;
     int m = static_cast<int>(s.repetitions()) + 1;
 
     std::vector<double> brute;
@@ -105,7 +113,7 @@ TEST_CASE("DihedralSymmetry: schedule representatives reproduce all inter-copy d
 
 TEST_CASE("DihedralSymmetry: copies are proper rotations about the centre") {
     int n = GENERATE(2, 3, 5, 6);
-    DihedralSymmetry s(n);
+    auto sp = make_dihedral(n); auto& s = *sp;
     for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {
         auto f = s.get_transform({0, 0, 0}, rep);
         CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));               // centre is fixed
@@ -119,7 +127,7 @@ TEST_CASE("DihedralSymmetry: copies are proper rotations about the centre") {
 // mean the group was cyclic about that axis).
 TEST_CASE("DihedralSymmetry: perpendicular two-fold axes distinguish D_n from C_2n") {
     int n = GENERATE(2, 3, 4, 6);
-    DihedralSymmetry s(n);
+    auto sp = make_dihedral(n); auto& s = *sp;
 
     SECTION("principal axis maps to its negative under some copy (not fixed as in C_2n)") {
         CHECK(orbit_size(s, {0, 0, 1}) == 2);
@@ -137,18 +145,12 @@ TEST_CASE("DihedralSymmetry: perpendicular two-fold axes distinguish D_n from C_
 
 TEST_CASE("DihedralSymmetry: name parsing") {
     CHECK(get("d3") == type::d3);
-    CHECK(dynamic_cast<DihedralSymmetry*>(create("d3").get()) != nullptr);
+    CHECK(dynamic_cast<DihedralSymmetry<3>*>(create("d3").get())   != nullptr);
+    CHECK(dynamic_cast<DihedralSymmetry<12>*>(create("d12").get()) != nullptr);
+    CHECK(create("d3")->repetitions() == 5); // D3: six copies
 
-    // a c2 + single c_n pair (either order) is the dihedral group, not a generic composite
-    for (const auto& name : {"c2-c3", "c3-c2"}) {
-        auto s = create(name);
-        auto d = dynamic_cast<DihedralSymmetry*>(s.get());
-        REQUIRE(d != nullptr);
-        CHECK(d->repetitions() == 5); // D3: six copies
-    }
-    CHECK(dynamic_cast<DihedralSymmetry*>(create("c2-c2").get()) != nullptr); // D2
-
-    // deeper chains and non-c2 pairs remain generic composites
-    CHECK(dynamic_cast<CompositeSymmetry*>(create("c2-c2-c3").get()) != nullptr);
-    CHECK(dynamic_cast<CompositeSymmetry*>(create("c3-c4").get())    != nullptr);
+    // hyphenated names are always generic composites; the dihedral groups are reached only through
+    // their explicit d<n> names (the automatic c2-c<n> -> D_n mapping was intentionally removed)
+    CHECK(dynamic_cast<CompositeSymmetry*>(create("c2-c3").get()) != nullptr);
+    CHECK(dynamic_cast<CompositeSymmetry*>(create("c3-c4").get()) != nullptr);
 }
