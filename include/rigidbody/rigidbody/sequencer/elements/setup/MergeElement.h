@@ -18,9 +18,6 @@ namespace ausaxs::rigidbody::sequencer {
         public:
             /**
              * @brief Merge the atoms of one or more existing bodies into another, deleting the merged-away bodies.
-             *        This is a setup-time operation: it takes effect immediately when parsed/constructed, so it
-             *        must appear before any element that refers to bodies by index or name (e.g. symmetry,
-             *        constraints). Doing otherwise is a user error and will lead to invalid references.
              */
             MergeElement(observer_ptr<Sequencer> owner, std::string_view first_name, std::vector<std::string> other_names);
 

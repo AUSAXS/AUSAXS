@@ -18,9 +18,6 @@ namespace ausaxs::rigidbody::sequencer {
         public:
             /**
              * @brief Delete one or more existing bodies.
-             *        This is a setup-time operation: it takes effect immediately when parsed/constructed, so it
-             *        must appear before any element that refers to bodies by index or name (e.g. symmetry,
-             *        constraints). Doing otherwise is a user error and will lead to invalid references.
              */
             DeleteElement(observer_ptr<Sequencer> owner, std::vector<std::string> names);
 

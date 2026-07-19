@@ -19,9 +19,6 @@ namespace ausaxs::rigidbody::sequencer {
         public:
             /**
              * @brief Rename an existing body.
-             *        This is a setup-time operation: it takes effect immediately when parsed/constructed, so it
-             *        must appear before any element that refers to the body by its old name (e.g. symmetry,
-             *        constraints). Doing otherwise is a user error and will lead to invalid references.
              */
             RenameElement(observer_ptr<Sequencer> owner, std::string_view old_name, std::string_view new_name);
 
