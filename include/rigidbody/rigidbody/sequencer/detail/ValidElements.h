@@ -17,6 +17,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         Log,
         LoopBegin,
         LoopEnd,
+        Merge,
         Message,
         OnImprovement,
         OptimizeStep,

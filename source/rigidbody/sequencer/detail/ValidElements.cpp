@@ -22,6 +22,7 @@ const std::map<ElementType, std::vector<std::string>>& get_type_map() {
         {ElementType::Log, {"log"}},
         {ElementType::LoopBegin, {"loop"}},
         {ElementType::LoopEnd, {"end"}},
+        {ElementType::Merge, {"merge"}},
         {ElementType::Message, {"print"}},
         {ElementType::OnImprovement, {"on_improvement"}},
         {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
@@ -63,6 +64,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(E
         case ElementType::Log:                 return detail::LogElement::_valid_arguments();
         case ElementType::LoopBegin:           return LoopElement::_valid_arguments();
         case ElementType::LoopEnd:             return detail::LoopEndElement::_valid_arguments();
+        case ElementType::Merge:               return MergeElement::_valid_arguments();
         case ElementType::Message:             return MessageElement::_valid_arguments();
         case ElementType::OnImprovement:       return OnImprovementElement::_valid_arguments();
         case ElementType::OptimizeStep:        return OptimizeStepElement::_valid_arguments();

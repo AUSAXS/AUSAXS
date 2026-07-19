@@ -70,6 +70,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/elements/setup/CopyBodyElement.cpp"
 	"sequencer/elements/setup/LoadElement.cpp"
 	"sequencer/elements/setup/LoadExistingElement.cpp"
+	"sequencer/elements/setup/MergeElement.cpp"
 	"sequencer/elements/setup/RelativeHydrationElement.cpp"
 	"sequencer/elements/setup/SetupElement.cpp"
 	"sequencer/elements/setup/SymmetryElement.cpp"
