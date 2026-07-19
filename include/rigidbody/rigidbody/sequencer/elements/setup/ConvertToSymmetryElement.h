@@ -26,15 +26,23 @@ namespace ausaxs::rigidbody::sequencer {
      * This is a setup-time operation. The number of participating bodies must equal
      * repetitions()+1 for the requested symmetry (e.g. exactly 4 bodies for c4); otherwise the setup
      * fails. Bodies must be given in symmetry (repetition) order.
+     *
+     * Arbitrary (including nested composite, e.g. "p2-p2") symmetries are supported: the user asserts
+     * the symmetry type and the parameters are fitted to match. As a safeguard against a wrong claim,
+     * the fit is rejected if its residual RMSD exceeds @ref tolerance.
      */
     class ConvertToSymmetryElement : public GenericElement {
         public:
+            //< Default residual-RMSD threshold (Å) above which the fit is considered a mismatch.
+            static constexpr double default_tolerance = 2.0;
+
             /**
              * @param owner The owning sequencer.
              * @param bodies The participating body indices, primary first, in repetition order.
-             * @param symmetry_name The target symmetry (e.g. "c4", "d3", "tetrahedral").
+             * @param symmetry_name The target symmetry (e.g. "c4", "d3", "p2-p2").
+             * @param tolerance Residual-RMSD threshold (Å); the setup fails if the fit exceeds it.
              */
-            ConvertToSymmetryElement(observer_ptr<Sequencer> owner, std::vector<int> bodies, const std::string& symmetry_name);
+            ConvertToSymmetryElement(observer_ptr<Sequencer> owner, std::vector<int> bodies, const std::string& symmetry_name, double tolerance = default_tolerance);
             ~ConvertToSymmetryElement() override;
 
             void run() override;
@@ -43,7 +51,7 @@ namespace ausaxs::rigidbody::sequencer {
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
-            void _convert(const std::vector<int>& bodies, const std::string& symmetry_name);
+            void _convert(const std::vector<int>& bodies, const std::string& symmetry_name, double tolerance);
             observer_ptr<Sequencer> owner;
     };
 }

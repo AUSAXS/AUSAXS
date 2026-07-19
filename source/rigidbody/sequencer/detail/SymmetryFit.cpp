@@ -7,6 +7,7 @@
 #include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/IPolyhedralSymmetry.h>
+#include <data/symmetry/CompositeSymmetry.h>
 #include <math/MatrixUtils.h>
 
 #include <algorithm>
@@ -134,13 +135,26 @@ namespace {
         return F;
     }
 
+    // A cyclic fit can degenerate to a near-zero rotation when the assembly is not actually
+    // symmetric. With no rotation and no screw translation the transform is the identity for every
+    // copy, which CyclicSymmetry::get_transform rejects outright; detect it and reconstruct with the
+    // identity map (which yields the large residual we want, flagging the mismatch).
+    bool is_trivial_cyclic(const symmetry::ISymmetry& sym) {
+        auto* cs = dynamic_cast<const symmetry::CyclicSymmetry*>(&sym);
+        return cs
+            && std::abs(cs->_repeat_relation.angle) < 1e-6
+            && cs->_repeat_relation.translation.magnitude() < 1e-6;
+    }
+
     double reconstruction_rmsd(
         const symmetry::ISymmetry& sym, const Vector3<double>& cm, const std::vector<std::vector<Vector3<double>>>& copies
     ) {
+        bool trivial = is_trivial_cyclic(sym);
         double sum_sq = 0;
         std::size_t count = 0;
         for (unsigned int k = 1; k < copies.size(); ++k) {
-            auto transform = sym.get_transform(cm, k);
+            std::function<Vector3<double>(Vector3<double>)> transform =
+                trivial ? [](Vector3<double> v) {return v;} : sym.get_transform(cm, k);
             for (std::size_t i = 0; i < copies[0].size(); ++i) {
                 Vector3<double> d = transform(copies[0][i]) - copies[k][i];
                 sum_sq += d.dot(d);
@@ -157,6 +171,28 @@ SymmetryFitResult fit_symmetry(
 ) {
     assert(copies.size() == template_symmetry.repetitions() + 1 && "fit_symmetry: body count must equal repetitions()+1.");
     assert(!copies.empty() && !copies[0].empty() && "fit_symmetry: empty input.");
+
+    // A composite factorises: copy (k, j) = outer_k(inner_j(reference)), and since inner_0 and
+    // outer_0 are the identity, copy (0, j) is the inner symmetry's own copy j and copy (k, 0) the
+    // outer symmetry's own copy k. So each sub-symmetry can be fitted independently from the
+    // appropriate slice of the assembly, recursing to arbitrary nesting depth.
+    if (auto* comp = dynamic_cast<const symmetry::CompositeSymmetry*>(&template_symmetry)) {
+        int stride = 1 + static_cast<int>(comp->inner->repetitions());
+        int outer_reps = static_cast<int>(comp->outer->repetitions());
+
+        std::vector<std::vector<Vector3<double>>> inner_copies(copies.begin(), copies.begin() + stride);
+        auto inner_fit = fit_symmetry(*comp->inner, cm, inner_copies);
+
+        std::vector<std::vector<Vector3<double>>> outer_copies;
+        outer_copies.reserve(outer_reps + 1);
+        for (int k = 0; k <= outer_reps; ++k) {outer_copies.push_back(copies[k*stride]);}
+        auto outer_fit = fit_symmetry(*comp->outer, cm, outer_copies);
+
+        SymmetryFitResult result;
+        result.symmetry = std::make_unique<symmetry::CompositeSymmetry>(std::move(inner_fit.symmetry), std::move(outer_fit.symmetry));
+        result.rmsd = reconstruction_rmsd(*result.symmetry, cm, copies);
+        return result;
+    }
 
     // per-copy alignment: exact Kabsch superposition of the reference onto each copy
     std::vector<Matrix<double>> R;      // R[k] maps copies[0] onto copies[k]; R[0] is the identity
@@ -211,5 +247,32 @@ SymmetryFitResult fit_symmetry(
 
     result.rmsd = reconstruction_rmsd(*sym, cm, copies);
     return result;
+}
+
+SymmetryFitResult fit_symmetry_best_order(
+    const symmetry::ISymmetry& template_symmetry, const Vector3<double>& cm,
+    const std::vector<std::vector<Vector3<double>>>& copies, double accept_rmsd
+) {
+    SymmetryFitResult best = fit_symmetry(template_symmetry, cm, copies);
+    if (best.rmsd <= accept_rmsd) {return best;}
+
+    // Enumerating orderings of the non-reference bodies costs (n-1)! fits; cap it so pathological
+    // sizes fall back to the given order rather than hanging. Highly-constrained large-order groups
+    // (which is where n grows) are precisely the cases that do not need this feature.
+    int n = static_cast<int>(copies.size());
+    if (9 < n) {return best;}
+
+    std::vector<int> perm(n - 1);
+    for (int i = 0; i < n - 1; ++i) {perm[i] = i + 1;}      // reference (index 0) stays fixed
+
+    std::vector<std::vector<Vector3<double>>> reordered(n);
+    reordered[0] = copies[0];
+    while (std::next_permutation(perm.begin(), perm.end())) {  // the identity order was already tried
+        for (int i = 0; i < n - 1; ++i) {reordered[i + 1] = copies[perm[i]];}
+        auto candidate = fit_symmetry(template_symmetry, cm, reordered);
+        if (candidate.rmsd < best.rmsd) {best = std::move(candidate);}
+        if (best.rmsd <= accept_rmsd) {break;}
+    }
+    return best;
 }
 }

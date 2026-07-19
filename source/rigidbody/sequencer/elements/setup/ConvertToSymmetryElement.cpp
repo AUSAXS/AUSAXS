@@ -13,6 +13,7 @@
 #include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/IPolyhedralSymmetry.h>
+#include <data/symmetry/CompositeSymmetry.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/GeneralSettings.h>
 #include <data/Molecule.h>
@@ -37,23 +38,26 @@ namespace {
     }
 
     bool is_supported_target(const symmetry::ISymmetry& sym) {
+        if (auto* comp = dynamic_cast<const symmetry::CompositeSymmetry*>(&sym)) {
+            return is_supported_target(*comp->inner) && is_supported_target(*comp->outer);
+        }
         return dynamic_cast<const symmetry::PointSymmetry*>(&sym)
             || dynamic_cast<const symmetry::CyclicSymmetry*>(&sym)
             || dynamic_cast<const symmetry::IPolyhedralSymmetry*>(&sym);
     }
 }
 
-ConvertToSymmetryElement::ConvertToSymmetryElement(observer_ptr<Sequencer> owner, std::vector<int> bodies, const std::string& symmetry_name)
+ConvertToSymmetryElement::ConvertToSymmetryElement(observer_ptr<Sequencer> owner, std::vector<int> bodies, const std::string& symmetry_name, double tolerance)
     : owner(owner)
 {
-    _convert(bodies, symmetry_name);
+    _convert(bodies, symmetry_name, tolerance);
 }
 
 ConvertToSymmetryElement::~ConvertToSymmetryElement() = default;
 
 void ConvertToSymmetryElement::run() {}
 
-void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const std::string& symmetry_name) {
+void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const std::string& symmetry_name, double tolerance) {
     auto molecule = owner->_get_molecule();
     auto rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
@@ -93,12 +97,22 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     }
     Vector3<double> reference_cm = molecule->get_body(primary).get_cm();
 
-    // fit the symmetry parameters to the assembly
-    auto fit = detail::fit_symmetry(*base_sym, reference_cm, copies);
+    // fit the symmetry parameters to the assembly; the bodies (PDB chains) may be in any order, so
+    // let the fitter search over orderings, accepting the first that comes within tolerance
+    auto fit = detail::fit_symmetry_best_order(*base_sym, reference_cm, copies, tolerance);
     logging::log("ConvertToSymmetryElement: fitted " + symmetry_name + " with residual RMSD " + std::to_string(fit.rmsd) + " Å.");
     if (settings::general::verbose) {
         std::cout << "\tFitted " << symmetry_name << " to " << bodies.size() << " bodies (residual RMSD "
                   << fit.rmsd << " Å)." << std::endl;
+    }
+
+    // the user asserts the symmetry type; a large residual means the assembly does not actually
+    // obey it, so we refuse rather than proceed with meaningless parameters
+    if (tolerance < fit.rmsd) {
+        throw except::parse_error("convert_to_symmetry",
+            "The assembly does not match a \"" + symmetry_name + "\" symmetry (residual RMSD "
+            + std::to_string(fit.rmsd) + " Å exceeds the tolerance of " + std::to_string(tolerance)
+            + " Å). Check the symmetry type and the body order, or raise the tolerance.");
     }
 
     // install the fitted symmetry on the primary body (live molecule and stored initial conformation);
@@ -156,7 +170,7 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
 }
 
 std::vector<std::string> ConvertToSymmetryElement::_valid_arguments() {
-    return {"type", "bodies"};
+    return {"type", "bodies", "tolerance"};
 }
 
 std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
@@ -172,14 +186,23 @@ std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<Lo
         return std::make_unique<ConvertToSymmetryElement>(sequencer, std::move(bodies), std::string{args.inlined[0]});
     }
 
-    // block form: explicit "type" + "bodies" list
+    // block form: explicit "type" + "bodies" list, with an optional "tolerance"
     auto type_it = args.named.find("type");
     auto bodies_it = args.named.find("bodies");
+    auto tolerance_it = args.named.find("tolerance");
     if (type_it == args.named.end() || bodies_it == args.named.end()) {
         throw except::parse_error("convert_to_symmetry", "The block form requires both a \"type\" and a \"bodies\" entry.");
     }
-    if (args.named.size() != 2) {throw except::parse_error("convert_to_symmetry", "Unexpected arguments; only \"type\" and \"bodies\" are allowed.");}
+    std::size_t expected_keys = 2 + (tolerance_it != args.named.end() ? 1 : 0);
+    if (args.named.size() != expected_keys) {throw except::parse_error("convert_to_symmetry", "Unexpected arguments; only \"type\", \"bodies\" and \"tolerance\" are allowed.");}
     if (type_it->second.size() != 1) {throw except::parse_error("convert_to_symmetry", "\"type\" takes exactly one symmetry name.");}
+
+    double tolerance = ConvertToSymmetryElement::default_tolerance;
+    if (tolerance_it != args.named.end()) {
+        if (tolerance_it->second.size() != 1) {throw except::parse_error("convert_to_symmetry", "\"tolerance\" takes exactly one value.");}
+        try {tolerance = std::stod(std::string{tolerance_it->second[0].str});}
+        catch (const std::exception&) {throw except::parse_error("convert_to_symmetry", "\"tolerance\" must be a number.");}
+    }
 
     std::string symmetry_name = type_it->second[0];
     std::vector<int> bodies;
@@ -191,5 +214,5 @@ std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<Lo
         bodies.push_back(index.body);
     }
     if (bodies.size() < 2) {throw except::parse_error("convert_to_symmetry", "At least two bodies are required.");}
-    return std::make_unique<ConvertToSymmetryElement>(sequencer, std::move(bodies), symmetry_name);
+    return std::make_unique<ConvertToSymmetryElement>(sequencer, std::move(bodies), symmetry_name, tolerance);
 }

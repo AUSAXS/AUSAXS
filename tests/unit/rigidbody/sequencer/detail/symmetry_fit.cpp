@@ -14,6 +14,8 @@
 #include <data/symmetry/OctahedralSymmetry.h>
 #include <data/symmetry/IcosahedralSymmetry.h>
 #include <data/symmetry/IPolyhedralSymmetry.h>
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/PredefinedSymmetries.h>
 #include <math/MatrixUtils.h>
 
 #include <numbers>
@@ -141,6 +143,83 @@ TEST_CASE("fit_symmetry::polyhedral") {
     SECTION("tetrahedral") {TetrahedralSymmetry s, t; check(s, t);}
     SECTION("octahedral")  {OctahedralSymmetry  s, t; check(s, t);}
     SECTION("icosahedral") {IcosahedralSymmetry s, t; check(s, t);}
+}
+
+TEST_CASE("fit_symmetry::composite") {
+    auto body = make_body();
+    auto cm = centre_of(body);
+
+    auto set_point = [](symmetry::ISymmetry& leaf, Vector3<double> tr, Vector3<double> rot) {
+        auto* p = dynamic_cast<symmetry::PointSymmetry*>(&leaf);
+        REQUIRE(p != nullptr);
+        p->translation = tr;
+        p->rotation = rot;
+    };
+
+    SECTION("p2-p2 (as in the A2M assembly)") {
+        // an inner p2 dimer replicated by an outer p2: four copies, arbitrary offsets/orientations
+        auto source = symmetry::create("p2-p2");
+        auto* comp = dynamic_cast<symmetry::CompositeSymmetry*>(source.get());
+        REQUIRE(comp != nullptr);
+        set_point(*comp->inner, {5, 1, -2}, {0.3, 0.7, -0.4});
+        set_point(*comp->outer, {-3, 6, 1}, {1.1, -0.2, 0.5});
+
+        auto copies = expand(*source, body);
+        REQUIRE(copies.size() == 4);
+        auto res = fit_symmetry(*symmetry::create("p2-p2"), cm, copies);
+        CHECK_THAT(res.rmsd, Catch::Matchers::WithinAbs(0, 1e-6));
+    }
+
+    SECTION("triple-nested p2-p2-p2") {
+        // eight copies from three nested dimer operations; exercises recursion past depth two
+        auto source = symmetry::create("p2-p2-p2");
+        int leaf = 0;
+        symmetry::for_each_leaf(*source, [&](symmetry::ISymmetry& l) {
+            set_point(l, {4.0 + leaf, -2.0*leaf, 1.0 + leaf}, {0.2*leaf + 0.1, 0.5 - 0.2*leaf, 0.3*leaf});
+            ++leaf;
+        });
+        REQUIRE(leaf == 3);
+
+        auto copies = expand(*source, body);
+        REQUIRE(copies.size() == 8);
+        auto res = fit_symmetry(*symmetry::create("p2-p2-p2"), cm, copies);
+        CHECK_THAT(res.rmsd, Catch::Matchers::WithinAbs(0, 1e-6));
+    }
+}
+
+TEST_CASE("fit_symmetry_best_order recovers a shuffled assembly") {
+    using rigidbody::sequencer::detail::fit_symmetry_best_order;
+    auto body = make_body();
+    auto cm = centre_of(body);
+
+    auto shuffle = [](std::vector<std::vector<Vector3<double>>> copies, std::vector<int> order) {
+        std::vector<std::vector<Vector3<double>>> out;
+        for (int i : order) {out.push_back(copies[i]);}
+        return out;
+    };
+
+    SECTION("cyclic c4 given out of order") {
+        CyclicSymmetry source({{4, 0, 0}}, {{0, 0, 0}}, {0.2, 1, 0.4}, 2*std::numbers::pi/4, 3);
+        auto copies = shuffle(expand(source, body), {0, 2, 3, 1}); // reference kept first, rest scrambled
+        CyclicSymmetry templ({{0, 0, 0}}, {{0, 0, 0}}, {0, 0, 1}, 0, 3);
+
+        CHECK(fit_symmetry(templ, cm, copies).rmsd > 1e-3);                 // wrong order fails
+        CHECK_THAT(fit_symmetry_best_order(templ, cm, copies, 1e-6).rmsd,   // search recovers it
+                   Catch::Matchers::WithinAbs(0, 1e-6));
+    }
+
+    SECTION("composite p2-p2 given out of order") {
+        auto source = symmetry::create("p2-p2");
+        auto* comp = dynamic_cast<symmetry::CompositeSymmetry*>(source.get());
+        dynamic_cast<symmetry::PointSymmetry*>(comp->inner.get())->translation = {5, 1, -2};
+        dynamic_cast<symmetry::PointSymmetry*>(comp->inner.get())->rotation = {0.3, 0.7, -0.4};
+        dynamic_cast<symmetry::PointSymmetry*>(comp->outer.get())->translation = {-3, 6, 1};
+        dynamic_cast<symmetry::PointSymmetry*>(comp->outer.get())->rotation = {1.1, -0.2, 0.5};
+
+        auto copies = shuffle(expand(*source, body), {0, 3, 1, 2});
+        auto res = fit_symmetry_best_order(*symmetry::create("p2-p2"), cm, copies, 1e-6);
+        CHECK_THAT(res.rmsd, Catch::Matchers::WithinAbs(0, 1e-6));
+    }
 }
 
 TEST_CASE("fit_symmetry::degrades gracefully with noise") {

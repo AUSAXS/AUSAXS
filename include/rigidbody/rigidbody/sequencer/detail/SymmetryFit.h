@@ -43,4 +43,23 @@ namespace ausaxs::rigidbody::sequencer::detail {
         const Vector3<double>& reference_cm,
         const std::vector<std::vector<Vector3<double>>>& copies
     );
+
+    /**
+     * @brief Fit a symmetry without assuming the copies are given in repetition order.
+     *
+     * @ref fit_symmetry requires copies[k] to be the k-th symmetry copy, but chains in a PDB come in
+     * arbitrary order. This first tries the given order and, if the residual exceeds @p accept_rmsd,
+     * searches over orderings of the non-reference bodies (copies[0] is always kept as the reference,
+     * which is valid because the symmetry group acts transitively on the copies) and returns the
+     * lowest-RMSD fit found. The search is skipped for assemblies too large to enumerate, in which
+     * case the given order is used as-is.
+     *
+     * @param accept_rmsd Residual RMSD (Å) at or below which an ordering is accepted immediately.
+     */
+    SymmetryFitResult fit_symmetry_best_order(
+        const symmetry::ISymmetry& template_symmetry,
+        const Vector3<double>& reference_cm,
+        const std::vector<std::vector<Vector3<double>>>& copies,
+        double accept_rmsd
+    );
 }
