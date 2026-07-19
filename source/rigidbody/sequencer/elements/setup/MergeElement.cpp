@@ -3,7 +3,7 @@
 
 #include <rigidbody/sequencer/elements/setup/MergeElement.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
+#include <rigidbody/sequencer/detail/BodyIndexOps.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
@@ -12,17 +12,18 @@
 #include <utility/observer_ptr.h>
 
 #include <algorithm>
-#include <iterator>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
-    // dst is kept only if both sides track it; otherwise the merged result can no longer be trusted to be parallel-indexed with the atoms
+    // a field consistently absent on both sides (e.g. occupancy, which is off by default) is fine and left absent;
+    // a field present on only one side means the two bodies were tracked under different settings, which would
+    // desync the merged result from the atom vector, so that case is a hard error instead of a silent drop
     template<typename T>
     void merge_optional_vector(std::optional<std::vector<T>>& dst, const std::optional<std::vector<T>>& src) {
         if (dst.has_value() && src.has_value()) {dst->insert(dst->end(), src->begin(), src->end());}
-        else {throw std::runtime_error("MergeElement: metadata mismatch. This is not supposed to happen.");}
+        else if (dst.has_value() != src.has_value()) {throw std::runtime_error("MergeElement: metadata mismatch. This is not supposed to happen.");}
     }
 
     void merge_metadata(data::Body& first, const data::Body& other) {
@@ -37,7 +38,6 @@ namespace {
 }
 
 MergeElement::MergeElement(observer_ptr<Sequencer> owner, std::string_view first_name, std::vector<std::string> other_names) {
-    auto& body_names = owner->setup()._get_body_names();
     int i_first = owner->setup()._get_body_index(first_name).body;
 
     std::vector<int> other_indices;
@@ -66,27 +66,7 @@ MergeElement::MergeElement(observer_ptr<Sequencer> owner, std::string_view first
     conformation.initial_conformation[i_first] = std::move(centered);
     conformation.absolute_parameters.parameters[i_first].translation = cm;
 
-    // remove the merged-away bodies, highest index first so earlier indices stay valid while erasing
-    std::vector<int> removed = other_indices;
-    std::sort(removed.begin(), removed.end());
-    for (auto it = removed.rbegin(); it != removed.rend(); ++it) {
-        molecule.get_bodies().erase(molecule.get_bodies().begin() + *it);
-        conformation.initial_conformation.erase(conformation.initial_conformation.begin() + *it);
-        conformation.absolute_parameters.parameters.erase(conformation.absolute_parameters.parameters.begin() + *it);
-    }
-
-    // drop the merged-away names and reindex the survivors to their shifted body indices
-    for (auto it = body_names.begin(); it != body_names.end(); ) {
-        auto sel = detail::from_index(it->second);
-        auto pos = std::lower_bound(removed.begin(), removed.end(), sel.body);
-        if (pos != removed.end() && *pos == sel.body) {
-            it = body_names.erase(it);
-            continue;
-        }
-        auto shift = std::distance(removed.begin(), pos);
-        if (shift != 0) {it->second = detail::to_index(sel.body - static_cast<int>(shift), sel.symmetry, sel.replica);}
-        ++it;
-    }
+    detail::erase_bodies(owner, std::move(other_indices));
 }
 
 MergeElement::~MergeElement() = default;

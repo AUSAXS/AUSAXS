@@ -5,10 +5,12 @@
 
 #include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
 #include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
+#include <rigidbody/sequencer/elements/setup/DeleteElement.h>
 #include <rigidbody/sequencer/elements/setup/LoadElement.h>
 #include <rigidbody/sequencer/elements/setup/LoadExistingElement.h>
 #include <rigidbody/sequencer/elements/setup/MergeElement.h>
 #include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
+#include <rigidbody/sequencer/elements/setup/RenameElement.h>
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 #include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
