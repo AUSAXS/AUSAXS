@@ -13,6 +13,7 @@
 #include <rigidbody/sequencer/elements/setup/RenameElement.h>
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
+#include <rigidbody/sequencer/elements/setup/ConvertToSymmetryElement.h>
 #include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
 #include <rigidbody/sequencer/elements/setup/CopyBodyElement.h>
 

@@ -51,6 +51,9 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/detail/BodyNameRegistry.cpp"
 	"sequencer/detail/ParsedArgs.cpp"
 	"sequencer/detail/SequenceParser.cpp"
+	"sequencer/detail/SymmetricEigen.cpp"
+	"sequencer/detail/Superposition.cpp"
+	"sequencer/detail/SymmetryFit.cpp"
 	"sequencer/detail/ValidElements.cpp"
 	"sequencer/elements/BodySelectElement.cpp"
 	"sequencer/elements/ConstraintIteratorElementCallback.cpp"
@@ -78,6 +81,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/elements/setup/RenameElement.cpp"
 	"sequencer/elements/setup/SetupElement.cpp"
 	"sequencer/elements/setup/SymmetryElement.cpp"
+	"sequencer/elements/setup/ConvertToSymmetryElement.cpp"
 	"sequencer/elements/setup/OutputFolderElement.cpp"
 	
 	"transform/RigidTransform.cpp"
