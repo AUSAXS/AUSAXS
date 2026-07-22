@@ -231,3 +231,26 @@ void rigidbody_get_valid_arguments(
     *arguments = valid_arguments_cstr_map[type].data();
     *size = valid_arguments_map[type].size();
 }, status);}
+
+void rigidbody_get_body_names(
+    int rigidbody_id,
+    const char*** names,
+    int* size,
+    int* status
+) {execute_with_catch([&]() {
+    auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
+    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return;}
+
+    auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
+    // the setup elements (merge/delete/convert_to_symmetry) are applied during parsing, so the registry
+    // already reflects the final body set, ordered identically to rigidbody_get_preview_structure's bodies
+    static std::vector<std::string> body_names;
+    static std::vector<const char*> body_names_cstr;
+    body_names = sequencer->setup()._body_name_registry().base_body_names();
+    body_names_cstr.clear();
+    body_names_cstr.reserve(body_names.size());
+    for (const auto& name : body_names) {body_names_cstr.push_back(name.c_str());}
+
+    *names = body_names_cstr.data();
+    *size = static_cast<int>(body_names_cstr.size());
+}, status);}

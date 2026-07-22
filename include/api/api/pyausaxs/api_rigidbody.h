@@ -59,3 +59,13 @@ extern "C" API void rigidbody_get_valid_arguments(
     int* size,
     int* status
 );
+
+// Display names of the bodies that remain after the setup elements (merge/delete/convert_to_symmetry)
+// have been applied, ordered by body index so that name i corresponds to the body with body_index == i
+// reported by rigidbody_get_preview_structure. Each name is the body's custom alias if set, else "bN".
+extern "C" API void rigidbody_get_body_names(
+    int rigidbody_id,
+    const char*** names,
+    int* size,
+    int* status
+);

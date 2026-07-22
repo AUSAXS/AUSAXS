@@ -70,6 +70,12 @@ namespace ausaxs::rigidbody::sequencer::detail {
              */
             std::vector<Group> group_by_index() const;
 
+            /**
+             * @brief Display names of the base bodies, ordered by body index. Each entry is the body's custom alias if it has one,
+             * otherwise its default name ("bN"). Symmetry replicas are excluded.
+             */
+            std::vector<std::string> base_body_names() const;
+
         private:
             /**
              * @brief Register an arbitrary entity's permanent default name for an already-encoded index.
