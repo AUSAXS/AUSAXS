@@ -24,7 +24,7 @@ void clone(observer_ptr<Sequencer> owner, std::string_view body_name, int index)
     owner->_get_rigidbody()->conformation->absolute_parameters.parameters.emplace_back(body_pars);
 
     int new_index = static_cast<int>(owner->_get_molecule()->size_body())-1;
-    owner->setup()._get_body_names().add_body(new_index, std::string{body_name});
+    owner->setup()._body_name_registry().add_body(new_index, std::string{body_name});
 }
 
 CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, std::string_view source_body_name) {
@@ -49,7 +49,7 @@ std::unique_ptr<GenericElement> CopyBodyElement::_parse(observer_ptr<LoopElement
         "copy", "Invalid number of inline arguments. Expected [new name] [target name], but got " + std::to_string(args.inlined.size()) + "."
     );}
 
-    const auto& body_names = owner->_get_sequencer()->setup()._get_body_names();
+    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string source = args.inlined[0];
     std::string name = args.inlined[1];
     if (!body_names.contains(source)) {

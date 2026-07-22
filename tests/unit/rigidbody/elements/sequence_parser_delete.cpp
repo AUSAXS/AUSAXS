@@ -74,7 +74,7 @@ TEST_CASE_METHOD(SequenceParserDeleteFixture, "SequenceParser::DeleteElement") {
             "delete b2\n"
         );
         REQUIRE(seq != nullptr);
-        const auto& names = seq->setup()._get_body_names();
+        const auto& names = seq->setup()._body_name_registry();
         CHECK(names.contains("b1"));
         CHECK_FALSE(names.contains("b2"));
     }

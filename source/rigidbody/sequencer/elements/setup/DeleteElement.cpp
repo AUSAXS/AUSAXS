@@ -37,7 +37,7 @@ std::unique_ptr<GenericElement> DeleteElement::_parse(observer_ptr<LoopElement> 
         "delete", "Invalid number of inline arguments. Expected one or more body names, but got 0."
     );}
 
-    const auto& body_names = owner->_get_sequencer()->setup()._get_body_names();
+    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::vector<std::string> names;
     names.reserve(args.inlined.size());
     for (std::size_t i = 0; i < args.inlined.size(); ++i) {

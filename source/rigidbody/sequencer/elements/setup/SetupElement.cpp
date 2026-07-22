@@ -52,7 +52,7 @@ SetupElement& SetupElement::load_existing(observer_ptr<Rigidbody> rigidbody) {
     return *this;
 }
 
-detail::BodyNameRegistry& SetupElement::_get_body_names() {
+detail::BodyNameRegistry& SetupElement::_body_name_registry() {
     return body_names;
 }
 

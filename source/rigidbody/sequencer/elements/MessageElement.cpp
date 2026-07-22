@@ -22,7 +22,7 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
     auto chi2_penalty = [this] () { return utility::round_double(owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3); };
     auto chi2_no_penalty = [this] () { return utility::round_double(owner->_get_current_conf()->chi2 - owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3);};
     auto body_names = [this] () {
-        auto groups = owner->_get_sequencer()->setup()._get_body_names().group_by_index();
+        auto groups = owner->_get_sequencer()->setup()._body_name_registry().group_by_index();
 
         std::vector<std::string> parts;
         parts.reserve(groups.size());

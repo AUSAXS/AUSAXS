@@ -177,7 +177,7 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Get the name identifiers of all loaded bodies.
              */
-            detail::BodyNameRegistry& _get_body_names();
+            detail::BodyNameRegistry& _body_name_registry();
 
             /**
              * @brief Resolve a name to the (body, symmetry, replica) selector it refers to. Accepts any known name, including a symmetry replica's tag.

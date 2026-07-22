@@ -33,7 +33,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
         throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
-        owner->setup()._get_body_names().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
+        owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
     owner->setup()._set_active_body(rigidbody.get());
 
@@ -57,7 +57,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
-        owner->setup()._get_body_names().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
+        owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
     owner->setup()._set_active_body(rigidbody.get());
 
@@ -77,7 +77,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
-        owner->setup()._get_body_names().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
+        owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
     owner->setup()._set_active_body(rigidbody.get());
 

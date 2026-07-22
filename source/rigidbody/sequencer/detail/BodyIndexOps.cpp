@@ -38,5 +38,5 @@ void ausaxs::rigidbody::sequencer::detail::erase_bodies(observer_ptr<Sequencer> 
     erase_indices(conformation.initial_conformation, indices);
     erase_indices(conformation.absolute_parameters.parameters, indices);
 
-    owner->setup()._get_body_names().remove(indices);
+    owner->setup()._body_name_registry().remove(indices);
 }

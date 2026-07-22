@@ -83,7 +83,7 @@ std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> o
         "merge", "Invalid number of inline arguments. Expected [first] [others...], but got " + std::to_string(args.inlined.size()) + "."
     );}
 
-    const auto& body_names = owner->_get_sequencer()->setup()._get_body_names();
+    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string first = args.inlined[0];
     if (!body_names.contains(first)) {throw except::parse_error("merge", "Body name \"" + first + "\" not found.");}
 
