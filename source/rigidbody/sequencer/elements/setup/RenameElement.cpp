@@ -10,11 +10,7 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 RenameElement::RenameElement(observer_ptr<Sequencer> owner, std::string_view old_name, std::string_view new_name) {
-    auto& body_names = owner->setup()._get_body_names();
-    auto it = body_names.find(std::string{old_name});
-    unsigned int index = it->second;
-    body_names.erase(it);
-    body_names.emplace(std::string{new_name}, index);
+    owner->setup()._get_body_names().rename(old_name, new_name);
 }
 
 RenameElement::~RenameElement() = default;

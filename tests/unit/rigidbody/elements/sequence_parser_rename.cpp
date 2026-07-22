@@ -47,8 +47,24 @@ TEST_CASE_METHOD(SequenceParserRenameFixture, "SequenceParser::RenameElement") {
         );
         REQUIRE(seq != nullptr);
         const auto& names = seq->setup()._get_body_names();
-        CHECK_FALSE(names.contains("b1"));
+        CHECK(names.contains("b1")); // the default name is permanent and is never removed by a rename
         CHECK(names.contains("core"));
+    }
+
+    SECTION("renaming again replaces the previous alias instead of accumulating it") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "rename b1 core\n"
+            "rename core shell\n"
+        );
+        REQUIRE(seq != nullptr);
+        const auto& names = seq->setup()._get_body_names();
+        CHECK(names.contains("b1"));
+        CHECK_FALSE(names.contains("core"));
+        CHECK(names.contains("shell"));
     }
 
     SECTION("a renamed body can still be referenced by its new name") {

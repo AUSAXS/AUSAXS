@@ -38,12 +38,12 @@ namespace {
 }
 
 MergeElement::MergeElement(observer_ptr<Sequencer> owner, std::string_view first_name, std::vector<std::string> other_names) {
-    int i_first = owner->setup()._get_body_index(first_name).body;
+    int i_first = owner->setup()._get_body(first_name);
 
     std::vector<int> other_indices;
     other_indices.reserve(other_names.size());
     for (const auto& name : other_names) {
-        other_indices.push_back(owner->setup()._get_body_index(name).body);
+        other_indices.push_back(owner->setup()._get_body(name));
     }
 
     auto& molecule = *owner->_get_molecule();

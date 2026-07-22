@@ -18,7 +18,7 @@ DeleteElement::DeleteElement(observer_ptr<Sequencer> owner, std::vector<std::str
     std::vector<int> indices;
     indices.reserve(names.size());
     for (const auto& name : names) {
-        indices.push_back(owner->setup()._get_body_index(name).body);
+        indices.push_back(owner->setup()._get_body(name));
     }
     detail::erase_bodies(owner, std::move(indices));
 }
