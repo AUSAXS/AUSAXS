@@ -18,10 +18,10 @@ RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner
     assert(names.size() == ratios.size() && "RelativeHydrationElement::RelativeHydrationElement: The number of names and ratios must be equal.");
 
     for (unsigned int i = 0; i < names.size(); ++i) {
-        if (!owner->setup()._get_body_names().contains(names[i])) {
+        if (!owner->setup()._body_name_registry().contains(names[i])) {
             throw std::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + names[i] + "\" is not known.");
         }
-        this->ratios.push_back(owner->setup()._get_body_names().at(names[i]));
+        this->ratios.push_back(owner->setup()._body_name_registry().at(names[i]));
     }
 }
 
@@ -68,7 +68,7 @@ std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<Lo
     };
 
     // inline usage pattern: [body] [hydration level]
-    auto body_names = owner->_get_sequencer()->setup()._get_body_names();
+    auto body_names = owner->_get_sequencer()->setup()._body_name_registry();
     if (!args.inlined.empty()) {
         if (args.inlined.size() != 2) {throw except::parse_error("relative_hydration", "Only 2 inline arguments can be provided.");}
         if (!body_names.contains(args.inlined[0])) {throw except::parse_error("relative_hydration", "Unknown body name \"" + args.inlined[0] + "\".");}

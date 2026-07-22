@@ -7,6 +7,7 @@
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
+#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <string_view>
@@ -16,7 +17,6 @@
 
 #include <string>
 #include <vector>
-#include <unordered_map>
 #include <functional>
 
 namespace ausaxs::rigidbody::sequencer {
@@ -177,8 +177,17 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Get the name identifiers of all loaded bodies.
              */
-            std::unordered_map<std::string, unsigned int>& _get_body_names();
+            detail::BodyNameRegistry& _body_name_registry();
+
+            /**
+             * @brief Resolve a name to the (body, symmetry, replica) selector it refers to. Accepts any known name, including a symmetry replica's tag.
+             */
             detail::BodySymmetrySelector _get_body_index(std::string_view name) const;
+
+            /**
+             * @brief Resolve a name to a base body's index. Throws if the name refers to a symmetry replica.
+             */
+            int _get_body(std::string_view name) const;
 
             /**
              * @brief Set the currently active body for the setup.
@@ -213,7 +222,7 @@ namespace ausaxs::rigidbody::sequencer {
             std::vector<std::unique_ptr<GenericElement>>& _get_elements();
 
         private:
-            std::unordered_map<std::string, unsigned int> body_names;
+            detail::BodyNameRegistry body_names;
             observer_ptr<Rigidbody> active_body;
             io::Folder config_folder;
             io::ExistingFile saxs_path;

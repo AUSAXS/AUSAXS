@@ -25,16 +25,15 @@ using namespace ausaxs::rigidbody::sequencer;
 namespace {
     using namespace ausaxs;
 
-    // Place the symmetric copies at a sane distance from the original by seeding the translation
-    // offset of each leaf symmetry (for_each_leaf descends into any composite's sub-symmetries).
+    // Place the symmetric copies at a sane distance from the original by seeding the translation offset of each leaf symmetry 
+    // (for_each_leaf descends into any composite's sub-symmetries).
     void seed_offset(symmetry::ISymmetry& sym, double offset) {
         symmetry::for_each_leaf(sym, [offset](symmetry::ISymmetry& leaf) {
             if (auto t = leaf.span_translation(); !t.empty()) {*t.begin() = offset;}
         });
     }
 
-    // Mark the body's symmetry storage as optimizable. All supported symmetry types expose
-    // both an offset and a frame orientation to the optimiser.
+    // Mark the body's symmetry storage as optimizable. All supported symmetry types expose both an offset and a frame orientation to the optimiser.
     void enable_optimization(symmetry::SymmetryStorage* storage) {
         auto* opt = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(storage);
         assert(opt != nullptr && "SymmetryElement: body symmetry storage is not optimizable.");
@@ -77,29 +76,21 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
 
     molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
     for (unsigned int i = 0; i < names.size(); ++i) {
-        auto index = setup._get_body_index(names[i]);
-        int ibody = index.body;
-        assert(index.replica == 0 && index.symmetry == -1 && "SymmetryElement::_add: The body name must refer to a base body (symmetry -1, replica 0).");
+        int ibody = setup._get_body(names[i]);
 
-        // install the symmetry on the live body and the stored initial conformation; both
-        // storages must be optimizable for the parameter optimiser to drive them
+        // install the symmetry on the live body and the stored initial conformation; both storages must be optimizable for the parameter optimiser to drive them
         enable_optimization(molecule->get_body(ibody).symmetry().get_obj());
         enable_optimization(rigidbody->conformation->initial_conformation[ibody].symmetry().get_obj());
         molecule->get_body(ibody).symmetry().add(symmetries[i]->clone());
         rigidbody->conformation->initial_conformation[ibody].symmetry().add(std::move(symmetries[i]));
 
-        // add names for the symmetric bodies
-        auto& name_map = setup._get_body_names();
+        // add names for the symmetric bodies: each replica's permanent tag is always "bXsYrZ", built from the body's own index rather than whatever name the caller 
+        // used to refer to it, so it stays valid no matter how the base body gets renamed later
+        auto& name_map = setup._body_name_registry();
         int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::_add: Inconsistent data structures.");
-        if (int reps = molecule->get_body(ibody).symmetry().get(isymmetry)->repetitions(); reps == 1) { // single replica only: b1s1
-            name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 1));
-        } else { // multiple replicas: b1s1r1, b1s1r2, ...; b1s1 is an alias for b1s1r1
-            name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1), detail::to_index(ibody, isymmetry, 1));
-            for (int j = 0; j < reps; ++j) {
-                name_map.emplace(names[i] + "s" + std::to_string(isymmetry+1) + "r" + std::to_string(j+1), detail::to_index(ibody, isymmetry, j+1));
-            }
-        }
+        int reps = molecule->get_body(ibody).symmetry().get(isymmetry)->repetitions();
+        for (int j = 0; j < reps; ++j) {name_map.add_replica(ibody, isymmetry, j+1);}
 
         // place the symmetry body at a sane distance from the original
         seed_offset(*molecule->get_body(ibody).symmetry().get(isymmetry), 2*molecule->get_Rg(false));
@@ -125,9 +116,7 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     std::vector<int> bodies;
     bodies.reserve(body_names.size());
     for (const auto& name : body_names) {
-        auto index = setup._get_body_index(name);
-        assert(index.replica == 0 && index.symmetry == -1 && "SymmetryElement::_add_reference: The body name must refer to a base body (symmetry -1, replica 0).");
-        bodies.push_back(index.body);
+        bodies.push_back(setup._get_body(name));
     }
 
     // the shared symmetry replicates the group like a cyclic group, so its base must be cyclic
@@ -137,8 +126,7 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
 
     int primary = bodies.front();
 
-    // the slot each body's reference symmetry/view will occupy is its current symmetry count
-    // (we append exactly one to each participating body below)
+    // the slot each body's reference symmetry/view will occupy is its current symmetry count (we append exactly one to each participating body below)
     std::vector<int> slots(bodies.size());
     for (std::size_t k = 0; k < bodies.size(); ++k) {
         slots[k] = static_cast<int>(molecule->get_body(bodies[k]).size_symmetry());
@@ -157,8 +145,8 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
         rigidbody->conformation->initial_conformation[primary].symmetry().get(primary_slot)
     );
 
-    // the remaining bodies link to the primary's symmetry through non-owning views, located by
-    // (primary body, slot) and resolved through the live molecule so they survive refinement
+    // the remaining bodies link to the primary's symmetry through non-owning views, located by (primary body, slot) and resolved through the live 
+    // molecule so they survive refinement
     for (std::size_t k = 1; k < bodies.size(); ++k) {
         int b = bodies[k];
         enable_optimization(molecule->get_body(b).symmetry().get_obj());
@@ -171,20 +159,15 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     seed_offset(*mol_ref, 2*molecule->get_Rg(false));
     seed_offset(*conf_ref, 2*molecule->get_Rg(false));
 
-    // register names and per-body symmetry parameters for every participating body
-    auto& name_map = setup._get_body_names();
+    // register names and per-body symmetry parameters for every participating body; as in _add, each replica's permanent tag is always "bXsYrZ", 
+    // built from the body's own index
+    auto& name_map = setup._body_name_registry();
     for (std::size_t k = 0; k < bodies.size(); ++k) {
         int b = bodies[k];
         int isymmetry = molecule->get_body(b).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::_add_reference: Inconsistent data structures.");
-        if (int reps = molecule->get_body(b).symmetry().get(isymmetry)->repetitions(); reps == 1) {
-            name_map.emplace(body_names[k] + "s" + std::to_string(isymmetry+1), detail::to_index(b, isymmetry, 1));
-        } else { // multiple replicas: b1s1r1, b1s1r2, ...; b1s1 is an alias for b1s1r1
-            name_map.emplace(body_names[k] + "s" + std::to_string(isymmetry+1), detail::to_index(b, isymmetry, 1));
-            for (int j = 0; j < reps; ++j) {
-                name_map.emplace(body_names[k] + "s" + std::to_string(isymmetry+1) + "r" + std::to_string(j+1), detail::to_index(b, isymmetry, j+1));
-            }
-        }
+        int reps = molecule->get_body(b).symmetry().get(isymmetry)->repetitions();
+        for (int j = 0; j < reps; ++j) {name_map.add_replica(b, isymmetry, j+1);}
         rigidbody->conformation->absolute_parameters.parameters[b].symmetry_pars.emplace_back(
             molecule->get_body(b).symmetry().get(isymmetry)->clone()
         );

@@ -10,6 +10,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
+#include <utility/StringUtils.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -20,6 +21,18 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
     auto chi2_best = [this] () { return utility::round_double(owner->_get_best_conf()->chi2, 3); };
     auto chi2_penalty = [this] () { return utility::round_double(owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3); };
     auto chi2_no_penalty = [this] () { return utility::round_double(owner->_get_current_conf()->chi2 - owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3);};
+    auto body_names = [this] () {
+        auto groups = owner->_get_sequencer()->setup()._body_name_registry().group_by_index();
+
+        std::vector<std::string> parts;
+        parts.reserve(groups.size());
+        for (auto& group : groups) {
+            if (group.others.empty()) {parts.push_back(group.default_name);}
+            else if (!group.default_name.empty()) {parts.push_back(utility::join(group.others, "/") + " (" + group.default_name + ")");}
+            else {parts.push_back(utility::join(group.others, "/"));}
+        }
+        return utility::join(parts, ", ");
+    };
 
     std::vector<std::string> parts;
     std::vector<std::function<std::string()>> funcs;
@@ -43,6 +56,8 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
                     funcs.emplace_back(chi2_penalty);
                 } else if (placeholder == "{chi2_no_penalty}") {
                     funcs.emplace_back(chi2_no_penalty);
+                } else if (placeholder == "{body_names}") {
+                    funcs.emplace_back(body_names);
                 } else {
                     parts.back() += placeholder; // unknown placeholder, keep as is
                 }
