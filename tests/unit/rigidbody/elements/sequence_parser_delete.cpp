@@ -100,6 +100,20 @@ TEST_CASE_METHOD(SequenceParserDeleteFixture, "SequenceParser::DeleteElement") {
         CHECK(rb->molecule.get_body(1).size_symmetry() == 1);
     }
 
+    SECTION("list separators like commas are ignored in list arguments") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "delete b1, b2\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+        CHECK(rb->molecule.size_body() == 1);
+    }
+
     SECTION("deleting an unknown body name is rejected") {
         CHECK_THROWS(parse(
             "load {\n"
