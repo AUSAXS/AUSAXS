@@ -26,6 +26,8 @@ using namespace ausaxs;
 
 struct _rigidbody_script_obj {
     std::string script;
+    // lazily parsed and cached on the first read-only preview query (see get_cached_sequencer below)
+    std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
 };
 int rigidbody_load_script(
     const char* script,
@@ -36,6 +38,17 @@ int rigidbody_load_script(
     int data_id = api::ObjectStorage::register_object(std::move(data));
     return data_id;
 }, status);}
+
+namespace {
+    rigidbody::sequencer::Sequencer& get_cached_sequencer(_rigidbody_script_obj& obj) {
+        if (!obj.sequencer) {
+            // every current caller of the cached path needs Cα/backbone metadata for its output
+            settings::molecule::store_calpha = true;
+            obj.sequencer = rigidbody::sequencer::SequenceParser().parse_text(obj.script);
+        }
+        return *obj.sequencer;
+    }
+}
 
 struct _rigidbody_preview_structure_obj {
     std::vector<double> x, y, z;
@@ -53,10 +66,8 @@ int rigidbody_get_preview_structure(
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
 
-    settings::molecule::store_calpha = true;
-    std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
-    sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
-    auto molecule = sequencer->_get_molecule();
+    auto& sequencer = get_cached_sequencer(*script_obj);
+    auto molecule = sequencer._get_molecule();
 
     _rigidbody_preview_structure_obj data;
     int bidx = 0;
@@ -104,10 +115,10 @@ int rigidbody_get_preview_structure(
         data.constraint_data.push_back(idx2);
         data.constraint_data.push_back(type);
     };
-    for (const auto& c : sequencer->_get_rigidbody()->constraints->discoverable_constraints) {
+    for (const auto& c : sequencer._get_rigidbody()->constraints->discoverable_constraints) {
         emit_constraint(c.get());
     }
-    for (const auto& c : sequencer->_get_rigidbody()->constraints->non_discoverable_constraints) {
+    for (const auto& c : sequencer._get_rigidbody()->constraints->non_discoverable_constraints) {
         if (auto* dc = dynamic_cast<const rigidbody::constraints::IDistanceConstraint*>(c.get())) {
             emit_constraint(dc);
         }
@@ -241,12 +252,12 @@ void rigidbody_get_body_names(
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return;}
 
-    auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
+    auto& sequencer = get_cached_sequencer(*script_obj);
     // the setup elements (merge/delete/convert_to_symmetry) are applied during parsing, so the registry
     // already reflects the final body set, ordered identically to rigidbody_get_preview_structure's bodies
     static std::vector<std::string> body_names;
     static std::vector<const char*> body_names_cstr;
-    body_names = sequencer->setup()._body_name_registry().base_body_names();
+    body_names = sequencer.setup()._body_name_registry().base_body_names();
     body_names_cstr.clear();
     body_names_cstr.reserve(body_names.size());
     for (const auto& name : body_names) {body_names_cstr.push_back(name.c_str());}
@@ -270,10 +281,9 @@ int rigidbody_get_symmetry_layout(
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
 
-    settings::molecule::store_calpha = true;
-    auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
-    auto molecule = sequencer->_get_molecule();
-    const auto& name_registry = sequencer->setup()._body_name_registry();
+    auto& sequencer = get_cached_sequencer(*script_obj);
+    auto molecule = sequencer._get_molecule();
+    const auto& name_registry = sequencer.setup()._body_name_registry();
 
     _rigidbody_symmetry_layout_obj data;
     int bidx = 0;
