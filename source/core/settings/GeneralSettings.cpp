@@ -82,6 +82,8 @@ template<> void settings::io::detail::SettingRef<settings::general::QUnit>::set(
     else {throw std::invalid_argument("settings: Unknown value for q-unit: \"" + val[0] + "\"");}
 }
 
+template<> std::string settings::io::detail::SettingRef<settings::general::QUnit>::type() const {return "string";}
+
 bool ausaxs::settings::general::helper::is_angstroms(QUnit u) {
     // QUnit::USER_A follows from QUnit::A due to the bit manipulation
     return static_cast<char>(u) & static_cast<char>(QUnit::A);
