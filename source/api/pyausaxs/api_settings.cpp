@@ -42,3 +42,17 @@ void set_setting(
     if (!map.contains(name)) {ErrorMessage::last_error = "Unknown setting: \"" + std::string(name) + "\""; return;}
     map.at(name)->set({value});
 }, status);}
+
+void save_settings(
+    const char* path,
+    int* status
+) {return execute_with_catch([&]() {
+    settings::write(io::File(path));
+}, status);}
+
+void load_settings(
+    const char* path,
+    int* status
+) {return execute_with_catch([&]() {
+    settings::read(io::ExistingFile(path));
+}, status);}
