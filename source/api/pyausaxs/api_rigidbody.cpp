@@ -273,6 +273,7 @@ int rigidbody_get_symmetry_layout(
     settings::molecule::store_calpha = true;
     auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
     auto molecule = sequencer->_get_molecule();
+    const auto& name_registry = sequencer->setup()._body_name_registry();
 
     _rigidbody_symmetry_layout_obj data;
     int bidx = 0;
@@ -290,7 +291,7 @@ int rigidbody_get_symmetry_layout(
                 data.symmetry.push_back(isymmetry);
                 data.replica.push_back(replica_idx);
                 data.type.push_back(type_name);
-                data.name.push_back("b" + std::to_string(bidx+1) + "s" + std::to_string(isymmetry+1) + "r" + std::to_string(replica_idx));
+                data.name.push_back(name_registry.name(static_cast<unsigned int>(rigidbody::sequencer::detail::to_index(bidx, isymmetry, replica_idx))));
                 ++copy_idx;
             }
             ++isymmetry;

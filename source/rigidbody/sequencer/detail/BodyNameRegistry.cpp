@@ -90,6 +90,11 @@ unsigned int BodyNameRegistry::at(std::string_view name) const {
     return names.at(std::string{name});
 }
 
+std::string BodyNameRegistry::name(unsigned int index) const {
+    if (auto alias = aliases.find(index); alias != aliases.end()) {return alias->second;}
+    return defaults.at(index);
+}
+
 BodySymmetrySelector BodyNameRegistry::resolve(std::string_view name) const {
     auto it = names.find(std::string{name});
     if (it == names.end()) {

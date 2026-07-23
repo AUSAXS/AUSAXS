@@ -48,6 +48,12 @@ namespace ausaxs::rigidbody::sequencer::detail {
             unsigned int at(std::string_view name) const;
 
             /**
+             * @brief Return the current addressable name for an encoded entity.
+             *        This is its alias when renamed, otherwise its permanent default name.
+             */
+            std::string name(unsigned int index) const;
+
+            /**
              * @brief Resolve a name to the (body, symmetry, replica) selector it refers to. 
              */
             BodySymmetrySelector resolve(std::string_view name) const;

@@ -79,7 +79,7 @@ extern "C" API void rigidbody_get_body_names(
 //   replica[]  1-based repetition index of this copy within its symmetry.
 //   type[]     predefined-name string of the symmetry (e.g. "c4", "p2", "d3-c2"), matching the names
 //              accepted by the "symmetry" sequencer element.
-//   name[]     addressable default name of this replica, e.g. "b1s1r1" (as used by rename/select elements).
+//   name[]     current addressable name of this replica, e.g. "b1s1r1" or its custom alias after rename.
 extern "C" API int rigidbody_get_symmetry_layout(
     int rigidbody_id,
     int** body, int** copy, int** symmetry, int** replica,
