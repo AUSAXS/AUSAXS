@@ -21,6 +21,11 @@ namespace ausaxs::rigidbody::constraints {
             virtual ~DistanceConstraintBond() override = default;
 
             /**
+             * @brief Check whether a backbone bond can be formed between the two bodies.
+             */
+            static bool can_bond(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2);
+
+            /**
              * @brief Evaluate this constraint for the current positions. 
              * 
              * @return The chi2 contribution of this constraint.
