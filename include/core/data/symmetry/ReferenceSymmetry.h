@@ -30,6 +30,7 @@ namespace ausaxs::symmetry {
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
+        std::string type_name() const override;
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
         std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;
@@ -57,6 +58,7 @@ namespace ausaxs::symmetry {
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
+        std::string type_name() const override;
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
         std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;

@@ -14,6 +14,7 @@ namespace ausaxs::symmetry {
         static_assert(2 <= N, "DihedralSymmetry: order N must be at least 2.");
         public:
             std::unique_ptr<ISymmetry> clone() const override;
+            std::string type_name() const override;
 
         protected:
             const GroupData& group() const override;

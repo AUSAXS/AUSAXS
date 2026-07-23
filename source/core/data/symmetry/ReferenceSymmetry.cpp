@@ -39,6 +39,7 @@ std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetry::get_transform
 
 unsigned int ReferenceSymmetry::repetitions() const {return base.repetitions();}
 bool ReferenceSymmetry::is_closed() const {return base.is_closed();}
+std::string ReferenceSymmetry::type_name() const {return base.type_name();}
 std::span<double> ReferenceSymmetry::span_translation() {return base.span_translation();}
 std::span<double> ReferenceSymmetry::span_rotation() {return base.span_rotation();}
 std::vector<SymmetricDuplicatePair> ReferenceSymmetry::internal_pair_schedule() const {return base.internal_pair_schedule();}
@@ -75,6 +76,7 @@ std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetryView::get_trans
 
 unsigned int ReferenceSymmetryView::repetitions() const {return target()->repetitions();}
 bool ReferenceSymmetryView::is_closed() const {return target()->is_closed();}
+std::string ReferenceSymmetryView::type_name() const {return target()->type_name();}
 std::vector<SymmetricDuplicatePair> ReferenceSymmetryView::internal_pair_schedule() const {return target()->internal_pair_schedule();}
 
 std::unique_ptr<ISymmetry> ReferenceSymmetryView::clone() const {

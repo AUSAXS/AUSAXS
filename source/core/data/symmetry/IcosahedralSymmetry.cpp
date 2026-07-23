@@ -11,6 +11,7 @@ using namespace ausaxs::symmetry;
 // 5-fold vertex + 2-fold edge + 3-fold face rotations of an icosahedron with vertices at the
 // cyclic permutations of (0, +-1, +-phi) generate the group A5
 std::unique_ptr<ISymmetry> IcosahedralSymmetry::clone() const {return std::make_unique<IcosahedralSymmetry>(*this);}
+std::string IcosahedralSymmetry::type_name() const {return "icosahedral";}
 const IPolyhedralSymmetry::GroupData& IcosahedralSymmetry::group() const {
     static const double phi = (1 + std::sqrt(5.0))/2;
     static const GroupData data = build({

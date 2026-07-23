@@ -13,6 +13,7 @@ namespace ausaxs::symmetry {
     class PlanarDihedralSymmetry final : public DihedralSymmetry<N> {
         public:
             std::unique_ptr<ISymmetry> clone() const override;
+            std::string type_name() const override;
 
             std::span<double> span_translation() override;
 

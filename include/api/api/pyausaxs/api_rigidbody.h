@@ -69,3 +69,21 @@ extern "C" API void rigidbody_get_body_names(
     int* size,
     int* status
 );
+
+// Symmetry layout of every replica (copy > 0) in the structure, keyed to rigidbody_get_preview_structure's
+// (body, copy) pairs so the caller never has to guess the copy -> symmetry mapping.
+// Parallel arrays, one entry per replica:
+//   body[]     matches preview_structure's body_index.
+//   copy[]     matches preview_structure's copy_index (always > 0; copy 0 is the unreplicated original).
+//   symmetry[] 0-based index of the symmetry within its body (a body can have several stacked symmetries).
+//   replica[]  1-based repetition index of this copy within its symmetry.
+//   type[]     predefined-name string of the symmetry (e.g. "c4", "p2", "d3-c2"), matching the names
+//              accepted by the "symmetry" sequencer element.
+//   name[]     addressable default name of this replica, e.g. "b1s1r1" (as used by rename/select elements).
+extern "C" API int rigidbody_get_symmetry_layout(
+    int rigidbody_id,
+    int** body, int** copy, int** symmetry, int** replica,
+    const char*** type, const char*** name,
+    int* n_replicas,
+    int* status
+);

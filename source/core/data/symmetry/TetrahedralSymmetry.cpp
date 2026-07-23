@@ -10,6 +10,7 @@ using namespace ausaxs::symmetry;
 
 // 3-fold body-diagonal rotation + 2-fold face rotation generate the rotation group A4
 std::unique_ptr<ISymmetry> TetrahedralSymmetry::clone() const {return std::make_unique<TetrahedralSymmetry>(*this);}
+std::string TetrahedralSymmetry::type_name() const {return "tetrahedral";}
 const IPolyhedralSymmetry::GroupData& TetrahedralSymmetry::group() const {
     static const GroupData data = build({
         matrix::rotation_matrix<double>({1, 1, 1}, 2*std::numbers::pi/3), 

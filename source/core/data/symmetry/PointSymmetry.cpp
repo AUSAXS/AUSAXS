@@ -17,6 +17,7 @@ PointSymmetry::PointSymmetry(const Vector3<double>& translation, const Vector3<d
 }
 
 bool PointSymmetry::is_closed() const { return false; }
+std::string PointSymmetry::type_name() const { return "p2"; }
 
 std::unique_ptr<ISymmetry> PointSymmetry::clone() const {
     return std::make_unique<PointSymmetry>(*this);
