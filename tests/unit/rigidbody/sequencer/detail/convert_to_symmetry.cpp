@@ -41,7 +41,8 @@ namespace {
         return {{2, 0, 0}, {3, 1, 0.5}, {2.5, -1, 1}, {4, 0.5, -0.5}, {2, 2, 1}, {5, -1, 0}};
     }
 
-    void write_pdb(const std::string& path, const std::vector<Vector3<double>>& atoms) {
+    void write_pdb(const io::File& path, const std::vector<Vector3<double>>& atoms) {
+        path.create();
         std::ofstream out(path);
         int serial = 1;
         for (const auto& a : atoms) {
