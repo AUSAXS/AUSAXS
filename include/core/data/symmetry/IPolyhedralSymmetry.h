@@ -24,6 +24,11 @@ namespace ausaxs::symmetry {
         Vector3<double> translation{0, 0, 0};   //< offset of the body from the group centre
         Vector3<double> rotation{0, 0, 0};      //< orientation of the group frame (Euler angles)
 
+        /**
+         * @brief The fixed rotation matrices of the point group (element 0 is the identity).
+         */
+        [[nodiscard]] const std::vector<Matrix<double>>& group_elements() const {return group().elements;}
+
     protected:
         //< The fixed rotation matrices of the group (element 0 = identity) and the distance-reuse
         //< schedule derived from them. Both are invariant data, supplied once by each concrete group.

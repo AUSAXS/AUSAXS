@@ -183,6 +183,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         static const std::unordered_map<ElementType, ElementParser> element_parsers = {
             {ElementType::AutomaticConstraint, AutoConstraintsElement::_parse},
             {ElementType::BodySelect,          BodySelectElement::_parse},
+            {ElementType::ConvertToSymmetry,   ConvertToSymmetryElement::_parse},
             {ElementType::Copy,                CopyBodyElement::_parse},
             {ElementType::Delete,              DeleteElement::_parse},
             {ElementType::EveryNStep,          EveryNStepElement::_parse},

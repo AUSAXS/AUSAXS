@@ -11,6 +11,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         AutomaticConstraint,
         BodySelect,
         Constraint,
+        ConvertToSymmetry,
         Copy,
         Delete,
         EveryNStep,

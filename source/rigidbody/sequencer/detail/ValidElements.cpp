@@ -16,6 +16,7 @@ const std::map<ElementType, std::vector<std::string>>& get_type_map() {
         {ElementType::AutomaticConstraint, {"autoconstrain", "autoconstraints"}},
         {ElementType::BodySelect, {"select", "selector"}},
         {ElementType::Constraint, {"constrain", "constraint"}},
+        {ElementType::ConvertToSymmetry, {"convert_to_symmetry"}},
         {ElementType::Copy, {"copy", "copy_body"}},
         {ElementType::Delete, {"delete"}},
         {ElementType::EveryNStep, {"every"}},
@@ -60,6 +61,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(E
         case ElementType::AutomaticConstraint: return AutoConstraintsElement::_valid_arguments();
         case ElementType::BodySelect:          return BodySelectElement::_valid_arguments();
         case ElementType::Constraint:          return ConstraintElement::_valid_arguments();
+        case ElementType::ConvertToSymmetry:   return ConvertToSymmetryElement::_valid_arguments();
         case ElementType::Copy:                return CopyBodyElement::_valid_arguments();
         case ElementType::Delete:              return DeleteElement::_valid_arguments();
         case ElementType::EveryNStep:          return EveryNStepElement::_valid_arguments();

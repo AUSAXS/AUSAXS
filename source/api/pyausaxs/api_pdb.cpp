@@ -4,13 +4,19 @@
 #include <api/pyausaxs/api_pdb.h>
 #include <api/ObjectStorage.h>
 #include <io/Reader.h>
+#include <io/pdb/PDBStructure.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <rigidbody/sequencer/detail/SymmetryFit.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <fitter/SmartFitter.h>
 #include <settings/All.h>
 
+#include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -91,6 +97,77 @@ int pdb_get_data(
     return data_id;
 }, status);}
 
+struct _pdb_decompose_obj {
+    std::vector<double> x, y, z;
+    std::vector<int> copy_index;
+};
+
+int pdb_decompose_symmetry(
+    int pdb_id, const char* symmetry_name,
+    double** x_out, double** y_out, double** z_out, int** copy_index_out, int* n_atoms_out,
+    double* rmsd_out, int* status
+) {return execute_with_catch([&]() {
+    auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
+    if (!pdb) {throw std::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
+
+    // group atoms into chains, preserving first-seen chain order (chain 0 = reference)
+    std::unordered_map<char, int> chain_index;
+    std::vector<std::vector<Vector3<double>>> chains;
+    for (const auto& atom : pdb->atoms) {
+        auto [it, inserted] = chain_index.try_emplace(atom.chainID, static_cast<int>(chains.size()));
+        if (inserted) {chains.emplace_back();}
+        chains[it->second].push_back(atom.coords);
+    }
+    if (chains.size() < 2) {throw std::invalid_argument("pdb_decompose_symmetry: at least two chains are required.");}
+    for (const auto& c : chains) {
+        if (c.size() != chains[0].size()) {
+            throw std::invalid_argument("pdb_decompose_symmetry: chains have differing atom counts; they must be copies of the same molecule.");
+        }
+    }
+
+    auto base = symmetry::create(std::string(symmetry_name));
+    if (chains.size() != base->repetitions() + 1) {
+        throw std::invalid_argument(
+            "pdb_decompose_symmetry: symmetry \"" + std::string(symmetry_name) + "\" needs "
+            + std::to_string(base->repetitions() + 1) + " chains, but " + std::to_string(chains.size()) + " were found."
+        );
+    }
+
+    // reference centre = centroid of the first chain
+    Vector3<double> cm{0, 0, 0};
+    for (const auto& p : chains[0]) {cm += p;}
+    cm /= static_cast<double>(chains[0].size());
+
+    // fit (order-independent; accept_rmsd 0 forces the search to keep the globally best ordering)
+    auto fit = rigidbody::sequencer::detail::fit_symmetry_best_order(*base, cm, chains, 0.0);
+
+    // build the decomposed structure: reference chain (copy 0) + the fitted symmetry copies
+    auto reconstructed = rigidbody::sequencer::detail::reconstruct_copies(*fit.symmetry, cm, chains[0]);
+    _pdb_decompose_obj data;
+    int per = static_cast<int>(chains[0].size());
+    int reps = static_cast<int>(fit.symmetry->repetitions());
+    data.x.reserve(per*(reps + 1)); data.y.reserve(per*(reps + 1)); data.z.reserve(per*(reps + 1)); data.copy_index.reserve(per*(reps + 1));
+    for (int k = 0; k <= reps; ++k) {
+        for (const auto& q : reconstructed[k]) {
+            data.x.push_back(q.x());
+            data.y.push_back(q.y());
+            data.z.push_back(q.z());
+            data.copy_index.push_back(k);
+        }
+    }
+
+    *rmsd_out = fit.rmsd;
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_pdb_decompose_obj>(data_id);
+    *x_out = ref->x.data();
+    *y_out = ref->y.data();
+    *z_out = ref->z.data();
+    *copy_index_out = ref->copy_index.data();
+    *n_atoms_out = static_cast<int>(ref->x.size());
+    *status = 0;
+    return data_id;
+}, status);}
+
 int pdb_debye_fit(
     int pdb_id, int data_id,
     int* status
@@ -99,10 +176,7 @@ int pdb_debye_fit(
     if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(pdb_id) + "\""; return -1;}
     if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
     auto data = pdb->reduced_representation();
-    auto molecule = data.waters.empty() 
-        ? Molecule({Body{std::move(data.atoms)}})
-        : Molecule({Body{std::move(data.atoms), std::move(data.waters)}})
-    ;
+    auto molecule = data.waters.empty() ? Molecule({Body{std::move(data.atoms)}}) : Molecule({Body{std::move(data.atoms), std::move(data.waters)}});
     molecule.reset_histogram_manager();
     auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
     if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}
