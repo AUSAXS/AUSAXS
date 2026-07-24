@@ -8,7 +8,7 @@
 
 #include <vector>
 
-namespace ausaxs::rigidbody::sequencer::detail {
+namespace ausaxs::matrix {
     /**
      * @brief The optimal rigid transform mapping one point set onto another.
      *

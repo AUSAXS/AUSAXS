@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <rigidbody/sequencer/detail/Superposition.h>
-#include <rigidbody/sequencer/detail/SymmetricEigen.h>
+#include <math/Superposition.h>
+#include <math/SymmetricEigen.h>
 
 #include <cassert>
 #include <cmath>
 
 using namespace ausaxs;
 
-namespace ausaxs::rigidbody::sequencer::detail {
+namespace ausaxs::matrix {
 Matrix<double> optimal_rotation(const Matrix<double>& H) {
     assert(H.N == 3 && H.M == 3 && "optimal_rotation: H must be 3x3.");
     double Sxx = H(0,0), Sxy = H(0,1), Sxz = H(0,2);
@@ -63,7 +63,7 @@ SuperpositionResult superpose(const std::vector<Vector3<double>>& from, const st
     }
 
     SuperpositionResult result;
-    result.rotation = detail::optimal_rotation(H);
+    result.rotation = optimal_rotation(H);
     result.translation = to_c - result.rotation*from_c;
 
     // residual RMSD

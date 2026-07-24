@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <rigidbody/sequencer/detail/SymmetricEigen.h>
+#include <math/SymmetricEigen.h>
+#include <math/Matrix.h>
 
 #include <algorithm>
 #include <cassert>
@@ -10,7 +11,7 @@
 
 using namespace ausaxs;
 
-namespace ausaxs::rigidbody::sequencer::detail {
+namespace ausaxs::matrix {
 EigenResult symmetric_eigen(const Matrix<double>& A) {
     assert(A.N == A.M && "symmetric_eigen: matrix must be square.");
     const unsigned int n = A.N;

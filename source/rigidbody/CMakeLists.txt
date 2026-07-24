@@ -51,8 +51,6 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/detail/BodyNameRegistry.cpp"
 	"sequencer/detail/ParsedArgs.cpp"
 	"sequencer/detail/SequenceParser.cpp"
-	"sequencer/detail/SymmetricEigen.cpp"
-	"sequencer/detail/Superposition.cpp"
 	"sequencer/detail/SymmetryFit.cpp"
 	"sequencer/detail/ValidElements.cpp"
 	"sequencer/elements/BodySelectElement.cpp"

@@ -6,7 +6,9 @@
 #include <math/Matrix.h>
 
 #include <math.h>
+#include <algorithm>
 #include <cassert>
+#include <utility>
 
 using namespace ausaxs;
 
@@ -86,7 +88,53 @@ Matrix<double> matrix::identity(unsigned int dim) {
         A.index(i, i) = 1;
     }
     return A;
-} 
+}
+
+double matrix::det(const Matrix<double>& A) {
+    return A(0,0)*(A(1,1)*A(2,2) - A(1,2)*A(2,1))
+         - A(0,1)*(A(1,0)*A(2,2) - A(1,2)*A(2,0))
+         + A(0,2)*(A(1,0)*A(2,1) - A(1,1)*A(2,0));
+}
+
+Matrix<double> matrix::inverse(const Matrix<double>& A) {
+    double a = A(0,0), b = A(0,1), c = A(0,2);
+    double d = A(1,0), e = A(1,1), f = A(1,2);
+    double g = A(2,0), h = A(2,1), i = A(2,2);
+    double det = a*(e*i - f*h) - b*(d*i - f*g) + c*(d*h - e*g);
+    Matrix<double> inv(3, 3);
+    inv(0,0) =  (e*i - f*h)/det; inv(0,1) = -(b*i - c*h)/det; inv(0,2) =  (b*f - c*e)/det;
+    inv(1,0) = -(d*i - f*g)/det; inv(1,1) =  (a*i - c*g)/det; inv(1,2) = -(a*f - c*d)/det;
+    inv(2,0) =  (d*h - e*g)/det; inv(2,1) = -(a*h - b*g)/det; inv(2,2) =  (a*e - b*d)/det;
+    return inv;
+}
+
+std::pair<Vector3<double>, double> matrix::axis_angle(const Matrix<double>& R) {
+    double trace = R(0,0) + R(1,1) + R(2,2);
+    double cos_t = std::clamp((trace - 1)/2, -1.0, 1.0);
+    double angle = std::acos(cos_t);
+
+    Vector3<double> axis{R(2,1) - R(1,2), R(0,2) - R(2,0), R(1,0) - R(0,1)};
+    double s = axis.magnitude();
+    if (1e-8 < s) {return {axis/s, angle};}       // generic case
+
+    if (0 < cos_t) {return {{0, 0, 1}, 0.0};}      // near-identity: axis undefined
+
+    // near-pi rotation: R is symmetric, so recover the axis from the diagonal of (R+I)/2 = a a^T
+    Vector3<double> a{
+        std::sqrt(std::max(0.0, (R(0,0) + 1)/2)),
+        std::sqrt(std::max(0.0, (R(1,1) + 1)/2)),
+        std::sqrt(std::max(0.0, (R(2,2) + 1)/2))
+    };
+    // fix relative signs against the off-diagonal entries, anchoring on the largest component
+    if (a.x() >= a.y() && a.x() >= a.z()) {
+        a = {a.x(), std::copysign(a.y(), R(0,1)), std::copysign(a.z(), R(0,2))};
+    } else if (a.y() >= a.z()) {
+        a = {std::copysign(a.x(), R(0,1)), a.y(), std::copysign(a.z(), R(1,2))};
+    } else {
+        a = {std::copysign(a.x(), R(0,2)), std::copysign(a.y(), R(1,2)), a.z()};
+    }
+    return {a.normalize(), angle};
+}
 
 std::tuple<Vector3<double>, Vector3<double>, Vector3<double>> vector3::generate_basis(const Vector3<double>& v) {
     Vector3 n = v;

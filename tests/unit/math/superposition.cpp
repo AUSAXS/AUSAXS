@@ -5,8 +5,8 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/sequencer/detail/Superposition.h>
-#include <rigidbody/sequencer/detail/SymmetricEigen.h>
+#include <math/Superposition.h>
+#include <math/SymmetricEigen.h>
 #include <math/MatrixUtils.h>
 #include <math/Vector3.h>
 
@@ -14,7 +14,7 @@
 #include <random>
 
 using namespace ausaxs;
-using namespace ausaxs::rigidbody::sequencer::detail;
+using namespace ausaxs::matrix;
 
 namespace {
     std::vector<Vector3<double>> random_points(unsigned seed, int n = 15) {

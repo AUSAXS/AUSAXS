@@ -7,6 +7,7 @@
 #include <math/MathFwd.h>
 
 #include <tuple>
+#include <utility>
 
 namespace ausaxs::matrix {
     /**
@@ -46,9 +47,28 @@ namespace ausaxs::matrix {
     }
 
     /**
-     * @brief Get the identity matrix of a given dimension. 
+     * @brief Get the identity matrix of a given dimension.
      */
     Matrix<double> identity(unsigned int dim);
+
+    /**
+     * @brief Closed-form determinant of a 3x3 matrix.
+     *
+     * Unlike Matrix::det() (which LU-decomposes and throws on a degenerate matrix), this evaluates
+     * the determinant directly and never throws, so it is safe on singular input (returning 0).
+     */
+    double det(const Matrix<double>& A);
+
+    /**
+     * @brief Inverse of a 3x3 matrix via the adjugate. Assumes non-singular input.
+     */
+    Matrix<double> inverse(const Matrix<double>& A);
+
+    /**
+     * @brief Recover the (unit) rotation axis and angle of a 3x3 rotation matrix.
+     *        Returns {axis, angle}; for a near-identity rotation the axis is arbitrary ({0, 0, 1}).
+     */
+    std::pair<Vector3<double>, double> axis_angle(const Matrix<double>& R);
 }
 
 namespace ausaxs::vector3 {

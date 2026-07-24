@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <math/Matrix.h>
+#include <math/MathFwd.h>
 
 #include <vector>
 
-namespace ausaxs::rigidbody::sequencer::detail {
+namespace ausaxs::matrix {
     /**
      * @brief Eigen-decomposition of a real symmetric matrix.
      *
@@ -23,8 +23,8 @@ namespace ausaxs::rigidbody::sequencer::detail {
      * @brief Compute all eigenvalues and eigenvectors of a real symmetric matrix.
      *
      * Uses the cyclic Jacobi rotation method, which is robust and accurate for the small dense
-     * symmetric matrices used by the symmetry fitter (up to 9x9). The input is assumed symmetric;
-     * it is not modified.
+     * symmetric matrices it is used with (up to 9x9). The input is assumed symmetric; it is not
+     * modified.
      */
     EigenResult symmetric_eigen(const Matrix<double>& A);
 }
