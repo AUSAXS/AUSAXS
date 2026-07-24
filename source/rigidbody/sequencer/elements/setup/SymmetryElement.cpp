@@ -9,8 +9,10 @@
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/ReferenceSymmetry.h>
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <settings/HistogramSettings.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
@@ -117,10 +119,11 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
         bodies.push_back(setup._get_body(name));
     }
 
-    // the shared symmetry replicates the group like a cyclic group, so its base must be cyclic
+    // the shared symmetry replicates the group as one rigid unit; any base the optimiser can drive on a single body works here too
     auto base_sym = symmetry::create(reference_symmetry);
-    auto* cyclic = dynamic_cast<symmetry::CyclicSymmetry*>(base_sym.get());
-    if (cyclic == nullptr) {throw except::parse_error("symmetry", "A reference symmetry requires a cyclic base (e.g. c2, c3).");}
+    if (!symmetry::is_optimizable(*base_sym)) {
+        throw except::parse_error("symmetry", "Unsupported reference symmetry \"" + reference_symmetry + "\".");
+    }
 
     int primary = bodies.front();
 
@@ -134,8 +137,8 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     // the primary body owns the shared ReferenceSymmetry; install it on the live molecule and the stored initial conformation
     enable_optimization(molecule->get_body(primary).symmetry().get_obj());
     enable_optimization(rigidbody->conformation->initial_conformation[primary].symmetry().get_obj());
-    molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, slots, molecule));
-    rigidbody->conformation->initial_conformation[primary].symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, slots, molecule));
+    molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base_sym->clone(), bodies, slots, molecule));
+    rigidbody->conformation->initial_conformation[primary].symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(std::move(base_sym), bodies, slots, molecule));
 
     auto mol_ref = static_cast<symmetry::ReferenceSymmetry*>(molecule->get_body(primary).symmetry().get(primary_slot));
     auto conf_ref = static_cast<symmetry::ReferenceSymmetry*>(

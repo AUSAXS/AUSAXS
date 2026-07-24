@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <data/symmetry/PairSchedule.h>
 
 #include <cassert>
@@ -52,11 +53,9 @@ std::function<Vector3<double>(Vector3<double>)> CompositeSymmetry::get_transform
 }
 
 std::vector<SymmetricDuplicatePair> CompositeSymmetry::internal_pair_schedule() const {
-    // The partition of copy-pairs into equal-distance classes is invariant to the body cm:
-    // both sub-symmetries share it, so the whole composite is covariant under conjugation by
-    // Trans(cm), which preserves the relative transforms the bucketer keys on. Any fixed cm
-    // therefore yields the correct partition; the offsets/angles of the sub-symmetries do
-    // matter, so this is recomputed on each call rather than cached.
+    // The partition of copy-pairs into equal-distance classes is invariant to the body cm: both sub-symmetries share it, so the whole composite is covariant 
+    // under conjugation by Trans(cm), which preserves the relative transforms the bucketer keys on. Any fixed cm therefore yields the correct partition; the 
+    // offsets/angles of the sub-symmetries do matter, so this is recomputed on each call rather than cached.
     Vector3<double> cm{0, 0, 0};
     int n = static_cast<int>(repetitions()) + 1;
 
@@ -80,8 +79,8 @@ std::vector<SymmetricDuplicatePair> CompositeSymmetry::internal_pair_schedule() 
     return compute_pair_schedule(placements);
 }
 
-// a composite has two parameter sets; std::span cannot describe both at once. Callers must reach
-// the sub-symmetries via for_each_leaf instead, so calling these directly is a programming error.
+// a composite has two parameter sets; std::span cannot describe both at once. Callers must reach the sub-symmetries via for_each_leaf instead, 
+// so calling these directly is a programming error.
 std::span<double> CompositeSymmetry::span_translation() {
     throw std::runtime_error("CompositeSymmetry::span_translation: a composite has no single contiguous parameter span; use symmetry::for_each_leaf to reach its sub-symmetries.");
 }
@@ -93,6 +92,12 @@ void ausaxs::symmetry::for_each_leaf(ISymmetry& sym, const std::function<void(IS
     if (auto* composite = dynamic_cast<CompositeSymmetry*>(&sym)) {
         for_each_leaf(*composite->inner, fn);
         for_each_leaf(*composite->outer, fn);
+        return;
+    }
+    // a ReferenceSymmetry is just a wrapper around its base (possibly itself composite); descend into it rather than treating the wrapper as an opaque leaf, 
+    // so callers reach the real parameters regardless of what kind of symmetry is shared
+    if (auto* ref = dynamic_cast<ReferenceSymmetry*>(&sym)) {
+        for_each_leaf(*ref->base, fn);
         return;
     }
     fn(sym);

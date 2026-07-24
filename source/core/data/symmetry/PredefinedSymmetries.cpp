@@ -166,6 +166,17 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     throw std::runtime_error("symmetry::get: Unknown symmetry name \"" + std::string(name) + "\".");
 }
 
+// A plain name (e.g. "c3", "p2", "t", "d3", "dp3") maps to the corresponding predefined symmetry;
+// "dp<n>" is the planar (coplanar) variant of the dihedral group "d<n>".
+// A hyphenated name builds a nested CompositeSymmetry: the first part is the inner
+// symmetry, the remainder (recursively parsed) the outer one. For example "p2-c3" nests
+// a p2 dimer inside an outer c3, and "c2-c2-c3" nests left-to-right as c2-(c2-c3).
+//
+// The one exception is a bare "c2-cN" / "cN-c2" pair (either order, N>=2): a C2 and a single
+// CN sharing a centre with perpendicular axes is the dihedral group D_N, so it is built as a
+// DihedralSymmetry rather than a generic composite. This gives the correct 2N-copy point group
+// (instead of the over-parameterised composite) and lets the pair-distance schedule exploit the
+// full group symmetry. "c2-c2" is D2 accordingly.
 std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::string_view name) {
     std::string lc = utility::to_lowercase(name);
     // a hyphen denotes a nested composite: the first part is the inner symmetry, the remainder (recursively parsed) the outer one
@@ -174,4 +185,13 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::strin
         return std::make_unique<CompositeSymmetry>(create(left), create(right));
     }
     return get(get(lc));
+}
+
+bool ausaxs::symmetry::is_optimizable(const ISymmetry& sym) {
+    if (auto* comp = dynamic_cast<const CompositeSymmetry*>(&sym)) {
+        return is_optimizable(*comp->inner) && is_optimizable(*comp->outer);
+    }
+    return dynamic_cast<const PointSymmetry*>(&sym)
+        || dynamic_cast<const CyclicSymmetry*>(&sym)
+        || dynamic_cast<const IPolyhedralSymmetry*>(&sym);
 }

@@ -365,6 +365,7 @@ auto test_reference = [] (data::Molecule& protein) {
     // fetching the symmetry through the (non-const) facade flags it as modified; for a shared
     // ReferenceSymmetry this must flag every participating body, including the linked view bodies
     auto ref = [&protein] {return static_cast<symmetry::ReferenceSymmetry*>(protein.get_body(0).symmetry().get(0));};
+    auto cyclic_base = [&] {return static_cast<symmetry::CyclicSymmetry*>(ref()->base.get());};
 
     // no changes
     auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
@@ -373,13 +374,13 @@ auto test_reference = [] (data::Molecule& protein) {
 
     // modify the shared symmetry: this must update every participating body, including the
     // view bodies that delegate to it
-    ref()->base._initial_relation.translation = {8, 0, 0};
+    cyclic_base()->_initial_relation.translation = {8, 0, 0};
     phm_res = protein.get_histogram()->get_weighted_counts();
     p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify the shared symmetry & hydration simultaneously
-    ref()->base._initial_relation.translation = {4, 0, 0};
+    cyclic_base()->_initial_relation.translation = {4, 0, 0};
     protein.get_waters().clear();
     protein.signal_modified_hydration_layer();
     phm_res = protein.get_histogram()->get_weighted_counts();
@@ -388,14 +389,14 @@ auto test_reference = [] (data::Molecule& protein) {
 
     // modify the shared symmetry & move a participating body: the shared rotation centre (combined
     // centre of mass) shifts, so the symmetric copies of every participating body must be recomputed
-    ref()->base._initial_relation.translation = {6, 0, 0};
+    cyclic_base()->_initial_relation.translation = {6, 0, 0};
     protein.get_body(1).translate({2, 0, 0});
     phm_res = protein.get_histogram()->get_weighted_counts();
     p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify the shared symmetry & a participating body's internal weights simultaneously
-    ref()->base._initial_relation.translation = {5, 0, 0};
+    cyclic_base()->_initial_relation.translation = {5, 0, 0};
     protein.get_body(0).get_atom(0).weight() = 2;
     protein.get_body(0).get_signaller()->modified_internal();
     phm_res = protein.get_histogram()->get_weighted_counts();
@@ -413,7 +414,9 @@ TEST_CASE("PartialSymmetryManagerMT: ReferenceSymmetry subsequent calculations")
     auto add_reference = [] (data::Molecule& protein, int reps, double angle) {
         symmetry::CyclicSymmetry base({6, 0, 0}, {0, 0, 0}, {0, 0, 1}, angle, reps);
         protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
-        protein.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base, std::vector<int>{0, 1}, std::vector<int>{0, 0}, &protein));
+        protein.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(
+            std::make_unique<symmetry::CyclicSymmetry>(base), std::vector<int>{0, 1}, std::vector<int>{0, 0}, &protein
+        ));
         protein.get_body(1).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(&protein, 0, 0));
     };
 

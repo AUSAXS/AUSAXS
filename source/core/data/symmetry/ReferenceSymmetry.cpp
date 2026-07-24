@@ -10,9 +10,10 @@
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
-ReferenceSymmetry::ReferenceSymmetry(CyclicSymmetry base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule)
+ReferenceSymmetry::ReferenceSymmetry(std::unique_ptr<ISymmetry> base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule)
     : base(std::move(base)), bodies(std::move(bodies)), slots(std::move(slots)), molecule(molecule)
 {
+    assert(this->base != nullptr && "ReferenceSymmetry: base symmetry cannot be null.");
     assert(!this->bodies.empty() && "ReferenceSymmetry: at least one participating body is required.");
     assert(this->bodies.size() == this->slots.size() && "ReferenceSymmetry: bodies and slots must be parallel.");
     assert(this->molecule != nullptr && "ReferenceSymmetry: a molecule is required to determine the combined centre of mass.");
@@ -34,24 +35,24 @@ Vector3<double> ReferenceSymmetry::combined_cm() const {
 
 std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetry::get_transform(const Vector3<double>&, int rep) const {
     // the per-body cm is ignored: every participating body must rotate about the shared combined centre so the whole assembly is replicated as one rigid unit
-    return base.get_transform(combined_cm(), rep);
+    return base->get_transform(combined_cm(), rep);
 }
 
-unsigned int ReferenceSymmetry::repetitions() const {return base.repetitions();}
-bool ReferenceSymmetry::is_closed() const {return base.is_closed();}
-std::string ReferenceSymmetry::type_name() const {return base.type_name();}
-std::span<double> ReferenceSymmetry::span_translation() {return base.span_translation();}
-std::span<double> ReferenceSymmetry::span_rotation() {return base.span_rotation();}
-std::vector<SymmetricDuplicatePair> ReferenceSymmetry::internal_pair_schedule() const {return base.internal_pair_schedule();}
+unsigned int ReferenceSymmetry::repetitions() const {return base->repetitions();}
+bool ReferenceSymmetry::is_closed() const {return base->is_closed();}
+std::string ReferenceSymmetry::type_name() const {return base->type_name();}
+std::span<double> ReferenceSymmetry::span_translation() {return base->span_translation();}
+std::span<double> ReferenceSymmetry::span_rotation() {return base->span_rotation();}
+std::vector<SymmetricDuplicatePair> ReferenceSymmetry::internal_pair_schedule() const {return base->internal_pair_schedule();}
 
 std::unique_ptr<ISymmetry> ReferenceSymmetry::clone() const {
-    return std::make_unique<ReferenceSymmetry>(base, bodies, slots, molecule);
+    return std::make_unique<ReferenceSymmetry>(base->clone(), bodies, slots, molecule);
 }
 
 ISymmetry& ReferenceSymmetry::add(observer_ptr<const ISymmetry> other) {
     auto cast = dynamic_cast<const ReferenceSymmetry*>(other);
     assert(cast != nullptr && "Can only add ReferenceSymmetry with another ReferenceSymmetry.");
-    base.add(&cast->base);
+    base->add(cast->base.get());
     return *this;
 }
 
