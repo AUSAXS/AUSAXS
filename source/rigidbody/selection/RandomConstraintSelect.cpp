@@ -18,6 +18,11 @@ RandomConstraintSelect::RandomConstraintSelect(observer_ptr<const Rigidbody> rig
 RandomConstraintSelect::~RandomConstraintSelect() = default;
 
 std::pair<unsigned int, int> RandomConstraintSelect::next() {
+    // constraints connect two bodies, so deleting bodies down to a point where none remain connected empties this list
+    if (rigidbody->constraints->discoverable_constraints.empty()) {
+        throw except::invalid_argument("RandomConstraintSelect::next: No constraints to select from.");
+    }
+
     // rebuild the distribution each call against the live constraint count
     std::uniform_int_distribution<int> distribution(0, rigidbody->constraints->discoverable_constraints.size()-1);
     unsigned int iconstraint = distribution(random::generator());
