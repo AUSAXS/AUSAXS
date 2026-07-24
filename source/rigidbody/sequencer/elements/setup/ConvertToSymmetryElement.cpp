@@ -82,8 +82,8 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
 
     int primary = bodies.front();
 
-    // gather the world-space atom coordinates of every participating body; correspondence is exact
-    // because they are copies of the same molecule (copies[k][i] is the image of copies[0][i])
+    // gather the world-space atom coordinates of every participating body; correspondence is exact because they are copies of the same molecule 
+    // (copies[k][i] is the image of copies[0][i])
     std::vector<std::vector<Vector3<double>>> copies;
     copies.reserve(bodies.size());
     for (int b : bodies) {
@@ -98,8 +98,8 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     }
     Vector3<double> reference_cm = molecule->get_body(primary).get_cm();
 
-    // fit the symmetry parameters to the assembly; the bodies (PDB chains) may be in any order, so
-    // let the fitter search over orderings, accepting the first that comes within tolerance
+    // fit the symmetry parameters to the assembly; the bodies (PDB chains) may be in any order, so let the fitter search over orderings, 
+    // accepting the first that comes within tolerance
     auto fit = detail::fit_symmetry_best_order(*base_sym, reference_cm, copies, tolerance);
     logging::log("ConvertToSymmetryElement: fitted " + symmetry_name + " with residual RMSD " + std::to_string(fit.rmsd) + " Å.");
     if (settings::general::verbose) {
@@ -107,8 +107,8 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
                   << fit.rmsd << " Å)." << std::endl;
     }
 
-    // the user asserts the symmetry type; a large residual means the assembly does not actually
-    // obey it, so we refuse rather than proceed with meaningless parameters
+    // the user asserts the symmetry type; a large residual means the assembly does not actually obey it, so we refuse rather than proceed 
+    // with meaningless parameters
     if (tolerance < fit.rmsd) {
         throw except::parse_error("convert_to_symmetry",
             "The assembly does not match a \"" + symmetry_name + "\" symmetry (residual RMSD "
@@ -116,8 +116,8 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
             + " Å). Check the symmetry type and the body order, or raise the tolerance.");
     }
 
-    // install the fitted symmetry on the primary body (live molecule and stored initial conformation);
-    // both storages must be optimizable for the parameter optimiser to drive them
+    // install the fitted symmetry on the primary body (live molecule and stored initial conformation); both storages must be optimizable for 
+    // the parameter optimiser to drive them
     enable_optimization(molecule->get_body(primary).symmetry().get_obj());
     enable_optimization(rigidbody->conformation->initial_conformation[primary].symmetry().get_obj());
     molecule->get_body(primary).symmetry().add(fit.symmetry->clone());
@@ -136,8 +136,8 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     // register names for the primary body's newly-added symmetry copies
     for (int j = 0; j < reps; ++j) {setup._body_name_registry().add_replica(new_primary, isymmetry, j + 1);}
 
-    // rebuild the (now symmetry-aware) histogram manager for the reduced body set; this also rebinds
-    // the body signallers. The grid must be rebuilt since the atom count changed.
+    // rebuild the (now symmetry-aware) histogram manager for the reduced body set; this also rebinds the body signallers. The grid must be rebuilt 
+    // since the atom count changed.
     molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();

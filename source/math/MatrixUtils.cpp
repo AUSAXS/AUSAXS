@@ -126,13 +126,9 @@ std::pair<Vector3<double>, double> matrix::axis_angle(const Matrix<double>& R) {
         std::sqrt(std::max(0.0, (R(2,2) + 1)/2))
     };
     // fix relative signs against the off-diagonal entries, anchoring on the largest component
-    if (a.x() >= a.y() && a.x() >= a.z()) {
-        a = {a.x(), std::copysign(a.y(), R(0,1)), std::copysign(a.z(), R(0,2))};
-    } else if (a.y() >= a.z()) {
-        a = {std::copysign(a.x(), R(0,1)), a.y(), std::copysign(a.z(), R(1,2))};
-    } else {
-        a = {std::copysign(a.x(), R(0,2)), std::copysign(a.y(), R(1,2)), a.z()};
-    }
+    if (a.x() >= a.y() && a.x() >= a.z()) {a = {a.x(), std::copysign(a.y(), R(0,1)), std::copysign(a.z(), R(0,2))};} 
+    else if (a.y() >= a.z()) {a = {std::copysign(a.x(), R(0,1)), a.y(), std::copysign(a.z(), R(1,2))};} 
+    else {a = {std::copysign(a.x(), R(0,2)), std::copysign(a.y(), R(1,2)), a.z()};}
     return {a.normalize(), angle};
 }
 

@@ -18,13 +18,12 @@
 using namespace ausaxs;
 
 namespace {
-    // Solve the shared rotation centre c from the per-copy transforms: every point-group copy k
-    // obeys t_k = (I - R_k) c. Stacking all copies and solving in the least-squares sense averages
-    // out small asymmetries. A tiny regularisation towards cm pins the otherwise-free component along
-    // a rotation axis (which lies in the null space of every I - R_k for a cyclic group).
-    Vector3<double> solve_common_centre(
-        const std::vector<Matrix<double>>& R, const std::vector<Vector3<double>>& t, const Vector3<double>& cm
-    ) {
+    // Find the common rotation centre c by solving
+    //     min_c Σ_k ||(I - R_k)c - t_k||² + λ||c - cm||².
+    // The small regularisation towards cm fixes the otherwise-undetermined component along the symmetry axis.
+    Vector3<double> solve_common_centre(const std::vector<Matrix<double>>& R, const std::vector<Vector3<double>>& t, const Vector3<double>& cm) {
+        // Solve by forming the normal equations:
+        //   (A^T A + lambda I)c = A^T t + lambda cm
         Matrix<double> normal(3, 3);
         Vector3<double> rhs{0, 0, 0};
         for (std::size_t k = 0; k < R.size(); ++k) {
@@ -38,20 +37,13 @@ namespace {
         return matrix::inverse(normal)*rhs;
     }
 
-    // Recover the group frame F from the measured copy rotations R[k] = F G[k] F^T (correspondence
-    // R[k] <-> G[k] follows the copy ordering). An initial estimate is the null vector of the stacked
-    // linear operator L (from R[k] F - F G[k] = 0). For groups whose 3D rotation representation is
-    // irreducible (tetra/octa/icosa) that null space is one-dimensional and the estimate is exact;
-    // for the reducible dihedral groups it is degenerate, so the raw estimate need not be a valid
-    // frame. In all cases the estimate is refined by a conjugation-averaging fixed point,
-    //     F <- nearest_rotation( sum_k R[k] F G[k]^T ),
-    // whose fixed points are exactly the valid frames and which, going through optimal_rotation, only
-    // ever visits proper rotations. Any valid frame reproduces the assembly identically (distinct
-    // frames differ only by a symmetry of the group), so a discrete frame ambiguity is harmless.
+    // Recover the group frame F relating the ideal symmetry operators G[k] to the observed copy rotations R[k] = F G[k] F^T.
+    // An initial estimate is obtained from the linear constraints R[k]F - FG[k] = 0. This seed is projected onto SO(3) and then refined by iteratively 
+    // averaging the conjugation relation above. The result is a rotation matrix F that best maps the ideal group frame onto the observed one.
     Matrix<double> solve_frame(const std::vector<Matrix<double>>& R, const std::vector<Matrix<double>>& G) {
         assert(R.size() == G.size() && "solve_frame: rotation/element count mismatch.");
         Matrix<double> Q(9, 9);
-        for (std::size_t k = 1; k < R.size(); ++k) {         // element 0 is the identity: L is zero
+        for (std::size_t k = 1; k < R.size(); ++k) { // element 0 is the identity: L is zero
             Matrix<double> L(9, 9);
             for (unsigned int a = 0; a < 3; ++a) {
                 for (unsigned int b = 0; b < 3; ++b) {
@@ -64,13 +56,13 @@ namespace {
         }
 
         auto eig = matrix::symmetric_eigen(Q);
-        const auto& vecF = eig.vectors.front();          // smallest eigenvalue -> initial null-vector estimate
+        const auto& vecF = eig.vectors.front(); // smallest eigenvalue -> initial null-vector estimate
         Matrix<double> F(3, 3);
         for (unsigned int i = 0; i < 3; ++i) {
             for (unsigned int j = 0; j < 3; ++j) {F(i, j) = vecF[3*i + j];}
         }
-        if (matrix::det(F) < 0) {F *= -1;}               // resolve the sign ambiguity of the null vector
-        F = matrix::optimal_rotation(F);                 // snap the seed onto SO(3)
+        if (matrix::det(F) < 0) {F *= -1;} // resolve the sign ambiguity of the null vector
+        F = matrix::optimal_rotation(F); // snap the seed onto SO(3)
 
         // refine to a valid frame by conjugation averaging
         for (int iteration = 0; iteration < 200; ++iteration) {
@@ -87,10 +79,8 @@ namespace {
         return F;
     }
 
-    // A cyclic fit can degenerate to a near-zero rotation when the assembly is not actually
-    // symmetric. With no rotation and no screw translation the transform is the identity for every
-    // copy, which CyclicSymmetry::get_transform rejects outright; detect it and reconstruct with the
-    // identity map (which yields the large residual we want, flagging the mismatch).
+    // Detect the trivial cyclic solution (identity repeat transform). 
+    // Rather than treating it as a valid symmetry, reconstruct using the identity map and retain the resulting large fit residual.    
     bool is_trivial_cyclic(const symmetry::ISymmetry& sym) {
         auto* cs = dynamic_cast<const symmetry::CyclicSymmetry*>(&sym);
         return cs
@@ -122,10 +112,9 @@ SymmetryFitResult fit_symmetry(
     assert(copies.size() == template_symmetry.repetitions() + 1 && "fit_symmetry: body count must equal repetitions()+1.");
     assert(!copies.empty() && !copies[0].empty() && "fit_symmetry: empty input.");
 
-    // A composite factorises: copy (k, j) = outer_k(inner_j(reference)), and since inner_0 and
-    // outer_0 are the identity, copy (0, j) is the inner symmetry's own copy j and copy (k, 0) the
-    // outer symmetry's own copy k. So each sub-symmetry can be fitted independently from the
-    // appropriate slice of the assembly, recursing to arbitrary nesting depth.
+    // A composite factorises: copy (k, j) = outer_k(inner_j(reference)), and since inner_0 and outer_0 are the identity, copy (0, j) is the inner symmetry's 
+    // own copy j and copy (k, 0) the outer symmetry's own copy k. So each sub-symmetry can be fitted independently from the appropriate slice of the assembly, 
+    // recursing to arbitrary nesting depth.
     if (auto* comp = dynamic_cast<const symmetry::CompositeSymmetry*>(&template_symmetry)) {
         int stride = 1 + static_cast<int>(comp->inner->repetitions());
         int outer_reps = static_cast<int>(comp->outer->repetitions());
@@ -145,7 +134,7 @@ SymmetryFitResult fit_symmetry(
     }
 
     // per-copy alignment: exact Kabsch superposition of the reference onto each copy
-    std::vector<Matrix<double>> R;      // R[k] maps copies[0] onto copies[k]; R[0] is the identity
+    std::vector<Matrix<double>> R; // R[k] maps copies[0] onto copies[k]; R[0] is the identity
     std::vector<Vector3<double>> t;
     R.reserve(copies.size());
     t.reserve(copies.size());
@@ -206,18 +195,17 @@ SymmetryFitResult fit_symmetry_best_order(
     SymmetryFitResult best = fit_symmetry(template_symmetry, cm, copies);
     if (best.rmsd <= accept_rmsd) {return best;}
 
-    // Enumerating orderings of the non-reference bodies costs (n-1)! fits; cap it so pathological
-    // sizes fall back to the given order rather than hanging. Highly-constrained large-order groups
-    // (which is where n grows) are precisely the cases that do not need this feature.
+    // Enumerating orderings of the non-reference bodies costs (n-1)! fits; cap it so pathological sizes fall back to the given order rather than hanging. 
+    // Highly-constrained large-order groups (which is where n grows) are precisely the cases that do not need this feature.
     int n = static_cast<int>(copies.size());
     if (9 < n) {return best;}
 
     std::vector<int> perm(n - 1);
-    for (int i = 0; i < n - 1; ++i) {perm[i] = i + 1;}      // reference (index 0) stays fixed
+    for (int i = 0; i < n - 1; ++i) {perm[i] = i + 1;} // reference (index 0) stays fixed
 
     std::vector<std::vector<Vector3<double>>> reordered(n);
     reordered[0] = copies[0];
-    while (std::next_permutation(perm.begin(), perm.end())) {  // the identity order was already tried
+    while (std::next_permutation(perm.begin(), perm.end())) { // the identity order was already tried
         for (int i = 0; i < n - 1; ++i) {reordered[i + 1] = copies[perm[i]];}
         auto candidate = fit_symmetry(template_symmetry, cm, reordered);
         if (candidate.rmsd < best.rmsd) {best = std::move(candidate);}
@@ -233,7 +221,7 @@ std::vector<std::vector<Vector3<double>>> reconstruct_copies(
     unsigned int reps = symmetry.repetitions();
     std::vector<std::vector<Vector3<double>>> result;
     result.reserve(reps + 1);
-    result.push_back(reference);                                     // copy 0 is the reference itself
+    result.push_back(reference); // copy 0 is the reference itself
     for (unsigned int k = 1; k <= reps; ++k) {
         std::function<Vector3<double>(Vector3<double>)> transform =
             trivial ? [](Vector3<double> v) {return v;} : symmetry.get_transform(cm, k);

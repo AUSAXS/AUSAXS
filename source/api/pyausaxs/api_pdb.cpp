@@ -120,13 +120,17 @@ int pdb_decompose_symmetry(
     }
     if (chains.size() < 2) {throw std::invalid_argument("pdb_decompose_symmetry: at least two chains are required.");}
     for (const auto& c : chains) {
-        if (c.size() != chains[0].size()) {throw std::invalid_argument("pdb_decompose_symmetry: chains have differing atom counts; they must be copies of the same molecule.");}
+        if (c.size() != chains[0].size()) {
+            throw std::invalid_argument("pdb_decompose_symmetry: chains have differing atom counts; they must be copies of the same molecule.");
+        }
     }
 
     auto base = symmetry::create(std::string(symmetry_name));
     if (chains.size() != base->repetitions() + 1) {
-        throw std::invalid_argument("pdb_decompose_symmetry: symmetry \"" + std::string(symmetry_name) + "\" needs "
-            + std::to_string(base->repetitions() + 1) + " chains, but " + std::to_string(chains.size()) + " were found.");
+        throw std::invalid_argument(
+            "pdb_decompose_symmetry: symmetry \"" + std::string(symmetry_name) + "\" needs "
+            + std::to_string(base->repetitions() + 1) + " chains, but " + std::to_string(chains.size()) + " were found."
+        );
     }
 
     // reference centre = centroid of the first chain
@@ -172,10 +176,7 @@ int pdb_debye_fit(
     if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(pdb_id) + "\""; return -1;}
     if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
     auto data = pdb->reduced_representation();
-    auto molecule = data.waters.empty() 
-        ? Molecule({Body{std::move(data.atoms)}})
-        : Molecule({Body{std::move(data.atoms), std::move(data.waters)}})
-    ;
+    auto molecule = data.waters.empty() ? Molecule({Body{std::move(data.atoms)}}) : Molecule({Body{std::move(data.atoms), std::move(data.waters)}});
     molecule.reset_histogram_manager();
     auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
     if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}

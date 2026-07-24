@@ -21,15 +21,12 @@ namespace ausaxs::rigidbody::sequencer::detail {
     /**
      * @brief Fit a target symmetry's parameters to an assembled structure.
      *
-     * The inverse of expanding one body into many: recover the symmetry parameters that best reproduce
-     * @p copies as `copies[0] + template_symmetry`. Supports point, cyclic, polyhedral (dihedral,
-     * planar-dihedral, tetrahedral, octahedral, icosahedral) symmetries and composites of these.
+     * The inverse of expanding one body into many: recover the symmetry parameters that best reproduce @p copies as `copies[0] + template_symmetry`. 
      *
-     * @param template_symmetry The target symmetry; only its type and repetition count are used, its
-     *        parameters are overwritten in the result.
+     * @param template_symmetry The target symmetry; only its type and repetition count are used, its parameters are overwritten in the result.
      * @param reference_cm The centre the symmetry is generated about (the reference body's cm).
-     * @param copies Atom coordinates of each body: copies[0] is the reference, copies[1..repetitions]
-     *        the symmetric copies in order. All must be equal in size, with copies.size() == repetitions()+1.
+     * @param copies Atom coordinates of each body: copies[0] is the reference, copies[1..repetitions] the symmetric copies in order.
+     *      All must be equal in size, with copies.size() == repetitions()+1.
      */
     SymmetryFitResult fit_symmetry(
         const symmetry::ISymmetry& template_symmetry,
@@ -40,8 +37,8 @@ namespace ausaxs::rigidbody::sequencer::detail {
     /**
      * @brief Like @ref fit_symmetry, but for copies given in an unknown order (e.g. PDB chains).
      *
-     * Tries the given order and, if the residual exceeds @p accept_rmsd, searches over orderings of the
-     * non-reference copies for the best fit. The search is skipped for assemblies too large to enumerate.
+     * Tries the given order and, if the residual exceeds @p accept_rmsd, searches over orderings of the non-reference copies for the best fit. 
+     * The search is skipped for assemblies too large to enumerate.
      *
      * @param accept_rmsd Residual RMSD (Å) at or below which an ordering is accepted immediately.
      */
@@ -55,9 +52,8 @@ namespace ausaxs::rigidbody::sequencer::detail {
     /**
      * @brief Expand a reference body into the full set of copies implied by a symmetry.
      *
-     * Returns repetitions()+1 point sets: [0] is @p reference, [k] its k-th symmetry image about
-     * @p reference_cm. Shared by the fit residual and the API's decomposed structure. This is the
-     * coordinate-level counterpart of BodySymmetryFacade::explicit_structure (which works on a Body).
+     * Returns repetitions()+1 point sets: [0] is @p reference, [k] its k-th symmetry image about @p reference_cm. Shared by the fit residual and 
+     * the API's decomposed structure. This is the coordinate-level counterpart of BodySymmetryFacade::explicit_structure (which works on a Body).
      */
     std::vector<std::vector<Vector3<double>>> reconstruct_copies(
         const symmetry::ISymmetry& symmetry,

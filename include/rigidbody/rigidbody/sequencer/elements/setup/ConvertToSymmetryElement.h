@@ -16,12 +16,10 @@ namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief Collapse a set of loaded copy bodies into a single body carrying a fitted symmetry.
      *
-     * The inverse of @ref SymmetryElement: fits the requested symmetry to the assembly formed by the
-     * given bodies (copies of the same molecule), installs it on the first (primary) body, and removes
-     * the redundant copies. The fit is rejected if its residual RMSD exceeds @ref tolerance.
+     * The inverse of @ref SymmetryElement: fits the requested symmetry to the assembly formed by the given bodies (copies of the same molecule), 
+     * installs it on the first (primary) body, and removes the redundant copies. The fit is rejected if its residual RMSD exceeds @ref tolerance.
      *
-     * A setup-time operation. The number of bodies must equal repetitions()+1 for the symmetry (e.g. 4
-     * for c4). Composite symmetries (e.g. "p2-p2") are supported.
+     * A setup-time operation. The number of bodies must equal repetitions()+1 for the symmetry (e.g. 4 for c4).
      */
     class ConvertToSymmetryElement : public GenericElement {
         public:
