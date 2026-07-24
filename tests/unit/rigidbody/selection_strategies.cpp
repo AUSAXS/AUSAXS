@@ -63,6 +63,29 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::RandomBodySel
     }
 }
 
+TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::ManualSelect") {
+    SECTION("next always returns the configured body") {
+        ManualSelect selector(rb.get(), 2);
+
+        for (int i = 0; i < 10; ++i) {
+            auto [ibody, iconstraint] = selector.next();
+            CHECK(ibody == 2);
+        }
+    }
+
+    SECTION("next returns -1 for a body with no constraints") {
+        Rigidbody isolated(Molecule{std::vector<Body>{
+            Body(std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}),
+            Body(std::vector{AtomFF({5, 0, 0}, form_factor::form_factor_t::C)})
+        }});
+        ManualSelect selector(&isolated, 0);
+
+        auto [ibody, iconstraint] = selector.next();
+        CHECK(ibody == 0);
+        CHECK(iconstraint == -1);
+    }
+}
+
 TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::SequentialBodySelect") {
     SequentialBodySelect selector(rb.get());
 

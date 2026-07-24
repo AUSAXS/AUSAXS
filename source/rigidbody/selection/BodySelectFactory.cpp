@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/BodySelectFactory.h>
+#include <rigidbody/selection/ManualSelect.h>
 #include <rigidbody/selection/RandomBodySelect.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/selection/SequentialBodySelect.h>
@@ -59,9 +60,23 @@ std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strateg
             strategy = std::make_unique<SequentialBodySelect>(body); break;
         case settings::rigidbody::BodySelectStrategyChoice::SequentialConstraintSelect:
             strategy = std::make_unique<SequentialConstraintSelect>(body); break;
+        case settings::rigidbody::BodySelectStrategyChoice::ManualSelect:
+            throw except::unknown_argument("rigidbody::factory::create_selection_strategy: ManualSelect requires a target body; use create_manual_selection_strategy instead.");
         default:
             throw except::unknown_argument("rigidbody::factory::create_selection_strategy: Unknown strategy. Did you forget to add it to the switch statement?");
     }
+    strategy->set_mask_strategy(create_mask_strategy(mask_choice));
+    return strategy;
+}
+
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_strategy(observer_ptr<const Rigidbody> body, unsigned int ibody) {
+    return create_manual_selection_strategy(body, ibody, settings::rigidbody::parameter_mask_strategy);
+}
+
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_strategy(
+    observer_ptr<const Rigidbody> body, unsigned int ibody, settings::rigidbody::ParameterMaskStrategyChoice mask_choice)
+{
+    auto strategy = std::make_unique<ManualSelect>(body, ibody);
     strategy->set_mask_strategy(create_mask_strategy(mask_choice));
     return strategy;
 }
