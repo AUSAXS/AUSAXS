@@ -11,6 +11,11 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> PlanarDihedralSymmetry<N>::clone() 
 }
 
 template<int N>
+std::string PlanarDihedralSymmetry<N>::type_name() const {
+    return "dp" + std::to_string(N);
+}
+
+template<int N>
 std::span<double> PlanarDihedralSymmetry<N>::span_translation() {
     return std::span<double>(this->translation.begin(), this->translation.begin() + 2);
 }

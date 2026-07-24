@@ -17,3 +17,13 @@ extern "C" API void set_setting(
     const char* value,
     int* status
 );
+
+extern "C" API void save_settings(
+    const char* path,
+    int* status
+);
+
+extern "C" API void load_settings(
+    const char* path,
+    int* status
+);

@@ -26,6 +26,8 @@ using namespace ausaxs;
 
 struct _rigidbody_script_obj {
     std::string script;
+    // lazily parsed and cached on the first read-only preview query (see get_cached_sequencer below)
+    std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
 };
 int rigidbody_load_script(
     const char* script,
@@ -36,6 +38,17 @@ int rigidbody_load_script(
     int data_id = api::ObjectStorage::register_object(std::move(data));
     return data_id;
 }, status);}
+
+namespace {
+    rigidbody::sequencer::Sequencer& get_cached_sequencer(_rigidbody_script_obj& obj) {
+        if (!obj.sequencer) {
+            // every current caller of the cached path needs Cα/backbone metadata for its output
+            settings::molecule::store_calpha = true;
+            obj.sequencer = rigidbody::sequencer::SequenceParser().parse_text(obj.script);
+        }
+        return *obj.sequencer;
+    }
+}
 
 struct _rigidbody_preview_structure_obj {
     std::vector<double> x, y, z;
@@ -53,10 +66,8 @@ int rigidbody_get_preview_structure(
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
 
-    settings::molecule::store_calpha = true;
-    std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
-    sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
-    auto molecule = sequencer->_get_molecule();
+    auto& sequencer = get_cached_sequencer(*script_obj);
+    auto molecule = sequencer._get_molecule();
 
     _rigidbody_preview_structure_obj data;
     int bidx = 0;
@@ -104,10 +115,10 @@ int rigidbody_get_preview_structure(
         data.constraint_data.push_back(idx2);
         data.constraint_data.push_back(type);
     };
-    for (const auto& c : sequencer->_get_rigidbody()->constraints->discoverable_constraints) {
+    for (const auto& c : sequencer._get_rigidbody()->constraints->discoverable_constraints) {
         emit_constraint(c.get());
     }
-    for (const auto& c : sequencer->_get_rigidbody()->constraints->non_discoverable_constraints) {
+    for (const auto& c : sequencer._get_rigidbody()->constraints->non_discoverable_constraints) {
         if (auto* dc = dynamic_cast<const rigidbody::constraints::IDistanceConstraint*>(c.get())) {
             emit_constraint(dc);
         }
@@ -230,4 +241,87 @@ void rigidbody_get_valid_arguments(
     }
     *arguments = valid_arguments_cstr_map[type].data();
     *size = valid_arguments_map[type].size();
+}, status);}
+
+void rigidbody_get_body_names(
+    int rigidbody_id,
+    const char*** names,
+    int* size,
+    int* status
+) {execute_with_catch([&]() {
+    auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
+    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return;}
+
+    auto& sequencer = get_cached_sequencer(*script_obj);
+    // the setup elements (merge/delete/convert_to_symmetry) are applied during parsing, so the registry
+    // already reflects the final body set, ordered identically to rigidbody_get_preview_structure's bodies
+    static std::vector<std::string> body_names;
+    static std::vector<const char*> body_names_cstr;
+    body_names = sequencer.setup()._body_name_registry().base_body_names();
+    body_names_cstr.clear();
+    body_names_cstr.reserve(body_names.size());
+    for (const auto& name : body_names) {body_names_cstr.push_back(name.c_str());}
+
+    *names = body_names_cstr.data();
+    *size = static_cast<int>(body_names_cstr.size());
+}, status);}
+
+struct _rigidbody_symmetry_layout_obj {
+    std::vector<int> body, copy, symmetry, replica;
+    std::vector<std::string> type, name;
+    std::vector<const char*> type_ptr, name_ptr;
+};
+int rigidbody_get_symmetry_layout(
+    int rigidbody_id,
+    int** body, int** copy, int** symmetry, int** replica,
+    const char*** type, const char*** name,
+    int* n_replicas,
+    int* status
+) {return execute_with_catch([&]() {
+    auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
+    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
+
+    auto& sequencer = get_cached_sequencer(*script_obj);
+    auto molecule = sequencer._get_molecule();
+    const auto& name_registry = sequencer.setup()._body_name_registry();
+
+    _rigidbody_symmetry_layout_obj data;
+    int bidx = 0;
+    for (const auto& body_obj : molecule->get_bodies()) {
+        // copy 0 is the unmodified original; the remaining copies are laid out sequentially per
+        // symmetry, exactly as explicit_structure() (and thus rigidbody_get_preview_structure) builds them
+        int copy_idx = 1;
+        int isymmetry = 0;
+        for (const auto& sym_ptr : body_obj.symmetry().get()) {
+            int reps = static_cast<int>(sym_ptr->repetitions());
+            std::string type_name = sym_ptr->type_name();
+            for (int replica_idx = 1; replica_idx <= reps; ++replica_idx) {
+                data.body.push_back(bidx);
+                data.copy.push_back(copy_idx);
+                data.symmetry.push_back(isymmetry);
+                data.replica.push_back(replica_idx);
+                data.type.push_back(type_name);
+                data.name.push_back(name_registry.name(static_cast<unsigned int>(rigidbody::sequencer::detail::to_index(bidx, isymmetry, replica_idx))));
+                ++copy_idx;
+            }
+            ++isymmetry;
+        }
+        ++bidx;
+    }
+
+    data.type_ptr.reserve(data.type.size());
+    for (const auto& s : data.type) {data.type_ptr.push_back(s.c_str());}
+    data.name_ptr.reserve(data.name.size());
+    for (const auto& s : data.name) {data.name_ptr.push_back(s.c_str());}
+
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto ref = api::ObjectStorage::get_object<_rigidbody_symmetry_layout_obj>(data_id);
+    *body = ref->body.empty() ? nullptr : ref->body.data();
+    *copy = ref->copy.empty() ? nullptr : ref->copy.data();
+    *symmetry = ref->symmetry.empty() ? nullptr : ref->symmetry.data();
+    *replica = ref->replica.empty() ? nullptr : ref->replica.data();
+    *type = ref->type_ptr.empty() ? nullptr : ref->type_ptr.data();
+    *name = ref->name_ptr.empty() ? nullptr : ref->name_ptr.data();
+    *n_replicas = static_cast<int>(ref->body.size());
+    return data_id;
 }, status);}

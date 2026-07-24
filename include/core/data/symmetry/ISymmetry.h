@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 #include <span>
+#include <string>
 #include <vector>
 
 namespace ausaxs::symmetry {
@@ -51,6 +52,13 @@ namespace ausaxs::symmetry {
 
         virtual std::span<double> span_translation() = 0;
         virtual std::span<double> span_rotation() = 0;
+
+        /**
+         * @brief Short predefined-name string identifying this symmetry's type (e.g. "c4", "p2", "d3"),
+         *        matching the names accepted by symmetry::get(std::string_view) / symmetry::create().
+         *        Composite symmetries return their nested "inner-outer" name (e.g. "p2-c3").
+         */
+        virtual std::string type_name() const = 0;
 
         /**
          * @brief Distinct inter-copy distance pairs within {original, copy_1, ..., copy_N}.

@@ -10,6 +10,7 @@ using namespace ausaxs::symmetry;
 
 // 4-fold face rotation + 3-fold body-diagonal rotation generate the rotation group S4
 std::unique_ptr<ISymmetry> OctahedralSymmetry::clone() const {return std::make_unique<OctahedralSymmetry>(*this);}
+std::string OctahedralSymmetry::type_name() const {return "octahedral";}
 const IPolyhedralSymmetry::GroupData& OctahedralSymmetry::group() const {
     static const GroupData data = build({
         matrix::rotation_matrix<double>({0, 0, 1}, std::numbers::pi/2), 

@@ -23,6 +23,8 @@ using ausaxs::except::io_error;
 using ausaxs::rigidbody::sequencer::except::parse_error;
 
 namespace {
+    bool is_delimiter(char c) {return c == ' ' || c == '\t' || c == '\r' || c == ',' || c == ';';}
+
     // tokenize a line respecting quoted strings; '#' outside quotes starts a comment and discards the rest
     std::vector<std::string> tokenize(const std::string& s) {
         std::vector<std::string> result;
@@ -55,8 +57,8 @@ namespace {
                 continue;
             }
 
-            // outside quotes: whitespace delimits tokens
-            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+            // outside quotes: whitespace and list separators delimit tokens
+            if (is_delimiter(c)) {
                 if (in_token) {
                     result.push_back(current);
                     current.clear();

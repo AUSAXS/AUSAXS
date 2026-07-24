@@ -14,6 +14,11 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> DihedralSymmetry<N>::clone() const 
 }
 
 template<int N>
+std::string DihedralSymmetry<N>::type_name() const {
+    return "d" + std::to_string(N);
+}
+
+template<int N>
 const IPolyhedralSymmetry::GroupData& DihedralSymmetry<N>::group() const {
     static const GroupData data = build({
         matrix::rotation_matrix<double>({0, 0, 1}, 2*std::numbers::pi/N),

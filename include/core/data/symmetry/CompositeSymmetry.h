@@ -27,6 +27,7 @@ namespace ausaxs::symmetry {
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
+        std::string type_name() const override;
 
         // a composite has two parameter sets, which cannot be expressed as one contiguous
         // span; the refinement pipeline recurses into inner/outer instead (see TransformStrategy)

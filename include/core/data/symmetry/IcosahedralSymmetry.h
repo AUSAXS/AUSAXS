@@ -9,6 +9,7 @@ namespace ausaxs::symmetry {
     class IcosahedralSymmetry final : public IPolyhedralSymmetry {
         public:
             std::unique_ptr<ISymmetry> clone() const override;
+            std::string type_name() const override;
 
         private:
             const GroupData& group() const override;

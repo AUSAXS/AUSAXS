@@ -24,6 +24,10 @@ bool CompositeSymmetry::is_closed() const {
     return inner->is_closed() && outer->is_closed();
 }
 
+std::string CompositeSymmetry::type_name() const {
+    return inner->type_name() + "-" + outer->type_name();
+}
+
 std::unique_ptr<ISymmetry> CompositeSymmetry::clone() const {
     return std::make_unique<CompositeSymmetry>(inner->clone(), outer->clone());
 }

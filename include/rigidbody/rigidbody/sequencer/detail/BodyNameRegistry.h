@@ -48,6 +48,12 @@ namespace ausaxs::rigidbody::sequencer::detail {
             unsigned int at(std::string_view name) const;
 
             /**
+             * @brief Return the current addressable name for an encoded entity.
+             *        This is its alias when renamed, otherwise its permanent default name.
+             */
+            std::string name(unsigned int index) const;
+
+            /**
              * @brief Resolve a name to the (body, symmetry, replica) selector it refers to. 
              */
             BodySymmetrySelector resolve(std::string_view name) const;
@@ -69,6 +75,12 @@ namespace ausaxs::rigidbody::sequencer::detail {
              * @brief Group every known name by the exact (body, symmetry, replica) index it refers to.
              */
             std::vector<Group> group_by_index() const;
+
+            /**
+             * @brief Display names of the base bodies, ordered by body index. Each entry is the body's custom alias if it has one,
+             * otherwise its default name ("bN"). Symmetry replicas are excluded.
+             */
+            std::vector<std::string> base_body_names() const;
 
         private:
             /**

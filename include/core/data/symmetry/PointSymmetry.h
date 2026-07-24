@@ -24,6 +24,7 @@ namespace ausaxs::symmetry {
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
+        std::string type_name() const override;
 
         Vector3<double> translation; // Offset of the copy relative to the original body.
         Vector3<double> rotation;    // Rotation of the copy, given as Euler angles.

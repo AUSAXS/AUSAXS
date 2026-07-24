@@ -90,6 +90,11 @@ unsigned int BodyNameRegistry::at(std::string_view name) const {
     return names.at(std::string{name});
 }
 
+std::string BodyNameRegistry::name(unsigned int index) const {
+    if (auto alias = aliases.find(index); alias != aliases.end()) {return alias->second;}
+    return defaults.at(index);
+}
+
 BodySymmetrySelector BodyNameRegistry::resolve(std::string_view name) const {
     auto it = names.find(std::string{name});
     if (it == names.end()) {
@@ -135,5 +140,20 @@ std::vector<BodyNameRegistry::Group> BodyNameRegistry::group_by_index() const {
         std::sort(group.others.begin(), group.others.end());
         result.push_back(std::move(group));
     }
+    return result;
+}
+
+std::vector<std::string> BodyNameRegistry::base_body_names() const {
+    std::map<int, std::string> by_body; // ordered by body index, so the result comes out contiguous 0..n-1
+    for (const auto& [index, default_name] : defaults) {
+        auto sel = from_index(index);
+        if (sel.symmetry != -1 || sel.replica != 0) {continue;} // base bodies only, no symmetry replicas
+        auto alias = aliases.find(index);
+        by_body[sel.body] = (alias != aliases.end()) ? alias->second : default_name;
+    }
+
+    std::vector<std::string> result;
+    result.reserve(by_body.size());
+    for (auto& [body, name] : by_body) {result.push_back(std::move(name));}
     return result;
 }
