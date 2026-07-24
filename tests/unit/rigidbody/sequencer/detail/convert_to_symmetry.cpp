@@ -73,7 +73,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a cyclic assembly"
     }
 
     std::vector<std::string> files = {
-        "/tmp/ausaxs_convsym_0.pdb", "/tmp/ausaxs_convsym_1.pdb", "/tmp/ausaxs_convsym_2.pdb"
+        "temp/rigidbody/ausaxs_convsym_0.pdb", "temp/rigidbody/ausaxs_convsym_1.pdb", "temp/rigidbody/ausaxs_convsym_2.pdb"
     };
     for (std::size_t i = 0; i < files.size(); ++i) {write_pdb(files[i], chains[i]);}
 
