@@ -4,6 +4,7 @@
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <constants/Constants.h>
 
 #include <cassert>
 
@@ -20,17 +21,17 @@ ReferenceSymmetry::ReferenceSymmetry(std::unique_ptr<ISymmetry> base, std::vecto
 }
 
 Vector3<double> ReferenceSymmetry::combined_cm() const {
-    // atom-count weighted average of the participating bodies' centres of mass
     Vector3<double> sum{0, 0, 0};
-    std::size_t total = 0;
+    double total = 0;
     for (int idx : bodies) {
         const auto& body = molecule->get_body(idx);
-        std::size_t n = body.size_atom();
-        sum += body.get_cm()*static_cast<double>(n);
-        total += n;
+        double mass = 0;
+        for (const auto& a : body.get_atoms()) {mass += constants::mass::get_mass(a.form_factor_type());}
+        sum += body.get_cm()*mass;
+        total += mass;
     }
-    assert(0 < total && "ReferenceSymmetry::combined_cm: participating bodies contain no atoms.");
-    return sum/static_cast<double>(total);
+    assert(0 < total && "ReferenceSymmetry::combined_cm: participating bodies contain no mass.");
+    return sum/total;
 }
 
 std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetry::get_transform(const Vector3<double>&, int rep) const {
