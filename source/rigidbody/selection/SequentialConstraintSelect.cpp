@@ -15,7 +15,7 @@ std::pair<unsigned int, int> SequentialConstraintSelect::next() {
     unsigned int M = rigidbody->constraints->get_body_constraints(ibody).size();
 
     if (iconstraint == M) {
-        ibody = (ibody + 1) % N;
+        ibody = (ibody + 1) % size_body();
         iconstraint = 0;
     }
 

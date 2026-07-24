@@ -49,9 +49,13 @@ namespace ausaxs::rigidbody {
                  */
                 void set_mask_strategy(std::unique_ptr<ParameterMaskStrategy> strategy);
 
-            protected: 
+            protected:
                 observer_ptr<const Rigidbody> rigidbody;
-                unsigned int N;
+
+                /**
+                 * @brief The current number of bodies in the molecule.
+                 */
+                unsigned int size_body() const;
 
             private:
                 std::unique_ptr<ParameterMaskStrategy> mask_strategy;

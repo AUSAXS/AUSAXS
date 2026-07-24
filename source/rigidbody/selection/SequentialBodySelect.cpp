@@ -17,7 +17,7 @@ SequentialBodySelect::~SequentialBodySelect() = default;
 std::pair<unsigned int, int> SequentialBodySelect::next() {
     unsigned int this_body = ibody;
     unsigned int M = rigidbody->constraints->get_body_constraints(this_body).size();
-    ibody = (ibody + 1) % N;
+    ibody = (ibody + 1) % size_body();
 
     switch (M) {
         case 0: {

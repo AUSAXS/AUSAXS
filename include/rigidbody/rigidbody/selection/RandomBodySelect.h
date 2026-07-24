@@ -5,8 +5,6 @@
 
 #include <rigidbody/selection/BodySelectStrategy.h>
 
-#include <random>
-
 namespace ausaxs::rigidbody {
     namespace selection {
         /**
@@ -18,9 +16,6 @@ namespace ausaxs::rigidbody {
                 ~RandomBodySelect() override;
 
                 std::pair<unsigned int, int> next() override; ///< @copydoc BodySelectStrategy::next()
-
-            private:
-                std::uniform_int_distribution<int> distribution; // The random number distribution. 
         };
     }
 }

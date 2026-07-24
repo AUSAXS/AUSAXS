@@ -8,18 +8,18 @@
 #include <utility/Exceptions.h>
 #include <utility/Random.h>
 
+#include <random>
 #include <utility>
 
 using namespace ausaxs::rigidbody::selection;
 
-RandomConstraintSelect::RandomConstraintSelect(observer_ptr<const Rigidbody> rigidbody) : BodySelectStrategy(rigidbody) {
-    unsigned int M = rigidbody->constraints->discoverable_constraints.size();
-    distribution = std::uniform_int_distribution<int>(0, M-1);
-}
+RandomConstraintSelect::RandomConstraintSelect(observer_ptr<const Rigidbody> rigidbody) : BodySelectStrategy(rigidbody) {}
 
 RandomConstraintSelect::~RandomConstraintSelect() = default;
 
 std::pair<unsigned int, int> RandomConstraintSelect::next() {
+    // rebuild the distribution each call against the live constraint count
+    std::uniform_int_distribution<int> distribution(0, rigidbody->constraints->discoverable_constraints.size()-1);
     unsigned int iconstraint = distribution(random::generator());
     const auto& constraint = rigidbody->constraints->discoverable_constraints[iconstraint];
     unsigned int ibody = constraint->ibody1;

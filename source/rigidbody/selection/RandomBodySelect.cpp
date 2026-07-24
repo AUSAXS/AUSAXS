@@ -7,15 +7,17 @@
 #include <utility/Exceptions.h>
 #include <utility/Random.h>
 
+#include <random>
+
 using namespace ausaxs::rigidbody::selection;
 
-RandomBodySelect::RandomBodySelect(observer_ptr<const Rigidbody> rigidbody) : BodySelectStrategy(rigidbody) {
-    distribution = std::uniform_int_distribution<int>(0, N-1);
-}
+RandomBodySelect::RandomBodySelect(observer_ptr<const Rigidbody> rigidbody) : BodySelectStrategy(rigidbody) {}
 
 RandomBodySelect::~RandomBodySelect() = default;
 
 std::pair<unsigned int, int> RandomBodySelect::next() {
+    // rebuild the distribution each call against the live body count
+    std::uniform_int_distribution<int> distribution(0, size_body()-1);
     unsigned int ibody = distribution(random::generator());
 
     unsigned int N = rigidbody->constraints->get_body_constraints(ibody).size();
