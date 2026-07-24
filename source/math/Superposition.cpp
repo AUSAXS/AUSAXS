@@ -10,6 +10,9 @@
 using namespace ausaxs;
 
 namespace ausaxs::matrix {
+// Orthogonal Procrustes solution (the rotation maximizing the Frobenius product <R, H>), computed via
+// Horn's quaternion method: the optimal rotation is the largest eigenvector of a symmetric 4x4 matrix
+// built from H. Going through a quaternion guarantees a proper rotation, never a reflection.
 Matrix<double> optimal_rotation(const Matrix<double>& H) {
     assert(H.N == 3 && H.M == 3 && "optimal_rotation: H must be 3x3.");
     double Sxx = H(0,0), Sxy = H(0,1), Sxz = H(0,2);
@@ -41,6 +44,8 @@ Matrix<double> optimal_rotation(const Matrix<double>& H) {
     };
 }
 
+// Kabsch algorithm: centre both point sets, then recover the optimal rotation from their
+// cross-covariance and the translation that lines the centroids up.
 SuperpositionResult superpose(const std::vector<Vector3<double>>& from, const std::vector<Vector3<double>>& to) {
     assert(from.size() == to.size() && "superpose: point sets must have equal size.");
     assert(!from.empty() && "superpose: point sets must be non-empty.");

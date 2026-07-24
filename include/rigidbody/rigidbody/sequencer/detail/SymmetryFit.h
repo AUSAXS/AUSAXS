@@ -19,24 +19,17 @@ namespace ausaxs::rigidbody::sequencer::detail {
     };
 
     /**
-     * @brief Fit the parameters of a target symmetry to an assembled, symmetric structure.
+     * @brief Fit a target symmetry's parameters to an assembled structure.
      *
-     * The inverse of expanding one body + a symmetry into many: given the N copies of a single
-     * molecule that make up @p copies, this recovers the symmetry parameters (offset + frame/axis)
-     * that best reproduce the assembly as `copies[0] + template_symmetry`. Because every copy is the
-     * same molecule, atom correspondence is exact (copies[k][i] is the image of copies[0][i]), so
-     * each per-copy alignment is a closed-form Kabsch superposition rather than a search.
+     * The inverse of expanding one body into many: recover the symmetry parameters that best reproduce
+     * @p copies as `copies[0] + template_symmetry`. Supports point, cyclic, polyhedral (dihedral,
+     * planar-dihedral, tetrahedral, octahedral, icosahedral) symmetries and composites of these.
      *
-     * @param template_symmetry The target symmetry type. Only its type (and repetition count) is
-     *        used; its parameters are ignored and overwritten in the returned object.
-     * @param reference_cm The centre of mass of the reference body copies[0] (atoms only), i.e. the
-     *        same value the forward transform is generated about.
-     * @param copies The atom coordinates of each body. copies[0] is the reference; copies[k]
-     *        (k = 1..repetitions) are the symmetric copies in repetition order. All copies must have
-     *        the same number of points, and copies.size() must equal repetitions()+1.
-     *
-     * Supported target types: PointSymmetry (p2), CyclicSymmetry (c2..c12) and all
-     * IPolyhedralSymmetry leaves (dihedral, planar dihedral, tetrahedral, octahedral, icosahedral).
+     * @param template_symmetry The target symmetry; only its type and repetition count are used, its
+     *        parameters are overwritten in the result.
+     * @param reference_cm The centre the symmetry is generated about (the reference body's cm).
+     * @param copies Atom coordinates of each body: copies[0] is the reference, copies[1..repetitions]
+     *        the symmetric copies in order. All must be equal in size, with copies.size() == repetitions()+1.
      */
     SymmetryFitResult fit_symmetry(
         const symmetry::ISymmetry& template_symmetry,
@@ -45,14 +38,10 @@ namespace ausaxs::rigidbody::sequencer::detail {
     );
 
     /**
-     * @brief Fit a symmetry without assuming the copies are given in repetition order.
+     * @brief Like @ref fit_symmetry, but for copies given in an unknown order (e.g. PDB chains).
      *
-     * @ref fit_symmetry requires copies[k] to be the k-th symmetry copy, but chains in a PDB come in
-     * arbitrary order. This first tries the given order and, if the residual exceeds @p accept_rmsd,
-     * searches over orderings of the non-reference bodies (copies[0] is always kept as the reference,
-     * which is valid because the symmetry group acts transitively on the copies) and returns the
-     * lowest-RMSD fit found. The search is skipped for assemblies too large to enumerate, in which
-     * case the given order is used as-is.
+     * Tries the given order and, if the residual exceeds @p accept_rmsd, searches over orderings of the
+     * non-reference copies for the best fit. The search is skipped for assemblies too large to enumerate.
      *
      * @param accept_rmsd Residual RMSD (Å) at or below which an ordering is accepted immediately.
      */
@@ -64,14 +53,11 @@ namespace ausaxs::rigidbody::sequencer::detail {
     );
 
     /**
-     * @brief Expand a single reference body into the full set of bodies implied by a symmetry.
+     * @brief Expand a reference body into the full set of copies implied by a symmetry.
      *
-     * Returns repetitions()+1 point sets: [0] is @p reference itself and [k] (k = 1..repetitions) is
-     * its k-th symmetry image, generated about @p reference_cm. A cyclic fit that degenerated to the
-     * identity (see @ref fit_symmetry) is reconstructed with the identity map on every copy rather
-     * than through the symmetry's own transform, so the mismatch surfaces as a large residual instead
-     * of being rejected outright. This is the shared basis for both the fit residual (@ref
-     * SymmetryFitResult::rmsd) and the decomposed structure exposed through the API.
+     * Returns repetitions()+1 point sets: [0] is @p reference, [k] its k-th symmetry image about
+     * @p reference_cm. Shared by the fit residual and the API's decomposed structure. This is the
+     * coordinate-level counterpart of BodySymmetryFacade::explicit_structure (which works on a Body).
      */
     std::vector<std::vector<Vector3<double>>> reconstruct_copies(
         const symmetry::ISymmetry& symmetry,

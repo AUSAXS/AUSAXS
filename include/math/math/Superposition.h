@@ -10,11 +10,7 @@
 
 namespace ausaxs::matrix {
     /**
-     * @brief The optimal rigid transform mapping one point set onto another.
-     *
-     * The transform is applied as p -> rotation*p + translation, so that
-     * rotation*from[i] + translation approximates to[i]. rmsd is the residual root-mean-square
-     * deviation after alignment.
+     * @brief A rigid transform (apply as rotation*p + translation), with the residual RMSD it leaves.
      */
     struct SuperpositionResult {
         Matrix<double> rotation = Matrix<double>::identity(3);
@@ -23,20 +19,12 @@ namespace ausaxs::matrix {
     };
 
     /**
-     * @brief The proper rotation R (det = +1) maximizing the Frobenius product <R, H>.
-     *
-     * This is the orthogonal Procrustes solution, computed via Horn's quaternion method: the
-     * optimal rotation corresponds to the largest eigenvector of a symmetric 4x4 matrix built
-     * from H. Because it works through quaternions it always returns a proper rotation, never a
-     * reflection.
+     * @brief The proper rotation (det = +1) best aligning two point sets with cross-covariance @p H.
      */
     Matrix<double> optimal_rotation(const Matrix<double>& H);
 
     /**
-     * @brief Kabsch superposition of two equally-sized, index-corresponded point sets.
-     *
-     * Finds the rigid transform (rotation + translation) that best maps @p from onto @p to in the
-     * least-squares sense. Atom correspondence is assumed known (from[i] <-> to[i]).
+     * @brief The rigid transform best mapping @p from onto @p to, assuming from[i] corresponds to to[i].
      */
     SuperpositionResult superpose(const std::vector<Vector3<double>>& from, const std::vector<Vector3<double>>& to);
 }

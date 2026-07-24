@@ -4,6 +4,8 @@
 #include <rigidbody/sequencer/elements/setup/ConvertToSymmetryElement.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 #include <rigidbody/sequencer/detail/SymmetryFit.h>
+#include <rigidbody/sequencer/detail/BodyIndexOps.h>
+#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/SystemSpecification.h>
@@ -23,7 +25,6 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <set>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
@@ -123,44 +124,17 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     rigidbody->conformation->initial_conformation[primary].symmetry().add(fit.symmetry->clone());
     rigidbody->conformation->absolute_parameters.parameters[primary].symmetry_pars.emplace_back(fit.symmetry->clone());
 
-    // capture the new symmetry slot/replica count now, before body removal may shift the primary index
+    // capture the new symmetry slot/replica count now, before body removal shifts the primary index
     int isymmetry = static_cast<int>(molecule->get_body(primary).size_symmetry()) - 1;
     int reps = static_cast<int>(molecule->get_body(primary).symmetry().get(isymmetry)->repetitions());
 
-    // remove the now-redundant copy bodies from the parallel body arrays (highest index first so the
-    // remaining indices stay valid during erasure)
-    std::set<int, std::greater<int>> to_remove(bodies.begin() + 1, bodies.end());
-    for (int b : to_remove) {
-        molecule->get_bodies().erase(molecule->get_bodies().begin() + b);
-        rigidbody->conformation->initial_conformation.erase(rigidbody->conformation->initial_conformation.begin() + b);
-        rigidbody->conformation->absolute_parameters.parameters.erase(rigidbody->conformation->absolute_parameters.parameters.begin() + b);
-    }
+    // drop the now-redundant copy bodies; erase_bodies also reindexes every surviving body name
+    std::vector<int> to_remove(bodies.begin() + 1, bodies.end());
+    int new_primary = primary - static_cast<int>(std::count_if(to_remove.begin(), to_remove.end(), [primary](int b) {return b < primary;}));
+    detail::erase_bodies(owner, std::move(to_remove));
 
-    // build the old-index -> new-index map for the surviving bodies (removed bodies map to -1)
-    std::vector<int> new_index(molecule->size_body() + to_remove.size(), -1);
-    for (int old = 0, next = 0; old < static_cast<int>(new_index.size()); ++old) {
-        if (!to_remove.contains(old)) {new_index[old] = next++;}
-    }
-    int new_primary = new_index[primary];
-
-    // remap every existing body name onto the compacted indices, dropping names of removed bodies
-    auto& name_map = setup._get_body_names();
-    std::unordered_map<std::string, unsigned int> remapped;
-    for (const auto& [name, encoded] : name_map) {
-        auto sel = detail::from_index(static_cast<int>(encoded));
-        if (sel.body < 0 || sel.body >= static_cast<int>(new_index.size()) || new_index[sel.body] == -1) {continue;}
-        remapped.emplace(name, detail::to_index(new_index[sel.body], sel.symmetry, sel.replica));
-    }
-    name_map = std::move(remapped);
-
-    // register names for the primary body's newly-added symmetry copies (default-named "b<n>s<m>...")
-    std::string primary_name = "b" + std::to_string(new_primary + 1);
-    name_map.emplace(primary_name + "s" + std::to_string(isymmetry + 1), detail::to_index(new_primary, isymmetry, 1));
-    if (1 < reps) {
-        for (int j = 0; j < reps; ++j) {
-            name_map.emplace(primary_name + "s" + std::to_string(isymmetry + 1) + "r" + std::to_string(j + 1), detail::to_index(new_primary, isymmetry, j + 1));
-        }
-    }
+    // register names for the primary body's newly-added symmetry copies
+    for (int j = 0; j < reps; ++j) {setup._body_name_registry().add_replica(new_primary, isymmetry, j + 1);}
 
     // rebuild the (now symmetry-aware) histogram manager for the reduced body set; this also rebinds
     // the body signallers. The grid must be rebuilt since the atom count changed.

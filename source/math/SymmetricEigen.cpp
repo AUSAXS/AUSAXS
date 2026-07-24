@@ -12,6 +12,8 @@
 using namespace ausaxs;
 
 namespace ausaxs::matrix {
+// Cyclic Jacobi rotation method: robust and accurate for the small dense symmetric matrices this is
+// used with (up to 9x9).
 EigenResult symmetric_eigen(const Matrix<double>& A) {
     assert(A.N == A.M && "symmetric_eigen: matrix must be square.");
     const unsigned int n = A.N;

@@ -53,9 +53,6 @@ namespace ausaxs::matrix {
 
     /**
      * @brief Closed-form determinant of a 3x3 matrix.
-     *
-     * Unlike Matrix::det() (which LU-decomposes and throws on a degenerate matrix), this evaluates
-     * the determinant directly and never throws, so it is safe on singular input (returning 0).
      */
     double det(const Matrix<double>& A);
 

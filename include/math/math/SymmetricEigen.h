@@ -8,23 +8,14 @@
 #include <vector>
 
 namespace ausaxs::matrix {
-    /**
-     * @brief Eigen-decomposition of a real symmetric matrix.
-     *
-     * values[i] is the i-th eigenvalue (ascending) and vectors[i] the corresponding
-     * (unit-length) eigenvector.
-     */
     struct EigenResult {
-        std::vector<double> values;
-        std::vector<std::vector<double>> vectors;
+        std::vector<double> values;                //< eigenvalues, ascending
+        std::vector<std::vector<double>> vectors;  //< matching unit eigenvectors
     };
 
     /**
-     * @brief Compute all eigenvalues and eigenvectors of a real symmetric matrix.
-     *
-     * Uses the cyclic Jacobi rotation method, which is robust and accurate for the small dense
-     * symmetric matrices it is used with (up to 9x9). The input is assumed symmetric; it is not
-     * modified.
+     * @brief All eigenvalues and eigenvectors of a real symmetric matrix. The input is assumed
+     *        symmetric and is not modified.
      */
     EigenResult symmetric_eigen(const Matrix<double>& A);
 }

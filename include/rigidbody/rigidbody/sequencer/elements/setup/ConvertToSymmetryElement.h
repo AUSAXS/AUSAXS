@@ -14,22 +14,14 @@
 
 namespace ausaxs::rigidbody::sequencer {
     /**
-     * @brief Collapse a set of already-loaded copy bodies into a single reference body carrying a
-     *        fitted symmetry.
+     * @brief Collapse a set of loaded copy bodies into a single body carrying a fitted symmetry.
      *
-     * This is the inverse of expanding one body + a symmetry into many (@ref SymmetryElement):
-     * given N bodies that are copies of the same molecule assembled with some point-group symmetry,
-     * it fits the parameters of the requested symmetry to that assembly, installs the fitted symmetry
-     * on the first (primary) body, and removes the now-redundant copies. The residual RMSD of the fit
-     * is reported so the user can judge how well the symmetry actually holds.
+     * The inverse of @ref SymmetryElement: fits the requested symmetry to the assembly formed by the
+     * given bodies (copies of the same molecule), installs it on the first (primary) body, and removes
+     * the redundant copies. The fit is rejected if its residual RMSD exceeds @ref tolerance.
      *
-     * This is a setup-time operation. The number of participating bodies must equal
-     * repetitions()+1 for the requested symmetry (e.g. exactly 4 bodies for c4); otherwise the setup
-     * fails. Bodies must be given in symmetry (repetition) order.
-     *
-     * Arbitrary (including nested composite, e.g. "p2-p2") symmetries are supported: the user asserts
-     * the symmetry type and the parameters are fitted to match. As a safeguard against a wrong claim,
-     * the fit is rejected if its residual RMSD exceeds @ref tolerance.
+     * A setup-time operation. The number of bodies must equal repetitions()+1 for the symmetry (e.g. 4
+     * for c4). Composite symmetries (e.g. "p2-p2") are supported.
      */
     class ConvertToSymmetryElement : public GenericElement {
         public:
@@ -38,7 +30,7 @@ namespace ausaxs::rigidbody::sequencer {
 
             /**
              * @param owner The owning sequencer.
-             * @param bodies The participating body indices, primary first, in repetition order.
+             * @param bodies The participating body indices, primary first; the rest may be in any order.
              * @param symmetry_name The target symmetry (e.g. "c4", "d3", "p2-p2").
              * @param tolerance Residual-RMSD threshold (Å); the setup fails if the fit exceeds it.
              */

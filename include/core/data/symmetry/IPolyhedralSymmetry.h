@@ -26,9 +26,6 @@ namespace ausaxs::symmetry {
 
         /**
          * @brief The fixed rotation matrices of the point group (element 0 is the identity).
-         *
-         * Exposes the otherwise-protected group data so external code (e.g. the symmetry fitter)
-         * can recover the group frame by matching measured rotations to these canonical elements.
          */
         [[nodiscard]] const std::vector<Matrix<double>>& group_elements() const {return group().elements;}
 
