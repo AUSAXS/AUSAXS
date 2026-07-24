@@ -62,4 +62,20 @@ namespace ausaxs::rigidbody::sequencer::detail {
         const std::vector<std::vector<Vector3<double>>>& copies,
         double accept_rmsd
     );
+
+    /**
+     * @brief Expand a single reference body into the full set of bodies implied by a symmetry.
+     *
+     * Returns repetitions()+1 point sets: [0] is @p reference itself and [k] (k = 1..repetitions) is
+     * its k-th symmetry image, generated about @p reference_cm. A cyclic fit that degenerated to the
+     * identity (see @ref fit_symmetry) is reconstructed with the identity map on every copy rather
+     * than through the symmetry's own transform, so the mismatch surfaces as a large residual instead
+     * of being rejected outright. This is the shared basis for both the fit residual (@ref
+     * SymmetryFitResult::rmsd) and the decomposed structure exposed through the API.
+     */
+    std::vector<std::vector<Vector3<double>>> reconstruct_copies(
+        const symmetry::ISymmetry& symmetry,
+        const Vector3<double>& reference_cm,
+        const std::vector<Vector3<double>>& reference
+    );
 }

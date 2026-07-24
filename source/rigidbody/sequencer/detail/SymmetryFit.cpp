@@ -101,14 +101,12 @@ namespace {
     double reconstruction_rmsd(
         const symmetry::ISymmetry& sym, const Vector3<double>& cm, const std::vector<std::vector<Vector3<double>>>& copies
     ) {
-        bool trivial = is_trivial_cyclic(sym);
+        auto reconstructed = rigidbody::sequencer::detail::reconstruct_copies(sym, cm, copies[0]);
         double sum_sq = 0;
         std::size_t count = 0;
-        for (unsigned int k = 1; k < copies.size(); ++k) {
-            std::function<Vector3<double>(Vector3<double>)> transform =
-                trivial ? [](Vector3<double> v) {return v;} : sym.get_transform(cm, k);
+        for (std::size_t k = 1; k < copies.size(); ++k) {
             for (std::size_t i = 0; i < copies[0].size(); ++i) {
-                Vector3<double> d = transform(copies[0][i]) - copies[k][i];
+                Vector3<double> d = reconstructed[k][i] - copies[k][i];
                 sum_sq += d.dot(d);
                 ++count;
             }
@@ -226,5 +224,24 @@ SymmetryFitResult fit_symmetry_best_order(
         if (best.rmsd <= accept_rmsd) {break;}
     }
     return best;
+}
+
+std::vector<std::vector<Vector3<double>>> reconstruct_copies(
+    const symmetry::ISymmetry& symmetry, const Vector3<double>& cm, const std::vector<Vector3<double>>& reference
+) {
+    bool trivial = is_trivial_cyclic(symmetry);
+    unsigned int reps = symmetry.repetitions();
+    std::vector<std::vector<Vector3<double>>> result;
+    result.reserve(reps + 1);
+    result.push_back(reference);                                     // copy 0 is the reference itself
+    for (unsigned int k = 1; k <= reps; ++k) {
+        std::function<Vector3<double>(Vector3<double>)> transform =
+            trivial ? [](Vector3<double> v) {return v;} : symmetry.get_transform(cm, k);
+        std::vector<Vector3<double>> copy;
+        copy.reserve(reference.size());
+        for (const auto& p : reference) {copy.push_back(transform(p));}
+        result.push_back(std::move(copy));
+    }
+    return result;
 }
 }

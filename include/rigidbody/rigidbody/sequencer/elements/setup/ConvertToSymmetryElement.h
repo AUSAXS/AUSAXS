@@ -17,7 +17,7 @@ namespace ausaxs::rigidbody::sequencer {
      * @brief Collapse a set of already-loaded copy bodies into a single reference body carrying a
      *        fitted symmetry.
      *
-     * This is the inverse of expanding one body + a symmetry into many (@ref ConvertSymmetryElement):
+     * This is the inverse of expanding one body + a symmetry into many (@ref SymmetryElement):
      * given N bodies that are copies of the same molecule assembled with some point-group symmetry,
      * it fits the parameters of the requested symmetry to that assembly, installs the fitted symmetry
      * on the first (primary) body, and removes the now-redundant copies. The residual RMSD of the fit

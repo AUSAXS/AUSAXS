@@ -8,7 +8,6 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <data/symmetry/CyclicSymmetry.h>
 #include <rigidbody/sequencer/detail/SymmetryFit.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <fitter/SmartFitter.h>
@@ -103,14 +102,6 @@ struct _pdb_decompose_obj {
     std::vector<int> copy_index;
 };
 
-// A cyclic fit degenerates to the identity for a mismatched symmetry; CyclicSymmetry::get_transform
-// rejects that, so reconstruct with the identity map instead (it yields overlapping copies, which
-// together with the reported RMSD visibly flags the mismatch).
-static bool is_trivial_cyclic(const symmetry::ISymmetry& sym) {
-    auto* cs = dynamic_cast<const symmetry::CyclicSymmetry*>(&sym);
-    return cs && std::abs(cs->_repeat_relation.angle) < 1e-6 && cs->_repeat_relation.translation.magnitude() < 1e-6;
-}
-
 int pdb_decompose_symmetry(
     int pdb_id, const char* symmetry_name,
     double** x_out, double** y_out, double** z_out, int** copy_index_out, int* n_atoms_out,
@@ -147,16 +138,13 @@ int pdb_decompose_symmetry(
     auto fit = rigidbody::sequencer::detail::fit_symmetry_best_order(*base, cm, chains, 0.0);
 
     // build the decomposed structure: reference chain (copy 0) + the fitted symmetry copies
+    auto reconstructed = rigidbody::sequencer::detail::reconstruct_copies(*fit.symmetry, cm, chains[0]);
     _pdb_decompose_obj data;
     int per = static_cast<int>(chains[0].size());
     int reps = static_cast<int>(fit.symmetry->repetitions());
     data.x.reserve(per*(reps + 1)); data.y.reserve(per*(reps + 1)); data.z.reserve(per*(reps + 1)); data.copy_index.reserve(per*(reps + 1));
-    bool trivial = is_trivial_cyclic(*fit.symmetry);
     for (int k = 0; k <= reps; ++k) {
-        std::function<Vector3<double>(Vector3<double>)> t =
-            (k == 0 || trivial) ? [](Vector3<double> v) {return v;} : fit.symmetry->get_transform(cm, k);
-        for (const auto& p : chains[0]) {
-            Vector3<double> q = t(p);
+        for (const auto& q : reconstructed[k]) {
             data.x.push_back(q.x());
             data.y.push_back(q.y());
             data.z.push_back(q.z());
