@@ -39,7 +39,7 @@ namespace ausaxs::symmetry {
         std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;
 
         /**
-         * @brief Combined centre of mass of all participating bodies (atom-count weighted).
+         * @brief Combined centre of mass of all participating bodies (mass weighted, matching Body::get_cm).
          */
         Vector3<double> combined_cm() const;
 
