@@ -80,3 +80,13 @@ std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_
     strategy->set_mask_strategy(create_mask_strategy(mask_choice));
     return strategy;
 }
+
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_symmetry_selection_strategy(
+    observer_ptr<const Rigidbody> body, unsigned int ibody, unsigned int isymmetry)
+{
+    // the body must be transformed on its own: a constraint group applies its symmetry parameters to the group's
+    // primary body, which is not necessarily the one hosting the symmetry we are targeting.
+    auto strategy = std::make_unique<ManualSelect>(body, ibody, false);
+    strategy->set_mask_strategy(std::make_unique<SingleSymmetryMaskStrategy>(isymmetry));
+    return strategy;
+}

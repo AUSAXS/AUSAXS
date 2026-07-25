@@ -10,11 +10,15 @@
 
 using namespace ausaxs::rigidbody::selection;
 
-ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int ibody) : BodySelectStrategy(rigidbody), ibody(ibody) {}
+ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int ibody, bool use_constraints)
+    : BodySelectStrategy(rigidbody), ibody(ibody), use_constraints(use_constraints)
+{}
 
 ManualSelect::~ManualSelect() = default;
 
 std::pair<unsigned int, int> ManualSelect::next() {
+    if (!use_constraints) {return std::make_pair(ibody, -1);}
+
     unsigned int N = rigidbody->constraints->get_body_constraints(ibody).size();
     switch (N) {
         case 0: {

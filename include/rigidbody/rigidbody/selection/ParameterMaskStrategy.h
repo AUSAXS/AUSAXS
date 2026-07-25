@@ -36,6 +36,19 @@ namespace ausaxs::rigidbody::selection {
     };
 
     /**
+     * @brief Only the parameters of one specific declared symmetry are active.
+     *
+     * The host body's rigid pose and all of its other symmetries stay frozen, so the optimizer
+     * refines the targeted symmetry in isolation.
+     */
+    struct SingleSymmetryMaskStrategy : ParameterMaskStrategy {
+        SingleSymmetryMaskStrategy(unsigned int isymmetry) : isymmetry(isymmetry) {}
+        ParameterMask next() override { return ParameterMask::single_symmetry(isymmetry); }
+        private:
+            unsigned int isymmetry;
+    };
+
+    /**
      * @brief Alternates between real-transform step and symmetry-parameter step.
      *
      * Odd calls return real_only(); even calls return symmetry_only().

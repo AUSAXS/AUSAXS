@@ -51,7 +51,7 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
         {Args::parameters, {"parameters", "parameter_mask", "mask"}},
     };
 
-    // inline form: `select <strategy>` or `select <bodyname or alias>`
+    // inline form: `select <strategy>`, `select <bodyname or alias>`, or `select <symmetry tag>` (e.g. `select b1s2`)
     if (!args.inlined.empty()) {
         if (!args.named.empty()) {throw except::parse_error("select", "Cannot mix inline and named arguments.");}
         if (args.inlined.size() != 1) {
@@ -67,9 +67,20 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
 
         const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
         if (!body_names.contains(token)) {
-            throw except::parse_error("select", "Unknown body select strategy or body name/alias \"" + token + "\".");
+            throw except::parse_error("select", "Unknown body select strategy, body name/alias, or symmetry tag \"" + token + "\".");
         }
-        return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_manual_selection_strategy(owner->_get_rigidbody(), body_names.resolve_body(token)));
+
+        auto sel = body_names.resolve(token);
+        if (sel.symmetry == -1) { // a plain body: optimize its pose and all of its symmetries
+            return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_manual_selection_strategy(owner->_get_rigidbody(), sel.body));
+        }
+
+        // a symmetry tag: optimize that one declared symmetry in isolation. The replica is deliberately ignored, since all
+        // replicas of a symmetry are generated from its single shared parameter set - b1s2 and b1s2r3 target the same thing.
+        return std::make_unique<BodySelectElement>(
+            owner,
+            rigidbody::factory::create_manual_symmetry_selection_strategy(owner->_get_rigidbody(), sel.body, sel.symmetry)
+        );
     }
 
     auto strategy = args.get<std::string>(valid_args[Args::strategy]);
