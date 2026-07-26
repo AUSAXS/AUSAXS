@@ -11,6 +11,24 @@
 
 using namespace ausaxs::rigidbody::sequencer::detail;
 
+BodyNameRegistry::BodyLabels BodyNameRegistry::labels(int body) const {
+    unsigned int index = static_cast<unsigned int>(to_index(body));
+    auto d = defaults.find(index);
+    if (d == defaults.end()) {
+        throw std::runtime_error("BodyNameRegistry::labels: body " + std::to_string(body) + " is not registered.");
+    }
+    auto a = aliases.find(index);
+    return {.default_name = d->second, .alias = a != aliases.end() ? a->second : std::string{}};
+}
+
+void BodyNameRegistry::add_body(int body, const BodyLabels& inherited) {
+    assert(std::none_of(names.begin(), names.end(), [body](const auto& entry) {return from_index(entry.second).body == body;}) && "BodyNameRegistry::add_body: body index already exists in the registry.");
+    assert(!inherited.default_name.empty() && "BodyNameRegistry::add_body: inherited labels have no default name.");
+
+    // the counter is deliberately left alone: the inherited name was already drawn from it, and advancing it here would burn a number for no body
+    add_entity(static_cast<unsigned int>(to_index(body)), inherited.default_name, inherited.alias);
+}
+
 void BodyNameRegistry::add_body(int body, const std::string& alias) {
     assert(std::none_of(names.begin(), names.end(), [body](const auto& entry) {return from_index(entry.second).body == body;}) && "BodyNameRegistry::add_body: body index already exists in the registry.");
 

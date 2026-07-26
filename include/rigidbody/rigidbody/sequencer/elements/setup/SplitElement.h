@@ -16,8 +16,11 @@ namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief Split an existing body into several new bodies at the given residue sequence ids.
      *
-     * If the body carries one or more symmetries, each is turned into a ReferenceSymmetry shared by every resulting fragment with the first fragment becomes 
+     * If the body carries one or more symmetries, each is turned into a ReferenceSymmetry shared by every resulting fragment with the first fragment becomes
      * the owning primary, and the rest hold non-owning views.
+     *
+     * The first fragment continues the original body's identity and keeps both of its names, so splitting "core" leaves "core" addressing the fragment that
+     * holds the leading residues. The remaining fragments are new bodies and get fresh default names.
      */
     class SplitElement : public GenericElement {
         public:

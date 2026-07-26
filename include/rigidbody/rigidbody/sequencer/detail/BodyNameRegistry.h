@@ -17,6 +17,19 @@ namespace ausaxs::rigidbody::sequencer::detail {
     class BodyNameRegistry {
         public:
             /**
+             * @brief The complete set of names identifying one base body: its permanent default name, plus its custom alias if it has one.
+             */
+            struct BodyLabels {
+                std::string default_name;
+                std::string alias; //< empty if the body was never renamed
+            };
+
+            /**
+             * @brief Read a base body's current labels, so a body that continues its identity can be registered under them (see add_body).
+             */
+            BodyLabels labels(int body) const;
+
+            /**
              * @brief Register a body's permanent default name ("bN"), together with an optional initial custom alias.
              *
              * N is drawn from a monotonic counter, not from the body index: indices shift when bodies are erased and are reused by bodies created later
@@ -27,6 +40,16 @@ namespace ausaxs::rigidbody::sequencer::detail {
              * @throws std::runtime_error If the alias is already in use by another entity.
              */
             void add_body(int body, const std::string& alias = {});
+
+            /**
+             * @brief Register a body under labels inherited from a body it succeeds, rather than minting a fresh default name.
+             *
+             * Used when one body is replaced by others that continue its identity, as when `split` hands the original body's names to its leading fragment.
+             * The inherited labels must have been released first (by remove()), or they would collide with the body still holding them.
+             *
+             * @throws std::runtime_error If either inherited name is still in use.
+             */
+            void add_body(int body, const BodyLabels& inherited);
 
             /**
              * @brief Register a symmetry replica's permanent canonical tag ("<base>sYrZ", built from the base body's own default name) for a body's
