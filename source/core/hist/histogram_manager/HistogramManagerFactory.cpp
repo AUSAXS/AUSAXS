@@ -42,15 +42,10 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
     observer_ptr<const data::Molecule> protein, bool weighted_bins, bool variable_bin_width
 ) {
     auto choice = settings::hist::get_histogram_manager();
-
-    // partial and symmetry-aware implementations exist only for the plain manager family, so both preferences below
-    // may have to be dropped. Say so rather than silently handing back a manager that quietly does the wrong thing:
-    // an ignored symmetry changes the result, and an ignored partial preference changes only the running time - but
-    // by a lot, since the caller asking for one is by definition recalculating in a loop.
     if (settings::flags::prefer_partial_manager && !is_partial(choice)) {
         console::print_warning(
-            "construct_histogram_manager: A partial histogram manager was requested, but the chosen excluded volume method "
-            "has no partial implementation. Every update will recalculate the full histogram. "
+            "construct_histogram_manager: A partial histogram manager was requested, but the chosen excluded volume method has no partial implementation. "
+            "Every update will recalculate the full histogram."
         );
     }
 

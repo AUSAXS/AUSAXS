@@ -100,10 +100,6 @@ namespace ausaxs::settings::io {
 }
 
 namespace {
-    // The plain manager family is the only one with partial implementations, so it is also the only place where
-    // settings::flags::prefer_partial_manager can be honoured. Callers that ask for a partial manager under any
-    // other excluded volume method are warned and given the full one by hist::factory::construct_histogram_manager,
-    // which - unlike this getter - is called once per manager rather than on every query.
     settings::hist::HistogramManagerChoice plain_manager() {
         using Choice = settings::hist::HistogramManagerChoice;
         bool st = settings::general::threads == 1; // if no multi-threading is enabled, switch to the single-threaded manager
