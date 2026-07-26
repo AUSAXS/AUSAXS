@@ -22,14 +22,12 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
     auto chi2_penalty = [this] () { return utility::round_double(owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3); };
     auto chi2_no_penalty = [this] () { return utility::round_double(owner->_get_current_conf()->chi2 - owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3);};
     auto body_names = [this] () {
-        auto groups = owner->_get_sequencer()->setup()._body_name_registry().group_by_index();
+        const auto& entries = owner->_get_sequencer()->setup()._body_name_registry().all();
 
         std::vector<std::string> parts;
-        parts.reserve(groups.size());
-        for (auto& group : groups) {
-            if (group.others.empty()) {parts.push_back(group.default_name);}
-            else if (!group.default_name.empty()) {parts.push_back(utility::join(group.others, "/") + " (" + group.default_name + ")");}
-            else {parts.push_back(utility::join(group.others, "/"));}
+        parts.reserve(entries.size());
+        for (const auto& [index, entry] : entries) { // in index order, so each body is followed by its own symmetry replicas
+            parts.push_back(entry.alias.empty() ? entry.default_name : entry.alias + " (" + entry.default_name + ")");
         }
         return utility::join(parts, ", ");
     };

@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/elements/setup/SplitElement.h>
 #include <rigidbody/sequencer/detail/BodyIndexOps.h>
+#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/SystemSpecification.h>
@@ -92,9 +93,9 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
         rigidbody->conformation->absolute_parameters.parameters.emplace_back();
     }
     // the leading fragment continues the original body's identity, so it inherits both of the original's names: a script that split "core" can still address
-    // the fragment holding the first residues as "core", and as the original's default name. Captured before the erase releases them.
+    // the fragment holding the first residues as "core", and as the original's default name. Copied before the erase releases them.
     auto& name_map = setup._body_name_registry();
-    auto inherited = name_map.labels(ib);
+    detail::BodyNameRegistry::Entry inherited = name_map.entry(detail::to_index(ib)); // a copy: the erase below destroys the original entry
 
     detail::erase_bodies(owner, {ib});
 

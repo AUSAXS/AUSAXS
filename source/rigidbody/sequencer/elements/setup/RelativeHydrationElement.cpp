@@ -21,7 +21,10 @@ RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner
         if (!owner->setup()._body_name_registry().contains(names[i])) {
             throw std::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + names[i] + "\" is not known.");
         }
-        this->ratios.push_back(owner->setup()._body_name_registry().at(names[i]));
+        // FIXME: this appends body indices onto the ratio list that was already copied from `ratios` above, so `this->ratios` ends up twice the intended
+        // length with indices standing in for weights. BodyCounterCulling::cull expects exactly one weight per body, indexed by body, so this needs to
+        // build a size_body()-long vector with the named bodies' ratios at their own index - which requires deciding what an unnamed body weighs.
+        this->ratios.push_back(owner->setup()._body_name_registry().resolve_body(names[i]));
     }
 }
 

@@ -59,10 +59,9 @@ struct SequenceParserBodyNamesFixture {
     // two is left addressable by nobody.
     static void expect_unique_names(const seqdetail::BodyNameRegistry& registry) {
         std::set<std::string> seen;
-        for (const auto& group : registry.group_by_index()) {
-            if (group.default_name.empty()) {continue;} // untracked plain name, not an entity we minted
-            INFO("duplicate default name \"" << group.default_name << "\"");
-            CHECK(seen.insert(group.default_name).second);
+        for (const auto& [index, entry] : registry.all()) {
+            INFO("duplicate default name \"" << entry.default_name << "\"");
+            CHECK(seen.insert(entry.default_name).second);
         }
     }
 
@@ -202,15 +201,15 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: replica tags
     CHECK(registry.resolve_body("b2") == registry.resolve("b2s1r1").body);
 
     int replicas = 0;
-    for (const auto& [name, index] : registry) {
-        auto sel = seqdetail::from_index(static_cast<int>(index));
+    for (const auto& [index, entry] : registry.all()) {
+        auto sel = seqdetail::from_index(index);
         if (sel.replica == 0) {continue;} // base body, not a replica tag
         ++replicas;
 
         // every replica tag is prefixed by the default name of the body it belongs to
-        std::string base = registry.name(static_cast<unsigned int>(seqdetail::to_index(sel.body)));
-        INFO("replica tag \"" << name << "\" of body \"" << base << "\"");
-        CHECK(name.rfind(base + "s", 0) == 0);
+        const std::string& base = registry.entry(seqdetail::to_index(sel.body)).default_name;
+        INFO("replica tag \"" << entry.default_name << "\" of body \"" << base << "\"");
+        CHECK(entry.default_name.rfind(base + "s", 0) == 0);
     }
     CHECK(0 < replicas);
 }

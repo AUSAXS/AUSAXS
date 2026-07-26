@@ -301,7 +301,7 @@ int rigidbody_get_symmetry_layout(
                 data.symmetry.push_back(isymmetry);
                 data.replica.push_back(replica_idx);
                 data.type.push_back(type_name);
-                data.name.push_back(name_registry.name(static_cast<unsigned int>(rigidbody::sequencer::detail::to_index(bidx, isymmetry, replica_idx))));
+                data.name.push_back(name_registry.entry(rigidbody::sequencer::detail::to_index(bidx, isymmetry, replica_idx)).display_name());
                 ++copy_idx;
             }
             ++isymmetry;

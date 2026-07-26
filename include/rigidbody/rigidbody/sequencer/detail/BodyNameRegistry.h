@@ -5,6 +5,7 @@
 
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 
+#include <map>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -13,21 +14,25 @@
 namespace ausaxs::rigidbody::sequencer::detail {
     /**
      * @brief Tracks the name to encoded index mapping used to resolve body (and symmetry replica) names in a sequencer script.
+     *
+     * Every registered entity - a base body or one of its symmetry replicas - owns exactly one Entry, keyed by its encoded index. Names are the Entry's
+     * contents rather than a store of their own; the name lookup is a pure inverse of the entries, rebuilt from them whenever indices shift, so the two
+     * cannot drift apart.
      */
     class BodyNameRegistry {
         public:
             /**
-             * @brief The complete set of names identifying one base body: its permanent default name, plus its custom alias if it has one.
+             * @brief The names identifying one entity.
              */
-            struct BodyLabels {
-                std::string default_name;
-                std::string alias; //< empty if the body was never renamed
-            };
+            struct Entry {
+                std::string default_name; //< permanent; minted when the entity is registered and never changed afterwards
+                std::string alias;        //< user-chosen; empty until the entity is renamed
 
-            /**
-             * @brief Read a base body's current labels, so a body that continues its identity can be registered under them (see add_body).
-             */
-            BodyLabels labels(int body) const;
+                /**
+                 * @brief The name to address and display the entity by: its alias once renamed, otherwise its permanent default name.
+                 */
+                const std::string& display_name() const {return alias.empty() ? default_name : alias;}
+            };
 
             /**
              * @brief Register a body's permanent default name ("bN"), together with an optional initial custom alias.
@@ -42,14 +47,14 @@ namespace ausaxs::rigidbody::sequencer::detail {
             void add_body(int body, const std::string& alias = {});
 
             /**
-             * @brief Register a body under labels inherited from a body it succeeds, rather than minting a fresh default name.
+             * @brief Register a body under an entry inherited from a body it succeeds, rather than minting a fresh default name.
              *
-             * Used when one body is replaced by others that continue its identity, as when `split` hands the original body's names to its leading fragment.
-             * The inherited labels must have been released first (by remove()), or they would collide with the body still holding them.
+             * Used when one body is replaced by others that continue its identity, as when `split` hands the original body's entry to its leading fragment.
+             * The inherited names must have been released first (by remove()), or they would collide with the body still holding them.
              *
              * @throws std::runtime_error If either inherited name is still in use.
              */
-            void add_body(int body, const BodyLabels& inherited);
+            void add_body(int body, Entry inherited);
 
             /**
              * @brief Register a symmetry replica's permanent canonical tag ("<base>sYrZ", built from the base body's own default name) for a body's
@@ -64,29 +69,25 @@ namespace ausaxs::rigidbody::sequencer::detail {
             void add_replica(int body, int isymmetry, int replica);
 
             /**
-             * @brief Create or change an entity's custom alias, identified by any of its currently known names.
+             * @brief Set an entity's custom alias, identified by any of its currently known names.
              *
-             * If old_name is the entity's default name or its current alias, that alias slot is replaced: the default name itself is 
-             * never removed. If old_name refers to an untracked (plain) name, it is simply renamed in place.
+             * Only the alias slot changes; the permanent default name is never removed. Renaming an entity back to its own default name clears the alias.
+             *
+             * @throws std::runtime_error If old_name is unknown, or new_name is already in use by a different entity.
              */
             void rename(std::string_view old_name, std::string_view new_name);
 
             /**
-             * @brief Drop the given base-body indices and reindex every surviving name (default, alias, and plain) to its shifted position.
+             * @brief Drop the given base-body indices, along with their replicas, and reindex every surviving entity to its shifted position.
              */
             void remove(std::vector<int> body_indices);
 
             bool contains(std::string_view name) const;
-            unsigned int at(std::string_view name) const;
 
             /**
-             * @brief Return the current addressable name for an encoded entity.
-             *        This is its alias when renamed, otherwise its permanent default name.
-             */
-            std::string name(unsigned int index) const;
-
-            /**
-             * @brief Resolve a name to the (body, symmetry, replica) selector it refers to. 
+             * @brief Resolve a name to the (body, symmetry, replica) selector it refers to.
+             *
+             * @throws std::runtime_error If the name is unknown.
              */
             BodySymmetrySelector resolve(std::string_view name) const;
 
@@ -95,37 +96,44 @@ namespace ausaxs::rigidbody::sequencer::detail {
              */
             int resolve_body(std::string_view name) const;
 
-            std::unordered_map<std::string, unsigned int>::const_iterator begin() const;
-            std::unordered_map<std::string, unsigned int>::const_iterator end() const;
-
-            struct Group {
-                std::string default_name;
-                std::vector<std::string> others;
-            };
-
             /**
-             * @brief Group every known name by the exact (body, symmetry, replica) index it refers to.
+             * @brief The names of the entity at an encoded index (see to_index).
+             *
+             * @throws std::out_of_range If nothing is registered at that index.
              */
-            std::vector<Group> group_by_index() const;
+            const Entry& entry(int index) const;
 
             /**
-             * @brief Display names of the base bodies, ordered by body index. Each entry is the body's custom alias if it has one,
-             * otherwise its default name ("bN"). Symmetry replicas are excluded.
+             * @brief Every registered entity, keyed and ordered by encoded index, so each body is immediately followed by its own replicas.
+             */
+            const std::map<int, Entry>& all() const;
+
+            /**
+             * @brief Display names of the base bodies, ordered by body index. Symmetry replicas are excluded.
              */
             std::vector<std::string> base_body_names() const;
 
         private:
             /**
-             * @brief Register an arbitrary entity's permanent default name for an already-encoded index.
+             * @brief Register an entity's names at an already-encoded index.
              *
              * @throws std::runtime_error If either name is already in use. Registering a name twice would silently hide one of the two entities behind the
              *         other, leaving it unaddressable, so it is rejected rather than ignored.
              */
-            void add_entity(unsigned int index, const std::string& default_name, const std::string& alias = {});
+            void add_entity(int index, Entry entry);
 
-            std::unordered_map<std::string, unsigned int> names;
-            std::unordered_map<unsigned int, std::string> defaults;
-            std::unordered_map<unsigned int, std::string> aliases;
-            unsigned int bodies_registered = 0; // monotonic; source of the "bN" default names. Never rewound, see add_body.
+            /**
+             * @brief Whether anything at all - the body itself or one of its replicas - is registered for a base body index.
+             */
+            bool has_body(int body) const;
+
+            /**
+             * @brief Rebuild the name lookup from the entries, after their indices have shifted.
+             */
+            void rebuild_lookup();
+
+            std::map<int, Entry> entries;                //< the naming state, keyed and ordered by encoded index
+            std::unordered_map<std::string, int> lookup; //< pure inverse of `entries`: every name they hold maps back to its index
+            unsigned int bodies_registered = 0;          //< monotonic; source of the "bN" default names. Never rewound, see add_body.
     };
 }
