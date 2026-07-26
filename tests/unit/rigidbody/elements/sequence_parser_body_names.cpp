@@ -1,0 +1,169 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
+#include <catch2/catch_test_macros.hpp>
+
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
+#include <rigidbody/Rigidbody.h>
+#include <data/Molecule.h>
+#include <data/Body.h>
+#include <settings/All.h>
+#include <io/ExistingFile.h>
+
+#include <fstream>
+#include <set>
+#include <string>
+#include <vector>
+
+using namespace ausaxs;
+using namespace ausaxs::rigidbody;
+using namespace ausaxs::rigidbody::sequencer;
+namespace seqdetail = ausaxs::rigidbody::sequencer::detail; // "detail" alone is ambiguous between the sequencer, rigidbody, and ausaxs namespaces
+
+struct SequenceParserBodyNamesFixture {
+    SequenceParserBodyNamesFixture() {
+        settings::general::verbose = false;
+        settings::molecule::implicit_hydrogens = false;
+        settings::grid::min_bins = 100;
+        settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::NoStrategy;
+        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+    }
+
+    std::unique_ptr<Sequencer> parse(const std::string& content) {
+        static int counter = 0;
+        std::string path = "/tmp/ausaxs_seq_body_names_test_" + std::to_string(counter++) + ".conf";
+        std::ofstream f(path);
+        f << content;
+        f.close();
+        SequenceParser parser;
+        return parser.parse_file(path);
+    }
+
+    // 2epe split into three bodies at load time, plus whatever script lines follow
+    std::unique_ptr<Sequencer> build(const std::string& extra = "") {
+        return parse(
+            "load {\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
+            "    split 40 80\n"
+            "}\n"
+            + extra
+        );
+    }
+
+    // Every registered entity (base body or symmetry replica) must be reachable under its own name: no two of them may share a default name, or one of the
+    // two is left addressable by nobody.
+    static void expect_unique_names(const seqdetail::BodyNameRegistry& registry) {
+        std::set<std::string> seen;
+        for (const auto& group : registry.group_by_index()) {
+            if (group.default_name.empty()) {continue;} // untracked plain name, not an entity we minted
+            INFO("duplicate default name \"" << group.default_name << "\"");
+            CHECK(seen.insert(group.default_name).second);
+        }
+    }
+
+    // Each name in `names` must resolve to a base body, and no two of them to the same one.
+    static void expect_distinct_bodies(const seqdetail::BodyNameRegistry& registry, const std::vector<std::string>& names) {
+        std::set<int> seen;
+        for (const auto& name : names) {
+            INFO("body name \"" << name << "\"");
+            REQUIRE(registry.contains(name));
+            CHECK(seen.insert(registry.resolve_body(name)).second);
+        }
+    }
+};
+
+TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default names stay unique as bodies are created and destroyed", "[files]") {
+    SECTION("a plain load yields exactly b1..bN") {
+        auto seq = build();
+        REQUIRE(seq != nullptr);
+        REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 3);
+        CHECK(seq->setup()._body_name_registry().base_body_names() == std::vector<std::string>{"b1", "b2", "b3"});
+    }
+
+    SECTION("splitting a body mid-script does not reuse a surviving body's name") {
+        // regression: the fragments used to be named from their new indices, regenerating "b3" - a name the third body already held and kept through the
+        // reindexing, leaving the fragment at residues 40-59 unaddressable
+        auto seq = build("split b2 60\n");
+        REQUIRE(seq != nullptr);
+        auto& registry = seq->setup()._body_name_registry();
+
+        REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
+        auto names = registry.base_body_names();
+        REQUIRE(names.size() == 4);
+        expect_unique_names(registry);
+        expect_distinct_bodies(registry, names);
+        CHECK(names == std::vector<std::string>{"b1", "b3", "b4", "b5"});
+    }
+
+    SECTION("a body created after a delete collides with nothing, and the survivors keep their names") {
+        auto seq = build("delete b1\nsplit b3 100\n");
+        REQUIRE(seq != nullptr);
+        auto& registry = seq->setup()._body_name_registry();
+
+        REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 3);
+        auto names = registry.base_body_names();
+        REQUIRE(names.size() == 3);
+        expect_unique_names(registry);
+        expect_distinct_bodies(registry, names);
+
+        // b2 survived the delete and the split untouched; b1 and b3 are gone, and the fragments continue the sequence
+        CHECK(registry.contains("b2"));
+        CHECK_FALSE(registry.contains("b1"));
+        CHECK_FALSE(registry.contains("b3"));
+        CHECK(names == std::vector<std::string>{"b2", "b4", "b5"});
+    }
+
+    SECTION("a deleted body's name is never reissued") {
+        // a script referring to "b2" after a delete-then-create must fail loudly rather than silently retarget the new body
+        auto seq = build("delete b2\ncopy b1 c1\ncopy b3 c2\n");
+        REQUIRE(seq != nullptr);
+        auto& registry = seq->setup()._body_name_registry();
+
+        REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
+        expect_unique_names(registry);
+        CHECK_FALSE(registry.contains("b2"));
+        expect_distinct_bodies(registry, registry.base_body_names());
+    }
+
+    SECTION("a copied body continues the default-name sequence") {
+        auto seq = build("copy b1 clone\n");
+        REQUIRE(seq != nullptr);
+        auto& registry = seq->setup()._body_name_registry();
+
+        REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
+        expect_unique_names(registry);
+        // the copy is addressable both by its alias and by its own default name, which must not shadow any of b1..b3
+        CHECK(registry.base_body_names() == std::vector<std::string>{"b1", "b2", "b3", "clone"});
+        CHECK(registry.contains("b4"));
+        CHECK(registry.resolve_body("b4") == registry.resolve_body("clone"));
+    }
+}
+
+TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: replica tags follow their own body's default name", "[files]") {
+    // b2 carries a symmetry and is then split, so the fragments are created after b3 already exists: their replica tags must be built from the fragments' own
+    // (post-split) default names rather than from their indices, which b3 shares a prefix with
+    auto seq = build("symmetry b2 c2\nsplit b2 60\n");
+    REQUIRE(seq != nullptr);
+    auto& registry = seq->setup()._body_name_registry();
+    REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
+
+    expect_unique_names(registry);
+    expect_distinct_bodies(registry, registry.base_body_names());
+
+    int replicas = 0;
+    for (const auto& [name, index] : registry) {
+        auto sel = seqdetail::from_index(static_cast<int>(index));
+        if (sel.replica == 0) {continue;} // base body, not a replica tag
+        ++replicas;
+
+        // every replica tag is prefixed by the default name of the body it belongs to
+        std::string base = registry.name(static_cast<unsigned int>(seqdetail::to_index(sel.body)));
+        INFO("replica tag \"" << name << "\" of body \"" << base << "\"");
+        CHECK(name.rfind(base + "s", 0) == 0);
+    }
+    CHECK(0 < replicas);
+}

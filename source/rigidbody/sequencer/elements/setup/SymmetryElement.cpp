@@ -83,8 +83,8 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
         molecule->get_body(ibody).symmetry().add(symmetries[i]->clone());
         rigidbody->conformation->initial_conformation[ibody].symmetry().add(std::move(symmetries[i]));
 
-        // add names for the symmetric bodies: each replica's permanent tag is always "bXsYrZ", built from the body's own index rather than whatever name 
-        // the caller used to refer to it, so it stays valid no matter how the base body gets renamed later
+        // add names for the symmetric bodies: each replica's permanent tag is always "<base>sYrZ", built from the base body's own permanent default name
+        // rather than whatever name the caller used to refer to it, so it stays valid no matter how the base body gets renamed later
         auto& name_map = setup._body_name_registry();
         int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::_add: Inconsistent data structures.");
@@ -159,8 +159,8 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     seed_offset(*mol_ref, 2*molecule->get_Rg(false));
     seed_offset(*conf_ref, 2*molecule->get_Rg(false));
 
-    // register names and per-body symmetry parameters for every participating body; as in _add, each replica's permanent tag is always "bXsYrZ", 
-    // built from the body's own index
+    // register names and per-body symmetry parameters for every participating body; as in _add, each replica's permanent tag is always "<base>sYrZ",
+    // built from the base body's own permanent default name
     auto& name_map = setup._body_name_registry();
     for (std::size_t k = 0; k < bodies.size(); ++k) {
         int b = bodies[k];

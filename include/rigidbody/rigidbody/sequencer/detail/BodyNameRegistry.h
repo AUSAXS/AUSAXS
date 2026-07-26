@@ -17,17 +17,26 @@ namespace ausaxs::rigidbody::sequencer::detail {
     class BodyNameRegistry {
         public:
             /**
-             * @brief Register a freshly loaded body's permanent default name ("bN"), together with an optional initial custom alias.
+             * @brief Register a body's permanent default name ("bN"), together with an optional initial custom alias.
+             *
+             * N is drawn from a monotonic counter, not from the body index: indices shift when bodies are erased and are reused by bodies created later
+             * (split, copy), whereas default names are permanent. A plain load of N bodies therefore still yields exactly "b1".."bN", while bodies created
+             * later continue the sequence rather than colliding with a survivor that kept its original name. The counter is never rewound, so a name retired
+             * by remove() is never reissued to a different body.
+             *
+             * @throws std::runtime_error If the alias is already in use by another entity.
              */
             void add_body(int body, const std::string& alias = {});
 
             /**
-             * @brief Register a symmetry replica's permanent canonical tag ("bXsYrZ", built from the body's own index) for a body's 
-             * (symmetry, replica) slot. The first replica additionally gets the short "bXsY" alias.
+             * @brief Register a symmetry replica's permanent canonical tag ("<base>sYrZ", built from the base body's own default name) for a body's
+             * (symmetry, replica) slot. The first replica additionally gets the short "<base>sY" alias.
              *
              * @param body The base body's index.
              * @param isymmetry The symmetry's index within the body (0-based).
              * @param replica The replica number (1-based).
+             *
+             * @throws std::runtime_error If the base body is not registered, or one of the generated tags is already in use.
              */
             void add_replica(int body, int isymmetry, int replica);
 
@@ -85,11 +94,15 @@ namespace ausaxs::rigidbody::sequencer::detail {
         private:
             /**
              * @brief Register an arbitrary entity's permanent default name for an already-encoded index.
+             *
+             * @throws std::runtime_error If either name is already in use. Registering a name twice would silently hide one of the two entities behind the
+             *         other, leaving it unaddressable, so it is rejected rather than ignored.
              */
             void add_entity(unsigned int index, const std::string& default_name, const std::string& alias = {});
 
             std::unordered_map<std::string, unsigned int> names;
             std::unordered_map<unsigned int, std::string> defaults;
             std::unordered_map<unsigned int, std::string> aliases;
+            unsigned int bodies_registered = 0; // monotonic; source of the "bN" default names. Never rewound, see add_body.
     };
 }
