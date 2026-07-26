@@ -192,7 +192,7 @@ PDBStructure::_res PDBStructure::reduced_representation() {
         if (md.occupancy)   {md.occupancy->emplace_back(static_cast<float>(a.occupancy));}
     }
 
-    if (md.backbone || md.occupancy) {res.metadata = std::move(md);}
+    if (md.backbone || md.residue_seq || md.occupancy) {res.metadata = std::move(md);}
 
     for (auto& w : waters) {
         res.waters.emplace_back(w.coords);

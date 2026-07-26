@@ -22,7 +22,7 @@ namespace ausaxs::data {
      */
     struct AtomMetadata {
         std::optional<std::vector<backbone_t>> backbone;     //< engaged iff settings::molecule::store_calpha
-        std::optional<std::vector<int>>        residue_seq;  //< residue sequence id; engaged iff settings::molecule::store_calpha (used by structure previews)
+        std::optional<std::vector<int>>        residue_seq;  //< residue sequence id; engaged iff settings::molecule::store_residue_seq
         std::optional<std::vector<float>>      occupancy;    //< engaged iff settings::molecule::store_occupancy
     };
 }

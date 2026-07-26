@@ -16,17 +16,8 @@ namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief Split an existing body into several new bodies at the given residue sequence ids.
      *
-     * The in-memory analogue of the load-time "split" (see BodySplitter): rather than splitting a freshly-read
-     * PDB file, this partitions a body already present in the molecule (e.g. one produced by convert_to_symmetry)
-     * using its per-atom residue-sequence metadata, which requires settings::molecule::store_residue_seq - already
-     * enabled unconditionally by the sequencer.
-     *
-     * If the body carries one or more symmetries, each is turned into a ReferenceSymmetry shared by every
-     * resulting fragment (the first fragment becomes the owning primary, the rest hold non-owning views), so the
-     * fragments stay tied to the same symmetric assembly instead of each getting an independently-optimizable copy.
-     *
-     * A setup-time operation; not supported on a body that already participates in a symmetry shared with bodies
-     * outside the split (i.e. a symmetry replica, or a body/view involved in another body's ReferenceSymmetry).
+     * If the body carries one or more symmetries, each is turned into a ReferenceSymmetry shared by every resulting fragment with the first fragment becomes 
+     * the owning primary, and the rest hold non-owning views.
      */
     class SplitElement : public GenericElement {
         public:

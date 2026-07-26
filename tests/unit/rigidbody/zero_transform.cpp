@@ -2,7 +2,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/BodySplitter.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/parameters/BodyTransformParametersRelative.h>

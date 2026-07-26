@@ -7,88 +7,18 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
+#include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/symmetry/ReferenceSymmetry.h>
-#include <data/atoms/AtomMetadata.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/StringUtils.h>
 
-#include <algorithm>
-#include <cassert>
-#include <limits>
-#include <optional>
-
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
-    // Partition `body`'s atoms (and, in lockstep, its metadata) into splits.size()+1 fragments at the given residue
-    // sequence ids. Mirrors BodySplitter::split's boundary logic, but reads residue ids from the body's own
-    // per-atom metadata rather than re-reading a source file - the body may already have been transformed, merged,
-    // or had its symmetry converted since it was loaded, so there is no file to consistently re-split.
-    //
-    // Fragments are built from atoms only: any existing explicit hydration (e.g. crystallographic waters loaded
-    // from the source file) on `body` has no well-defined per-atom-range assignment across fragments, so it is
-    // dropped - matching BodySplitter's own load-time split, which drops waters at split boundaries the same way.
-    std::vector<data::Body> partition_by_residue(const data::Body& body, const std::vector<int>& splits) {
-        const auto& metadata = body.get_metadata();
-        if (!metadata || !metadata->residue_seq) {
-            throw ausaxs::rigidbody::sequencer::except::parse_error("split",
-                "Body has no residue sequence metadata; enable settings::molecule::store_residue_seq before "
-                "loading to make splitting by residue possible (the sequencer already enables this by default)."
-            );
-        }
-        const auto& atoms = body.get_atoms();
-        const auto& resseq = *metadata->residue_seq;
-        assert(resseq.size() == atoms.size() && "partition_by_residue: residue_seq metadata is not parallel-indexed to the atom vector.");
-
-        int max_id = std::numeric_limits<int>::min(), min_id = std::numeric_limits<int>::max();
-        for (int r : resseq) {
-            min_id = std::min(min_id, r);
-            max_id = std::max(max_id, r);
-        }
-
-        // 1 extra to allow splitting after the last residue, another for 0-based indexing
-        std::vector<bool> split_at(max_id+2, false);
-        for (int id : splits) {
-            if (id < 0 || id < min_id) {
-                throw ausaxs::rigidbody::sequencer::except::parse_error("split", "Split " + std::to_string(id) + " smaller than lowest residue sequence id (" + std::to_string(min_id) + ").");
-            }
-            if (id > max_id+1) {
-                throw ausaxs::rigidbody::sequencer::except::parse_error("split", "Split " + std::to_string(id) + " larger than highest residue sequence id (" + std::to_string(max_id) + ").");
-            }
-            split_at[id] = true;
-        }
-
-        auto slice_metadata = [&metadata] (std::size_t begin, std::size_t end) -> std::optional<data::AtomMetadata> {
-            data::AtomMetadata m;
-            bool any = false;
-            if (metadata->backbone)    {m.backbone    = std::vector<data::backbone_t>(metadata->backbone->begin()+begin, metadata->backbone->begin()+end); any = true;}
-            if (metadata->residue_seq) {m.residue_seq = std::vector<int>(metadata->residue_seq->begin()+begin, metadata->residue_seq->begin()+end);        any = true;}
-            if (metadata->occupancy)   {m.occupancy   = std::vector<float>(metadata->occupancy->begin()+begin, metadata->occupancy->begin()+end);          any = true;}
-            return any ? std::make_optional(std::move(m)) : std::nullopt;
-        };
-
-        std::vector<data::Body> fragments(splits.size()+1);
-        std::size_t index_body = 0;
-        std::size_t begin = 0;
-        for (std::size_t i = 0; i < atoms.size(); ++i) {
-            int r = std::max(resseq[i], 0); // in some files resSeq starts negative
-            if (split_at[r]) {
-                fragments[index_body] = data::Body(std::vector<data::AtomFF>(atoms.begin()+begin, atoms.begin()+i));
-                if (auto m = slice_metadata(begin, i)) {fragments[index_body].set_metadata(std::move(*m));}
-                ++index_body;
-                split_at[r] = false; // mark it as false so we won't split again on the next atom
-                begin = i;
-            }
-        }
-        fragments[index_body] = data::Body(std::vector<data::AtomFF>(atoms.begin()+begin, atoms.end()));
-        if (auto m = slice_metadata(begin, atoms.size())) {fragments[index_body].set_metadata(std::move(*m));}
-        return fragments;
-    }
-
     // A freshly-constructed Body carries a plain (non-optimizable) SymmetryStorage; every body already in a
     // Rigidbody was converted once, at construction time (see Rigidbody::Rigidbody). New fragments need the
     // same conversion before any symmetry can be attached and driven by the optimiser.
@@ -146,8 +76,14 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
         orig_symmetries.push_back(original.symmetry().get(i)->clone());
     }
 
-    auto fragments = partition_by_residue(original, splits);
-    if (fragments.size() < 2) {throw except::parse_error("split", "Expected at least one split index.");}
+    // the partitioning itself is shared with the load-time BodySplitter, so that splitting before and after the
+    // system is built produces the same bodies; only the plumbing below is specific to the runtime case
+    std::vector<data::Body> fragments;
+    try {
+        fragments = BodySplitter::split(original, splits);
+    } catch (const std::exception& e) {
+        throw except::parse_error("split", e.what());
+    }
     for (auto& frag : fragments) {make_optimizable(frag);}
 
     // append the fragments at the tail of the molecule/conformation; erasing the original body afterwards shifts
