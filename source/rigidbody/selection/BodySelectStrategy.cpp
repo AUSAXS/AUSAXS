@@ -9,9 +9,13 @@
 using namespace ausaxs::rigidbody::selection;
 
 BodySelectStrategy::BodySelectStrategy(observer_ptr<const Rigidbody> rigidbody)
-    : rigidbody(rigidbody), N(rigidbody->molecule.size_body()),
+    : rigidbody(rigidbody),
       mask_strategy(std::make_unique<AllMaskStrategy>())
 {}
+
+unsigned int BodySelectStrategy::size_body() const {
+    return rigidbody->molecule.size_body();
+}
 
 BodySelectStrategy::SelectionResult BodySelectStrategy::next_mask() {
     auto [ibody, iconstraint] = next();

@@ -3,10 +3,13 @@
 
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/Rigidbody.h>
+
+#include <optional>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -30,25 +33,54 @@ std::vector<std::string> BodySelectElement::_valid_arguments() {
     return map;
 }
 
+namespace {
+    std::optional<ausaxs::settings::rigidbody::BodySelectStrategyChoice> try_get_body_select_strategy(std::string_view line) {
+        using Choice = ausaxs::settings::rigidbody::BodySelectStrategyChoice;
+        if (line == "random_body") {return Choice::RandomBodySelect;}
+        if (line == "random_constraint") {return Choice::RandomConstraintSelect;}
+        if (line == "sequential_body") {return Choice::SequentialBodySelect;}
+        if (line == "sequential_constraint") {return Choice::SequentialConstraintSelect;}
+        return std::nullopt;
+    }
+}
+
 std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     enum class Args {strategy, parameters};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
         {Args::strategy,   {"point", "body"}},
         {Args::parameters, {"parameters", "parameter_mask", "mask"}},
     };
+
+    // inline form: `select <strategy>` or `select <bodyname or alias>`
+    if (!args.inlined.empty()) {
+        if (!args.named.empty()) {throw except::parse_error("select", "Cannot mix inline and named arguments.");}
+        if (args.inlined.size() != 1) {
+            throw except::parse_error(
+                "select", "Invalid number of inline arguments. Expected exactly one strategy or body name/alias, but got " + std::to_string(args.inlined.size()) + "."
+            );
+        }
+
+        const std::string& token = args.inlined[0];
+        if (auto choice = try_get_body_select_strategy(token)) {
+            return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_selection_strategy(owner->_get_rigidbody(), *choice));
+        }
+
+        const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
+        if (!body_names.contains(token)) {
+            throw except::parse_error("select", "Unknown body select strategy or body name/alias \"" + token + "\".");
+        }
+        return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_manual_selection_strategy(owner->_get_rigidbody(), body_names.resolve_body(token)));
+    }
+
     auto strategy = args.get<std::string>(valid_args[Args::strategy]);
     auto mask_arg = args.get<std::string>(valid_args[Args::parameters]);
 
-    if (!args.inlined.empty()) {throw except::parse_error("select", "Unexpected inline argument.");}
     if (args.named.size() < 1 || 2 < args.named.size()) {
         throw except::parse_error("select", "Invalid number of arguments. Expected 1 or 2, but got " + std::to_string(args.named.size()) + ".");
     }
 
     static auto get_body_select_strategy = [] (std::string_view line) {
-        if (line == "random_body") {return settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect;}
-        if (line == "random_constraint") {return settings::rigidbody::BodySelectStrategyChoice::RandomConstraintSelect;}
-        if (line == "sequential_body") {return settings::rigidbody::BodySelectStrategyChoice::SequentialBodySelect;}
-        if (line == "sequential_constraint") {return settings::rigidbody::BodySelectStrategyChoice::SequentialConstraintSelect;}
+        if (auto choice = try_get_body_select_strategy(line)) {return *choice;}
         throw except::parse_error("select", "Unknown choice \"" + std::string(line) + "\"");
     };
 

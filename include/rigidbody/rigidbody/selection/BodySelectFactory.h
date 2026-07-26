@@ -21,5 +21,18 @@ namespace ausaxs::rigidbody {
             settings::rigidbody::BodySelectStrategyChoice body_choice,
             settings::rigidbody::ParameterMaskStrategyChoice mask_choice
         );
+
+        /**
+         * @brief Create a ManualSelect strategy that always selects the given body.
+         *
+         * @param ibody The index of the body to select on every call.
+         */
+        std::unique_ptr<selection::BodySelectStrategy> create_manual_selection_strategy(
+            observer_ptr<const Rigidbody> molecule, unsigned int ibody
+        );
+
+        std::unique_ptr<selection::BodySelectStrategy> create_manual_selection_strategy(
+            observer_ptr<const Rigidbody> molecule, unsigned int ibody, settings::rigidbody::ParameterMaskStrategyChoice mask_choice
+        );
     }
 }
