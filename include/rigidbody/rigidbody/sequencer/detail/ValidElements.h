@@ -30,6 +30,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         Rename,
         Save,
         Seed,
+        Split,
         SymmetryElement,
         Transform,
         Update,

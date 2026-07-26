@@ -32,18 +32,12 @@ namespace ausaxs::symmetry {
 
     /**
      * @brief Build a symmetry object from a name string.
-     *
-     * A plain name (e.g. "c3", "p2", "t", "d3", "dp3") maps to the corresponding predefined symmetry;
-     * "dp<n>" is the planar (coplanar) variant of the dihedral group "d<n>".
-     * A hyphenated name builds a nested CompositeSymmetry: the first part is the inner
-     * symmetry, the remainder (recursively parsed) the outer one. For example "p2-c3" nests
-     * a p2 dimer inside an outer c3, and "c2-c2-c3" nests left-to-right as c2-(c2-c3).
-     *
-     * The one exception is a bare "c2-cN" / "cN-c2" pair (either order, N>=2): a C2 and a single
-     * CN sharing a centre with perpendicular axes is the dihedral group D_N, so it is built as a
-     * DihedralSymmetry rather than a generic composite. This gives the correct 2N-copy point group
-     * (instead of the over-parameterised composite) and lets the pair-distance schedule exploit the
-     * full group symmetry. "c2-c2" is D2 accordingly.
      */
     std::unique_ptr<ISymmetry> create(std::string_view name);
+
+    /**
+     * @brief True if this symmetry (or, for a CompositeSymmetry, every one of its leaves) is one of the
+     *        point/cyclic/polyhedral families the rigid-body optimiser and ReferenceSymmetry know how to drive.
+     */
+    bool is_optimizable(const ISymmetry& sym);
 }

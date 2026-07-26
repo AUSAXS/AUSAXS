@@ -156,16 +156,56 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
         CHECK(view->target() == ref);
     }
 
-    SECTION("reference symmetry rejects a non-cyclic base") {
-        CHECK_THROWS(parse(
+    SECTION("reference symmetry accepts a dihedral base") {
+        auto seq = parse(
             "load {\n"
             "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
             "symmetry {\n"
-            "    bodies \"b1 b2\" t\n"
+            "    bodies \"b1 b2\" d2\n"
             "}\n"
-        ));
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+
+        REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
+        REQUIRE(rb->molecule.get_body(1).size_symmetry() == 1);
+        auto* ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+        auto* view = dynamic_cast<symmetry::ReferenceSymmetryView*>(rb->molecule.get_body(1).symmetry().get(0));
+        REQUIRE(ref != nullptr);
+        REQUIRE(view != nullptr);
+
+        // d2 has order 4 (identity + 3 copies)
+        CHECK(ref->repetitions() == 3);
+        CHECK(view->repetitions() == 3);
+    }
+
+    SECTION("reference symmetry accepts a composite base") {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry {\n"
+            "    bodies \"b1 b2\" p2-c3\n"
+            "}\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+
+        REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
+        auto* ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+        REQUIRE(ref != nullptr);
+        // p2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
+        CHECK(ref->repetitions() == 5);
+
+        // for_each_leaf must see through the ReferenceSymmetry into its composite base's two leaves, not treat the wrapper itself as a single (mis-shaped) leaf
+        std::vector<symmetry::ISymmetry*> leaves;
+        symmetry::for_each_leaf(*ref, [&](symmetry::ISymmetry& leaf) {leaves.push_back(&leaf);});
+        REQUIRE(leaves.size() == 2);
     }
 
     SECTION("symmetry applied to one body does not affect other bodies") {
@@ -231,8 +271,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
         Vector3<double> probe{1, 2, 3};
         auto before = view->get_transform({0, 0, 0}, 1)(probe);
 
-        // transforming the primary body reallocates its symmetry objects; a cached raw pointer
-        // would dangle here, but the view re-resolves through the (stable) molecule
+        // transforming the primary body reallocates its symmetry objects; a cached raw pointer would dangle here, but the view re-resolves through the (stable) molecule
         unsigned int primary = 0;
         auto params = gen.next(primary);
         rb->transformer->apply(std::move(params), primary);

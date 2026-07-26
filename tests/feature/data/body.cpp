@@ -7,7 +7,6 @@
 #include <grid/detail/GridMember.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
-#include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 #include <data/Body.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>

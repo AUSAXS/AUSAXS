@@ -3,27 +3,30 @@
 
 #pragma once
 
-#include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/ISymmetry.h>
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
+#include <memory>
 #include <vector>
 
 namespace ausaxs::symmetry {
     /**
-     * @brief A symmetry shared by several bodies: a cyclic symmetry that replicates the whole group of participating bodies as one rigid assembly.
+     * @brief A symmetry shared by several bodies: an arbitrary base symmetry that replicates the whole group of participating bodies as one rigid assembly.
      *
-     * The rotation centre is the combined centre of mass of the participating bodies.
+     * The rotation centre is the combined centre of mass of the participating bodies. The base may be any symmetry the optimiser can drive
+     * (see @ref is_optimizable), including a CompositeSymmetry; symmetry::for_each_leaf sees through this wrapper to reach its base's own leaves.
      *
-     * The object is owned by one designated primary body; the other participating bodies must hold a ReferenceSymmetryView that forwards to it, 
+     * The object is owned by one designated primary body; the other participating bodies must hold a ReferenceSymmetryView that forwards to it,
      * so all of them share the same parameters.
      */
     struct ReferenceSymmetry : public ISymmetry {
         /**
+         * @param base   The underlying symmetry parameters, owned by this object.
          * @param bodies The participating body indices; the first is the primary that owns this symmetry.
          * @param slots  The symmetry-storage slot this symmetry occupies on each participating body (the owning slot on the primary, the view slot on the others).
          */
-        ReferenceSymmetry(CyclicSymmetry base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule);
+        ReferenceSymmetry(std::unique_ptr<ISymmetry> base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
         std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;
@@ -36,11 +39,11 @@ namespace ausaxs::symmetry {
         std::vector<SymmetricDuplicatePair> internal_pair_schedule() const override;
 
         /**
-         * @brief Combined centre of mass of all participating bodies (atom-count weighted).
+         * @brief Combined centre of mass of all participating bodies.
          */
         Vector3<double> combined_cm() const;
 
-        CyclicSymmetry base;                            //< the underlying cyclic symmetry parameters
+        std::unique_ptr<ISymmetry> base;                //< the underlying symmetry parameters
         std::vector<int> bodies;                        //< indices of the participating bodies (primary first)
         std::vector<int> slots;                         //< symmetry slot this symmetry occupies on each body (parallel to bodies)
         observer_ptr<const data::Molecule> molecule;    //< source for the combined centre of mass

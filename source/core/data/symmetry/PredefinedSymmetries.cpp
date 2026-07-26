@@ -175,3 +175,12 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::strin
     }
     return get(get(lc));
 }
+
+bool ausaxs::symmetry::is_optimizable(const ISymmetry& sym) {
+    if (auto* comp = dynamic_cast<const CompositeSymmetry*>(&sym)) {
+        return is_optimizable(*comp->inner) && is_optimizable(*comp->outer);
+    }
+    return dynamic_cast<const PointSymmetry*>(&sym)
+        || dynamic_cast<const CyclicSymmetry*>(&sym)
+        || dynamic_cast<const IPolyhedralSymmetry*>(&sym);
+}

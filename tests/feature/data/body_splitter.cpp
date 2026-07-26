@@ -2,6 +2,8 @@
 
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/atoms/AtomFF.h>
+#include <data/atoms/AtomMetadata.h>
 #include <rigidbody/BodySplitter.h>
 #include <io/pdb/PDBStructure.h>
 #include <io/pdb/PDBAtom.h>
@@ -97,16 +99,31 @@ TEST_CASE("BodySplitter::split") {
         }
     }
 
-    SECTION("split at beginning & end") {
-        data::Molecule protein = rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1, 307});
-        REQUIRE(protein.size_body() == 3);
-        REQUIRE(protein.get_body(0).size_atom() == 0);
-        REQUIRE(protein.get_body(1).size_atom() == 2*2367);
-        REQUIRE(protein.get_body(2).size_atom() == 0);
+    SECTION("throws for splits that would produce an empty body") {
+        // splitting at the first residue leaves nothing before it, and one past the last leaves nothing after it
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1}));
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {307}));
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1, 307}));
     }
 
     SECTION("throws for smaller & larger splits than min/max res id") {
         REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {-1}));
         REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1000}));
+    }
+
+    SECTION("throws for splits landing in a gap in the residue numbering") {
+        // residues 1-3 and 10-12, i.e. an unresolved loop between them, as is common in experimental structures
+        std::vector<data::AtomFF> atoms;
+        data::AtomMetadata md;
+        md.residue_seq.emplace();
+        for (int r : {1, 2, 3, 10, 11, 12}) {
+            atoms.emplace_back(Vector3<double>(r, 0, 0), form_factor::form_factor_t::C);
+            md.residue_seq->push_back(r);
+        }
+        data::Body body(atoms, std::vector<data::Water>{});
+        body.set_metadata(md);
+
+        REQUIRE_NOTHROW(rigidbody::BodySplitter::split(body, {10}));
+        REQUIRE_THROWS(rigidbody::BodySplitter::split(body, {5}));
     }
 }

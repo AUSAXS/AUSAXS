@@ -4,54 +4,56 @@
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <constants/Constants.h>
 
 #include <cassert>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
-ReferenceSymmetry::ReferenceSymmetry(CyclicSymmetry base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule)
+ReferenceSymmetry::ReferenceSymmetry(std::unique_ptr<ISymmetry> base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule)
     : base(std::move(base)), bodies(std::move(bodies)), slots(std::move(slots)), molecule(molecule)
 {
+    assert(this->base != nullptr && "ReferenceSymmetry: base symmetry cannot be null.");
     assert(!this->bodies.empty() && "ReferenceSymmetry: at least one participating body is required.");
     assert(this->bodies.size() == this->slots.size() && "ReferenceSymmetry: bodies and slots must be parallel.");
     assert(this->molecule != nullptr && "ReferenceSymmetry: a molecule is required to determine the combined centre of mass.");
 }
 
 Vector3<double> ReferenceSymmetry::combined_cm() const {
-    // atom-count weighted average of the participating bodies' centres of mass
     Vector3<double> sum{0, 0, 0};
-    std::size_t total = 0;
+    double total = 0;
     for (int idx : bodies) {
         const auto& body = molecule->get_body(idx);
-        std::size_t n = body.size_atom();
-        sum += body.get_cm()*static_cast<double>(n);
-        total += n;
+        double mass = 0;
+        for (const auto& a : body.get_atoms()) {mass += constants::mass::get_mass(a.form_factor_type());}
+        sum += body.get_cm()*mass;
+        total += mass;
     }
-    assert(0 < total && "ReferenceSymmetry::combined_cm: participating bodies contain no atoms.");
-    return sum/static_cast<double>(total);
+    assert(0 < total && "ReferenceSymmetry::combined_cm: participating bodies contain no mass.");
+    return sum/total;
 }
 
 std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetry::get_transform(const Vector3<double>&, int rep) const {
     // the per-body cm is ignored: every participating body must rotate about the shared combined centre so the whole assembly is replicated as one rigid unit
-    return base.get_transform(combined_cm(), rep);
+    return base->get_transform(combined_cm(), rep);
 }
 
-unsigned int ReferenceSymmetry::repetitions() const {return base.repetitions();}
-bool ReferenceSymmetry::is_closed() const {return base.is_closed();}
-std::string ReferenceSymmetry::type_name() const {return base.type_name();}
-std::span<double> ReferenceSymmetry::span_translation() {return base.span_translation();}
-std::span<double> ReferenceSymmetry::span_rotation() {return base.span_rotation();}
-std::vector<SymmetricDuplicatePair> ReferenceSymmetry::internal_pair_schedule() const {return base.internal_pair_schedule();}
+unsigned int ReferenceSymmetry::repetitions() const {return base->repetitions();}
+bool ReferenceSymmetry::is_closed() const {return base->is_closed();}
+std::string ReferenceSymmetry::type_name() const {return base->type_name();}
+std::span<double> ReferenceSymmetry::span_translation() {return base->span_translation();}
+std::span<double> ReferenceSymmetry::span_rotation() {return base->span_rotation();}
+std::vector<SymmetricDuplicatePair> ReferenceSymmetry::internal_pair_schedule() const {return base->internal_pair_schedule();}
 
 std::unique_ptr<ISymmetry> ReferenceSymmetry::clone() const {
-    return std::make_unique<ReferenceSymmetry>(base, bodies, slots, molecule);
+    return std::make_unique<ReferenceSymmetry>(base->clone(), bodies, slots, molecule);
 }
 
 ISymmetry& ReferenceSymmetry::add(observer_ptr<const ISymmetry> other) {
     auto cast = dynamic_cast<const ReferenceSymmetry*>(other);
     assert(cast != nullptr && "Can only add ReferenceSymmetry with another ReferenceSymmetry.");
-    base.add(&cast->base);
+    base->add(cast->base.get());
     return *this;
 }
 

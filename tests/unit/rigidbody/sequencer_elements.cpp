@@ -3,7 +3,6 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/All.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/BodySplitter.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <fitter/FitResult.h>

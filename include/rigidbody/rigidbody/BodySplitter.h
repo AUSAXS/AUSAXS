@@ -11,12 +11,23 @@
 namespace ausaxs::rigidbody {
     struct BodySplitter {
         /**
-         * @brief Load the structural data from a file and split it into multiple bodies at the designated indices.
+         * @brief Split a body into multiple bodies at the designated residue sequence ids.
+         *
+         * Each split id marks the *first* residue of a new body, and is consumed the first time it is encountered, so a residue id repeated later in the body 
+         * (e.g. a second chain) does not trigger a second split. Any explicit waters are dropped. 
+         *
+         * @param body   The body to split. Must carry residue sequence metadata (see settings::molecule::store_residue_seq).
+         * @param splits Residue sequence ids to split at; produces splits.size()+1 bodies.
+         */
+        static std::vector<data::Body> split(const data::Body& body, const std::vector<int>& splits);
+
+        /**
+         * @brief Load the structural data from a file and split it into multiple bodies at the designated residue sequence ids.
          */
         static data::Molecule split(const io::File& input, const std::vector<int>& splits);
 
         /**
-         * @brief Load the structural data from a file and split it into multiple bodies based on the chainID. 
+         * @brief Load the structural data from a file and split it into multiple bodies based on the chainID.
          */
         static data::Molecule split(const io::File& input);
     };

@@ -12,10 +12,7 @@
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/CyclicSymmetry.h>
-#include <data/symmetry/IPolyhedralSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
+#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/GeneralSettings.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -36,15 +33,6 @@ namespace {
         opt->optimize_translate = true;
         opt->optimize_rot_axis = true;
     }
-
-    bool is_supported_target(const symmetry::ISymmetry& sym) {
-        if (auto* comp = dynamic_cast<const symmetry::CompositeSymmetry*>(&sym)) {
-            return is_supported_target(*comp->inner) && is_supported_target(*comp->outer);
-        }
-        return dynamic_cast<const symmetry::PointSymmetry*>(&sym)
-            || dynamic_cast<const symmetry::CyclicSymmetry*>(&sym)
-            || dynamic_cast<const symmetry::IPolyhedralSymmetry*>(&sym);
-    }
 }
 
 ConvertToSymmetryElement::ConvertToSymmetryElement(observer_ptr<Sequencer> owner, std::vector<int> bodies, const std::string& symmetry_name, double tolerance)
@@ -64,7 +52,7 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
 
     // resolve and validate the requested symmetry type
     auto base_sym = symmetry::create(symmetry_name);
-    if (!is_supported_target(*base_sym)) {
+    if (!symmetry::is_optimizable(*base_sym)) {
         throw except::parse_error("convert_to_symmetry", "Unsupported symmetry \"" + symmetry_name + "\"; only point, cyclic and polyhedral symmetries can be fitted.");
     }
 
