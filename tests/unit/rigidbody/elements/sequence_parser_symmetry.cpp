@@ -202,8 +202,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
         // p2 (inner, 1 copy) nested in c3 (outer, 2 copies) -> (1+1)*(1+2)-1 = 5
         CHECK(ref->repetitions() == 5);
 
-        // for_each_leaf must see through the ReferenceSymmetry into its composite base's two leaves,
-        // not treat the wrapper itself as a single (mis-shaped) leaf
+        // for_each_leaf must see through the ReferenceSymmetry into its composite base's two leaves, not treat the wrapper itself as a single (mis-shaped) leaf
         std::vector<symmetry::ISymmetry*> leaves;
         symmetry::for_each_leaf(*ref, [&](symmetry::ISymmetry& leaf) {leaves.push_back(&leaf);});
         REQUIRE(leaves.size() == 2);
@@ -272,8 +271,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
         Vector3<double> probe{1, 2, 3};
         auto before = view->get_transform({0, 0, 0}, 1)(probe);
 
-        // transforming the primary body reallocates its symmetry objects; a cached raw pointer
-        // would dangle here, but the view re-resolves through the (stable) molecule
+        // transforming the primary body reallocates its symmetry objects; a cached raw pointer would dangle here, but the view re-resolves through the (stable) molecule
         unsigned int primary = 0;
         auto params = gen.next(primary);
         rb->transformer->apply(std::move(params), primary);

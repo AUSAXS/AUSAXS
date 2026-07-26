@@ -80,9 +80,6 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry") {
     }
 }
 
-// a non-cyclic (dihedral) base shared across bodies: locks in that ReferenceSymmetry is no longer
-// restricted to CyclicSymmetry, and that its optimisable parameters (here IPolyhedralSymmetry's
-// translation/rotation) are correctly reached through the wrapper
 auto test_reference_symmetry_dihedral = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -131,13 +128,6 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry with dihedral base") {
     }
 }
 
-// The two tests above only check ReferenceSymmetry immediately after construction. get_transform() re-derives its
-// copies fresh from the *current* body positions on every call (via combined_cm()), so it must also stay correct
-// once the group is moved further - e.g. by the rigid-body optimiser. This exercises exactly that: a further rigid
-// rotation+translation of both participating bodies (about their current combined centre of mass) must still match
-// a fresh ground-truth materialisation, which in turn only holds if the histogram manager's modification-tracking
-// (propagate_reference_symmetry_modifications) correctly invalidates cached replica positions for the whole group
-// rather than just the directly-moved body.
 auto test_reference_symmetry_after_transform = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -206,12 +196,6 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry stays consistent with ground truth
     }
 }
 
-// combined_cm() must be mass-weighted, not atom-count-weighted: splitting one body's atoms across several bodies
-// that share a ReferenceSymmetry must reproduce the exact same scattering as keeping all the atoms in a single body
-// with a plain (non-shared) symmetry - including after translating the whole assembly - which only holds if the
-// shared centre of mass is computed the way Body::get_cm() itself would compute it for the union of the atoms. A
-// uniform-mass (all-carbon) structure would pass this even with a naive atom-count average, so this deliberately
-// splits a light element from a heavy one across the two bodies.
 TEST_CASE("ReferenceSymmetry: combined centre of mass is mass-weighted, matching a single body's own centre of mass") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;

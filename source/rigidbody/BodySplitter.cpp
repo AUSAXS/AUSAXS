@@ -24,9 +24,8 @@ using namespace ausaxs::data;
 using namespace ausaxs::io::pdb;
 
 namespace {
-    // Splitting by residue requires the residue ids to be retained as metadata. The operation is meaningless without
-    // them, so the file-based overloads force retention on for the duration of the load rather than failing on a
-    // configuration the caller has no reason to think about.
+    // Splitting by residue requires the residue ids to be retained as metadata. The operation is meaningless without them, so the file-based overloads force 
+    // retention on for the duration of the load rather than failing on a configuration the caller has no reason to think about.
     struct residue_seq_guard {
         residue_seq_guard() : previous(settings::molecule::store_residue_seq) {settings::molecule::store_residue_seq = true;}
         ~residue_seq_guard() {settings::molecule::store_residue_seq = previous;}
@@ -56,9 +55,7 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
         max_id = std::max(max_id, r);
     }
 
-    // every split id must mark the first residue of a body that ends up with at least one atom in it. An empty body
-    // has no observable presence beyond shifting all subsequent body indices, and its centre of mass is NaN (see
-    // Body::get_cm, which divides by a total mass of zero), so it is rejected rather than produced.
+    // every split id must mark the first residue of a body that ends up with at least one atom in it. 
     for (int id : splits) {
         if (id < min_id) {throw except::parse_error(
             "BodySplitter::split: Split " + std::to_string(id) + " "
@@ -74,25 +71,28 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
         );}
     }
 
-    // each split id fires on the first atom carrying it and is consumed in the process, so a residue id occurring
-    // again later in the body does not trigger a second split
+    // each split id fires on the first atom carrying it and is consumed in the process, so a residue id occurring again later in the body does not trigger a 
+    // second split
     std::unordered_set<int> pending(splits.begin(), splits.end());
     if (pending.size() != splits.size()) {
         throw except::parse_error("BodySplitter::split: Duplicate split indices are not allowed, as they cannot each produce a body.");
     }
 
     auto slice = [&atoms, &metadata] (std::size_t begin, std::size_t end) -> Body {
-        // the empty water vector is deliberate rather than incidental: it gives the body an explicit (currently empty)
-        // hydration rather than the EmptyHydration null object, so that the resulting bodies can still be hydrated.
-        // Any waters on the source body are dropped, as there is no well-defined assignment of them to the slices.
         Body b(std::vector<AtomFF>(atoms.begin()+begin, atoms.begin()+end), std::vector<data::Water>{});
 
         AtomMetadata m;
         bool any = false;
-        if (metadata->backbone)    {m.backbone    = std::vector<backbone_t>(metadata->backbone->begin()+begin, metadata->backbone->begin()+end);   any = true;}
-        if (metadata->residue_seq) {m.residue_seq = std::vector<int>(metadata->residue_seq->begin()+begin, metadata->residue_seq->begin()+end);     any = true;}
-        if (metadata->occupancy)   {m.occupancy   = std::vector<float>(metadata->occupancy->begin()+begin, metadata->occupancy->begin()+end);       any = true;}
-        if (any) {b.set_metadata(std::move(m));}
+        if (metadata->backbone)    {
+            m.backbone    = std::vector<backbone_t>(metadata->backbone->begin()+begin, metadata->backbone->begin()+end);   
+            any = true;
+        } if (metadata->residue_seq) {
+            m.residue_seq = std::vector<int>(metadata->residue_seq->begin()+begin, metadata->residue_seq->begin()+end);
+            any = true;
+        } if (metadata->occupancy)   {
+            m.occupancy   = std::vector<float>(metadata->occupancy->begin()+begin, metadata->occupancy->begin()+end);
+            any = true;
+        } if (any) {b.set_metadata(std::move(m));}
         return b;
     };
 
@@ -106,9 +106,8 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
     }
     bodies[index_body] = slice(begin, atoms.size());
 
-    // an id left in `pending` never matched an atom, so it produced no body and left an unfilled entry at the tail.
-    // Since the range check above bounds every id by an id that does occur, the only way to get here is a gap in the
-    // residue numbering - common in structures with unresolved loops - which is almost certainly a mistake.
+    // an id left in `pending` never matched an atom, so it produced no body and left an unfilled entry at the tail. Since the range check above bounds every 
+    // id by an id that does occur, the only way to get here is a gap in the residue numbering which is almost certainly a mistake.
     if (!pending.empty()) {
         throw except::parse_error(
             "BodySplitter::split: Split " + std::to_string(*pending.begin()) + " does not match any residue in the body. "
