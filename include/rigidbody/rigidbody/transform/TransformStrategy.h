@@ -34,12 +34,9 @@ namespace ausaxs::rigidbody::transform {
              * 
              * @param par The relative transformation to apply.
              * @param constraint The constraint to transform along.
-             * @param ibody The index of the body the parameters were generated for. Its symmetry list dictates the structure of par.symmetry_pars, so it is
-             *              the only body those deltas can be applied to - note that it is not necessarily part of the transformed branch.
+             * @param ibody The index of the body the parameters were generated for.
              */
-            virtual void apply(
-                parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int ibody
-            ) = 0;
+            virtual void apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int ibody) = 0;
 
             /**
              * @brief Apply a relative transformation to a single unconstrained body. 
