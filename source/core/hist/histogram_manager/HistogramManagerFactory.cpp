@@ -25,18 +25,41 @@
 using namespace ausaxs;
 using namespace ausaxs::hist::factory;
 
+namespace {
+    bool is_partial(settings::hist::HistogramManagerChoice choice) {
+        switch (choice) {
+            case settings::hist::HistogramManagerChoice::PartialHistogramManager:
+            case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
+            case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
+                return true;
+            default:
+                return false;
+        }
+    }
+}
+
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, bool weighted_bins, bool variable_bin_width
 ) {
     auto choice = settings::hist::get_histogram_manager();
-    bool has_syms = protein->symmetry().has_symmetries();
-    if (has_syms) {
+    if (settings::flags::prefer_partial_manager && !is_partial(choice)) {
+        console::print_warning(
+            "construct_histogram_manager: A partial histogram manager was requested, but the chosen excluded volume method has no partial implementation. "
+            "Every update will recalculate the full histogram."
+        );
+    }
+
+    if (protein->symmetry().has_symmetries()) {
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager:
             case settings::hist::HistogramManagerChoice::HistogramManagerMT:
                 choice = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
                 break;
-            default: 
+            case settings::hist::HistogramManagerChoice::PartialHistogramManager:
+            case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
+                choice = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
+                break;
+            default:
                 console::print_warning(
                     "construct_histogram_manager: Molecule contains symmetries, but the chosen excluded volume method does not support them. "
                     "Symmetries will be ignored. "

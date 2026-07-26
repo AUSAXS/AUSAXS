@@ -16,7 +16,6 @@
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/IPolyhedralSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/GeneralSettings.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -138,7 +137,7 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
 
     // rebuild the (now symmetry-aware) histogram manager for the reduced body set; this also rebinds the body signallers. The grid must be rebuilt 
     // since the atom count changed.
-    molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
+    molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
 }

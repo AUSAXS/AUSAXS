@@ -12,6 +12,11 @@
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <data/Molecule.h>
+#include <data/Body.h>
+#include <data/symmetry/BodySymmetryFacade.h>
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <settings/All.h>
 
 #include "hist_test_helper.h"
 
@@ -32,6 +37,54 @@ template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::Par
 template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFGrid>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
 template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFGridSurface>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;}
 template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFGridScalableExv>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;}
+
+TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") {
+    auto exv = settings::exv::exv_method;
+    auto threads = settings::general::threads;
+    auto prefer_partial = settings::flags::prefer_partial_manager;
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+    settings::general::threads = 4;
+    settings::hist::weighted_bins = true;
+    settings::flags::custom_bin_width = false;
+
+    Molecule plain({Body{SimpleCube::get_atoms()}});
+
+    Molecule symmetric({Body{SimpleCube::get_atoms()}});
+    symmetric.get_body(0).symmetry().add(symmetry::type::c2);
+    REQUIRE(symmetric.symmetry().has_symmetries());
+
+    SECTION("without a partial preference") {
+        settings::flags::prefer_partial_manager = false;
+
+        // symmetry-awareness is derived from the molecule, never from a setting
+        CHECK(dynamic_cast<hist::HistogramManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::SymmetryManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+    }
+
+    SECTION("with a partial preference") {
+        settings::flags::prefer_partial_manager = true;
+
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialSymmetryManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+
+        // the single-threaded partial manager has no symmetry-aware counterpart, so it upgrades to the MT one
+        settings::general::threads = 1;
+        CHECK(dynamic_cast<hist::PartialHistogramManager<true, false>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialSymmetryManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+    }
+
+    SECTION("preference is dropped when the excluded volume method has no partial implementation") {
+        settings::flags::prefer_partial_manager = true;
+        settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
+
+        // the excluded volume model wins: it changes the result, whereas dropping the partial preference only costs time
+        CHECK(dynamic_cast<hist::HistogramManagerMTFFExplicit<true, false>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+    }
+
+    settings::exv::exv_method = exv;
+    settings::general::threads = threads;
+    settings::flags::prefer_partial_manager = prefer_partial;
+}
 
 TEST_CASE("HistogramManagerFactory: creates expected manager") {
     Molecule protein({Body{SimpleCube::get_atoms()}});

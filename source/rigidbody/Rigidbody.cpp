@@ -14,6 +14,7 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <grid/Grid.h>
+#include <settings/Flags.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs::rigidbody;
@@ -29,7 +30,8 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
         }
     }
 
-    molecule.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+    settings::flags::prefer_partial_manager = true;
+    molecule.reset_histogram_manager();
     constraints = std::make_unique<constraints::ConstraintManager>(this);
     conformation = std::make_unique<rigidbody::detail::SystemSpecification>(this);
     controller = factory::create_controller(this);

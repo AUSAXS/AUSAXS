@@ -11,8 +11,6 @@
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/ReferenceSymmetry.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <settings/HistogramSettings.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
@@ -74,7 +72,6 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
     auto rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
 
-    molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
     for (unsigned int i = 0; i < names.size(); ++i) {
         int ibody = setup._get_body(names[i]);
 
@@ -84,8 +81,8 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
         molecule->get_body(ibody).symmetry().add(symmetries[i]->clone());
         rigidbody->conformation->initial_conformation[ibody].symmetry().add(std::move(symmetries[i]));
 
-        // add names for the symmetric bodies: each replica's permanent tag is always "bXsYrZ", built from the body's own index rather than whatever name the caller 
-        // used to refer to it, so it stays valid no matter how the base body gets renamed later
+        // add names for the symmetric bodies: each replica's permanent tag is always "bXsYrZ", built from the body's own index rather than whatever name 
+        // the caller used to refer to it, so it stays valid no matter how the base body gets renamed later
         auto& name_map = setup._body_name_registry();
         int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::_add: Inconsistent data structures.");
@@ -99,7 +96,10 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
             molecule->get_body(ibody).symmetry().get(isymmetry)->clone()
         );
     }
-    // Adding symmetry changes the body atom count, so the grid must be fully rebuilt
+
+    // rebuild the histogram manager now that the symmetries are in place, so the factory can see them and pick the symmetry-aware implementation itself; this 
+    // also rebinds the body signallers. Adding symmetry changes the body atom count, so the grid must be fully rebuilt too.
+    molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
 }
@@ -109,8 +109,6 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     auto molecule = owner->_get_molecule();
     auto rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
-
-    molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
 
     // resolve the participating body indices, preserving the declared order (first = primary)
     std::vector<int> bodies;
@@ -133,8 +131,7 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     }
     int primary_slot = slots.front();
 
-    // the primary body owns the shared ReferenceSymmetry; install it on the live molecule and
-    // the stored initial conformation
+    // the primary body owns the shared ReferenceSymmetry; install it on the live molecule and the stored initial conformation
     enable_optimization(molecule->get_body(primary).symmetry().get_obj());
     enable_optimization(rigidbody->conformation->initial_conformation[primary].symmetry().get_obj());
     molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(*cyclic, bodies, slots, molecule));
@@ -173,7 +170,9 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
         );
     }
 
-    // Adding symmetry changes the body atom count, so the grid must be fully rebuilt
+    // as in _add: rebuild the manager once the symmetries exist so the factory can select the symmetry-aware implementation, then rebuild the grid for the 
+    // changed atom count
+    molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
 }
@@ -211,8 +210,7 @@ std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement
     // symmetry {
     //    bodies "b1 b2 b3" c3
     // }
-    // the listed bodies (whitespace-separated, optionally quoted as one token) are replicated
-    // together; the trailing value is the shared symmetry name.
+    // the listed bodies (whitespace-separated, optionally quoted as one token) are replicated together; the trailing value is the shared symmetry name.
     if (auto it = args.named.find("bodies"); it != args.named.end()) {
         if (args.named.size() != 1) {throw except::parse_error("symmetry", "The \"bodies\" reference form cannot be combined with other symmetry directives.");}
         const auto& value = it->second;
