@@ -44,6 +44,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"selection/RandomConstraintSelect.cpp"
 	"selection/SequentialBodySelect.cpp"
 	"selection/SequentialConstraintSelect.cpp"
+	"selection/SymmetryTargets.cpp"
 
 	"sequencer/Sequencer.cpp"
 	"sequencer/detail/AdditionalElements.cpp"

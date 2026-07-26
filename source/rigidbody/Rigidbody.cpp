@@ -4,6 +4,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/selection/BodySelectFactory.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
@@ -34,6 +35,7 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
     molecule.reset_histogram_manager();
     constraints = std::make_unique<constraints::ConstraintManager>(this);
     conformation = std::make_unique<rigidbody::detail::SystemSpecification>(this);
+    symmetry_targets = std::make_unique<selection::SymmetryTargets>(&molecule);
     controller = factory::create_controller(this);
     body_selector = factory::create_selection_strategy(this);
     transformer = factory::create_transform_strategy(this);

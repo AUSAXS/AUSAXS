@@ -30,7 +30,9 @@ struct SequenceParserSelectFixture {
     SequenceParserSelectFixture() {
         settings::general::verbose = false;
         settings::molecule::implicit_hydrogens = false;
-        settings::grid::min_bins = 250;
+        // let the grid size itself to the conformation: the symmetry-isolation case below drives several ungated symmetry perturbations, whose random
+        // walk can otherwise carry a symmetry copy outside a grid pinned to this many bins
+        settings::grid::min_bins = 25;
         settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }
 

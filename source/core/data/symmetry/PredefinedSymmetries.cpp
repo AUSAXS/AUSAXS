@@ -10,6 +10,7 @@
 #include <data/symmetry/DihedralSymmetry.h>
 #include <data/symmetry/PlanarDihedralSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <utility/StringUtils.h>
 
 #include <algorithm>
@@ -179,6 +180,12 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::strin
 bool ausaxs::symmetry::is_optimizable(const ISymmetry& sym) {
     if (auto* comp = dynamic_cast<const CompositeSymmetry*>(&sym)) {
         return is_optimizable(*comp->inner) && is_optimizable(*comp->outer);
+    }
+    // a ReferenceSymmetry only wraps its base; descend into it exactly as symmetry::for_each_leaf does, so a symmetry shared by several bodies is judged by
+    // the parameters it actually drives. Its counterpart ReferenceSymmetryView deliberately falls through to false: it forwards to the primary's object and
+    // exposes no parameters of its own, so driving it would be a silent no-op.
+    if (auto* ref = dynamic_cast<const ReferenceSymmetry*>(&sym)) {
+        return is_optimizable(*ref->base);
     }
     return dynamic_cast<const PointSymmetry*>(&sym)
         || dynamic_cast<const CyclicSymmetry*>(&sym)

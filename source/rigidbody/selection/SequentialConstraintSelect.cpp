@@ -11,7 +11,15 @@ SequentialConstraintSelect::SequentialConstraintSelect(observer_ptr<const Rigidb
 
 SequentialConstraintSelect::~SequentialConstraintSelect() = default;
 
-std::pair<unsigned int, int> SequentialConstraintSelect::next() {
+BodySelectStrategy::Target SequentialConstraintSelect::next(const ParameterMask& mask) {
+    // a symmetry-only mask freezes the pose, so step through the drivable symmetry slots instead of the constraints; see RandomBodySelect::next
+    if (symmetry_only(mask)) {
+        const auto& candidates = symmetry_candidates();
+        const auto& target = candidates[isymmetry_target % candidates.size()];
+        isymmetry_target = (isymmetry_target + 1) % candidates.size();
+        return {target.ibody, -1, static_cast<int>(target.isymmetry)};
+    }
+
     unsigned int M = rigidbody->constraints->get_body_constraints(ibody).size();
 
     if (iconstraint == M) {
@@ -19,5 +27,5 @@ std::pair<unsigned int, int> SequentialConstraintSelect::next() {
         iconstraint = 0;
     }
 
-    return std::make_pair(ibody, iconstraint++);
+    return {ibody, static_cast<int>(iconstraint++), -1};
 }

@@ -5,6 +5,8 @@
 
 #include <rigidbody/selection/BodySelectStrategy.h>
 
+#include <cstddef>
+
 namespace ausaxs::rigidbody {
 	namespace selection {
 		/**
@@ -21,11 +23,12 @@ namespace ausaxs::rigidbody {
 				SequentialConstraintSelect(observer_ptr<const Rigidbody> rigidbody);
 				~SequentialConstraintSelect() override;
 
-				std::pair<unsigned int, int> next() override; ///< @copydoc BodySelectStrategy::next()
+				Target next(const ParameterMask& mask) override; ///< @copydoc BodySelectStrategy::next()
 
 			private:
 				unsigned int ibody = 0; 		// The index of the body to be transformed. 
 				unsigned int iconstraint = 0; 	// The index of the constraint to be transformed.
+				std::size_t isymmetry_target = 0; // Position in the drivable symmetry pool, used only under a symmetry-only mask.
 		};	
 	}
 }

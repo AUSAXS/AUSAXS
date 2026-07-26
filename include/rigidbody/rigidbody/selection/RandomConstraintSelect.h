@@ -16,7 +16,7 @@ namespace ausaxs::rigidbody {
                 RandomConstraintSelect(observer_ptr<const Rigidbody> rigidbody);
                 ~RandomConstraintSelect() override;
 
-                std::pair<unsigned int, int> next() override; ///< @copydoc BodySelectStrategy::next()
+                Target next(const ParameterMask& mask) override; ///< @copydoc BodySelectStrategy::next()
         };
     }
 }

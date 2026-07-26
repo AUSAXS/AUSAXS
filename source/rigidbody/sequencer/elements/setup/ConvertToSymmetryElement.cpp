@@ -11,6 +11,7 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/GeneralSettings.h>
@@ -46,6 +47,8 @@ ConvertToSymmetryElement::~ConvertToSymmetryElement() = default;
 void ConvertToSymmetryElement::run() {}
 
 void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const std::string& symmetry_name, double tolerance) {
+    detail::require_mutable_structure(owner, "convert_to_symmetry");
+
     auto molecule = owner->_get_molecule();
     auto rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
@@ -128,6 +131,7 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
+    rigidbody->symmetry_targets->invalidate(); // the set of declared symmetries changed
 }
 
 std::vector<std::string> ConvertToSymmetryElement::_valid_arguments() {

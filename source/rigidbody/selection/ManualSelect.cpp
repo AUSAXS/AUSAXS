@@ -2,35 +2,33 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/ManualSelect.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/Rigidbody.h>
-#include <utility/Random.h>
+#include <utility/Exceptions.h>
 
-#include <random>
+#include <algorithm>
 
 using namespace ausaxs::rigidbody::selection;
 
-ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int ibody, bool use_constraints)
-    : BodySelectStrategy(rigidbody), ibody(ibody), use_constraints(use_constraints)
-{}
+ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int ibody) : BodySelectStrategy(rigidbody), ibody(ibody) {}
+
+ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int ibody, unsigned int isymmetry)
+    : BodySelectStrategy(rigidbody), ibody(ibody), isymmetry(static_cast<int>(isymmetry))
+{
+    // reject an undrivable slot here rather than letting the optimizer spend its whole budget on a move that cannot change anything
+    const auto& drivable = rigidbody->symmetry_targets->body_targets(ibody);
+    if (std::find(drivable.begin(), drivable.end(), isymmetry) == drivable.end()) {
+        throw except::invalid_argument(
+            "ManualSelect::ManualSelect: Symmetry " + std::to_string(isymmetry) + " of body " + std::to_string(ibody) + " cannot be optimized. "
+            "A symmetry shared between several bodies is only drivable through the body owning it."
+        );
+    }
+}
 
 ManualSelect::~ManualSelect() = default;
 
-std::pair<unsigned int, int> ManualSelect::next() {
-    if (!use_constraints) {return std::make_pair(ibody, -1);}
-
-    unsigned int N = rigidbody->constraints->get_body_constraints(ibody).size();
-    switch (N) {
-        case 0: {
-            return std::make_pair(ibody, -1);
-        }
-        case 1: {
-            return std::make_pair(ibody, 0);
-        }
-        default: {
-            std::uniform_int_distribution<int> distribution(0, N-1);
-            unsigned int iconstraint = distribution(random::generator());
-            return std::make_pair(ibody, iconstraint);
-        }
-    }
+BodySelectStrategy::Target ManualSelect::next(const ParameterMask&) {
+    if (0 <= isymmetry) {return {ibody, -1, isymmetry};}
+    return {ibody, random_constraint(ibody), -1};
 }

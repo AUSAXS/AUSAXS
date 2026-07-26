@@ -23,6 +23,7 @@ namespace ausaxs::rigidbody::selection {
 
         // If set, the two symmetry flags above only apply to the body's symmetry at this index; every other
         // symmetry of the body is frozen regardless of them. Unset means they apply to all symmetries alike.
+        // Which slot this is, is the select strategy's decision: BodySelectStrategy::next_mask fills it in from the drawn target.
         std::optional<unsigned int> target_symmetry = std::nullopt;
 
         static ParameterMask all()                  { return {true,  true,  true,  true }; }

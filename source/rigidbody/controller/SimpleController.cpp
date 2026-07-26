@@ -61,7 +61,7 @@ bool SimpleController::prepare_step() {
     auto& molecule = rigidbody->molecule;
 
     // select a body to be modified this iteration
-    auto [ibody, iconstraint, mask] = rigidbody->body_selector->next_mask();
+    auto [ibody, iconstraint, isymmetry, mask] = rigidbody->body_selector->next_mask();
     if (iconstraint == -1) {    // transform free body
         auto param = rigidbody->parameter_generator->next(ibody);
         mask.apply(param);
