@@ -32,10 +32,6 @@ namespace {
 
 RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<double>& ratios) : owner(owner) {
     assert(names.size() == ratios.size() && "RelativeHydrationElement::RelativeHydrationElement: The number of names and ratios must be equal.");
-
-    // BodyCounterCulling wants one weight per body, indexed by body index, so the ratios are laid out over the whole body set rather than only the named
-    // subset. Bodies the script did not mention stay at the normal level, so naming a single body scales it against the others instead of starving them.
-    // The body set is fixed by now: every element that creates or destroys bodies is a setup element, applied while the script is parsed.
     const auto& body_names = owner->setup()._body_name_registry();
     this->ratios.assign(owner->_get_molecule()->size_body(), to_value(Options::Normal));
 

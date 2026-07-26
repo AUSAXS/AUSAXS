@@ -12,10 +12,6 @@ using namespace ausaxs::rigidbody::sequencer::detail;
 
 void BodyNameRegistry::add_body(int body, const std::string& alias) {
     assert(!has_body(body) && "BodyNameRegistry::add_body: body index already exists in the registry.");
-
-    // the default name is minted from a monotonic counter rather than from the body index: remove() shifts surviving bodies down while deliberately keeping
-    // their names, and elements that create bodies (split, copy) register the freed-up indices afterwards, so an index-derived name would regenerate a string
-    // a surviving body already holds. Skip past any number a custom alias has claimed, and never rewind, so no name is ever handed out twice.
     std::string default_name;
     do {default_name = "b" + std::to_string(++bodies_registered);} while (lookup.contains(default_name));
     add_entity(to_index(body), {.default_name = std::move(default_name), .alias = alias});
@@ -30,8 +26,6 @@ void BodyNameRegistry::add_body(int body, Entry inherited) {
 }
 
 void BodyNameRegistry::add_replica(int body, int isymmetry, int replica) {
-    // anchored on the base body's permanent default name for the same reason add_body avoids the index: the index is not stable across body removal/creation,
-    // so an index-derived tag could collide with an unrelated body's replicas
     auto base = entries.find(to_index(body));
     if (base == entries.end()) {
         throw std::runtime_error("BodyNameRegistry::add_replica: body " + std::to_string(body) + " is not registered.");
@@ -45,8 +39,7 @@ void BodyNameRegistry::add_replica(int body, int isymmetry, int replica) {
 }
 
 void BodyNameRegistry::add_entity(int index, Entry entry) {
-    // both names are validated before either is written, so a rejected registration leaves the registry untouched. Silently dropping a duplicate would
-    // leave one of the two entities addressable by nobody, which is far harder to diagnose than an outright failure.
+    // both names are validated before either is written, so a rejected registration leaves the registry untouched
     if (entry.alias == entry.default_name) {entry.alias.clear();} // not a distinct name, so not an alias
     if (lookup.contains(entry.default_name)) {
         throw std::runtime_error("BodyNameRegistry::add_entity: the name \"" + entry.default_name + "\" is already in use.");
