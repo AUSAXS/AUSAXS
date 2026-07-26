@@ -99,13 +99,25 @@ namespace ausaxs::settings::io {
     });
 }
 
+namespace {
+    // The plain manager family is the only one with partial implementations, so it is also the only place where
+    // settings::flags::prefer_partial_manager can be honoured. Callers that ask for a partial manager under any
+    // other excluded volume method are warned and given the full one by hist::factory::construct_histogram_manager,
+    // which - unlike this getter - is called once per manager rather than on every query.
+    settings::hist::HistogramManagerChoice plain_manager() {
+        using Choice = settings::hist::HistogramManagerChoice;
+        bool st = settings::general::threads == 1; // if no multi-threading is enabled, switch to the single-threaded manager
+        if (settings::flags::prefer_partial_manager) {
+            return st ? Choice::PartialHistogramManager : Choice::PartialHistogramManagerMT;
+        }
+        return st ? Choice::HistogramManager : Choice::HistogramManagerMT;
+    }
+}
+
 settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
     switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::Simple:
-            // if no multi-threading is enabled, switch to the single-threaded manager
-            return settings::general::threads == 1 
-                ? settings::hist::HistogramManagerChoice::HistogramManager 
-                : settings::hist::HistogramManagerChoice::HistogramManagerMT;
+            return plain_manager();
 
         case settings::exv::ExvMethod::Average: 
             return settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg;
@@ -139,9 +151,7 @@ settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
 
         case settings::exv::ExvMethod::None:
             ausaxs::hist::detail::SimpleExvModel::disable();
-            return settings::general::threads == 1 
-                ? settings::hist::HistogramManagerChoice::HistogramManager 
-                : settings::hist::HistogramManagerChoice::HistogramManagerMT;
+            return plain_manager();
 
         default:
             throw except::unexpected("settings::hist::get_histogram_manager: Unknown ExvMethod. Did you forget to add it to the switch statement?");

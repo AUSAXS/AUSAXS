@@ -11,8 +11,6 @@
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/ReferenceSymmetry.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <settings/HistogramSettings.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
@@ -74,7 +72,6 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
     auto rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
 
-    molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
     for (unsigned int i = 0; i < names.size(); ++i) {
         int ibody = setup._get_body(names[i]);
 
@@ -99,7 +96,11 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
             molecule->get_body(ibody).symmetry().get(isymmetry)->clone()
         );
     }
-    // Adding symmetry changes the body atom count, so the grid must be fully rebuilt
+
+    // rebuild the histogram manager now that the symmetries are in place, so the factory can see them and pick the
+    // symmetry-aware implementation itself; this also rebinds the body signallers. Adding symmetry changes the body
+    // atom count, so the grid must be fully rebuilt too.
+    molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
 }
@@ -109,8 +110,6 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     auto molecule = owner->_get_molecule();
     auto rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
-
-    molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
 
     // resolve the participating body indices, preserving the declared order (first = primary)
     std::vector<int> bodies;
@@ -173,7 +172,9 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
         );
     }
 
-    // Adding symmetry changes the body atom count, so the grid must be fully rebuilt
+    // as in _add: rebuild the manager once the symmetries exist so the factory can select the symmetry-aware
+    // implementation, then rebuild the grid for the changed atom count
+    molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
 }

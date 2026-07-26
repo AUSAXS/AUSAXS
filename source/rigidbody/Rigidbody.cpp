@@ -14,6 +14,7 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <grid/Grid.h>
+#include <settings/Flags.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs::rigidbody;
@@ -29,7 +30,12 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
         }
     }
 
-    molecule.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+    // the optimiser recalculates after every transformation, so a partial manager is always the right choice here.
+    // The flag is process-global, but partial vs. full is a pure performance tradeoff with identical results, so
+    // leaking it into other molecules in the same process is harmless. Setting it on the instance rather than at
+    // program boot keeps the guarantee for every Rigidbody, however it was constructed.
+    settings::flags::prefer_partial_manager = true;
+    molecule.reset_histogram_manager();
     constraints = std::make_unique<constraints::ConstraintManager>(this);
     conformation = std::make_unique<rigidbody::detail::SystemSpecification>(this);
     controller = factory::create_controller(this);
