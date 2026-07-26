@@ -74,8 +74,7 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
         orig_symmetries.push_back(original.symmetry().get(i)->clone());
     }
 
-    // the partitioning itself is shared with the load-time BodySplitter, so that splitting before and after the system is built produces the same bodies; 
-    // only the plumbing below is specific to the runtime case
+    // the partitioning itself is shared with the load-time BodySplitter, so that splitting before and after the system is built produces the same bodies
     std::vector<data::Body> fragments;
     try {
         fragments = BodySplitter::split(original, splits);
@@ -142,7 +141,7 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
 
     // the body count changed, so the histogram manager's per-body-indexed caches (sized for the old body count) must be rebuilt from scratch, matching 
     // ConvertToSymmetryElement; the grid must be fully rebuilt too
-    molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
+    molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
 }
