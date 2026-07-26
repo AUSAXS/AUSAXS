@@ -1,0 +1,155 @@
+# clang-tidy configuration for AUSAXS.
+#
+# The check selection below was calibrated by running the full bugprone/modernize/
+# performance/readability/misc/portability/concurrency/clang-analyzer sets over a
+# sample of source files and disabling everything that produced systematic false
+# positives against this codebase's established conventions (see the comments on
+# each disabled check).
+#
+# Requires clang-tidy 19 or newer: misc-include-cleaner.MissingIncludes, which the
+# CheckOptions below depend on, does not exist in earlier releases and is silently
+# ignored there. scripts/run_clang_tidy.py enforces this.
+#
+# Usage:
+#   python scripts/run_clang_tidy.py            # whole project
+#   python scripts/run_clang_tidy.py source/rigidbody
+#   python scripts/run_clang_tidy.py --fix source/core/utility/Logging.cpp
+
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  concurrency-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  cppcoreguidelines-prefer-member-initializer,
+  cppcoreguidelines-pro-type-member-init,
+  cppcoreguidelines-rvalue-reference-param-not-moved,
+  cppcoreguidelines-slicing,
+  cppcoreguidelines-virtual-class-destructor,
+
+  -bugprone-easily-swappable-parameters,
+  -misc-header-include-cycle,
+  -misc-no-recursion,
+  -misc-non-private-member-variables-in-classes,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -performance-enum-size,
+  -portability-avoid-pragma-once,
+  -portability-simd-intrinsics,
+  -portability-template-virtual-member-function,
+  -readability-avoid-nested-conditional-operator,
+  -readability-braces-around-statements,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-identifier-naming,
+  -readability-magic-numbers,
+  -readability-math-missing-parentheses,
+  -readability-uppercase-literal-suffix,
+  -readability-use-concise-preprocessor-directives,
+
+# Rationale for the disabled checks (all verified against real hits in this tree):
+#
+#   bugprone-easily-swappable-parameters
+#       Geometry and histogram APIs legitimately take runs of same-typed scalars,
+#       e.g. Limit3D(double xmin, double xmax, ...), Grid::to_xyz(int i, int j, int k).
+#   misc-header-include-cycle
+#       Fires on the Foo.h <-> Foo.tpp template-definition idiom (math/Matrix.tpp).
+#   misc-no-recursion
+#       Tree/graph traversals in the rigidbody and grid code are recursive by design.
+#   misc-non-private-member-variables-in-classes
+#       Public data members are deliberate on hot data structures (Grid::grid,
+#       Grid::a_members, Limit3D::x/y/z).
+#   modernize-use-nodiscard
+#       [[nodiscard]] is applied deliberately and selectively; the check wants it
+#       on essentially every const method.
+#   modernize-use-trailing-return-type
+#       The codebase uses leading return types throughout.
+#   performance-enum-size
+#       Enum underlying types are pinned explicitly (`enum class form_factor_t : int`)
+#       because they index into fixed-layout tables.
+#   portability-avoid-pragma-once
+#       Every header in the project uses `#pragma once`; 288 hits, all deliberate.
+#   portability-simd-intrinsics
+#       The histogram kernels use x86 intrinsics on purpose
+#       (hist/detail/data/CompactCoordinatesXYZFF.h and friends).
+#   portability-template-virtual-member-function
+#       Speculative ("might be instantiated with a different compiler") and noisy
+#       against the templated histogram hierarchy.
+#   readability-use-concise-preprocessor-directives
+#       Pure style churn: rewrites the codebase's dominant `#if defined(X)` spelling
+#       into `#ifdef X` with no defect-finding value.
+#   readability-avoid-nested-conditional-operator
+#   readability-math-missing-parentheses
+#   readability-magic-numbers
+#       All three fire constantly on numerical kernels and physical constants.
+#   readability-braces-around-statements
+#       Single-line `if (cond) return x;` is an accepted style here
+#       (see form_factor::from_string).
+#   readability-function-cognitive-complexity
+#       Numerical kernels are intentionally long and branchy.
+#   readability-identifier-length
+#       Single-letter math names (i, j, k, q, r, v, x, y, z) are idiomatic.
+#   cppcoreguidelines-pro-type-static-cast-downcast (not enabled)
+#       The sequencer's owner chain downcasts through statically known element
+#       types; dynamic_cast there would be both slower and less correct.
+#   readability-identifier-naming
+#       See the CheckOptions block below; enabled naming enforcement is not
+#       currently viable because domain identifiers (chemical element symbols such
+#       as `H`, `Ca`, `Fe` in vdwTable.h, SI constants, the `SI` namespace) are
+#       correct as written but unrepresentable as a case rule.
+
+HeaderFilterRegex: '.*/(include|source|tests|executable)/.*'
+ExcludeHeaderFilterRegex: '.*/(build|_deps)/.*'
+
+WarningsAsErrors: ''
+FormatStyle: none
+SystemHeaders: false
+
+CheckOptions:
+  # Only the unused-include half of include-cleaner is meaningful here. The
+  # missing-include half demands that every transitively-used symbol have its
+  # defining header included directly, which is incompatible with the *Fwd.h
+  # forward-declaration headers: a file that includes <data/Body.h> (which pulls
+  # in DataFwd.h) gets told to also include the defining header of every type it
+  # touches. Measured over source/core/data + source/core/hist that is 652
+  # missing-include reports against 69 unused-include reports, and the unused
+  # ones are real (e.g. Body.cpp includes grid/Grid.h and math/MatrixUtils.h
+  # without using either). No Fwd.h header was ever reported as unused, so the
+  # forward-declaration idiom is safe under the unused-only half.
+  misc-include-cleaner.UnusedIncludes: 'true'
+  misc-include-cleaner.MissingIncludes: 'false'
+
+  # The conventions below were inferred from the codebase. They are inert while
+  # readability-identifier-naming is disabled above; drop the `-` from that entry
+  # to turn enforcement on. Enum, template-parameter, and type-alias naming is
+  # deliberately left unconstrained because the codebase mixes CamelCase
+  # (BodySelectStrategyChoice) with snake_case_t (form_factor_t, atom_t).
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.FunctionCase: lower_case
+  readability-identifier-naming.MethodCase: lower_case
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.MemberCase: lower_case
+  readability-identifier-naming.EnumConstantCase: UPPER_CASE
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+
+  # Loop counters, indices and math symbols are short on purpose.
+  readability-inconsistent-declaration-parameter-name.Strict: false
+
+  # The project targets C++20.
+  modernize-use-std-print.ReplacementPrintFunction: std::print
+  modernize-loop-convert.MinConfidence: reasonable
+  modernize-use-override.AllowOverrideAndFinal: true
+
+  # Hot numerical code passes small POD vectors (Vector3<double>) by value.
+  performance-unnecessary-value-param.AllowedTypes: 'Vector3<.*>;Limit;Limit3D'
+  performance-for-range-copy.AllowedTypes: 'Vector3<.*>'
+
+  # Matches the [[nodiscard]]-heavy interface style without demanding it everywhere.
+  bugprone-argument-comment.StrictMode: false
