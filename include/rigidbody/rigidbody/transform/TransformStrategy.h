@@ -34,8 +34,9 @@ namespace ausaxs::rigidbody::transform {
              * 
              * @param par The relative transformation to apply.
              * @param constraint The constraint to transform along.
+             * @param ibody The index of the body the parameters were generated for.
              */
-            virtual void apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) = 0;
+            virtual void apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int ibody) = 0;
 
             /**
              * @brief Apply a relative transformation to a single unconstrained body. 
@@ -93,6 +94,22 @@ namespace ausaxs::rigidbody::transform {
              * @brief Set a new set of absolute symmetry parameters for a given body. 
              */
             virtual void apply_symmetry(const std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry, data::Body& body);
+
+            /**
+             * @brief Re-apply a body's accumulated absolute symmetry parameters to its live state.
+             *
+             * Must be called after the body has been rebuilt from its initial conformation, since that also resets its symmetries to their setup values.
+             */
+            void restore_symmetry(unsigned int ibody);
+
+            /**
+             * @brief Add a relative symmetry delta to a body's absolute symmetry parameters and push the result to its live state.
+             *
+             * @param ibody The body the delta was generated for.
+             * @param delta The relative symmetry parameters, parallel to the body's symmetry list.
+             */
+            void apply_symmetry_delta(unsigned int ibody, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta);
+
             static void add_symmetries(
                 std::vector<std::unique_ptr<symmetry::ISymmetry>>& current, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta
             );

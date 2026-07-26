@@ -76,7 +76,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
 
         // translate
         rigidbody::transform::SingleTransform transform(&rigidbody);
-        transform.apply({{1, 0, 0}, {0, 0, 0}}, manager->discoverable_constraints[0].get());
+        transform.apply({{1, 0, 0}, {0, 0, 0}}, manager->discoverable_constraints[0].get(), manager->discoverable_constraints[0]->ibody1);
         CHECK(rigidbody.molecule.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
         transform.undo();
@@ -84,7 +84,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // rotate
-        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[0].get());
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[0].get(), manager->discoverable_constraints[0]->ibody1);
         CHECK(rigidbody.molecule.get_body(0).get_atom(0).coordinates() == Vector3<double>( 1, -3, -1));
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1, -3, -1));
         transform.undo();
@@ -108,7 +108,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
 
         // single-body translate
         rigidbody::transform::RigidTransform transform(&rigidbody);
-        transform.apply({{1, 0, 0}, {0, 0, 0}}, manager->discoverable_constraints[0].get());
+        transform.apply({{1, 0, 0}, {0, 0, 0}}, manager->discoverable_constraints[0].get(), manager->discoverable_constraints[0]->ibody1);
         CHECK(rigidbody.molecule.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
         transform.undo();
@@ -116,7 +116,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // single-body rotate
-        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[0].get());
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[0].get(), manager->discoverable_constraints[0]->ibody1);
         CHECK(rigidbody.molecule.get_body(0).get_atom(0).coordinates() == Vector3<double>( 1, -3, -1));
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1, -3, -1));
         transform.undo();
@@ -124,7 +124,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(-1,  1, -1));
 
         // multi-body translate
-        transform.apply({{1, 0, 0}, {0, 0, 0}}, manager->discoverable_constraints[1].get());
+        transform.apply({{1, 0, 0}, {0, 0, 0}}, manager->discoverable_constraints[1].get(), manager->discoverable_constraints[1]->ibody1);
         CHECK(rigidbody.molecule.get_body(0).get_atom(0).coordinates() == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>(0,  1, -1));
         CHECK(rigidbody.molecule.get_body(1).get_atom(0).coordinates() == Vector3<double>(2, -1, -1));
@@ -136,7 +136,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
         CHECK(rigidbody.molecule.get_body(1).get_atom(1).coordinates() == Vector3<double>( 1,  1, -1));
 
         // multi-body rotate
-        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[1].get());
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[1].get(), manager->discoverable_constraints[1]->ibody1);
         CHECK(rigidbody.molecule.get_body(0).get_atom(0).coordinates() == Vector3<double>( 5, -3, -1));
         CHECK(rigidbody.molecule.get_body(0).get_atom(1).coordinates() == Vector3<double>( 3, -3, -1));
         CHECK(rigidbody.molecule.get_body(1).get_atom(0).coordinates() == Vector3<double>( 5, -1, -1));
@@ -160,7 +160,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
         rigidbody::transform::RigidTransform transform(&rigidbody);
 
         // Apply a rotation then check that parameters can reconstruct
-        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[0].get());
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[0].get(), manager->discoverable_constraints[0]->ibody1);
 
         for (unsigned int ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
             auto& current_body = rigidbody.molecule.get_body(ibody);

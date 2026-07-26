@@ -71,7 +71,7 @@ bool SimpleController::prepare_step() {
         auto constraint = rigidbody->constraints->get_body_constraints(ibody)[iconstraint];
         auto param = rigidbody->parameter_generator->next(ibody);
         mask.apply(param);
-        rigidbody->transformer->apply(std::move(param), constraint);
+        rigidbody->transformer->apply(std::move(param), constraint, ibody);
     }
     molecule.generate_new_hydration();
 

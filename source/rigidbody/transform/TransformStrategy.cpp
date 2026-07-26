@@ -78,6 +78,18 @@ void TransformStrategy::apply_symmetry(const std::vector<std::unique_ptr<symmetr
     }
 }
 
+void TransformStrategy::restore_symmetry(unsigned int ibody) {
+    auto& body = rigidbody->molecule.get_body(ibody);
+    if (body.size_symmetry() == 0) {return;}
+    apply_symmetry(rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars, body);
+}
+
+void TransformStrategy::apply_symmetry_delta(unsigned int ibody, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta) {
+    auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+    add_symmetries(body_params.symmetry_pars, delta);
+    apply_symmetry(body_params.symmetry_pars, rigidbody->molecule.get_body(ibody));
+}
+
 void TransformStrategy::add_symmetries(
     std::vector<std::unique_ptr<symmetry::ISymmetry>>& current, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta
 ) {
@@ -136,16 +148,14 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
     if (par.rotation.has_value() || par.translation.has_value()) {
         body = rigidbody->conformation->initial_conformation[ibody];
         rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body.get_cm(), body);
+        restore_symmetry(ibody); // rebuilding from the initial conformation also reset the symmetries, so put the accumulated values back
     } else { // no transformation, so just restore the original conformation
         body = std::move(bodybackup.front().body.value());
         bodybackup.front().body.reset();
     }
 
     // update and apply symmetry parameters
-    if (par.symmetry_pars.has_value()) {
-        add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
-        apply_symmetry(body_params.symmetry_pars, body);
-    }
+    if (par.symmetry_pars.has_value()) {apply_symmetry_delta(ibody, par.symmetry_pars.value());}
 
     // re-add body and refresh grid
     rigidbody->refresh_grid();

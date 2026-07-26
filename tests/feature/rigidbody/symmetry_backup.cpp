@@ -195,7 +195,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
         auto new_params = param_gen->next(ibody);
-        transformer->apply(std::move(new_params), constraint);
+        transformer->apply(std::move(new_params), constraint, ibody);
 
         // Verify symmetry count is preserved
         INFO("Symmetry count should be preserved after constraint transformation");
@@ -236,7 +236,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
         auto new_params = param_gen->next(ibody);
-        transformer->apply(std::move(new_params), constraint);
+        transformer->apply(std::move(new_params), constraint, ibody);
 
         // Verify symmetry count is preserved
         INFO("Symmetry count should be preserved after RigidTransform");

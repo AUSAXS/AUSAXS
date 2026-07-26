@@ -18,7 +18,9 @@ SingleTransform::SingleTransform(observer_ptr<Rigidbody> rigidbody) : TransformS
 
 SingleTransform::~SingleTransform() = default;
 
-void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) {
+void SingleTransform::apply(
+    parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int isymmetry_body
+) {
     // remove body from grid since it does not track transforms
     int ibody = constraint->ibody1;
     auto grid = rigidbody->molecule.get_grid();
@@ -27,6 +29,16 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, ob
         grid->remove(body);
         bodybackup.clear();
         bodybackup.emplace_back(std::move(body), ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
+    }
+
+    // the symmetry deltas were generated from isymmetry_body's own symmetry list, so that is the only body they can be applied to; it needs its own backup
+    // entry and grid round-trip whenever it is not the transformed body itself (the grid tracks the symmetry copies of every body)
+    bool symmetry_other_body = par.symmetry_pars.has_value() && isymmetry_body != static_cast<unsigned int>(ibody);
+    if (symmetry_other_body) {
+        bodybackup.emplace_back(
+            rigidbody->molecule.get_body(isymmetry_body), isymmetry_body, rigidbody->conformation->absolute_parameters.parameters[isymmetry_body]
+        );
+        grid->remove(rigidbody->molecule.get_body(isymmetry_body));
     }
 
     // compute new absolute transform parameters for the body
@@ -44,18 +56,17 @@ void SingleTransform::apply(parameter::BodyTransformParametersRelative&& par, ob
     if (par.rotation.has_value() || par.translation.has_value()) {
         body = rigidbody->conformation->initial_conformation[constraint->ibody1];
         rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body.get_cm(), body);
+        restore_symmetry(ibody); // rebuilding from the initial conformation also reset the symmetries, so put the accumulated values back
     } else { // no transformation, so just restore the original conformation
         body = std::move(bodybackup.front().body.value());
         bodybackup.front().body.reset();
     }
 
-    // apply symmetry parameters
-    if (par.symmetry_pars.has_value()) {
-        add_symmetries(body_params.symmetry_pars, par.symmetry_pars.value());
-        apply_symmetry(body_params.symmetry_pars, body);
-    }
+    // apply the symmetry deltas to the body they were generated for
+    if (par.symmetry_pars.has_value()) {apply_symmetry_delta(isymmetry_body, par.symmetry_pars.value());}
 
     // re-add body and refresh grid
     rigidbody->refresh_grid();
     rigidbody->molecule.get_grid()->add(body); // refresh_grid may reallocate the grid, so re-fetch the pointer
+    if (symmetry_other_body) {rigidbody->molecule.get_grid()->add(rigidbody->molecule.get_body(isymmetry_body));}
 }

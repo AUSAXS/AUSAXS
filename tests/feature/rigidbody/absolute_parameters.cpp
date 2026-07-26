@@ -150,7 +150,7 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
             auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
             auto params = param_gen->next(ibody);
             
-            transformer->apply(std::move(params), constraint);
+            transformer->apply(std::move(params), constraint, ibody);
             
             INFO("After iteration " << iter << " with SingleTransform");
             verify_configuration_consistency(rigidbody);
@@ -173,7 +173,7 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
             auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
             auto params = param_gen->next(ibody);
             
-            transformer->apply(std::move(params), constraint);
+            transformer->apply(std::move(params), constraint, ibody);
             
             INFO("After iteration " << iter << " with RigidTransform");
             verify_configuration_consistency(rigidbody);

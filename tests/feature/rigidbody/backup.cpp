@@ -132,7 +132,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         Vector3<double> pivot = constraint->get_atom2().coordinates();
         auto expected_translation = R_delta * (original_params[ibody].translation - pivot) + pivot + delta_translation;
         
-        transformer->apply(std::move(delta_params), constraint);
+        transformer->apply(std::move(delta_params), constraint, ibody);
 
         // Verify the selected body's parameters were updated
         auto& updated_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
@@ -173,7 +173,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
 
         // Apply rigid transformation
         auto new_params = param_gen->next(ibody);
-        transformer->apply(std::move(new_params), constraint);
+        transformer->apply(std::move(new_params), constraint, ibody);
 
         // At least one body should have updated parameters
         bool any_updated = false;

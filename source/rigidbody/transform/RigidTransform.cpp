@@ -14,6 +14,7 @@
 #include <data/Body.h>
 #include <math/MatrixUtils.h>
 
+#include <algorithm>
 #include <unordered_set>
 #include <functional>
 #include <numeric>
@@ -24,17 +25,31 @@ RigidTransform::RigidTransform(observer_ptr<Rigidbody> rigidbody) : TransformStr
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) {
+void RigidTransform::apply(
+    parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int ibody
+) {
     auto group = get_connected(constraint);
     backup(group); //? can be move-optimized?
+
+    // the symmetry deltas were generated from body ibody's own symmetry list, so ibody is the only body they can be applied to. Only one branch of the
+    // constraint is transformed, so ibody may well sit outside the group, in which case it needs its own backup entry and grid round-trip - the grid tracks
+    // the symmetry copies of every body, so changing them invalidates its contribution. The entry is appended so bodybackup stays parallel to group.bodies.
+    bool symmetry_outside_group = par.symmetry_pars.has_value()
+        && std::find(group.indices.begin(), group.indices.end(), ibody) == group.indices.end();
 
     // remove bodies from grid since it does not track transforms
     auto grid = rigidbody->molecule.get_grid();
     for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
-        unsigned int ibody = group.indices[i];
+        unsigned int igroup = group.indices[i];
         auto& body = *group.bodies[i];
         grid->remove(body);
-        body = rigidbody->conformation->initial_conformation[ibody];
+        body = rigidbody->conformation->initial_conformation[igroup];
+    }
+    if (symmetry_outside_group) {
+        bodybackup.emplace_back(
+            rigidbody->molecule.get_body(ibody), ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]
+        );
+        grid->remove(rigidbody->molecule.get_body(ibody));
     }
 
     // compute new absolute transform parameters for the bodies
@@ -54,9 +69,10 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
     // reconstruct bodies from initial conformation using absolute parameters
     if (par.rotation.has_value() || par.translation.has_value()) {
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
-            unsigned int ibody = group.indices[i];
-            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+            unsigned int igroup = group.indices[i];
+            auto& body_params = rigidbody->conformation->absolute_parameters.parameters[igroup];
             rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, group.bodies[i]->get_cm(), *group.bodies[i]);
+            restore_symmetry(igroup); // rebuilding from the initial conformation also reset the symmetries, so put the accumulated values back
         }
     } else { // no transformation, so just restore the original conformation
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
@@ -65,18 +81,14 @@ void RigidTransform::apply(parameter::BodyTransformParametersRelative&& par, obs
         }
     }
 
-    // apply symmetry parameters to primary body
-    if (par.symmetry_pars.has_value()) {
-        unsigned int ibody = group.indices[0];
-        auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-        add_symmetries(body_params.symmetry_pars, std::move(par.symmetry_pars.value()));
-        apply_symmetry(body_params.symmetry_pars, *group.bodies[0]);
-    }
+    // apply the symmetry deltas to the body they were generated for
+    if (par.symmetry_pars.has_value()) {apply_symmetry_delta(ibody, par.symmetry_pars.value());}
 
     // re-add bodies and refresh grid
     rigidbody->refresh_grid();
     // refresh_grid may reallocate the grid, so re-fetch the pointer
     for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {rigidbody->molecule.get_grid()->add(*group.bodies[i]);}
+    if (symmetry_outside_group) {rigidbody->molecule.get_grid()->add(rigidbody->molecule.get_body(ibody));}
 }
 
 TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDistanceConstraint> pivot) {
