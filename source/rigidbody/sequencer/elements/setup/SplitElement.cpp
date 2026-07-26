@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/elements/setup/SplitElement.h>
 #include <rigidbody/sequencer/detail/BodyIndexOps.h>
+#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/SystemSpecification.h>
@@ -91,13 +92,18 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
         rigidbody->conformation->initial_conformation.emplace_back(); // placeholder; overwritten once symmetries are installed
         rigidbody->conformation->absolute_parameters.parameters.emplace_back();
     }
+    // the leading fragment continues the original body's identity, so it inherits both of the original's names: a script that split "core" can still address
+    // the fragment holding the first residues as "core", and as the original's default name. Copied before the erase releases them.
+    auto& name_map = setup._body_name_registry();
+    detail::BodyNameRegistry::Entry inherited = name_map.entry(detail::to_index(ib)); // a copy: the erase below destroys the original entry
+
     detail::erase_bodies(owner, {ib});
 
     std::vector<int> final_indices(fragments.size());
     for (std::size_t k = 0; k < fragments.size(); ++k) {final_indices[k] = static_cast<int>(append_at + k) - 1;}
 
-    auto& name_map = setup._body_name_registry();
-    for (int idx : final_indices) {name_map.add_body(idx);}
+    name_map.add_body(final_indices.front(), inherited);
+    for (std::size_t k = 1; k < final_indices.size(); ++k) {name_map.add_body(final_indices[k]);} // the trailing fragments are new bodies, with fresh names
 
     // install each of the original symmetries as a ReferenceSymmetry shared by every fragment: the first fragment becomes the owning primary, the rest hold 
     // non-owning views (same pattern as SymmetryElement::_add_reference)

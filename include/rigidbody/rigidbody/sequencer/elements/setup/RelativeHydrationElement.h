@@ -27,8 +27,13 @@ namespace ausaxs::rigidbody::sequencer {
             static std::vector<std::string> _valid_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
+            /**
+             * @brief The hydration weight of every body, indexed by body index, as handed to BodyCounterCulling.
+             */
+            const std::vector<double>& _get_ratios() const;
+
         private:
             observer_ptr<Sequencer> owner;
-            std::vector<double> ratios;
+            std::vector<double> ratios; //< one weight per body, indexed by body index; bodies the script did not name sit at the normal level
     };
 }

@@ -73,8 +73,8 @@ SetupElement& SetupElement::distance_constraint(const std::string& body1, const 
     owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraintAtom>(
             &active_body->molecule,
-            body_names.at(body1),
-            body_names.at(body2),
+            body_names.resolve_body(body1),
+            body_names.resolve_body(body2),
             iatom1,
             iatom2
         )
@@ -97,8 +97,8 @@ SetupElement& SetupElement::distance_constraint_closest(const std::string& ibody
     owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraintBond>(
             &active_body->molecule,
-            body_names.at(ibody1), 
-            body_names.at(ibody2)
+            body_names.resolve_body(ibody1), 
+            body_names.resolve_body(ibody2)
         )
     );
     return *this;
@@ -119,8 +119,8 @@ SetupElement& SetupElement::distance_constraint_center_mass(const std::string& i
     owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraintCM>(
             &active_body->molecule,
-            body_names.at(ibody1), 
-            body_names.at(ibody2)
+            body_names.resolve_body(ibody1), 
+            body_names.resolve_body(ibody2)
         )
     );
     return *this;
