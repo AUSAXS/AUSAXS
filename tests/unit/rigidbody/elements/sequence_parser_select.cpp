@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
@@ -164,6 +165,33 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         CHECK(selection.ibody == 0);
         REQUIRE(selection.mask.target_symmetry.has_value());
         CHECK(selection.mask.target_symmetry.value() == 1);
+    }
+
+    SECTION("a symmetry shared between bodies resolves to the body owning it") {
+        // splitting a symmetric body leaves the first fragment owning the shared symmetry and the rest holding non-owning views onto it. Only the owner's
+        // copy carries parameters, so a tag naming any other participant has to resolve there - it is the only name that body has for the symmetry.
+        auto tag = GENERATE(as<std::string>{}, "b1s1", "b2s1", "b2s1r1");
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/LAR1-2.pdb\n"
+            "    saxs tests/files/LAR1-2.dat\n"
+            "}\n"
+            "symmetry b1 c2\n"
+            "split b1 99\n"
+            "select " + tag + "\n"
+        );
+        REQUIRE(seq != nullptr);
+        seq->execute();
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb->molecule.size_body() == 2);
+
+        auto selection = rb->body_selector->next_mask();
+        INFO("selected through tag " << tag);
+        CHECK(selection.ibody == 0); // the owning fragment, whichever participant was named
+        CHECK(selection.isymmetry == 0);
+        CHECK(selection.iconstraint == -1);
+        REQUIRE(selection.mask.target_symmetry.has_value());
+        CHECK(selection.mask.target_symmetry.value() == 0);
     }
 
     SECTION("an unknown symmetry tag is rejected as a parse error") {

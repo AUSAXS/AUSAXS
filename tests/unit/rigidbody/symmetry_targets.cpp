@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/selection/RandomBodySelect.h>
@@ -18,7 +19,6 @@
 #include <data/Body.h>
 #include <settings/All.h>
 
-#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -159,14 +159,56 @@ TEST_CASE("SelectionStrategies: next_mask carries the chosen slot into the mask"
     CHECK(selection.mask.target_symmetry.value() == 1);
 }
 
-TEST_CASE("SelectionStrategies: an undrivable target is rejected rather than silently doing nothing") {
+TEST_CASE("SymmetryTargets::resolve maps a shared symmetry onto the body owning it") {
     auto rb = make_rigidbody(3);
     share_symmetry(*rb, symmetry::type::c2);
 
-    SECTION("selecting a view slot throws") {
-        CHECK_THROWS(ManualSelect(rb.get(), 1, 0));
-        CHECK_THROWS(ManualSelect(rb.get(), 2, 0));
-        CHECK_NOTHROW(ManualSelect(rb.get(), 0, 0)); // the owner is fine
+    SECTION("the owner resolves to itself") {
+        auto target = rb->symmetry_targets->resolve(0, 0);
+        REQUIRE(target.has_value());
+        CHECK(target->ibody == 0);
+        CHECK(target->isymmetry == 0);
+    }
+
+    SECTION("every participant resolves to the owner, so any of their names reaches the same parameters") {
+        for (unsigned int b = 1; b < rb->molecule.size_body(); ++b) {
+            auto target = rb->symmetry_targets->resolve(b, 0);
+            REQUIRE(target.has_value());
+            CHECK(target->ibody == 0);
+            CHECK(target->isymmetry == 0);
+        }
+    }
+
+    SECTION("a slot that does not exist resolves to nothing") {
+        CHECK_FALSE(rb->symmetry_targets->resolve(0, 5).has_value());
+        CHECK_FALSE(rb->symmetry_targets->resolve(99, 0).has_value());
+    }
+}
+
+TEST_CASE("ManualSelect: naming a shared symmetry through any participant drives the owner's copy") {
+    auto rb = make_rigidbody(3);
+    share_symmetry(*rb, symmetry::type::c2);
+
+    // b2s1 / b2s1r2 resolve to {body 1, symmetry 0}, which is only a view; the parameters live on body 0
+    auto named_through = GENERATE(0u, 1u, 2u);
+    ManualSelect selector(rb.get(), named_through, 0);
+    selector.set_mask_strategy(std::make_unique<SymmetryOnlyMaskStrategy>());
+
+    auto selection = selector.next_mask();
+    CHECK(selection.ibody == 0);
+    CHECK(selection.isymmetry == 0);
+    CHECK(selection.iconstraint == -1);
+    REQUIRE(selection.mask.target_symmetry.has_value());
+    CHECK(selection.mask.target_symmetry.value() == 0);
+}
+
+TEST_CASE("SelectionStrategies: an undrivable target is rejected rather than silently doing nothing") {
+    SECTION("a slot backed by nothing at all throws") {
+        auto rb = make_rigidbody(2);
+        rb->molecule.get_body(0).symmetry().add(symmetry::type::c2);
+        rb->symmetry_targets->invalidate();
+        CHECK_NOTHROW(ManualSelect(rb.get(), 0, 0));
+        CHECK_THROWS(ManualSelect(rb.get(), 1, 0)); // body 1 declares no symmetry at all
     }
 
     SECTION("a symmetry-only run over a molecule with no drivable symmetry throws") {

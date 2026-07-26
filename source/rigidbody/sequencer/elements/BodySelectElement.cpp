@@ -75,8 +75,9 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
             return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_manual_selection_strategy(owner->_get_rigidbody(), sel.body));
         }
 
-        // a symmetry tag: optimize that one declared symmetry in isolation. The replica is deliberately ignored, since all
-        // replicas of a symmetry are generated from its single shared parameter set - b1s2 and b1s2r3 target the same thing.
+        // a symmetry tag: optimize that one declared symmetry in isolation. The replica is deliberately ignored, since all replicas of a symmetry are
+        // generated from its single shared parameter set - b1s2 and b1s2r3 target the same thing. A tag naming a symmetry shared between several bodies
+        // likewise resolves to the body owning it, so any participant's name reaches the same parameters.
         return std::make_unique<BodySelectElement>(
             owner,
             rigidbody::factory::create_manual_symmetry_selection_strategy(owner->_get_rigidbody(), sel.body, sel.symmetry)

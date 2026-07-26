@@ -6,6 +6,7 @@
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -52,6 +53,17 @@ namespace ausaxs::rigidbody::selection {
              * @brief The drivable slots of a single body, or an empty vector if it has none.
              */
             const std::vector<unsigned int>& body_targets(unsigned int ibody);
+
+            /**
+             * @brief Map a declared symmetry slot onto the drivable slot that actually backs it.
+             *
+             * Every body participating in a symmetry shared with others declares it, but only the owner holds the parameters; the rest hold non-owning views.
+             * A user naming such a slot means the shared symmetry, so views resolve to their owner rather than being rejected. A slot that is drivable in its
+             * own right maps to itself.
+             *
+             * @return The drivable slot, or nullopt if the slot does not exist or nothing can drive it.
+             */
+            std::optional<Target> resolve(unsigned int ibody, unsigned int isymmetry);
 
             /**
              * @brief True if the molecule declares no drivable symmetry at all, in which case no symmetry-only step can accomplish anything.

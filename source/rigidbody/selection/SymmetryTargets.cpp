@@ -4,9 +4,11 @@
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <data/symmetry/BodySymmetryFacade.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 
+#include <algorithm>
 #include <cassert>
 
 using namespace ausaxs;
@@ -43,4 +45,24 @@ const std::vector<unsigned int>& SymmetryTargets::body_targets(unsigned int ibod
     static const std::vector<unsigned int> none;
     auto it = per_body.find(ibody);
     return it == per_body.end() ? none : it->second;
+}
+
+std::optional<SymmetryTargets::Target> SymmetryTargets::resolve(unsigned int ibody, unsigned int isymmetry) {
+    auto slot_exists = [&](unsigned int b, unsigned int i) {
+        return b < molecule->size_body() && i < molecule->get_body(b).size_symmetry();
+    };
+    if (!slot_exists(ibody, isymmetry)) {return std::nullopt;}
+
+    // a view carries no parameters of its own; the shared symmetry it stands for lives on the primary body, so redirect there. One hop suffices: a view always
+    // refers to a ReferenceSymmetry, never to another view.
+    const auto* sym = molecule->get_body(ibody).symmetry().get(isymmetry);
+    if (const auto* view = dynamic_cast<const symmetry::ReferenceSymmetryView*>(sym)) {
+        ibody = static_cast<unsigned int>(view->primary_body);
+        isymmetry = static_cast<unsigned int>(view->symmetry_index);
+        if (!slot_exists(ibody, isymmetry)) {return std::nullopt;}
+    }
+
+    const auto& drivable = body_targets(ibody);
+    if (std::find(drivable.begin(), drivable.end(), isymmetry) == drivable.end()) {return std::nullopt;}
+    return Target{ibody, isymmetry};
 }
