@@ -16,6 +16,8 @@ namespace ausaxs::rigidbody::transform {
             ~SingleTransform() override;
 
             ///< @copydoc TransformStrategy::apply
-            void apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint) override;
+            void apply(
+                parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int ibody
+            ) override;
     };
 }

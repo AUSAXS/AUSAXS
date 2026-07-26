@@ -42,7 +42,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply translation
-        transformer.apply({{0, 1, 0}, {0, 0, 0}}, constraint);
+        transformer.apply({{0, 1, 0}, {0, 0, 0}}, constraint, constraint->ibody1);
         
         // Only body 0 should have moved
         REQUIRE_THAT(rigidbody.molecule.get_body(0).get_cm().y(), Catch::Matchers::WithinAbs(1.0, 1e-10));
@@ -67,7 +67,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply 90-degree rotation around z-axis
-        transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint);
+        transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint, constraint->ibody1);
         
         // Body should have rotated around the pivot (body 1's position)
         auto cm = rigidbody.molecule.get_body(0).get_cm();
@@ -92,7 +92,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply rotation then translation
-        transformer.apply({{1, 1, 0}, {0, 0, std::numbers::pi/2}}, constraint);
+        transformer.apply({{1, 1, 0}, {0, 0, std::numbers::pi/2}}, constraint, constraint->ibody1);
         
         // Body rotated 90 degrees then translated
         auto cm = rigidbody.molecule.get_body(0).get_cm();
@@ -127,7 +127,7 @@ TEST_CASE("SingleTransform::undo") {
         auto original_params = rigidbody.conformation->absolute_parameters.parameters[0];
         
         // Apply transformation
-        transformer.apply({{2, 3, 4}, {0.1, 0.2, 0.3}}, constraint);
+        transformer.apply({{2, 3, 4}, {0.1, 0.2, 0.3}}, constraint, constraint->ibody1);
         
         // Verify it changed
         auto changed_cm = rigidbody.molecule.get_body(0).get_cm();
@@ -171,7 +171,7 @@ TEST_CASE("SingleTransform::reconstructed body from stored parameters matches tr
         auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply transformation
-        transformer.apply({{1, 2, 3}, {0.5, 0.3, 0.1}}, constraint);
+        transformer.apply({{1, 2, 3}, {0.5, 0.3, 0.1}}, constraint, constraint->ibody1);
         
         // Reconstruct from parameters
         auto& current_body = rigidbody.molecule.get_body(0);
@@ -214,10 +214,10 @@ TEST_CASE("SingleTransform::apply multiple sequential transformations") {
         auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply first transformation
-        transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/4}}, constraint);
+        transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/4}}, constraint, constraint->ibody1);
         
         // Apply second transformation
-        transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/4}}, constraint);
+        transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/4}}, constraint, constraint->ibody1);
         
         // Total rotation should be pi/2
         auto& params = rigidbody.conformation->absolute_parameters.parameters[0];
@@ -261,7 +261,7 @@ TEST_CASE("SingleTransform::apply only affects single body") {
         auto body2_cm_before = rigidbody.molecule.get_body(2).get_cm();
         
         // Transform body 0
-        transformer.apply({{5, 5, 5}, {0, 0, 0}}, constraint);
+        transformer.apply({{5, 5, 5}, {0, 0, 0}}, constraint, constraint->ibody1);
         
         // Bodies 1 and 2 should not have moved
         auto body1_cm_after = rigidbody.molecule.get_body(1).get_cm();

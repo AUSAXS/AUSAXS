@@ -53,7 +53,7 @@ TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
 
     // Apply transformation
     auto new_params = param_gen->next(ibody);
-    transformer->apply(std::move(new_params), constraint);
+    transformer->apply(std::move(new_params), constraint, ibody);
 
     // At least one body should have updated parameters (the rigid group that was transformed)
     int bodies_updated = 0;
@@ -123,7 +123,7 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
     // This should preserve constraint 1 (between body 1 and 2)
     auto constraint0 = rigidbody.constraints->discoverable_constraints[0].get();
     auto params = param_gen->next(0);
-    transformer->apply(std::move(params), constraint0);
+    transformer->apply(std::move(params), constraint0, 0u);
 
     // Check constraint 1 (not the hinge) is preserved
     auto c1 = rigidbody.constraints->discoverable_constraints[1].get();
@@ -166,7 +166,7 @@ TEST_CASE("RigidTransform: Orbital motion correctness") {
 
     // Rotate body 0 by 90 degrees around Z axis (body 1 is at origin)
     auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
-    transformer->apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint);
+    transformer->apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint, constraint->ibody1);
 
     // Verify distance is preserved (rigid relationship maintained)
     auto final_cm_0 = rigidbody.molecule.get_body(0).get_cm();
@@ -214,7 +214,7 @@ TEST_CASE("RigidTransform: Multi-step transformation consistency", "[broken]") {
 
         auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
         auto params = param_gen->next(ibody);
-        transformer->apply(std::move(params), constraint);
+        transformer->apply(std::move(params), constraint, ibody);
 
         // Verify all bodies can be reconstructed from parameters
         for (size_t i = 0; i < rigidbody.molecule.size_body(); ++i) {

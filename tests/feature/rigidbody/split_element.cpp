@@ -8,6 +8,13 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/All.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>
+#include <rigidbody/transform/TransformStrategy.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/Molecule.h>
@@ -159,4 +166,60 @@ TEST_CASE("SplitElement: splitting a body with no symmetry yields independent fr
 
     // partitioning the atoms into separate bodies must not change the total scattering
     expect_same_scattering(rb_unsplit->molecule, rb_split->molecule);
+}
+
+TEST_CASE("SplitElement: constrained optimization steps of split symmetric fragments", "[files]") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::grid::min_bins = 100;
+    settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::NoStrategy;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
+    settings::rigidbody::transform_strategy = GENERATE(
+        settings::rigidbody::TransformationStrategyChoice::RigidTransform,
+        settings::rigidbody::TransformationStrategyChoice::SingleTransform
+    );
+
+    auto seq_probe = build("c2"); // only needed to read the residue numbering off the unsplit body
+    auto ids = equidistant_split_ids(seq_probe->_get_rigidbody()->molecule.get_body(0), 3);
+
+    auto seq = build("c2", split_line(ids) + "autoconstrain backbone\n");
+    auto rb = seq->_get_rigidbody();
+    REQUIRE(rb != nullptr);
+    REQUIRE(rb->molecule.size_body() == 4);
+
+    // the fragments do not all carry the same kind of symmetry - the primary owns a ReferenceSymmetry while the others hold ReferenceSymmetryViews - so a delta
+    // generated for one of them can only be applied to that very body, and never to whichever body the transformed branch happens to begin with
+    for (unsigned int ibody = 0; ibody < rb->molecule.size_body(); ++ibody) {
+        const auto& constraints = rb->constraints->get_body_constraints(ibody);
+        REQUIRE(!constraints.empty());
+
+        auto shared_parameters = [&] {
+            // re-resolved every time: undo() move-assigns into the body, replacing its symmetry storage
+            auto* ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
+            REQUIRE(ref != nullptr);
+            auto t = ref->span_translation();
+            auto r = ref->span_rotation();
+            std::vector<double> values(t.begin(), t.end());
+            values.insert(values.end(), r.begin(), r.end());
+            return values;
+        };
+        auto before = shared_parameters();
+
+        auto par = rb->parameter_generator->next(ibody);
+        REQUIRE(par.symmetry_pars.has_value());
+        REQUIRE(par.symmetry_pars->size() == rb->molecule.get_body(ibody).size_symmetry());
+        rb->transformer->apply(std::move(par), constraints[0], ibody);
+
+        // the shared symmetry is driven through its owner alone; a delta generated for one of the views must leave it untouched
+        auto after = shared_parameters();
+        REQUIRE(after.size() == before.size());
+        bool changed = false;
+        for (std::size_t i = 0; i < after.size(); ++i) {changed |= after[i] != before[i];}
+        CHECK(changed == (ibody == 0));
+
+        rb->transformer->undo();
+        auto restored = shared_parameters();
+        REQUIRE(restored.size() == before.size());
+        for (std::size_t i = 0; i < restored.size(); ++i) {CHECK(restored[i] == before[i]);}
+    }
 }

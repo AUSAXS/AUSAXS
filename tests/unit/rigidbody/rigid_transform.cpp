@@ -45,7 +45,7 @@ TEST_CASE("RigidTransform::apply single body group") {
         auto cm1_before = rigidbody.molecule.get_body(1).get_cm();
         
         // Apply transformation
-        transformer.apply({{0, 2, 0}, {0, 0, 0}}, constraint);
+        transformer.apply({{0, 2, 0}, {0, 0, 0}}, constraint, constraint->ibody1);
         
         // At least one body should have changed position
         auto cm0_after = rigidbody.molecule.get_body(0).get_cm();
@@ -98,7 +98,7 @@ TEST_CASE("RigidTransform::apply multi-body group") {
         auto cm2_before = rigidbody.molecule.get_body(2).get_cm();
         auto cm3_before = rigidbody.molecule.get_body(3).get_cm();
         
-        transformer.apply({{0, 1, 0}, {0, 0, 0}}, constraint);
+        transformer.apply({{0, 1, 0}, {0, 0, 0}}, constraint, constraint->ibody1);
         
         // At least some bodies should have moved
         auto cm0_after = rigidbody.molecule.get_body(0).get_cm();
@@ -142,7 +142,7 @@ TEST_CASE("RigidTransform::apply multi-body group") {
                             rigidbody.molecule.get_body(1).get_cm()).norm();
         
         // Apply 90-degree rotation
-        transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint);
+        transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint, constraint->ibody1);
         
         // Distance between bodies 0 and 1 should be preserved (rigid)
         auto final_dist = (rigidbody.molecule.get_body(0).get_cm() - 
@@ -190,7 +190,7 @@ TEST_CASE("RigidTransform::apply branched structure") {
         
         // Transform at constraint 0 - should move only body 0
         auto constraint0 = rigidbody.constraints->discoverable_constraints[0].get();
-        transformer.apply({{0, 2, 0}, {0, 0, 0}}, constraint0);
+        transformer.apply({{0, 2, 0}, {0, 0, 0}}, constraint0, constraint0->ibody1);
         
         // Body 0 moved
         REQUIRE_THAT(rigidbody.molecule.get_body(0).get_cm().y(), Catch::Matchers::WithinAbs(2.0, 1e-10));
@@ -235,7 +235,7 @@ TEST_CASE("RigidTransform::undo") {
         auto params1_before = rigidbody.conformation->absolute_parameters.parameters[1];
         
         // Apply transformation
-        transformer.apply({{5, 5, 5}, {0.5, 0.5, 0.5}}, constraint);
+        transformer.apply({{5, 5, 5}, {0.5, 0.5, 0.5}}, constraint, constraint->ibody1);
         
         // Undo
         transformer.undo();
