@@ -19,9 +19,8 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
-    // A freshly-constructed Body carries a plain (non-optimizable) SymmetryStorage; every body already in a
-    // Rigidbody was converted once, at construction time (see Rigidbody::Rigidbody). New fragments need the
-    // same conversion before any symmetry can be attached and driven by the optimiser.
+    // A freshly-constructed Body carries a plain (non-optimizable) SymmetryStorage; every body already in a Rigidbody was converted once, at construction time 
+    // (see Rigidbody::Rigidbody). New fragments need the same conversion before any symmetry can be attached and driven by the optimiser.
     void make_optimizable(data::Body& body) {
         if (dynamic_cast<symmetry::OptimizableSymmetryStorage*>(body.symmetry().get_obj()) == nullptr) {
             body.symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>(std::move(*body.symmetry().get_obj())));
@@ -49,9 +48,8 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     int ib = index.body;
     const auto& original = molecule->get_body(ib);
 
-    // splitting a body that already participates in a symmetry shared with bodies outside the split would require
-    // expanding that ReferenceSymmetry's membership (or reassigning its ownership, if ib is the primary) - not yet
-    // supported, so reject rather than silently produce an inconsistent shared symmetry
+    // splitting a body that already participates in a symmetry shared with bodies outside the split would require expanding that ReferenceSymmetry's membership 
+    // (or reassigning its ownership, if ib is the primary) - not yet supported, so reject rather than silently produce an inconsistent shared symmetry
     for (std::size_t i = 0; i < original.size_symmetry(); ++i) {
         if (dynamic_cast<const symmetry::ReferenceSymmetryView*>(original.symmetry().get(i))) {
             throw except::parse_error("split", "Body \"" + body_name + "\" participates in a symmetry shared with other bodies; splitting it is not yet supported.");
@@ -68,16 +66,16 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
         }
     }
 
-    // clone the body's existing symmetries (if any) before partitioning it away; each becomes a ReferenceSymmetry
-    // shared by every resulting fragment, rather than an independently-optimizable copy on each
+    // clone the body's existing symmetries (if any) before partitioning it away; each becomes a ReferenceSymmetry shared by every resulting fragment, 
+    // rather than an independently-optimizable copy on each
     std::vector<std::unique_ptr<symmetry::ISymmetry>> orig_symmetries;
     orig_symmetries.reserve(original.size_symmetry());
     for (std::size_t i = 0; i < original.size_symmetry(); ++i) {
         orig_symmetries.push_back(original.symmetry().get(i)->clone());
     }
 
-    // the partitioning itself is shared with the load-time BodySplitter, so that splitting before and after the
-    // system is built produces the same bodies; only the plumbing below is specific to the runtime case
+    // the partitioning itself is shared with the load-time BodySplitter, so that splitting before and after the system is built produces the same bodies; 
+    // only the plumbing below is specific to the runtime case
     std::vector<data::Body> fragments;
     try {
         fragments = BodySplitter::split(original, splits);
@@ -86,8 +84,8 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     }
     for (auto& frag : fragments) {make_optimizable(frag);}
 
-    // append the fragments at the tail of the molecule/conformation; erasing the original body afterwards shifts
-    // every one of these indices down by exactly one, since they are necessarily all above it
+    // append the fragments at the tail of the molecule/conformation; erasing the original body afterwards shifts every one of these indices down by exactly 
+    // one, since they are necessarily all above it
     std::size_t append_at = molecule->size_body();
     for (auto& frag : fragments) {
         molecule->get_bodies().emplace_back(std::move(frag));
@@ -102,8 +100,8 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     auto& name_map = setup._body_name_registry();
     for (int idx : final_indices) {name_map.add_body(idx);}
 
-    // install each of the original symmetries as a ReferenceSymmetry shared by every fragment: the first fragment
-    // becomes the owning primary, the rest hold non-owning views (same pattern as SymmetryElement::_add_reference)
+    // install each of the original symmetries as a ReferenceSymmetry shared by every fragment: the first fragment becomes the owning primary, the rest hold 
+    // non-owning views (same pattern as SymmetryElement::_add_reference)
     int primary = final_indices.front();
     for (std::size_t i = 0; i < orig_symmetries.size(); ++i) {
         auto* opt_primary = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(molecule->get_body(primary).symmetry().get_obj());
@@ -129,9 +127,8 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
         }
     }
 
-    // derive each fragment's initial (origin-centred) conformation fresh from its current, now symmetry-equipped
-    // live state - mirrors SystemSpecification's own bootstrap recipe, since these are brand-new bodies with no
-    // prior initial_conformation entry that needs to stay in sync
+    // derive each fragment's initial (origin-centred) conformation fresh from its current, now symmetry-equipped live state - mirrors SystemSpecification's 
+    // own bootstrap recipe, since these are brand-new bodies with no prior initial_conformation entry that needs to stay in sync
     for (int idx : final_indices) {
         data::Body snapshot = molecule->get_body(idx);
         auto cm = snapshot.get_cm();
@@ -143,8 +140,8 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
         rigidbody->conformation->absolute_parameters.parameters[idx].translation = cm;
     }
 
-    // the body count changed, so the histogram manager's per-body-indexed caches (sized for the old body count)
-    // must be rebuilt from scratch, matching ConvertToSymmetryElement; the grid must be fully rebuilt too
+    // the body count changed, so the histogram manager's per-body-indexed caches (sized for the old body count) must be rebuilt from scratch, matching 
+    // ConvertToSymmetryElement; the grid must be fully rebuilt too
     molecule->set_histogram_manager(std::make_unique<hist::PartialSymmetryManagerMT<true, false>>(molecule));
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
