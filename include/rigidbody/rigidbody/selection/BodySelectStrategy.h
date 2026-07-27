@@ -9,6 +9,7 @@
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <utility/observer_ptr.h>
 
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -35,8 +36,7 @@ namespace ausaxs::rigidbody {
                 struct SelectionResult {
                     unsigned int ibody;
                     int iconstraint;
-                    int isymmetry;
-                    ParameterMask mask;
+                    ParameterMask mask; //< carries the drawn symmetry slot in target_symmetry, if the target named one
                 };
 
                 /**
@@ -78,7 +78,22 @@ namespace ausaxs::rigidbody {
                 /**
                  * @brief Every symmetry slot the optimizer may drive. Non-owning views onto a shared symmetry are excluded, as driving them is a no-op.
                  */
-                const std::vector<SymmetryTargets::Target>& symmetry_candidates() const;
+                const std::vector<SymmetryTargets::Slot>& symmetry_candidates() const;
+
+                /**
+                 * @brief The slots of a single body the optimizer may drive, empty if it declares none.
+                 */
+                const std::vector<unsigned int>& symmetry_candidates(unsigned int ibody) const;
+
+                /**
+                 * @brief A uniformly drawn drivable symmetry slot, wrapped as a Target.
+                 */
+                Target random_symmetry_target() const;
+
+                /**
+                 * @brief The next drivable symmetry slot in pool order, advancing `cursor`.
+                 */
+                Target next_symmetry_target(std::size_t& cursor) const;
 
                 /**
                  * @brief Pick the constraint index for a body, mirroring the historical behaviour: none if it has no constraints, the only one if it has

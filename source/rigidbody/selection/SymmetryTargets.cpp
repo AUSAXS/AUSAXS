@@ -18,7 +18,7 @@ SymmetryTargets::SymmetryTargets(observer_ptr<const data::Molecule> molecule) : 
     assert(molecule != nullptr && "SymmetryTargets::SymmetryTargets: Molecule must not be null.");
 }
 
-void SymmetryTargets::refresh() {
+void SymmetryTargets::refresh() const {
     if (!dirty) {return;}
     dirty = false;
     targets.clear();
@@ -29,25 +29,25 @@ void SymmetryTargets::refresh() {
         for (unsigned int i = 0; i < body.size_symmetry(); ++i) {
             // is_optimizable sees through the ReferenceSymmetry wrapper to its base, and rejects the non-owning ReferenceSymmetryView
             if (!symmetry::is_optimizable(*body.symmetry().get(i))) {continue;}
-            targets.emplace_back(Target{ibody, i});
+            targets.emplace_back(Slot{ibody, i});
             per_body[ibody].emplace_back(i);
         }
     }
 }
 
-const std::vector<SymmetryTargets::Target>& SymmetryTargets::all() {
+const std::vector<SymmetryTargets::Slot>& SymmetryTargets::all() const {
     refresh();
     return targets;
 }
 
-const std::vector<unsigned int>& SymmetryTargets::body_targets(unsigned int ibody) {
+const std::vector<unsigned int>& SymmetryTargets::body_targets(unsigned int ibody) const {
     refresh();
     static const std::vector<unsigned int> none;
     auto it = per_body.find(ibody);
     return it == per_body.end() ? none : it->second;
 }
 
-std::optional<SymmetryTargets::Target> SymmetryTargets::resolve(unsigned int ibody, unsigned int isymmetry) {
+std::optional<SymmetryTargets::Slot> SymmetryTargets::resolve(unsigned int ibody, unsigned int isymmetry) const {
     auto slot_exists = [&](unsigned int b, unsigned int i) {
         return b < molecule->size_body() && i < molecule->get_body(b).size_symmetry();
     };
@@ -64,5 +64,5 @@ std::optional<SymmetryTargets::Target> SymmetryTargets::resolve(unsigned int ibo
 
     const auto& drivable = body_targets(ibody);
     if (std::find(drivable.begin(), drivable.end(), isymmetry) == drivable.end()) {return std::nullopt;}
-    return Target{ibody, isymmetry};
+    return Slot{ibody, isymmetry};
 }

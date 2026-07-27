@@ -119,11 +119,19 @@ TEST_CASE("ParameterMask::apply untargeted") {
     }
 }
 
+namespace {
+    // how a select strategy composes a targeted mask: the class of parameters comes from the mask strategy, the slot from the drawn target
+    ParameterMask targeting(ParameterMask mask, unsigned int isymmetry) {
+        mask.target_symmetry = isymmetry;
+        return mask;
+    }
+}
+
 TEST_CASE("ParameterMask::apply targeted") {
     SECTION("only the targeted symmetry survives") {
         for (unsigned int target : {0u, 1u, 2u}) {
             auto params = make_params();
-            ParameterMask::single_symmetry(target).apply(params);
+            targeting(ParameterMask::symmetry_only(), target).apply(params);
 
             REQUIRE(params.symmetry_pars.has_value());
             REQUIRE(params.symmetry_pars->size() == 3);
@@ -135,9 +143,23 @@ TEST_CASE("ParameterMask::apply targeted") {
         }
     }
 
+    SECTION("targeting composes with a narrower symmetry mask") {
+        // the slot and the parameter class are two independent decisions: the target says which symmetry moves, the mask which of its parameters may
+        auto params = make_params();
+        targeting(ParameterMask::symmetry_only_axis(), 1).apply(params);
+
+        REQUIRE(params.symmetry_pars.has_value());
+        REQUIRE(params.symmetry_pars->size() == 3);
+        for (unsigned int i = 0; i < 3; ++i) {
+            auto& sym = *params.symmetry_pars.value()[i];
+            CHECK(translation_all_zero(sym));               // axis-only, so no symmetry translates
+            CHECK(rotation_all_zero(sym) == (i != 1));      // and only the targeted one rotates
+        }
+    }
+
     SECTION("the host body's own pose is frozen") {
         auto params = make_params();
-        ParameterMask::single_symmetry(1).apply(params);
+        targeting(ParameterMask::symmetry_only(), 1).apply(params);
 
         CHECK_FALSE(params.translation.has_value());
         CHECK_FALSE(params.rotation.has_value());
@@ -147,7 +169,7 @@ TEST_CASE("ParameterMask::apply targeted") {
         parameter::BodyTransformParametersRelative targeted;
         targeted.symmetry_pars.emplace();
         targeted.symmetry_pars->emplace_back(nonzero_delta("c3", 1));
-        ParameterMask::single_symmetry(0).apply(targeted);
+        targeting(ParameterMask::symmetry_only(), 0).apply(targeted);
 
         parameter::BodyTransformParametersRelative untargeted;
         untargeted.symmetry_pars.emplace();

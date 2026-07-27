@@ -13,12 +13,7 @@ SequentialConstraintSelect::~SequentialConstraintSelect() = default;
 
 BodySelectStrategy::Target SequentialConstraintSelect::next(const ParameterMask& mask) {
     // a symmetry-only mask freezes the pose, so step through the drivable symmetry slots instead of the constraints; see RandomBodySelect::next
-    if (symmetry_only(mask)) {
-        const auto& candidates = symmetry_candidates();
-        const auto& target = candidates[isymmetry_target % candidates.size()];
-        isymmetry_target = (isymmetry_target + 1) % candidates.size();
-        return {target.ibody, -1, static_cast<int>(target.isymmetry)};
-    }
+    if (symmetry_only(mask)) {return next_symmetry_target(isymmetry_target);}
 
     unsigned int M = rigidbody->constraints->get_body_constraints(ibody).size();
 

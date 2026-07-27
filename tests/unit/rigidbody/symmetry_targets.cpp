@@ -154,7 +154,6 @@ TEST_CASE("SelectionStrategies: next_mask carries the chosen slot into the mask"
 
     auto selection = selector.next_mask();
     CHECK(selection.ibody == 1);
-    CHECK(selection.isymmetry == 1);
     REQUIRE(selection.mask.target_symmetry.has_value());
     CHECK(selection.mask.target_symmetry.value() == 1);
 }
@@ -196,7 +195,6 @@ TEST_CASE("ManualSelect: naming a shared symmetry through any participant drives
 
     auto selection = selector.next_mask();
     CHECK(selection.ibody == 0);
-    CHECK(selection.isymmetry == 0);
     CHECK(selection.iconstraint == -1);
     REQUIRE(selection.mask.target_symmetry.has_value());
     CHECK(selection.mask.target_symmetry.value() == 0);
@@ -216,5 +214,45 @@ TEST_CASE("SelectionStrategies: an undrivable target is rejected rather than sil
         RandomBodySelect selector(bare.get());
         selector.set_mask_strategy(std::make_unique<SymmetryOnlyMaskStrategy>());
         CHECK_THROWS(selector.next_mask());
+    }
+}
+
+TEST_CASE("ManualSelect: selecting a body honours the mask it is given") {
+    // the molecule as a whole has a drivable slot - body 0 owns the shared symmetry - so next_mask's molecule-wide guard stays silent and the selected body
+    // is the only thing standing between the optimizer and a run that perturbs nothing
+    auto rb = make_rigidbody(3);
+    share_symmetry(*rb, symmetry::type::c2);
+    REQUIRE(rb->symmetry_targets->size() == 1);
+
+    SECTION("a body holding only a shared-symmetry view cannot satisfy a symmetry-only mask") {
+        ManualSelect selector(rb.get(), 1); // declares one symmetry, but only as a view onto body 0's copy
+        selector.set_mask_strategy(std::make_unique<SymmetryOnlyMaskStrategy>());
+        CHECK_THROWS(selector.next_mask());
+    }
+
+    SECTION("neither can a body declaring no symmetry at all") {
+        auto bare = make_rigidbody(2);
+        bare->molecule.get_body(0).symmetry().add(symmetry::type::c2);
+        bare->symmetry_targets->invalidate();
+
+        ManualSelect selector(bare.get(), 1);
+        selector.set_mask_strategy(std::make_unique<SymmetryOnlyMaskStrategy>());
+        CHECK_THROWS(selector.next_mask());
+    }
+
+    SECTION("a body that does own a drivable slot moves all of its symmetries together") {
+        ManualSelect selector(rb.get(), 0);
+        selector.set_mask_strategy(std::make_unique<SymmetryOnlyMaskStrategy>());
+
+        auto selection = selector.next_mask();
+        CHECK(selection.ibody == 0);
+        // selecting the body rather than one of its slots leaves the target unset, so every symmetry it declares moves alike
+        CHECK_FALSE(selection.mask.target_symmetry.has_value());
+    }
+
+    SECTION("a mask that leaves the pose free is satisfied by any body") {
+        ManualSelect selector(rb.get(), 1);
+        selector.set_mask_strategy(std::make_unique<AllMaskStrategy>());
+        CHECK_NOTHROW(selector.next_mask());
     }
 }

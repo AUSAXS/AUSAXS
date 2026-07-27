@@ -35,7 +35,11 @@ namespace ausaxs::rigidbody {
 
                 ~ManualSelect() override;
 
-                Target next(const ParameterMask& mask) override; ///< @copydoc BodySelectStrategy::next()
+                /**
+                 * @copydoc BodySelectStrategy::next()
+                 * @throws except::invalid_argument if a body was selected, the mask freezes its pose, and it declares no drivable symmetry to move instead.
+                 */
+                Target next(const ParameterMask& mask) override;
 
             private:
                 unsigned int ibody = 0; // The index of the body to be transformed.

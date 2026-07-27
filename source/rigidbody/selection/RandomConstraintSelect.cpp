@@ -19,12 +19,7 @@ RandomConstraintSelect::~RandomConstraintSelect() = default;
 
 BodySelectStrategy::Target RandomConstraintSelect::next(const ParameterMask& mask) {
     // a symmetry-only mask freezes the pose, so there is nothing for a constraint to propagate; draw from the drivable symmetry slots instead
-    if (symmetry_only(mask)) {
-        const auto& candidates = symmetry_candidates();
-        std::uniform_int_distribution<std::size_t> sym_distribution(0, candidates.size()-1);
-        const auto& target = candidates[sym_distribution(random::generator())];
-        return {target.ibody, -1, static_cast<int>(target.isymmetry)};
-    }
+    if (symmetry_only(mask)) {return random_symmetry_target();}
 
     // constraints connect two bodies, so deleting bodies down to a point where none remain connected empties this list
     if (rigidbody->constraints->discoverable_constraints.empty()) {

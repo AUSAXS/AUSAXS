@@ -3,7 +3,6 @@
 
 #include <rigidbody/selection/ManualSelect.h>
 #include <rigidbody/selection/SymmetryTargets.h>
-#include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/Rigidbody.h>
 #include <utility/Exceptions.h>
 
@@ -27,7 +26,17 @@ ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int
 
 ManualSelect::~ManualSelect() = default;
 
-BodySelectStrategy::Target ManualSelect::next(const ParameterMask&) {
+BodySelectStrategy::Target ManualSelect::next(const ParameterMask& mask) {
     if (0 <= isymmetry) {return {ibody, -1, isymmetry};}
+
+    // selecting the body itself leaves target_symmetry unset, so all of its symmetries move together - which is what "optimize this body" should mean, and
+    // harmless for the undrivable views among them as long as at least one slot can move. If none can, and the mask has frozen the pose as well, the whole
+    // run would perturb nothing at all: refuse rather than spend the optimizer's budget on it.
+    if (symmetry_only(mask) && symmetry_candidates(ibody).empty()) {
+        throw except::invalid_argument(
+            "ManualSelect::next: The selected parameter mask optimizes symmetries only, but body " + std::to_string(ibody) + " declares none that can be "
+            "driven. Note that a symmetry shared between several bodies is only drivable through the body owning it."
+        );
+    }
     return {ibody, random_constraint(ibody), -1};
 }

@@ -34,9 +34,6 @@ namespace ausaxs::rigidbody::selection {
         static ParameterMask symmetry_only_trans()  { return {false, false, true,  false}; }
         static ParameterMask symmetry_only_axis()   { return {false, false, false, true }; }
 
-        /// @brief Only the parameters of the body's isymmetry'th symmetry are active; its pose and other symmetries are frozen.
-        static ParameterMask single_symmetry(unsigned int isymmetry) { return {false, false, true, true, isymmetry}; }
-
         /**
          * @brief Apply this mask to relative transform parameters in-place.
          *

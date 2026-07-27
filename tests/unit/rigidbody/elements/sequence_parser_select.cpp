@@ -188,7 +188,6 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         auto selection = rb->body_selector->next_mask();
         INFO("selected through tag " << tag);
         CHECK(selection.ibody == 0); // the owning fragment, whichever participant was named
-        CHECK(selection.isymmetry == 0);
         CHECK(selection.iconstraint == -1);
         REQUIRE(selection.mask.target_symmetry.has_value());
         CHECK(selection.mask.target_symmetry.value() == 0);
