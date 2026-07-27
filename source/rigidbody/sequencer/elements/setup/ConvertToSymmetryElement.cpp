@@ -35,6 +35,18 @@ namespace {
         opt->optimize_translate = true;
         opt->optimize_rot_axis = true;
     }
+
+    // Reduce a body to its first n atoms, keeping the optional metadata parallel-indexed to the shortened atom vector.
+    void truncate(data::Body& body, std::size_t n) {
+        assert(n <= body.size_atom() && "ConvertToSymmetryElement::truncate: cannot grow a body.");
+        body.get_atoms().resize(n);
+        if (!body.get_metadata()) {return;}
+        data::AtomMetadata metadata = *body.get_metadata();
+        if (metadata.backbone)    {metadata.backbone->resize(n);}
+        if (metadata.residue_seq) {metadata.residue_seq->resize(n);}
+        if (metadata.occupancy)   {metadata.occupancy->resize(n);}
+        body.set_metadata(std::move(metadata));
+    }
 }
 
 ConvertToSymmetryElement::ConvertToSymmetryElement(observer_ptr<Sequencer> owner, std::vector<int> bodies, const std::string& symmetry_name, double tolerance)
@@ -46,6 +58,48 @@ ConvertToSymmetryElement::ConvertToSymmetryElement(observer_ptr<Sequencer> owner
 ConvertToSymmetryElement::~ConvertToSymmetryElement() = default;
 
 void ConvertToSymmetryElement::run() {}
+
+std::vector<std::vector<Vector3<double>>> ConvertToSymmetryElement::_split_into_copies(int primary, std::size_t copies_wanted, const std::string& symmetry_name) {
+    auto molecule = owner->_get_molecule();
+    auto rigidbody = owner->_get_rigidbody();
+    auto& body = molecule->get_body(primary);
+
+    // The copies of such a structure are laid out sequentially in the source file (each is a chain, or a contiguous run of residues within one), so equal
+    // contiguous chunks of the atom vector recover them. Unequal chunks mean the copies are not identical, which the fit requires; a wrongly-guessed
+    // decomposition instead surfaces as a large fit residual and is rejected by the tolerance check in _convert.
+    std::size_t total = body.size_atom();
+    if (total == 0 || total % copies_wanted != 0) {
+        throw except::parse_error("convert_to_symmetry",
+            "A single body was given, so it must itself be the assembly: \"" + symmetry_name + "\" requires it to split into "
+            + std::to_string(copies_wanted) + " equally-sized copies, but its " + std::to_string(total)
+            + " atoms do not divide evenly among them. Either the structure is not a whole number of copies, or its copies are not identical.");
+    }
+    std::size_t n = total/copies_wanted;
+
+    std::vector<std::vector<Vector3<double>>> copies;
+    copies.reserve(copies_wanted);
+    for (std::size_t k = 0; k < copies_wanted; ++k) {
+        std::vector<Vector3<double>> coords;
+        coords.reserve(n);
+        for (std::size_t i = k*n; i < (k+1)*n; ++i) {coords.push_back(body.get_atom(i).coordinates());}
+        copies.push_back(std::move(coords));
+    }
+
+    // reduce the body to the leading copy, which the fitted symmetry will regenerate the rest from. The stored initial conformation is parallel-indexed to
+    // the live body, so it is truncated identically; re-centring it on the origin preserves the invariant relied on when a transform rebuilds the body from
+    // it (see TransformStrategy::apply), with the body's cm - which is where the new position lands - restored as its absolute translation.
+    truncate(body, n);
+    auto& initial = rigidbody->conformation->initial_conformation[primary];
+    truncate(initial, n);
+    initial.translate(-initial.get_cm());
+    rigidbody->conformation->absolute_parameters.parameters[primary].translation = body.get_cm();
+
+    logging::log("ConvertToSymmetryElement: split the single body into " + std::to_string(copies_wanted) + " copies of " + std::to_string(n) + " atoms each.");
+    if (settings::general::verbose) {
+        std::cout << "\tSplit the single body into " << copies_wanted << " copies of " << n << " atoms each." << std::endl;
+    }
+    return copies;
+}
 
 void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const std::string& symmetry_name, double tolerance) {
     detail::require_mutable_structure(owner, "convert_to_symmetry");
@@ -60,9 +114,13 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
         throw except::parse_error("convert_to_symmetry", "Unsupported symmetry \"" + symmetry_name + "\"; only point, cyclic and polyhedral symmetries can be fitted.");
     }
 
-    if (bodies.size() != base_sym->repetitions() + 1) {
+    std::size_t expected = base_sym->repetitions() + 1;
+    // a single body cannot be a set of copies, so it must be the assembled structure itself; the decomposition is then ours to find rather than the user's
+    // to supply (see the auto-split branch below)
+    bool auto_split = bodies.size() == 1 && 1 < expected;
+    if (!auto_split && bodies.size() != expected) {
         throw except::parse_error("convert_to_symmetry",
-            "Symmetry \"" + symmetry_name + "\" needs exactly " + std::to_string(base_sym->repetitions() + 1)
+            "Symmetry \"" + symmetry_name + "\" needs exactly " + std::to_string(expected)
             + " bodies, but " + std::to_string(bodies.size()) + " were given.");
     }
     for (int b : bodies) {
@@ -73,28 +131,33 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
 
     int primary = bodies.front();
 
-    // gather the world-space atom coordinates of every participating body; correspondence is exact because they are copies of the same molecule 
+    // gather the world-space atom coordinates of every participating copy; correspondence is exact because they are copies of the same molecule
     // (copies[k][i] is the image of copies[0][i])
     std::vector<std::vector<Vector3<double>>> copies;
-    copies.reserve(bodies.size());
-    for (int b : bodies) {
-        const auto& atoms = molecule->get_body(b).get_atoms();
-        if (atoms.size() != molecule->get_body(primary).get_atoms().size()) {
-            throw except::parse_error("convert_to_symmetry", "All participating bodies must be copies of the same molecule (atom counts differ).");
+    copies.reserve(expected);
+    if (auto_split) {
+        copies = _split_into_copies(primary, expected, symmetry_name);
+    } else {
+        for (int b : bodies) {
+            const auto& atoms = molecule->get_body(b).get_atoms();
+            if (atoms.size() != molecule->get_body(primary).get_atoms().size()) {
+                throw except::parse_error("convert_to_symmetry", "All participating bodies must be copies of the same molecule (atom counts differ).");
+            }
+            std::vector<Vector3<double>> coords;
+            coords.reserve(atoms.size());
+            for (const auto& a : atoms) {coords.push_back(a.coordinates());}
+            copies.push_back(std::move(coords));
         }
-        std::vector<Vector3<double>> coords;
-        coords.reserve(atoms.size());
-        for (const auto& a : atoms) {coords.push_back(a.coordinates());}
-        copies.push_back(std::move(coords));
     }
+    // in the auto-split case the body has already been reduced to the reference copy, so this is the reference's own cm either way
     Vector3<double> reference_cm = molecule->get_body(primary).get_cm();
 
-    // fit the symmetry parameters to the assembly; the bodies (PDB chains) may be in any order, so let the fitter search over orderings, 
-    // accepting the first that comes within tolerance
+    // fit the symmetry parameters to the assembly; the copies (PDB chains, or the chunks of an auto-split body) may be in any order, so let the fitter
+    // search over orderings, accepting the first that comes within tolerance
     auto fit = detail::fit_symmetry_best_order(*base_sym, reference_cm, copies, tolerance);
     logging::log("ConvertToSymmetryElement: fitted " + symmetry_name + " with residual RMSD " + std::to_string(fit.rmsd) + " Å.");
     if (settings::general::verbose) {
-        std::cout << "\tFitted " << symmetry_name << " to " << bodies.size() << " bodies (residual RMSD "
+        std::cout << "\tFitted " << symmetry_name << " to " << copies.size() << " copies (residual RMSD "
                   << fit.rmsd << " Å)." << std::endl;
     }
 
@@ -119,10 +182,11 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     int isymmetry = static_cast<int>(molecule->get_body(primary).size_symmetry()) - 1;
     int reps = static_cast<int>(molecule->get_body(primary).symmetry().get(isymmetry)->repetitions());
 
-    // drop the now-redundant copy bodies; erase_bodies also reindexes every surviving body name
+    // drop the now-redundant copy bodies; erase_bodies also reindexes every surviving body name. An auto-split has no such bodies to drop - the copies were
+    // only ever slices of the primary - so it keeps both its index and its name.
     std::vector<int> to_remove(bodies.begin() + 1, bodies.end());
     int new_primary = primary - static_cast<int>(std::count_if(to_remove.begin(), to_remove.end(), [primary](int b) {return b < primary;}));
-    detail::erase_bodies(owner, std::move(to_remove));
+    if (!to_remove.empty()) {detail::erase_bodies(owner, std::move(to_remove));}
 
     // register names for the primary body's newly-added symmetry copies
     for (int j = 0; j < reps; ++j) {setup._body_name_registry().add_replica(new_primary, isymmetry, j + 1);}
@@ -180,6 +244,6 @@ std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<Lo
         }
         bodies.push_back(index.body);
     }
-    if (bodies.size() < 2) {throw except::parse_error("convert_to_symmetry", "At least two bodies are required.");}
+    if (bodies.empty()) {throw except::parse_error("convert_to_symmetry", "At least one body is required.");}
     return std::make_unique<ConvertToSymmetryElement>(sequencer, std::move(bodies), symmetry_name, tolerance);
 }
