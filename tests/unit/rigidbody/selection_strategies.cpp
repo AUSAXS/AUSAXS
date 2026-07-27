@@ -57,7 +57,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::RandomBodySel
     
     SECTION("next returns valid body indices") {
         for (int i = 0; i < 10; ++i) {
-            auto [ibody, iconstraint] = selector.next();
+            auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
             CHECK(ibody < rb->molecule.get_bodies().size());
         }
     }
@@ -68,7 +68,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::ManualSelect"
         ManualSelect selector(rb.get(), 2);
 
         for (int i = 0; i < 10; ++i) {
-            auto [ibody, iconstraint] = selector.next();
+            auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
             CHECK(ibody == 2);
         }
     }
@@ -80,7 +80,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::ManualSelect"
         }});
         ManualSelect selector(&isolated, 0);
 
-        auto [ibody, iconstraint] = selector.next();
+        auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
         CHECK(ibody == 0);
         CHECK(iconstraint == -1);
     }
@@ -93,7 +93,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::SequentialBod
         unsigned int num_bodies = rb->molecule.get_bodies().size();
 
         for (unsigned int i = 0; i < num_bodies * 2; ++i) {
-            auto [ibody, iconstraint] = selector.next();
+            auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
             CHECK(ibody == i % num_bodies);
         }
     }
@@ -107,7 +107,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
         rb->molecule.get_bodies().resize(1);
 
         for (int i = 0; i < 50; ++i) {
-            auto [ibody, iconstraint] = selector.next();
+            auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
             CHECK(ibody < rb->molecule.get_bodies().size());
         }
     }
@@ -117,7 +117,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
         rb->molecule.get_bodies().resize(1);
 
         for (int i = 0; i < 50; ++i) {
-            auto [ibody, iconstraint] = selector.next();
+            auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
             CHECK(ibody < rb->molecule.get_bodies().size());
         }
     }
@@ -136,7 +136,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
         local_rb.constraints->discoverable_constraints.resize(1);
 
         for (int i = 0; i < 50; ++i) {
-            auto [ibody, iconstraint] = selector.next();
+            auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
             CHECK(ibody < local_rb.molecule.get_bodies().size());
         }
 
@@ -149,7 +149,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
         // the fixture never registers any discoverable constraints (only non-discoverable DistanceConstraintCM ones), so next() must throw rather than build 
         // a distribution over an empty range (UB from uniform_int_distribution(0, -1))
         REQUIRE(rb->constraints->discoverable_constraints.empty());
-        CHECK_THROWS(selector.next());
+        CHECK_THROWS(selector.next(ParameterMask::all()));
     }
 
     SECTION("SequentialConstraintSelect") {
@@ -157,7 +157,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
         rb->molecule.get_bodies().resize(1);
 
         for (int i = 0; i < 50; ++i) {
-            auto [ibody, iconstraint] = selector.next();
+            auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
             CHECK(ibody < rb->molecule.get_bodies().size());
         }
     }

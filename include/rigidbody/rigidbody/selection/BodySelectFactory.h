@@ -34,5 +34,15 @@ namespace ausaxs::rigidbody {
         std::unique_ptr<selection::BodySelectStrategy> create_manual_selection_strategy(
             observer_ptr<const Rigidbody> molecule, unsigned int ibody, settings::rigidbody::ParameterMaskStrategyChoice mask_choice
         );
+
+        /**
+         * @brief Create a ManualSelect strategy that always selects a single declared symmetry of the given body.
+         *
+         * @param ibody The index of the body hosting the symmetry.
+         * @param isymmetry The index of the symmetry within that body.
+         */
+        std::unique_ptr<selection::BodySelectStrategy> create_manual_symmetry_selection_strategy(
+            observer_ptr<const Rigidbody> molecule, unsigned int ibody, unsigned int isymmetry
+        );
     }
 }

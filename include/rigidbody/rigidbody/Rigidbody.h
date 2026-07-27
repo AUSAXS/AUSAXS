@@ -22,6 +22,10 @@ namespace ausaxs::rigidbody {
         std::unique_ptr<controller::IController> controller;
         std::unique_ptr<detail::SystemSpecification> conformation;
 
+        // the symmetry slots the optimizer may drive. Derived from the molecule and rebuilt lazily, so anything adding or removing a body or one of their
+        // declared symmetries must call SymmetryTargets::invalidate().
+        std::unique_ptr<selection::SymmetryTargets> symmetry_targets;
+
         // the following are shared because they may be owned by the sequencer
         std::shared_ptr<selection::BodySelectStrategy> body_selector;
         std::shared_ptr<transform::TransformStrategy> transformer;

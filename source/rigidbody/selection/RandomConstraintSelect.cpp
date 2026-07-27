@@ -17,7 +17,10 @@ RandomConstraintSelect::RandomConstraintSelect(observer_ptr<const Rigidbody> rig
 
 RandomConstraintSelect::~RandomConstraintSelect() = default;
 
-std::pair<unsigned int, int> RandomConstraintSelect::next() {
+BodySelectStrategy::Target RandomConstraintSelect::next(const ParameterMask& mask) {
+    // a symmetry-only mask freezes the pose, so there is nothing for a constraint to propagate; draw from the drivable symmetry slots instead
+    if (symmetry_only(mask)) {return random_symmetry_target();}
+
     // constraints connect two bodies, so deleting bodies down to a point where none remain connected empties this list
     if (rigidbody->constraints->discoverable_constraints.empty()) {
         throw except::invalid_argument("RandomConstraintSelect::next: No constraints to select from.");
@@ -33,7 +36,7 @@ std::pair<unsigned int, int> RandomConstraintSelect::next() {
     for (unsigned int i = 0; i < rigidbody->constraints->get_body_constraints(ibody).size(); i++) {
         // address comparison since the DistanceConstraint comparison operator is a weak equality comparing only its contents
         if (rigidbody->constraints->get_body_constraints(ibody).at(i) == constraint.get()) {
-            return std::make_pair(ibody, i);
+            return {ibody, static_cast<int>(i), -1};
         }
     }
     throw except::invalid_argument("RandomConstraintSelect::next: Constraint " + std::to_string(iconstraint) + " not found");

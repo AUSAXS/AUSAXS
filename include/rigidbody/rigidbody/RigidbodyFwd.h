@@ -10,7 +10,7 @@ namespace ausaxs::rigidbody {
         struct MoleculeTransformParametersAbsolute;
     }
     namespace transform         {class TransformStrategy;}
-    namespace selection         {class BodySelectStrategy;}
+    namespace selection         {class BodySelectStrategy; class SymmetryTargets;}
     namespace constraints       {class Constraint; struct ConstraintManager;}
     namespace parameter         {class ParameterGenerationStrategy;}
     namespace parameter::decay  {class DecayStrategy;}

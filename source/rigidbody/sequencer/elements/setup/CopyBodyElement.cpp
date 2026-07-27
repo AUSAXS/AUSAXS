@@ -2,10 +2,12 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/setup/CopyBodyElement.h>
+#include <rigidbody/sequencer/detail/BodyIndexOps.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/observer_ptr.h>
@@ -14,6 +16,8 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 void clone(observer_ptr<Sequencer> owner, std::string_view body_name, int index) {
+    ausaxs::rigidbody::sequencer::detail::require_mutable_structure(owner, "copy");
+
     // initial_conformation stores bodies centered at origin; the live molecule body stores absolute positions
     auto initial_body = owner->_get_rigidbody()->conformation->initial_conformation[index];
     auto body_pars = owner->_get_rigidbody()->conformation->absolute_parameters.parameters[index];
@@ -25,6 +29,7 @@ void clone(observer_ptr<Sequencer> owner, std::string_view body_name, int index)
 
     int new_index = static_cast<int>(owner->_get_molecule()->size_body())-1;
     owner->setup()._body_name_registry().add_body(new_index, std::string{body_name});
+    owner->_get_rigidbody()->symmetry_targets->invalidate(); // the copy brings its source's symmetries with it
 }
 
 CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, std::string_view source_body_name) {

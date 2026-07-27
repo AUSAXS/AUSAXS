@@ -10,6 +10,7 @@
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <data/Molecule.h>
@@ -38,6 +39,8 @@ SplitElement::~SplitElement() = default;
 void SplitElement::run() {}
 
 void SplitElement::_split(const std::string& body_name, const std::vector<int>& splits) {
+    detail::require_mutable_structure(owner, "split");
+
     auto molecule = owner->_get_molecule();
     auto rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
@@ -150,6 +153,7 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
+    rigidbody->symmetry_targets->invalidate(); // the set of declared symmetries changed
 }
 
 std::vector<std::string> SplitElement::_valid_arguments() {

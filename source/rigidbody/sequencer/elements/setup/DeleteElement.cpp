@@ -15,6 +15,7 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 DeleteElement::DeleteElement(observer_ptr<Sequencer> owner, std::vector<std::string> names) {
+    detail::require_mutable_structure(owner, "delete");
     std::vector<int> indices;
     indices.reserve(names.size());
     for (const auto& name : names) {

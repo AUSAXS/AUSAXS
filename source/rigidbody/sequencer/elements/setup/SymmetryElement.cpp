@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
@@ -104,6 +105,7 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
     molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
+    rigidbody->symmetry_targets->invalidate(); // the set of declared symmetries changed
 }
 
 void SymmetryElement::_add_reference(const std::vector<std::string>& body_names, const std::string& reference_symmetry) {
@@ -178,6 +180,7 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
+    rigidbody->symmetry_targets->invalidate(); // the set of declared symmetries changed
 }
 
 SymmetryElement::~SymmetryElement() = default;

@@ -6,15 +6,17 @@
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/selection/ParameterMask.h>
 #include <rigidbody/selection/ParameterMaskStrategy.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <utility/observer_ptr.h>
 
+#include <cstddef>
 #include <memory>
-#include <utility>
+#include <vector>
 
 namespace ausaxs::rigidbody {
     namespace selection {
         /**
-         * @brief This super-class defines the interface for the body selection strategies for the rigid-body optimization. 
+         * @brief This super-class defines the interface for the body selection strategies for the rigid-body optimization.
          * More specifically its implementations will decide in which order the bodies will be transformed by the optimization algorithm.
          */
         class BodySelectStrategy {
@@ -22,30 +24,37 @@ namespace ausaxs::rigidbody {
                 BodySelectStrategy(observer_ptr<const Rigidbody> rigidbody);
                 virtual ~BodySelectStrategy() = default;
 
+                /**
+                 * @brief What a single optimization step acts on.
+                 */
+                struct Target {
+                    unsigned int ibody = 0; //< the body to transform
+                    int iconstraint = -1;   //< index into the body's constraint list, or -1 to transform the body on its own
+                    int isymmetry = -1;     //< the body's symmetry slot to drive, or -1 to drive every one of them alike
+                };
+
                 struct SelectionResult {
                     unsigned int ibody;
                     int iconstraint;
-                    ParameterMask mask;
+                    ParameterMask mask; //< carries the drawn symmetry slot in target_symmetry, if the target named one
                 };
 
                 /**
-                 * @brief Get the index of the next body and constraint to be transformed. 
-                 * 
-                 * @return A pair with the index of the body and the index of the constraint to be transformed. 
-                 *         The latter is -1 if the body should be transformed independently. 
+                 * @brief Get the next target to be transformed.
+                 *
+                 * @param mask The parameter mask this step will run under. Implementations must return a target whose move space is non-empty under it: in
+                 *        particular, a symmetry-only mask requires a target naming a drivable symmetry slot (see symmetry_candidates).
                  */
-                virtual std::pair<unsigned int, int> next() = 0;
+                virtual Target next(const ParameterMask& mask) = 0;
 
                 /**
-                 * @brief Like next(), but also returns a ParameterMask according to the configured mask strategy.
-                 *
-                 * The mask should be applied to the generated parameters before passing them to a transform strategy.
-                 * The default mask strategy (AllMaskStrategy) keeps all parameters active.
+                 * @brief Draw a parameter mask from the configured mask strategy, then a target compatible with it.
+                 * @throws except::invalid_argument if the mask admits only symmetry parameters and the molecule declares no drivable symmetry.
                  */
                 SelectionResult next_mask();
 
                 /**
-                 * @brief Replace the mask strategy used by next_masked(). Takes ownership.
+                 * @brief Replace the mask strategy used by next_mask(). Takes ownership.
                  */
                 void set_mask_strategy(std::unique_ptr<ParameterMaskStrategy> strategy);
 
@@ -56,6 +65,37 @@ namespace ausaxs::rigidbody {
                  * @brief The current number of bodies in the molecule.
                  */
                 unsigned int size_body() const;
+
+                /**
+                 * @brief True if the mask leaves the body's rigid pose frozen, so only a symmetry slot can move under it.
+                 */
+                static bool symmetry_only(const ParameterMask& mask);
+
+                /**
+                 * @brief Every symmetry slot the optimizer may drive. Non-owning views onto a shared symmetry are excluded, as driving them is a no-op.
+                 */
+                const std::vector<SymmetryTargets::Slot>& symmetry_candidates() const;
+
+                /**
+                 * @brief The slots of a single body the optimizer may drive, empty if it declares none.
+                 */
+                const std::vector<unsigned int>& symmetry_candidates(unsigned int ibody) const;
+
+                /**
+                 * @brief A uniformly drawn drivable symmetry slot, wrapped as a Target.
+                 */
+                Target random_symmetry_target() const;
+
+                /**
+                 * @brief The next drivable symmetry slot in pool order, advancing `cursor`.
+                 */
+                Target next_symmetry_target(std::size_t& cursor) const;
+
+                /**
+                 * @brief Pick the constraint index for a body. 
+                 *        Yields -1 if it has no constraints, the only one if it has exactly one, and a uniformly random one otherwise.
+                 */
+                int random_constraint(unsigned int ibody) const;
 
             private:
                 std::unique_ptr<ParameterMaskStrategy> mask_strategy;

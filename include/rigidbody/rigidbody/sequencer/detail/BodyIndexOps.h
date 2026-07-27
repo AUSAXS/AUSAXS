@@ -6,9 +6,21 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <utility/observer_ptr.h>
 
+#include <string>
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer::detail {
+    /**
+     * @brief Reject an element that would change the set of bodies once constraints have been declared.
+     *
+     * Constraints and the symmetry target pool are both indexed by body index and are rebuilt only while the setup phase is still running; adding or removing
+     * bodies afterwards silently invalidates both. 
+     *
+     * @param element The element name to attribute the error to.
+     * @throws sequencer::except::parse_error if any discoverable constraint has been declared.
+     */
+    void require_mutable_structure(observer_ptr<Sequencer> owner, const std::string& element);
+
     /**
      * @brief Erase the bodies at the given indices from the molecule and its conformation, and update the
      *        setup's body-name map so surviving names are reindexed to their shifted positions while the

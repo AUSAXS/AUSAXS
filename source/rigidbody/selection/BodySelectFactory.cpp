@@ -80,3 +80,13 @@ std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_
     strategy->set_mask_strategy(create_mask_strategy(mask_choice));
     return strategy;
 }
+
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_symmetry_selection_strategy(
+    observer_ptr<const Rigidbody> body, unsigned int ibody, unsigned int isymmetry)
+{
+    // the target names the slot; the mask only has to say that the pose stays frozen. BodySelectStrategy::next_mask carries the slot into the mask, so no
+    // mask strategy needs to know about it.
+    auto strategy = std::make_unique<ManualSelect>(body, ibody, isymmetry);
+    strategy->set_mask_strategy(std::make_unique<SymmetryOnlyMaskStrategy>());
+    return strategy;
+}

@@ -38,6 +38,7 @@ namespace {
 }
 
 MergeElement::MergeElement(observer_ptr<Sequencer> owner, std::string_view first_name, std::vector<std::string> other_names) {
+    detail::require_mutable_structure(owner, "merge");
     int i_first = owner->setup()._get_body(first_name);
 
     std::vector<int> other_indices;

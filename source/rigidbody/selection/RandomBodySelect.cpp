@@ -2,9 +2,6 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/RandomBodySelect.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/Rigidbody.h>
-#include <utility/Exceptions.h>
 #include <utility/Random.h>
 
 #include <random>
@@ -15,24 +12,13 @@ RandomBodySelect::RandomBodySelect(observer_ptr<const Rigidbody> rigidbody) : Bo
 
 RandomBodySelect::~RandomBodySelect() = default;
 
-std::pair<unsigned int, int> RandomBodySelect::next() {
+BodySelectStrategy::Target RandomBodySelect::next(const ParameterMask& mask) {
+    // under a symmetry-only mask the pose is frozen, so drawing a body would leave nothing to move whenever it holds only shared-symmetry views. Draw from
+    // the drivable slots instead.
+    if (symmetry_only(mask)) {return random_symmetry_target();}
+
     // rebuild the distribution each call against the live body count
     std::uniform_int_distribution<int> distribution(0, size_body()-1);
     unsigned int ibody = distribution(random::generator());
-
-    unsigned int N = rigidbody->constraints->get_body_constraints(ibody).size();
-    switch (N) {
-        case 0: {
-            return std::make_pair(ibody, -1);
-        }
-        case 1: {
-            return std::make_pair(ibody, 0);
-        }
-        default: {
-            std::uniform_int_distribution<int> distribution2(0, N-1);
-            unsigned int iconstraint = distribution2(random::generator());
-
-            return std::make_pair(ibody, iconstraint);
-        }
-    }
+    return {ibody, random_constraint(ibody), -1};
 }
