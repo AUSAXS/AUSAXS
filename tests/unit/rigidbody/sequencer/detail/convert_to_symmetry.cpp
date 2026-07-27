@@ -8,6 +8,7 @@
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/elements/setup/ConvertToSymmetryElement.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
@@ -227,6 +228,90 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement on a real p2-p2 assembly (A2
     REQUIRE(molecule->size_body() == 1);
     REQUIRE(molecule->get_body(0).size_symmetry() == 1);
     CHECK(molecule->get_body(0).symmetry().get(0)->repetitions() == 3);
+}
+
+TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled body") {
+    // the same C3 assembly as above, but written as a *single* file: the three copies share one body, so the element must decompose it itself
+    auto ref = reference_atoms();
+    CyclicSymmetry source({{1, 2, 0}}, {{0, 0, 0}}, {0.2, 1, 0.4}, 2*std::numbers::pi/3, 2);
+    Vector3<double> cm{0, 0, 0};
+    for (const auto& a : ref) {cm += a;}
+    cm /= static_cast<double>(ref.size());
+
+    std::vector<std::vector<Vector3<double>>> chains{ref};
+    std::vector<Vector3<double>> assembly = ref;
+    for (int k = 1; k <= 2; ++k) {
+        auto t = source.get_transform(cm, k);
+        std::vector<Vector3<double>> chain;
+        for (const auto& a : ref) {chain.push_back(t(a));}
+        assembly.insert(assembly.end(), chain.begin(), chain.end());
+        chains.push_back(std::move(chain));
+    }
+
+    io::File file("temp/rigidbody/ausaxs_convsym_single.pdb");
+    write_pdb(file, assembly);
+
+    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+    seq.setup().load(std::vector<std::string>{file});
+    auto* molecule = seq._get_molecule();
+    REQUIRE(molecule->size_body() == 1);
+    REQUIRE(molecule->get_body(0).size_atom() == 3*ref.size());
+
+    ConvertToSymmetryElement convert(&seq, {0}, "c3");
+
+    // the body has been reduced to the first copy, and carries the symmetry generating the other two
+    REQUIRE(molecule->size_body() == 1);
+    CHECK(molecule->get_body(0).size_atom() == ref.size());
+    REQUIRE(molecule->get_body(0).size_symmetry() == 1);
+    CHECK(molecule->get_body(0).symmetry().get(0)->repetitions() == 2);
+
+    // expanding it reproduces the original assembly
+    auto expanded = molecule->get_body(0).symmetry().explicit_structure();
+    REQUIRE(expanded.atoms.size() == 3*ref.size());
+    for (std::size_t copy = 0; copy < 3; ++copy) {
+        for (std::size_t i = 0; i < ref.size(); ++i) {
+            Vector3<double> got = expanded.atoms[copy*ref.size() + i].coordinates();
+            CHECK_THAT((got - chains[copy][i]).magnitude(), Catch::Matchers::WithinAbs(0, 5e-3));
+        }
+    }
+
+    // the stored initial conformation must stay parallel-indexed to the live body and origin-centred, with the translation restoring the live position
+    const auto& initial = seq._get_rigidbody()->conformation->initial_conformation[0];
+    REQUIRE(initial.size_atom() == ref.size());
+    CHECK_THAT(initial.get_cm().magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
+    auto translation = seq._get_rigidbody()->conformation->absolute_parameters.parameters[0].translation;
+    CHECK_THAT((translation - molecule->get_body(0).get_cm()).magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
+}
+
+TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a single body that does not divide evenly") {
+    // 7 atoms cannot be split into the 3 copies a c3 needs
+    std::vector<Vector3<double>> atoms;
+    for (int i = 0; i < 7; ++i) {atoms.push_back({static_cast<double>(i), 0.5*i, static_cast<double>(-i)});}
+
+    io::File file("temp/rigidbody/ausaxs_convsym_indivisible.pdb");
+    write_pdb(file, atoms);
+
+    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+    seq.setup().load(std::vector<std::string>{file});
+    REQUIRE(seq._get_molecule()->size_body() == 1);
+
+    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0}, "c3"); }());
+}
+
+TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a single body that is not symmetric") {
+    // three copies related by pure translation do not form a c3, so the split must not rescue them
+    auto ref = reference_atoms();
+    std::vector<Vector3<double>> assembly = ref;
+    for (const auto& shift : {Vector3<double>{15, 0, 0}, Vector3<double>{0, 15, 0}}) {
+        for (const auto& a : ref) {assembly.push_back(a + shift);}
+    }
+
+    io::File file("temp/rigidbody/ausaxs_convsym_single_bad.pdb");
+    write_pdb(file, assembly);
+
+    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+    seq.setup().load(std::vector<std::string>{file});
+    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0}, "c3"); }());
 }
 
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a wrong body count") {
