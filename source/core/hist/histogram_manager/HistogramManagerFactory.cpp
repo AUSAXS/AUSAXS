@@ -25,24 +25,11 @@
 using namespace ausaxs;
 using namespace ausaxs::hist::factory;
 
-namespace {
-    bool is_partial(settings::hist::HistogramManagerChoice choice) {
-        switch (choice) {
-            case settings::hist::HistogramManagerChoice::PartialHistogramManager:
-            case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-            case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
-                return true;
-            default:
-                return false;
-        }
-    }
-}
-
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, bool weighted_bins, bool variable_bin_width
 ) {
     auto choice = settings::hist::get_histogram_manager();
-    if (settings::flags::prefer_partial_manager && !is_partial(choice)) {
+    if (settings::flags::prefer_partial_manager && !settings::hist::supports_partial_calculation(choice)) {
         console::print_warning(
             "construct_histogram_manager: A partial histogram manager was requested, but the chosen excluded volume method has no partial implementation. "
             "Every update will recalculate the full histogram."

@@ -15,7 +15,12 @@
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <grid/Grid.h>
+#include <settings/ExvSettings.h>
+#include <settings/FitSettings.h>
+#include <settings/MoleculeSettings.h>
 #include <settings/Flags.h>
+#include <settings/HistogramSettings.h>
+#include <utility/Console.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs::rigidbody;
@@ -31,7 +36,23 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
         }
     }
 
-    settings::flags::prefer_partial_manager = true;
+    {   // ensure settings are compatible with rigid-body optimization
+        settings::flags::prefer_partial_manager = true;
+        if (!settings::hist::supports_partial_calculation(settings::hist::get_histogram_manager())) {
+            console::print_warning(
+                "Rigidbody: the chosen excluded volume model has no partial implementation and cannot be used for rigid-body optimization. "
+                "Falling back to the simple model."
+            );
+            settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+        }
+        settings::fit::fit_hydration = true;
+        settings::fit::fit_excluded_volume = false;
+        settings::fit::fit_solvent_density = false;
+        settings::fit::fit_atomic_debye_waller = false;
+        settings::fit::fit_exv_debye_waller = false;
+        settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::RadialStrategy;
+    }
+
     molecule.reset_histogram_manager();
     constraints = std::make_unique<constraints::ConstraintManager>(this);
     conformation = std::make_unique<rigidbody::detail::SystemSpecification>(this);

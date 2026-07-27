@@ -153,3 +153,14 @@ settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
             throw except::unexpected("settings::hist::get_histogram_manager: Unknown ExvMethod. Did you forget to add it to the switch statement?");
     }
 }
+
+bool settings::hist::supports_partial_calculation(settings::hist::HistogramManagerChoice choice) {
+    switch (choice) {
+        case settings::hist::HistogramManagerChoice::PartialHistogramManager:
+        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
+        case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
+            return true;
+        default:
+            return false;
+    }
+}
