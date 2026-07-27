@@ -12,7 +12,8 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
-#include <fstream>
+#include <support/temp_file.h>
+
 #include <string>
 
 using namespace ausaxs;
@@ -21,13 +22,9 @@ using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
     std::unique_ptr<Sequencer> parse(const std::string& content) {
-        static int counter = 0;
-        std::string path = "/tmp/ausaxs_seq_structure_guard_test_" + std::to_string(counter++) + ".conf";
-        std::ofstream f(path);
-        f << content;
-        f.close();
+        test::TempFile config("ausaxs_seq_structure_guard_test", ".conf", content);
         SequenceParser parser;
-        return parser.parse_file(path);
+        return parser.parse_file(config);
     }
 
     // One chain cut into five backbone-adjacent bodies, so "autoconstrain backbone" actually produces constraints to guard against.

@@ -11,7 +11,8 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
-#include <fstream>
+#include <support/temp_file.h>
+
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
@@ -26,13 +27,9 @@ struct SequenceParserRenameFixture {
     }
 
     std::unique_ptr<Sequencer> parse(const std::string& content) {
-        static int counter = 0;
-        std::string path = "/tmp/ausaxs_seq_rename_test_" + std::to_string(counter++) + ".conf";
-        std::ofstream f(path);
-        f << content;
-        f.close();
+        test::TempFile config("ausaxs_seq_rename_test", ".conf", content);
         SequenceParser parser;
-        return parser.parse_file(path);
+        return parser.parse_file(config);
     }
 };
 
