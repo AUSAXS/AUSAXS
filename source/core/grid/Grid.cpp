@@ -134,9 +134,7 @@ void Grid::setup() {
         }
     }
 
-    // enforce minimum number of bins if set. The axis is grown symmetrically about its own centre rather than recentred on the origin: the deduced bounds
-    // already cover every atom, and for a molecule sitting off-centre - which any conformation with symmetry replicas does - an origin-centred box of the
-    // same width no longer reaches the far side, so enforcing the minimum would *shrink* the covered region and leave atoms outside the grid.
+    // enforce minimum number of bins if set
     if (settings::grid::min_bins != 0) {
         auto enforce_min_bins = [] (Axis& axis) {
             if (settings::grid::min_bins <= static_cast<unsigned int>(axis.bins)) {return;}
