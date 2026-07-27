@@ -14,8 +14,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
      * @brief Reject an element that would change the set of bodies once constraints have been declared.
      *
      * Constraints and the symmetry target pool are both indexed by body index and are rebuilt only while the setup phase is still running; adding or removing
-     * bodies afterwards silently invalidates both. Declaring a constraint also requires naming the bodies it joins, so any script that mutates the structure
-     * afterwards is describing a body it has already tied down - user error rather than a case worth supporting.
+     * bodies afterwards silently invalidates both. 
      *
      * @param element The element name to attribute the error to.
      * @throws sequencer::except::parse_error if any discoverable constraint has been declared.

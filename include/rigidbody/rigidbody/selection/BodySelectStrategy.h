@@ -49,10 +49,6 @@ namespace ausaxs::rigidbody {
 
                 /**
                  * @brief Draw a parameter mask from the configured mask strategy, then a target compatible with it.
-                 *
-                 * Drawing in this order is what keeps the two halves consistent: the mask decides which parameter classes are live, and the target is then
-                 * chosen so that at least one of them can actually move. Drawing them independently is how a step ends up perturbing nothing at all.
-                 *
                  * @throws except::invalid_argument if the mask admits only symmetry parameters and the molecule declares no drivable symmetry.
                  */
                 SelectionResult next_mask();
@@ -96,8 +92,8 @@ namespace ausaxs::rigidbody {
                 Target next_symmetry_target(std::size_t& cursor) const;
 
                 /**
-                 * @brief Pick the constraint index for a body, mirroring the historical behaviour: none if it has no constraints, the only one if it has
-                 *        exactly one, and a uniformly random one otherwise.
+                 * @brief Pick the constraint index for a body. 
+                 *        Yields -1 if it has no constraints, the only one if it has exactly one, and a uniformly random one otherwise.
                  */
                 int random_constraint(unsigned int ibody) const;
 

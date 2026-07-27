@@ -11,9 +11,7 @@ namespace ausaxs::rigidbody::selection {
     /**
      * @brief A mask that filters generated transformation parameters, keeping only selected components active.
      *
-     * Call apply() after generating parameters and before applying them to the body.
-     * The apply() method asserts that at least one parameter field remains active after masking,
-     * catching mismatches between the mask configuration and the parameter generator.
+     * Call apply() after generating parameters and before applying them to the body to assert at least one parameter field is active after masking. 
      */
     struct ParameterMask {
         bool real_translation  = true; // Allow body translation and rotation.
@@ -21,9 +19,7 @@ namespace ausaxs::rigidbody::selection {
         bool sym_translation   = true; // Allow symmetry offset translation (initial_relation.translation).
         bool sym_axis          = true; // Allow symmetry rotation axis direction (repeat_relation.axis).
 
-        // If set, the two symmetry flags above only apply to the body's symmetry at this index; every other
-        // symmetry of the body is frozen regardless of them. Unset means they apply to all symmetries alike.
-        // Which slot this is, is the select strategy's decision: BodySelectStrategy::next_mask fills it in from the drawn target.
+        // If set, the two symmetry flags above only apply to the body's symmetry at this index. Unset means they apply to all symmetries alike.
         std::optional<unsigned int> target_symmetry = std::nullopt;
 
         static ParameterMask all()                  { return {true,  true,  true,  true }; }
@@ -37,9 +33,7 @@ namespace ausaxs::rigidbody::selection {
         /**
          * @brief Apply this mask to relative transform parameters in-place.
          *
-         * Masked-out fields are cleared: optional fields become std::nullopt,
-         * symmetry sub-fields are set to zero delta. Asserts that at least one
-         * parameter field remains active after masking.
+         * Masked-out fields are cleared: optional fields become std::nullopt, symmetry sub-fields are set to zero delta. 
          */
         void apply(parameter::BodyTransformParametersRelative& params) const;
     };
