@@ -361,13 +361,11 @@ CIFSection extract_section(std::string_view pattern, std::string_view first_matc
 
     // read labels
     std::string line = std::string(first_match);
-    int full_line_size;
+    std::streampos line_position = input.tellg();
     data.push_back({}); // add an empty data entry in case the labels also contains data
     do {
-        full_line_size = static_cast<int>(line.size());
         line = utility::remove_leading(utility::remove_trailing(line, "\n\r"), " ");
-        if (line.empty()) {continue;}
-        if (line.starts_with('_')) { // label line
+        if (!line.empty() && line.starts_with('_')) { // label line
             auto tokens = utility::split(line, ' ');
 
             // remove the pattern (and the following . or _) from the label
@@ -377,18 +375,18 @@ CIFSection extract_section(std::string_view pattern, std::string_view first_matc
                     "CIFReader::read: Label group matching \"" + std::string(pattern) + "\""
                     " do not have inline data and is followed by more labels. This appears to be a bug. "
                 );}
-                input.seekg(-full_line_size-1, std::ios_base::cur); // rewind the last read line in the input stream
+                input.seekg(line_position);
                 return CIFSection{std::move(labels), std::move(data)};
             }
             labels.emplace_back(tokens[0].substr(pattern.size()+1));
 
             // if the label is followed by a value, add it to the data
             if (tokens.size() == 2) {data[0].emplace_back(std::move(tokens[1]));}
-            continue;
-        } else {
+        } else if (!line.empty()) {
             break;
         }
-    } while(getline(input, line));
+        line_position = input.tellg();
+    } while (getline(input, line));
     if (data[0].empty()) {data.pop_back();} // remove the dummy data if empty
 
     static auto starts_with_quotation = [] (std::string_view s) -> bool {
@@ -400,7 +398,6 @@ CIFSection extract_section(std::string_view pattern, std::string_view first_matc
 
     // read data. note that the first iteration is working on the last read line from the previous loop
     do {
-        full_line_size = static_cast<int>(line.size());
         line = utility::remove_leading_and_trailing(utility::remove_trailing(line, "\n\r"), " ");
         if (line.starts_with('#') || line.starts_with('_')) {break;} // end of loop section
         if (line.empty()) {continue;}
@@ -449,11 +446,11 @@ CIFSection extract_section(std::string_view pattern, std::string_view first_matc
             );
         }
 
+        line_position = input.tellg();
         data.emplace_back(std::move(values));
-    } while(getline(input, line) && !line.starts_with("loop_"));
+    } while (getline(input, line) && !line.starts_with("loop_"));
 
-    // rewind the last read line in the input stream
-    input.seekg(-static_cast<int>(full_line_size)-1, std::ios_base::cur);
+    if (line.starts_with("loop_")) {input.seekg(line_position);}
 
     return CIFSection{std::move(labels), std::move(data)};
 }
