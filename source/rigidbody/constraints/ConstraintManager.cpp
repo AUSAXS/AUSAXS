@@ -23,13 +23,14 @@ ConstraintManager::ConstraintManager(observer_ptr<const Rigidbody> rigidbody) : 
 ConstraintManager::~ConstraintManager() = default;
 
 const std::vector<observer_ptr<IDistanceConstraint>>& ConstraintManager::get_body_constraints(unsigned int ibody) const {
+    refresh();
     assert(distance_constraints_map.contains(ibody));
     return distance_constraints_map.at(ibody);
 }
 
 void ConstraintManager::generate_constraints(std::unique_ptr<ConstraintGenerationStrategy> generator) {
     discoverable_constraints = generator->generate();
-    update_constraint_map();
+    invalidate();
 }
 
 void ConstraintManager::add_constraint(std::unique_ptr<Constraint> constraint) {
@@ -46,7 +47,7 @@ void ConstraintManager::add_constraint(std::unique_ptr<Constraint> constraint) {
     auto ptr = constraint.release();
     if (auto cast = dynamic_cast<DistanceConstraintBond*>(ptr); cast != nullptr) {
         discoverable_constraints.emplace_back(std::unique_ptr<DistanceConstraintBond>(cast));
-        update_constraint_map();
+        invalidate();
         return;
     } else if (auto cast = dynamic_cast<DistanceConstraintAtom*>(ptr); cast != nullptr) {
         non_discoverable_constraints.emplace_back(std::unique_ptr<DistanceConstraintAtom>(cast));
@@ -73,8 +74,10 @@ double ConstraintManager::evaluate() const {
     return sum;
 }
 
-void ConstraintManager::update_constraint_map() {
-    assert(molecule != nullptr && "ConstraintManager::update_constraint_map: Molecule must not be null.");
+void ConstraintManager::refresh() const {
+    if (!dirty) {return;}
+    dirty = false;
+    assert(molecule != nullptr && "ConstraintManager::refresh: Molecule must not be null.");
     distance_constraints_map.clear();
     for (unsigned int i = 0; i < molecule->size_body(); i++) {
         distance_constraints_map[i] = std::vector<observer_ptr<IDistanceConstraint>>();

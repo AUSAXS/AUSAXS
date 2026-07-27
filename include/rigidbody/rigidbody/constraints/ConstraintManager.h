@@ -54,19 +54,30 @@ namespace ausaxs::rigidbody::constraints {
          */
         const std::vector<observer_ptr<IDistanceConstraint>>& get_body_constraints(unsigned int ibody) const;
 
+        /**
+         * @brief Mark the per-body map as stale, so the next access rebuilds it.
+         *
+         * Must be called by anything that adds or removes a body. The map is keyed by body index, so a molecule that gained a body would otherwise be missing
+         * an entry for it, and one that lost a body would keep a stale entry. Pose changes need no invalidation: the map records constraint membership, not
+         * where the bodies are.
+         */
+        void invalidate() {dirty = true;}
+
         observer_ptr<const data::Molecule> molecule;
         std::vector<std::unique_ptr<IDistanceConstraint>> discoverable_constraints;
         std::vector<std::unique_ptr<Constraint>> non_discoverable_constraints;
 
         private:
-            // List of all discoverable constraints associated with each body. 
-            std::unordered_map<unsigned int, std::vector<observer_ptr<IDistanceConstraint>>> distance_constraints_map;
-
             /**
-            * @brief Generate a map of constraints for each body.
-            * 
+            * @brief Rebuild the per-body constraint map, if it has been invalidated since the last access.
+            *
             * This map allows us to quickly find all constraints that apply to a given body without having to iterate over all constraints.
             */
-            void update_constraint_map();
+            void refresh() const;
+
+            // List of all discoverable constraints associated with each body. It is a cache of what the constraint list and molecule already say, so reading it
+            // is a const operation even when it has to be rebuilt first.
+            mutable std::unordered_map<unsigned int, std::vector<observer_ptr<IDistanceConstraint>>> distance_constraints_map;
+            mutable bool dirty = true;
     };
 }

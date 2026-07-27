@@ -8,6 +8,7 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/selection/SymmetryTargets.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/observer_ptr.h>
@@ -30,6 +31,7 @@ void clone(observer_ptr<Sequencer> owner, std::string_view body_name, int index)
     int new_index = static_cast<int>(owner->_get_molecule()->size_body())-1;
     owner->setup()._body_name_registry().add_body(new_index, std::string{body_name});
     owner->_get_rigidbody()->symmetry_targets->invalidate(); // the copy brings its source's symmetries with it
+    owner->_get_rigidbody()->constraints->invalidate();      // the new body needs an entry of its own in the per-body constraint map
 }
 
 CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, std::string_view source_body_name) {

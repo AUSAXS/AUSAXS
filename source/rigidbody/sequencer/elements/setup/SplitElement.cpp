@@ -11,6 +11,7 @@
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/selection/SymmetryTargets.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <data/Molecule.h>
@@ -154,6 +155,7 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
     rigidbody->symmetry_targets->invalidate(); // the set of declared symmetries changed
+    rigidbody->constraints->invalidate();      // the fragments are new bodies, and need entries of their own in the per-body constraint map
 }
 
 std::vector<std::string> SplitElement::_valid_arguments() {
