@@ -12,6 +12,7 @@
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/selection/SymmetryTargets.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/GeneralSettings.h>
@@ -132,6 +133,7 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     rigidbody->molecule.clear_grid();
     rigidbody->refresh_grid();
     rigidbody->symmetry_targets->invalidate(); // the set of declared symmetries changed
+    rigidbody->constraints->invalidate();      // the redundant copies are gone, so the per-body constraint map is keyed by stale indices
 }
 
 std::vector<std::string> ConvertToSymmetryElement::_valid_arguments() {

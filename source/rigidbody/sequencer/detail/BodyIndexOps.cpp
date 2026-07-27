@@ -52,4 +52,5 @@ void ausaxs::rigidbody::sequencer::detail::erase_bodies(observer_ptr<Sequencer> 
 
     owner->setup()._body_name_registry().remove(indices);
     owner->_get_rigidbody()->symmetry_targets->invalidate(); // both the slots' body indices and the set of bodies declaring them have shifted
+    owner->_get_rigidbody()->constraints->invalidate();      // the per-body constraint map is keyed by the same shifted indices
 }
