@@ -13,6 +13,8 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
+#include <support/temp_path.h>
+
 #include <algorithm>
 #include <fstream>
 #include <set>
@@ -35,7 +37,7 @@ struct SequenceParserBodyNamesFixture {
 
     std::unique_ptr<Sequencer> parse(const std::string& content) {
         static int counter = 0;
-        std::string path = "/tmp/ausaxs_seq_body_names_test_" + std::to_string(counter++) + ".conf";
+        std::string path = test::temp_path("ausaxs_seq_body_names_test", counter++, ".conf");
         std::ofstream f(path);
         f << content;
         f.close();

@@ -134,26 +134,20 @@ void Grid::setup() {
         }
     }
 
-    // enforce minimum number of bins if set
+    // enforce minimum number of bins if set. The axis is grown symmetrically about its own centre rather than recentred on the origin: the deduced bounds
+    // already cover every atom, and for a molecule sitting off-centre - which any conformation with symmetry replicas does - an origin-centred box of the
+    // same width no longer reaches the far side, so enforcing the minimum would *shrink* the covered region and leave atoms outside the grid.
     if (settings::grid::min_bins != 0) {
-        double min_length = 0.5*settings::grid::min_bins*settings::grid::cell_width;
-        if (axes.x.bins < settings::grid::min_bins) {
-            axes.x.bins = settings::grid::min_bins;
-            axes.x.min = -min_length;
-            axes.x.max =  min_length;
-        }
-
-        if (axes.y.bins < settings::grid::min_bins) {
-            axes.y.bins = settings::grid::min_bins;
-            axes.y.min = -min_length;
-            axes.y.max =  min_length;
-        }
-
-        if (axes.z.bins < settings::grid::min_bins) {
-            axes.z.bins = settings::grid::min_bins;
-            axes.z.min = -min_length;
-            axes.z.max =  min_length;
-        }
+        auto enforce_min_bins = [] (Axis& axis) {
+            if (settings::grid::min_bins <= static_cast<unsigned int>(axis.bins)) {return;}
+            double expand = 0.5*(settings::grid::min_bins*settings::grid::cell_width - (axis.max - axis.min));
+            axis.min = std::floor(axis.min - expand); // flooring & ceiling to keep the bin edges at integer values, as above
+            axis.max = std::ceil( axis.max + expand);
+            axis.bins = static_cast<int>(std::round((axis.max - axis.min)/settings::grid::cell_width));
+        };
+        enforce_min_bins(axes.x);
+        enforce_min_bins(axes.y);
+        enforce_min_bins(axes.z);
     }
 
     // check if the grid is abnormally large

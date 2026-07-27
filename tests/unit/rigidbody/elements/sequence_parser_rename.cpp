@@ -11,6 +11,8 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
+#include <support/temp_path.h>
+
 #include <fstream>
 
 using namespace ausaxs;
@@ -27,7 +29,7 @@ struct SequenceParserRenameFixture {
 
     std::unique_ptr<Sequencer> parse(const std::string& content) {
         static int counter = 0;
-        std::string path = "/tmp/ausaxs_seq_rename_test_" + std::to_string(counter++) + ".conf";
+        std::string path = test::temp_path("ausaxs_seq_rename_test", counter++, ".conf");
         std::ofstream f(path);
         f << content;
         f.close();
