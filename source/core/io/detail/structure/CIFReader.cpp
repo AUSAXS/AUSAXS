@@ -13,6 +13,7 @@
 #include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
 
+#include <algorithm>
 #include <fstream>
 #include <unordered_map>
 
@@ -328,6 +329,13 @@ void parse_atom_site_section(CIFSection& atom, io::pdb::PDBStructure& collection
         // check if this is a water molecule
         if (a.is_water()) {collection.add(io::pdb::PDBWater(std::move(a)));} 
         else {collection.add(std::move(a));}
+    }
+
+    // ensure that the occupancy column is not zeroed out, CHARMM likes to do this
+    if (!collection.atoms.empty() && std::all_of(collection.atoms.begin(), collection.atoms.end(), [] (const auto& a) {return a.occupancy == 0;})) {
+        console::print_warning("CIFReader::read: All atoms have zero occupancy. The occupancy column is assumed unused and is ignored.");
+        for (auto& a : collection.atoms) {a.occupancy = 1.0;}
+        for (auto& w : collection.waters) {w.occupancy = 1.0;}
     }
 
     if (!settings::molecule::use_occupancy) {

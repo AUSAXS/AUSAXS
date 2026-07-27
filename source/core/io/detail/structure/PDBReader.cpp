@@ -14,6 +14,7 @@
 #include <utility/StringUtils.h>
 #include <utility/Console.h>
 
+#include <algorithm>
 #include <fstream>
 
 using namespace ausaxs;
@@ -64,7 +65,14 @@ auto parse_single_file = [] (const io::ExistingFile& file, io::pdb::PDBStructure
         };
     }
     input.close();
-    
+
+    // ensure that the occupancy column is not zeroed out, CHARMM likes to do this
+    if (!collection.atoms.empty() && std::all_of(collection.atoms.begin(), collection.atoms.end(), [] (const auto& a) {return a.occupancy == 0;})) {
+        console::print_warning("PDBReader::read: All atoms have zero occupancy. The occupancy column is assumed unused and is ignored.");
+        for (auto& a : collection.atoms) {a.occupancy = 1.0;}
+        for (auto& w : collection.waters) {w.occupancy = 1.0;}
+    }
+
     if (!settings::molecule::use_occupancy) {
         for (auto& a : collection.atoms) {a.occupancy = 1.0;}
     }
