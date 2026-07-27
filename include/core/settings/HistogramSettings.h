@@ -43,8 +43,14 @@ namespace ausaxs::settings {
         static bool weighted_bins;          // Whether to use weighted p(r) bins or not.
 
         /**
-         * @brief Get the histogram manager corresponding to the current combination of excluded volume model and number of threads. 
+         * @brief Get the histogram manager corresponding to the current combination of excluded volume model and number of threads.
          */
-        static HistogramManagerChoice get_histogram_manager(); 
+        static HistogramManagerChoice get_histogram_manager();
+
+        /**
+         * @brief Check if a manager supports partial calculations, where only the contributions of a changed body are recalculated.
+         *        These are the only managers suitable for iterative optimization, where a single body is moved between each evaluation.
+         */
+        static bool supports_partial_calculation(HistogramManagerChoice choice);
     };
 }

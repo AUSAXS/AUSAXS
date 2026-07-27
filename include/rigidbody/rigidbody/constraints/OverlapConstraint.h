@@ -39,16 +39,19 @@ namespace ausaxs::rigidbody::constraints {
         protected:
             static double weight(double r);
 
-        private: 
+        private:
             inline static std::function<double(double)> overlap_function = [](double r) {return std::exp(-5*r);};
             observer_ptr<const data::Molecule> molecule;
-            std::vector<double> target;
-            std::vector<double> weights;
-            std::vector<double> axis;
+            mutable std::vector<double> target;
+            mutable std::vector<double> weights;
+            mutable std::vector<double> axis;
+            mutable bool initialized = false;
 
             /**
              * @brief Initialize the target distribution.
+             *
+             * This requires a full histogram calculation of the molecule, and is therefore deferred to the first evaluation.
              */
-            void initialize();
+            void initialize() const;
     };
 }
