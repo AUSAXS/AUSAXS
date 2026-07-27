@@ -20,9 +20,8 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
-#include <support/temp_path.h>
+#include <support/temp_file.h>
 
-#include <fstream>
 #include <vector>
 
 using namespace ausaxs;
@@ -40,13 +39,9 @@ struct SequenceParserSelectFixture {
     }
 
     std::unique_ptr<Sequencer> parse(const std::string& content) {
-        static int counter = 0;
-        std::string path = test::temp_path("ausaxs_seq_select_test", counter++, ".conf");
-        std::ofstream f(path);
-        f << content;
-        f.close();
+        test::TempFile config("ausaxs_seq_select_test", ".conf", content);
         SequenceParser parser;
-        return parser.parse_file(path);
+        return parser.parse_file(config);
     }
 };
 
