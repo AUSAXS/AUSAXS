@@ -24,6 +24,16 @@ namespace ausaxs::symmetry::detail {
             bool has_symmetries() const;
 
             /**
+             * @brief Get the total number of atoms in the molecule, including all symmetries.
+             */
+            std::size_t size_atom_total() const;
+
+            /**
+             * @brief Get the total number of waters in the molecule, including all symmetries.
+             */
+            std::size_t size_water_total() const;
+
+            /**
              * @brief Save the explicit structure to a file.
              */
             void save(const io::File& path) const;

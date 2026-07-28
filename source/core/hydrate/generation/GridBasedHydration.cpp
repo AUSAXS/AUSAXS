@@ -11,7 +11,9 @@
 #include <utility/Console.h>
 #include <settings/GridSettings.h>
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;
@@ -64,17 +66,22 @@ void GridBasedHydration::hydrate() {
         return;
     }
 
-    int start = 0; // body-specific hydration
+    // body-specific hydration.
+    double total_atoms = protein->symmetry().size_atom_total();
+    assert(0 < total_atoms && "GridBasedHydration::hydrate: the molecule has no atoms.");
+
     for (int i = 0; i < static_cast<int>(protein->size_body()); i++) {
-        assert(grid->body_start.contains(protein->get_body(i).get_uid()) && "GridBasedHydration::hydrate: body_start does not contain body uid");
-        int end = start + protein->get_body(i).size_atom();
+        const auto& body = protein->get_body(i);
+        auto it = grid->body_start.find(body.get_uid());
+        assert(it != grid->body_start.end() && "GridBasedHydration::hydrate: body_start does not contain body uid");
+        int start = it->second;
+        int end = start + static_cast<int>(body.size_atom());
         assert(end <= static_cast<int>(grid->a_members.size()) && "GridBasedHydration::hydrate: Contained bodies have been modified after being added to the grid.");
 
         auto atoms = std::span(grid->a_members.begin() + start, grid->a_members.begin() + end);
         auto waters = generate_explicit_hydration(atoms);
-        culling_strategy->set_target_count(target);
+        culling_strategy->set_target_count(std::round(target*body.size_atom()/total_atoms));
         culling_strategy->cull(waters);
         protein->get_body(i).set_hydration(std::make_unique<ExplicitHydration>(to_atoms(waters)));
-        start = end;
     }
 }

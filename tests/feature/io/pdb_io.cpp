@@ -13,6 +13,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <unordered_set>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -159,6 +160,46 @@ TEST_CASE("PDBWriter: writing multifile pdb") {
         }
         REQUIRE(protein.get_body(i).equals_content(protein4.get_body(i)));
     }
+}
+
+TEST_CASE("PDBWriter: writing overflowing residue serials") {
+    settings::molecule::implicit_hydrogens = false;
+
+    // The residue sequence id is a four-digit field, and only the waters consume it. Rather than splitting the file every 10000 waters - the atom
+    // serials are nowhere near overflowing here - the waters are simply moved to a new chain each time it wraps.
+    std::vector<AtomFF> atoms(100);
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        atoms[i] = AtomFF({1e-4*i, 2e-4*i, 3e-4*i}, form_factor::form_factor_t::C);
+    }
+    std::vector<Water> waters(25000);
+    for (int i = 0; i < static_cast<int>(waters.size()); ++i) {
+        waters[i] = Water({4e-4*i, 5e-4*i, 6e-4*i});
+    }
+
+    Molecule protein({{atoms, waters}});
+    protein.save("temp/tests/io/temp_overflow_waters.pdb");
+
+    REQUIRE(io::File("temp/tests/io/temp_overflow_waters.pdb").exists());
+    REQUIRE_FALSE(io::File("temp/tests/io/temp_overflow_waters_part1.pdb").exists());
+
+    Molecule read_back("temp/tests/io/temp_overflow_waters.pdb");
+    CHECK(read_back.get_body(0).size_atom() == 100);
+    CHECK(read_back.size_water() == 25000);
+
+    io::pdb::PDBStructure f(io::ExistingFile("temp/tests/io/temp_overflow_waters.pdb"));
+    REQUIRE(f.waters.size() == 25000);
+
+    std::unordered_set<char> atom_chains;
+    for (const auto& a : f.atoms) {atom_chains.insert(a.chainID);}
+
+    std::unordered_set<std::string> seen;
+    std::unordered_set<char> water_chains;
+    for (const auto& w : f.waters) {
+        CHECK(seen.insert(std::string(1, w.chainID) + ":" + std::to_string(w.resSeq)).second); // (chain, resSeq) must be unique
+        CHECK_FALSE(atom_chains.contains(w.chainID));                                          // and must not collide with an atom chain
+        water_chains.insert(w.chainID);
+    }
+    CHECK(water_chains.size() == 3); // 25000 waters spread over ceil(25000/10000) chains
 }
 
 TEST_CASE("PDBReader: can_parse_hydrogens") {

@@ -13,6 +13,9 @@
 #include <constants/Constants.h>
 #include <settings/MoleculeSettings.h>
 
+#include <algorithm>
+#include <string_view>
+
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
 
@@ -25,7 +28,20 @@ PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<
 PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters, const Header& header, const Footer& footer, const Terminate& terminate) 
     : header(header), footer(footer), terminate(terminate), atoms(atoms), waters(waters) {}
 
-auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, char& chain) {
+namespace {
+    // A PDB chain identifier is a single character, so at most this many chains can be distinguished.
+    constexpr std::string_view chain_ids = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    char to_chain_id(int i) {return chain_ids[i % static_cast<int>(chain_ids.size())];}
+
+    int from_chain_id(char c) {
+        auto pos = chain_ids.find(c);
+        return pos == std::string_view::npos ? 0 : static_cast<int>(pos);
+    }
+}
+
+// every copy of the body - the body itself, and each of its symmetry replicas - becomes a chain of its own
+auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, int& chain) {
     auto b = body.symmetry().explicit_structure();
     auto asize = body.size_atom();
     auto batoms = b.atoms;
@@ -33,14 +49,15 @@ auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& w
         if (i % asize == 0) {++chain;}
         const auto& a = batoms[i];
         atoms.emplace_back(
-            ++serial, form_factor::to_string(a.form_factor_type()), "", "UNK", chain, 0, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
+            ++serial, form_factor::to_string(a.form_factor_type()), "", "UNK", to_chain_id(chain), 0, "", a.coordinates(), 1, 1,
+            form_factor::to_atom_type(a.form_factor_type()), ""
         );
     }
 
     if (b.waters.size() == 0) {return;}
     for (const auto& w : b.waters) {
         waters.emplace_back(
-            ++serial, "O", "", "HOH", chain, ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
+            ++serial, "O", "", "HOH", to_chain_id(chain), ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
         );
     }
 };
@@ -48,7 +65,7 @@ auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& w
 PDBStructure::PDBStructure(const data::Body& body) {
     int serial = 0;
     int residue_serial = 0;
-    char chain = 'A';
+    int chain = -1; // pre-incremented by the first copy, so the first chain is the first id
     atoms.reserve(body.size_atom()*(body.size_symmetry()+1));
     waters.reserve(body.size_water()*(body.size_symmetry()+1));
     add_single_body(this->atoms, this->waters, body, serial, residue_serial, chain);
@@ -58,12 +75,11 @@ PDBStructure::PDBStructure(const data::Body& body) {
 PDBStructure::PDBStructure(const data::Molecule& molecule) {
     int serial = 0;
     int residue_serial = 0;
-    char chain = 'A';
+    int chain = -1;
     atoms.reserve(molecule.size_atom());
     waters.reserve(molecule.size_water());
     for (const auto& body : molecule.get_bodies()) {
         add_single_body(this->atoms, this->waters, body, serial, residue_serial, chain);
-        ++chain;
     }
     refresh();
 }
@@ -137,13 +153,12 @@ void PDBStructure::refresh() {
     }
 
     bool terminate_inserted = false;
-    char chainID = '0'; int resSeq = 0; int serial = atoms[0].serial;
+    int resSeq = 0; int serial = atoms[0].serial;
 
     auto insert_ter = [&] () {
         // last atom before the terminate
         // we need this to determine what chainID and resSeq to use for the terminate and hetatms
         const PDBAtom& a = atoms.at(serial-1-atoms[0].serial);
-        chainID = a.chainID;
         resSeq = a.resSeq;
         if (serial != 0) {terminate = Terminate(serial, a.resName, a.chainID, a.resSeq, " ");}
         terminate_inserted = true;
@@ -164,12 +179,14 @@ void PDBStructure::refresh() {
         serial++;
     }
 
-    chainID = atoms[atoms.size()-1].chainID+1;
+    // the waters get the chain ids left over after the atom chains, each fitting up to 10000 waters
+    int first_chain = (from_chain_id(atoms[atoms.size()-1].chainID) + 1) % static_cast<int>(chain_ids.size());
+    int chains_available = std::max(1, static_cast<int>(chain_ids.size()) - first_chain);
     resSeq = atoms[atoms.size()-1].resSeq + 1;
     for (auto& a : waters) {
         a.serial = serial++ % 100000;
+        a.chainID = to_chain_id(first_chain + (resSeq/10000) % chains_available);
         a.resSeq = resSeq++ % 10000;
-        a.chainID = chainID + int(resSeq/10000);
     }
 }
 

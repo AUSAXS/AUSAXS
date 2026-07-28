@@ -21,39 +21,45 @@ std::vector<std::string> as_pdb(const PDBStructure& f) {
     std::string s = f.header.get();
     Terminate t = f.terminate;
 
-    unsigned int count = 0;
+    // at most this many records can be written to a single file before the serial wraps around and a new file must be started
+    constexpr int serial_period = 100000;
+
+    int n_serial = 0; // records written to the current file; all of them consume a serial
+    auto next_file = [&] () {
+        files.push_back(std::move(s));
+        s = "";
+        n_serial = 0;
+    };
+
     int i_ter = t.serial;
     bool printed_ter = i_ter == -1;
     for (unsigned int i = 0; i < f.atoms.size(); i++) {
         if (static_cast<int>(i) == i_ter) { // check if this is where the terminate is supposed to go
-            t.set_serial(t.serial % 100000);
+            if (serial_period <= n_serial) {next_file();}
+            t.set_serial(t.serial % serial_period);
             s += t.as_pdb(); // write it if so
+            n_serial++;
             printed_ter = true;
         }
+
+        if (serial_period <= n_serial) {next_file();}
         s += f.atoms[i].as_pdb();
-        count++;
-        if (count == 100000) {
-            count = 0;
-            files.push_back(std::move(s));
-            s = "";
-        }
+        n_serial++;
     }
 
     // print terminate if missing
     if (!printed_ter) {
-        t.set_serial(t.serial % 100000);
+        if (serial_period <= n_serial) {next_file();}
+        t.set_serial(t.serial % serial_period);
         s += t.as_pdb();
+        n_serial++;
     }
 
     // print hetatoms
     for (unsigned int i = 0; i < f.waters.size(); i++) {
+        if (serial_period <= n_serial) {next_file();}
         s += f.waters[i].as_pdb();
-        count++;
-        if (count == 100000) {
-            count = 0;
-            files.push_back(std::move(s));
-            s = "";
-        }
+        n_serial++;
     }
 
     s += f.footer.get();
