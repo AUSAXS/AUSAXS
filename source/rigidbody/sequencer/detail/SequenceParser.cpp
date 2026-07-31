@@ -24,7 +24,6 @@ using ausaxs::rigidbody::sequencer::except::parse_error;
 
 namespace {
     bool is_delimiter(char c) {return c == ' ' || c == '\t' || c == '\r' || c == ',' || c == ';';}
-
     // tokenize a line respecting quoted strings; '#' outside quotes starts a comment and discards the rest
     std::vector<std::string> tokenize(const std::string& s) {
         std::vector<std::string> result;
@@ -39,7 +38,7 @@ namespace {
             if (c == '#' && in_quote == 0) {break;}
 
             // handle quotes
-            if ((c == '"' || c == '\'') && (i == 0 || s[i-1] != '\\')) {
+            if (c == '"' || c == '\'') {
                 if (in_quote == 0) {
                     in_quote = c;
                     in_token = true;
