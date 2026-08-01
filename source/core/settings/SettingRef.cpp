@@ -24,6 +24,9 @@ template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<doub
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<int>>::type() const {return "vector-int";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::type() const {return "limit";}
 
+// a plain string is usually a path, and a path may contain spaces
+template<> bool ausaxs::settings::io::detail::SettingRef<std::string>::requires_quoting() const {return true;}
+
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const {return settingref;}
 template<> std::string settings::io::detail::SettingRef<double>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<int>::get() const {return std::to_string(settingref);}

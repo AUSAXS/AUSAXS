@@ -42,7 +42,19 @@ namespace ausaxs::utility {
     std::vector<std::string> split(std::string_view s, std::string_view delimiters);
 
     /**
-     * @brief Join a vector of strings into a single string. The separator will be inserted after each element except the last. 
+     * @brief Split a string at the given delimiters, keeping quoted sections intact.
+     *        Consecutive delimiters are treated as a single delimiter.
+     */
+    std::vector<std::string> split_quoted(std::string_view s, std::string_view delimiters);
+
+    /**
+     * @brief Enclose a string in double quotes if it contains any of the given delimiters, so that split_quoted
+     *        reads it back as a single token. Strings without delimiters are returned unchanged.
+     */
+    std::string quote_if_needed(std::string_view s, std::string_view delimiters);
+
+    /**
+     * @brief Join a vector of strings into a single string. The separator will be inserted after each element except the last.
      */
     std::string join(std::vector<std::string> v, std::string_view separator);
 

@@ -131,6 +131,64 @@ TEST_CASE("StringUtils::remove_quotation_marks") {
     }
 }
 
+TEST_CASE("StringUtils::split_quoted") {
+    SECTION("behaves like split when nothing is quoted") {
+        auto result = utility::split_quoted("a b\tc", " \t");
+        REQUIRE(result == std::vector<std::string>{"a", "b", "c"});
+    }
+
+    SECTION("a quoted section is a single token with the quotes removed") {
+        auto result = utility::split_quoted("output \"my folder/sub folder\"", " \t");
+        REQUIRE(result == std::vector<std::string>{"output", "my folder/sub folder"});
+    }
+
+    SECTION("single quotes work too") {
+        auto result = utility::split_quoted("output 'my folder'", " \t");
+        REQUIRE(result == std::vector<std::string>{"output", "my folder"});
+    }
+
+    SECTION("the other quote kind is a literal inside a quoted section") {
+        auto result = utility::split_quoted("msg \"it's here\"", " \t");
+        REQUIRE(result == std::vector<std::string>{"msg", "it's here"});
+    }
+
+    // a backslash is a path separator, not an escape: the closing quote must still close
+    SECTION("quoted windows path ending in a separator") {
+        auto result = utility::split_quoted("output \"C:\\my folder\\\"", " \t");
+        REQUIRE(result == std::vector<std::string>{"output", "C:\\my folder\\"});
+    }
+
+    SECTION("an empty quoted section yields an empty token") {
+        auto result = utility::split_quoted("output \"\"", " \t");
+        REQUIRE(result == std::vector<std::string>{"output", ""});
+    }
+
+    SECTION("empty") {
+        auto result = utility::split_quoted("", " \t");
+        REQUIRE(result.empty());
+    }
+}
+
+TEST_CASE("StringUtils::quote_if_needed") {
+    SECTION("no delimiters means no quotes") {
+        REQUIRE(utility::quote_if_needed("abc", " \t") == "abc");
+    }
+
+    SECTION("a delimiter triggers quoting") {
+        REQUIRE(utility::quote_if_needed("my folder", " \t") == "\"my folder\"");
+    }
+
+    SECTION("round-trips through split_quoted") {
+        std::string path = "C:\\my folder\\out\\";
+        auto result = utility::split_quoted("output " + utility::quote_if_needed(path, " \t"), " \t");
+        REQUIRE(result == std::vector<std::string>{"output", path});
+    }
+
+    SECTION("empty") {
+        REQUIRE(utility::quote_if_needed("", " \t") == "");
+    }
+}
+
 TEST_CASE("StringUtils::to_lowercase") {
     SECTION("empty") {
         std::string result = utility::to_lowercase("");
