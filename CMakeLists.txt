@@ -4,9 +4,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 cmake_minimum_required(VERSION 3.15)
 project(AUSAXS VERSION 1.2.9)
 option(GUI "Enable GUI executables" OFF)
-option(DLIB "Download and use the dlib minimizers" ON)
+option(DLIB "Use the dlib minimizers" ON)
 option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" OFF)
+option(BUILD_TESTS "Build the test suite" ON)
+option(BUILD_EXECUTABLES "Build the command-line executables" ON)
+option(STATIC_CURL "Link against a static CURL library on Windows" ON)
 set(ARCH "auto" CACHE STRING "Target architecture (auto, native, or a specific -march value)")
+option(USE_SYSTEM_DLIB "Use system provided dlib" OFF)
 option(USE_SYSTEM_GCEM "Use system provided GCEM" OFF)
 option(USE_SYSTEM_BACKWARD "Use system provided backward" OFF)
 option(USE_SYSTEM_CLI11 "Use system provided CLI11" OFF)
@@ -46,52 +50,55 @@ set_property(
 )
 
 if (DLIB)
-	FetchContent_Declare(
-		dlib
-		GIT_REPOSITORY https://github.com/davisking/dlib
-		GIT_TAG v19.24.4
-		GIT_PROGRESS TRUE
-	)
+	if(USE_SYSTEM_DLIB)
+		find_package(dlib REQUIRED)
+	else()
+		FetchContent_Declare(
+			dlib
+			GIT_REPOSITORY https://github.com/davisking/dlib
+			GIT_TAG v19.24.4
+			GIT_PROGRESS TRUE
+		)
 
-	# tell dlib not to link with various unnecessary libraries
-	set(DLIB_NO_GUI_SUPPORT TRUE)
-	set(DLIB_JPEG_SUPPORT OFF)
-	set(DLIB_LINK_WITH_SQLITE3 OFF)
-	set(DLIB_USE_BLAS OFF)
-	set(DLIB_USE_LAPACK OFF)
-	set(DLIB_USE_CUDA OFF)
-	set(DLIB_PNG_SUPPORT OFF)
-	set(DLIB_GIF_SUPPORT OFF)
-	set(DLIB_WEBP_SUPPORT OFF)
-	set(DLIB_JXL_SUPPORT OFF)
-	set(DLIB_USE_FFTW OFF)
-	set(DLIB_USE_MKL_FFT OFF)
-	set(DLIB_USE_FFMPEG OFF)
-	set(CMAKE_CXX_STANDARD 17) # dlib must be compiled with C++17
-	FetchContent_MakeAvailable(dlib)
-	set(CMAKE_CXX_STANDARD 20) # continue with C++20	
+		# tell dlib not to link with various unnecessary libraries
+		set(DLIB_NO_GUI_SUPPORT TRUE)
+		set(DLIB_JPEG_SUPPORT OFF)
+		set(DLIB_LINK_WITH_SQLITE3 OFF)
+		set(DLIB_USE_BLAS OFF)
+		set(DLIB_USE_LAPACK OFF)
+		set(DLIB_USE_CUDA OFF)
+		set(DLIB_PNG_SUPPORT OFF)
+		set(DLIB_GIF_SUPPORT OFF)
+		set(DLIB_WEBP_SUPPORT OFF)
+		set(DLIB_JXL_SUPPORT OFF)
+		set(DLIB_USE_FFTW OFF)
+		set(DLIB_USE_MKL_FFT OFF)
+		set(DLIB_USE_FFMPEG OFF)
+		set(CMAKE_CXX_STANDARD 17) # dlib must be compiled with C++17
+		FetchContent_MakeAvailable(dlib)
+		set(CMAKE_CXX_STANDARD 20) # continue with C++20
+	endif()
 	add_compile_definitions("DLIB_AVAILABLE")
 endif()
 
 if(USE_SYSTEM_BACKWARD)
 	find_package(Backward REQUIRED)
+	find_path(BACKWARD_INCLUDE_DIR backward.hpp PATH_SUFFIXES backward)
+	if (NOT BACKWARD_INCLUDE_DIR)
+		message(FATAL_ERROR "backward-cpp headers not found")
+	endif()
 else()
 	FetchContent_Declare(
 		backward
 		GIT_REPOSITORY https://github.com/bombela/backward-cpp
 	)
 	FetchContent_MakeAvailable(Backward)
+	set(BACKWARD_INCLUDE_DIR ${backward_SOURCE_DIR})
 endif()
 
 if(USE_SYSTEM_THREADPOOL)
-	include(CheckIncludeFileCXX)
-
-	check_include_file_cxx(
-		BS_thread_pool.hpp
-		BS_THREAD_POOL_FOUND
-	)
-
-	if (NOT BS_THREAD_POOL_FOUND)
+	find_path(BS_THREAD_POOL_INCLUDE_DIR BS_thread_pool.hpp)
+	if (NOT BS_THREAD_POOL_INCLUDE_DIR)
 		message(FATAL_ERROR "BS.thread_pool headers not found")
 	endif()
 else()
@@ -100,16 +107,22 @@ else()
 		GIT_REPOSITORY https://github.com/bshoshany/thread-pool
 	)
 	FetchContent_MakeAvailable(thread_pool)
+	set(BS_THREAD_POOL_INCLUDE_DIR ${thread_pool_SOURCE_DIR}/include)
 endif()
 
 if(USE_SYSTEM_GCEM)
 	find_package(gcem REQUIRED)
+	find_path(GCEM_INCLUDE_DIR gcem.hpp)
+	if (NOT GCEM_INCLUDE_DIR)
+		message(FATAL_ERROR "GCEM headers not found")
+	endif()
 else()
 	FetchContent_Declare(
 		gcem
 		GIT_REPOSITORY https://github.com/klytje/gcem
 	)
 	FetchContent_MakeAvailable(GCEM)
+	set(GCEM_INCLUDE_DIR ${gcem_SOURCE_DIR}/include)
 endif()
 
 set_property(
@@ -118,13 +131,15 @@ set_property(
 )
 unset(compile_options)
 
-include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include ${backward_SOURCE_DIR})
+include_directories(${BS_THREAD_POOL_INCLUDE_DIR} ${GCEM_INCLUDE_DIR} ${BACKWARD_INCLUDE_DIR})
 
 ############################################
 ##           Find and link CURL           ##
 ############################################
 if (WIN32)
-	add_compile_definitions("CURL_STATICLIB")
+	if (STATIC_CURL)
+		add_compile_definitions("CURL_STATICLIB")
+	endif()
 	find_package(CURL REQUIRED)
 	set(LIBS -static CURL::libcurl)
 	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
@@ -164,5 +179,9 @@ else()
 endif()
 
 add_subdirectory(source)
-add_subdirectory(tests)
-add_subdirectory(executable)
+if (BUILD_TESTS)
+	add_subdirectory(tests)
+endif()
+if (BUILD_EXECUTABLES)
+	add_subdirectory(executable)
+endif()
