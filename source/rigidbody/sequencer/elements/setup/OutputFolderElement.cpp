@@ -22,7 +22,11 @@ OutputFolderElement::OutputFolderElement(observer_ptr<Sequencer> owner, const io
             break;
     }
 
-    settings::general::output = prefix + folder.path() + (folder.path().back() == '/' ? "" : "/");
+    // the output folder is later concatenated with file names, so it must end in a separator.
+    // '\' counts as one too, since Windows paths are written with it
+    auto path = folder.path();
+    bool terminated = !path.empty() && (path.back() == '/' || path.back() == '\\');
+    settings::general::output = prefix + path + (terminated ? "" : "/");
     if (settings::general::verbose) {
         logging::log("OutputFolderElement: Setting output folder to \"" + settings::general::output + "\".");
     }

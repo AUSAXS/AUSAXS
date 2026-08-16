@@ -10,6 +10,7 @@
 #include <utility/observer_ptr.h>
 #include <utility/Logging.h>
 #include <utility/Exceptions.h>
+#include <utility/StringUtils.h>
 #include <io/ExistingFile.h>
 
 #include <fstream>
@@ -23,60 +24,9 @@ using ausaxs::except::io_error;
 using ausaxs::rigidbody::sequencer::except::parse_error;
 
 namespace {
-    bool is_delimiter(char c) {return c == ' ' || c == '\t' || c == '\r' || c == ',' || c == ';';}
-
     // tokenize a line respecting quoted strings; '#' outside quotes starts a comment and discards the rest
-    std::vector<std::string> tokenize(const std::string& s) {
-        std::vector<std::string> result;
-        std::string current;
-        char in_quote = 0;
-        bool in_token = false;
-
-        for (size_t i = 0; i < s.size(); ++i) {
-            char c = s[i];
-
-            // unquoted '#' starts a comment - stop tokenizing
-            if (c == '#' && in_quote == 0) {break;}
-
-            // handle quotes
-            if ((c == '"' || c == '\'') && (i == 0 || s[i-1] != '\\')) {
-                if (in_quote == 0) {
-                    in_quote = c;
-                    in_token = true;
-                } else if (in_quote == c) {
-                    in_quote = 0;
-                } else {
-                    current += c;
-                }
-                continue;
-            }
-
-            // inside quotes: add everything
-            if (in_quote != 0) {
-                current += c;
-                continue;
-            }
-
-            // outside quotes: whitespace and list separators delimit tokens
-            if (is_delimiter(c)) {
-                if (in_token) {
-                    result.push_back(current);
-                    current.clear();
-                    in_token = false;
-                }
-                continue;
-            }
-
-            // regular character
-            current += c;
-            in_token = true;
-        }
-
-        if (in_token) {
-            result.push_back(current);
-        }
-
-        return result;
+    std::vector<std::string> tokenize(std::string_view s) {
+        return utility::split_quoted(s, " \t\r,;", '#');
     }
 
     bool is_opening_brace(char c) {return c == '{' || c == '[' || c == '(';}

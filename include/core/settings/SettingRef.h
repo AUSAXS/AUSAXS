@@ -32,9 +32,15 @@ namespace ausaxs::settings::io::detail {
         virtual std::string get() const = 0;
 
         /**
-         * @brief Get the type of the setting as a string. This is primarily used for introspection in the Python wrapper. 
+         * @brief Get the type of the setting as a string. This is primarily used for introspection in the Python wrapper.
          */
         virtual std::string type() const = 0;
+
+        /**
+         * @brief Whether get() returns a single value that may itself contain whitespace, and so has to be quoted
+         *        when written to a settings file for set() to read it back as one value.
+         */
+        virtual bool requires_quoting() const {return false;}
 
         std::vector<std::string> names; // The name of the setting.
 
@@ -48,13 +54,6 @@ namespace ausaxs::settings::io::detail {
 
     /**
      * @brief A typed reference to a setting, allowing it to be read and written as strings.
-     *
-     * The primary template deliberately has no working implementation — set(), get(), and type()
-     * all throw. Support for a concrete type @c T is provided by explicitly specializing those
-     * three methods (see the declarations at the bottom of this file); using a type without such
-     * a specialization therefore fails loudly at runtime rather than silently doing nothing. The
-     * partial specialization below additionally unwraps the Setting<T> wrapper by delegating to
-     * SettingRef<T>.
      */
     template<typename T> struct SettingRef : public ISettingRef {
         SettingRef(T& setting, const std::vector<std::string>& names) : ISettingRef(names), settingref(setting) {}
@@ -72,14 +71,15 @@ namespace ausaxs::settings::io::detail {
             throw std::runtime_error("settings::io::detail::SettingRef::type: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
         }
 
+        bool requires_quoting() const override {return false;}
+
         T& settingref; // A reference to the setting.
     };
 
     // Specialization for Setting<T> wrapper
     template<typename T>
     struct SettingRef<ausaxs::settings::detail::Setting<T>> : public ISettingRef {
-        SettingRef(ausaxs::settings::detail::Setting<T>& setting, const std::vector<std::string>& names)
-            : ISettingRef(names), settingref(setting) {}
+        SettingRef(ausaxs::settings::detail::Setting<T>& setting, const std::vector<std::string>& names) : ISettingRef(names), settingref(setting) {}
         virtual ~SettingRef() = default;
 
         void set(const std::vector<std::string>& values) override {
@@ -101,6 +101,12 @@ namespace ausaxs::settings::io::detail {
             return ref.type();
         }
 
+        bool requires_quoting() const override {
+            // Delegate to SettingRef<T>
+            SettingRef<T> ref(const_cast<T&>(settingref.value), names);
+            return ref.requires_quoting();
+        }
+
         ausaxs::settings::detail::Setting<T>& settingref;
     };
 }
@@ -114,6 +120,8 @@ template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std:
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<double>>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<int>>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::type() const;
+
+template<> bool ausaxs::settings::io::detail::SettingRef<std::string>::requires_quoting() const;
 
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<double>::get() const;
