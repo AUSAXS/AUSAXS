@@ -44,8 +44,11 @@ namespace ausaxs::utility {
     /**
      * @brief Split a string at the given delimiters, keeping quoted sections intact.
      *        Consecutive delimiters are treated as a single delimiter.
+     *
+     * @param comment If non-zero, an occurrence of this character outside quotes starts a comment,
+     *                and the remainder of the string is discarded.
      */
-    std::vector<std::string> split_quoted(std::string_view s, std::string_view delimiters);
+    std::vector<std::string> split_quoted(std::string_view s, std::string_view delimiters, char comment = '\0');
 
     /**
      * @brief Enclose a string in double quotes if it contains any of the given delimiters, so that split_quoted

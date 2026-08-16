@@ -85,7 +85,7 @@ std::vector<std::string> utility::split(std::string_view s, std::string_view del
     return tokens;
 }
 
-std::vector<std::string> utility::split_quoted(std::string_view s, std::string_view delimiters) {
+std::vector<std::string> utility::split_quoted(std::string_view s, std::string_view delimiters, char comment) {
     static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
     std::array<bool, 256> table{};
     for (auto c : delimiters) {table[c] = true;}
@@ -96,6 +96,9 @@ std::vector<std::string> utility::split_quoted(std::string_view s, std::string_v
     bool in_token = false;
 
     for (auto c : s) {
+        // an unquoted comment character discards the rest of the string
+        if (comment != '\0' && c == comment && in_quote == 0) {break;}
+
         // a quote either opens a quoted section, closes the matching one, or is a literal inside the other kind
         if (c == '"' || c == '\'') {
             if (in_quote == 0) {in_quote = c; in_token = true;}
