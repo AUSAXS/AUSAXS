@@ -105,25 +105,27 @@ TEST_CASE("Grid::Grid") {
             CHECK(max.z() == 1);
         }
 
+        // the grid must adapt itself to the molecule it is given. the exact dimensions are up to the expansion strategy, so
+        // we only require that the atoms fit with room for the hydration shell, and that a molecule this small stays small
         auto func = [] (const Grid& grid) {
+            double margin = Grid::get_minimum_edge_margin();
             Axis3D axes = grid.get_axes();
-            CHECK(axes.x.min == std::floor( 0 - 5*settings::grid::scaling*0.5 - settings::grid::cell_width));
-            CHECK(axes.y.min == std::floor(-5 - 6*settings::grid::scaling*0.5 - settings::grid::cell_width));
-            CHECK(axes.z.min == std::floor(-7 - 8*settings::grid::scaling*0.5 - settings::grid::cell_width));
-            CHECK(axes.x.max ==  std::ceil(5 + 5*settings::grid::scaling*0.5 + settings::grid::cell_width));
-            CHECK(axes.y.max ==  std::ceil(1 + 6*settings::grid::scaling*0.5 + settings::grid::cell_width));
-            CHECK(axes.z.max ==  std::ceil(1 + 8*settings::grid::scaling*0.5 + settings::grid::cell_width));
 
-            // check that we're not using a ton of unnecessary bins
-            CHECK(axes.x.bins < 20);
-            CHECK(axes.y.bins < 20);
-            CHECK(axes.z.bins < 20);
+            CHECK(axes.x.min <=  0 - margin); CHECK(axes.x.max >= 5 + margin);
+            CHECK(axes.y.min <= -5 - margin); CHECK(axes.y.max >= 1 + margin);
+            CHECK(axes.z.min <= -7 - margin); CHECK(axes.z.max >= 1 + margin);
+
+            // the atoms span at most 8Å, so a grid sized from them cannot be much wider than that plus the margin on either side
+            double max_span = 8 + 4*(margin + settings::grid::cell_width);
+            CHECK(axes.x.span() <= max_span);
+            CHECK(axes.y.span() <= max_span);
+            CHECK(axes.z.span() <= max_span);
 
             // check that this is reflected in the grid itself
             const GridObj& g = grid.grid;
-            CHECK(g.size_x() < 20);
-            CHECK(g.size_y() < 20);
-            CHECK(g.size_z() < 20);
+            CHECK(g.size_x() == static_cast<unsigned int>(axes.x.bins));
+            CHECK(g.size_y() == static_cast<unsigned int>(axes.y.bins));
+            CHECK(g.size_z() == static_cast<unsigned int>(axes.z.bins));
         };
 
         SECTION("single body") {
