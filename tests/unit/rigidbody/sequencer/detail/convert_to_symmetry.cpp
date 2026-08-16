@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <fstream>
 #include <numbers>
+#include <set>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
@@ -42,15 +43,40 @@ namespace {
         return {{2, 0, 0}, {3, 1, 0.5}, {2.5, -1, 1}, {4, 0.5, -0.5}, {2, 2, 1}, {5, -1, 0}};
     }
 
-    void write_pdb(const io::File& path, const std::vector<Vector3<double>>& atoms) {
+    // The reference cloud plus its two images under a C3 about an arbitrary centre/axis, reference first.
+    std::vector<std::vector<Vector3<double>>> c3_assembly() {
+        auto ref = reference_atoms();
+        CyclicSymmetry source({{1, 2, 0}}, {{0, 0, 0}}, {0.2, 1, 0.4}, 2*std::numbers::pi/3, 2);
+        Vector3<double> cm{0, 0, 0};
+        for (const auto& a : ref) {cm += a;}
+        cm /= static_cast<double>(ref.size());
+
+        std::vector<std::vector<Vector3<double>>> chains{ref};
+        for (int k = 1; k <= 2; ++k) {
+            auto t = source.get_transform(cm, k);
+            std::vector<Vector3<double>> chain;
+            for (const auto& a : ref) {chain.push_back(t(a));}
+            chains.push_back(std::move(chain));
+        }
+        return chains;
+    }
+
+    // Write an atom cloud as a single chain. Each atom is its own residue unless `residues` assigns them explicitly, and the atom indices in `omit` are left
+    // out entirely - which, since the residue ids stay tied to the atom's index in the reference cloud, is how a chain modelled to a lesser extent than its
+    // copies appears in a deposited structure: the retained atoms keep the ids they would have had.
+    void write_pdb(
+        const io::File& path, const std::vector<Vector3<double>>& atoms,
+        const std::vector<int>& residues = {}, const std::set<std::size_t>& omit = {}
+    ) {
         path.create();
         std::ofstream out(path);
         int serial = 1;
-        for (const auto& a : atoms) {
+        for (std::size_t i = 0; i < atoms.size(); ++i) {
+            if (omit.contains(i)) {continue;}
             char line[128];
             std::snprintf(line, sizeof line,
                 "ATOM  %5d  C   ALA A%4d    %8.3f%8.3f%8.3f  1.00  0.00           C\n",
-                serial, serial, a.x(), a.y(), a.z());
+                serial, residues.empty() ? static_cast<int>(i) + 1 : residues[i], atoms[i].x(), atoms[i].y(), atoms[i].z());
             out << line;
             ++serial;
         }
@@ -61,18 +87,7 @@ namespace {
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a cyclic assembly") {
     // three bodies related by a C3 rotation about an arbitrary centre/axis
     auto ref = reference_atoms();
-    CyclicSymmetry source({{1, 2, 0}}, {{0, 0, 0}}, {0.2, 1, 0.4}, 2*std::numbers::pi/3, 2);
-    Vector3<double> cm{0, 0, 0};
-    for (const auto& a : ref) {cm += a;}
-    cm /= static_cast<double>(ref.size());
-
-    std::vector<std::vector<Vector3<double>>> chains{ref};
-    for (int k = 1; k <= 2; ++k) {
-        auto t = source.get_transform(cm, k);
-        std::vector<Vector3<double>> chain;
-        for (const auto& a : ref) {chain.push_back(t(a));}
-        chains.push_back(std::move(chain));
-    }
+    auto chains = c3_assembly();
 
     std::vector<std::string> files = {
         "temp/rigidbody/ausaxs_convsym_0.pdb", "temp/rigidbody/ausaxs_convsym_1.pdb", "temp/rigidbody/ausaxs_convsym_2.pdb"
@@ -165,6 +180,92 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects an assembly that is 
     for (int i = 0; i < 3; ++i) {
         files.push_back("/tmp/ausaxs_convbad_" + std::to_string(i) + ".pdb");
         write_pdb(files.back(), chains[i]);
+    }
+
+    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+    seq.setup().load(files);
+    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3"); }());
+}
+
+TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement matches up copies modelled to differing extents") {
+    // The copies are missing residue 3, in the middle of the chain: the correspondence must be recovered from the residue ids, since pairing the atoms off by
+    // their position in the atom vector would misalign everything past the gap. A trailing gap - the more common deposited case - is the easier half of this.
+    auto chains = c3_assembly();
+    const auto& ref = chains[0];
+
+    std::vector<std::string> files;
+    for (int i = 0; i < 3; ++i) {
+        files.push_back("temp/rigidbody/ausaxs_convgap_" + std::to_string(i) + ".pdb");
+        write_pdb(files.back(), chains[i], {}, i == 0 ? std::set<std::size_t>{} : std::set<std::size_t>{2});
+    }
+
+    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+    seq.setup().load(files);
+    auto* molecule = seq._get_molecule();
+    REQUIRE(molecule->size_body() == 3);
+    REQUIRE(molecule->get_body(0).size_atom() == ref.size());
+    REQUIRE(molecule->get_body(1).size_atom() == ref.size() - 1);
+
+    ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3");
+
+    // the fit only saw the five shared residues, but the primary body is kept whole and is what the symmetry replicates
+    REQUIRE(molecule->size_body() == 1);
+    REQUIRE(molecule->get_body(0).size_atom() == ref.size());
+    REQUIRE(molecule->get_body(0).size_symmetry() == 1);
+
+    auto expanded = molecule->get_body(0).symmetry().explicit_structure();
+    REQUIRE(expanded.atoms.size() == 3*ref.size());
+    for (std::size_t copy = 0; copy < 3; ++copy) {
+        for (std::size_t i = 0; i < ref.size(); ++i) {
+            // every atom is checked, including the one the copies never modelled: the symmetry regenerates it from the reference
+            Vector3<double> got = expanded.atoms[copy*ref.size() + i].coordinates();
+            CHECK_THAT((got - chains[copy][i]).magnitude(), Catch::Matchers::WithinAbs(0, 5e-3));
+        }
+    }
+}
+
+TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement drops residues modelled to differing extents") {
+    // Three residues of two atoms each, with one copy missing the second half of residue 2. That residue offers no correspondence in either direction, so it
+    // must be dropped from the fit entirely rather than matched atom-for-atom against the reference's two.
+    auto chains = c3_assembly();
+    const auto& ref = chains[0];
+    std::vector<int> residues{1, 1, 2, 2, 3, 3};
+
+    std::vector<std::string> files;
+    for (int i = 0; i < 3; ++i) {
+        files.push_back("temp/rigidbody/ausaxs_convpartial_" + std::to_string(i) + ".pdb");
+        write_pdb(files.back(), chains[i], residues, i == 1 ? std::set<std::size_t>{3} : std::set<std::size_t>{});
+    }
+
+    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+    seq.setup().load(files);
+    auto* molecule = seq._get_molecule();
+    REQUIRE(molecule->size_body() == 3);
+
+    ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3");
+
+    REQUIRE(molecule->size_body() == 1);
+    REQUIRE(molecule->get_body(0).size_atom() == ref.size());
+    auto expanded = molecule->get_body(0).symmetry().explicit_structure();
+    REQUIRE(expanded.atoms.size() == 3*ref.size());
+    for (std::size_t copy = 0; copy < 3; ++copy) {
+        for (std::size_t i = 0; i < ref.size(); ++i) {
+            Vector3<double> got = expanded.atoms[copy*ref.size() + i].coordinates();
+            CHECK_THAT((got - chains[copy][i]).magnitude(), Catch::Matchers::WithinAbs(0, 5e-3));
+        }
+    }
+}
+
+TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects copies that share no residues") {
+    // a perfect c3 assembly, but with residue numbering that does not agree between the copies, leaving no correspondence to fit on
+    auto chains = c3_assembly();
+
+    std::vector<std::string> files;
+    for (int i = 0; i < 3; ++i) {
+        files.push_back("temp/rigidbody/ausaxs_convdisjoint_" + std::to_string(i) + ".pdb");
+        std::vector<int> residues;
+        for (std::size_t j = 0; j < chains[i].size(); ++j) {residues.push_back(100*i + static_cast<int>(j) + 1);}
+        write_pdb(files.back(), chains[i], residues);
     }
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
