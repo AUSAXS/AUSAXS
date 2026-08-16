@@ -73,21 +73,24 @@ Rigidbody& Rigidbody::operator=(Rigidbody&& other) = default;
 
 void Rigidbody::refresh_grid() {
     auto grid = molecule.get_grid();
-    std::pair<Vector3<double>, Vector3<double>> bounds;
+    // the atoms and the waters are tracked separately: the waters only have to fit, whereas the atoms must additionally leave
+    // room along every face for the hydration shell that will be generated around them after this call
+    std::pair<Vector3<double>, Vector3<double>> bounds, water_bounds;
     bounds.first = Vector3<double>{std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
     bounds.second = Vector3<double>{std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()};
-    
+    water_bounds = bounds;
+
     for (const auto& body : molecule.get_bodies()) {
         auto [min, max] = grid::Grid::bounding_box(body.get_atoms());
         auto w = body.get_waters();
         if (w.has_value()) {
             auto [min1, max1] = grid::Grid::bounding_box(w.value().get());
             for (int i = 0; i < 3; ++i) {
-                min[i] = std::min(min[i], min1[i]);
-                max[i] = std::max(max[i], max1[i]);
+                water_bounds.first[i] = std::min(water_bounds.first[i], min1[i]);
+                water_bounds.second[i] = std::max(water_bounds.second[i], max1[i]);
             }
         }
-        
+
         // Account for symmetry bodies by computing their expected bounds
         for (std::size_t j = 0; j < body.size_symmetry(); ++j) {
             auto sym = body.symmetry().get(j);
@@ -127,10 +130,16 @@ void Rigidbody::refresh_grid() {
         }
     }
 
+    // containing the atoms is not enough: the hydration shell is placed outside them, and a water landing outside the grid
+    // cannot be represented, so it is silently discarded - biasing the shell along whichever face the molecule has reached
+    double margin = grid::Grid::get_minimum_edge_margin();
     auto grid_bounds = grid->get_axes();
-    if (grid_bounds.x.min < bounds.first.x() && grid_bounds.x.max > bounds.second.x() &&
-        grid_bounds.y.min < bounds.first.y() && grid_bounds.y.max > bounds.second.y() &&
-        grid_bounds.z.min < bounds.first.z() && grid_bounds.z.max > bounds.second.z()) {
+    if (grid_bounds.x.min < bounds.first.x() - margin && grid_bounds.x.max > bounds.second.x() + margin &&
+        grid_bounds.y.min < bounds.first.y() - margin && grid_bounds.y.max > bounds.second.y() + margin &&
+        grid_bounds.z.min < bounds.first.z() - margin && grid_bounds.z.max > bounds.second.z() + margin &&
+        grid_bounds.x.min < water_bounds.first.x() && grid_bounds.x.max > water_bounds.second.x() &&
+        grid_bounds.y.min < water_bounds.first.y() && grid_bounds.y.max > water_bounds.second.y() &&
+        grid_bounds.z.min < water_bounds.first.z() && grid_bounds.z.max > water_bounds.second.z()) {
         return;
     }
 

@@ -12,13 +12,11 @@
 #include <settings/MoleculeSettings.h>
 
 #include <cassert>
-#include <random>
 
 using namespace ausaxs;
 
 std::function<Vector3<double>()> hydrate::RadialHydration::noise_generator = [] () {
-    static std::normal_distribution<> gauss(0, 0.75);
-    return Vector3<double>(gauss(random::generator()), gauss(random::generator()), gauss(random::generator()));
+    return Vector3<double>(random::gaussian(0, 0.75), random::gaussian(0, 0.75), random::gaussian(0, 0.75));
 };
 
 hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
@@ -60,10 +58,11 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
         double reff = ra + rh;
     
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
-            auto noise = noise_generator();
-            auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff + noise);
+            Vector3<double> exact_loc = coords_abs + rot_locs[i]*reff + noise_generator();
+            auto bins = grid->to_bins(exact_loc);
+            if (!grid->is_valid_bin(bins)) {continue;}
+
             if (grid->grid.is_only_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check({bins.x(), bins.y(), bins.z()})) {
-                Vector3<double> exact_loc = atom.get_atom().coordinates() + rot_locs[i]*reff + noise;
                 add_loc(std::move(exact_loc));
             }
         }
