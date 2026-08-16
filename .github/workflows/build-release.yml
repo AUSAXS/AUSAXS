@@ -65,6 +65,12 @@ jobs:
         with:
           python-version: '3.12'
 
+      # pinned so the build does not float on the vcpkg bundled with the runner image
+      - uses: lukka/run-vcpkg@v11
+        id: vcpkg
+        with:
+          vcpkgGitCommitId: 4334d8b4c8916018600212ab4dd4bbdc343065d1
+
       - uses: ./.github/actions/setup-vcpkg-nuget
         with:
           package_permission: true
@@ -72,10 +78,14 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
+        shell: pwsh
         run: |
-          vcpkg install curl pkgconf cairo libwebp --triplet x64-windows-static
+          & "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\vcpkg.exe" install curl pkgconf cairo libwebp --triplet x64-windows-static
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           choco install ninja
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           pip install matplotlib numpy scipy pyinstaller
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build the library
         shell: bash
@@ -87,7 +97,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
-            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="x64-windows-static"
           cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs saxs_fitter_gui em_fitter_gui -j12
 
