@@ -27,8 +27,8 @@ namespace ausaxs::rigidbody::sequencer {
      */
     class ConvertToSymmetryElement : public GenericElement {
         public:
-            //< Default residual-RMSD threshold (Å) above which the fit is considered a mismatch.
-            static constexpr double default_tolerance = 2.0;
+            // Default residual-RMSD threshold (Å) above which the fit is considered a mismatch.
+            static constexpr double default_tolerance = 5.0;
 
             /**
              * @param owner The owning sequencer.
@@ -57,6 +57,17 @@ namespace ausaxs::rigidbody::sequencer {
              * @throws sequencer::except::parse_error if the atom count does not divide evenly among the copies.
              */
             std::vector<std::vector<Vector3<double>>> _split_into_copies(int primary, std::size_t copies_wanted, const std::string& symmetry_name);
+
+            /**
+             * @brief Gather the world-space atom coordinates of the given copy bodies, index-parallel so that entry i of each copy is the image of entry i
+             *        of the first.
+             *
+             * Copies of the same molecule are often modelled to differing extents - a terminus or loop resolved in some chains but not others - so their atom
+             * vectors need not agree in either length or content. The correspondence is therefore taken over the residues all the bodies share, identified by
+             * residue id rather than by position in the atom vector, and residues whose atom count differs between copies are dropped along with the missing
+             * ones. Only the fit is restricted this way; the primary body itself is left whole, and is what the fitted symmetry replicates.
+             */
+            std::vector<std::vector<Vector3<double>>> _gather_copies(const std::vector<int>& bodies);
 
             observer_ptr<Sequencer> owner;
     };

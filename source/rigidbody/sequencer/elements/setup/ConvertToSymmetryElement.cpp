@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <map>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
@@ -34,6 +35,31 @@ namespace {
         assert(opt != nullptr && "ConvertToSymmetryElement: body symmetry storage is not optimizable.");
         opt->optimize_translate = true;
         opt->optimize_rot_axis = true;
+    }
+
+    // A contiguous run of atoms sharing a residue id, keyed by that id together with its occurrence count so that a body holding the same id more than
+    // once - a merge of several chains, each numbered from its own start - still matches its copies.
+    struct ResidueRun {
+        std::pair<int, int> key;
+        std::size_t begin, size;
+    };
+
+    // Split a body into its residue runs, in atom order. Empty if the body carries no residue metadata to split on.
+    std::vector<ResidueRun> residue_runs(const data::Body& body) {
+        const auto& metadata = body.get_metadata();
+        if (!metadata || !metadata->residue_seq) {return {};}
+        const auto& seq = *metadata->residue_seq;
+        assert(seq.size() == body.size_atom() && "residue_runs: metadata is not parallel-indexed to the atom vector.");
+
+        std::vector<ResidueRun> runs;
+        std::map<int, int> occurrences;
+        for (std::size_t i = 0; i < seq.size();) {
+            std::size_t j = i;
+            while (j < seq.size() && seq[j] == seq[i]) {++j;}
+            runs.push_back({{seq[i], occurrences[seq[i]]++}, i, j - i});
+            i = j;
+        }
+        return runs;
     }
 
     // Reduce a body to its first n atoms, keeping the optional metadata parallel-indexed to the shortened atom vector.
@@ -101,6 +127,77 @@ std::vector<std::vector<Vector3<double>>> ConvertToSymmetryElement::_split_into_
     return copies;
 }
 
+std::vector<std::vector<Vector3<double>>> ConvertToSymmetryElement::_gather_copies(const std::vector<int>& bodies) {
+    auto molecule = owner->_get_molecule();
+    int primary = bodies.front();
+    auto body_name = [this](int b) {return owner->setup()._body_name_registry().base_body_names().at(b);};
+
+    // Copies of the same molecule are not necessarily modelled to the same extent: a disordered terminus or loop is routinely resolved in some chains and not
+    // in others, leaving their atom vectors differing in both length and content. Since the fit needs a correspondence rather than every atom, it runs on the
+    // residues every copy has in common. Matching on residue identity - rather than trimming to the shortest atom vector - is what keeps the correspondence
+    // right when the unmodelled stretch is interior instead of terminal, where every atom past the gap would otherwise pair up with the wrong one.
+    std::vector<std::vector<ResidueRun>> runs;
+    runs.reserve(bodies.size());
+    for (int b : bodies) {runs.push_back(residue_runs(molecule->get_body(b)));}
+
+    for (std::size_t k = 0; k < bodies.size(); ++k) {
+        if (runs[k].empty()) {
+            throw except::parse_error("convert_to_symmetry",
+                "Body \"" + body_name(bodies[k]) + "\" carries no residue metadata, which the copies are matched up by. This should not be reachable: "
+                "rigidbody refinement retains it unconditionally (see settings::molecule::store_residue_seq)."
+            );
+        }
+    }
+
+    std::vector<std::vector<Vector3<double>>> copies;
+    copies.reserve(bodies.size());
+
+    // Tally every residue over the participating bodies, keeping those all of them hold with the same number of atoms. A residue modelled to differing extents
+    // (a partial side chain) offers no usable correspondence either, so it is dropped along with the ones that are missing outright.
+    struct Tally {int bodies; std::size_t size;};
+    std::map<std::pair<int, int>, Tally> tally;
+    for (const auto& body_runs : runs) {
+        for (const auto& run : body_runs) {
+            auto [it, inserted] = tally.try_emplace(run.key, Tally{0, run.size});
+            if (it->second.size != run.size) {it->second.bodies = -1;} // sticky: an atom count that differs anywhere disqualifies the residue everywhere
+            else if (0 <= it->second.bodies) {++it->second.bodies;}
+        }
+    }
+
+    for (std::size_t k = 0; k < bodies.size(); ++k) {
+        const auto& atoms = molecule->get_body(bodies[k]).get_atoms();
+        std::vector<Vector3<double>> coords;
+        for (const auto& run : runs[k]) {
+            if (tally.at(run.key).bodies != static_cast<int>(bodies.size())) {continue;}
+            for (std::size_t i = run.begin; i < run.begin + run.size; ++i) {coords.push_back(atoms[i].coordinates());}
+        }
+        copies.push_back(std::move(coords));
+    }
+    assert(
+        std::all_of(copies.begin(), copies.end(), [&copies] (const auto& c) {return c.size() == copies[0].size();})
+        && "_gather_copies: the shared residues must contribute equally to every copy."
+    );
+
+    if (copies[0].empty()) {
+        throw except::parse_error("convert_to_symmetry",
+            "The participating bodies share no residues, so there is nothing to fit the symmetry to. They are either not copies of the same molecule, or "
+            "their residue numbering does not agree."
+        );
+    }
+
+    // the fit runs on the shared subset, but the primary body is kept whole and is what the fitted symmetry goes on to replicate
+    std::size_t dropped = molecule->get_body(primary).size_atom() - copies[0].size();
+    if (0 < dropped) {
+        logging::log("ConvertToSymmetryElement: the copies are modelled to differing extents; fitted on the "
+            + std::to_string(copies[0].size()) + " atoms they share, ignoring " + std::to_string(dropped) + " of the primary body's.");
+        if (settings::general::verbose) {
+            std::cout << "\tThe copies are modelled to differing extents; fitting on the " << copies[0].size()
+                      << " atoms they share (ignoring " << dropped << " of the primary body's)." << std::endl;
+        }
+    }
+    return copies;
+}
+
 void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const std::string& symmetry_name, double tolerance) {
     detail::require_mutable_structure(owner, "convert_to_symmetry");
 
@@ -121,7 +218,8 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     if (!auto_split && bodies.size() != expected) {
         throw except::parse_error("convert_to_symmetry",
             "Symmetry \"" + symmetry_name + "\" needs exactly " + std::to_string(expected)
-            + " bodies, but " + std::to_string(bodies.size()) + " were given.");
+            + " bodies, but " + std::to_string(bodies.size()) + " were given."
+        );
     }
     for (int b : bodies) {
         if (b < 0 || static_cast<std::size_t>(b) >= molecule->size_body()) {
@@ -131,25 +229,17 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
 
     int primary = bodies.front();
 
-    // gather the world-space atom coordinates of every participating copy; correspondence is exact because they are copies of the same molecule
-    // (copies[k][i] is the image of copies[0][i])
+    // gather the world-space atom coordinates of every participating copy, index-parallel so that copies[k][i] is the image of copies[0][i]
     std::vector<std::vector<Vector3<double>>> copies;
     copies.reserve(expected);
     if (auto_split) {
         copies = _split_into_copies(primary, expected, symmetry_name);
     } else {
-        for (int b : bodies) {
-            const auto& atoms = molecule->get_body(b).get_atoms();
-            if (atoms.size() != molecule->get_body(primary).get_atoms().size()) {
-                throw except::parse_error("convert_to_symmetry", "All participating bodies must be copies of the same molecule (atom counts differ).");
-            }
-            std::vector<Vector3<double>> coords;
-            coords.reserve(atoms.size());
-            for (const auto& a : atoms) {coords.push_back(a.coordinates());}
-            copies.push_back(std::move(coords));
-        }
+        copies = _gather_copies(bodies);
     }
-    // in the auto-split case the body has already been reduced to the reference copy, so this is the reference's own cm either way
+    // in the auto-split case the body has already been reduced to the reference copy, so this is the reference's own cm either way. It is the whole body's
+    // cm even when the fit only saw a subset of its atoms: the cm is the anchor the fitted symmetry is expressed relative to. 
+    // The subset only determines the transform between copies, which is independent of the anchor.
     Vector3<double> reference_cm = molecule->get_body(primary).get_cm();
 
     // fit the symmetry parameters to the assembly; the copies (PDB chains, or the chunks of an auto-split body) may be in any order, so let the fitter
