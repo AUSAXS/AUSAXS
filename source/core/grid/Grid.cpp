@@ -12,6 +12,7 @@
 #include <data/atoms/AtomHelper.h>
 #include <settings/GridSettings.h>
 #include <settings/GeneralSettings.h>
+#include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 #include <constants/Constants.h>
 #include <io/ExistingFile.h>
@@ -87,10 +88,11 @@ Grid::Grid(const std::vector<Body>& bodies) {
         settings::grid::scaling = 1;
     }
 
-    // expand bounding box by scaling factor
+    // expand bounding box by scaling factor, but never by less than what the hydration shell needs
     Vector3<double> nmin, nmax; // new min & max
+    double min_margin = get_minimum_edge_margin();
     for (int i = 0; i < 3; i++) {
-        double expand = 0.5*diff[i]*settings::grid::scaling; // amount to expand in each direction
+        double expand = std::max(0.5*diff[i]*settings::grid::scaling, min_margin); // amount to expand in each direction
         nmin[i] = std::floor(min[i] - expand - settings::grid::cell_width); // flooring to make our grid 'nice' (i.e. bin edges are at integer values)
         nmax[i] = std::ceil( max[i] + expand + settings::grid::cell_width); //  ceiling to make our grid 'nice' (i.e. bin edges are at integer values)
     }
@@ -165,6 +167,14 @@ double Grid::get_atomic_radius(form_factor::form_factor_t atom) const {
 
 double Grid::get_hydration_radius() const {
     return constants::radius::get_vdw_radius(constants::atom_t::O);
+}
+
+double Grid::get_minimum_edge_margin() {
+    return
+        constants::radius::get_vdw_radius(constants::atom_t::P) +          // a somewhat common elemnt with a large radius
+        constants::radius::get_vdw_radius(constants::atom_t::O) +          // the hydration radius
+        settings::hydrate::shell_correction + 3*settings::grid::cell_width // slack for the noise on the water positions and the rounding in to_bins
+    ;
 }
 
 std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index(bool include_waters) const {
@@ -296,13 +306,7 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
 
         // sanity check
         #if DEBUG
-            bool out_of_bounds = 
-                x >= static_cast<int>(axes.x.bins) || 
-                y >= static_cast<int>(axes.y.bins) || 
-                z >= static_cast<int>(axes.z.bins) ||
-                x < 0 || y < 0 || z < 0
-            ;
-            if (out_of_bounds) [[unlikely]] {
+            if (!is_valid_bin(loc)) [[unlikely]] {
                 throw except::out_of_bounds(
                     "Grid::add: Atom is located outside the grid!\nBin location: "
                      + loc.to_string() + "\n: " + axes.to_string() + "\n"
@@ -335,10 +339,9 @@ auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
 
     // sanity check
     #if DEBUG
-        auto ax = g.get_axes();
-        if (x >= (int) ax.x.bins || y >= (int) ax.y.bins || z >= (int) ax.z.bins || x < 0 || y < 0 || z < 0) {
+        if (!g.is_valid_bin(loc)) [[unlikely]] {
             throw except::out_of_bounds(
-                "Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + g.get_axes().to_string() + "\n"
+                "Grid::add: Water is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + g.get_axes().to_string() + "\n"
                 "Real location: " + w.coordinates().to_string()
             );
         }

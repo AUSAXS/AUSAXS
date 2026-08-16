@@ -177,6 +177,26 @@ namespace ausaxs::grid {
 			[[nodiscard]] Vector3<int> to_bins_bounded(const Vector3<double>& v) const;
 
 			/**
+			 * @brief Check whether a bin location can be indexed in this grid.
+			 * 		  Complexity: O(1).
+			 */
+			[[nodiscard]] bool is_valid_bin(const Vector3<int>& v) const {
+				return
+					0 <= v.x() && v.x() < static_cast<int>(axes.x.bins) &&
+					0 <= v.y() && v.y() < static_cast<int>(axes.y.bins) &&
+					0 <= v.z() && v.z() < static_cast<int>(axes.z.bins)
+				;
+			}
+
+			/**
+			 * @brief Get the minimum distance that must be kept between the atoms and the grid edges.
+			 * 		  The hydration shell is generated outside the atoms, so a grid fitted tightly around them has no room
+			 * 		  for it, and any water landing outside is discarded.
+			 * 		  Complexity: O(1).
+			 */
+			[[nodiscard]] static double get_minimum_edge_margin();
+
+			/**
 			 * @brief Convert a location in the grid (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
 			 * 		  Complexity: O(1).
 			 */
