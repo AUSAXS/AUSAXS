@@ -62,7 +62,7 @@ void UpdateElement::unlock() {
 }
 
 std::vector<std::string> UpdateElement::_valid_arguments() {
-    return {"structure"};
+    return {};
 }
 
 std::unique_ptr<GenericElement> UpdateElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {

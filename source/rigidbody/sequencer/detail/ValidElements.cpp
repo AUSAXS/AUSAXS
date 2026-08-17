@@ -6,10 +6,30 @@
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/All.h>
 
+#include <algorithm>
 #include <map>
 #include <cassert>
 
 using namespace ausaxs::rigidbody::sequencer::detail;
+
+namespace {
+    // "relative_hydration" keys its argument block by body name rather than by option name, so no fixed whitelist can
+    // describe it. It resolves its keys through the body-name registry, which rejects names it does not know, so a bad key
+    // is still caught - just by the element itself, and with a different message.
+    bool keys_are_body_names(ElementType type) {
+        return type == ElementType::RelativeHydration;
+    }
+
+    std::string quote_join(std::vector<std::string> values) {
+        std::sort(values.begin(), values.end()); // the keys arrive from an unordered_map, so sort for a reproducible message
+        std::string joined;
+        for (const auto& v : values) {
+            if (!joined.empty()) {joined += ", ";}
+            joined += "\"" + v + "\"";
+        }
+        return joined;
+    }
+}
 
 const std::map<ElementType, std::vector<std::string>>& get_type_map() {
     static std::map<ElementType, std::vector<std::string>> type_map = {
@@ -87,6 +107,27 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(E
         case ElementType::Update:              return UpdateElement::_valid_arguments();
         default: return {};
     }
+}
+
+void ausaxs::rigidbody::sequencer::detail::validate_named_arguments(ElementType type, std::string_view element, const ParsedArgs& args) {
+    if (args.named.empty() || keys_are_body_names(type)) {return;}
+
+    auto valid = valid_arguments(type);
+    std::vector<std::string> unknown;
+    int line_number = -1;
+    for (const auto& [key, value] : args.named) {
+        if (std::find(valid.begin(), valid.end(), key) != valid.end()) {continue;}
+        unknown.push_back(key);
+        if (line_number == -1 || value.line_number < line_number) {line_number = value.line_number;}
+    }
+    if (unknown.empty()) {return;}
+
+    std::string msg = "Unknown argument" + std::string(1 < unknown.size() ? "s " : " ") + quote_join(std::move(unknown));
+    if (0 <= line_number) {msg += " (first at line " + std::to_string(line_number) + ")";}
+    msg += valid.empty()
+        ? ". This element takes no named arguments."
+        : ". Valid arguments are: " + quote_join(std::move(valid)) + ".";
+    throw except::parse_error(element, msg);
 }
 
 ElementType ausaxs::rigidbody::sequencer::detail::get_type(std::string_view line) {

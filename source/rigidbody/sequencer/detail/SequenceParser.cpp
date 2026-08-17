@@ -127,6 +127,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         auto& elements = loop_stack.back()->_get_elements();
         auto type = get_type(tokens[0]);
 
+        // reject unrecognised argument keys before the element sees them; _parse only reads the keys it knows, so anything
+        // else would otherwise be silently discarded and the element would fall back to its default
+        validate_named_arguments(type, tokens[0], pargs);
+
         // dispatch maps for the common cases
         using ElementParser = std::unique_ptr<GenericElement>(*)(observer_ptr<LoopElement>, ParsedArgs&&);
         using VoidParser = void(*)(observer_ptr<LoopElement>, ParsedArgs&&);

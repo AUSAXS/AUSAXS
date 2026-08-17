@@ -18,7 +18,6 @@
 #include <data/Body.h>
 
 #include <cassert>
-#include <sstream>
 #include <utility>
 
 using namespace ausaxs::rigidbody::sequencer;
@@ -192,58 +191,26 @@ std::vector<std::string> SymmetryElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    auto rigidbody = owner->_get_rigidbody();
+    if (!args.named.empty()) {throw except::parse_error("symmetry", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
+    if (args.inlined.empty()) {throw except::parse_error("symmetry", "Expected [bodies...] [symmetry], but got no arguments.");}
 
-    // inline usage patterns
-    if (!args.inlined.empty()) {
-        if (!args.named.empty()) {throw except::parse_error("symmetry", "Cannot combine named and inline arguments.");}
+    // usage pattern: [bodies...] [symmetry]. The trailing token is always the symmetry name; every token before it names a
+    // body. To give several bodies a symmetry each, repeat the element - it does all its work on construction, so the
+    // declarations accumulate.
+    std::string symmetry_name = args.inlined[args.inlined.size()-1];
+    std::vector<std::string> body_names(args.inlined.values.begin(), args.inlined.values.end()-1);
 
-        // usage pattern: [symmetry], allowed for single-body systems (e.g. "symmetry p2")
-        if (args.inlined.size() == 1) {
-            if (rigidbody->molecule.size_body() != 1) {throw except::parse_error("symmetry", "Could not determine which body to apply the symmetry to.");}
-            return std::make_unique<SymmetryElement>(owner->_get_sequencer(), std::vector<std::string>{"b1"}, std::vector<std::string>{args.inlined[0]});
+    // usage pattern: [symmetry], allowed only where there is no choice of body to make (e.g. "symmetry p2")
+    if (body_names.empty()) {
+        if (owner->_get_rigidbody()->molecule.size_body() != 1) {
+            throw except::parse_error("symmetry", "Could not determine which body to apply the symmetry to.");
         }
-
-        // usage pattern: [body] [symmetry] (e.g. "symmetry b1 p2")
-        else if (args.inlined.size() == 2) {
-            return std::make_unique<SymmetryElement>(owner->_get_sequencer(), std::vector<std::string>{args.inlined[0]}, std::vector<std::string>{args.inlined[1]});
-        } else {
-            throw except::parse_error("symmetry", "Too many inline arguments.");
-        }
+        body_names.emplace_back("b1"); // a body's default name is permanent, so this resolves even after a rename
     }
 
-    // reference usage pattern: one symmetry shared across several bodies, e.g.
-    // symmetry {
-    //    bodies "b1 b2 b3" c3
-    // }
-    // the listed bodies (whitespace-separated, optionally quoted as one token) are replicated together; the trailing value is the shared symmetry name.
-    if (auto it = args.named.find("bodies"); it != args.named.end()) {
-        if (args.named.size() != 1) {throw except::parse_error("symmetry", "The \"bodies\" reference form cannot be combined with other symmetry directives.");}
-        const auto& value = it->second;
-        if (value.size() < 2) {throw except::parse_error("symmetry", "The \"bodies\" reference form requires a list of bodies followed by a symmetry name.");}
-
-        std::string symmetry_name = value[value.size()-1];
-        std::vector<std::string> body_names;
-        for (std::size_t i = 0; i+1 < value.size(); ++i) { // every token but the last is a body specifier
-            std::istringstream iss(std::string{value[i]});
-            for (std::string body; iss >> body; ) {body_names.push_back(body);}
-        }
-        if (body_names.size() < 2) {throw except::parse_error("symmetry", "A reference symmetry needs at least two bodies.");}
+    // two or more bodies share a single reference symmetry, replicating the group as one rigid assembly
+    if (2 <= body_names.size()) {
         return std::make_unique<SymmetryElement>(owner->_get_sequencer(), body_names, symmetry_name);
     }
-
-    // named usage patterns; format is:
-    // symmetry {
-    //    [body] [symmetry]
-    //    [body] [symmetry]
-    //    ...
-    // }
-    std::vector<std::string> symmetries;
-    std::vector<std::string> names;
-    for (auto& [name, value] : args.named) {
-        if (value.size() != 1) {throw except::parse_error("symmetry", "Only one symmetry can be specified per body in each \"symmetry\" element.");}
-        names.emplace_back(name);
-        symmetries.emplace_back(value[0]);
-    }
-    return std::make_unique<SymmetryElement>(owner->_get_sequencer(), names, symmetries);
+    return std::make_unique<SymmetryElement>(owner->_get_sequencer(), body_names, std::vector<std::string>{symmetry_name});
 }

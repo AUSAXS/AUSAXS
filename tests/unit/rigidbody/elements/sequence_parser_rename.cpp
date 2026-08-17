@@ -71,9 +71,7 @@ TEST_CASE_METHOD(SequenceParserRenameFixture, "SequenceParser::RenameElement") {
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
             "rename b2 core\n"
-            "symmetry {\n"
-            "    core c2\n"
-            "}\n"
+            "symmetry core c2\n"
         );
         REQUIRE(seq != nullptr);
         auto rb = seq->_get_rigidbody();
