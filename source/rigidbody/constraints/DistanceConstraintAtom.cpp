@@ -113,3 +113,9 @@ double DistanceConstraintAtom::evaluate() const {
     assert(d_target != 0);
     return functions::between_atoms(d_target - evaluate_distance(iatom1, iatom2));
 }
+
+DistanceConstraintAtom::DistanceConstraintAtom(
+    restore_t, observer_ptr<const data::Molecule> molecule, int ibody1, int iatom1, int ibody2, int iatom2,
+    std::pair<int, int> isym1, std::pair<int, int> isym2, double d_target
+) : IDistanceConstraint(restore, molecule, ibody1, iatom1, ibody2, iatom2, std::move(isym1), std::move(isym2), d_target)
+{}

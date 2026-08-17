@@ -6,9 +6,16 @@
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/setup/LoadElement.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
+#include <rigidbody/constraints/AttractorConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraintAtom.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/DistanceConstraintCM.h>
+#include <rigidbody/constraints/RepellerConstraint.h>
+#include <rigidbody/continuation/ContinuationState.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/BodySplitter.h>
+#include <data/Body.h>
 #include <data/Molecule.h>
 #include <utility/StringUtils.h>
 #include <settings/GeneralSettings.h>
@@ -86,6 +93,65 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
 }
 
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, from_continuation_t, const std::string& path) : owner(owner) {
+    auto [resolved, exists] = lookup_file(path);
+    if (!exists) {throw std::runtime_error("LoadElement::LoadElement: Could not find continuation state file \"" + path + "\".");}
+    resolved_paths = {resolved};
+
+    auto state = continuation::read_continuation_state(io::File(resolved));
+    rigidbody = std::make_unique<Rigidbody>(std::move(state.molecule));
+
+    auto& names = owner->setup()._body_name_registry();
+    for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
+        names.add_body(i, i < state.body_names.size() ? state.body_names[i] : std::string{});
+
+        // replicas are registered here rather than by a symmetry element, since a continued run declares no symmetry
+        // elements of its own — the symmetries arrive already attached to the restored bodies.
+        const auto& symmetries = rigidbody->molecule.get_body(i).symmetry().get();
+        for (int isymmetry = 0; isymmetry < static_cast<int>(symmetries.size()); ++isymmetry) {
+            for (int replica = 1; replica <= static_cast<int>(symmetries[isymmetry]->repetitions()); ++replica) {
+                names.add_replica(i, isymmetry, replica);
+            }
+        }
+    }
+
+    // constraints are rebuilt from their stored description rather than re-derived: see constraints::restore_t
+    for (const auto& c : state.constraints) {
+        std::unique_ptr<constraints::Constraint> constraint;
+        switch (c.kind) {
+            using Kind = continuation::ContinuationConstraint::Kind;
+            case Kind::bond:
+                constraint = std::make_unique<constraints::DistanceConstraintBond>(
+                    constraints::restore, &rigidbody->molecule, c.ibody1, c.iatom1, c.ibody2, c.iatom2, c.isym1, c.isym2, c.d_target);
+                break;
+            case Kind::cm:
+                constraint = std::make_unique<constraints::DistanceConstraintCM>(
+                    constraints::restore, &rigidbody->molecule, c.ibody1, c.iatom1, c.ibody2, c.iatom2, c.isym1, c.isym2, c.d_target);
+                break;
+            case Kind::attractor:
+                constraint = std::make_unique<constraints::AttractorConstraint>(
+                    constraints::restore, &rigidbody->molecule, c.ibody1, c.iatom1, c.ibody2, c.iatom2, c.isym1, c.isym2, c.d_target);
+                break;
+            case Kind::repeller:
+                constraint = std::make_unique<constraints::RepellerConstraint>(
+                    constraints::restore, &rigidbody->molecule, c.ibody1, c.iatom1, c.ibody2, c.iatom2, c.isym1, c.isym2, c.d_target);
+                break;
+            case Kind::atom:
+                constraint = std::make_unique<constraints::DistanceConstraintAtom>(
+                    constraints::restore, &rigidbody->molecule, c.ibody1, c.iatom1, c.ibody2, c.iatom2, c.isym1, c.isym2, c.d_target);
+                break;
+        }
+        rigidbody->constraints->add_constraint(std::move(constraint));
+    }
+
+    owner->setup()._set_active_body(rigidbody.get());
+
+    if (settings::general::verbose) {
+        std::cout << "\tResumed " << rigidbody->molecule.size_body() << " bodies and " << state.constraints.size()
+                  << " constraints from \"" << resolved << "\"." << std::endl;
+    }
+}
+
 /**
  * @brief Looks up a file relative to both the current working directory and the configuration file directory.
  * @return A pair containing the resolved file path and a boolean indicating whether the file exists.
@@ -155,12 +221,13 @@ void LoadElement::run() {
 }
 
 namespace {
-    enum class Args {paths, splits, names, saxs};
+    enum class Args {paths, splits, names, saxs, continuation};
     std::unordered_map<Args, std::vector<std::string>> args_map = {
         {Args::paths, {"pdb"}},
         {Args::saxs, {"saxs"}},
         {Args::splits, {"split"}},
-        {Args::names, {"names", "name"}}
+        {Args::names, {"names", "name"}},
+        {Args::continuation, {"continue"}}
     };
 }
 
@@ -170,22 +237,34 @@ std::vector<std::string> LoadElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    enum class Args {paths, splits, names, saxs};
+    enum class Args {paths, splits, names, saxs, continuation};
     static std::unordered_map<Args, std::vector<std::string>> valid_args = {
         {Args::paths, {"pdb"}},
         {Args::saxs, {"saxs"}},
         {Args::splits, {"split"}},
-        {Args::names, {"names", "name"}}
+        {Args::names, {"names", "name"}},
+        {Args::continuation, {"continue"}}
     };
 
     auto pdb = args.get<std::vector<std::string>>(valid_args[Args::paths]);
     auto saxs = args.get<std::string>(valid_args[Args::saxs]);
     auto names = args.get<std::vector<std::string>>(valid_args[Args::names]);
     auto split = args.get<std::vector<std::string>>(valid_args[Args::splits]);
+    auto resume = args.get<std::string>(valid_args[Args::continuation]);
 
     if (!args.inlined.empty()) {throw except::parse_error("load", "Unexpected inline arguments.");}
-    if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}
     if (!saxs.found) {throw except::parse_error("load", "Missing required argument \"saxs\".");}
+
+    if (resume.found) {
+        // a continuation state already fixes the body decomposition and their names, so the arguments that would set
+        // those up are rejected rather than silently ignored
+        if (pdb.found)   {throw except::parse_error("load", "\"continue\" and \"pdb\" are mutually exclusive.");}
+        if (split.found) {throw except::parse_error("load", "\"split\" cannot be combined with \"continue\"; the continuation state already carries the body decomposition.");}
+        if (names.found) {throw except::parse_error("load", "\"names\" cannot be combined with \"continue\"; the continuation state already carries the body names.");}
+        owner->_get_sequencer()->setup()._set_saxs_path(io::ExistingFile(saxs.value));
+        return std::make_unique<LoadElement>(owner->_get_sequencer(), from_continuation, resume.value);
+    }
+    if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}
 
     owner->_get_sequencer()->setup()._set_saxs_path(io::ExistingFile(saxs.value));
     if (split.found) {

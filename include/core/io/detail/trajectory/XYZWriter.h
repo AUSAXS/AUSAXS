@@ -27,5 +27,6 @@ namespace ausaxs::io::detail::xyz {
         private:
             std::ofstream file;
             std::string path;
+            unsigned int frame = 0;
     };
 }

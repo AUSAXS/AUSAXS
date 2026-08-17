@@ -12,18 +12,25 @@ namespace ausaxs::rigidbody::constraints {
         public: 
             /**
              * @brief Create a new constraint between a pair of atoms in the two bodies.
-             * 
-             * Complexity: O(n)
              */
             AttractorConstraint(
                 observer_ptr<const data::Molecule> molecule, double target_distance, 
                 int ibody1, int ibody2, std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1}
             );
+
+            /**
+             * @brief Restore a constraint from stored values, deriving nothing. See @ref restore_t.
+             */
+            AttractorConstraint(
+                restore_t, observer_ptr<const data::Molecule> molecule,
+                int ibody1, int iatom1, int ibody2, int iatom2,
+                std::pair<int, int> isym1, std::pair<int, int> isym2, double d_target
+            );
+
             virtual ~AttractorConstraint() override = default;
 
             /**
              * @brief Evaluate this constraint for the current positions. 
-             * 
              * @return The chi2 contribution of this constraint.
              */
             double evaluate() const override;

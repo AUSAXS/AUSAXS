@@ -15,6 +15,13 @@
 #include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
+    /**
+     * @brief Tag selecting the constructor that resumes from a saved continuation state.
+     *        Needed only to tell that overload apart from the single-path one, which has the same signature.
+     */
+    struct from_continuation_t {explicit from_continuation_t() = default;};
+    inline constexpr from_continuation_t from_continuation{};
+
     class LoadElement : public GenericElement {
         public:
             /**
@@ -31,6 +38,15 @@ namespace ausaxs::rigidbody::sequencer {
              * @brief Load multiple bodies from a single file, separated by the chainID. 
              */
             LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names = {});
+
+            /**
+             * @brief Resume from a continuation state written by a `save <name>.continue` element.
+             *
+             * The state carries the body decomposition, per-atom metadata, symmetries, names and constraints of the run
+             * that wrote it, so nothing is re-derived here and no split/symmetry/constraint elements should be applied
+             * on top: everything they would set up is already in place.
+             */
+            LoadElement(observer_ptr<Sequencer> owner, from_continuation_t, const std::string& path);
 
             ~LoadElement() override;
 

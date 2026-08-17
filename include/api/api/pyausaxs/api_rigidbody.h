@@ -33,8 +33,11 @@ extern "C" API int rigidbody_get_live_structure(
     int* status
 );
 
-// Register or unregister as a live consumer. `update` elements are no-ops unless this is set to true. 
+// Register or unregister as a live consumer. `update` elements are no-ops unless this is set to true.
 extern "C" API void rigidbody_register_live_consumer(bool connected, int* status);
+
+// Reset all internal rigidbody counters to prepare a fresh run. 
+extern "C" API void rigidbody_reset_output_state(int* status);
 
 extern "C" API void rigidbody_validate(
     int rigidbody_id,

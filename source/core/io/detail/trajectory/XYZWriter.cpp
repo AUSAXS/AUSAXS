@@ -26,7 +26,6 @@ XYZWriter::~XYZWriter() {
 }
 
 void XYZWriter::write_frame(observer_ptr<const data::Molecule> protein) {
-    static unsigned int frame = 0;
     std::vector<data::AtomFF> atoms;
     atoms.reserve(protein->size_atom());
     for (const auto& body : protein->get_bodies()) {

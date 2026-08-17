@@ -6,6 +6,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/UpdateElement.h>
+#include <rigidbody/sequencer/elements/SaveElement.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
@@ -169,6 +170,10 @@ int rigidbody_get_live_structure(
 
 void rigidbody_register_live_consumer(bool connected, int* status) {execute_with_catch([&]() {
     rigidbody::sequencer::UpdateElement::live_consumer_connected = connected;
+}, status);}
+
+void rigidbody_reset_output_state(int* status) {execute_with_catch([&]() {
+    rigidbody::sequencer::SaveElement::_reset_output_state();
 }, status);}
 
 void rigidbody_validate(

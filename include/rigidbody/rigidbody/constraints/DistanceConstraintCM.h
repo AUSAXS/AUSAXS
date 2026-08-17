@@ -18,6 +18,15 @@ namespace ausaxs::rigidbody::constraints {
              * Complexity: O(n)
              */
             DistanceConstraintCM(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2, std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1});
+            /**
+             * @brief Restore a constraint from stored values, deriving nothing. See @ref restore_t.
+             */
+            DistanceConstraintCM(
+                restore_t, observer_ptr<const data::Molecule> molecule,
+                int ibody1, int iatom1, int ibody2, int iatom2,
+                std::pair<int, int> isym1, std::pair<int, int> isym2, double d_target
+            );
+
             virtual ~DistanceConstraintCM() override = default;
 
             /**

@@ -64,3 +64,9 @@ double DistanceConstraintCM::evaluate() const {
 double DistanceConstraintCM::transform(double offset) {
     return functions::between_bodies(offset);
 }
+
+DistanceConstraintCM::DistanceConstraintCM(
+    restore_t, observer_ptr<const data::Molecule> molecule, int ibody1, int iatom1, int ibody2, int iatom2,
+    std::pair<int, int> isym1, std::pair<int, int> isym2, double d_target
+) : IDistanceConstraint(restore, molecule, ibody1, iatom1, ibody2, iatom2, std::move(isym1), std::move(isym2), d_target)
+{}

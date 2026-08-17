@@ -18,6 +18,18 @@ namespace ausaxs::rigidbody::constraints {
              */
             DistanceConstraintBond(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2);
 
+            /**
+             * @brief Restore a bond from stored values, skipping the candidate search entirely. See @ref restore_t.
+             *
+             * Notably this also skips the "too far apart" rejection: a refinement is free to stretch a bond well past
+             * the 4 Å a *new* bond is allowed to span, and a state that was legal to write must stay legal to read.
+             */
+            DistanceConstraintBond(
+                restore_t, observer_ptr<const data::Molecule> molecule,
+                int ibody1, int iatom1, int ibody2, int iatom2,
+                std::pair<int, int> isym1, std::pair<int, int> isym2, double d_target
+            );
+
             virtual ~DistanceConstraintBond() override = default;
 
             /**
