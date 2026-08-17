@@ -5,6 +5,32 @@ function(setup_compile_commands)
     )
 
     ############################################
+    ##             Safety checks              ##
+    ############################################
+    # Intended for the CI test runners: they build optimized, but must still exercise the internal
+    # checks, since production code is never supposed to reach those paths in the first place.
+    option(SAFE_CHECKS
+        "Enable asserts, bounds and sanity checks in optimized builds. Implied by Debug builds."
+        OFF
+    )
+    mark_as_advanced(SAFE_CHECKS)
+
+    add_compile_definitions("$<$<OR:$<CONFIG:DEBUG>,$<BOOL:${SAFE_CHECKS}>>:DEBUG=1;SAFE_MATH=1>")
+
+    # DEBUG & SAFE_MATH revive the explicit bounds and sanity checks, but assert() is governed by
+    # NDEBUG, which CMake bakes into the optimized configurations. Strip it so SAFE_CHECKS covers
+    # asserts too. These are cache defaults, so the overrides have to be pushed to the caller.
+    if (SAFE_CHECKS)
+        foreach(config RELEASE RELWITHDEBINFO MINSIZEREL)
+            foreach(lang C CXX)
+                string(REPLACE "-DNDEBUG" "" _stripped "${CMAKE_${lang}_FLAGS_${config}}")
+                string(REPLACE "/DNDEBUG" "" _stripped "${_stripped}")
+                set(CMAKE_${lang}_FLAGS_${config} "${_stripped}" PARENT_SCOPE)
+            endforeach()
+        endforeach()
+    endif()
+
+    ############################################
     ##          Architecture mapping          ##
     ############################################
     string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" SYS_ARCH)
