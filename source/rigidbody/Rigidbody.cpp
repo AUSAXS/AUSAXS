@@ -63,8 +63,13 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
     parameter_generator = factory::create_parameter_strategy(
         this, 
         settings::rigidbody::iterations,
-        5,
-        std::numbers::pi/3
+        {
+            .translation = 5,
+            .rotation = std::numbers::pi/3,
+            .symmetry_translation = parameter::default_symmetry_translation(this),
+            .symmetry_rotation = parameter::default_symmetry_rotation
+        },
+        settings::rigidbody::parameter_generation_strategy
     );
 }
 

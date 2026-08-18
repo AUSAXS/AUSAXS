@@ -126,14 +126,19 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
         }
     }
 
+    parameter::ParameterAmplitudes amplitudes = {
+        .translation = translate.value,
+        .rotation = rotate.value,
+        .symmetry_translation = parameter::default_symmetry_translation(owner->_get_rigidbody()),
+        .symmetry_rotation = parameter::default_symmetry_rotation
+    };
+
     return std::make_unique<ParameterElement>(
         owner,
         rigidbody::factory::create_parameter_strategy(
             owner->_get_rigidbody(),
             rigidbody::factory::create_decay_strategy(iterations.value, get_decay_strategy(decay_strategy.value)),
-            translate.value,
-            rotate.value,
-            get_parameter_strategy(strategy.value)
+            rigidbody::factory::restrict_to(amplitudes, get_parameter_strategy(strategy.value))
         )
     );
 }

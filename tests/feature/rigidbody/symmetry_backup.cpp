@@ -9,7 +9,7 @@
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/parameters/ParameterGenerationStrategies.h>
+#include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Molecule.h>
@@ -322,21 +322,16 @@ TEST_CASE("SymmetryBackup: CompositeSymmetry parameters are optimised") {
     REQUIRE(rb.molecule.get_body(ibody).size_symmetry() == 1);
     REQUIRE(rb.conformation->absolute_parameters.parameters[ibody].symmetry_pars.size() == 1);
 
-    // enable optimisation of the symmetry parameters (composites cannot go through the
-    // type-based add() that normally sets these flags, so set them directly)
-    auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(rb.molecule.get_body(ibody).symmetry().get_obj());
-    REQUIRE(storage != nullptr);
-    storage->optimize_translate = true;
-    storage->optimize_rot_axis = true;
-
     // generate a symmetry-only perturbation
-    rigidbody::parameter::SymmetryOnly gen(&rb, settings::rigidbody::iterations, 5, 0.5);
+    rigidbody::parameter::UniformParameterGenerator gen(
+        &rb, settings::rigidbody::iterations, {.symmetry_translation = 5, .symmetry_rotation = 0.5}
+    );
     auto params = gen.next(ibody);
     REQUIRE(params.symmetry_pars.has_value());
     REQUIRE(params.symmetry_pars.value().size() == 1);
 
     // the generated delta must be a composite whose inner AND outer parts both received a
-    // non-zero perturbation: this proves the recursion in ParameterGenerationStrategies
+    // non-zero perturbation: this proves the recursion in UniformParameterGenerator
     auto* delta = dynamic_cast<symmetry::CompositeSymmetry*>(params.symmetry_pars.value()[0].get());
     REQUIRE(delta != nullptr);
     auto nonzero = [](std::span<double> s) {

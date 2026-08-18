@@ -8,7 +8,6 @@
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
-#include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
@@ -31,14 +30,6 @@ namespace {
         symmetry::for_each_leaf(sym, [offset](symmetry::ISymmetry& leaf) {
             if (auto t = leaf.span_translation(); !t.empty()) {*t.begin() = offset;}
         });
-    }
-
-    // Mark the body's symmetry storage as optimizable. All supported symmetry types expose both an offset and a frame orientation to the optimiser.
-    void enable_optimization(symmetry::SymmetryStorage* storage) {
-        auto* opt = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(storage);
-        assert(opt != nullptr && "SymmetryElement: body symmetry storage is not optimizable.");
-        opt->optimize_translate = true;
-        opt->optimize_rot_axis = true;
     }
 }
 
@@ -77,9 +68,7 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
     for (unsigned int i = 0; i < names.size(); ++i) {
         int ibody = setup._get_body(names[i]);
 
-        // install the symmetry on the live body and the stored initial conformation; both storages must be optimizable for the parameter optimiser to drive them
-        enable_optimization(molecule->get_body(ibody).symmetry().get_obj());
-        enable_optimization(rigidbody->conformation->initial_conformation[ibody].symmetry().get_obj());
+        // install the symmetry on the live body and the stored initial conformation
         molecule->get_body(ibody).symmetry().add(symmetries[i]->clone());
         rigidbody->conformation->initial_conformation[ibody].symmetry().add(std::move(symmetries[i]));
 
@@ -136,8 +125,6 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     int primary_slot = slots.front();
 
     // the primary body owns the shared ReferenceSymmetry; install it on the live molecule and the stored initial conformation
-    enable_optimization(molecule->get_body(primary).symmetry().get_obj());
-    enable_optimization(rigidbody->conformation->initial_conformation[primary].symmetry().get_obj());
     molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base_sym->clone(), bodies, slots, molecule));
     rigidbody->conformation->initial_conformation[primary].symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(std::move(base_sym), bodies, slots, molecule));
 
@@ -150,8 +137,6 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     // molecule so they survive refinement
     for (std::size_t k = 1; k < bodies.size(); ++k) {
         int b = bodies[k];
-        enable_optimization(molecule->get_body(b).symmetry().get_obj());
-        enable_optimization(rigidbody->conformation->initial_conformation[b].symmetry().get_obj());
         molecule->get_body(b).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(molecule, primary, primary_slot));
         rigidbody->conformation->initial_conformation[b].symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(molecule, primary, primary_slot));
     }

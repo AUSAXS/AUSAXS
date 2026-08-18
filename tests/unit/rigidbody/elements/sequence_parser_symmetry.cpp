@@ -8,7 +8,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/parameters/ParameterGenerationStrategies.h>
+#include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -230,7 +230,9 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
     REQUIRE(ref != nullptr);
     REQUIRE(view != nullptr);
 
-    rigidbody::parameter::SymmetryOnly gen(rb, settings::rigidbody::iterations, 5, 0.5);
+    rigidbody::parameter::UniformParameterGenerator gen(
+        rb, settings::rigidbody::iterations, {.symmetry_translation = 5, .symmetry_rotation = 0.5}
+    );
     auto nonzero = [](std::span<double> s) {return std::any_of(s.begin(), s.end(), [](double v) {return v != 0;});};
 
     SECTION("the shared symmetry is optimisable, the view is inert") {

@@ -113,9 +113,6 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     // non-owning views (same pattern as SymmetryElement::_add_reference)
     int primary = final_indices.front();
     for (std::size_t i = 0; i < orig_symmetries.size(); ++i) {
-        auto* opt_primary = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(molecule->get_body(primary).symmetry().get_obj());
-        opt_primary->optimize_translate = true;
-        opt_primary->optimize_rot_axis = true;
         molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(
             orig_symmetries[i]->clone(), final_indices, std::vector<int>(final_indices.size(), static_cast<int>(i)), molecule
         ));
@@ -125,9 +122,6 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
 
         for (std::size_t k = 1; k < final_indices.size(); ++k) {
             int b = final_indices[k];
-            auto* opt = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(molecule->get_body(b).symmetry().get_obj());
-            opt->optimize_translate = true;
-            opt->optimize_rot_axis = true;
             molecule->get_body(b).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(molecule, primary, static_cast<int>(i)));
         }
 

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <rigidbody/parameters/ParameterGenerationStrategies.h>
+#include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -11,7 +11,7 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::data;
 
-TEST_CASE("RotationsOnly::next") {
+TEST_CASE("UniformParameterGenerator::next") {
     settings::general::verbose = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
@@ -21,7 +21,7 @@ TEST_CASE("RotationsOnly::next") {
     Rigidbody rb(Molecule{std::vector<Body>{Body(std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)})}});
 
     SECTION("RotationsOnly") {
-        rigidbody::parameter::RotationsOnly ro(&rb, iterations, length_start, rad_start);
+        rigidbody::parameter::UniformParameterGenerator ro(&rb, iterations, {.rotation = rad_start});
 
         for (int i = 0; i < iterations; i++) {
             auto p = ro.next(0);
@@ -36,7 +36,7 @@ TEST_CASE("RotationsOnly::next") {
     }
 
     SECTION("TranslationsOnly") {
-        rigidbody::parameter::TranslationsOnly to(&rb, iterations, length_start, rad_start);
+        rigidbody::parameter::UniformParameterGenerator to(&rb, iterations, {.translation = length_start});
 
         for (int i = 0; i < iterations; i++) {
             auto p = to.next(0);
@@ -51,7 +51,7 @@ TEST_CASE("RotationsOnly::next") {
     }
 
     SECTION("translations & rotations") {
-        rigidbody::parameter::AllParameters ap(&rb, iterations, length_start, rad_start);
+        rigidbody::parameter::UniformParameterGenerator ap(&rb, iterations, {.translation = length_start, .rotation = rad_start});
 
         for (int i = 0; i < iterations; i++) {
             auto p = ap.next(0);
