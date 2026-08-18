@@ -39,24 +39,17 @@ Vector3<double> ParameterGenerationStrategy::draw_direction() {
     return {r*std::cos(azimuth), r*std::sin(azimuth), z};
 }
 
-void ParameterGenerationStrategy::draw_isotropic(std::span<double> out, double magnitude) {
-    switch (out.size()) {
-        case 0: return; // a symmetry with no parameters of its own, e.g. a view onto another body's
+Vector3<double> ParameterGenerationStrategy::draw_isotropic(double magnitude, std::size_t dimensions) {
+    switch (dimensions) {
+        case 0: return {0, 0, 0}; // a symmetry with no parameters of its own, e.g. a view onto another body's
         case 2: { // a planar parameter, whose direction is a single uniform azimuth
             double azimuth = std::numbers::pi*unit_dist(random::generator());
-            out[0] = magnitude*std::cos(azimuth);
-            out[1] = magnitude*std::sin(azimuth);
-            return;
+            return {magnitude*std::cos(azimuth), magnitude*std::sin(azimuth), 0};
         }
-        case 3: {
-            auto v = draw_direction()*magnitude;
-            out[0] = v.x();
-            out[1] = v.y();
-            out[2] = v.z();
-            return;
-        }
+        case 3: return draw_direction()*magnitude;
         default:
             assert(false && "ParameterGenerationStrategy::draw_isotropic: unexpected parameter count.");
+            return {0, 0, 0};
     }
 }
 

@@ -10,8 +10,8 @@
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
 
+#include <cstddef>
 #include <random>
-#include <span>
 
 namespace ausaxs::rigidbody::parameter {    
     /**
@@ -80,12 +80,13 @@ namespace ausaxs::rigidbody::parameter {
             Vector3<double> draw_direction();
 
             /**
-             * @brief Fill the span with a vector of the given magnitude pointing in a uniformly distributed direction.
+             * @brief Draw a vector of the given magnitude pointing in a uniformly distributed direction.
              *
-             * The direction is drawn in as many dimensions as the span has, so that a planar parameter is perturbed
+             * The direction is drawn within the given number of dimensions, so that a planar parameter is perturbed
              * isotropically within its own plane rather than by the projection of a three-dimensional direction.
+             * Any dimension beyond the requested count is zero.
              */
-            void draw_isotropic(std::span<double> out, double magnitude);
+            Vector3<double> draw_isotropic(double magnitude, std::size_t dimensions = 3);
 
             observer_ptr<const Rigidbody> rigidbody;
             ParameterAmplitudes amplitudes;
