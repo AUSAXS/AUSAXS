@@ -7,7 +7,6 @@
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/selection/SymmetryTargets.h>
@@ -20,16 +19,6 @@
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
-
-namespace {
-    // A freshly-constructed Body carries a plain (non-optimizable) SymmetryStorage; every body already in a Rigidbody was converted once, at construction time 
-    // (see Rigidbody::Rigidbody). New fragments need the same conversion before any symmetry can be attached and driven by the optimiser.
-    void make_optimizable(data::Body& body) {
-        if (dynamic_cast<symmetry::OptimizableSymmetryStorage*>(body.symmetry().get_obj()) == nullptr) {
-            body.symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>(std::move(*body.symmetry().get_obj())));
-        }
-    }
-}
 
 SplitElement::SplitElement(observer_ptr<Sequencer> owner, const std::string& body_name, std::vector<int> splits) : owner(owner) {
     _split(body_name, splits);
@@ -86,7 +75,6 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     } catch (const std::exception& e) {
         throw except::parse_error("split", e.what());
     }
-    for (auto& frag : fragments) {make_optimizable(frag);}
 
     // append the fragments at the tail of the molecule/conformation; erasing the original body afterwards shifts every one of these indices down by exactly 
     // one, since they are necessarily all above it

@@ -28,7 +28,6 @@ add_library(ausaxs_rigidbody OBJECT
 	
 	"parameters/BodyTransformParametersAbsolute.cpp"
 	"parameters/BodyTransformParametersRelative.cpp"
-	"parameters/OptimizableSymmetryStorage.cpp"
 	"parameters/ParameterGenerationFactory.cpp"
 	"parameters/ParameterGenerationStrategy.cpp"
 	"parameters/UniformParameterGenerator.cpp"

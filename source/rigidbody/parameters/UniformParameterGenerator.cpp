@@ -2,7 +2,6 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/parameters/UniformParameterGenerator.h>
-#include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
@@ -35,11 +34,8 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
     }
 
     if (amplitudes.symmetry_translation != 0 || amplitudes.symmetry_rotation != 0) {
-        const auto* storage = rigidbody->molecule.get_body(ibody).symmetry().get_obj();
-        assert(
-            dynamic_cast<const symmetry::OptimizableSymmetryStorage*>(storage) != nullptr
-            && "UniformParameterGenerator::next: the body's symmetry storage is not optimizable."
-        );
+        // ReferenceSymmetryViews among these are inert: their spans are empty, so the loops below simply do not touch them.
+        const auto& symmetries = rigidbody->molecule.get_body(ibody).symmetry().get_obj()->symmetries;
         params.symmetry_pars.emplace();
 
         // assign a random delta to every leaf sub-symmetry. CompositeSymmetry has no parameter spans of its own (its two 
@@ -52,7 +48,7 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
             for (auto& r : leaf.span_rotation())    {r = rotate    ? draw(amplitudes.symmetry_rotation)*scaling    : 0;}
         };
 
-        for (const auto& symmetry : storage->symmetries) {
+        for (const auto& symmetry : symmetries) {
             auto delta = symmetry->clone();
             ausaxs::symmetry::for_each_leaf(*delta, randomize);
             params.symmetry_pars->emplace_back(std::move(delta));
