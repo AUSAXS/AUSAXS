@@ -116,7 +116,7 @@ void ausaxs::rigidbody::sequencer::detail::validate_named_arguments(ElementType 
     if (unknown.empty()) {return;}
 
     std::string msg = "Unknown argument" + std::string(1 < unknown.size() ? "s " : " ") + quote_join(std::move(unknown));
-    if (0 <= line_number) {msg += " (first at line " + std::to_string(line_number) + ")";}
+    if (0 <= line_number) {msg += " (line " + std::to_string(line_number) + ")";}
     msg += valid.empty()
         ? ". This element takes no named arguments."
         : ". Valid arguments are: " + quote_join(std::move(valid)) + ".";
