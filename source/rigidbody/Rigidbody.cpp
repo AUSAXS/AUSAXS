@@ -58,7 +58,7 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
             .translation = 5,
             .rotation = std::numbers::pi/3,
             .symmetry_translation = parameter::default_symmetry_translation(this),
-            .symmetry_rotation = parameter::default_symmetry_rotation
+            .symmetry_rotation = parameter::default_symmetry_rotation()
         },
         settings::rigidbody::parameter_generation_strategy
     );
