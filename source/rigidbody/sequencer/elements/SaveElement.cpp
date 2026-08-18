@@ -83,6 +83,7 @@ InlineSignature SaveElement::_valid_inline_arguments() {
     return {.names = {"path"}, .min = 1, .max = 1};
 }
 
+// save [path] - resolved relative to the output folder
 std::unique_ptr<GenericElement> SaveElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     return std::make_unique<SaveElement>(owner, settings::general::output + args.inlined[0]);
 }

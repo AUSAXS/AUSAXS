@@ -27,6 +27,7 @@ InlineSignature EveryNStepElement::_valid_inline_arguments() {
     return {.names = {"steps"}, .min = 1, .max = 1};
 }
 
+// every [steps] - opens a block run once every [steps] iterations
 std::unique_ptr<GenericElement> EveryNStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     if (!utility::isinteger(args.inlined[0])) {throw except::parse_error("every_n_step", "Expected an integer value for the number of steps, but got \"" + args.inlined[0] + "\".");}
     return std::make_unique<EveryNStepElement>(owner, std::stoi(args.inlined[0]));

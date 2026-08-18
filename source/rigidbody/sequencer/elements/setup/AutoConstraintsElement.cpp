@@ -25,6 +25,7 @@ InlineSignature AutoConstraintsElement::_valid_inline_arguments() {
     return {.names = {"strategy"}, .min = 1, .max = 1};
 }
 
+// autoconstrain [strategy] - one of: none, backbone
 std::unique_ptr<GenericElement> AutoConstraintsElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static auto get_constraint_strategy = [] (std::string_view line) {
         if (line == "none") {return settings::rigidbody::ConstraintGenerationStrategyChoice::None;}

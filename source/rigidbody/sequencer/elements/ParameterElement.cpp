@@ -69,6 +69,7 @@ InlineSignature ParameterElement::_valid_inline_arguments() {
     return {.names = {}, .min = 0, .max = 0};
 }
 
+// parameter { iterations [n], and any of: translate, rotate, mode, decay }
 std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static auto get_parameter_strategy = [] (std::string_view line) {
         if (line == ParameterStrategyDefs::ROTATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}

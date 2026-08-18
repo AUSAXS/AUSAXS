@@ -36,6 +36,7 @@ InlineSignature OptimizeStepElement::_valid_inline_arguments() {
     return {.names = {}, .min = 0, .max = 0};
 }
 
+// optimize_step - opens a block run after each optimization step
 std::unique_ptr<GenericElement> OptimizeStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&&) {
     return std::make_unique<OptimizeStepElement>(owner);
 }

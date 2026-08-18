@@ -18,6 +18,7 @@ namespace {
     };
 }
 
+// seed [seed] - integer seed for the global random number generator
 void detail::SeedElement::_parse(observer_ptr<LoopElement>, ParsedArgs&& args) {
     if (!utility::isinteger(args.inlined[0])) {throw except::parse_error("seed", "Expected an integer seed value, but got \"" + args.inlined[0] + "\".");}
 
@@ -25,14 +26,17 @@ void detail::SeedElement::_parse(observer_ptr<LoopElement>, ParsedArgs&& args) {
     random::set_seed(seed);
 }
 
+// log [message] - like print, but written to the log instead of the console
 std::unique_ptr<GenericElement> detail::LogElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto message = args.inlined[0];
     return std::make_unique<MessageElement>(owner->_get_sequencer(), message, true);
 }
 
+// end - closes the innermost open block
 void detail::LoopEndElement::_parse(observer_ptr<LoopElement>, ParsedArgs&&) {
 }
 
+// overlap_strength { scaling [factor], max [distance] }
 void detail::OverlapStrengthElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto scaling = args.get<double>(overlap_args_map[OverlapArgs::scaling]);
     auto distance = args.get<double>(overlap_args_map[OverlapArgs::distance]);

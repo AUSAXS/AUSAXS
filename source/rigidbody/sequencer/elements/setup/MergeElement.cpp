@@ -82,6 +82,7 @@ InlineSignature MergeElement::_valid_inline_arguments() {
     return {.names = {"first", "others..."}, .min = 2, .max = unbounded_inline_args};
 }
 
+// merge [first] [others...] - merges every [others] body into [first]
 std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string first = args.inlined[0];

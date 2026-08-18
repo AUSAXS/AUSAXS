@@ -166,6 +166,7 @@ InlineSignature SplitElement::_valid_inline_arguments() {
     return {.names = {"body", "residue ids..."}, .min = 2, .max = unbounded_inline_args};
 }
 
+// split [body] [residue ids...] - splits [body] at the given residue sequence ids
 std::unique_ptr<GenericElement> SplitElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     std::string body_name = args.inlined[0];
     std::vector<int> splits;

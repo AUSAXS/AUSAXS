@@ -25,6 +25,7 @@ InlineSignature TransformElement::_valid_inline_arguments() {
     return {.names = {"strategy"}, .min = 1, .max = 1};
 }
 
+// transform [strategy] - one of: rigid, single
 std::unique_ptr<GenericElement> TransformElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static auto get_transform_strategy = [] (std::string_view line) {
         if (line == "rigid_transform" || line == "rigid") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}

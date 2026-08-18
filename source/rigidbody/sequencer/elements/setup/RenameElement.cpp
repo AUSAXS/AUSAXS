@@ -25,6 +25,7 @@ InlineSignature RenameElement::_valid_inline_arguments() {
     return {.names = {"old name", "new name"}, .min = 2, .max = 2};
 }
 
+// rename [old name] [new name]
 std::unique_ptr<GenericElement> RenameElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string old_name = args.inlined[0];

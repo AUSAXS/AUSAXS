@@ -29,6 +29,7 @@ InlineSignature OnImprovementElement::_valid_inline_arguments() {
     return {.names = {}, .min = 0, .max = 0};
 }
 
+// on_improvement - opens a block run whenever a step improves the fit; only valid inside an optimize_step block
 std::unique_ptr<GenericElement> OnImprovementElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&&) {
     observer_ptr<OptimizeStepElement> optimize_step = nullptr;
     if (optimize_step = dynamic_cast<OptimizeStepElement*>(owner); !optimize_step) {

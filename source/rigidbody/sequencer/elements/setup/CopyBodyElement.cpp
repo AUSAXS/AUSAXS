@@ -51,9 +51,10 @@ std::vector<std::string> CopyBodyElement::_valid_arguments() {
 }
 
 InlineSignature CopyBodyElement::_valid_inline_arguments() {
-    return {.names = {"new name", "target name"}, .min = 2, .max = 2};
+    return {.names = {"target name", "new name"}, .min = 2, .max = 2};
 }
 
+// copy [target name] [new name] - the two are swapped if the first does not name an existing body
 std::unique_ptr<GenericElement> CopyBodyElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string source = args.inlined[0];

@@ -50,6 +50,7 @@ InlineSignature ConstraintElement::_valid_inline_arguments() {
     return {.names = {}, .min = 0, .max = 0};
 }
 
+// constrain { first [body], second [body], type [type], plus whatever extra arguments that type requires }
 void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto body1 = args.get<std::string>(args_map[Args::body1]);
     auto body2 = args.get<std::string>(args_map[Args::body2]);
