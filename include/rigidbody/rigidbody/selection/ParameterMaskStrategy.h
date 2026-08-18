@@ -35,6 +35,16 @@ namespace ausaxs::rigidbody::selection {
         ParameterMask next() override { return ParameterMask::symmetry_only(); }
     };
 
+    // Only the symmetry offset translation is active.
+    struct SymmetryTranslationMaskStrategy : ParameterMaskStrategy {
+        ParameterMask next() override { return ParameterMask::symmetry_only_trans(); }
+    };
+
+    // Only the symmetry frame orientation is active.
+    struct SymmetryAxisMaskStrategy : ParameterMaskStrategy {
+        ParameterMask next() override { return ParameterMask::symmetry_only_axis(); }
+    };
+
     /**
      * @brief Alternates between real-transform step and symmetry-parameter step.
      *

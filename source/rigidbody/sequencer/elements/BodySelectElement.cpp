@@ -97,6 +97,8 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
         if (line == "all")                  {return settings::rigidbody::ParameterMaskStrategyChoice::All;}
         if (line == "real")                 {return settings::rigidbody::ParameterMaskStrategyChoice::Real;}
         if (line == "symmetry")             {return settings::rigidbody::ParameterMaskStrategyChoice::Symmetry;}
+        if (line == "symmetry_translation") {return settings::rigidbody::ParameterMaskStrategyChoice::SymmetryTranslation;}
+        if (line == "symmetry_axis")        {return settings::rigidbody::ParameterMaskStrategyChoice::SymmetryAxis;}
         if (line == "sequential")           {return settings::rigidbody::ParameterMaskStrategyChoice::Sequential;}
         if (line == "sequential_symmetry")  {return settings::rigidbody::ParameterMaskStrategyChoice::SequentialSymmetry;}
         if (line == "sequential_real")      {return settings::rigidbody::ParameterMaskStrategyChoice::SequentialReal;}

@@ -23,6 +23,10 @@ namespace {
                 return std::make_unique<RealOnlyMaskStrategy>();
             case settings::rigidbody::ParameterMaskStrategyChoice::Symmetry:
                 return std::make_unique<SymmetryOnlyMaskStrategy>();
+            case settings::rigidbody::ParameterMaskStrategyChoice::SymmetryTranslation:
+                return std::make_unique<SymmetryTranslationMaskStrategy>();
+            case settings::rigidbody::ParameterMaskStrategyChoice::SymmetryAxis:
+                return std::make_unique<SymmetryAxisMaskStrategy>();
             case settings::rigidbody::ParameterMaskStrategyChoice::Sequential:
                 return std::make_unique<SequentialMaskStrategy>();
             case settings::rigidbody::ParameterMaskStrategyChoice::Random:

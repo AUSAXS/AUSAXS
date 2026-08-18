@@ -272,3 +272,50 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     // ...and b1s2 itself is perturbed
     CHECK_FALSE(parameters_of(*body_params.symmetry_pars[1]) == targeted_before);
 }
+
+TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement symmetry mask split", "[files]") {
+    auto mask_of = [this] (const std::string& mask_name) {
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry c2\n"
+            "select {\n"
+            "    body random_body\n"
+            "    parameters " + mask_name + "\n"
+            "}\n"
+        );
+        REQUIRE(seq != nullptr);
+        seq->execute(); // the parsed strategy is installed when the element runs
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+        return rb->body_selector->next_mask().mask;
+    };
+
+    SECTION("symmetry_translation activates the offset alone") {
+        auto mask = mask_of("symmetry_translation");
+        CHECK_FALSE(mask.real_translation);
+        CHECK_FALSE(mask.real_rotation);
+        CHECK(mask.sym_translation);
+        CHECK_FALSE(mask.sym_axis);
+    }
+
+    SECTION("symmetry_axis activates the frame orientation alone") {
+        auto mask = mask_of("symmetry_axis");
+        CHECK_FALSE(mask.real_translation);
+        CHECK_FALSE(mask.real_rotation);
+        CHECK_FALSE(mask.sym_translation);
+        CHECK(mask.sym_axis);
+    }
+
+    SECTION("symmetry still activates both") {
+        auto mask = mask_of("symmetry");
+        CHECK(mask.sym_translation);
+        CHECK(mask.sym_axis);
+    }
+
+    SECTION("an unknown mask name is rejected") {
+        CHECK_THROWS_AS(mask_of("symmetry_sideways"), sequencer::except::parse_error);
+    }
+}
