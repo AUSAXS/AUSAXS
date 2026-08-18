@@ -52,15 +52,7 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
     body_selector = factory::create_selection_strategy(this);
     transformer = factory::create_transform_strategy(this);
     parameter_generator = factory::create_parameter_strategy(
-        this, 
-        settings::rigidbody::iterations,
-        {
-            .translation = 5,
-            .rotation = std::numbers::pi/3,
-            .symmetry_translation = parameter::default_symmetry_translation(this),
-            .symmetry_rotation = parameter::default_symmetry_rotation()
-        },
-        settings::rigidbody::parameter_generation_strategy
+        this, settings::rigidbody::iterations, settings::rigidbody::parameter_generation_strategy
     );
 }
 

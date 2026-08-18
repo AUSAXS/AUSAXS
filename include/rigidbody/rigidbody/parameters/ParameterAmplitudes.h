@@ -21,6 +21,16 @@ namespace ausaxs::rigidbody::parameter {
     };
 
     /**
+     * @brief The body translation amplitude used when none is named.
+     */
+    constexpr double default_translation() {return 5;}
+
+    /**
+     * @brief The body rotation amplitude used when none is named.
+     */
+    double default_rotation();
+
+    /**
      * @brief The symmetry translation amplitude used when symmetry optimisation is enabled without naming an amplitude.
      */
     double default_symmetry_translation(observer_ptr<const Rigidbody> rigidbody);
@@ -29,4 +39,9 @@ namespace ausaxs::rigidbody::parameter {
      * @brief The symmetry rotation amplitude used when symmetry optimisation is enabled without naming an amplitude.
      */
     constexpr double default_symmetry_rotation() {return 3;}
+
+    /**
+     * @brief Every component at its default amplitude, for an optimisation that was not configured by a script.
+     */
+    ParameterAmplitudes default_amplitudes(observer_ptr<const Rigidbody> rigidbody);
 }

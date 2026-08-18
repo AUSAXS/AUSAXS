@@ -25,10 +25,12 @@ namespace ausaxs::rigidbody::factory {
     );
 
     /**
-     * @brief Create a parameter strategy with the components excluded by the given choice disabled.
+     * @brief Create the default strategy: every component at its default amplitude, restricted to the given choice.
+     *
+     * This is the unconfigured strategy a Rigidbody starts out with. A script instead names its own amplitudes,
+     * so it uses one of the overloads above rather than this one.
      */
     std::unique_ptr<parameter::ParameterGenerationStrategy> create_parameter_strategy(
-        observer_ptr<const Rigidbody> molecule, unsigned int iterations, const parameter::ParameterAmplitudes& amplitudes,
-        settings::rigidbody::ParameterGenerationStrategyChoice choice
+        observer_ptr<const Rigidbody> molecule, unsigned int iterations, settings::rigidbody::ParameterGenerationStrategyChoice choice
     );
 }
