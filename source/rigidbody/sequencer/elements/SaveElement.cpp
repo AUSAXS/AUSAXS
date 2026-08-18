@@ -79,7 +79,11 @@ std::vector<std::string> SaveElement::_valid_arguments() {
     return {};
 }
 
+InlineSignature SaveElement::_valid_inline_arguments() {
+    return {.names = {"path"}, .min = 1, .max = 1};
+}
+
+// save [path] - resolved relative to the output folder
 std::unique_ptr<GenericElement> SaveElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.size() != 1) {throw except::parse_error("save", "Expected only a single inline argument.");}
     return std::make_unique<SaveElement>(owner, settings::general::output + args.inlined[0]);
 }

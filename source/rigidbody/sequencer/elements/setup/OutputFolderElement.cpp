@@ -47,16 +47,17 @@ std::vector<std::string> OutputFolderElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature OutputFolderElement::_valid_inline_arguments() {
+    return {.names = {"path"}, .min = 0, .max = 1};
+}
+
 std::unique_ptr<GenericElement> OutputFolderElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto path = args.get<std::string>(args_map[Args::path]);
     auto mode = args.get<std::string>(args_map[Args::mode], "relative_terminal");
 
-    if (args.inlined.size() == 1) {
-        if (path.found) {throw except::parse_error("output", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
+    if (!args.inlined.empty()) {
         path.value = args.inlined[0];
         path.found = true;
-    } else if (args.inlined.size() > 1) {
-        throw except::parse_error("output", "Too many inline arguments. Expected at most 1, but got " + std::to_string(args.inlined.size()) + ".");
     }
     if (!path.found) {throw except::parse_error("output", "Missing required argument \"path\".");}
 

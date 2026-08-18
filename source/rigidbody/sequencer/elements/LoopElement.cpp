@@ -150,6 +150,10 @@ std::vector<std::string> LoopElement::_valid_arguments() {
     return {};
 }
 
+InlineSignature LoopElement::_valid_inline_arguments() {
+    return {.names = {"name", "iterations"}, .min = 0, .max = 2};
+}
+
 std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
     static observer_ptr<LoopElement> last_loop_element = nullptr;
@@ -177,37 +181,37 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
         return iterations;
     };
 
-    if (args.inlined.empty()) { // no args - try to deduce iteration count
+    if (args.inlined.empty()) { // pattern 1: [] - iteration count deduced from the last parameter element
         return std::make_unique<LoopElement>(owner, deduce_iteration_count());
-    } else if (args.inlined.size() == 1) { // option 1, 2, 4
-        try { // check option 1
+    } else if (args.inlined.size() == 1) {
+        try { // pattern 2: [iterations]
             int iterations = std::stoi(args.inlined[0]);
             return std::make_unique<LoopElement>(owner, iterations);
         } catch (std::exception&) {
             const auto& name = args.inlined[0];
 
-            // check option 4
+            // pattern 3: [duplicate|copy] - repeats the most recently named loop
             if (name == "duplicate" || name == "copy") {
                 if (loop_names.empty()) {throw except::parse_error("loop", args.inlined, "No previous loop found to duplicate.");}
                 return std::make_unique<CopyLoopElement>(owner, last_loop_element);
             }
 
-            // else it must be option 2
+            // pattern 4: [name] - iteration count deduced as in pattern 1
             if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
             auto loop = std::make_unique<LoopElement>(owner, deduce_iteration_count());
             loop_names[name] = loop.get();
             last_loop_element = loop.get();
             return loop;
         }
-    } else if (args.inlined.size() == 2) { // option 3, 5
-        // check option 5
+    } else {
+        // pattern 5: [duplicate|copy] [name] - repeats the named loop
         if (args.inlined[0] == "duplicate" || args.inlined[0] == "copy") {
             const auto& name = args.inlined[1];
             if (!loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Target loop name \"" + name + "\" does not exist.");}
             return std::make_unique<CopyLoopElement>(owner, loop_names.at(name));
         }
 
-        // else it must be option 3
+        // pattern 6: [name] [iterations]
         try {
             int iterations = std::stoi(args.inlined[1]);
             const auto& name = args.inlined[0];
@@ -220,5 +224,4 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
             throw except::parse_error("loop", args.inlined, "Could not determine number of iterations.");
         }
     }
-    throw except::parse_error("loop", args.inlined, "Invalid arguments.");
 }

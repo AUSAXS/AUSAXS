@@ -294,14 +294,16 @@ std::vector<std::string> ConvertToSymmetryElement::_valid_arguments() {
     return {"type", "bodies", "tolerance"};
 }
 
+InlineSignature ConvertToSymmetryElement::_valid_inline_arguments() {
+    return {.names = {"symmetry"}, .min = 0, .max = 1};
+}
+
 std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto rigidbody = owner->_get_rigidbody();
     auto sequencer = owner->_get_sequencer();
 
     // inline form: "convert_to_symmetry c4" uses every loaded body, in load order
     if (!args.inlined.empty()) {
-        if (!args.named.empty()) {throw except::parse_error("convert_to_symmetry", "Cannot combine named and inline arguments.");}
-        if (args.inlined.size() != 1) {throw except::parse_error("convert_to_symmetry", "The inline form takes exactly one symmetry name.");}
         std::vector<int> bodies(rigidbody->molecule.size_body());
         for (int i = 0; i < static_cast<int>(bodies.size()); ++i) {bodies[i] = i;}
         return std::make_unique<ConvertToSymmetryElement>(sequencer, std::move(bodies), std::string{args.inlined[0]});

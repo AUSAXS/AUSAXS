@@ -162,11 +162,12 @@ std::vector<std::string> SplitElement::_valid_arguments() {
     return {};
 }
 
-std::unique_ptr<GenericElement> SplitElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.size() < 2) {
-        throw except::parse_error("split", "Expected a body name followed by one or more residue sequence ids to split at.");
-    }
+InlineSignature SplitElement::_valid_inline_arguments() {
+    return {.names = {"body", "residue ids..."}, .min = 2, .max = unbounded_inline_args};
+}
 
+// split [body] [residue ids...] - splits [body] at the given residue sequence ids
+std::unique_ptr<GenericElement> SplitElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     std::string body_name = args.inlined[0];
     std::vector<int> splits;
     splits.reserve(args.inlined.size()-1);

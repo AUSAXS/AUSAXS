@@ -190,9 +190,11 @@ std::vector<std::string> SymmetryElement::_valid_arguments() {
     return {};
 }
 
-std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.empty()) {throw except::parse_error("symmetry", "Expected [bodies...] [symmetry], but got no arguments.");}
+InlineSignature SymmetryElement::_valid_inline_arguments() {
+    return {.names = {"bodies...", "symmetry"}, .min = 1, .max = unbounded_inline_args};
+}
 
+std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     // usage pattern: [bodies...] [symmetry]. The trailing token is always the symmetry name; every token before it names a
     // body. To give several bodies a symmetry each, repeat the element - it does all its work on construction, so the
     // declarations accumulate.

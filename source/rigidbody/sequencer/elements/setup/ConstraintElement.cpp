@@ -46,6 +46,11 @@ std::vector<std::string> ConstraintElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature ConstraintElement::_valid_inline_arguments() {
+    return {.names = {}, .min = 0, .max = 0};
+}
+
+// constrain { first [body], second [body], type [type], plus whatever extra arguments that type requires }
 void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto body1 = args.get<std::string>(args_map[Args::body1]);
     auto body2 = args.get<std::string>(args_map[Args::body2]);
@@ -63,11 +68,11 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
         throw except::parse_error("constraint", "Unknown choice \"" + std::string(line) + "\"");
     };
 
-    if (!args.inlined.empty()) {throw except::parse_error("constraint", "Unexpected inline arguments.");}
     if (!body1.found) {throw except::parse_error("constraint", "Missing required argument \"body1\".");}
     if (!body2.found) {throw except::parse_error("constraint", "Missing required argument \"body2\".");}
     if (!type.found) {throw except::parse_error("constraint", "Missing required argument \"type\".");}
 
+    // extra arguments per type: "bond" and "cm" take none, "attract" and "repel" take [distance], "distance" takes [iatom1] [iatom2]
     std::unique_ptr<constraints::Constraint> constraint;
     ConstraintChoice type_enum = get_constraint_choice(type.value);
     switch (type_enum) {

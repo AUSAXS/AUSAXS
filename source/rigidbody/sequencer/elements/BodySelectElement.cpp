@@ -33,6 +33,10 @@ std::vector<std::string> BodySelectElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature BodySelectElement::_valid_inline_arguments() {
+    return {.names = {"strategy or body name"}, .min = 0, .max = 1};
+}
+
 namespace {
     std::optional<ausaxs::settings::rigidbody::BodySelectStrategyChoice> try_get_body_select_strategy(std::string_view line) {
         using Choice = ausaxs::settings::rigidbody::BodySelectStrategyChoice;
@@ -45,16 +49,11 @@ namespace {
 }
 
 std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    // inline form: `select <strategy>`, `select <bodyname or alias>`, or `select <symmetry tag>` (e.g. `select b1s2`)
+    // inlined usage patterns
     if (!args.inlined.empty()) {
-        if (!args.named.empty()) {throw except::parse_error("select", "Cannot mix inline and named arguments.");}
-        if (args.inlined.size() != 1) {
-            throw except::parse_error(
-                "select", "Invalid number of inline arguments. Expected exactly one strategy or body name/alias, but got " + std::to_string(args.inlined.size()) + "."
-            );
-        }
-
         const std::string& token = args.inlined[0];
+
+        // pattern 1: [strategy]
         if (auto choice = try_get_body_select_strategy(token)) {
             return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_selection_strategy(owner->_get_rigidbody(), *choice));
         }
@@ -65,19 +64,23 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
         }
 
         auto sel = body_names.resolve(token);
-        if (sel.symmetry == -1) { // a plain body: optimize its pose and all of its symmetries
+
+        // pattern 2: [body name or alias] - optimize its pose and all of its symmetries
+        if (sel.symmetry == -1) {
             return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_manual_selection_strategy(owner->_get_rigidbody(), sel.body));
         }
 
-        // a symmetry tag: optimize that one declared symmetry in isolation. The replica is deliberately ignored, since all replicas of a symmetry are
-        // generated from its single shared parameter set - b1s2 and b1s2r3 target the same thing. A tag naming a symmetry shared between several bodies
-        // likewise resolves to the body owning it, so any participant's name reaches the same parameters.
+        // pattern 3: [symmetry tag] (e.g. "b1s2") - optimize that one declared symmetry in isolation. The replica is deliberately
+        // ignored, since all replicas of a symmetry are generated from its single shared parameter set - b1s2 and b1s2r3 target the
+        // same thing. A tag naming a symmetry shared between several bodies likewise resolves to the body owning it, so any
+        // participant's name reaches the same parameters.
         return std::make_unique<BodySelectElement>(
             owner,
             rigidbody::factory::create_manual_symmetry_selection_strategy(owner->_get_rigidbody(), sel.body, sel.symmetry)
         );
     }
 
+    // named form: a select strategy and/or a parameter mask, each falling back to its global setting
     auto strategy = args.get<std::string>(args_map[Args::strategy]);
     auto mask_arg = args.get<std::string>(args_map[Args::parameters]);
 

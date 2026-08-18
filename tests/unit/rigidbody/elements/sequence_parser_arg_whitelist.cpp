@@ -15,7 +15,6 @@
 
 #include <support/temp_file.h>
 
-#include <algorithm>
 #include <string>
 
 using namespace ausaxs;
@@ -161,6 +160,89 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::SymmetryElement inline fo
 
     SECTION("no arguments at all is rejected") {
         CHECK_THROWS_AS(parse(load() + "symmetry\n"), sequencer::except::parse_error);
+    }
+}
+
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: inline argument counts are rejected centrally", "[files]") {
+    SECTION("too few inline arguments") {
+        CHECK_THROWS_AS(parse(load() + "rename b1\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "merge b1\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "delete\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "symmetry\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("too many inline arguments") {
+        CHECK_THROWS_AS(parse(load() + "save a.pdb b.pdb\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "loop 2\nend surplus\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "update structure extra\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("an element taking no inline arguments rejects them") {
+        // overlap_strength had no inline check at all, so these values used to be silently discarded
+        CHECK_THROWS_AS(parse(load() + "overlap_strength 5 10\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("the error names the expected arguments") {
+        try {
+            parse(load() + "rename b1\n");
+            FAIL("expected a parse_error");
+        } catch (const sequencer::except::parse_error& e) {
+            std::string what = e.what();
+            CHECK(what.find("[old name] [new name]") != std::string::npos);
+            CHECK(what.find("but got 1") != std::string::npos);
+        }
+    }
+
+    SECTION("open-ended elements accept long argument lists") {
+        CHECK_NOTHROW(parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "merge b1 b2 b3\n"
+        ));
+    }
+}
+
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: the two argument forms cannot be combined", "[files]") {
+    // tokens between the element name and the brace used to be discarded without a word, so this was previously accepted
+    SECTION("an inline argument in front of a block") {
+        CHECK_THROWS_AS(parse(load() + "print red {\n    msg \"hello\"\n}\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "output somewhere {\n    mode relative\n}\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("the error says the forms cannot be combined") {
+        try {
+            parse(load() + "print red {\n    msg \"hello\"\n}\n");
+            FAIL("expected a parse_error");
+        } catch (const sequencer::except::parse_error& e) {
+            CHECK(std::string(e.what()).find("Cannot combine inline and named arguments") != std::string::npos);
+        }
+    }
+
+    SECTION("either form on its own is still fine") {
+        CHECK_NOTHROW(parse(load() + "print red \"hello\"\n"));
+        CHECK_NOTHROW(parse(load() + "print {\n    msg \"hello\"\n    colour red\n}\n"));
+    }
+}
+
+TEST_CASE("SequenceParser: every element declares a well-formed inline signature") {
+    using namespace ausaxs::rigidbody::sequencer::detail;
+    for (int i = 0; i < static_cast<int>(ElementType::COUNT); ++i) {
+        auto type = static_cast<ElementType>(i);
+        auto signature = valid_inline_arguments(type);
+        INFO("element type index " << i);
+        CHECK(signature.min <= signature.max);
+        CHECK(signature.max <= unbounded_inline_args);
+        for (const auto& name : signature.names) {
+            CHECK_FALSE(name.empty());
+        }
+        // a name for every slot the element can actually be given, so error messages and the GUI never show a blank
+        if (signature.max == 0) {
+            CHECK(signature.names.empty());
+        } else {
+            CHECK_FALSE(signature.names.empty());
+        }
     }
 }
 

@@ -169,22 +169,26 @@ std::vector<std::string> LoadElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature LoadElement::_valid_inline_arguments() {
+    return {.names = {}, .min = 0, .max = 0};
+}
+
 std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto pdb = args.get<std::vector<std::string>>(args_map[Args::paths]);
     auto saxs = args.get<std::string>(args_map[Args::saxs]);
     auto names = args.get<std::vector<std::string>>(args_map[Args::names]);
     auto split = args.get<std::vector<std::string>>(args_map[Args::splits]);
 
-    if (!args.inlined.empty()) {throw except::parse_error("load", "Unexpected inline arguments.");}
     if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}
     if (!saxs.found) {throw except::parse_error("load", "Missing required argument \"saxs\".");}
 
     owner->_get_sequencer()->setup()._set_saxs_path(io::ExistingFile(saxs.value));
     if (split.found) {
+        // pattern 1: split chain - a single file split at its chain boundaries
         if (split.value.size() == 1 && split.value[0] == "chain") {
             if (pdb.value.size() != 1) {throw except::parse_error("load", "Chain splitting can only be used with a single path.");}
             return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], names.value);
-        } else {
+        } else { // pattern 2: split [residue ids...] - a single file split at the given residue sequence ids
             std::vector<int> splits;
             for (const auto& s : split.value) {
                 if (!utility::isinteger(s)) {

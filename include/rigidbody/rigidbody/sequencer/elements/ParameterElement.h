@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
@@ -28,6 +29,7 @@ namespace ausaxs::rigidbody::sequencer {
             observer_ptr<rigidbody::parameter::ParameterGenerationStrategy> get_parameter_strategy() const;
 
             static std::vector<std::string> _valid_arguments();
+            static InlineSignature _valid_inline_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:

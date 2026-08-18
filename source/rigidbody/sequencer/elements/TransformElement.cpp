@@ -21,9 +21,12 @@ std::vector<std::string> TransformElement::_valid_arguments() {
     return {};
 }
 
-std::unique_ptr<GenericElement> TransformElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.size() != 1) {throw except::parse_error("transform", "Expected only a single inline argument.");}
+InlineSignature TransformElement::_valid_inline_arguments() {
+    return {.names = {"strategy"}, .min = 1, .max = 1};
+}
 
+// transform [strategy] - one of: rigid, single
+std::unique_ptr<GenericElement> TransformElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static auto get_transform_strategy = [] (std::string_view line) {
         if (line == "rigid_transform" || line == "rigid") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}
         if (line == "single_transform" || line == "single") {return settings::rigidbody::TransformationStrategyChoice::SingleTransform;}

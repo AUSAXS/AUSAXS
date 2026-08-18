@@ -77,6 +77,13 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         if (tokens.empty()) {continue;}
 
         if (ends_with_opening_brace(tokens)) { // if the last token ends with an opening brace, read a multiline arg block
+            // anything between the element name and the brace is an inline argument; capture it so that combining the two
+            // forms is rejected below instead of being silently discarded
+            if (2 < tokens.size()) {
+                pargs.inlined.line_number = line_no;
+                pargs.inlined.values = std::vector<std::string>(tokens.begin()+1, tokens.end()-1);
+            }
+
             std::string argline;
             std::getline(in, argline);
             ++line_no;
@@ -127,8 +134,10 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         auto& elements = loop_stack.back()->_get_elements();
         auto type = get_type(tokens[0]);
 
-        // reject unrecognised argument keys before the element sees them
-        validate_named_arguments(type, tokens[0], pargs);
+        // validate the argument forms and counts for this element type
+        validate_argument_forms(tokens[0], pargs);         // ensure inline and named args are not mixed
+        validate_named_arguments(type, tokens[0], pargs);  // ensure all named args are valid
+        validate_inline_arguments(type, tokens[0], pargs); // ensure the inline arg count is valid
 
         // dispatch maps for the common cases
         using ElementParser = std::unique_ptr<GenericElement>(*)(observer_ptr<LoopElement>, ParsedArgs&&);

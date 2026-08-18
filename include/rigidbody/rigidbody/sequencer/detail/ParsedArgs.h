@@ -40,7 +40,7 @@ namespace ausaxs::rigidbody::sequencer {
             Value& operator[](std::size_t index) {return values[index];}
             const Value& operator[](std::size_t index) const {return values[index];}
 
-            int line_number;
+            int line_number = -1;
             std::vector<Value> values;
         };
 

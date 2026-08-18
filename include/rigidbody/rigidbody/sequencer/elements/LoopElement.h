@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
@@ -95,6 +96,7 @@ namespace ausaxs::rigidbody::sequencer {
             static void _reset_counters();
 
             static std::vector<std::string> _valid_arguments();
+            static InlineSignature _valid_inline_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         protected: 

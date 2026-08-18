@@ -78,11 +78,12 @@ std::vector<std::string> MergeElement::_valid_arguments() {
     return {};
 }
 
-std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.size() < 2) {throw except::parse_error(
-        "merge", "Invalid number of inline arguments. Expected [first] [others...], but got " + std::to_string(args.inlined.size()) + "."
-    );}
+InlineSignature MergeElement::_valid_inline_arguments() {
+    return {.names = {"first", "others..."}, .min = 2, .max = unbounded_inline_args};
+}
 
+// merge [first] [others...] - merges every [others] body into [first]
+std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string first = args.inlined[0];
     if (!body_names.contains(first)) {throw except::parse_error("merge", "Body name \"" + first + "\" not found.");}

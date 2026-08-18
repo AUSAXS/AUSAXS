@@ -4,6 +4,7 @@
 #pragma once
 
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
 
 #include <string>
 #include <string_view>
@@ -42,7 +43,21 @@ namespace ausaxs::rigidbody::sequencer::detail {
 
     std::vector<std::string> valid_elements();
     std::vector<std::string> valid_arguments(ElementType type);
+    InlineSignature valid_inline_arguments(ElementType type);
     ElementType get_type(std::string_view line);
+
+    /**
+     * @brief Render an inline signature the way a script writes it, e.g. "[old name] [new name]".
+     * @return "none" for an element that takes no inline arguments.
+     */
+    std::string to_string(const InlineSignature& signature);
+
+    /**
+     * @brief Reject an element given both inline and named arguments. The two forms are alternatives everywhere, so
+     *        combining them is always a mistake.
+     * @param element The element name as written in the script; used for the error message.
+     */
+    void validate_argument_forms(std::string_view element, const ParsedArgs& args);
 
     /**
      * @brief Reject every named argument whose key the element does not accept.
@@ -50,4 +65,11 @@ namespace ausaxs::rigidbody::sequencer::detail {
      * @param element The element name as written in the script; used for the error message.
      */
     void validate_named_arguments(ElementType type, std::string_view element, const ParsedArgs& args);
+
+    /**
+     * @brief Reject an inline argument count the element does not accept.
+     * @param type The element type the arguments were parsed for.
+     * @param element The element name as written in the script; used for the error message.
+     */
+    void validate_inline_arguments(ElementType type, std::string_view element, const ParsedArgs& args);
 }

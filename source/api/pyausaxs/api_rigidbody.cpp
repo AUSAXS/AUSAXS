@@ -243,6 +243,29 @@ void rigidbody_get_valid_arguments(
     *size = valid_arguments_map[type].size();
 }, status);}
 
+void rigidbody_get_valid_inline_arguments(
+    const char* element_name,
+    const char*** arguments,
+    int* size,
+    int* min_count,
+    int* max_count,
+    int* status
+) {execute_with_catch([&]() {
+    auto type = rigidbody::sequencer::detail::get_type(element_name);
+    static std::unordered_map<rigidbody::sequencer::detail::ElementType, rigidbody::sequencer::InlineSignature> signature_map;
+    static std::unordered_map<rigidbody::sequencer::detail::ElementType, std::vector<const char*>> signature_cstr_map;
+    if (!signature_map.contains(type)) {
+        signature_map[type] = rigidbody::sequencer::detail::valid_inline_arguments(type);
+        std::vector<const char*> cstrs;
+        for (const auto& arg : signature_map[type].names) {cstrs.push_back(arg.c_str());}
+        signature_cstr_map[type] = cstrs;
+    }
+    *arguments = signature_cstr_map[type].data();
+    *size = signature_map[type].names.size();
+    *min_count = static_cast<int>(signature_map[type].min);
+    *max_count = static_cast<int>(signature_map[type].max);
+}, status);}
+
 void rigidbody_get_body_names(
     int rigidbody_id,
     const char*** names,

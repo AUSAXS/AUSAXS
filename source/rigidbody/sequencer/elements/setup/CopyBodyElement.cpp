@@ -50,11 +50,12 @@ std::vector<std::string> CopyBodyElement::_valid_arguments() {
     return {};
 }
 
-std::unique_ptr<GenericElement> CopyBodyElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.size() != 2) {throw except::parse_error(
-        "copy", "Invalid number of inline arguments. Expected [new name] [target name], but got " + std::to_string(args.inlined.size()) + "."
-    );}
+InlineSignature CopyBodyElement::_valid_inline_arguments() {
+    return {.names = {"target name", "new name"}, .min = 2, .max = 2};
+}
 
+// copy [target name] [new name] - the two are swapped if the first does not name an existing body
+std::unique_ptr<GenericElement> CopyBodyElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string source = args.inlined[0];
     std::string name = args.inlined[1];
