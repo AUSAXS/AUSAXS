@@ -21,8 +21,7 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
     if (amplitudes.translation != 0) {params.translation = draw_isotropic(draw(amplitudes.translation)*scaling);}
     if (amplitudes.rotation != 0) {params.rotation = draw_isotropic(draw(amplitudes.rotation)*scaling);}
     if (amplitudes.symmetry_translation != 0 || amplitudes.symmetry_rotation != 0) {
-        // ReferenceSymmetryViews among these are inert: their spans are empty, so the loops below simply do not touch them.
-        const auto& symmetries = rigidbody->molecule.get_body(ibody).symmetry().get_obj()->symmetries;
+        const auto& symmetries = rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars;
         params.symmetry_pars.emplace();
 
         // assign a random delta to every leaf sub-symmetry. CompositeSymmetry has no parameter spans of its own (its two 

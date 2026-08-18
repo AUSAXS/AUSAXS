@@ -7,6 +7,7 @@
 #include <data/symmetry/CyclicSymmetry.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <settings/All.h>
@@ -202,4 +203,32 @@ TEST_CASE("UniformParameterGenerator::next respects a planar symmetry's reduced 
         longest = std::max(longest, magnitude);
     }
     CHECK(3.99 < longest);
+}
+
+TEST_CASE("UniformParameterGenerator: a rejected step does not corrupt the next delta") {
+    settings::general::verbose = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+
+    Molecule m{std::vector<Body>{Body(std::vector{
+        AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
+    })}};
+    m.get_body(0).symmetry().add(symmetry::type::c2);
+    Rigidbody rb(std::move(m));
+
+    rb.parameter_generator = std::make_shared<rigidbody::parameter::UniformParameterGenerator>(
+        &rb, std::make_unique<rigidbody::parameter::decay::NoDecay>(), rigidbody::parameter::ParameterAmplitudes{.symmetry_rotation = 0.2}
+    );
+
+    // a symmetry-only apply consumes the body backup, so undo restores the parameters but leaves the body holding the
+    // rejected axis. The generator must read the parameters rather than the body, or the delta is computed against the
+    // rejected axis and added to the restored one, which neither preserves the unit length nor the requested angle.
+    for (int i = 0; i < 50; ++i) {
+        rb.transformer->apply(rb.parameter_generator->next(0), 0);
+        rb.transformer->undo();
+
+        rb.transformer->apply(rb.parameter_generator->next(0), 0);
+        const auto& params = rb.conformation->absolute_parameters.parameters[0].symmetry_pars;
+        auto* sym = static_cast<symmetry::CyclicSymmetry*>(params[0].get());
+        REQUIRE_THAT(sym->_repeat_relation.axis.magnitude(), Catch::Matchers::WithinAbs(1, 1e-9));
+    }
 }
