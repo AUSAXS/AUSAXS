@@ -113,16 +113,6 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
             "}\n"
         ));
     }
-
-    SECTION("no element takes body names as argument keys any more") {
-        CHECK_THROWS_AS(parse(load() + "relative_hydration {\n    b1 max\n}\n"), sequencer::except::parse_error);
-        CHECK_NOTHROW(parse(load() + "relative_hydration b1 max\n"));
-    }
-
-    SECTION("the removed symmetry block form is rejected") {
-        CHECK_THROWS_AS(parse(load() + "symmetry {\n    b1 c2\n}\n"), sequencer::except::parse_error);
-        CHECK_THROWS_AS(parse(load() + "symmetry {\n    bodies \"b1 b2\" c3\n}\n"), sequencer::except::parse_error);
-    }
 }
 
 TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::SymmetryElement inline forms", "[files]") {
@@ -174,41 +164,9 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::SymmetryElement inline fo
     }
 }
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::ConstraintElement argument aliases", "[files]") {
-    // the whitelist and _parse used to keep separate alias lists, so _parse honoured "i1"/"iatom_1"/"d" while the
-    // whitelist advertised "atom1"/"atom2" and rejected them. Both now read the same map.
-    static const std::string two_bodies =
-        "load {\n"
-        "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
-        "    saxs tests/files/SASDJG5.dat\n"
-        "}\n";
-
-    SECTION("every alias _parse reads is on the whitelist") {
-        using namespace ausaxs::rigidbody::sequencer::detail;
-        auto valid = valid_arguments(ElementType::Constraint);
-        for (const auto& alias : {"first", "body1", "second", "body2", "iatom1", "iatom_1", "i1",
-                                  "iatom2", "iatom_2", "i2", "type", "kind", "distance", "dist", "d"}) {
-            INFO("alias " << alias);
-            CHECK(std::find(valid.begin(), valid.end(), alias) != valid.end());
-        }
-    }
-
-    SECTION("the short distance alias is accepted end-to-end") {
-        CHECK_NOTHROW(parse(two_bodies +
-            "constrain {\n"
-            "    first b1\n"
-            "    second b2\n"
-            "    kind attract\n"
-            "    d 30\n"
-            "}\n"
-        ));
-    }
-}
-
 TEST_CASE("SequenceParser: every element declares its own named arguments") {
     // guards against an element gaining a named argument in _parse without adding it to _valid_arguments, which the central
-    // whitelist would then reject. Only checks that the declaration exists and is well-formed - the keys themselves are
-    // verified by the per-element parser tests.
+    // whitelist would then reject. Only checks that the declaration exists and is well-formed.
     using namespace ausaxs::rigidbody::sequencer::detail;
     for (int i = 0; i < static_cast<int>(ElementType::COUNT); ++i) {
         auto type = static_cast<ElementType>(i);

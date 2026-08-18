@@ -61,8 +61,6 @@ std::vector<double> RelativeHydrationElement::_get_ratios() const {
     std::vector<double> ratios(owner->_get_molecule()->size_body(), to_value(Options::Normal));
 
     for (const auto& [name, ratio] : custom_levels) {
-        // the name was valid when it was declared, and a body keeps its default name for life, so the only way to get here
-        // is a later "delete". Say so rather than quietly dropping a level the script explicitly asked for.
         if (!body_names.contains(name)) {
             throw std::runtime_error(
                 "RelativeHydrationElement::_get_ratios: A relative hydration level was declared for body \"" + name + "\", but that body no longer exists."

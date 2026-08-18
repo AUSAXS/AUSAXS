@@ -163,7 +163,6 @@ SetupElement& SetupElement::symmetry(std::string_view name, symmetry::type symme
 }
 
 SetupElement& SetupElement::relative_hydration(std::string_view name, double ratio) {
-    // one element per body; they share a store, so the declarations accumulate into a single culling strategy
     elements.push_back(std::make_unique<RelativeHydrationElement>(owner->_get_sequencer(), std::string{name}, ratio));
     return *this;
 }
