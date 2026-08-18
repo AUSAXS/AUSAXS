@@ -83,9 +83,7 @@ TEST_CASE_METHOD(SequenceParserDeleteFixture, "SequenceParser::DeleteElement") {
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
             "delete b1\n"
-            "symmetry {\n"
-            "    b3 c2\n"
-            "}\n"
+            "symmetry b3 c2\n"
         );
         REQUIRE(seq != nullptr);
         auto rb = seq->_get_rigidbody();

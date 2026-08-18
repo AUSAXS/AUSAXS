@@ -28,7 +28,6 @@ std::unique_ptr<GenericElement> AutoConstraintsElement::_parse(observer_ptr<Loop
         throw except::parse_error("autoconstrain", "Unknown choice \"" + std::string(line) + "\"");
     };
 
-    if (!args.named.empty()) {throw except::parse_error("autoconstrain", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
     if (args.inlined.size() != 1) {throw except::parse_error("autoconstrain", "Invalid number of inline arguments. Expected 1, but got " + std::to_string(args.inlined.size()) + ".");}
     return std::make_unique<AutoConstraintsElement>(owner->_get_sequencer(), get_constraint_strategy(args.inlined[0]));
 }

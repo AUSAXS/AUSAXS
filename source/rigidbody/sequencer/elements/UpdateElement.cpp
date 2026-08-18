@@ -62,11 +62,10 @@ void UpdateElement::unlock() {
 }
 
 std::vector<std::string> UpdateElement::_valid_arguments() {
-    return {"structure"};
+    return {};
 }
 
 std::unique_ptr<GenericElement> UpdateElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.named.empty()) {throw except::parse_error("update", "Unexpected named argument.");}
     if (args.inlined.size() != 1) {throw except::parse_error("update", "Expected a single inline argument, e.g. \"update structure\".");}
     if (std::string(args.inlined[0]) != "structure") {
         throw except::parse_error("update", "Unsupported update target \"" + std::string(args.inlined[0]) + "\"; only \"structure\" is supported.");

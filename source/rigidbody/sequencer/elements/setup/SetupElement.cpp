@@ -162,8 +162,8 @@ SetupElement& SetupElement::symmetry(std::string_view name, symmetry::type symme
     return *this;
 }
 
-SetupElement& SetupElement::relative_hydration(const std::vector<std::string>& names, const std::vector<double>& ratios) {
-    elements.push_back(std::make_unique<RelativeHydrationElement>(owner->_get_sequencer(), names, ratios));
+SetupElement& SetupElement::relative_hydration(std::string_view name, double ratio) {
+    elements.push_back(std::make_unique<RelativeHydrationElement>(owner->_get_sequencer(), std::string{name}, ratio));
     return *this;
 }
 

@@ -170,18 +170,10 @@ std::vector<std::string> LoadElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    enum class Args {paths, splits, names, saxs};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::paths, {"pdb"}},
-        {Args::saxs, {"saxs"}},
-        {Args::splits, {"split"}},
-        {Args::names, {"names", "name"}}
-    };
-
-    auto pdb = args.get<std::vector<std::string>>(valid_args[Args::paths]);
-    auto saxs = args.get<std::string>(valid_args[Args::saxs]);
-    auto names = args.get<std::vector<std::string>>(valid_args[Args::names]);
-    auto split = args.get<std::vector<std::string>>(valid_args[Args::splits]);
+    auto pdb = args.get<std::vector<std::string>>(args_map[Args::paths]);
+    auto saxs = args.get<std::string>(args_map[Args::saxs]);
+    auto names = args.get<std::vector<std::string>>(args_map[Args::names]);
+    auto split = args.get<std::vector<std::string>>(args_map[Args::splits]);
 
     if (!args.inlined.empty()) {throw except::parse_error("load", "Unexpected inline arguments.");}
     if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}

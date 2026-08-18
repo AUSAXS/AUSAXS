@@ -48,15 +48,9 @@ std::vector<std::string> OutputFolderElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> OutputFolderElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    enum class Args {path, mode};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::path, {"path", "folder", "anonymous"}},
-        {Args::mode, {"mode", "relative"}}
-    };
-    auto path = args.get<std::string>(valid_args[Args::path]);
-    auto mode = args.get<std::string>(valid_args[Args::mode], "relative_terminal");
+    auto path = args.get<std::string>(args_map[Args::path]);
+    auto mode = args.get<std::string>(args_map[Args::mode], "relative_terminal");
 
-    if (args.named.size() > 2) {throw except::parse_error("output", "Too many named arguments. Expected at most 2, but got " + std::to_string(args.named.size()) + ".");}
     if (args.inlined.size() == 1) {
         if (path.found) {throw except::parse_error("output", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
         path.value = args.inlined[0];

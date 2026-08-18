@@ -163,7 +163,6 @@ std::vector<std::string> SplitElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> SplitElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.named.empty()) {throw except::parse_error("split", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
     if (args.inlined.size() < 2) {
         throw except::parse_error("split", "Expected a body name followed by one or more residue sequence ids to split at.");
     }

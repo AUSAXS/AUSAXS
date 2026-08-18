@@ -19,7 +19,10 @@ namespace ausaxs::rigidbody::sequencer {
      */
     class RelativeHydrationElement : public GenericElement {
         public:
-            RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<double>& ratios);
+            /**
+             * @brief Declare a hydration level for one body.
+             */
+            RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::string& name, double ratio);
             ~RelativeHydrationElement() override;
 
             void run() override;
@@ -30,10 +33,9 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief The hydration weight of every body, indexed by body index, as handed to BodyCounterCulling.
              */
-            const std::vector<double>& _get_ratios() const;
+            std::vector<double> _get_ratios() const;
 
         private:
             observer_ptr<Sequencer> owner;
-            std::vector<double> ratios; //< one weight per body, indexed by body index; bodies the script did not name sit at the normal level
     };
 }

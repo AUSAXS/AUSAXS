@@ -110,9 +110,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
-            "symmetry {\n"
-            "    b2 p2-c3\n"
-            "}\n"
+            "symmetry b2 p2-c3\n"
         );
         REQUIRE(seq != nullptr);
         auto rb = seq->_get_rigidbody();
@@ -131,9 +129,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
-            "symmetry {\n"
-            "    bodies \"b1 b2\" c3\n"
-            "}\n"
+            "symmetry b1 b2 c3\n"
         );
         REQUIRE(seq != nullptr);
         auto rb = seq->_get_rigidbody();
@@ -159,9 +155,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
-            "symmetry {\n"
-            "    bodies \"b1 b2\" d2\n"
-            "}\n"
+            "symmetry b1 b2 d2\n"
         );
         REQUIRE(seq != nullptr);
         auto rb = seq->_get_rigidbody();
@@ -185,9 +179,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
-            "symmetry {\n"
-            "    bodies \"b1 b2\" p2-c3\n"
-            "}\n"
+            "symmetry b1 b2 p2-c3\n"
         );
         REQUIRE(seq != nullptr);
         auto rb = seq->_get_rigidbody();
@@ -211,9 +203,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
             "    saxs tests/files/SASDJG5.dat\n"
             "}\n"
-            "symmetry {\n"
-            "    b2 c2\n"
-            "}\n"
+            "symmetry b2 c2\n"
         );
         REQUIRE(seq != nullptr);
         auto rb = seq->_get_rigidbody();
@@ -229,9 +219,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
         "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
         "    saxs tests/files/SASDJG5.dat\n"
         "}\n"
-        "symmetry {\n"
-        "    bodies \"b1 b2\" c3\n"
-        "}\n"
+        "symmetry b1 b2 c3\n"
     );
     REQUIRE(seq != nullptr);
     auto rb = seq->_get_rigidbody();
@@ -357,10 +345,8 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::ConstraintEleme
         "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
         "    saxs tests/files/SASDJG5.dat\n"
         "}\n"
-        "symmetry {\n"
-        "    b1 c2\n"
-        "    b2 c2\n"
-        "}\n"
+        "symmetry b1 c2\n"
+        "symmetry b2 c2\n"
         "constrain {\n"
         "    body1 b1s1\n"
         "    body2 b2s1\n"

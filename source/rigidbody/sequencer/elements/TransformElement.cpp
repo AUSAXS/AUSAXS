@@ -22,7 +22,6 @@ std::vector<std::string> TransformElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> TransformElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.named.empty()) {throw except::parse_error("transform", "Unexpected named arguments.");}
     if (args.inlined.size() != 1) {throw except::parse_error("transform", "Expected only a single inline argument.");}
 
     static auto get_transform_strategy = [] (std::string_view line) {
