@@ -21,6 +21,7 @@ namespace ausaxs::rigidbody::sequencer {
             enum class Mode {
                 RELATIVE_TERMINAL,
                 RELATIVE_CONFIG,
+                ABSOLUTE,
             };
 
             OutputFolderElement(observer_ptr<Sequencer> owner, const io::Folder& path, Mode mode = Mode::RELATIVE_TERMINAL);

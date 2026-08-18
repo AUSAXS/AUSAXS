@@ -14,6 +14,7 @@
 #include <settings/GeneralSettings.h>
 
 #include <algorithm>
+#include <filesystem>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -94,9 +95,13 @@ std::pair<std::string, bool> LoadElement::lookup_file(const std::string& path) {
     io::File file(path);
     if (file.exists()) {return {file, true};}
 
+    // fall back to the folder holding the configuration file so that a script can reference files relative to itself.
+    // the whole relative path is appended, so files in subfolders next to the script resolve as well
     auto config_folder = owner->setup()._get_config_folder();
-    io::File relative(config_folder, file.stem(), file.extension());
-    if (relative.exists()) {return {relative, true};}
+    if (!config_folder.empty() && !std::filesystem::path(path).is_absolute()) {
+        io::File relative(config_folder + "/" + path);
+        if (relative.exists()) {return {relative, true};}
+    }
 
     return {file, false};
 }
