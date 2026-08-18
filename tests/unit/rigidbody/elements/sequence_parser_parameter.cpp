@@ -127,96 +127,22 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
     }
 }
 
-TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement modes", "[files]") {
-    SECTION("mode symmetry retargets translate and rotate onto the symmetry components") {
-        auto a = amplitudes_of(load_with_symmetry() +
-            "parameter {\n    iterations 10\n    mode symmetry\n    translate 10\n    rotate 0.2\n}\n");
-        CHECK(a.translation == 0);
-        CHECK(a.rotation == 0);
-        CHECK(a.symmetry_translation == 10);
-        CHECK(a.symmetry_rotation == 0.2);
-    }
-
-    SECTION("mode symmetry with only translate gives symmetry translation alone") {
-        auto a = amplitudes_of(load_with_symmetry() + "parameter {\n    iterations 10\n    mode symmetry\n    translate 10\n}\n");
-        CHECK(a.symmetry_translation == 10);
-        CHECK(a.symmetry_rotation == 0);
-    }
-
-    SECTION("mode symmetry with only rotate gives symmetry rotation alone") {
-        auto a = amplitudes_of(load_with_symmetry() + "parameter {\n    iterations 10\n    mode symmetry\n    rotate 0.2\n}\n");
-        CHECK(a.symmetry_translation == 0);
-        CHECK(a.symmetry_rotation == 0.2);
-    }
-
-    SECTION("mode symmetry without amplitudes uses the defaults") {
-        auto a = amplitudes_of(load_with_symmetry() + "parameter {\n    iterations 10\n    mode symmetry\n}\n");
-        CHECK(a.symmetry_translation > 0);
-        CHECK(a.symmetry_rotation == parameter::default_symmetry_rotation());
-    }
-
-    SECTION("symmetry_only remains accepted as a spelling of symmetry") {
-        auto a = amplitudes_of(load_with_symmetry() + "parameter {\n    iterations 10\n    mode symmetry_only\n    translate 10\n}\n");
-        CHECK(a.symmetry_translation == 10);
-    }
-
-    SECTION("translate_only") {
-        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    mode translate_only\n    translate 5\n}\n");
-        CHECK(a.translation == 5);
-        CHECK(a.rotation == 0);
-    }
-
-    SECTION("rotate_only") {
-        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    mode rotate_only\n    rotate 0.1\n}\n");
-        CHECK(a.translation == 0);
-        CHECK(a.rotation == 0.1);
-    }
-
-    SECTION("both") {
-        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    mode both\n    translate 5\n    rotate 0.1\n}\n");
-        CHECK(a.translation == 5);
-        CHECK(a.rotation == 0.1);
-    }
-
-    SECTION("strategy is an alias for mode") {
-        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    strategy rotate_only\n    rotate 0.1\n}\n");
-        CHECK(a.rotation == 0.1);
-    }
-}
-
 TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement rejects contradictions", "[files]") {
-    SECTION("mode symmetry alongside an explicit symmetry amplitude") {
-        CHECK_THROWS_AS(parse(load_with_symmetry() +
-            "parameter {\n    iterations 10\n    mode symmetry\n    sym_translate 10\n}\n"), sequencer::except::parse_error);
-    }
-
-    SECTION("a mode rejects the amplitudes it has no use for") {
-        CHECK_THROWS_AS(parse(load() +
-            "parameter {\n    iterations 10\n    mode translate_only\n    translate 5\n    rotate 0.1\n}\n"), sequencer::except::parse_error);
-        CHECK_THROWS_AS(parse(load_with_symmetry() +
-            "parameter {\n    iterations 10\n    mode both\n    translate 5\n    rotate 0.1\n    sym_rotate 0.2\n}\n"), sequencer::except::parse_error);
-    }
-
-    SECTION("a mode still requires its own amplitude") {
-        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    mode translate_only\n}\n"), sequencer::except::parse_error);
-        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    mode rotate_only\n}\n"), sequencer::except::parse_error);
-        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    mode both\n    translate 5\n}\n"), sequencer::except::parse_error);
-    }
-
     SECTION("symmetry amplitudes on a molecule without symmetries") {
         CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    sym_translate 10\n}\n"), sequencer::except::parse_error);
-        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    mode symmetry\n}\n"), sequencer::except::parse_error);
     }
 
     SECTION("no amplitude and nothing to fall back on") {
         CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n}\n"), sequencer::except::parse_error);
     }
 
+    SECTION("mode is no longer an argument") {
+        CHECK_THROWS_AS(parse(load() +
+            "parameter {\n    iterations 10\n    translate 5\n    mode translate_only\n}\n"), sequencer::except::parse_error);
+    }
+
     SECTION("iterations is still required") {
         CHECK_THROWS_AS(parse(load() + "parameter {\n    translate 5\n}\n"), sequencer::except::parse_error);
     }
 
-    SECTION("an unknown mode") {
-        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    mode sideways\n    translate 5\n}\n"), sequencer::except::parse_error);
-    }
 }
