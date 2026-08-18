@@ -10,21 +10,30 @@
 #include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
 
+#include <filesystem>
+
 using namespace ausaxs::rigidbody::sequencer;
 
 OutputFolderElement::OutputFolderElement(observer_ptr<Sequencer> owner, const io::Folder& folder, Mode mode) : owner(owner) {
     std::string prefix = "";
+    auto path = folder.path();
     switch (mode) {
         case Mode::RELATIVE_TERMINAL:
             break;
         case Mode::RELATIVE_CONFIG:
             prefix = owner->setup()._get_config_folder() + "/";
             break;
+        case Mode::ABSOLUTE: {
+            // anchor the folder so that it no longer depends on the working directory. A path that is already absolute
+            // is only normalized by this
+            std::error_code ec;
+            if (auto abs = std::filesystem::absolute(path, ec); !ec) {path = abs.string();}
+            break;
+        }
     }
 
     // the output folder is later concatenated with file names, so it must end in a separator.
     // '\' counts as one too, since Windows paths are written with it
-    auto path = folder.path();
     bool terminated = !path.empty() && (path.back() == '/' || path.back() == '\\');
     settings::general::output = prefix + path + (terminated ? "" : "/");
     if (settings::general::verbose) {
@@ -65,6 +74,8 @@ std::unique_ptr<GenericElement> OutputFolderElement::_parse(observer_ptr<LoopEle
         return std::make_unique<OutputFolderElement>(owner->_get_sequencer(), io::Folder(path.value), OutputFolderElement::Mode::RELATIVE_TERMINAL);
     } else if (mode.value == "relative_config") {
         return std::make_unique<OutputFolderElement>(owner->_get_sequencer(), io::Folder(path.value), OutputFolderElement::Mode::RELATIVE_CONFIG);
+    } else if (mode.value == "absolute") {
+        return std::make_unique<OutputFolderElement>(owner->_get_sequencer(), io::Folder(path.value), OutputFolderElement::Mode::ABSOLUTE);
     } else {
         throw except::parse_error("output", "Invalid argument for \"mode\": \"" + mode.value + "\". Expected one of {absolute, relative, relative_config}.");
     }
