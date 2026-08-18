@@ -12,6 +12,7 @@
 #include <data/Molecule.h>
 
 #include <cassert>
+#include <map>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -28,35 +29,61 @@ namespace {
         }
         return 0;
     }
-}
 
-RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<double>& ratios) : owner(owner) {
-    assert(names.size() == ratios.size() && "RelativeHydrationElement::RelativeHydrationElement: The number of names and ratios must be equal.");
-    const auto& body_names = owner->setup()._body_name_registry();
-    this->ratios.assign(owner->_get_molecule()->size_body(), to_value(Options::Normal));
+    std::map<std::string, double> custom_levels;
+    bool levels_installed = false;
 
-    for (unsigned int i = 0; i < names.size(); ++i) {
-        if (!body_names.contains(names[i])) {
-            throw std::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + names[i] + "\" is not known.");
+    std::string permanent_name(const detail::BodyNameRegistry& registry, const std::string& name) {
+        for (const auto& [index, entry] : registry.all()) {
+            if (entry.default_name == name || entry.alias == name) {return entry.default_name;}
         }
-        int ibody = body_names.resolve_body(names[i]); // throws on a symmetry replica, which has no hydration of its own to scale
-        assert(ibody < static_cast<int>(this->ratios.size()) && "RelativeHydrationElement::RelativeHydrationElement: body name registry is out of sync with the molecule.");
-        this->ratios[static_cast<std::size_t>(ibody)] = ratios[i];
+        assert(false && "permanent_name: the registry holds no entry for a name it claims to know.");
+        return name;
     }
 }
 
-RelativeHydrationElement::~RelativeHydrationElement() = default;
+RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::string& name, double ratio) : owner(owner) {
+    const auto& body_names = owner->setup()._body_name_registry();
+    if (!body_names.contains(name)) {
+        throw std::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + name + "\" is not known.");
+    }
+    static_cast<void>(body_names.resolve_body(name)); // throws on a symmetry replica, which has no hydration of its own to scale
+    custom_levels[permanent_name(body_names, name)] = ratio;
+}
 
-const std::vector<double>& RelativeHydrationElement::_get_ratios() const {
+RelativeHydrationElement::~RelativeHydrationElement() {
+    custom_levels.clear();
+    levels_installed = false;
+}
+
+std::vector<double> RelativeHydrationElement::_get_ratios() const {
+    const auto& body_names = owner->setup()._body_name_registry();
+    std::vector<double> ratios(owner->_get_molecule()->size_body(), to_value(Options::Normal));
+
+    for (const auto& [name, ratio] : custom_levels) {
+        // the name was valid when it was declared, and a body keeps its default name for life, so the only way to get here
+        // is a later "delete". Say so rather than quietly dropping a level the script explicitly asked for.
+        if (!body_names.contains(name)) {
+            throw std::runtime_error(
+                "RelativeHydrationElement::_get_ratios: A relative hydration level was declared for body \"" + name + "\", but that body no longer exists."
+            );
+        }
+        int ibody = body_names.resolve_body(name);
+        assert(ibody < static_cast<int>(ratios.size()) && "RelativeHydrationElement::_get_ratios: body name registry is out of sync with the molecule.");
+        ratios[static_cast<std::size_t>(ibody)] = ratio;
+    }
     return ratios;
 }
 
 void RelativeHydrationElement::run() {
+    if (levels_installed) {return;} // the first element to run installs every declaration; see custom_levels
+    levels_installed = true;
+
     auto culling_strategy = hydrate::factory::construct_culling_strategy(owner->_get_molecule(), settings::hydrate::CullingStrategy::RandomCounterStrategy);
-    static_cast<hydrate::BodyCounterCulling*>(culling_strategy.get())->set_body_ratios(ratios);
+    static_cast<hydrate::BodyCounterCulling*>(culling_strategy.get())->set_body_ratios(_get_ratios());
 
     assert(
-        dynamic_cast<hydrate::GridBasedHydration*>(owner->_get_molecule()->get_hydration_generator()) != nullptr && 
+        dynamic_cast<hydrate::GridBasedHydration*>(owner->_get_molecule()->get_hydration_generator()) != nullptr &&
         "RelativeHydrationElement::run: owner->_get_rigidbody()->get_hydration_generator() is not a GridBasedHydration"
     );
 
@@ -79,33 +106,17 @@ std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<Lo
         {"min",     Options::Minimum}
     };
 
-    // inline usage pattern: [body] [hydration level]
-    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
-    if (!args.inlined.empty()) {
-        if (args.inlined.size() != 2) {throw except::parse_error("relative_hydration", "Only 2 inline arguments can be provided.");}
-        if (!body_names.contains(args.inlined[0])) {throw except::parse_error("relative_hydration", "Unknown body name \"" + args.inlined[0] + "\".");}
-        if (!options.contains(args.inlined[1])) {throw except::parse_error("relative_hydration", "Unknown hydration level \"" + args.inlined[1] + "\".");}
-        return std::make_unique<RelativeHydrationElement>(
-            owner->_get_sequencer(),
-            std::vector<std::string>{args.inlined[0]},
-            std::vector<double>{to_value(options.at(args.inlined[1]))}
-        );
-    }
+    // usage pattern: [body] [hydration level]. To set a level on several bodies, repeat the element - the declarations
+    // accumulate into one culling strategy, so nothing is lost and the hydration layer is still generated only once.
+    if (!args.named.empty()) {throw except::parse_error("relative_hydration", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
+    if (args.inlined.size() != 2) {throw except::parse_error("relative_hydration", "Expected [body] [hydration level].");}
 
-    // named usage pattern: 
-    // relative_hydration {
-    //     [body] [hydration level]
-    //     [body] [hydration level]
-    //     ...
-    // }
-    std::vector<double> ratios;
-    std::vector<std::string> names;
-    for (const auto& [name, value] : args.named) {
-        if (!body_names.contains(name)) {throw except::parse_error("relative_hydration", "Unknown body name \"" + name + "\".");}
-        if (value.size() != 1) {throw except::parse_error("relative_hydration", "Expected only a single argument.");}
-        if (!options.contains(value.args[0])) {throw except::parse_error("relative_hydration", "Unknown hydration level \"" + value.args[0].str + "\".");}
-        names.emplace_back(name);
-        ratios.push_back(to_value(options.at(value.args[0])));
-    }
-    return std::make_unique<RelativeHydrationElement>(owner->_get_sequencer(), names, ratios);
+    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
+    if (!body_names.contains(args.inlined[0])) {throw except::parse_error("relative_hydration", "Unknown body name \"" + args.inlined[0] + "\".");}
+    if (!options.contains(args.inlined[1])) {throw except::parse_error("relative_hydration", "Unknown hydration level \"" + args.inlined[1] + "\".");}
+    return std::make_unique<RelativeHydrationElement>(
+        owner->_get_sequencer(),
+        args.inlined[0],
+        to_value(options.at(args.inlined[1]))
+    );
 }

@@ -113,11 +113,9 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
         ));
     }
 
-    SECTION("relative_hydration's body-name keys are left to the element to resolve") {
-        CHECK_NOTHROW(parse(load() + "relative_hydration {\n    b1 max\n}\n"));
-
-        // ...but an unknown body name is still an error, just raised by the element rather than the whitelist
-        CHECK_THROWS_AS(parse(load() + "relative_hydration {\n    not_a_body max\n}\n"), sequencer::except::parse_error);
+    SECTION("no element takes body names as argument keys any more") {
+        CHECK_THROWS_AS(parse(load() + "relative_hydration {\n    b1 max\n}\n"), sequencer::except::parse_error);
+        CHECK_NOTHROW(parse(load() + "relative_hydration b1 max\n"));
     }
 
     SECTION("the removed symmetry block form is rejected") {

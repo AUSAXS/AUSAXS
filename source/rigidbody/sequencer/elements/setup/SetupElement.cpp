@@ -163,7 +163,16 @@ SetupElement& SetupElement::symmetry(std::string_view name, symmetry::type symme
 }
 
 SetupElement& SetupElement::relative_hydration(const std::vector<std::string>& names, const std::vector<double>& ratios) {
-    elements.push_back(std::make_unique<RelativeHydrationElement>(owner->_get_sequencer(), names, ratios));
+    assert(names.size() == ratios.size() && "SetupElement::relative_hydration: The number of names and ratios must be equal.");
+    for (std::size_t i = 0; i < names.size(); ++i) {
+        this->relative_hydration(names[i], ratios[i]);
+    }
+    return *this;
+}
+
+SetupElement& SetupElement::relative_hydration(std::string_view name, double ratio) {
+    // one element per body; they share a store, so the declarations accumulate into a single culling strategy
+    elements.push_back(std::make_unique<RelativeHydrationElement>(owner->_get_sequencer(), std::string{name}, ratio));
     return *this;
 }
 

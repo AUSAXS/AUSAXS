@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/BodyIndexOps.h>
 #include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/Rigidbody.h>
@@ -56,25 +57,35 @@ TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationEleme
         auto seq = build();
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 3);
 
-        RelativeHydrationElement element(seq.get(), {"b2"}, {maximum});
+        RelativeHydrationElement element(seq.get(), "b2", maximum);
         CHECK(element._get_ratios() == std::vector<double>{normal, maximum, normal});
     }
 
     SECTION("several named bodies each land at their own index") {
         auto seq = build();
-        RelativeHydrationElement element(seq.get(), {"b3", "b1"}, {high, maximum});
-        CHECK(element._get_ratios() == std::vector<double>{maximum, normal, high});
+        RelativeHydrationElement third(seq.get(), "b3", high);
+        RelativeHydrationElement first(seq.get(), "b1", maximum);
+        CHECK(first._get_ratios() == std::vector<double>{maximum, normal, high});
     }
 
     SECTION("naming every body leaves no default weights") {
         auto seq = build();
-        RelativeHydrationElement element(seq.get(), {"b1", "b2", "b3"}, {maximum, high, normal});
-        CHECK(element._get_ratios() == std::vector<double>{maximum, high, normal});
+        RelativeHydrationElement e1(seq.get(), "b1", maximum);
+        RelativeHydrationElement e2(seq.get(), "b2", high);
+        RelativeHydrationElement e3(seq.get(), "b3", normal);
+        CHECK(e3._get_ratios() == std::vector<double>{maximum, high, normal});
     }
 
     SECTION("a renamed body is addressable by its alias") {
         auto seq = build("rename b2 core\n");
-        RelativeHydrationElement element(seq.get(), {"core"}, {high});
+        RelativeHydrationElement element(seq.get(), "core", high);
+        CHECK(element._get_ratios() == std::vector<double>{normal, high, normal});
+    }
+
+    SECTION("a level declared through an alias survives a later rename") {
+        auto seq = build("rename b2 core\n");
+        RelativeHydrationElement element(seq.get(), "core", high);
+        seq->setup()._body_name_registry().rename("core", "other");
         CHECK(element._get_ratios() == std::vector<double>{normal, high, normal});
     }
 
@@ -82,24 +93,88 @@ TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationEleme
         auto seq = build("delete b1\n");
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 2);
 
-        RelativeHydrationElement element(seq.get(), {"b3"}, {high});
+        RelativeHydrationElement element(seq.get(), "b3", high);
         CHECK(element._get_ratios() == std::vector<double>{normal, high});
     }
 
     SECTION("an unknown body name is rejected") {
         auto seq = build();
-        CHECK_THROWS(RelativeHydrationElement(seq.get(), {"doesnotexist"}, {high}));
+        CHECK_THROWS(RelativeHydrationElement(seq.get(), "doesnotexist", high));
     }
 
     SECTION("a symmetry replica is rejected: it has no hydration of its own to scale") {
         auto seq = build("symmetry b1 c2\n");
         REQUIRE(seq->setup()._body_name_registry().contains("b1s1r1"));
-        CHECK_THROWS(RelativeHydrationElement(seq.get(), {"b1s1r1"}, {high}));
+        CHECK_THROWS(RelativeHydrationElement(seq.get(), "b1s1r1", high));
     }
 
     SECTION("the script form parses and produces one weight per body") {
         auto seq = build("relative_hydration b2 max\n");
         REQUIRE(seq != nullptr);
         CHECK(seq->_get_rigidbody()->molecule.size_body() == 3);
+    }
+}
+
+TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationElement: declarations accumulate", "[files]") {
+    // The ratio vector spans the whole body set, so an element cannot describe only its own bodies. Before the shared store,
+    // a second element rebuilt the vector from scratch and reset every body the first one had named back to normal.
+    constexpr double normal = 1.0, high = 1.5, maximum = 1.75, low = 0.5;
+
+    SECTION("a second element does not reset the first one's bodies") {
+        auto seq = build();
+        RelativeHydrationElement first(seq.get(), "b1", maximum);
+        RelativeHydrationElement second(seq.get(), "b3", low);
+        CHECK(second._get_ratios() == std::vector<double>{maximum, normal, low});
+        CHECK(first._get_ratios() == std::vector<double>{maximum, normal, low}); // both read the same store
+    }
+
+    SECTION("the last declaration for a body wins") {
+        auto seq = build();
+        RelativeHydrationElement first(seq.get(), "b2", maximum);
+        RelativeHydrationElement second(seq.get(), "b2", low);
+        CHECK(second._get_ratios() == std::vector<double>{normal, low, normal});
+    }
+
+    SECTION("naming one body two ways collapses onto a single entry") {
+        auto seq = build("rename b2 core\n");
+        RelativeHydrationElement byname(seq.get(), "b2", maximum);
+        RelativeHydrationElement byalias(seq.get(), "core", low);
+        CHECK(byalias._get_ratios() == std::vector<double>{normal, low, normal});
+    }
+
+    SECTION("the store does not leak into a later sequencer") {
+        {
+            auto seq = build();
+            RelativeHydrationElement element(seq.get(), "b1", maximum);
+            REQUIRE(element._get_ratios() == std::vector<double>{maximum, normal, normal});
+        }
+        auto seq = build();
+        RelativeHydrationElement element(seq.get(), "b3", high);
+        CHECK(element._get_ratios() == std::vector<double>{normal, normal, high});
+    }
+
+    SECTION("deleting a body that was given a level is an error, not a silent drop") {
+        auto seq = build();
+        RelativeHydrationElement element(seq.get(), "b1", maximum);
+        sequencer::detail::erase_bodies(seq.get(), {0});
+        CHECK_THROWS(element._get_ratios());
+    }
+
+    SECTION("repeated script lines accumulate, replacing the removed block form") {
+        auto seq = build(
+            "relative_hydration b1 max\n"
+            "relative_hydration b3 low\n"
+        );
+        REQUIRE(seq != nullptr);
+
+        // read the merged store back off one of the real elements the script produced
+        RelativeHydrationElement* element = nullptr;
+        for (const auto* list : {&seq->setup()._get_elements(), &seq->_get_elements()}) {
+            for (const auto& e : *list) {
+                if (auto* rh = dynamic_cast<RelativeHydrationElement*>(e.get())) {element = rh;}
+            }
+        }
+        REQUIRE(element != nullptr);
+        CHECK(element->_get_ratios() == std::vector<double>{maximum, normal, low});
     }
 }

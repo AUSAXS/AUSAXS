@@ -13,13 +13,6 @@
 using namespace ausaxs::rigidbody::sequencer::detail;
 
 namespace {
-    // "relative_hydration" keys its argument block by body name rather than by option name, so no fixed whitelist can
-    // describe it. It resolves its keys through the body-name registry, which rejects names it does not know, so a bad key
-    // is still caught - just by the element itself, and with a different message.
-    bool keys_are_body_names(ElementType type) {
-        return type == ElementType::RelativeHydration;
-    }
-
     std::string quote_join(std::vector<std::string> values) {
         std::sort(values.begin(), values.end()); // the keys arrive from an unordered_map, so sort for a reproducible message
         std::string joined;
@@ -110,7 +103,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(E
 }
 
 void ausaxs::rigidbody::sequencer::detail::validate_named_arguments(ElementType type, std::string_view element, const ParsedArgs& args) {
-    if (args.named.empty() || keys_are_body_names(type)) {return;}
+    if (args.named.empty()) {return;}
 
     auto valid = valid_arguments(type);
     std::vector<std::string> unknown;
