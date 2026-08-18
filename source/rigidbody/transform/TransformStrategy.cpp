@@ -135,7 +135,8 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
         grid->remove(body);
 
         bodybackup.clear();
-        bodybackup.emplace_back(std::move(body), ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
+        // necessarily a copy: the body must survive here so undo() can restore it if the step is rejected
+        bodybackup.emplace_back(body, ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
     }
 
     // compute new absolute transform parameters for the body
@@ -149,10 +150,7 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
         body = rigidbody->conformation->initial_conformation[ibody];
         rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body.get_cm(), body);
         restore_symmetry(ibody); // rebuilding from the initial conformation also reset the symmetries, so put the accumulated values back
-    } else { // no transformation, so just restore the original conformation
-        body = std::move(bodybackup.front().body.value());
-        bodybackup.front().body.reset();
-    }
+    } // no transformation: nothing has touched the body, so it is already in the right state and is left alone
 
     // update and apply symmetry parameters
     if (par.symmetry_pars.has_value()) {apply_symmetry_delta(ibody, par.symmetry_pars.value());}
@@ -164,7 +162,7 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
 
 void TransformStrategy::undo() {
     for (auto& body : bodybackup) {
-        if (body.body.has_value()) {rigidbody->molecule.get_body(body.index) = std::move(body.body.value());}
+        rigidbody->molecule.get_body(body.index) = std::move(body.body);
         rigidbody->conformation->absolute_parameters.parameters[body.index] = std::move(body.params);
     }
     bodybackup.clear();

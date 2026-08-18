@@ -49,6 +49,8 @@ namespace ausaxs::settings {
             All,                // All parameter components are active every step (default).
             Real,               // Only the real body transform (translation + rotation) is active.
             Symmetry,           // Only symmetry parameters (offset, axis, angle) are active.
+            SymmetryTranslation,// Only the symmetry offset translation is active.
+            SymmetryAxis,       // Only the symmetry frame orientation is active.
             Sequential,         // Alternates between real-only and symmetry-only steps.
             SequentialSymmetry, // Alternates between all-symmetry and symmetry-only steps, isolating the effect of the symmetry parameters.
             SequentialReal,     // Alternates between all-real and real-only steps, isolating the effect of the real body transform parameters.

@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
-#include <rigidbody/parameters/ParameterGenerationStrategies.h>
+#include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
@@ -10,32 +10,35 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::parameter;
 
-std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
-    observer_ptr<const Rigidbody> molecule, unsigned int iterations, double translate_amp, double rotate_amp
-) {
-    return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), translate_amp, rotate_amp, settings::rigidbody::parameter_generation_strategy);
-}
-
-std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
-    observer_ptr<const Rigidbody> molecule, unsigned int iterations, double translate_amp, double rotate_amp, settings::rigidbody::ParameterGenerationStrategyChoice choice
-) {
-    return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), translate_amp, rotate_amp, choice);
-}
-
-std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
-    observer_ptr<const Rigidbody> molecule, std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> decay_strategy, 
-    double translate_amp, double rotate_amp, settings::rigidbody::ParameterGenerationStrategyChoice choice
-) {
+ParameterAmplitudes rigidbody::factory::restrict_to(ParameterAmplitudes amplitudes, settings::rigidbody::ParameterGenerationStrategyChoice choice) {
     switch (choice) {
         case settings::rigidbody::ParameterGenerationStrategyChoice::Simple:
-            return std::make_unique<LimitedParameterGenerator<true, true, true>>(molecule, std::move(decay_strategy), translate_amp, rotate_amp);
+            return amplitudes;
         case settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly:
-            return std::make_unique<RotationsOnly>(molecule, std::move(decay_strategy), translate_amp, rotate_amp);
+            return {.rotation = amplitudes.rotation};
         case settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly:
-            return std::make_unique<TranslationsOnly>(molecule, std::move(decay_strategy), translate_amp, rotate_amp);
+            return {.translation = amplitudes.translation};
         case settings::rigidbody::ParameterGenerationStrategyChoice::SymmetryOnly:
-            return std::make_unique<SymmetryOnly>(molecule, std::move(decay_strategy), translate_amp, rotate_amp);
+            return {.symmetry_translation = amplitudes.symmetry_translation, .symmetry_rotation = amplitudes.symmetry_rotation};
         default: 
-            throw except::unknown_argument("rigidbody::factory::create_parameter_strategy: Unknown strategy. Did you forget to add it to the switch statement?");
+            throw except::unknown_argument("rigidbody::factory::restrict_to: Unknown strategy. Did you forget to add it to the switch statement?");
     }
+}
+
+std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
+    observer_ptr<const Rigidbody> molecule, unsigned int iterations, const ParameterAmplitudes& amplitudes
+) {
+    return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), amplitudes);
+}
+
+std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
+    observer_ptr<const Rigidbody> molecule, std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> decay_strategy, const ParameterAmplitudes& amplitudes
+) {
+    return std::make_unique<UniformParameterGenerator>(molecule, std::move(decay_strategy), amplitudes);
+}
+
+std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
+    observer_ptr<const Rigidbody> molecule, unsigned int iterations, settings::rigidbody::ParameterGenerationStrategyChoice choice
+) {
+    return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), restrict_to(default_amplitudes(molecule), choice));
 }

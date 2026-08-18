@@ -13,10 +13,6 @@
 namespace ausaxs::symmetry {
     /**
      * @brief Owns the collection of symmetries applied to a body.
-     *
-     * Symmetries are stored as polymorphic ISymmetry instances; this class provides indexed and
-     * whole-collection access to them. It is move-only since the contained symmetries are uniquely
-     * owned, and is virtual so that derived storages (e.g. optimisable variants) can extend it.
      */
     struct SymmetryStorage {
         SymmetryStorage() = default;
@@ -24,7 +20,7 @@ namespace ausaxs::symmetry {
         SymmetryStorage& operator=(const SymmetryStorage&) = delete;
         SymmetryStorage(SymmetryStorage&&) = default;
         SymmetryStorage& operator=(SymmetryStorage&&) = default;
-        virtual ~SymmetryStorage() = default;
+        ~SymmetryStorage() = default;
 
         observer_ptr<ISymmetry> get(std::size_t i);
         observer_ptr<const ISymmetry> get(std::size_t i) const;
@@ -32,10 +28,10 @@ namespace ausaxs::symmetry {
         const std::vector<std::unique_ptr<ISymmetry>>& get() const;
         std::vector<std::unique_ptr<ISymmetry>>& get();
 
-        virtual void add(symmetry::type symmetry);
+        void add(symmetry::type symmetry);
         void add(std::unique_ptr<ISymmetry> sym);
 
-        virtual std::unique_ptr<SymmetryStorage> clone();
+        std::unique_ptr<SymmetryStorage> clone();
 
         std::vector<std::unique_ptr<ISymmetry>> symmetries;
     };

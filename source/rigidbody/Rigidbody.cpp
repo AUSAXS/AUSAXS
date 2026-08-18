@@ -7,7 +7,6 @@
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
-#include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/controller/ControllerFactory.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <fitter/SmartFitter.h>
@@ -28,14 +27,6 @@ using namespace ausaxs::rigidbody;
 Rigidbody::~Rigidbody() = default;
 
 Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)) {
-    // Convert all symmetry storages to OptimizableSymmetryStorage for parameter optimization
-    for (int i = 0; i < static_cast<int>(molecule.size_body()); ++i) {
-        auto& body = molecule.get_body(i);
-        if (auto obj = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(body.symmetry().get_obj()); !obj) {
-            body.symmetry().set_obj(std::make_unique<symmetry::OptimizableSymmetryStorage>(std::move(*body.symmetry().get_obj())));
-        }
-    }
-
     {   // ensure settings are compatible with rigid-body optimization
         settings::flags::prefer_partial_manager = true;
         if (!settings::hist::supports_partial_calculation(settings::hist::get_histogram_manager())) {
@@ -61,10 +52,7 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
     body_selector = factory::create_selection_strategy(this);
     transformer = factory::create_transform_strategy(this);
     parameter_generator = factory::create_parameter_strategy(
-        this, 
-        settings::rigidbody::iterations,
-        5,
-        std::numbers::pi/3
+        this, settings::rigidbody::iterations, settings::rigidbody::parameter_generation_strategy
     );
 }
 

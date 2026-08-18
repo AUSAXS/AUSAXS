@@ -91,12 +91,13 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
     }
 
     SECTION("every valid key is still accepted") {
-        CHECK_NOTHROW(parse(load() +
+        CHECK_NOTHROW(parse(load() + "symmetry c2\n" +
             "parameter {\n"
             "    iterations 10\n"
             "    translate 5\n"
             "    rotate 0.1\n"
-            "    mode both\n"
+            "    sym_translate 10\n"
+            "    sym_rotate 0.2\n"
             "    decay exponential\n"
             "}\n"
         ));
@@ -104,11 +105,9 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
 
     SECTION("aliases of valid keys are accepted") {
         CHECK_NOTHROW(parse(load() +
-            "parameter {\n"
-            "    iterations 10\n"
-            "    translate 5\n"
-            "    rotate 0.1\n"
-            "    strategy both\n"
+            "select {\n"
+            "    body random_body\n"
+            "    mask symmetry\n" // alias of "parameters"
             "}\n"
         ));
     }

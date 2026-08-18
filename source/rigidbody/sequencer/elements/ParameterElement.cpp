@@ -36,26 +36,28 @@ ParameterElement& ParameterElement::max_translation_distance(double distance) {
     return *this;
 }
 
+ParameterElement& ParameterElement::max_symmetry_rotation_angle(double radians) {
+    strategy->set_max_symmetry_rotation_angle(radians);
+    return *this;
+}
+
+ParameterElement& ParameterElement::max_symmetry_translation_distance(double distance) {
+    strategy->set_max_symmetry_translation_distance(distance);
+    return *this;
+}
+
 observer_ptr<parameter::ParameterGenerationStrategy> ParameterElement::get_parameter_strategy() const {
     return strategy.get();
 }
 
 namespace {
-    struct ParameterStrategyDefs {
-        static inline std::string ROTATE_ONLY = "rotate_only";
-        static inline std::string TRANSLATE_ONLY = "translate_only";
-        static inline std::string BOTH = "both";
-        static inline std::string SYMMETRY_ONLY = "symmetry_only";
-    };
-}
-
-namespace {
-    enum class Args {iterations, translate, rotate, strategy, decay_strategy};
+    enum class Args {iterations, translate, rotate, sym_translate, sym_rotate, decay_strategy};
     std::unordered_map<Args, std::vector<std::string>> args_map = {
         {Args::iterations,      {"iterations"}},
         {Args::translate,       {"translate"}},
         {Args::rotate,          {"rotate"}},
-        {Args::strategy,        {"mode", "strategy"}},
+        {Args::sym_translate,   {"sym_translate"}},
+        {Args::sym_rotate,      {"sym_rotate"}},
         {Args::decay_strategy,  {"decay"}}
     };
 }
@@ -69,16 +71,8 @@ InlineSignature ParameterElement::_valid_inline_arguments() {
     return {.names = {}, .min = 0, .max = 0};
 }
 
-// parameter { iterations [n], and any of: translate, rotate, mode, decay }
+// parameter { iterations [n], and any of: translate, rotate, sym_translate, sym_rotate, decay }
 std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    static auto get_parameter_strategy = [] (std::string_view line) {
-        if (line == ParameterStrategyDefs::ROTATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}
-        if (line == ParameterStrategyDefs::TRANSLATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly;}
-        if (line == ParameterStrategyDefs::SYMMETRY_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::SymmetryOnly;}
-        if (line == ParameterStrategyDefs::BOTH || line == "rotate_and_translate") {return settings::rigidbody::ParameterGenerationStrategyChoice::Simple;}
-        throw except::parse_error("parameter", "Unknown choice \"" + std::string(line) + "\"");
-    };
-
     static auto get_decay_strategy = [] (std::string_view line) {
         if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
         if (line == "exponential") {return settings::rigidbody::DecayStrategyChoice::Exponential;}
@@ -87,53 +81,40 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
     };
 
     auto iterations = args.get<int>(args_map[Args::iterations]);
-    auto translate = args.get<double>(args_map[Args::translate], 0);
-    auto rotate = args.get<double>(args_map[Args::rotate], 0);
-    auto strategy = args.get<std::string>(args_map[Args::strategy], "both");
     auto decay_strategy = args.get<std::string>(args_map[Args::decay_strategy], "linear");
 
-    bool has_translate = translate.found && translate.value != 0;
-    bool has_rotate = rotate.found && rotate.value != 0;
-
-    // validate arguments
     if (!iterations.found) {throw except::parse_error("parameter", "Missing required argument \"iterations\".");}
-    if (!strategy.found) {
-        // deduce strategy from presence/absence of args
 
-        // translate != 0; rotate = 0  --> translate_only
-        if (has_translate && !has_rotate) {strategy.value = ParameterStrategyDefs::TRANSLATE_ONLY;}
+    // a component is optimised exactly when its amplitude is non-zero, so the amplitudes are the whole configuration
+    parameter::ParameterAmplitudes amplitudes = {
+        .translation = args.get<double>(args_map[Args::translate], 0).value,
+        .rotation = args.get<double>(args_map[Args::rotate], 0).value,
+        .symmetry_translation = args.get<double>(args_map[Args::sym_translate], 0).value,
+        .symmetry_rotation = args.get<double>(args_map[Args::sym_rotate], 0).value
+    };
 
-        // translate = 0; rotate != 0  --> rotate_only
-        else if (!has_translate && has_rotate) {strategy.value = ParameterStrategyDefs::ROTATE_ONLY;}
+    auto rigidbody = owner->_get_rigidbody();
+    bool has_symmetries = rigidbody->molecule.symmetry().has_symmetries();
 
-        // translate == 0; rotate = 0 --> symmetry_only (if symmetries are present)
-        else if (!has_translate && !has_rotate) {
-            if (owner->_get_rigidbody()->molecule.symmetry().has_symmetries()) {
-                strategy.value = ParameterStrategyDefs::SYMMETRY_ONLY;
-            } else {
-                throw except::parse_error("parameter", "Missing one of \"mode\", \"translate\", or \"rotate\".");
-            }
+    // nothing was named: fall back to optimising the symmetries, the only thing that can be done without an amplitude
+    if (amplitudes.translation == 0 && amplitudes.rotation == 0 && amplitudes.symmetry_translation == 0 && amplitudes.symmetry_rotation == 0) {
+        if (!has_symmetries) {
+            throw except::parse_error("parameter", "Missing one of \"translate\", \"rotate\", \"sym_translate\", or \"sym_rotate\".");
         }
-    } else { // explicit strategy provided, so validate that required args are present and that no extraneous args are provided
-        if (strategy.value == ParameterStrategyDefs::TRANSLATE_ONLY && !has_translate) {
-            throw except::parse_error("parameter", "Missing required argument \"translate\" for strategy \"translate_only\".");
-        } else if (strategy.value == ParameterStrategyDefs::ROTATE_ONLY && !has_rotate) {
-            throw except::parse_error("parameter", "Missing required argument \"rotate\" for strategy \"rotate_only\".");
-        } else if (strategy.value == ParameterStrategyDefs::BOTH && !(has_translate && has_rotate)) {
-            throw except::parse_error("parameter", "Missing required arguments \"translate\" and \"rotate\" for strategy \"both\".");
-        } else if (strategy.value == ParameterStrategyDefs::SYMMETRY_ONLY && (has_translate || has_rotate)) {
-            throw except::parse_error("parameter", "Unexpected arguments \"translate\" and/or \"rotate\" for strategy \"symmetry_only\".");
-        }
+        amplitudes.symmetry_translation = parameter::default_symmetry_translation(rigidbody);
+        amplitudes.symmetry_rotation = parameter::default_symmetry_rotation();
+    }
+
+    if ((amplitudes.symmetry_translation != 0 || amplitudes.symmetry_rotation != 0) && !has_symmetries) {
+        throw except::parse_error("parameter", "Symmetry optimisation was requested, but the molecule has no symmetries.");
     }
 
     return std::make_unique<ParameterElement>(
         owner,
         rigidbody::factory::create_parameter_strategy(
-            owner->_get_rigidbody(),
+            rigidbody,
             rigidbody::factory::create_decay_strategy(iterations.value, get_decay_strategy(decay_strategy.value)),
-            translate.value,
-            rotate.value,
-            get_parameter_strategy(strategy.value)
+            amplitudes
         )
     );
 }

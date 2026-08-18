@@ -28,10 +28,10 @@ add_library(ausaxs_rigidbody OBJECT
 	
 	"parameters/BodyTransformParametersAbsolute.cpp"
 	"parameters/BodyTransformParametersRelative.cpp"
-	"parameters/OptimizableSymmetryStorage.cpp"
+	"parameters/ParameterAmplitudes.cpp"
 	"parameters/ParameterGenerationFactory.cpp"
 	"parameters/ParameterGenerationStrategy.cpp"
-	"parameters/ParameterGenerationStrategies.cpp"
+	"parameters/UniformParameterGenerator.cpp"
 	"parameters/decay/DecayFactory.cpp"
 	"parameters/decay/ExponentialDecay.cpp"
 	"parameters/decay/LinearDecay.cpp"

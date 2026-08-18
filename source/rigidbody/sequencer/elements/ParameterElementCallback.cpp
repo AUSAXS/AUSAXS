@@ -18,6 +18,14 @@ ParameterElement& ParameterElementCallback::max_translation_distance(double dist
     return caller->max_translation_distance(distance);
 }
 
+ParameterElement& ParameterElementCallback::max_symmetry_rotation_angle(double radians) {
+    return caller->max_symmetry_rotation_angle(radians);
+}
+
+ParameterElement& ParameterElementCallback::max_symmetry_translation_distance(double distance) {
+    return caller->max_symmetry_translation_distance(distance);
+}
+
 ParameterElement& ParameterElementCallback::decay_strategy(std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> strategy) {
     return caller->decay_strategy(std::move(strategy));
 }

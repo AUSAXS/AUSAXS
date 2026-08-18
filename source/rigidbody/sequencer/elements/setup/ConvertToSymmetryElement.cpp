@@ -9,7 +9,6 @@
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/constraints/ConstraintManager.h>
@@ -29,14 +28,6 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
-    // Mark the body's symmetry storage as optimizable so the parameter optimiser can drive it.
-    void enable_optimization(symmetry::SymmetryStorage* storage) {
-        auto* opt = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(storage);
-        assert(opt != nullptr && "ConvertToSymmetryElement: body symmetry storage is not optimizable.");
-        opt->optimize_translate = true;
-        opt->optimize_rot_axis = true;
-    }
-
     // A contiguous run of atoms sharing a residue id, keyed by that id together with its occurrence count so that a body holding the same id more than
     // once - a merge of several chains, each numbered from its own start - still matches its copies.
     struct ResidueRun {
@@ -260,10 +251,7 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
             + " Å). Check the symmetry type and the body order, or raise the tolerance.");
     }
 
-    // install the fitted symmetry on the primary body (live molecule and stored initial conformation); both storages must be optimizable for 
-    // the parameter optimiser to drive them
-    enable_optimization(molecule->get_body(primary).symmetry().get_obj());
-    enable_optimization(rigidbody->conformation->initial_conformation[primary].symmetry().get_obj());
+    // install the fitted symmetry on the primary body (live molecule and stored initial conformation)
     molecule->get_body(primary).symmetry().add(fit.symmetry->clone());
     rigidbody->conformation->initial_conformation[primary].symmetry().add(fit.symmetry->clone());
     rigidbody->conformation->absolute_parameters.parameters[primary].symmetry_pars.emplace_back(fit.symmetry->clone());

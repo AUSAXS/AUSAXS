@@ -28,7 +28,7 @@ void SingleTransform::apply(
         auto& body = rigidbody->molecule.get_body(ibody);
         grid->remove(body);
         bodybackup.clear();
-        bodybackup.emplace_back(std::move(body), ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
+        bodybackup.emplace_back(body, ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]);
     }
 
     // the symmetry deltas were generated from isymmetry_body's own symmetry list, so that is the only body they can be applied to; it needs its own backup
@@ -57,10 +57,7 @@ void SingleTransform::apply(
         body = rigidbody->conformation->initial_conformation[constraint->ibody1];
         rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, body.get_cm(), body);
         restore_symmetry(ibody); // rebuilding from the initial conformation also reset the symmetries, so put the accumulated values back
-    } else { // no transformation, so just restore the original conformation
-        body = std::move(bodybackup.front().body.value());
-        bodybackup.front().body.reset();
-    }
+    } // no transformation: nothing has touched the body, so it is already in the right state and is left alone
 
     // apply the symmetry deltas to the body they were generated for
     if (par.symmetry_pars.has_value()) {apply_symmetry_delta(isymmetry_body, par.symmetry_pars.value());}

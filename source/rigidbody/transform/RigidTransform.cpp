@@ -39,12 +39,7 @@ void RigidTransform::apply(
 
     // remove bodies from grid since it does not track transforms
     auto grid = rigidbody->molecule.get_grid();
-    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
-        unsigned int igroup = group.indices[i];
-        auto& body = *group.bodies[i];
-        grid->remove(body);
-        body = rigidbody->conformation->initial_conformation[igroup];
-    }
+    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {grid->remove(*group.bodies[i]);}
     if (symmetry_outside_group) {
         bodybackup.emplace_back(
             rigidbody->molecule.get_body(ibody), ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]
@@ -71,15 +66,11 @@ void RigidTransform::apply(
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
             unsigned int igroup = group.indices[i];
             auto& body_params = rigidbody->conformation->absolute_parameters.parameters[igroup];
+            *group.bodies[i] = rigidbody->conformation->initial_conformation[igroup];
             rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, group.bodies[i]->get_cm(), *group.bodies[i]);
             restore_symmetry(igroup); // rebuilding from the initial conformation also reset the symmetries, so put the accumulated values back
         }
-    } else { // no transformation, so just restore the original conformation
-        for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
-            *group.bodies[i] = std::move(bodybackup[i].body.value());
-            bodybackup[i].body.reset();
-        }
-    }
+    } // no transformation: nothing has touched the bodies, so they are already in the right state and are left alone
 
     // apply the symmetry deltas to the body they were generated for
     if (par.symmetry_pars.has_value()) {apply_symmetry_delta(ibody, par.symmetry_pars.value());}

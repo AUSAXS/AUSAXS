@@ -54,5 +54,6 @@ namespace ausaxs::symmetry {
 
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
+        Vector3<double> rotation_from_angle(double angle, const Vector3<double>& direction) const override;
     };
 }

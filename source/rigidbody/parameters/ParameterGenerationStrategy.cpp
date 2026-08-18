@@ -7,40 +7,51 @@
 #include <math/Vector3.h>
 #include <utility/Random.h>
 
-#include <random>
+#include <cassert>
+#include <cmath>
 #include <numbers>
+#include <random>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::parameter;
 
-std::tuple<
-    std::uniform_real_distribution<double>, std::uniform_real_distribution<double>, 
-    std::uniform_real_distribution<double>, std::uniform_real_distribution<double>,
-    std::uniform_real_distribution<double>
-> create_distributions(double length_start, double rad_start, double Rg) {
-    std::uniform_real_distribution<double> translation_dist(-length_start, length_start);
-    std::uniform_real_distribution<double> rotation_dist(-rad_start, rad_start);
-    std::uniform_real_distribution<double> translation_symmetry_dist(-2*Rg, 2*Rg);
-    std::uniform_real_distribution<double> rotation_symmetry_dist(-3, 3);
-    std::uniform_real_distribution<double> angle_symmetry_dist(-std::numbers::pi/2, std::numbers::pi/2);
-    return {std::move(translation_dist), std::move(rotation_dist), std::move(translation_symmetry_dist), std::move(rotation_symmetry_dist), std::move(angle_symmetry_dist)};
-}
+ParameterGenerationStrategy::ParameterGenerationStrategy(
+    observer_ptr<const Rigidbody> rigidbody, unsigned int iterations, const ParameterAmplitudes& amplitudes) 
+    : rigidbody(rigidbody), amplitudes(amplitudes), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
+) {}
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
-    observer_ptr<const Rigidbody> rigidbody, unsigned int iterations, double length_start, double rad_start) 
-    : rigidbody(rigidbody), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
-) {
-    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist, angle_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg(false));
-}
-
-ParameterGenerationStrategy::ParameterGenerationStrategy(
-    observer_ptr<const Rigidbody> rigidbody, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start) 
-    : rigidbody(rigidbody), decay_strategy(std::move(decay_strategy)
-) {
-    std::tie(translation_dist, rotation_dist, translation_symmetry_dist, rotation_symmetry_dist, angle_symmetry_dist) = create_distributions(length_start, rad_start, rigidbody->molecule.get_Rg(false));
-}
+    observer_ptr<const Rigidbody> rigidbody, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, const ParameterAmplitudes& amplitudes) 
+    : rigidbody(rigidbody), amplitudes(amplitudes), decay_strategy(std::move(decay_strategy)
+) {}
 
 ParameterGenerationStrategy::~ParameterGenerationStrategy() = default;
+
+double ParameterGenerationStrategy::draw(double amplitude) {
+    return unit_dist(random::generator())*amplitude;
+}
+
+Vector3<double> ParameterGenerationStrategy::draw_direction() {
+    // inverse transform sampling
+    double z = unit_dist(random::generator());
+    double azimuth = std::numbers::pi*unit_dist(random::generator());
+    double r = std::sqrt(1 - z*z);
+    return {r*std::cos(azimuth), r*std::sin(azimuth), z};
+}
+
+Vector3<double> ParameterGenerationStrategy::draw_isotropic(double magnitude, std::size_t dimensions) {
+    switch (dimensions) {
+        case 0: return {0, 0, 0}; // a symmetry with no parameters of its own, e.g. a view onto another body's
+        case 2: { // a planar parameter, whose direction is a single uniform azimuth
+            double azimuth = std::numbers::pi*unit_dist(random::generator());
+            return {magnitude*std::cos(azimuth), magnitude*std::sin(azimuth), 0};
+        }
+        case 3: return draw_direction()*magnitude;
+        default:
+            assert(false && "ParameterGenerationStrategy::draw_isotropic: unexpected parameter count.");
+            return {0, 0, 0};
+    }
+}
 
 void ParameterGenerationStrategy::set_decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy) {
     this->decay_strategy = std::move(decay_strategy);
@@ -49,9 +60,19 @@ void ParameterGenerationStrategy::set_decay_strategy(std::unique_ptr<parameter::
 observer_ptr<rigidbody::parameter::decay::DecayStrategy> ParameterGenerationStrategy::get_decay_strategy() const {return decay_strategy.get();}
 
 void ParameterGenerationStrategy::set_max_translation_distance(double distance) {
-    translation_dist = std::uniform_real_distribution<double>(-distance, distance);
+    amplitudes.translation = distance;
 }
 
 void ParameterGenerationStrategy::set_max_rotation_angle(double radians) {
-    rotation_dist = std::uniform_real_distribution<double>(-radians, radians);
+    amplitudes.rotation = radians;
 }
+
+void ParameterGenerationStrategy::set_max_symmetry_translation_distance(double distance) {
+    amplitudes.symmetry_translation = distance;
+}
+
+void ParameterGenerationStrategy::set_max_symmetry_rotation_angle(double radians) {
+    amplitudes.symmetry_rotation = radians;
+}
+
+const ParameterAmplitudes& ParameterGenerationStrategy::get_amplitudes() const {return amplitudes;}

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/Rigidbody.h>
@@ -7,9 +8,8 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
-#include <rigidbody/parameters/OptimizableSymmetryStorage.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/parameters/ParameterGenerationStrategies.h>
+#include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Molecule.h>
@@ -46,17 +46,6 @@ TEST_CASE("SymmetryBackup: Symmetry structure preserved in original_conformation
         auto& original_body = rigidbody.conformation->initial_conformation[0];
         INFO("original_conformation must have same symmetry structure as molecule body");
         REQUIRE(original_body.size_symmetry() == 1);
-
-        // Verify both use OptimizableSymmetryStorage
-        auto* mol_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
-            rigidbody.molecule.get_body(0).symmetry().get_obj()
-        );
-        auto* orig_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
-            original_body.symmetry().get_obj()
-        );
-
-        REQUIRE(mol_storage != nullptr);
-        REQUIRE(orig_storage != nullptr);
 
         // Verify configuration.parameters has symmetry_pars initialized
         REQUIRE(rigidbody.conformation->absolute_parameters.parameters[0].symmetry_pars.size() == 1);
@@ -134,12 +123,6 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
     rigidbody.molecule.generate_new_hydration();
     unsigned int ibody = 0;
 
-    // Verify initial state has OptimizableSymmetryStorage
-    auto* initial_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
-        rigidbody.molecule.get_body(ibody).symmetry().get_obj()
-    );
-    REQUIRE(initial_storage != nullptr);
-    
     // Verify configuration was properly initialized with symmetry parameters
     REQUIRE(rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars.size() == 1);
 
@@ -149,23 +132,11 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
     auto new_params = param_gen->next(ibody);
     transformer->apply(std::move(new_params), ibody);
 
-    // Verify the body still has OptimizableSymmetryStorage after transformation
-    auto* after_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
-        rigidbody.molecule.get_body(ibody).symmetry().get_obj()
-    );
-    INFO("Body should retain OptimizableSymmetryStorage after transformation");
-    REQUIRE(after_storage != nullptr);
     REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
 
     // Undo the transformation
     transformer->undo();
 
-    // Verify the body still has OptimizableSymmetryStorage after undo
-    auto* undo_storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
-        rigidbody.molecule.get_body(ibody).symmetry().get_obj()
-    );
-    INFO("Body should retain OptimizableSymmetryStorage after undo");
-    REQUIRE(undo_storage != nullptr);
     REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
 }
 
@@ -200,12 +171,6 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         // Verify symmetry count is preserved
         INFO("Symmetry count should be preserved after constraint transformation");
         REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == original_size);
-
-        // Verify OptimizableSymmetryStorage is still there
-        auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
-            rigidbody.molecule.get_body(ibody).symmetry().get_obj()
-        );
-        REQUIRE(storage != nullptr);
 
         // Undo and verify restoration
         transformer->undo();
@@ -242,12 +207,6 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         INFO("Symmetry count should be preserved after RigidTransform");
         REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == original_size);
 
-        // Verify OptimizableSymmetryStorage is still there
-        auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
-            rigidbody.molecule.get_body(ibody).symmetry().get_obj()
-        );
-        REQUIRE(storage != nullptr);
-
         // Undo and verify restoration
         transformer->undo();
 
@@ -283,12 +242,6 @@ TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity"
         REQUIRE(rigidbody.molecule.get_body(ibody).size_symmetry() == 1);
         REQUIRE(rigidbody.conformation->absolute_parameters.parameters[ibody].symmetry_pars.size() == 1);
         REQUIRE(rigidbody.conformation->initial_conformation[ibody].size_symmetry() == 1);
-
-        // Verify OptimizableSymmetryStorage is maintained
-        auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(
-            rigidbody.molecule.get_body(ibody).symmetry().get_obj()
-        );
-        REQUIRE(storage != nullptr);
     }
 }
 
@@ -322,21 +275,16 @@ TEST_CASE("SymmetryBackup: CompositeSymmetry parameters are optimised") {
     REQUIRE(rb.molecule.get_body(ibody).size_symmetry() == 1);
     REQUIRE(rb.conformation->absolute_parameters.parameters[ibody].symmetry_pars.size() == 1);
 
-    // enable optimisation of the symmetry parameters (composites cannot go through the
-    // type-based add() that normally sets these flags, so set them directly)
-    auto* storage = dynamic_cast<symmetry::OptimizableSymmetryStorage*>(rb.molecule.get_body(ibody).symmetry().get_obj());
-    REQUIRE(storage != nullptr);
-    storage->optimize_translate = true;
-    storage->optimize_rot_axis = true;
-
     // generate a symmetry-only perturbation
-    rigidbody::parameter::SymmetryOnly gen(&rb, settings::rigidbody::iterations, 5, 0.5);
+    rigidbody::parameter::UniformParameterGenerator gen(
+        &rb, settings::rigidbody::iterations, {.symmetry_translation = 5, .symmetry_rotation = 0.5}
+    );
     auto params = gen.next(ibody);
     REQUIRE(params.symmetry_pars.has_value());
     REQUIRE(params.symmetry_pars.value().size() == 1);
 
     // the generated delta must be a composite whose inner AND outer parts both received a
-    // non-zero perturbation: this proves the recursion in ParameterGenerationStrategies
+    // non-zero perturbation: this proves the recursion in UniformParameterGenerator
     auto* delta = dynamic_cast<symmetry::CompositeSymmetry*>(params.symmetry_pars.value()[0].get());
     REQUIRE(delta != nullptr);
     auto nonzero = [](std::span<double> s) {
@@ -413,5 +361,111 @@ TEST_CASE("SymmetryBackup: Grid properly sized for symmetry optimization") {
         
         // Try to regenerate hydration (this will fail if grid is too small)
         REQUIRE_NOTHROW(rigidbody.molecule.generate_new_hydration());
+    }
+}
+
+TEST_CASE("SymmetryBackup: undo restores the body's symmetries, not just its parameters") {
+    settings::general::verbose = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+
+    Molecule m{std::vector<Body>{Body(std::vector{
+        AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
+    })}};
+    m.get_body(0).symmetry().add(symmetry::type::c2);
+    Rigidbody rb(std::move(m));
+
+    rb.parameter_generator = std::make_shared<rigidbody::parameter::UniformParameterGenerator>(
+        &rb, 100, rigidbody::parameter::ParameterAmplitudes{.symmetry_rotation = 0.5}
+    );
+
+    auto body_axis = [&]() {
+        return static_cast<symmetry::CyclicSymmetry*>(rb.molecule.get_body(0).symmetry().get(0))->_repeat_relation.axis;
+    };
+    auto param_axis = [&]() {
+        auto& pars = rb.conformation->absolute_parameters.parameters[0].symmetry_pars;
+        return static_cast<symmetry::CyclicSymmetry*>(pars[0].get())->_repeat_relation.axis;
+    };
+    auto original = body_axis();
+
+    // a symmetry-only step takes no branch that rebuilds the body, so undo must put back the symmetries that
+    // apply_symmetry_delta wrote into it. Discarding the body backup there would leave it holding the rejected axis
+    // while the parameters held the restored one, and every later delta would be computed against the wrong state.
+    for (int i = 0; i < 20; ++i) {
+        rb.transformer->apply(rb.parameter_generator->next(0), 0);
+        rb.transformer->undo();
+
+        REQUIRE_THAT((body_axis() - param_axis()).magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
+        REQUIRE_THAT((body_axis() - original).magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
+    }
+}
+
+TEST_CASE("SymmetryBackup: undo restores the body's symmetries under constrained transforms too") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::grid::min_bins = 250;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
+
+    auto strategy = GENERATE(
+        settings::rigidbody::TransformationStrategyChoice::SingleTransform,
+        settings::rigidbody::TransformationStrategyChoice::RigidTransform
+    );
+    settings::rigidbody::transform_strategy = strategy;
+
+    auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+    bodies.get_body(0).symmetry().add(symmetry::type::c2);
+    Rigidbody rb(std::move(bodies));
+    rb.molecule.generate_new_hydration();
+    unsigned int ibody = 0;
+
+    // symmetry-only steps take the branch that leaves the bodies untouched, which is exactly where the discarded
+    // backup used to strand them: the parameters were rolled back while the body kept the rejected axis.
+    rb.parameter_generator = std::make_shared<rigidbody::parameter::UniformParameterGenerator>(
+        &rb, 100, rigidbody::parameter::ParameterAmplitudes{.symmetry_rotation = 0.5}
+    );
+    auto constraint = rb.constraints->get_body_constraints(ibody).at(0);
+
+    auto body_axis = [&]() {
+        return static_cast<symmetry::CyclicSymmetry*>(rb.molecule.get_body(ibody).symmetry().get(0))->_repeat_relation.axis;
+    };
+    auto param_axis = [&]() {
+        auto& pars = rb.conformation->absolute_parameters.parameters[ibody].symmetry_pars;
+        return static_cast<symmetry::CyclicSymmetry*>(pars[0].get())->_repeat_relation.axis;
+    };
+    // move the bodies off the initial conformation and keep the result. Without this the destructive reset that
+    // RigidTransform used to perform before the branch would be indistinguishable from a no-op, since the bodies
+    // still sit exactly where initial_conformation put them.
+    {
+        rigidbody::parameter::UniformParameterGenerator warmup(
+            &rb, 100, rigidbody::parameter::ParameterAmplitudes{.translation = 2, .rotation = 0.5}
+        );
+        rb.transformer->apply(warmup.next(ibody), constraint, ibody);
+    }
+
+    auto original = body_axis();
+
+    // RigidTransform moves a whole group of bodies, and the body the symmetry delta belongs to may sit outside that
+    // group, so checking only its axis would miss a group left stranded in the initial conformation. Snapshot the
+    // coordinates of every body as well: undo must be a no-op over the entire molecule.
+    auto snapshot = [&]() {
+        std::vector<Vector3<double>> out;
+        for (unsigned int i = 0; i < rb.molecule.size_body(); ++i) {
+            for (const auto& a : rb.molecule.get_body(i).get_atoms()) {out.push_back(a.coordinates());}
+        }
+        return out;
+    };
+    auto original_coords = snapshot();
+
+    for (int i = 0; i < 10; ++i) {
+        rb.transformer->apply(rb.parameter_generator->next(ibody), constraint, ibody);
+        rb.transformer->undo();
+
+        REQUIRE_THAT((body_axis() - param_axis()).magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
+        REQUIRE_THAT((body_axis() - original).magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
+
+        auto coords = snapshot();
+        REQUIRE(coords.size() == original_coords.size());
+        double worst = 0;
+        for (std::size_t j = 0; j < coords.size(); ++j) {worst = std::max(worst, (coords[j] - original_coords[j]).magnitude());}
+        REQUIRE_THAT(worst, Catch::Matchers::WithinAbs(0, 1e-9));
     }
 }

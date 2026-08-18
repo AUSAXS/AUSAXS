@@ -6,14 +6,16 @@
 #include <math/MathFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/parameters/ParameterAmplitudes.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
 
+#include <cstddef>
 #include <random>
 
 namespace ausaxs::rigidbody::parameter {    
     /**
-     * @brief Thread-safe superclass for parameter generation strategies.
+     * @brief Superclass for parameter generation strategies.
      * 
      * Generates relative transformations to be applied to bodies or rigid groups.
      */
@@ -23,19 +25,17 @@ namespace ausaxs::rigidbody::parameter {
              * @brief Construct a new parameter generation strategy.
              * 
              * @param iterations The expected number of iterations. This is used to determine the linear decay rate.
-             * @param length_start The start length of the generated translation vectors. 
-             * @param rad_start The start angle in radians of the generated rotations. 
+             * @param amplitudes The maximum amplitude of each parameter component. Components with a zero amplitude are not generated.
              */
-            ParameterGenerationStrategy(observer_ptr<const Rigidbody> molecule, unsigned int iterations, double length_start, double rad_start);
+            ParameterGenerationStrategy(observer_ptr<const Rigidbody> molecule, unsigned int iterations, const ParameterAmplitudes& amplitudes);
 
             /**
              * @brief Construct a new parameter generation strategy.
              * 
              * @param decay_strategy The decay strategy to use.
-             * @param length_start The start length of the generated translation vectors. 
-             * @param rad_start The start angle in radians of the generated rotations. 
+             * @param amplitudes The maximum amplitude of each parameter component. Components with a zero amplitude are not generated.
              */
-            ParameterGenerationStrategy(observer_ptr<const Rigidbody> molecule, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, double length_start, double rad_start);
+            ParameterGenerationStrategy(observer_ptr<const Rigidbody> molecule, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, const ParameterAmplitudes& amplitudes);
 
             virtual ~ParameterGenerationStrategy();
 
@@ -51,22 +51,49 @@ namespace ausaxs::rigidbody::parameter {
             observer_ptr<parameter::decay::DecayStrategy> get_decay_strategy() const;
 
             /**
-             * @brief Set the maximum translation distance to the given value.
+             * @brief Set the maximum translation distance to the given value. Zero disables body translations.
              */
             void set_max_translation_distance(double distance);
 
             /**
-             * @brief Set the maximum rotation angle to the given value.
+             * @brief Set the maximum rotation angle to the given value. Zero disables body rotations.
              */
             void set_max_rotation_angle(double radians);
 
+            /**
+             * @brief Set the maximum symmetry offset translation distance to the given value. Zero disables symmetry translations.
+             */
+            void set_max_symmetry_translation_distance(double distance);
+
+            /**
+             * @brief Set the maximum symmetry frame reorientation to the given value. Zero disables symmetry rotations.
+             */
+            void set_max_symmetry_rotation_angle(double radians);
+
+            const ParameterAmplitudes& get_amplitudes() const;
+
         protected:
+            // Draw a uniform deviate in [-amplitude, amplitude].
+            double draw(double amplitude);
+
+            // Draw a unit vector pointing in a uniformly distributed direction.
+            Vector3<double> draw_direction();
+
+            /**
+             * @brief Draw a vector of the given magnitude pointing in a uniformly distributed direction.
+             *
+             * The direction is drawn within the given number of dimensions, so that a planar parameter is perturbed
+             * isotropically within its own plane rather than by the projection of a three-dimensional direction.
+             * Any dimension beyond the requested count is zero.
+             */
+            Vector3<double> draw_isotropic(double magnitude, std::size_t dimensions = 3);
+
             observer_ptr<const Rigidbody> rigidbody;
-            std::uniform_real_distribution<double> translation_dist;
-            std::uniform_real_distribution<double> rotation_dist;
-            std::uniform_real_distribution<double> translation_symmetry_dist;
-            std::uniform_real_distribution<double> rotation_symmetry_dist;
-            std::uniform_real_distribution<double> angle_symmetry_dist;
+            ParameterAmplitudes amplitudes;
             std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy;
+
+        private:
+            // All components are drawn from this single distribution and scaled by their amplitude.
+            std::uniform_real_distribution<double> unit_dist{-1, 1};
     };
 }

@@ -10,17 +10,24 @@
 #include <memory>
 
 namespace ausaxs::rigidbody::factory {
+    /**
+     * @brief Zero the amplitudes of every component the given choice excludes, leaving the rest untouched.
+     */
+    parameter::ParameterAmplitudes restrict_to(parameter::ParameterAmplitudes amplitudes, settings::rigidbody::ParameterGenerationStrategyChoice choice);
+
     std::unique_ptr<parameter::ParameterGenerationStrategy> create_parameter_strategy(
-        observer_ptr<const Rigidbody> molecule, unsigned int iterations, double translate_amp, double rotation_amp
+        observer_ptr<const Rigidbody> molecule, unsigned int iterations, const parameter::ParameterAmplitudes& amplitudes
     );
 
     std::unique_ptr<parameter::ParameterGenerationStrategy> create_parameter_strategy(
-        observer_ptr<const Rigidbody> molecule, unsigned int iterations, double translate_amp, double rotation_amp, 
-        settings::rigidbody::ParameterGenerationStrategyChoice choice
+        observer_ptr<const Rigidbody> molecule, std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> decay_strategy,
+        const parameter::ParameterAmplitudes& amplitudes
     );
 
+    /**
+     * @brief Create the default strategy: every component at its default amplitude, restricted to the given choice.
+     */
     std::unique_ptr<parameter::ParameterGenerationStrategy> create_parameter_strategy(
-        observer_ptr<const Rigidbody> molecule, std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> decay_strategy, 
-        double translate_amp, double rotate_amp, settings::rigidbody::ParameterGenerationStrategyChoice choice
+        observer_ptr<const Rigidbody> molecule, unsigned int iterations, settings::rigidbody::ParameterGenerationStrategyChoice choice
     );
 }

@@ -91,6 +91,23 @@ std::string CyclicSymmetry::type_name() const {return "c" + std::to_string(_repe
 std::span<double> CyclicSymmetry::span_translation() {return std::span<double>(_initial_relation.translation.begin(), _initial_relation.translation.end());}
 std::span<double> CyclicSymmetry::span_rotation() {return std::span<double>(_repeat_relation.axis.begin(), _repeat_relation.axis.end());}
 
+ausaxs::Vector3<double> CyclicSymmetry::rotation_from_angle(double angle, const Vector3<double>& direction) const {
+    // unlike the symmetries parameterised by Euler angles, the free rotational parameter here is the axis direction alone;
+    // the angle of the rotation it generates is fixed by the symmetry type. Rotating the axis by the requested angle
+    // therefore means turning it about some direction perpendicular to itself.
+    const auto& axis = _repeat_relation.axis;
+    auto normed = axis/axis.magnitude();
+
+    // the component of the requested direction along the axis would leave it untouched, so only the perpendicular part turns it
+    auto perp = direction - normed*normed.dot(direction);
+    if (perp.magnitude() < 1e-6) {return {0, 0, 0};} // the requested direction is the axis itself, which is not a rotation of it
+    perp.normalize();
+
+    // the delta lands the stored axis exactly on the rotated unit axis, which also pins its magnitude at 1. Without that the
+    // magnitude would random-walk upward as deltas accumulated, shrinking the angle a given delta buys.
+    return matrix::rotation_matrix<double>(perp, angle)*normed - axis;
+}
+
 bool CyclicSymmetry::is_closed() const {
     if (_repeat_relation.translation.magnitude() != 0) { return false; }
     if (std::abs(_repeat_relation.angle) < 1e-9) { return true; }
