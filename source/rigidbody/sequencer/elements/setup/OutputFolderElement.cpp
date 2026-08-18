@@ -55,8 +55,7 @@ std::unique_ptr<GenericElement> OutputFolderElement::_parse(observer_ptr<LoopEle
     auto path = args.get<std::string>(args_map[Args::path]);
     auto mode = args.get<std::string>(args_map[Args::mode], "relative_terminal");
 
-    if (args.inlined.size() == 1) {
-        if (path.found) {throw except::parse_error("output", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
+    if (!args.inlined.empty()) {
         path.value = args.inlined[0];
         path.found = true;
     }

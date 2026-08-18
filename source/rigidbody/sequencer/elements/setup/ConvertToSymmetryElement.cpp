@@ -304,7 +304,6 @@ std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<Lo
 
     // inline form: "convert_to_symmetry c4" uses every loaded body, in load order
     if (!args.inlined.empty()) {
-        if (!args.named.empty()) {throw except::parse_error("convert_to_symmetry", "Cannot combine named and inline arguments.");}
         std::vector<int> bodies(rigidbody->molecule.size_body());
         for (int i = 0; i < static_cast<int>(bodies.size()); ++i) {bodies[i] = i;}
         return std::make_unique<ConvertToSymmetryElement>(sequencer, std::move(bodies), std::string{args.inlined[0]});

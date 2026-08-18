@@ -51,8 +51,6 @@ namespace {
 std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     // inline form: `select <strategy>`, `select <bodyname or alias>`, or `select <symmetry tag>` (e.g. `select b1s2`)
     if (!args.inlined.empty()) {
-        if (!args.named.empty()) {throw except::parse_error("select", "Cannot mix inline and named arguments.");}
-
         const std::string& token = args.inlined[0];
         if (auto choice = try_get_body_select_strategy(token)) {
             return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_selection_strategy(owner->_get_rigidbody(), *choice));

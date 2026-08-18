@@ -144,6 +144,14 @@ std::string ausaxs::rigidbody::sequencer::detail::to_string(const InlineSignatur
     return joined;
 }
 
+void ausaxs::rigidbody::sequencer::detail::validate_argument_forms(std::string_view element, const ParsedArgs& args) {
+    if (args.inlined.empty() || args.named.empty()) {return;}
+
+    std::string msg = "Cannot combine inline and named arguments";
+    if (0 <= args.inlined.line_number) {msg += " (line " + std::to_string(args.inlined.line_number) + ")";}
+    throw except::parse_error(element, msg + ".");
+}
+
 void ausaxs::rigidbody::sequencer::detail::validate_inline_arguments(ElementType type, std::string_view element, const ParsedArgs& args) {
     auto signature = valid_inline_arguments(type);
     auto count = args.inlined.size();

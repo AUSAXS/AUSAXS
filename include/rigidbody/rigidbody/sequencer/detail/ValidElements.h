@@ -53,6 +53,13 @@ namespace ausaxs::rigidbody::sequencer::detail {
     std::string to_string(const InlineSignature& signature);
 
     /**
+     * @brief Reject an element given both inline and named arguments. The two forms are alternatives everywhere, so
+     *        combining them is always a mistake.
+     * @param element The element name as written in the script; used for the error message.
+     */
+    void validate_argument_forms(std::string_view element, const ParsedArgs& args);
+
+    /**
      * @brief Reject every named argument whose key the element does not accept.
      * @param type The element type the arguments were parsed for.
      * @param element The element name as written in the script; used for the error message.

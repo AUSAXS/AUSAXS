@@ -203,7 +203,7 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
             last_loop_element = loop.get();
             return loop;
         }
-    } else if (args.inlined.size() == 2) { // option 3, 5
+    } else { // option 3, 5
         // check option 5
         if (args.inlined[0] == "duplicate" || args.inlined[0] == "copy") {
             const auto& name = args.inlined[1];
@@ -224,5 +224,4 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
             throw except::parse_error("loop", args.inlined, "Could not determine number of iterations.");
         }
     }
-    throw except::parse_error("loop", args.inlined, "Invalid arguments.");
 }

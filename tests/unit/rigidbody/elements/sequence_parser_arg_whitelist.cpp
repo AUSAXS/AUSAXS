@@ -204,6 +204,28 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: inline argument counts ar
     }
 }
 
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: the two argument forms cannot be combined", "[files]") {
+    // tokens between the element name and the brace used to be discarded without a word, so this was previously accepted
+    SECTION("an inline argument in front of a block") {
+        CHECK_THROWS_AS(parse(load() + "print red {\n    msg \"hello\"\n}\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "output somewhere {\n    mode relative\n}\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("the error says the forms cannot be combined") {
+        try {
+            parse(load() + "print red {\n    msg \"hello\"\n}\n");
+            FAIL("expected a parse_error");
+        } catch (const sequencer::except::parse_error& e) {
+            CHECK(std::string(e.what()).find("Cannot combine inline and named arguments") != std::string::npos);
+        }
+    }
+
+    SECTION("either form on its own is still fine") {
+        CHECK_NOTHROW(parse(load() + "print red \"hello\"\n"));
+        CHECK_NOTHROW(parse(load() + "print {\n    msg \"hello\"\n    colour red\n}\n"));
+    }
+}
+
 TEST_CASE("SequenceParser: every element declares a well-formed inline signature") {
     using namespace ausaxs::rigidbody::sequencer::detail;
     for (int i = 0; i < static_cast<int>(ElementType::COUNT); ++i) {

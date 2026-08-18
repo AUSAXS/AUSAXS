@@ -30,7 +30,7 @@ std::unique_ptr<GenericElement> detail::LogElement::_parse(observer_ptr<LoopElem
     return std::make_unique<MessageElement>(owner->_get_sequencer(), message, true);
 }
 
-void detail::LoopEndElement::_parse(observer_ptr<LoopElement>, ParsedArgs&& args) {
+void detail::LoopEndElement::_parse(observer_ptr<LoopElement>, ParsedArgs&&) {
 }
 
 void detail::OverlapStrengthElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {

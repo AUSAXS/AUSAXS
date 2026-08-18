@@ -123,13 +123,11 @@ std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement>
 
     // inlined usage patterns
     if (!args.inlined.empty()) {
-        if (!args.named.empty()) {throw except::parse_error("print", "Cannot combine named and inline arguments.");}
-
         // pattern 1: [message]
         if (args.inlined.size() == 1) {
             message.value = args.inlined[0];
             message.found = true;
-        } else if (args.inlined.size() == 2) { // pattern 2: [color] [message] or [message]
+        } else { // pattern 2: [color] [message]
             color.value = args.inlined[0];
             color.found = true;
             message.value = args.inlined[1];
