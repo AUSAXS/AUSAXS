@@ -160,14 +160,6 @@ namespace ausaxs::rigidbody::sequencer {
             SetupElement& symmetry(std::string_view name, symmetry::type symmetry);
 
             /**
-             * @brief Set relative hydration levels for the given bodies.
-             *
-             * @param names Names of the bodies.
-             * @param ratios Relative hydration ratios.
-             */
-            SetupElement& relative_hydration(const std::vector<std::string>& names, const std::vector<double>& ratios);
-
-            /**
              * @brief Set the relative hydration level of a single body.
              */
             SetupElement& relative_hydration(std::string_view name, double ratio);
