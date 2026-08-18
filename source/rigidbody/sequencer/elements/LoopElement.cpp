@@ -20,6 +20,11 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
+namespace {
+    std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
+    observer_ptr<LoopElement> last_loop_element = nullptr;
+}
+
 LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {
     if (iterations == 1) {return;}
     int this_will_run = iterations;
@@ -38,7 +43,15 @@ void LoopElement::_reset_counters() {
     global_counter = 0;
 }
 
-LoopElement::~LoopElement() = default;
+void LoopElement::_reset_named_loops() {
+    loop_names.clear();
+    last_loop_element = nullptr;
+}
+
+LoopElement::~LoopElement() {
+    _reset_counters();
+    _reset_named_loops();
+}
 
 std::shared_ptr<fitter::FitResult> LoopElement::execute() {
     return owner->execute(); // propagate upwards to the main Sequencer
@@ -155,9 +168,6 @@ InlineSignature LoopElement::_valid_inline_arguments() {
 }
 
 std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    static std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
-    static observer_ptr<LoopElement> last_loop_element = nullptr;
-
     auto deduce_iteration_count = [&]() -> int {
         // find the last parameter element by traversing backwards and upwards through the owner chain
         auto find_last_parameter_element = [&]() -> observer_ptr<ParameterElement> {

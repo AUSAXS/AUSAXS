@@ -13,7 +13,13 @@ using namespace ausaxs::rigidbody::constraints;
 
 OverlapConstraint::OverlapConstraint(observer_ptr<const data::Molecule> molecule) : molecule(molecule) {}
 
-OverlapConstraint::~OverlapConstraint() = default;
+OverlapConstraint::~OverlapConstraint() {
+    reset_statics();
+}
+
+void OverlapConstraint::reset_statics() {
+    overlap_function = [] (double r) {return std::exp(-5*r);};
+}
 
 void OverlapConstraint::set_overlap_function(std::function<double(double)> func) {
     overlap_function = std::move(func);

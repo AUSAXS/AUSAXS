@@ -17,19 +17,25 @@
 using namespace ausaxs::rigidbody::sequencer;
 
 UpdateElement::UpdateElement(observer_ptr<LoopElement> owner) : LoopElementCallback(owner) {
+    // reset on construction instead of destruction to ensure the data lives long enough for the consumer to finish polling after a run has finished
+    reset_statics();
+
     // warn (once, at parse time) if nobody is going to read what we publish
     if (!live_consumer_connected) {
         console::print_warning("update: no live consumer is connected, disabling updates.");
     }
-
-    // start each sequence with an empty buffer so stale frames from a previous run aren't served
-    lock();
-    x.clear(); y.clear(); z.clear();
-    version = 0;
-    unlock();
 }
 
 UpdateElement::~UpdateElement() = default;
+
+void UpdateElement::reset_statics() {
+    lock();
+    x.clear();
+    y.clear();
+    z.clear();
+    version = 0;
+    unlock();
+}
 
 void UpdateElement::run() {
     // nothing is reading the live structure, so don't spend cycles building and publishing it

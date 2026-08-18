@@ -19,13 +19,11 @@ using namespace ausaxs::rigidbody::sequencer;
 Sequencer::Sequencer() : LoopElement(nullptr, 1), setup_loop(this), rigidbody(nullptr) {
     settings::molecule::store_calpha = true;
     settings::molecule::store_residue_seq = true;
-    _reset_counters();
 }
 
 Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), setup_loop(this, saxs), rigidbody(nullptr) {
     settings::molecule::store_calpha = true;
     settings::molecule::store_residue_seq = true;
-    _reset_counters();
 }
 
 Sequencer::~Sequencer() = default;

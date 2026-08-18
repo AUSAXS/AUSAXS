@@ -19,6 +19,8 @@ namespace ausaxs::rigidbody::sequencer {
 
             void run() override;
 
+            static void reset_statics();
+
             static std::vector<std::string> _valid_arguments();
             static InlineSignature _valid_inline_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);

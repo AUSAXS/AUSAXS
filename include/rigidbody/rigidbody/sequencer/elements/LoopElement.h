@@ -94,6 +94,7 @@ namespace ausaxs::rigidbody::sequencer {
             static unsigned int _get_total_iterations();
             static void _add_total_iterations(unsigned int n);
             static void _reset_counters();
+            static void _reset_named_loops();
 
             static std::vector<std::string> _valid_arguments();
             static InlineSignature _valid_inline_arguments();

@@ -113,6 +113,16 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
     }
 }
 
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: named loops are scoped to one parse", "[files]") {
+    auto script = load() +
+        "loop L1 10\n"
+        "    end\n"
+        "end\n";
+
+    CHECK_NOTHROW(parse(script));
+    CHECK_NOTHROW(parse(script));
+}
+
 TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::SymmetryElement inline forms", "[files]") {
     static const std::string two_bodies =
         "load {\n"
