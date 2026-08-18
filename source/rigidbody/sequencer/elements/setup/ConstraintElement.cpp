@@ -71,6 +71,7 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
     if (!body2.found) {throw except::parse_error("constraint", "Missing required argument \"body2\".");}
     if (!type.found) {throw except::parse_error("constraint", "Missing required argument \"type\".");}
 
+    // extra arguments per type: "bond" and "cm" take none, "attract" and "repel" take [distance], "distance" takes [iatom1] [iatom2]
     std::unique_ptr<constraints::Constraint> constraint;
     ConstraintChoice type_enum = get_constraint_choice(type.value);
     switch (type_enum) {

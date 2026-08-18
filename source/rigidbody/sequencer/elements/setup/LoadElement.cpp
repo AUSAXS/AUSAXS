@@ -184,10 +184,11 @@ std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> ow
 
     owner->_get_sequencer()->setup()._set_saxs_path(io::ExistingFile(saxs.value));
     if (split.found) {
+        // pattern 1: split chain - a single file split at its chain boundaries
         if (split.value.size() == 1 && split.value[0] == "chain") {
             if (pdb.value.size() != 1) {throw except::parse_error("load", "Chain splitting can only be used with a single path.");}
             return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], names.value);
-        } else {
+        } else { // pattern 2: split [residue ids...] - a single file split at the given residue sequence ids
             std::vector<int> splits;
             for (const auto& s : split.value) {
                 if (!utility::isinteger(s)) {
