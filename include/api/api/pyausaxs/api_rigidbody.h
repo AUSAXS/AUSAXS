@@ -60,6 +60,18 @@ extern "C" API void rigidbody_get_valid_arguments(
     int* status
 );
 
+// Display names of the inline (positional) arguments an element accepts, in script order, e.g. {"old name", "new name"}
+// for "rename". A name ending in "..." marks the slot absorbing the remaining arguments. min_count/max_count give the
+// accepted range; a max_count of 100 means the element takes an open-ended list.
+extern "C" API void rigidbody_get_valid_inline_arguments(
+    const char* element_name,
+    const char*** arguments,
+    int* size,
+    int* min_count,
+    int* max_count,
+    int* status
+);
+
 // Display names of the bodies that remain after the setup elements (merge/delete/convert_to_symmetry)
 // have been applied, ordered by body index so that name i corresponds to the body with body_index == i
 // reported by rigidbody_get_preview_structure. Each name is the body's custom alias if set, else "bN".

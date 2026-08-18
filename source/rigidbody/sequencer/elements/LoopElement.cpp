@@ -150,6 +150,10 @@ std::vector<std::string> LoopElement::_valid_arguments() {
     return {};
 }
 
+InlineSignature LoopElement::_valid_inline_arguments() {
+    return {.names = {"name", "iterations"}, .min = 0, .max = 2};
+}
+
 std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
     static observer_ptr<LoopElement> last_loop_element = nullptr;

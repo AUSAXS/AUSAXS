@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <utility/observer_ptr.h>
@@ -16,6 +17,7 @@ namespace ausaxs::rigidbody::sequencer {
             void run() override;
 
             static std::vector<std::string> _valid_arguments();
+            static InlineSignature _valid_inline_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:

@@ -21,11 +21,11 @@ std::vector<std::string> RenameElement::_valid_arguments() {
     return {};
 }
 
-std::unique_ptr<GenericElement> RenameElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.size() != 2) {throw except::parse_error(
-        "rename", "Invalid number of inline arguments. Expected [old name] [new name], but got " + std::to_string(args.inlined.size()) + "."
-    );}
+InlineSignature RenameElement::_valid_inline_arguments() {
+    return {.names = {"old name", "new name"}, .min = 2, .max = 2};
+}
 
+std::unique_ptr<GenericElement> RenameElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string old_name = args.inlined[0];
     std::string new_name = args.inlined[1];

@@ -169,13 +169,16 @@ std::vector<std::string> LoadElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature LoadElement::_valid_inline_arguments() {
+    return {.names = {}, .min = 0, .max = 0};
+}
+
 std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto pdb = args.get<std::vector<std::string>>(args_map[Args::paths]);
     auto saxs = args.get<std::string>(args_map[Args::saxs]);
     auto names = args.get<std::vector<std::string>>(args_map[Args::names]);
     auto split = args.get<std::vector<std::string>>(args_map[Args::splits]);
 
-    if (!args.inlined.empty()) {throw except::parse_error("load", "Unexpected inline arguments.");}
     if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}
     if (!saxs.found) {throw except::parse_error("load", "Missing required argument \"saxs\".");}
 

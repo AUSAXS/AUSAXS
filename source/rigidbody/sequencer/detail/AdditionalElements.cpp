@@ -19,7 +19,6 @@ namespace {
 }
 
 void detail::SeedElement::_parse(observer_ptr<LoopElement>, ParsedArgs&& args) {
-    if (args.inlined.size() != 1) {throw except::parse_error("seed", "Expected only a single inline argument.");}
     if (!utility::isinteger(args.inlined[0])) {throw except::parse_error("seed", "Expected an integer seed value, but got \"" + args.inlined[0] + "\".");}
 
     int seed = std::stoi(args.inlined[0]);
@@ -27,13 +26,11 @@ void detail::SeedElement::_parse(observer_ptr<LoopElement>, ParsedArgs&& args) {
 }
 
 std::unique_ptr<GenericElement> detail::LogElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.size() != 1) {throw except::parse_error("log", "Expected only a single inline argument.");}
     auto message = args.inlined[0];
     return std::make_unique<MessageElement>(owner->_get_sequencer(), message, true);
 }
 
 void detail::LoopEndElement::_parse(observer_ptr<LoopElement>, ParsedArgs&& args) {
-    if (!args.inlined.empty()) {throw except::parse_error("end", "Unexpected inline argument.");}
 }
 
 void detail::OverlapStrengthElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
@@ -52,3 +49,8 @@ std::vector<std::string> detail::OverlapStrengthElement::_valid_arguments() {
     static auto map = get_arg_names<OverlapArgs>(overlap_args_map);
     return map;
 }
+
+InlineSignature detail::SeedElement::_valid_inline_arguments() { return {.names = {"seed"}, .min = 1, .max = 1}; }
+InlineSignature detail::LoopEndElement::_valid_inline_arguments() { return {}; }
+InlineSignature detail::LogElement::_valid_inline_arguments() { return {.names = {"message"}, .min = 1, .max = 1}; }
+InlineSignature detail::OverlapStrengthElement::_valid_inline_arguments() { return {}; }

@@ -32,11 +32,11 @@ std::vector<std::string> DeleteElement::_valid_arguments() {
     return {};
 }
 
-std::unique_ptr<GenericElement> DeleteElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.empty()) {throw except::parse_error(
-        "delete", "Invalid number of inline arguments. Expected one or more body names, but got 0."
-    );}
+InlineSignature DeleteElement::_valid_inline_arguments() {
+    return {.names = {"body names..."}, .min = 1, .max = unbounded_inline_args};
+}
 
+std::unique_ptr<GenericElement> DeleteElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::vector<std::string> names;
     names.reserve(args.inlined.size());

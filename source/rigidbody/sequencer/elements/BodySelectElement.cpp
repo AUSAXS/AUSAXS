@@ -33,6 +33,10 @@ std::vector<std::string> BodySelectElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature BodySelectElement::_valid_inline_arguments() {
+    return {.names = {"strategy or body name"}, .min = 0, .max = 1};
+}
+
 namespace {
     std::optional<ausaxs::settings::rigidbody::BodySelectStrategyChoice> try_get_body_select_strategy(std::string_view line) {
         using Choice = ausaxs::settings::rigidbody::BodySelectStrategyChoice;
@@ -48,11 +52,6 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
     // inline form: `select <strategy>`, `select <bodyname or alias>`, or `select <symmetry tag>` (e.g. `select b1s2`)
     if (!args.inlined.empty()) {
         if (!args.named.empty()) {throw except::parse_error("select", "Cannot mix inline and named arguments.");}
-        if (args.inlined.size() != 1) {
-            throw except::parse_error(
-                "select", "Invalid number of inline arguments. Expected exactly one strategy or body name/alias, but got " + std::to_string(args.inlined.size()) + "."
-            );
-        }
 
         const std::string& token = args.inlined[0];
         if (auto choice = try_get_body_select_strategy(token)) {

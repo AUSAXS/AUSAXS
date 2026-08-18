@@ -113,6 +113,10 @@ std::vector<std::string> MessageElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature MessageElement::_valid_inline_arguments() {
+    return {.names = {"color", "message"}, .min = 0, .max = 2};
+}
+
 std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto message = args.get<std::string>(args_map[Args::message]);
     auto color = args.get<std::string>(args_map[Args::color], "white");
@@ -130,7 +134,7 @@ std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement>
             color.found = true;
             message.value = args.inlined[1];
             message.found = true;
-        } else {throw except::parse_error("print", "Too many inline arguments. Expected at most 2, but got " + std::to_string(args.inlined.size()) + ".");}
+        }
     }
     if (!message.found) {throw except::parse_error("print", "Missing required argument \"message\".");}
     return std::make_unique<MessageElement>(owner->_get_sequencer(), message.value, color.value, false);

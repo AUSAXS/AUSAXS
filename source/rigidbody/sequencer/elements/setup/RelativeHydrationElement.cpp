@@ -93,6 +93,10 @@ std::vector<std::string> RelativeHydrationElement::_valid_arguments() {
     return {};
 }
 
+InlineSignature RelativeHydrationElement::_valid_inline_arguments() {
+    return {.names = {"body", "hydration level"}, .min = 2, .max = 2};
+}
+
 std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static const std::unordered_map<std::string, Options> options = {
         {"max",     Options::Maximum},
@@ -106,7 +110,6 @@ std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<Lo
 
     // usage pattern: [body] [hydration level]. To set a level on several bodies, repeat the element - the declarations
     // accumulate into one culling strategy, so nothing is lost and the hydration layer is still generated only once.
-    if (args.inlined.size() != 2) {throw except::parse_error("relative_hydration", "Expected [body] [hydration level].");}
 
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     if (!body_names.contains(args.inlined[0])) {throw except::parse_error("relative_hydration", "Unknown body name \"" + args.inlined[0] + "\".");}

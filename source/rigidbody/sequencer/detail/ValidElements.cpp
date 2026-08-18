@@ -102,6 +102,59 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(E
     }
 }
 
+ausaxs::rigidbody::sequencer::InlineSignature ausaxs::rigidbody::sequencer::detail::valid_inline_arguments(ElementType type) {
+    switch (type) {
+        case ElementType::AutomaticConstraint: return AutoConstraintsElement::_valid_inline_arguments();
+        case ElementType::BodySelect:          return BodySelectElement::_valid_inline_arguments();
+        case ElementType::Constraint:          return ConstraintElement::_valid_inline_arguments();
+        case ElementType::ConvertToSymmetry:   return ConvertToSymmetryElement::_valid_inline_arguments();
+        case ElementType::Copy:                return CopyBodyElement::_valid_inline_arguments();
+        case ElementType::Delete:              return DeleteElement::_valid_inline_arguments();
+        case ElementType::EveryNStep:          return EveryNStepElement::_valid_inline_arguments();
+        case ElementType::LoadElement:         return LoadElement::_valid_inline_arguments();
+        case ElementType::Log:                 return detail::LogElement::_valid_inline_arguments();
+        case ElementType::LoopBegin:           return LoopElement::_valid_inline_arguments();
+        case ElementType::LoopEnd:             return detail::LoopEndElement::_valid_inline_arguments();
+        case ElementType::Merge:               return MergeElement::_valid_inline_arguments();
+        case ElementType::Message:             return MessageElement::_valid_inline_arguments();
+        case ElementType::OnImprovement:       return OnImprovementElement::_valid_inline_arguments();
+        case ElementType::OptimizeStep:        return OptimizeStepElement::_valid_inline_arguments();
+        case ElementType::OutputFolder:        return OutputFolderElement::_valid_inline_arguments();
+        case ElementType::OverlapStrength:     return detail::OverlapStrengthElement::_valid_inline_arguments();
+        case ElementType::Parameter:           return ParameterElement::_valid_inline_arguments();
+        case ElementType::RelativeHydration:   return RelativeHydrationElement::_valid_inline_arguments();
+        case ElementType::Rename:              return RenameElement::_valid_inline_arguments();
+        case ElementType::Save:                return SaveElement::_valid_inline_arguments();
+        case ElementType::Seed:                return detail::SeedElement::_valid_inline_arguments();
+        case ElementType::Split:               return SplitElement::_valid_inline_arguments();
+        case ElementType::SymmetryElement:     return SymmetryElement::_valid_inline_arguments();
+        case ElementType::Transform:           return TransformElement::_valid_inline_arguments();
+        case ElementType::Update:              return UpdateElement::_valid_inline_arguments();
+        default: return {};
+    }
+}
+
+std::string ausaxs::rigidbody::sequencer::detail::to_string(const InlineSignature& signature) {
+    if (signature.names.empty()) {return "none";}
+    std::string joined;
+    for (const auto& name : signature.names) {
+        if (!joined.empty()) {joined += " ";}
+        joined += "[" + name + "]";
+    }
+    return joined;
+}
+
+void ausaxs::rigidbody::sequencer::detail::validate_inline_arguments(ElementType type, std::string_view element, const ParsedArgs& args) {
+    auto signature = valid_inline_arguments(type);
+    auto count = args.inlined.size();
+    if (signature.min <= count && count <= signature.max) {return;}
+
+    std::string msg = "Invalid number of inline arguments";
+    if (0 <= args.inlined.line_number) {msg += " (line " + std::to_string(args.inlined.line_number) + ")";}
+    msg += ". Expected " + to_string(signature) + ", but got " + std::to_string(count) + ".";
+    throw except::parse_error(element, msg);
+}
+
 void ausaxs::rigidbody::sequencer::detail::validate_named_arguments(ElementType type, std::string_view element, const ParsedArgs& args) {
     if (args.named.empty()) {return;}
 

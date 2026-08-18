@@ -32,7 +32,10 @@ std::vector<std::string> OptimizeStepElement::_valid_arguments() {
     return {};
 }
 
+InlineSignature OptimizeStepElement::_valid_inline_arguments() {
+    return {.names = {}, .min = 0, .max = 0};
+}
+
 std::unique_ptr<GenericElement> OptimizeStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.inlined.empty()) {throw except::parse_error("optimize_step", "Unexpected inline argument.");}
     return std::make_unique<OptimizeStepElement>(owner);
 }

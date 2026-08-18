@@ -65,8 +65,11 @@ std::vector<std::string> UpdateElement::_valid_arguments() {
     return {};
 }
 
+InlineSignature UpdateElement::_valid_inline_arguments() {
+    return {.names = {"target"}, .min = 1, .max = 1};
+}
+
 std::unique_ptr<GenericElement> UpdateElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (args.inlined.size() != 1) {throw except::parse_error("update", "Expected a single inline argument, e.g. \"update structure\".");}
     if (std::string(args.inlined[0]) != "structure") {
         throw except::parse_error("update", "Unsupported update target \"" + std::string(args.inlined[0]) + "\"; only \"structure\" is supported.");
     }

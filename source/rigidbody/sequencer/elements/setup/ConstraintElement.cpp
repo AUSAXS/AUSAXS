@@ -46,6 +46,10 @@ std::vector<std::string> ConstraintElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature ConstraintElement::_valid_inline_arguments() {
+    return {.names = {}, .min = 0, .max = 0};
+}
+
 void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     auto body1 = args.get<std::string>(args_map[Args::body1]);
     auto body2 = args.get<std::string>(args_map[Args::body2]);
@@ -63,7 +67,6 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
         throw except::parse_error("constraint", "Unknown choice \"" + std::string(line) + "\"");
     };
 
-    if (!args.inlined.empty()) {throw except::parse_error("constraint", "Unexpected inline arguments.");}
     if (!body1.found) {throw except::parse_error("constraint", "Missing required argument \"body1\".");}
     if (!body2.found) {throw except::parse_error("constraint", "Missing required argument \"body2\".");}
     if (!type.found) {throw except::parse_error("constraint", "Missing required argument \"type\".");}

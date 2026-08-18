@@ -18,3 +18,7 @@ void LoadExistingElement::run() {
 std::vector<std::string> LoadExistingElement::_valid_arguments() {
     return {};
 }
+
+InlineSignature LoadExistingElement::_valid_inline_arguments() {
+    return {.names = {}, .min = 0, .max = 0};
+}

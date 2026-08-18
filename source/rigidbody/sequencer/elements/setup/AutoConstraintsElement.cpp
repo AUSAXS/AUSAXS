@@ -21,6 +21,10 @@ std::vector<std::string> AutoConstraintsElement::_valid_arguments() {
     return {};
 }
 
+InlineSignature AutoConstraintsElement::_valid_inline_arguments() {
+    return {.names = {"strategy"}, .min = 1, .max = 1};
+}
+
 std::unique_ptr<GenericElement> AutoConstraintsElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static auto get_constraint_strategy = [] (std::string_view line) {
         if (line == "none") {return settings::rigidbody::ConstraintGenerationStrategyChoice::None;}
@@ -28,6 +32,5 @@ std::unique_ptr<GenericElement> AutoConstraintsElement::_parse(observer_ptr<Loop
         throw except::parse_error("autoconstrain", "Unknown choice \"" + std::string(line) + "\"");
     };
 
-    if (args.inlined.size() != 1) {throw except::parse_error("autoconstrain", "Invalid number of inline arguments. Expected 1, but got " + std::to_string(args.inlined.size()) + ".");}
     return std::make_unique<AutoConstraintsElement>(owner->_get_sequencer(), get_constraint_strategy(args.inlined[0]));
 }

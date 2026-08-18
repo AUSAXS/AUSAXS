@@ -65,6 +65,10 @@ std::vector<std::string> ParameterElement::_valid_arguments() {
     return map;
 }
 
+InlineSignature ParameterElement::_valid_inline_arguments() {
+    return {.names = {}, .min = 0, .max = 0};
+}
+
 std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
     static auto get_parameter_strategy = [] (std::string_view line) {
         if (line == ParameterStrategyDefs::ROTATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}
@@ -91,7 +95,6 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
     bool has_rotate = rotate.found && rotate.value != 0;
 
     // validate arguments
-    if (!args.inlined.empty()) {throw except::parse_error("parameter", "Unexpected inline arguments.");}
     if (!iterations.found) {throw except::parse_error("parameter", "Missing required argument \"iterations\".");}
     if (!strategy.found) {
         // deduce strategy from presence/absence of args
