@@ -7,6 +7,8 @@
 #include <math/Vector3.h>
 #include <utility/Random.h>
 
+#include <cmath>
+#include <numbers>
 #include <random>
 
 using namespace ausaxs;
@@ -29,13 +31,12 @@ double ParameterGenerationStrategy::draw(double amplitude) {
 }
 
 Vector3<double> ParameterGenerationStrategy::draw_direction() {
-    // rejection-sample the unit ball rather than the cube, so that no direction is favoured, then project onto the sphere
-    while (true) {
-        Vector3<double> v = {unit_dist(random::generator()), unit_dist(random::generator()), unit_dist(random::generator())};
-        double m = v.magnitude();
-        if (m < 1e-6 || 1 < m) {continue;}
-        return v/m;
-    }
+    // a sphere has the same area between any two heights as the cylinder around it (Archimedes), so a uniform height
+    // and a uniform azimuth are already uniform over the sphere. Normalising a uniform cube instead would favour its corners.
+    double z = unit_dist(random::generator());
+    double azimuth = std::numbers::pi*unit_dist(random::generator());
+    double r = std::sqrt(1 - z*z);
+    return {r*std::cos(azimuth), r*std::sin(azimuth), z};
 }
 
 void ParameterGenerationStrategy::set_decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy) {

@@ -14,14 +14,13 @@ namespace ausaxs::rigidbody::parameter {
         double translation = 0;          // Body translation, in Ångström.
         double rotation = 0;             // Body rotation, in radians.
         double symmetry_translation = 0; // Symmetry offset translation, in Ångström.
-
-        double symmetry_rotation = 0;     // Reorientation of the symmetry frame, in radians. See ISymmetry::rotation_from_angle.
+        double symmetry_rotation = 0;    // Symmetry rotation, in radians.
     };
 
     /**
      * @brief The body translation amplitude used when none is named.
      */
-    constexpr double default_translation() {return 5;}
+    constexpr double default_translation() {return 3;}
 
     /**
      * @brief The body rotation amplitude used when none is named.
@@ -36,7 +35,7 @@ namespace ausaxs::rigidbody::parameter {
     /**
      * @brief The symmetry rotation amplitude used when symmetry optimisation is enabled without naming an amplitude.
      */
-    constexpr double default_symmetry_rotation() {return 0.2;}
+    constexpr double default_symmetry_rotation() {return 1.5;}
 
     /**
      * @brief Every component at its default amplitude, for an optimisation that was not configured by a script.
