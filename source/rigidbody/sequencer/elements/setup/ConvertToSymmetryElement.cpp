@@ -314,8 +314,6 @@ std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<Lo
     if (type_it == args.named.end() || bodies_it == args.named.end()) {
         throw except::parse_error("convert_to_symmetry", "The block form requires both a \"type\" and a \"bodies\" entry.");
     }
-    std::size_t expected_keys = 2 + (tolerance_it != args.named.end() ? 1 : 0);
-    if (args.named.size() != expected_keys) {throw except::parse_error("convert_to_symmetry", "Unexpected arguments; only \"type\", \"bodies\" and \"tolerance\" are allowed.");}
     if (type_it->second.size() != 1) {throw except::parse_error("convert_to_symmetry", "\"type\" takes exactly one symmetry name.");}
 
     double tolerance = ConvertToSymmetryElement::default_tolerance;

@@ -34,8 +34,8 @@ namespace {
     std::unordered_map<Args, std::vector<std::string>> args_map = {
         {Args::body1, {"first", "body1"}},
         {Args::body2, {"second", "body2"}},
-        {Args::iatom1, {"iatom1", "atom1"}},
-        {Args::iatom2, {"iatom2", "atom2"}},
+        {Args::iatom1, {"iatom1", "atom1", "i1"}},
+        {Args::iatom2, {"iatom2", "atom2", "i2"}},
         {Args::type, {"type", "kind"}},
         {Args::distance, {"distance", "dist"}}
     };
@@ -47,22 +47,12 @@ std::vector<std::string> ConstraintElement::_valid_arguments() {
 }
 
 void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    enum class Args {body1, body2, iatom1, iatom2, type, distance};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::body1, {"first", "body1"}},
-        {Args::body2, {"second", "body2"}},
-        {Args::iatom1, {"iatom1", "iatom_1", "i1"}},
-        {Args::iatom2, {"iatom2", "iatom_2", "i2"}},
-        {Args::type, {"type", "kind"}},
-        {Args::distance, {"distance", "dist", "d"}}
-    };
-
-    auto body1 = args.get<std::string>(valid_args[Args::body1]);
-    auto body2 = args.get<std::string>(valid_args[Args::body2]);
-    auto type  = args.get<std::string>(valid_args[Args::type]);
-    auto iatom1 = args.get<int>(valid_args[Args::iatom1]);
-    auto iatom2 = args.get<int>(valid_args[Args::iatom2]);
-    auto distance = args.get<double>(valid_args[Args::distance]);
+    auto body1 = args.get<std::string>(args_map[Args::body1]);
+    auto body2 = args.get<std::string>(args_map[Args::body2]);
+    auto type  = args.get<std::string>(args_map[Args::type]);
+    auto iatom1 = args.get<int>(args_map[Args::iatom1]);
+    auto iatom2 = args.get<int>(args_map[Args::iatom2]);
+    auto distance = args.get<double>(args_map[Args::distance]);
 
     static auto get_constraint_choice = [] (std::string_view line) {
         if (line == "bond") {return ConstraintChoice::Bond;}

@@ -191,7 +191,6 @@ std::vector<std::string> SymmetryElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.named.empty()) {throw except::parse_error("symmetry", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
     if (args.inlined.empty()) {throw except::parse_error("symmetry", "Expected [bodies...] [symmetry], but got no arguments.");}
 
     // usage pattern: [bodies...] [symmetry]. The trailing token is always the symmetry name; every token before it names a

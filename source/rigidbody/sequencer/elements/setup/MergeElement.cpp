@@ -79,7 +79,6 @@ std::vector<std::string> MergeElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.named.empty()) {throw except::parse_error("merge", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
     if (args.inlined.size() < 2) {throw except::parse_error(
         "merge", "Invalid number of inline arguments. Expected [first] [others...], but got " + std::to_string(args.inlined.size()) + "."
     );}

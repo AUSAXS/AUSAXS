@@ -66,15 +66,6 @@ std::vector<std::string> ParameterElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    enum class Args {iterations, translate, rotate, strategy, decay_strategy};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::iterations,      {"iterations"}},
-        {Args::translate,       {"translate"}},
-        {Args::rotate,          {"rotate"}},
-        {Args::strategy,        {"mode", "strategy"}},
-        {Args::decay_strategy,  {"decay"}}
-    };
-
     static auto get_parameter_strategy = [] (std::string_view line) {
         if (line == ParameterStrategyDefs::ROTATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;}
         if (line == ParameterStrategyDefs::TRANSLATE_ONLY) {return settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly;}
@@ -90,11 +81,11 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
         throw except::parse_error("parameter", "Unknown choice \"" + std::string(line) + "\"");
     };
 
-    auto iterations = args.get<int>(valid_args[Args::iterations]);
-    auto translate = args.get<double>(valid_args[Args::translate], 0);
-    auto rotate = args.get<double>(valid_args[Args::rotate], 0);
-    auto strategy = args.get<std::string>(valid_args[Args::strategy], "both");
-    auto decay_strategy = args.get<std::string>(valid_args[Args::decay_strategy], "linear");
+    auto iterations = args.get<int>(args_map[Args::iterations]);
+    auto translate = args.get<double>(args_map[Args::translate], 0);
+    auto rotate = args.get<double>(args_map[Args::rotate], 0);
+    auto strategy = args.get<std::string>(args_map[Args::strategy], "both");
+    auto decay_strategy = args.get<std::string>(args_map[Args::decay_strategy], "linear");
 
     bool has_translate = translate.found && translate.value != 0;
     bool has_rotate = rotate.found && rotate.value != 0;

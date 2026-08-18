@@ -177,7 +177,6 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
         return iterations;
     };
 
-    if (!args.named.empty()) {throw except::parse_error("loop", "Unexpected named argument.");}
     if (args.inlined.empty()) { // no args - try to deduce iteration count
         return std::make_unique<LoopElement>(owner, deduce_iteration_count());
     } else if (args.inlined.size() == 1) { // option 1, 2, 4

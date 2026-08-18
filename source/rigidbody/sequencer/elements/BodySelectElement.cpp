@@ -45,12 +45,6 @@ namespace {
 }
 
 std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    enum class Args {strategy, parameters};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::strategy,   {"point", "body"}},
-        {Args::parameters, {"parameters", "parameter_mask", "mask"}},
-    };
-
     // inline form: `select <strategy>`, `select <bodyname or alias>`, or `select <symmetry tag>` (e.g. `select b1s2`)
     if (!args.inlined.empty()) {
         if (!args.named.empty()) {throw except::parse_error("select", "Cannot mix inline and named arguments.");}
@@ -84,11 +78,11 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
         );
     }
 
-    auto strategy = args.get<std::string>(valid_args[Args::strategy]);
-    auto mask_arg = args.get<std::string>(valid_args[Args::parameters]);
+    auto strategy = args.get<std::string>(args_map[Args::strategy]);
+    auto mask_arg = args.get<std::string>(args_map[Args::parameters]);
 
-    if (args.named.size() < 1 || 2 < args.named.size()) {
-        throw except::parse_error("select", "Invalid number of arguments. Expected 1 or 2, but got " + std::to_string(args.named.size()) + ".");
+    if (!strategy.found && !mask_arg.found) {
+        throw except::parse_error("select", "Missing arguments. Expected a select strategy and/or a parameter mask.");
     }
 
     static auto get_body_select_strategy = [] (std::string_view line) {

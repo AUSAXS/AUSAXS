@@ -15,6 +15,7 @@
 
 #include <support/temp_file.h>
 
+#include <algorithm>
 #include <string>
 
 using namespace ausaxs;
@@ -170,6 +171,37 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::SymmetryElement inline fo
 
     SECTION("no arguments at all is rejected") {
         CHECK_THROWS_AS(parse(load() + "symmetry\n"), sequencer::except::parse_error);
+    }
+}
+
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::ConstraintElement argument aliases", "[files]") {
+    // the whitelist and _parse used to keep separate alias lists, so _parse honoured "i1"/"iatom_1"/"d" while the
+    // whitelist advertised "atom1"/"atom2" and rejected them. Both now read the same map.
+    static const std::string two_bodies =
+        "load {\n"
+        "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
+        "    saxs tests/files/SASDJG5.dat\n"
+        "}\n";
+
+    SECTION("every alias _parse reads is on the whitelist") {
+        using namespace ausaxs::rigidbody::sequencer::detail;
+        auto valid = valid_arguments(ElementType::Constraint);
+        for (const auto& alias : {"first", "body1", "second", "body2", "iatom1", "iatom_1", "i1",
+                                  "iatom2", "iatom_2", "i2", "type", "kind", "distance", "dist", "d"}) {
+            INFO("alias " << alias);
+            CHECK(std::find(valid.begin(), valid.end(), alias) != valid.end());
+        }
+    }
+
+    SECTION("the short distance alias is accepted end-to-end") {
+        CHECK_NOTHROW(parse(two_bodies +
+            "constrain {\n"
+            "    first b1\n"
+            "    second b2\n"
+            "    kind attract\n"
+            "    d 30\n"
+            "}\n"
+        ));
     }
 }
 

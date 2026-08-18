@@ -33,7 +33,6 @@ std::vector<std::string> DeleteElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> DeleteElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.named.empty()) {throw except::parse_error("delete", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
     if (args.inlined.empty()) {throw except::parse_error(
         "delete", "Invalid number of inline arguments. Expected one or more body names, but got 0."
     );}

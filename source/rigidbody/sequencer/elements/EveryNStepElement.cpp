@@ -24,7 +24,6 @@ std::vector<std::string> EveryNStepElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> EveryNStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.named.empty()) {throw except::parse_error("every_n_step", "Unexpected named argument.");}
     if (args.inlined.size() != 1) {throw except::parse_error("every_n_step", "Expected exactly one inline argument.");}
     if (!utility::isinteger(args.inlined[0])) {throw except::parse_error("every_n_step", "Expected an integer value for the number of steps, but got \"" + args.inlined[0] + "\".");}
     return std::make_unique<EveryNStepElement>(owner, std::stoi(args.inlined[0]));

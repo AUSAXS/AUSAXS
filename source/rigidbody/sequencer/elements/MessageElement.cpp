@@ -114,13 +114,8 @@ std::vector<std::string> MessageElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    enum class Args {message, color};
-    static std::unordered_map<Args, std::vector<std::string>> valid_args = {
-        {Args::message, {"message", "msg"}},
-        {Args::color, {"color", "colour"}}
-    };
-    auto message = args.get<std::string>(valid_args[Args::message]);
-    auto color = args.get<std::string>(valid_args[Args::color], "white");
+    auto message = args.get<std::string>(args_map[Args::message]);
+    auto color = args.get<std::string>(args_map[Args::color], "white");
 
     // inlined usage patterns
     if (!args.inlined.empty()) {

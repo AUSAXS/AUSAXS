@@ -22,7 +22,6 @@ std::vector<std::string> RenameElement::_valid_arguments() {
 }
 
 std::unique_ptr<GenericElement> RenameElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    if (!args.named.empty()) {throw except::parse_error("rename", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
     if (args.inlined.size() != 2) {throw except::parse_error(
         "rename", "Invalid number of inline arguments. Expected [old name] [new name], but got " + std::to_string(args.inlined.size()) + "."
     );}

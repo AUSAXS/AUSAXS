@@ -108,7 +108,6 @@ std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<Lo
 
     // usage pattern: [body] [hydration level]. To set a level on several bodies, repeat the element - the declarations
     // accumulate into one culling strategy, so nothing is lost and the hydration layer is still generated only once.
-    if (!args.named.empty()) {throw except::parse_error("relative_hydration", "Unexpected named argument \"" + args.named.begin()->first + "\".");}
     if (args.inlined.size() != 2) {throw except::parse_error("relative_hydration", "Expected [body] [hydration level].");}
 
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
