@@ -26,8 +26,6 @@ namespace ausaxs::rigidbody::factory {
 
     /**
      * @brief Create a parameter strategy with the components excluded by the given choice disabled.
-     *
-     * Used for the default, unscripted strategy; a script instead resolves its "mode" argument into the amplitudes directly.
      */
     std::unique_ptr<parameter::ParameterGenerationStrategy> create_parameter_strategy(
         observer_ptr<const Rigidbody> molecule, unsigned int iterations, const parameter::ParameterAmplitudes& amplitudes,

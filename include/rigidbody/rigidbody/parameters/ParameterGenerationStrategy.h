@@ -14,7 +14,7 @@
 
 namespace ausaxs::rigidbody::parameter {    
     /**
-     * @brief Thread-safe superclass for parameter generation strategies.
+     * @brief Superclass for parameter generation strategies.
      * 
      * Generates relative transformations to be applied to bodies or rigid groups.
      */
@@ -66,8 +66,6 @@ namespace ausaxs::rigidbody::parameter {
 
             /**
              * @brief Set the maximum symmetry frame reorientation to the given value. Zero disables symmetry rotations.
-             *
-             * See ParameterAmplitudes::symmetry_rotation for the units, which depend on the symmetry type.
              */
             void set_max_symmetry_rotation_angle(double radians);
 
@@ -82,7 +80,7 @@ namespace ausaxs::rigidbody::parameter {
             std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy;
 
         private:
-            // All components are drawn from this single distribution and scaled by their amplitude, since uniform(-a, a) == a*uniform(-1, 1).
+            // All components are drawn from this single distribution and scaled by their amplitude.
             std::uniform_real_distribution<double> unit_dist{-1, 1};
     };
 }
