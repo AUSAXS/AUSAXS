@@ -4,6 +4,8 @@
 
 #include <data/symmetry/CyclicSymmetry.h>
 
+#include <algorithm>
+#include <cmath>
 #include <numbers>
 
 using namespace ausaxs;
@@ -249,5 +251,51 @@ TEST_CASE("Symmetry::get_transform") {
         CHECK_THAT(r.x(), Catch::Matchers::WithinAbs(p.x(), 1e-9));
         CHECK_THAT(r.y(), Catch::Matchers::WithinAbs(p.y(), 1e-9));
         CHECK_THAT(r.z(), Catch::Matchers::WithinAbs(p.z(), 1e-9));
+    }
+}
+TEST_CASE("CyclicSymmetry::rotation_from_angle") {
+    // the angle between two directions, which is what the requested angle must produce
+    auto angle_between = [](Vector3<double> a, Vector3<double> b) {
+        return std::acos(std::clamp(a.normalize().dot(b.normalize()), -1.0, 1.0));
+    };
+
+    double requested = GENERATE(0.05, 0.2, 1.0);
+    Vector3<double> direction = GENERATE(
+        Vector3<double>{1, 0, 0}, Vector3<double>{0, 1, 0}, Vector3<double>{1, 1, 1}.normalize(), Vector3<double>{-2, 3, 1}.normalize()
+    );
+
+    SECTION("the delta turns a unit axis by exactly the requested angle") {
+        CyclicSymmetry s({{0, 0, 0}}, {{0, 0, 1}, std::numbers::pi}, 1);
+        auto before = s._repeat_relation.axis;
+
+        s._repeat_relation.axis += s.rotation_from_angle(requested, direction);
+
+        CHECK_THAT(angle_between(before, s._repeat_relation.axis), Catch::Matchers::WithinAbs(requested, 1e-9));
+    }
+
+    SECTION("the delta leaves the axis at unit length, whatever length it started at") {
+        // an axis that has already drifted: only its direction has ever mattered, since get_transform normalises it
+        CyclicSymmetry s({{0, 0, 0}}, {{0, 0, 7.5}, std::numbers::pi}, 1);
+        auto before = s._repeat_relation.axis;
+
+        s._repeat_relation.axis += s.rotation_from_angle(requested, direction);
+
+        CHECK_THAT(s._repeat_relation.axis.magnitude(), Catch::Matchers::WithinAbs(1, 1e-9));
+        CHECK_THAT(angle_between(before, s._repeat_relation.axis), Catch::Matchers::WithinAbs(requested, 1e-9));
+    }
+
+    SECTION("repeated deltas neither drift in length nor lose their angular effect") {
+        CyclicSymmetry s({{0, 0, 0}}, {{0, 0, 1}, std::numbers::pi}, 1);
+        for (int i = 0; i < 50; ++i) {
+            auto before = s._repeat_relation.axis;
+            s._repeat_relation.axis += s.rotation_from_angle(requested, direction);
+            CHECK_THAT(s._repeat_relation.axis.magnitude(), Catch::Matchers::WithinAbs(1, 1e-9));
+            CHECK_THAT(angle_between(before, s._repeat_relation.axis), Catch::Matchers::WithinAbs(requested, 1e-9));
+        }
+    }
+
+    SECTION("a direction parallel to the axis is not a rotation of it") {
+        CyclicSymmetry s({{0, 0, 0}}, {{0, 0, 1}, std::numbers::pi}, 1);
+        CHECK(s.rotation_from_angle(requested, {0, 0, 1}) == Vector3<double>{0, 0, 0});
     }
 }

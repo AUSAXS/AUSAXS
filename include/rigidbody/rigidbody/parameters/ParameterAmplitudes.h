@@ -15,9 +15,7 @@ namespace ausaxs::rigidbody::parameter {
         double rotation = 0;             // Body rotation, in radians.
         double symmetry_translation = 0; // Symmetry offset translation, in Ångström.
 
-        // Reorientation of the symmetry frame. This is in radians for the symmetries parameterised by Euler angles (p2, polyhedral, dihedral),
-        // but in raw axis-vector components for the cyclic symmetries, whose rotation angle is instead fixed by their type.
-        double symmetry_rotation = 0;
+        double symmetry_rotation = 0;     // Reorientation of the symmetry frame, in radians. See ISymmetry::rotation_from_angle.
     };
 
     /**
@@ -38,7 +36,7 @@ namespace ausaxs::rigidbody::parameter {
     /**
      * @brief The symmetry rotation amplitude used when symmetry optimisation is enabled without naming an amplitude.
      */
-    constexpr double default_symmetry_rotation() {return 3;}
+    constexpr double default_symmetry_rotation() {return 0.2;}
 
     /**
      * @brief Every component at its default amplitude, for an optimisation that was not configured by a script.

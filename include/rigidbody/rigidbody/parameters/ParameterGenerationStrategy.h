@@ -75,6 +75,9 @@ namespace ausaxs::rigidbody::parameter {
             // Draw a uniform deviate in [-amplitude, amplitude].
             double draw(double amplitude);
 
+            // Draw a unit vector pointing in a uniformly distributed direction.
+            Vector3<double> draw_direction();
+
             observer_ptr<const Rigidbody> rigidbody;
             ParameterAmplitudes amplitudes;
             std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy;

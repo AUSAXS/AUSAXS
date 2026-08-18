@@ -5,6 +5,10 @@
 
 using namespace ausaxs::symmetry;
 
+ausaxs::Vector3<double> ISymmetry::rotation_from_angle(double angle, const Vector3<double>& direction) const {
+    return angle*direction;
+}
+
 std::vector<SymmetricDuplicatePair> ISymmetry::internal_pair_schedule() const {
     // Cyclic-chain reuse. With R = repetitions(), the bodies are {original, copy_1, ..., copy_R}.
     // Copy k sits one fixed generator step from copy k-1, so the distance between two bodies

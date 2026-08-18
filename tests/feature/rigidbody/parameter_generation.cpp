@@ -1,8 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <data/symmetry/BodySymmetryFacade.h>
+#include <data/symmetry/CyclicSymmetry.h>
+#include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/Rigidbody.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -130,5 +133,28 @@ TEST_CASE("UniformParameterGenerator::next symmetry components are independent")
             CHECK(p.rotation.has_value());
             CHECK_FALSE(p.symmetry_pars.has_value());
         }
+    }
+}
+
+TEST_CASE("UniformParameterGenerator: a cyclic axis keeps its length as deltas accumulate") {
+    settings::general::verbose = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+
+    Molecule m{std::vector<Body>{Body(std::vector{
+        AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
+    })}};
+    m.get_body(0).symmetry().add(symmetry::type::c2);
+    Rigidbody rb(std::move(m));
+
+    // the axis is a direction, so only its orientation is meaningful. Before the amplitude was an angle, deltas were added
+    // to it component-wise and its length random-walked upward, quietly shrinking the rotation a given amplitude produced.
+    rb.parameter_generator = std::make_shared<rigidbody::parameter::UniformParameterGenerator>(
+        &rb, 100, rigidbody::parameter::ParameterAmplitudes{.symmetry_rotation = 0.2}
+    );
+
+    for (int i = 0; i < 50; ++i) {
+        rb.transformer->apply(rb.parameter_generator->next(0), 0);
+        auto* sym = static_cast<symmetry::CyclicSymmetry*>(rb.molecule.get_body(0).symmetry().get(0));
+        REQUIRE_THAT(sym->_repeat_relation.axis.magnitude(), Catch::Matchers::WithinAbs(1, 1e-9));
     }
 }

@@ -54,6 +54,19 @@ namespace ausaxs::symmetry {
         virtual std::span<double> span_rotation() = 0;
 
         /**
+         * @brief Express a rotation of the given angle as a delta in this symmetry's own rotation parameters.
+         *
+         * Lets a sampler work in radians without knowing how each symmetry stores its rotation. The returned value is
+         * meant to be written into span_rotation() and added to the live parameters; it is not applied here.
+         * The default treats the rotation parameters as a rotation vector, which is what every symmetry
+         * parameterised by Euler angles needs. CyclicSymmetry, whose parameter is an axis direction, overrides it.
+         *
+         * @param angle The rotation angle, in radians.
+         * @param direction A unit vector giving the rotation direction. Supplied by the caller so that symmetries need no RNG of their own.
+         */
+        virtual Vector3<double> rotation_from_angle(double angle, const Vector3<double>& direction) const;
+
+        /**
          * @brief Short predefined-name string identifying this symmetry's type (e.g. "c4", "p2", "d3"),
          *        matching the names accepted by symmetry::get(std::string_view) / symmetry::create().
          *        Composite symmetries return their nested "inner-outer" name (e.g. "p2-c3").

@@ -28,6 +28,16 @@ double ParameterGenerationStrategy::draw(double amplitude) {
     return unit_dist(random::generator())*amplitude;
 }
 
+Vector3<double> ParameterGenerationStrategy::draw_direction() {
+    // rejection-sample the unit ball rather than the cube, so that no direction is favoured, then project onto the sphere
+    while (true) {
+        Vector3<double> v = {unit_dist(random::generator()), unit_dist(random::generator()), unit_dist(random::generator())};
+        double m = v.magnitude();
+        if (m < 1e-6 || 1 < m) {continue;}
+        return v/m;
+    }
+}
+
 void ParameterGenerationStrategy::set_decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy) {
     this->decay_strategy = std::move(decay_strategy);
 }

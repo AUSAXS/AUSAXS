@@ -6,6 +6,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
 #include <data/symmetry/CompositeSymmetry.h>
+#include <math/Vector3.h>
 
 #include <cassert>
 
@@ -44,8 +45,18 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
         bool translate = amplitudes.symmetry_translation != 0;
         bool rotate = amplitudes.symmetry_rotation != 0;
         auto randomize = [&](ausaxs::symmetry::ISymmetry& leaf) {
+            // the rotation amplitude is an angle in radians whatever the symmetry stores internally, so the symmetry is asked to
+            // express it in its own parameters. This is read off the leaf before anything is written to it, since the conversion
+            // may depend on the leaf's current rotation parameters.
+            auto rotation = rotate
+                ? leaf.rotation_from_angle(draw(amplitudes.symmetry_rotation)*scaling, draw_direction())
+                : Vector3<double>{0, 0, 0};
+
             for (auto& t : leaf.span_translation()) {t = translate ? draw(amplitudes.symmetry_translation)*scaling : 0;}
-            for (auto& r : leaf.span_rotation())    {r = rotate    ? draw(amplitudes.symmetry_rotation)*scaling    : 0;}
+
+            auto r = leaf.span_rotation();
+            assert((r.empty() || r.size() == 3) && "UniformParameterGenerator::next: unexpected rotation parameter count.");
+            for (std::size_t i = 0; i < r.size(); ++i) {r[i] = rotation[i];}
         };
 
         for (const auto& symmetry : symmetries) {
