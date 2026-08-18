@@ -8,7 +8,10 @@
 
 namespace ausaxs::rigidbody::parameter {
     /**
-     * @brief The maximum amplitude of each parameter component generated per optimisation step.
+     * @brief The maximum magnitude of each parameter component generated per optimisation step.
+     *
+     * Each amplitude bounds the size of the whole step, not that of its individual coordinates: a translation
+     * amplitude of 5 permits a displacement of at most 5 Å, in a uniformly drawn direction.
      */
     struct ParameterAmplitudes {
         double translation = 0;          // Body translation, in Ångström.

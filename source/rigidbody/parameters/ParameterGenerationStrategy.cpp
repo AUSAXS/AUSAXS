@@ -7,6 +7,7 @@
 #include <math/Vector3.h>
 #include <utility/Random.h>
 
+#include <cassert>
 #include <cmath>
 #include <numbers>
 #include <random>
@@ -31,12 +32,32 @@ double ParameterGenerationStrategy::draw(double amplitude) {
 }
 
 Vector3<double> ParameterGenerationStrategy::draw_direction() {
-    // a sphere has the same area between any two heights as the cylinder around it (Archimedes), so a uniform height
-    // and a uniform azimuth are already uniform over the sphere. Normalising a uniform cube instead would favour its corners.
+    // inverse transform sampling
     double z = unit_dist(random::generator());
     double azimuth = std::numbers::pi*unit_dist(random::generator());
     double r = std::sqrt(1 - z*z);
     return {r*std::cos(azimuth), r*std::sin(azimuth), z};
+}
+
+void ParameterGenerationStrategy::draw_isotropic(std::span<double> out, double magnitude) {
+    switch (out.size()) {
+        case 0: return; // a symmetry with no parameters of its own, e.g. a view onto another body's
+        case 2: { // a planar parameter, whose direction is a single uniform azimuth
+            double azimuth = std::numbers::pi*unit_dist(random::generator());
+            out[0] = magnitude*std::cos(azimuth);
+            out[1] = magnitude*std::sin(azimuth);
+            return;
+        }
+        case 3: {
+            auto v = draw_direction()*magnitude;
+            out[0] = v.x();
+            out[1] = v.y();
+            out[2] = v.z();
+            return;
+        }
+        default:
+            assert(false && "ParameterGenerationStrategy::draw_isotropic: unexpected parameter count.");
+    }
 }
 
 void ParameterGenerationStrategy::set_decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy) {

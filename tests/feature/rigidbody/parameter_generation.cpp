@@ -11,6 +11,8 @@
 #include <data/Body.h>
 #include <settings/All.h>
 
+#include <rigidbody/parameters/decay/NoDecay.h>
+
 #include <algorithm>
 #include <span>
 
@@ -33,12 +35,8 @@ TEST_CASE("UniformParameterGenerator::next") {
         for (int i = 0; i < iterations; i++) {
             auto p = ro.next(0);
             CHECK_FALSE(p.translation.has_value());
-            REQUIRE(-rad_start        <= p.rotation.value().x());
-            REQUIRE(p.rotation.value().x()    <= rad_start     );
-            REQUIRE(-rad_start        <= p.rotation.value().y());
-            REQUIRE(p.rotation.value().y()    <= rad_start     );
-            REQUIRE(-rad_start        <= p.rotation.value().z());
-            REQUIRE(p.rotation.value().z()    <= rad_start     );
+            // the amplitude bounds the whole rotation, not each of its coordinates
+            REQUIRE(p.rotation.value().magnitude() <= rad_start);
         }
     }
 
@@ -47,12 +45,7 @@ TEST_CASE("UniformParameterGenerator::next") {
 
         for (int i = 0; i < iterations; i++) {
             auto p = to.next(0);
-            REQUIRE(-length_start     <= p.translation.value().x());
-            REQUIRE(p.translation.value().x() <= length_start     );
-            REQUIRE(-length_start     <= p.translation.value().y());
-            REQUIRE(p.translation.value().y() <= length_start     );
-            REQUIRE(-length_start     <= p.translation.value().z());
-            REQUIRE(p.translation.value().z() <= length_start     );
+            REQUIRE(p.translation.value().magnitude() <= length_start);
             CHECK_FALSE(p.rotation.has_value());
         }
     }
@@ -62,21 +55,44 @@ TEST_CASE("UniformParameterGenerator::next") {
 
         for (int i = 0; i < iterations; i++) {
             auto p = ap.next(0);
-            REQUIRE(-length_start     <= p.translation.value().x());
-            REQUIRE(p.translation.value().x() <= length_start     );
-            REQUIRE(-length_start     <= p.translation.value().y());
-            REQUIRE(p.translation.value().y() <= length_start     );
-            REQUIRE(-length_start     <= p.translation.value().z());
-            REQUIRE(p.translation.value().z() <= length_start     );
-            REQUIRE(-rad_start        <= p.rotation.value().x()   );
-            REQUIRE(p.rotation.value().x()    <= rad_start        );
-            REQUIRE(-rad_start        <= p.rotation.value().y()   );
-            REQUIRE(p.rotation.value().y()    <= rad_start        );
-            REQUIRE(-rad_start        <= p.rotation.value().z()   );
-            REQUIRE(p.rotation.value().z()    <= rad_start        );
+            REQUIRE(p.translation.value().magnitude() <= length_start);
+            REQUIRE(p.rotation.value().magnitude() <= rad_start);
         }
     }
 }
+
+TEST_CASE("UniformParameterGenerator::next steps are isotropic") {
+    settings::general::verbose = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+    Rigidbody rb(Molecule{std::vector<Body>{Body(std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)})}});
+
+    // no decay, so that every step is drawn against the full amplitude
+    rigidbody::parameter::UniformParameterGenerator gen(
+        &rb, std::make_unique<rigidbody::parameter::decay::NoDecay>(), rigidbody::parameter::ParameterAmplitudes{.translation = 1}
+    );
+
+    int n = 20000;
+    std::vector<int> octants(8, 0);
+    Vector3<double> sum = {0, 0, 0};
+    double longest = 0;
+    for (int i = 0; i < n; ++i) {
+        auto t = gen.next(0).translation.value();
+        octants[(t.x() < 0) + 2*(t.y() < 0) + 4*(t.z() < 0)]++;
+        sum += t/t.magnitude();
+        longest = std::max(longest, t.magnitude());
+    }
+
+    // every octant is reached about equally often; a cube-shaped draw would pass this too, so the corner test below is the real one
+    for (int count : octants) {CHECK(std::abs(count - n/8) < n/20);}
+
+    // the directions cancel out, as they must if no direction is favoured
+    CHECK(sum.magnitude()/n < 0.05);
+
+    // the amplitude is a genuine bound: drawing each coordinate independently would reach sqrt(3) beyond it
+    CHECK(longest <= 1);
+    CHECK(0.99 < longest); // ...and the bound is attained, so it is not merely a loose one
+}
+
 TEST_CASE("UniformParameterGenerator::next symmetry components are independent") {
     settings::general::verbose = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
@@ -157,4 +173,33 @@ TEST_CASE("UniformParameterGenerator: a cyclic axis keeps its length as deltas a
         auto* sym = static_cast<symmetry::CyclicSymmetry*>(rb.molecule.get_body(0).symmetry().get(0));
         REQUIRE_THAT(sym->_repeat_relation.axis.magnitude(), Catch::Matchers::WithinAbs(1, 1e-9));
     }
+}
+
+TEST_CASE("UniformParameterGenerator::next respects a planar symmetry's reduced parameter count") {
+    settings::general::verbose = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+
+    Molecule m{std::vector<Body>{Body(std::vector{
+        AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
+    })}};
+    m.get_body(0).symmetry().add(symmetry::type::dp3); // a planar dihedral exposes only 2 of its 3 translation components
+    Rigidbody rb(std::move(m));
+
+    rigidbody::parameter::UniformParameterGenerator gen(
+        &rb, std::make_unique<rigidbody::parameter::decay::NoDecay>(), rigidbody::parameter::ParameterAmplitudes{.symmetry_translation = 4}
+    );
+
+    double longest = 0;
+    for (int i = 0; i < 2000; ++i) {
+        auto p = gen.next(0);
+        auto t = p.symmetry_pars.value()[0]->span_translation();
+        REQUIRE(t.size() == 2);
+        double magnitude = std::sqrt(t[0]*t[0] + t[1]*t[1]);
+
+        // the direction is drawn within the plane the symmetry actually exposes, so the amplitude bounds the step there too.
+        // projecting a three-dimensional direction onto the plane would instead shorten it by a factor of sin(polar angle).
+        REQUIRE(magnitude <= 4);
+        longest = std::max(longest, magnitude);
+    }
+    CHECK(3.99 < longest);
 }

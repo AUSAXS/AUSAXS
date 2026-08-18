@@ -11,6 +11,7 @@
 #include <utility/observer_ptr.h>
 
 #include <random>
+#include <span>
 
 namespace ausaxs::rigidbody::parameter {    
     /**
@@ -77,6 +78,14 @@ namespace ausaxs::rigidbody::parameter {
 
             // Draw a unit vector pointing in a uniformly distributed direction.
             Vector3<double> draw_direction();
+
+            /**
+             * @brief Fill the span with a vector of the given magnitude pointing in a uniformly distributed direction.
+             *
+             * The direction is drawn in as many dimensions as the span has, so that a planar parameter is perturbed
+             * isotropically within its own plane rather than by the projection of a three-dimensional direction.
+             */
+            void draw_isotropic(std::span<double> out, double magnitude);
 
             observer_ptr<const Rigidbody> rigidbody;
             ParameterAmplitudes amplitudes;

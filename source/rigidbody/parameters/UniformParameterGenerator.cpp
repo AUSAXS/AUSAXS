@@ -18,20 +18,15 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
     assert(ibody < static_cast<int>(rigidbody->conformation->absolute_parameters.parameters.size()) && "ibody out of bounds");
     BodyTransformParametersRelative params;
 
+    // every amplitude bounds the magnitude of the whole step, which is then pointed in a uniformly drawn direction. Drawing each
+    // component independently instead would fill a cube, whose corners reach sqrt(3) further than its faces: both a larger step
+    // than the amplitude names, and one biased towards the diagonals.
     if (amplitudes.translation != 0) {
-        params.translation = {
-            draw(amplitudes.translation)*scaling,
-            draw(amplitudes.translation)*scaling,
-            draw(amplitudes.translation)*scaling
-        };
+        params.translation = draw_direction()*(draw(amplitudes.translation)*scaling);
     }
 
     if (amplitudes.rotation != 0) {
-        params.rotation = {
-            draw(amplitudes.rotation)*scaling,
-            draw(amplitudes.rotation)*scaling,
-            draw(amplitudes.rotation)*scaling
-        };
+        params.rotation = draw_direction()*(draw(amplitudes.rotation)*scaling);
     }
 
     if (amplitudes.symmetry_translation != 0 || amplitudes.symmetry_rotation != 0) {
@@ -52,7 +47,9 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
                 ? leaf.rotation_from_angle(draw(amplitudes.symmetry_rotation)*scaling, draw_direction())
                 : Vector3<double>{0, 0, 0};
 
-            for (auto& t : leaf.span_translation()) {t = translate ? draw(amplitudes.symmetry_translation)*scaling : 0;}
+            auto t = leaf.span_translation();
+            if (translate) {draw_isotropic(t, draw(amplitudes.symmetry_translation)*scaling);}
+            else {for (auto& v : t) {v = 0;}}
 
             auto r = leaf.span_rotation();
             assert((r.empty() || r.size() == 3) && "UniformParameterGenerator::next: unexpected rotation parameter count.");
