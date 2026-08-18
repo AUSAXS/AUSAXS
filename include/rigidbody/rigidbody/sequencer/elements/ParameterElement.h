@@ -24,6 +24,10 @@ namespace ausaxs::rigidbody::sequencer {
 
             ParameterElement& max_translation_distance(double distance);
 
+            ParameterElement& max_symmetry_rotation_angle(double radians);
+
+            ParameterElement& max_symmetry_translation_distance(double distance);
+
             ParameterElement& decay_strategy(std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> strategy);
 
             observer_ptr<rigidbody::parameter::ParameterGenerationStrategy> get_parameter_strategy() const;
