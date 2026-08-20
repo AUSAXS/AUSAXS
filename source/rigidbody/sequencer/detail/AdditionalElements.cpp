@@ -41,8 +41,18 @@ void detail::OverlapStrengthElement::_parse(observer_ptr<LoopElement> owner, Par
     auto scaling = args.get<double>(overlap_args_map[OverlapArgs::scaling]);
     auto distance = args.get<double>(overlap_args_map[OverlapArgs::distance]);
 
-    if (!scaling.found) {throw except::parse_error("overlap_strength", "Missing required argument \"scaling\".");}
-    if (!distance.found) {throw except::parse_error("overlap_strength", "Missing required argument \"distance\".");}
+    // inlined variant: overlap_strength strength distance
+    if (!args.inlined.empty()) {
+        if (args.inlined.size() == 1) {
+            scaling = {std::stod(args.inlined[0]), true};
+        } if (args.inlined.size() == 2) {
+            distance = {std::stod(args.inlined[1]), true};
+        }
+    } else {
+        if (!scaling.found) {throw except::parse_error("overlap_strength", "Missing required argument \"scaling\".");}
+        if (!distance.found) {throw except::parse_error("overlap_strength", "Missing required argument \"distance\".");}
+    }
+
     owner->_get_sequencer()->setup().set_overlap_function([a=scaling.value, d=distance.value] (double x) {return x < d ? a*std::pow((d-x)/d, 2) : 0;});
 }
 
@@ -57,4 +67,4 @@ std::vector<std::string> detail::OverlapStrengthElement::_valid_arguments() {
 InlineSignature detail::SeedElement::_valid_inline_arguments() { return {.names = {"seed"}, .min = 1, .max = 1}; }
 InlineSignature detail::LoopEndElement::_valid_inline_arguments() { return {}; }
 InlineSignature detail::LogElement::_valid_inline_arguments() { return {.names = {"message"}, .min = 1, .max = 1}; }
-InlineSignature detail::OverlapStrengthElement::_valid_inline_arguments() { return {}; }
+InlineSignature detail::OverlapStrengthElement::_valid_inline_arguments() { return {.names = {"strength", "distance"}, .min = 1, .max = 2}; }
