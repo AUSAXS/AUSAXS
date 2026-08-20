@@ -237,7 +237,12 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         else {
             settings::general::output += mfile.stem() + "/";
             SimpleDataset saxs_data(mfile);
-            if (settings::flags::data_rebin) {console::indent(); saxs_data.rebin(); console::unindent();}
+            if (settings::flags::data_rebin) {
+                console::indent();
+                saxs_data.rebin();
+                console::unindent();
+                saxs_data.save(settings::general::output + "rebinned.dat");
+            }
     
             fitter::SmartFitter fitter(std::move(saxs_data), protein.get_histogram());
             auto result = fitter.fit();
