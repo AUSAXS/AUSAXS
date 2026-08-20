@@ -16,6 +16,11 @@ namespace ausaxs::rigidbody::sequencer {
 
             void run() override;
 
+            /**
+             * @brief Get the number of iterations of the surrounding loop between each run of this block.
+             */
+            unsigned int _get_step_size() const;
+
             static std::vector<std::string> _valid_arguments();
             static InlineSignature _valid_inline_arguments();
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);

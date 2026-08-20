@@ -25,18 +25,7 @@ namespace {
     observer_ptr<LoopElement> last_loop_element = nullptr;
 }
 
-LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {
-    if (iterations == 1) {return;}
-    int this_will_run = iterations;
-    auto next_owner = _get_owner();
-    int escape_counter = 0;
-    while (dynamic_cast<Sequencer*>(next_owner) == nullptr) {
-        if (100 < ++escape_counter) {throw std::runtime_error("LoopElement::LoopElement: owner chain too long");}
-        this_will_run *= next_owner->iterations;
-        next_owner = next_owner->_get_owner();
-    }
-    total_loop_count += this_will_run;
-}
+LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {}
 
 void LoopElement::_reset_counters() {
     total_loop_count = 0;
@@ -81,7 +70,6 @@ void LoopElement::run() {
     for (unsigned int i = 0; i < iterations; ++i) {
         // checked here rather than between the individual elements so a stopped iteration is never left half-finished
         if (_stop_requested()) {return;}
-        ++global_counter;
         for (auto& element : elements) {
             element->run();
         }
@@ -169,8 +157,41 @@ unsigned int LoopElement::_get_total_iterations() {
     return total_loop_count;
 }
 
-void LoopElement::_add_total_iterations(unsigned int n) {
-    total_loop_count += n;
+namespace {
+    // Number of optimization steps performed by a single full run of the given loop, where multiplier is the
+    // number of times the loop body itself is run. Nested loops multiply the counter by their own iteration
+    // count as they are entered, so a step deep in the tree is counted once for every time it is reached.
+    unsigned int count_optimization_steps(observer_ptr<LoopElement> loop, unsigned int multiplier, int depth = 0) {
+        if (100 < ++depth) {throw std::runtime_error("LoopElement::count_optimization_steps: element tree too deep");}
+
+        unsigned int steps = 0;
+        for (auto& e : loop->_get_elements()) {
+            // a copy loop runs its target in-place, so it contributes exactly what the target would here
+            if (auto* copy = dynamic_cast<CopyLoopElement*>(e.get())) {
+                auto* target = copy->_get_target();
+                steps += count_optimization_steps(target, multiplier*target->_get_loop_iterations(), depth);
+                continue;
+            }
+
+            auto* nested = dynamic_cast<LoopElement*>(e.get());
+            if (nested == nullptr) {continue;} // only loop-like elements can contain optimization steps
+
+            // an optimize element performs one step itself, and may still hold nested blocks below it
+            if (dynamic_cast<OptimizeStepElement*>(nested) != nullptr) {steps += multiplier;}
+
+            unsigned int inner_multiplier = multiplier*nested->_get_loop_iterations();
+
+            // an every-n block only runs its contents on every nth iteration of the surrounding loop
+            if (auto* every = dynamic_cast<EveryNStepElement*>(nested)) {inner_multiplier /= every->_get_step_size();}
+
+            steps += count_optimization_steps(nested, inner_multiplier, depth);
+        }
+        return steps;
+    }
+}
+
+void LoopElement::_recount_total_iterations(observer_ptr<LoopElement> root) {
+    total_loop_count = count_optimization_steps(root, root->iterations);
 }
 
 std::vector<std::string> LoopElement::_valid_arguments() {

@@ -105,7 +105,13 @@ namespace ausaxs::rigidbody::sequencer {
 
             static unsigned int _get_current_iteration();
             static unsigned int _get_total_iterations();
-            static void _add_total_iterations(unsigned int n);
+            /**
+             * @brief Recalculate the total number of optimization steps the given element tree will perform.
+             *
+             * This must be done after the tree is fully built, since a loop does not know its own contents
+             * while it is being constructed.
+             */
+            static void _recount_total_iterations(observer_ptr<LoopElement> root);
             static void _reset_counters();
             static void _reset_named_loops();
 

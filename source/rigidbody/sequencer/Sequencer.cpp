@@ -76,6 +76,8 @@ SetupElement& Sequencer::setup() {return setup_loop;}
 
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     _clear_stop_request(); // a stop requested while nothing was running must not immediately kill this run
+    _reset_counters();     // a previous run must not leak into this one
+    _recount_total_iterations(this);
     auto saxs_path = setup()._get_saxs_path();
     if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path.str() + "\" does not exist.");}
     rigidbody->molecule.generate_new_hydration(); // some setup elements requires access to the hydration generators
