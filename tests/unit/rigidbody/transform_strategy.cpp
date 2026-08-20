@@ -9,6 +9,10 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/detail/SimpleBody.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <data/symmetry/PointSymmetry.h>
+#include <data/symmetry/CyclicSymmetry.h>
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
 
@@ -248,5 +252,79 @@ TEST_CASE("TransformStrategy::parameter accumulation") {
         auto cm = rigidbody.molecule.get_body(0).get_cm();
         REQUIRE_THAT(cm.x(), Catch::Matchers::WithinAbs(cm_before.x(), 1e-10));
         REQUIRE_THAT(cm.y(), Catch::Matchers::WithinAbs(cm_before.y(), 1e-10));
+    }
+}
+
+// A symmetry is anchored to the body it belongs to, so a real-space move must carry its copies along rigidly. The assembly is then invariant
+// under everything the optimiser can do in real space, leaving the symmetry parameters as the only ones that can change its shape.
+TEST_CASE("TransformStrategy::apply keeps a symmetric assembly rigid") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
+    settings::grid::min_bins = 25;
+
+    auto make_body = [] (std::unique_ptr<symmetry::ISymmetry> sym) {
+        Body b(std::vector<AtomFF>{
+            AtomFF({ 1.0,  0.0,  0.0}, form_factor::form_factor_t::C),
+            AtomFF({-1.0,  0.5,  0.2}, form_factor::form_factor_t::C),
+            AtomFF({ 0.3, -1.4,  0.9}, form_factor::form_factor_t::C),
+            AtomFF({ 2.1,  0.7, -1.1}, form_factor::form_factor_t::C)
+        });
+        b.symmetry().add(std::move(sym));
+        return b;
+    };
+
+    // every pairwise distance in the full assembly; invariant under any rigid motion of it, and not under a deformation
+    auto assembly_distances = [] (const Rigidbody& rigidbody) {
+        auto structure = rigidbody.molecule.get_body(0).symmetry().explicit_structure();
+        std::vector<double> distances;
+        for (std::size_t i = 0; i < structure.atoms.size(); ++i) {
+            for (std::size_t j = i+1; j < structure.atoms.size(); ++j) {
+                distances.push_back(structure.atoms[i].coordinates().distance(structure.atoms[j].coordinates()));
+            }
+        }
+        std::sort(distances.begin(), distances.end());
+        return distances;
+    };
+
+    // a real-space-only move: the symmetry parameters are left untouched, so only the base body is driven
+    auto real_space_move = [] (const Vector3<double>& translation, const Vector3<double>& rotation) {
+        parameter::BodyTransformParametersRelative par;
+        par.translation = translation;
+        par.rotation = rotation;
+        return par;
+    };
+
+    auto check_invariant = [&] (Rigidbody& rigidbody) {
+        auto before = assembly_distances(rigidbody);
+        rigidbody.transformer->apply(real_space_move({3, -2, 5}, {0.4, -0.9, 0.3}), 0u);
+        auto after = assembly_distances(rigidbody);
+
+        // a second move, to catch a pose that is accumulated rather than applied absolutely
+        rigidbody.transformer->apply(real_space_move({-1, 4, 2}, {-0.7, 0.2, 1.1}), 0u);
+        auto after2 = assembly_distances(rigidbody);
+
+        REQUIRE(before.size() == after.size());
+        REQUIRE(before.size() == after2.size());
+        for (std::size_t i = 0; i < before.size(); ++i) {
+            REQUIRE_THAT(after[i],  Catch::Matchers::WithinAbs(before[i], 1e-9));
+            REQUIRE_THAT(after2[i], Catch::Matchers::WithinAbs(before[i], 1e-9));
+        }
+    };
+
+    SECTION("point symmetry") {
+        Rigidbody rigidbody(Molecule{std::vector<Body>{
+            make_body(std::make_unique<symmetry::PointSymmetry>(Vector3<double>{8, 0, 0}, Vector3<double>{0.3, 0.7, 0.2}))
+        }});
+        check_invariant(rigidbody);
+    }
+
+    SECTION("cyclic symmetry") {
+        Rigidbody rigidbody(Molecule{std::vector<Body>{
+            make_body(std::make_unique<symmetry::CyclicSymmetry>(
+                Vector3<double>{8, 0, 0}, Vector3<double>{0, 0, 0}, Vector3<double>{0, 0, 1}, 2*std::numbers::pi/3, 2
+            ))
+        }});
+        check_invariant(rigidbody);
     }
 }

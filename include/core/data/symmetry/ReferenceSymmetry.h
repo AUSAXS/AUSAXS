@@ -29,7 +29,6 @@ namespace ausaxs::symmetry {
         ReferenceSymmetry(std::unique_ptr<ISymmetry> base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
-        std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
@@ -47,17 +46,24 @@ namespace ausaxs::symmetry {
         std::vector<int> bodies;                        //< indices of the participating bodies (primary first)
         std::vector<int> slots;                         //< symmetry slot this symmetry occupies on each body (parallel to bodies)
         observer_ptr<const data::Molecule> molecule;    //< source for the combined centre of mass
+
+    protected:
+        // the view is the same symmetry seen from another participating body, so it places its copies by calling straight into this one
+        friend struct ReferenceSymmetryView;
+
+        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
+        Vector3<double> _transform_anchor(const Vector3<double>& cm) const override;
+        std::optional<Matrix<double>> _transform_orientation(const std::optional<Matrix<double>>& body_orientation) const override;
     };
 
     /**
-     * @brief Non-owning facade so that every participating body's SymmetryStorage exposes the shared ReferenceSymmetry through the normal 
+     * @brief Non-owning facade so that every participating body's SymmetryStorage exposes the shared ReferenceSymmetry through the normal
      *        ISymmetry interface. All calls are forwarded to the single owned ReferenceSymmetry.
      */
     struct ReferenceSymmetryView : public ISymmetry {
         ReferenceSymmetryView(observer_ptr<const data::Molecule> molecule, int primary_body, int symmetry_index);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
-        std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
@@ -74,5 +80,10 @@ namespace ausaxs::symmetry {
         observer_ptr<const data::Molecule> molecule;    //< source for the shared symmetry
         int primary_body;                               //< body that owns the shared symmetry
         int symmetry_index;                             //< slot of the shared symmetry on the primary body
+
+    protected:
+        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
+        Vector3<double> _transform_anchor(const Vector3<double>& cm) const override;
+        std::optional<Matrix<double>> _transform_orientation(const std::optional<Matrix<double>>& body_orientation) const override;
     };
 }

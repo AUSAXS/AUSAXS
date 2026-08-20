@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
@@ -9,6 +10,8 @@
 #include <rigidbody/constraints/FixedConstraint.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/symmetry/PointSymmetry.h>
+#include <math/MatrixUtils.h>
 #include <settings/All.h>
 
 #include <support/rb_metadata.h>
@@ -96,5 +99,51 @@ TEST_CASE_METHOD(fixture, "Constraints::basic_evaluate") {
     SECTION("FixedConstraint") {
         FixedConstraint f(&mol, 0, 1);
         CHECK(f.evaluate() == 0);
+    }
+}
+
+// A constraint may target one of a body's symmetry copies rather than the body itself. The copies are anchored on the body's centre of mass, so the
+// constraint has to place them from that centre - not from the representative atom it happens to hold - and it has to keep doing so once the body has
+// been rotated away from the frame its symmetry was defined in.
+TEST_CASE("DistanceConstraint: a symmetry replica is placed on the body's centre of mass") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::center = false;
+
+    // exposes the protected distance evaluation so the constraint can be re-checked after the body moves
+    struct Probe : DistanceConstraintAtom {
+        using DistanceConstraintAtom::DistanceConstraintAtom;
+        using DistanceConstraintAtom::evaluate_distance;
+    };
+
+    // deliberately off-centre and asymmetric, so anchoring on the wrong point cannot coincidentally give the right answer
+    std::vector<AtomFF> body_atoms = {
+        AtomFF({ 1.0,  0.0,  0.0}, form_factor::form_factor_t::C),
+        AtomFF({-1.0,  0.5,  0.2}, form_factor::form_factor_t::C),
+        AtomFF({ 0.3, -1.4,  0.9}, form_factor::form_factor_t::C),
+        AtomFF({ 2.1,  0.7, -1.1}, form_factor::form_factor_t::C)
+    };
+    Molecule mol({Body{body_atoms}, Body{std::vector<AtomFF>{AtomFF({20, 0, 0}, form_factor::form_factor_t::C)}}});
+    mol.get_body(0).symmetry().add(std::make_unique<symmetry::PointSymmetry>(
+        Vector3<double>{8, 0, 0}, Vector3<double>{0.3, 0.7, 0.2} // a rotated copy: a wrong anchor drops the rotation entirely
+    ));
+
+    // ground truth: the materialised assembly, laid out as [body | copy 1]
+    auto explicit_distance = [&mol] () {
+        auto structure = mol.get_body(0).symmetry().explicit_structure();
+        return structure.atoms[mol.get_body(0).size_atom()].coordinates().distance(mol.get_body(1).get_atom(0).coordinates());
+    };
+
+    Probe c(&mol, 0, 0, 1, 0, {0, 1}, {-1, -1}); // body 0, atom 0, against copy 1 of its symmetry 0
+    REQUIRE_THAT(c.d_target, Catch::Matchers::WithinAbs(explicit_distance(), 1e-9));
+
+    SECTION("and follows the body through a rigid motion") {
+        auto R = matrix::rotation_matrix<double>({0.4, -0.9, 0.3});
+        auto pivot = mol.get_body(0).get_cm();
+        mol.get_body(0).translate(-pivot);
+        mol.get_body(0).rotate(R);
+        mol.get_body(0).translate(pivot + Vector3<double>{3, -2, 5});
+        mol.get_body(0).symmetry().set_orientation(R);
+
+        CHECK_THAT(c.evaluate_distance(0, 0), Catch::Matchers::WithinAbs(explicit_distance(), 1e-9));
     }
 }

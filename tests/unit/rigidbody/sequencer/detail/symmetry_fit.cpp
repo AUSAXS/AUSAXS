@@ -45,7 +45,7 @@ namespace {
         auto cm = centre_of(body);
         std::vector<std::vector<Vector3<double>>> copies{body};
         for (unsigned int k = 1; k <= source.repetitions(); ++k) {
-            auto t = source.get_transform(cm, k);
+            auto t = source._get_transform(cm, k);
             std::vector<Vector3<double>> copy;
             for (const auto& p : body) {copy.push_back(t(p));}
             copies.push_back(std::move(copy));

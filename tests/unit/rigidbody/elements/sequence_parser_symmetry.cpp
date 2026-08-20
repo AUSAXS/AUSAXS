@@ -256,20 +256,20 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
 
     SECTION("a view survives transformation of the primary body and tracks it") {
         Vector3<double> probe{1, 2, 3};
-        auto before = view->get_transform({0, 0, 0}, 1)(probe);
+        auto before = view->_get_transform({0, 0, 0}, 1)(probe);
 
         // transforming the primary body reallocates its symmetry objects; a cached raw pointer would dangle here, but the view re-resolves through the (stable) molecule
         unsigned int primary = 0;
         auto params = gen.next(primary);
         rb->transformer->apply(std::move(params), primary);
 
-        auto after = view->get_transform({0, 0, 0}, 1)(probe);
+        auto after = view->_get_transform({0, 0, 0}, 1)(probe);
         CHECK((after - before).magnitude() > 1e-6); // the view reflects the updated shared symmetry
 
         // and it agrees with the primary's current (reallocated) symmetry
         auto* live_ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
         REQUIRE(live_ref != nullptr);
-        auto ref_t = live_ref->get_transform({0, 0, 0}, 1)(probe);
+        auto ref_t = live_ref->_get_transform({0, 0, 0}, 1)(probe);
         CHECK((after - ref_t).magnitude() < 1e-9);
     }
 }

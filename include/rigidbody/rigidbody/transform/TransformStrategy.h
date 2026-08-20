@@ -65,30 +65,17 @@ namespace ausaxs::rigidbody::transform {
             void backup(TransformGroup& group);
 
             /**
-             * @brief Rotate and translate a body. 
-             * 
+             * @brief Rotate a body about @p pivot and then translate it.
+             *
+             * A body carries its symmetry copies with it, and they can only follow if the symmetries are told how far the body has turned. Callers must
+             * therefore pair this with restore_symmetry(), which reports the accumulated orientation; see its documentation below.
+             *
              * @param M The rotation matrix.
              * @param t The translation vector.
-             * @param group The group to apply the transformation to.
+             * @param pivot The point to rotate about.
+             * @param body The body to apply the transformation to.
              */
-            void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group);
             void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, const Vector3<double>& pivot, data::Body& body);
-
-            /**
-             * @brief Rotate a body. 
-             * 
-             * @param M The rotation matrix.
-             * @param group The group to apply the rotation to.
-             */
-            virtual void rotate(const Matrix<double>& M, TransformGroup& group);
-
-            /**
-             * @brief Translate a body. 
-             * 
-             * @param t The translation vector. 
-             * @param constraint The group to apply the translation to. 
-             */
-            virtual void translate(const Vector3<double>& t, TransformGroup& group);
 
             /**
              * @brief Set a new set of absolute symmetry parameters for a given body. 

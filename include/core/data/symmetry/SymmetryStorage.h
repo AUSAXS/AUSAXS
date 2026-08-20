@@ -7,7 +7,10 @@
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
 
+#include <math/Matrix.h>
+
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace ausaxs::symmetry {
@@ -34,6 +37,10 @@ namespace ausaxs::symmetry {
         std::unique_ptr<SymmetryStorage> clone();
 
         std::vector<std::unique_ptr<ISymmetry>> symmetries;
+
+        // Rotation taking the body from the orientation it had when these symmetries were defined to its current one. Empty means unrotated, which is the case 
+        // for everything but a rigid-body refinement. This is needed since it cannot be derived from the body itself. 
+        std::optional<Matrix<double>> orientation;
     };
 }
 
@@ -56,6 +63,7 @@ inline std::vector<std::unique_ptr<ausaxs::symmetry::ISymmetry>>& ausaxs::symmet
 inline std::unique_ptr<ausaxs::symmetry::SymmetryStorage> ausaxs::symmetry::SymmetryStorage::clone() {
     auto copy = std::make_unique<SymmetryStorage>();
     for (const auto& s : symmetries) { copy->symmetries.push_back(s->clone()); }
+    copy->orientation = orientation;
     return copy;
 }
 

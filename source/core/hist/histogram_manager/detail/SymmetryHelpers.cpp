@@ -34,7 +34,7 @@ BodySymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transfor
         // it is then repeatedly applied to the same data
         std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(static_cast<int>(symmetry->repetitions()), data_a);
         for (int i_repeat = 0; i_repeat < static_cast<int>(symmetry->repetitions()); ++i_repeat) {
-            auto t = symmetry->get_transform(cm, i_repeat+1);
+            auto t = body.symmetry().get_transform(i_sym_1, cm, i_repeat+1);
             std::transform(
                 sym_atomic[i_repeat].get_data().begin(), 
                 sym_atomic[i_repeat].get_data().end(), 
@@ -59,7 +59,7 @@ SymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transformed_
 
     std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(static_cast<int>(symmetry->repetitions()), data_a);
     for (int i_repeat = 0; i_repeat < static_cast<int>(symmetry->repetitions()); ++i_repeat) {
-        auto t = symmetry->get_transform(cm, i_repeat+1);
+        auto t = body.symmetry().get_transform(isym, cm, i_repeat+1);
         std::transform(
             sym_atomic[i_repeat].get_data().begin(), 
             sym_atomic[i_repeat].get_data().end(), 

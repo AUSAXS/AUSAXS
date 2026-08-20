@@ -10,6 +10,7 @@
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
+#include <math/Matrix.h>
 
 //? GCC and probably also Clang do not like how this class is used as a temporary front for access into the symmetries
 //? of a body. Specifically, the dangling reference warning is triggered by the chain 'body->symmetry()->get()'
@@ -59,6 +60,19 @@ namespace ausaxs::symmetry::detail {
              * @brief Get the symmetry at the specified index.
              */
             [[nodiscard]] observer_ptr<const symmetry::ISymmetry> get(unsigned int index) const;
+
+            /**
+             * @brief Get the transform generating copy @p rep of symmetry @p index from the body's current coordinates.
+             *        This accounts for possible changes to the body's orientation since the symmetry was defined.
+             */
+            [[nodiscard]] symmetry::AffineTransform get_transform(unsigned int index, const Vector3<double>& cm, int rep = 1) const;
+
+            /**
+             * @brief Tell the symmetries which orientation their parameters are relative to.
+             *
+             * @param orientation The rotation taking the body from the orientation it had when its symmetries were defined to its current one.
+             */
+            void set_orientation(const Matrix<double>& orientation) requires (NONCONST);
 
             [[nodiscard]] const symmetry::ISymmetry& back() const;
             [[nodiscard]] symmetry::ISymmetry& back() requires (NONCONST);

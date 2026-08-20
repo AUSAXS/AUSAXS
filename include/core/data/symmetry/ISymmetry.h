@@ -4,15 +4,26 @@
 #pragma once
 
 #include <math/Vector3.h>
+#include <math/Matrix.h>
 #include <utility/observer_ptr.h>
 
-#include <functional>
 #include <memory>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
 
 namespace ausaxs::symmetry {
+    /**
+     * @brief A rigid affine map  v -> rotation*v + translation.
+     */
+    struct AffineTransform {
+        Matrix<double> rotation = Matrix<double>::identity(3);
+        Vector3<double> translation{0, 0, 0};
+
+        Vector3<double> operator()(const Vector3<double>& v) const {return rotation*v + translation;}
+    };
+
     /**
      * @brief One representative inter-copy distance correlation job.
      *
@@ -32,14 +43,29 @@ namespace ausaxs::symmetry {
      *
      * Holds the shared parameter storage (initial_relation, repeat_relation, repetitions)
      * that both the optimiser and histogram backend read and write.  Subclasses implement
-     * get_transform() to define the actual geometric mapping, allowing different symmetry
+     * _make_transform() to define the actual geometric mapping, allowing different symmetry
      * parameterisations without changing any of the surrounding infrastructure.
      */
     class ISymmetry {
     public:
         virtual ~ISymmetry() = default;
 
-        virtual std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const = 0;
+        /**
+         * @brief Get the transform generating copy @p rep from the body's current coordinates.
+         */
+        [[nodiscard]] AffineTransform _get_transform(const Vector3<double>& cm, int rep = 1) const;
+
+        /**
+         * @brief Get the transform generating copy @p rep from the body's current coordinates, for a body whose orientation has
+         *        changed since the symmetry was defined.
+         *
+         * @param body_orientation The rotation taking the owning body from the orientation it had when the symmetry was defined
+         *                         to its current one. An empty optional means the body has not been reoriented.
+         */
+        [[nodiscard]] AffineTransform _get_transform(
+            const Vector3<double>& cm, const std::optional<Matrix<double>>& body_orientation, int rep = 1
+        ) const;
+
         virtual ISymmetry& add(observer_ptr<const ISymmetry> other) = 0;
 
         /**
@@ -58,8 +84,6 @@ namespace ausaxs::symmetry {
          *
          * Lets a sampler work in radians without knowing how each symmetry stores its rotation. The returned value is
          * meant to be written into span_rotation() and added to the live parameters; it is not applied here.
-         * The default treats the rotation parameters as a rotation vector, which is what every symmetry
-         * parameterised by Euler angles needs. CyclicSymmetry, whose parameter is an axis direction, overrides it.
          *
          * @param angle The rotation angle, in radians.
          * @param direction A unit vector giving the rotation direction. Supplied by the caller so that symmetries need no RNG of their own.
@@ -78,10 +102,32 @@ namespace ausaxs::symmetry {
          *
          * The histogram backend evaluates one cross-correlation per returned CopyPair and
          * weights it by CopyPair::scale; every other copy-pair is identical to a listed one.
-         * The default implementation reproduces the cyclic-chain reuse: copy k sits one
-         * fixed generator step from copy k-1, so the distance depends only on the index
-         * separation. Subclasses with a different group structure override this.
          */
         virtual std::vector<SymmetricDuplicatePair> internal_pair_schedule() const;
+
+    protected:
+        /**
+         * @brief Build the map generating copy @p rep in the frame the symmetry parameters were defined in.
+         *        This is the only geometry a symmetry has to supply; the public accessors above assemble the final transform from it.
+         *
+         * @param anchor The point to anchor the copies to, already resolved through _transform_anchor() by the caller.
+         */
+        [[nodiscard]] virtual AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const = 0;
+
+        /**
+         * @brief The point _make_transform anchors its copies to. Defaults to the body's centre of mass; symmetries anchored
+         *        elsewhere override this so the reorientation above pivots on the same point their copies do.
+         *
+         * Resolved once per transform and handed to _make_transform, so an override that is expensive to evaluate is not paid for twice.
+         */
+        [[nodiscard]] virtual Vector3<double> _transform_anchor(const Vector3<double>& cm) const;
+
+        /**
+         * @brief The orientation the copies of this symmetry are generated in, given the orientation of the body asking for them.
+         *
+         * Defaults to the asking body's own orientation. A symmetry shared between several bodies must instead pin every
+         * participant to one common orientation, since copies placed by per-body operators would no longer form a symmetric assembly.
+         */
+        [[nodiscard]] virtual std::optional<Matrix<double>> _transform_orientation(const std::optional<Matrix<double>>& body_orientation) const;
     };
 }

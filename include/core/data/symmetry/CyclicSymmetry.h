@@ -46,7 +46,6 @@ namespace ausaxs::symmetry {
         CyclicSymmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions = 1);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
-        std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
@@ -55,5 +54,8 @@ namespace ausaxs::symmetry {
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
         Vector3<double> rotation_from_angle(double angle, const Vector3<double>& direction) const override;
+
+    protected:
+        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
     };
 }

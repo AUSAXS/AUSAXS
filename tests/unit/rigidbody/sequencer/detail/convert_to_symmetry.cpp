@@ -53,7 +53,7 @@ namespace {
 
         std::vector<std::vector<Vector3<double>>> chains{ref};
         for (int k = 1; k <= 2; ++k) {
-            auto t = source.get_transform(cm, k);
+            auto t = source._get_transform(cm, k);
             std::vector<Vector3<double>> chain;
             for (const auto& a : ref) {chain.push_back(t(a));}
             chains.push_back(std::move(chain));
@@ -136,7 +136,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a composite p2-p2 
 
     std::vector<std::vector<Vector3<double>>> chains{ref};
     for (int k = 1; k <= 3; ++k) {
-        auto t = source->get_transform(cm, k);
+        auto t = source->_get_transform(cm, k);
         std::vector<Vector3<double>> chain;
         for (const auto& a : ref) {chain.push_back(t(a));}
         chains.push_back(std::move(chain));
@@ -285,7 +285,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement is reachable through the scr
     for (int k = 0; k < 3; ++k) {
         std::vector<Vector3<double>> chain;
         if (k == 0) {chain = ref;}
-        else {auto t = source.get_transform(cm, k); for (const auto& a : ref) {chain.push_back(t(a));}}
+        else {auto t = source._get_transform(cm, k); for (const auto& a : ref) {chain.push_back(t(a));}}
         files.push_back("/tmp/ausaxs_convparse_" + std::to_string(k) + ".pdb");
         write_pdb(files.back(), chain);
     }
@@ -342,7 +342,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled bo
     std::vector<std::vector<Vector3<double>>> chains{ref};
     std::vector<Vector3<double>> assembly = ref;
     for (int k = 1; k <= 2; ++k) {
-        auto t = source.get_transform(cm, k);
+        auto t = source._get_transform(cm, k);
         std::vector<Vector3<double>> chain;
         for (const auto& a : ref) {chain.push_back(t(a));}
         assembly.insert(assembly.end(), chain.begin(), chain.end());

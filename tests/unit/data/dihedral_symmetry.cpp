@@ -33,7 +33,7 @@ namespace {
         auto build = [&](int rep) {
             std::vector<Vector3<double>> out;
             if (rep == 0) {out = body;}
-            else {auto t = s.get_transform(cm, rep); for (const auto& v : body) {out.push_back(t(v));}}
+            else {auto t = s._get_transform(cm, rep); for (const auto& v : body) {out.push_back(t(v));}}
             return out;
         };
         auto A = build(repA), B = build(repB);
@@ -55,7 +55,7 @@ namespace {
 
     int orbit_size(const IPolyhedralSymmetry& s, Vector3<double> p) {
         std::vector<Vector3<double>> orbit = {p};
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {orbit.push_back(s.get_transform({0, 0, 0}, rep)(p));}
+        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {orbit.push_back(s._get_transform({0, 0, 0}, rep)(p));}
         return count_distinct(orbit);
     }
 }
@@ -115,7 +115,7 @@ TEST_CASE("DihedralSymmetry: copies are proper rotations about the centre") {
     int n = GENERATE(2, 3, 5, 6);
     auto sp = make_dihedral(n); auto& s = *sp;
     for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {
-        auto f = s.get_transform({0, 0, 0}, rep);
+        auto f = s._get_transform({0, 0, 0}, rep);
         CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));               // centre is fixed
         CHECK_THAT(f({1, 0, 0}).magnitude(), Catch::Matchers::WithinAbs(1.0, 1e-9)); // length preserved
     }
@@ -133,7 +133,7 @@ TEST_CASE("DihedralSymmetry: perpendicular two-fold axes distinguish D_n from C_
         CHECK(orbit_size(s, {0, 0, 1}) == 2);
         bool found_flip = false;
         for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {
-            if ((s.get_transform({0, 0, 0}, rep)({0, 0, 1}) - Vector3<double>{0, 0, -1}).magnitude() < 1e-9) {found_flip = true;}
+            if ((s._get_transform({0, 0, 0}, rep)({0, 0, 1}) - Vector3<double>{0, 0, -1}).magnitude() < 1e-9) {found_flip = true;}
         }
         CHECK(found_flip);
     }

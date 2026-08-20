@@ -15,6 +15,15 @@ CompositeSymmetry::CompositeSymmetry(std::unique_ptr<ISymmetry> inner, std::uniq
     : inner(std::move(inner)), outer(std::move(outer))
 {
     assert(this->inner != nullptr && this->outer != nullptr && "CompositeSymmetry: sub-symmetries cannot be null.");
+
+    // A composite anchors the whole nesting on the owning body's centre of mass, while a shared symmetry anchors on the combined centre of its participants.
+    // Nesting one inside the other would compose two transforms built around different pivots, so the composite is restricted to per-body sub-symmetries.
+    assert([&] {
+        for (const auto* s : {this->inner.get(), this->outer.get()}) {
+            if (dynamic_cast<const ReferenceSymmetry*>(s) || dynamic_cast<const ReferenceSymmetryView*>(s)) {return false;}
+        }
+        return true;
+    }() && "CompositeSymmetry: a shared (reference) symmetry cannot be nested inside a composite.");
 }
 
 unsigned int CompositeSymmetry::repetitions() const {
@@ -33,23 +42,20 @@ std::unique_ptr<ISymmetry> CompositeSymmetry::clone() const {
     return std::make_unique<CompositeSymmetry>(inner->clone(), outer->clone());
 }
 
-std::function<Vector3<double>(Vector3<double>)> CompositeSymmetry::get_transform(const Vector3<double>& cm, int rep) const {
-    assert(0 < rep && rep <= static_cast<int>(repetitions()) && "CompositeSymmetry::get_transform: repetition index out of range.");
+AffineTransform CompositeSymmetry::_make_transform(const Vector3<double>& cm, int rep) const {
+    assert(0 < rep && rep <= static_cast<int>(repetitions()) && "CompositeSymmetry::_make_transform: repetition index out of range.");
 
     // copy `rep` decodes to (outer copy k, inner copy j); the inner unit is replicated by the outer
     int stride = 1 + static_cast<int>(inner->repetitions());
     int k = rep / stride;
     int j = rep % stride;
 
-    auto identity = [](Vector3<double> v) {return v;};
-    std::function<Vector3<double>(Vector3<double>)> inner_t = identity;
-    std::function<Vector3<double>(Vector3<double>)> outer_t = identity;
-    if (j != 0) {inner_t = inner->get_transform(cm, j);}
-    if (k != 0) {outer_t = outer->get_transform(cm, k);}
+    AffineTransform inner_t, outer_t; // default-constructed to the identity
+    if (j != 0) {inner_t = inner->_get_transform(cm, j);}
+    if (k != 0) {outer_t = outer->_get_transform(cm, k);}
 
-    return [inner_t = std::move(inner_t), outer_t = std::move(outer_t)](Vector3<double> v) {
-        return outer_t(inner_t(v));
-    };
+    // outer after inner: v -> R_o*(R_i*v + T_i) + T_o
+    return {outer_t.rotation*inner_t.rotation, outer_t.rotation*inner_t.translation + outer_t.translation};
 }
 
 std::vector<SymmetricDuplicatePair> CompositeSymmetry::internal_pair_schedule() const {
@@ -61,21 +67,8 @@ std::vector<SymmetricDuplicatePair> CompositeSymmetry::internal_pair_schedule() 
 
     std::vector<AffineTransform> placements;
     placements.reserve(n);
-    placements.push_back({Matrix<double>::identity(3), {0, 0, 0}}); // placement 0 = original body
-    for (int p = 1; p < n; ++p) {
-        // recover the affine map (R, T) by probing the transform: T = f(0), R*e_c = f(e_c) - T
-        auto f = get_transform(cm, p);
-        Vector3<double> T = f({0, 0, 0});
-        Matrix<double> R(3, 3);
-        for (int c = 0; c < 3; ++c) {
-            Vector3<double> e{c == 0 ? 1.0 : 0.0, c == 1 ? 1.0 : 0.0, c == 2 ? 1.0 : 0.0};
-            Vector3<double> col = f(e) - T;
-            R(0, c) = col.x();
-            R(1, c) = col.y();
-            R(2, c) = col.z();
-        }
-        placements.push_back({std::move(R), std::move(T)});
-    }
+    placements.emplace_back(); // placement 0 = original body
+    for (int p = 1; p < n; ++p) {placements.push_back(_get_transform(cm, p));}
     return compute_pair_schedule(placements);
 }
 

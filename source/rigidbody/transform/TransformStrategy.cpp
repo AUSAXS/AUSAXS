@@ -26,22 +26,6 @@ TransformStrategy::TransformStrategy(observer_ptr<Rigidbody> rigidbody) : rigidb
 
 TransformStrategy::~TransformStrategy() = default;
 
-void TransformStrategy::rotate(const Matrix<double>& M, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (observer_ptr<data::Body> body) {body->translate(-group.pivot);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]     (observer_ptr<data::Body> body) {body->rotate(M);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (observer_ptr<data::Body> body) {body->translate(group.pivot);});
-}
-
-void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&t] (data::Body* body) {body->translate(t);});
-}
-
-void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group]     (observer_ptr<data::Body> body) {body->translate(-group.pivot);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]         (observer_ptr<data::Body> body) {body->rotate(M);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group, &t] (observer_ptr<data::Body> body) {body->translate(group.pivot+t);});
-}
-
 void TransformStrategy::rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, const Vector3<double>& pivot, data::Body& body) {
     body.translate(-pivot);
     body.rotate(M);
@@ -81,7 +65,13 @@ void TransformStrategy::apply_symmetry(const std::vector<std::unique_ptr<symmetr
 void TransformStrategy::restore_symmetry(unsigned int ibody) {
     auto& body = rigidbody->molecule.get_body(ibody);
     if (body.size_symmetry() == 0) {return;}
-    apply_symmetry(rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars, body);
+    const auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
+
+    // the symmetry parameters are expressed in the frame of the initial conformation the body was just rebuilt from, so the symmetries must
+    // also be told how far the body has been rotated away from it. Without this the copies would not follow the body as it rotates, and a
+    // real-space move would deform the assembly instead of leaving it invariant.
+    body.symmetry().set_orientation(matrix::rotation_matrix(body_params.rotation));
+    apply_symmetry(body_params.symmetry_pars, body);
 }
 
 void TransformStrategy::apply_symmetry_delta(unsigned int ibody, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta) {

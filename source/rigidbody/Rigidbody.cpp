@@ -80,12 +80,12 @@ void Rigidbody::refresh_grid() {
         }
 
         // Account for symmetry bodies by computing their expected bounds
+        auto cm = body.get_cm();
         for (std::size_t j = 0; j < body.size_symmetry(); ++j) {
             auto sym = body.symmetry().get(j);
-            auto cm = body.get_cm();
             
             for (int rep = 1; rep <= static_cast<int>(sym->repetitions()); ++rep) {
-                auto transform = sym->get_transform(cm, rep);
+                auto transform = body.symmetry().get_transform(j, cm, rep);
                 
                 // Transform the 8 corners of the bounding box to get symmetry-transformed bounds
                 auto [body_min, body_max] = grid::Grid::bounding_box(body.get_atoms());
