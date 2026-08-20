@@ -25,11 +25,23 @@ namespace ausaxs::rigidbody::parameter::decay {
 
             int get_iterations() const {return iterations;}
 
+            /**
+             * @brief Restart the decay from its initial value.
+             */
+            void reset() {draws = 0;}
+
         protected:
+            /**
+             * @brief Consume a single draw and return its index.
+             */
+            unsigned int next_draw();
+
             unsigned int iterations = 0;
             unsigned int draws = 0;
 
         private:
+            bool overdrawn_warning_issued = false;
+
             /**
              * @brief Set the characteristic time scale for this decay strategy.
              */

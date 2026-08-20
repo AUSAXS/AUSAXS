@@ -14,7 +14,7 @@ ExponentialDecay::ExponentialDecay(unsigned int max_iterations) : DecayStrategy(
 ExponentialDecay::~ExponentialDecay() = default;
 
 double ExponentialDecay::next() {
-    return std::exp(-decay_rate*draws++);
+    return std::exp(-decay_rate*next_draw());
 }
 
 void ExponentialDecay::set_characteristic_time(unsigned int iterations) {
