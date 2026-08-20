@@ -146,3 +146,38 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement reject
     }
 
 }
+
+TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::LoopElement iteration deduction", "[files]") {
+    // a bare "loop" deduces its iteration count from the last parameter element, walking up the owner chain to find one.
+    // With no parameter element anywhere, that walk reaches the Sequencer, which has no owner to continue to.
+    SECTION("a bare loop with no parameter element to deduce from is a parse error") {
+        CHECK_THROWS_AS(parse(load() + "loop\n    optimize_once\n    end\nend\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("a named bare loop fails the same way") {
+        CHECK_THROWS_AS(parse(load() + "loop outer\n    optimize_once\n    end\nend\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("a nested bare loop fails the same way") {
+        CHECK_THROWS_AS(
+            parse(load() + "loop 5\n    loop\n        optimize_once\n        end\n    end\nend\n"),
+            sequencer::except::parse_error
+        );
+    }
+
+    SECTION("an explicit iteration count needs no parameter element") {
+        CHECK_NOTHROW(parse(load() + "loop 5\n    optimize_once\n    end\nend\n"));
+    }
+
+    SECTION("a parameter element supplies the count to a bare loop") {
+        auto seq = parse(load() + "parameter {\n    iterations 7\n    translate 5\n}\nloop\n    optimize_once\n    end\nend\n");
+        REQUIRE(seq != nullptr);
+        for (auto& element : seq->_get_elements()) {
+            if (auto* loop = dynamic_cast<LoopElement*>(element.get())) {
+                CHECK(loop->_get_loop_iterations() == 7);
+                return;
+            }
+        }
+        FAIL("script contained no loop element");
+    }
+}

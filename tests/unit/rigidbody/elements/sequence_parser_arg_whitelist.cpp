@@ -116,6 +116,7 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
 TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: named loops are scoped to one parse", "[files]") {
     auto script = load() +
         "loop L1 10\n"
+        "    optimize_once\n"
         "    end\n"
         "end\n";
 

@@ -193,6 +193,8 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
                         return parameter_element;
                     }
                 }
+                // the Sequencer is the top of the chain and has no owner to continue to, so the search ends here
+                if (dynamic_cast<Sequencer*>(current) != nullptr) {break;}
                 current = current->_get_owner();
                 if (100 < ++escape_counter) {throw std::runtime_error("LoopElement::_parse::create: owner chain too long while searching for last parameter element.");}
             }
@@ -200,7 +202,10 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
         };
 
         auto* last_parameter_element = find_last_parameter_element();
-        if (!last_parameter_element) {throw except::parse_error("loop", "Could not deduce number of iterations.");}
+        if (!last_parameter_element) {
+            throw except::parse_error("loop", "Could not deduce the number of iterations: no preceding \"parameter\" element was found. "
+                "Either add one, or state the count explicitly as e.g. \"loop 100\".");
+        }
         int iterations = last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations();
         return iterations;
     };
