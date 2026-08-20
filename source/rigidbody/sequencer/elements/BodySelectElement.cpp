@@ -58,6 +58,21 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
             return std::make_unique<BodySelectElement>(owner, rigidbody::factory::create_selection_strategy(owner->_get_rigidbody(), *choice));
         }
 
+        // pattern 1b: "random_symmetry" / "sequential_symmetry" - the matching body strategy restricted to symmetry-owning
+        // bodies via a forced symmetry mask. Shorthands for `select { body random_body, mask symmetry }` and its sequential counterpart
+        if (token == "random_symmetry" || token == "sequential_symmetry") {
+            using Choice = settings::rigidbody::BodySelectStrategyChoice;
+            Choice body_choice = token == "random_symmetry" ? Choice::RandomBodySelect : Choice::SequentialBodySelect;
+            return std::make_unique<BodySelectElement>(
+                owner,
+                rigidbody::factory::create_selection_strategy(
+                    owner->_get_rigidbody(),
+                    body_choice,
+                    settings::rigidbody::ParameterMaskStrategyChoice::Symmetry
+                )
+            );
+        }
+
         const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
         if (!body_names.contains(token)) {
             throw except::parse_error("select", "Unknown body select strategy, body name/alias, or symmetry tag \"" + token + "\".");
