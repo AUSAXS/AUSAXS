@@ -79,6 +79,8 @@ TransformElement& LoopElement::transform_strategy(std::unique_ptr<rigidbody::tra
 
 void LoopElement::run() {
     for (unsigned int i = 0; i < iterations; ++i) {
+        // checked here rather than between the individual elements so a stopped iteration is never left half-finished
+        if (_stop_requested()) {return;}
         ++global_counter;
         for (auto& element : elements) {
             element->run();
@@ -145,6 +147,18 @@ LoopElement& LoopElement::save(const io::File& path) {
 EveryNStepElement& LoopElement::every(unsigned int n) {
     elements.push_back(std::make_unique<EveryNStepElement>(this, n));
     return *static_cast<EveryNStepElement*>(elements.back().get());
+}
+
+void LoopElement::_request_stop() {
+    stop_flag.store(true, std::memory_order_relaxed);
+}
+
+bool LoopElement::_stop_requested() {
+    return stop_flag.load(std::memory_order_relaxed);
+}
+
+void LoopElement::_clear_stop_request() {
+    stop_flag.store(false, std::memory_order_relaxed);
 }
 
 unsigned int LoopElement::_get_current_iteration() {
