@@ -68,6 +68,11 @@ MergeElement::MergeElement(observer_ptr<Sequencer> owner, std::string_view first
     conformation.absolute_parameters.parameters[i_first].translation = cm;
 
     detail::erase_bodies(owner, std::move(other_indices));
+
+    // the body count changed, so the histogram manager's per-body-indexed caches (sized for the old body count) must be rebuilt from scratch. The grid
+    // is discarded rather than refreshed: Molecule::get_grid rebuilds it on demand, so doing it here would only force the work at parse time.
+    owner->_get_molecule()->reset_histogram_manager();
+    owner->_get_rigidbody()->molecule.clear_grid();
 }
 
 MergeElement::~MergeElement() = default;

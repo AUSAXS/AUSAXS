@@ -3,6 +3,8 @@
 
 #include <rigidbody/parameters/decay/LinearDecay.h>
 
+#include <algorithm>
+
 using namespace ausaxs::rigidbody::parameter::decay;
 
 LinearDecay::LinearDecay(unsigned int max_iterations) : DecayStrategy(max_iterations) {
@@ -16,5 +18,6 @@ double LinearDecay::next() {
 }
 
 void LinearDecay::set_characteristic_time(unsigned int iterations) {
-    decay_rate = 0.5/iterations;
+    // guard against iterations = 1
+    decay_rate = 0.5/std::max(1u, iterations);
 }
