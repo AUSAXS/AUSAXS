@@ -13,7 +13,10 @@ namespace ausaxs::data {
      */
     enum class backbone_t : std::uint8_t {
         none,       //< not a backbone atom
+        n,          //< backbone amide nitrogen
         c_alpha,    //< C-alpha backbone carbon
+        c,          //< backbone carbonyl carbon
+        o,          //< backbone carbonyl oxygen
     };
 
     /**
