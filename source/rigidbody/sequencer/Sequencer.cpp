@@ -10,6 +10,7 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hydrate/ExplicitHydration.h>
 #include <settings/MoleculeSettings.h>
+#include <utility/Console.h>
 #include <data/Body.h>
 
 using namespace ausaxs;
@@ -19,13 +20,11 @@ using namespace ausaxs::rigidbody::sequencer;
 Sequencer::Sequencer() : LoopElement(nullptr, 1), setup_loop(this), rigidbody(nullptr) {
     settings::molecule::store_calpha = true;
     settings::molecule::store_residue_seq = true;
-    _reset_counters();
 }
 
 Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), setup_loop(this, saxs), rigidbody(nullptr) {
     settings::molecule::store_calpha = true;
     settings::molecule::store_residue_seq = true;
-    _reset_counters();
 }
 
 Sequencer::~Sequencer() = default;
@@ -76,6 +75,9 @@ observer_ptr<controller::IController> Sequencer::_get_controller() const {
 SetupElement& Sequencer::setup() {return setup_loop;}
 
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
+    _clear_stop_request(); // a stop requested while nothing was running must not immediately kill this run
+    _reset_counters();     // a previous run must not leak into this one
+    _recount_total_iterations(this);
     auto saxs_path = setup()._get_saxs_path();
     if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path.str() + "\" does not exist.");}
     rigidbody->molecule.generate_new_hydration(); // some setup elements requires access to the hydration generators
@@ -88,7 +90,13 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     // prepare the fitter for the actual optimization
     _get_controller()->setup(saxs_path);
     for (auto& e : LoopElement::elements) {
+        if (_stop_requested()) {break;}
         e->run();
+    }
+
+    // a stopped run is still finished off normally below, so the caller gets the best conformation found so far
+    if (_stop_requested()) {
+        console::print_text_critical("Refinement stopped. Returning the best conformation found so far.");
     }
 
     // restore the best hydration shell before the final fit

@@ -3,6 +3,7 @@
 
 #include <rigidbody/parameters/decay/ExponentialDecay.h>
 
+#include <algorithm>
 #include <cmath>
 
 using namespace ausaxs::rigidbody::parameter::decay;
@@ -14,9 +15,10 @@ ExponentialDecay::ExponentialDecay(unsigned int max_iterations) : DecayStrategy(
 ExponentialDecay::~ExponentialDecay() = default;
 
 double ExponentialDecay::next() {
-    return std::exp(-decay_rate*draws++);
+    return std::exp(-decay_rate*next_draw());
 }
 
 void ExponentialDecay::set_characteristic_time(unsigned int iterations) {
-    decay_rate = 1.0/iterations;
+    // guard against iterations = 1
+    decay_rate = 1.0/std::max(1u, iterations);
 }

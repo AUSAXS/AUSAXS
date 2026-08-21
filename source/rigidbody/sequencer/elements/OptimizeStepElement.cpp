@@ -17,6 +17,7 @@ OptimizeStepElement::OptimizeStepElement(observer_ptr<LoopElement> owner) : Loop
 OptimizeStepElement::~OptimizeStepElement() = default;
 
 void OptimizeStepElement::run() {
+    ++global_counter; // an optimization step is the unit the iteration counters are expressed in
     step_accepted = _get_sequencer()->_get_controller()->prepare_step();
 
     // Run all child elements after prepare_step() but before finish_step()

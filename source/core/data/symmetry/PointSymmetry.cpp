@@ -23,17 +23,15 @@ std::unique_ptr<ISymmetry> PointSymmetry::clone() const {
     return std::make_unique<PointSymmetry>(*this);
 }
 
-std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> PointSymmetry::get_transform(const Vector3<double>& cm, int rep) const {
+AffineTransform PointSymmetry::_make_transform(const Vector3<double>& cm, int rep) const {
     assert(rep <= 1 && "PointSymmetry always generates exactly one copy (rep must be 1).");
-    if (rep == 0) {return [](Vector3<double> v) {return v;};}
+    if (rep == 0) {return {};} // identity
 
     // final transform is v' = R*(v - cm) + cm + d
     //                       = R*v + (cm + d - R*cm)
     auto R = matrix::rotation_matrix<double>(rotation);
     auto T = cm + translation - R*cm;
-    return [R=std::move(R), T=std::move(T)](Vector3<double> v) {
-        return R*v + T;
-    };
+    return {std::move(R), std::move(T)};
 }
 
 unsigned int PointSymmetry::repetitions() const {return 1;}

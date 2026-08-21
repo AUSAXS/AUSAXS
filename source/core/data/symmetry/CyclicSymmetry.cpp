@@ -50,7 +50,7 @@ ISymmetry& CyclicSymmetry::add(observer_ptr<const ISymmetry> other) {
 
 std::unique_ptr<ISymmetry> CyclicSymmetry::clone() const { return std::make_unique<CyclicSymmetry>(*this); }
 
-std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> CyclicSymmetry::get_transform(const Vector3<double>& cm, int rep) const {
+AffineTransform CyclicSymmetry::_make_transform(const Vector3<double>& cm, int rep) const {
     Matrix<double>  R_final;
     Vector3<double> T_final;
 
@@ -81,9 +81,7 @@ std::function<ausaxs::Vector3<double>(ausaxs::Vector3<double>)> CyclicSymmetry::
         }
     }
 
-    return [R_final=std::move(R_final), T_final=std::move(T_final)](Vector3<double> v) {
-        return R_final*v + T_final;
-    };
+    return {std::move(R_final), std::move(T_final)};
 }
 
 unsigned int CyclicSymmetry::repetitions() const {return _repetitions;}

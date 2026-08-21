@@ -4,16 +4,22 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <data/Molecule.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <settings/GeneralSettings.h>
 #include <constants/ConstantsAxes.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 
 OverlapConstraint::OverlapConstraint(observer_ptr<const data::Molecule> molecule) : molecule(molecule) {}
 
-OverlapConstraint::~OverlapConstraint() = default;
+OverlapConstraint::~OverlapConstraint() {
+    reset_statics();
+}
+
+void OverlapConstraint::reset_statics() {
+    overlap_function = [] (double r) {return std::exp(-5*r);};
+}
 
 void OverlapConstraint::set_overlap_function(std::function<double(double)> func) {
     overlap_function = std::move(func);
@@ -59,8 +65,8 @@ void OverlapConstraint::initialize() const {
     target.resize(i);
     weights.resize(i);
 
-    if (settings::general::verbose) {
-        std::cout << "\tOverlap constraint initialized. The distance range [0, " << axis[i] << "]Å will be used for calculating the overlap penalty." << std::endl;
-        if (target.size() < 5) {console::print_warning("\tWarning: Only " + std::to_string(target.size()) + " bins will be used for calculating the overlap penalty. Consider decreasing the bin size in the histogram settings.");}
-    }
+    // the resolved distance range is an internal detail of the penalty function with no action attached to it, so it is logged rather than
+    // printed; the bin-count warning below *is* actionable and stays on the console
+    logging::log("Overlap constraint initialized. The distance range [0, " + std::to_string(axis[i]) + "]Å will be used for calculating the overlap penalty.");
+    if (target.size() < 5) {console::print_warning("\tWarning: Only " + std::to_string(target.size()) + " bins will be used for calculating the overlap penalty. Consider decreasing the bin size in the histogram settings.");}
 }

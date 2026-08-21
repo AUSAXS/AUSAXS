@@ -6,6 +6,7 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/UpdateElement.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
@@ -207,6 +208,12 @@ int rigidbody_run(
     *I_interp = ref->I_inter.data();
     *n_points = static_cast<int>(ref->q.size());
     return data_id;
+}, status);}
+
+void rigidbody_stop_run(
+    int* status
+) {execute_with_catch([&]() {
+    rigidbody::sequencer::LoopElement::_request_stop();
 }, status);}
 
 void rigidbody_get_valid_elements(

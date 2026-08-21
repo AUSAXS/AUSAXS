@@ -18,6 +18,9 @@ ParameterElement::ParameterElement(observer_ptr<LoopElement> owner, std::unique_
 ParameterElement::~ParameterElement() = default;
 
 void ParameterElement::run() {
+    // the declaration is re-executed on every pass of an enclosing loop, and each pass starts a fresh decay schedule,
+    // so that "iterations" always means the number of following optimisation steps this generator is valid for.
+    strategy->get_decay_strategy()->reset();
     owner->_get_rigidbody()->parameter_generator = strategy;
 }
 

@@ -20,25 +20,27 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
-LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {
-    if (iterations == 1) {return;}
-    int this_will_run = iterations;
-    auto next_owner = _get_owner();
-    int escape_counter = 0;
-    while (dynamic_cast<Sequencer*>(next_owner) == nullptr) {
-        if (100 < ++escape_counter) {throw std::runtime_error("LoopElement::LoopElement: owner chain too long");}
-        this_will_run *= next_owner->iterations;
-        next_owner = next_owner->_get_owner();
-    }
-    total_loop_count += this_will_run;
+namespace {
+    std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
+    observer_ptr<LoopElement> last_loop_element = nullptr;
 }
+
+LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {}
 
 void LoopElement::_reset_counters() {
     total_loop_count = 0;
     global_counter = 0;
 }
 
-LoopElement::~LoopElement() = default;
+void LoopElement::_reset_named_loops() {
+    loop_names.clear();
+    last_loop_element = nullptr;
+}
+
+LoopElement::~LoopElement() {
+    _reset_counters();
+    _reset_named_loops();
+}
 
 std::shared_ptr<fitter::FitResult> LoopElement::execute() {
     return owner->execute(); // propagate upwards to the main Sequencer
@@ -66,7 +68,8 @@ TransformElement& LoopElement::transform_strategy(std::unique_ptr<rigidbody::tra
 
 void LoopElement::run() {
     for (unsigned int i = 0; i < iterations; ++i) {
-        ++global_counter;
+        // checked here rather than between the individual elements so a stopped iteration is never left half-finished
+        if (_stop_requested()) {return;}
         for (auto& element : elements) {
             element->run();
         }
@@ -134,6 +137,18 @@ EveryNStepElement& LoopElement::every(unsigned int n) {
     return *static_cast<EveryNStepElement*>(elements.back().get());
 }
 
+void LoopElement::_request_stop() {
+    stop_flag.store(true, std::memory_order_relaxed);
+}
+
+bool LoopElement::_stop_requested() {
+    return stop_flag.load(std::memory_order_relaxed);
+}
+
+void LoopElement::_clear_stop_request() {
+    stop_flag.store(false, std::memory_order_relaxed);
+}
+
 unsigned int LoopElement::_get_current_iteration() {
     return global_counter;
 }
@@ -142,8 +157,41 @@ unsigned int LoopElement::_get_total_iterations() {
     return total_loop_count;
 }
 
-void LoopElement::_add_total_iterations(unsigned int n) {
-    total_loop_count += n;
+namespace {
+    // Number of optimization steps performed by a single full run of the given loop, where multiplier is the
+    // number of times the loop body itself is run. Nested loops multiply the counter by their own iteration
+    // count as they are entered, so a step deep in the tree is counted once for every time it is reached.
+    unsigned int count_optimization_steps(observer_ptr<LoopElement> loop, unsigned int multiplier, int depth = 0) {
+        if (100 < ++depth) {throw std::runtime_error("LoopElement::count_optimization_steps: element tree too deep");}
+
+        unsigned int steps = 0;
+        for (auto& e : loop->_get_elements()) {
+            // a copy loop runs its target in-place, so it contributes exactly what the target would here
+            if (auto* copy = dynamic_cast<CopyLoopElement*>(e.get())) {
+                auto* target = copy->_get_target();
+                steps += count_optimization_steps(target, multiplier*target->_get_loop_iterations(), depth);
+                continue;
+            }
+
+            auto* nested = dynamic_cast<LoopElement*>(e.get());
+            if (nested == nullptr) {continue;} // only loop-like elements can contain optimization steps
+
+            // an optimize element performs one step itself, and may still hold nested blocks below it
+            if (dynamic_cast<OptimizeStepElement*>(nested) != nullptr) {steps += multiplier;}
+
+            unsigned int inner_multiplier = multiplier*nested->_get_loop_iterations();
+
+            // an every-n block only runs its contents on every nth iteration of the surrounding loop
+            if (auto* every = dynamic_cast<EveryNStepElement*>(nested)) {inner_multiplier /= every->_get_step_size();}
+
+            steps += count_optimization_steps(nested, inner_multiplier, depth);
+        }
+        return steps;
+    }
+}
+
+void LoopElement::_recount_total_iterations(observer_ptr<LoopElement> root) {
+    total_loop_count = count_optimization_steps(root, root->iterations);
 }
 
 std::vector<std::string> LoopElement::_valid_arguments() {
@@ -155,9 +203,6 @@ InlineSignature LoopElement::_valid_inline_arguments() {
 }
 
 std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
-    static std::unordered_map<std::string, observer_ptr<LoopElement>> loop_names;
-    static observer_ptr<LoopElement> last_loop_element = nullptr;
-
     auto deduce_iteration_count = [&]() -> int {
         // find the last parameter element by traversing backwards and upwards through the owner chain
         auto find_last_parameter_element = [&]() -> observer_ptr<ParameterElement> {
@@ -169,6 +214,8 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
                         return parameter_element;
                     }
                 }
+                // the Sequencer is the top of the chain and has no owner to continue to, so the search ends here
+                if (dynamic_cast<Sequencer*>(current) != nullptr) {break;}
                 current = current->_get_owner();
                 if (100 < ++escape_counter) {throw std::runtime_error("LoopElement::_parse::create: owner chain too long while searching for last parameter element.");}
             }
@@ -176,7 +223,10 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
         };
 
         auto* last_parameter_element = find_last_parameter_element();
-        if (!last_parameter_element) {throw except::parse_error("loop", "Could not deduce number of iterations.");}
+        if (!last_parameter_element) {
+            throw except::parse_error("loop", "Could not deduce the number of iterations: no preceding \"parameter\" element was found. "
+                "Either add one, or state the count explicitly as e.g. \"loop 100\".");
+        }
         int iterations = last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations();
         return iterations;
     };

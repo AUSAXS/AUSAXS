@@ -82,14 +82,14 @@ TEST_CASE("PointSymmetry::span") {
     CHECK(s.rotation.z() == 99);
 }
 
-TEST_CASE("PointSymmetry::get_transform") {
+TEST_CASE("PointSymmetry::_get_transform") {
     const double c = std::cos(1.0), s = std::sin(1.0);
     const double tol = 1e-9;
 
     SECTION("pure translation of atom at cm") {
         // When v == cm, the rotation about cm leaves it fixed: copy = cm + translation
         PointSymmetry sym({3, 1, 0}, {0, 0, 0});
-        auto f = sym.get_transform({2, 5, 0});
+        auto f = sym._get_transform({2, 5, 0});
         auto v = f({2, 5, 0});
         CHECK(v == Vector3<double>(5, 6, 0));
     }
@@ -97,7 +97,7 @@ TEST_CASE("PointSymmetry::get_transform") {
     SECTION("zero rotation vector gives identity") {
         // rotation={0,0,0} → R = identity → copy coincides with original (modulo translation)
         PointSymmetry sym({0, 0, 0}, {0, 0, 0});
-        auto f = sym.get_transform({0, 0, 0});
+        auto f = sym._get_transform({0, 0, 0});
         CHECK(f({1, 0, 0}) == Vector3<double>(1, 0, 0));
         CHECK(f({0, 1, 0}) == Vector3<double>(0, 1, 0));
         CHECK(f({0, 0, 1}) == Vector3<double>(0, 0, 1));
@@ -106,7 +106,7 @@ TEST_CASE("PointSymmetry::get_transform") {
     SECTION("rotation about z-axis (rotation={0,0,1})") {
         // rotation={0,0,gamma} → extrinsic Euler Rz(gamma)
         PointSymmetry sym({0, 0, 0}, {0, 0, 1});
-        auto f = sym.get_transform({0, 0, 0});
+        auto f = sym._get_transform({0, 0, 0});
 
         CHECK(f({1, 0, 0}) == Vector3<double>(c, s, 0));
         CHECK(f({0, 1, 0}) == Vector3<double>(-s, c, 0));
@@ -116,7 +116,7 @@ TEST_CASE("PointSymmetry::get_transform") {
     SECTION("rotation about y-axis (rotation={0,1,0})") {
         // rotation={0,beta,0} → extrinsic Euler Ry(beta): (x,y,z)→(x*c+z*s, y, -x*s+z*c)
         PointSymmetry sym({0, 0, 0}, {0, 1, 0});
-        auto f = sym.get_transform({0, 0, 0});
+        auto f = sym._get_transform({0, 0, 0});
 
         CHECK(f({1, 0, 0}) == Vector3<double>( c, 0, -s));
         CHECK(f({0, 0, 1}) == Vector3<double>( s, 0,  c));
@@ -126,7 +126,7 @@ TEST_CASE("PointSymmetry::get_transform") {
     SECTION("rotation about x-axis (rotation={1,0,0})") {
         // rotation={alpha,0,0} → extrinsic Euler Rx(alpha): (x,y,z)→(x, y*c-z*s, y*s+z*c)
         PointSymmetry sym({0, 0, 0}, {1, 0, 0});
-        auto f = sym.get_transform({0, 0, 0});
+        auto f = sym._get_transform({0, 0, 0});
 
         CHECK(f({0, 1, 0}) == Vector3<double>(0,  c, s));
         CHECK(f({0, 0, 1}) == Vector3<double>(0, -s, c));
@@ -136,7 +136,7 @@ TEST_CASE("PointSymmetry::get_transform") {
     SECTION("rotation with non-zero cm: atom at cm maps to cm + translation") {
         // cm={2,0,0}, translation={0,0,0}: atom at cm stays at cm regardless of rotation
         PointSymmetry sym({0, 0, 0}, {0, 0, 1});
-        auto f = sym.get_transform({2, 0, 0});
+        auto f = sym._get_transform({2, 0, 0});
         CHECK(f({2, 0, 0}) == Vector3<double>(2, 0, 0));
 
         // atom at {3,0,0}: Rz(1)*(3-2) + 2 = Rz(1)*{1,0,0} + {2,0,0} = {c,s,0} + {2,0,0} = {2+c, s, 0}
@@ -147,7 +147,7 @@ TEST_CASE("PointSymmetry::get_transform") {
         // rotation={0,0,1}→Rz(1), translation={0,1,0}, cm={2,0,0}
         // f(cm) = cm + translation = {2,1,0}
         PointSymmetry sym({0, 1, 0}, {0, 0, 1});
-        auto f = sym.get_transform({2, 0, 0});
+        auto f = sym._get_transform({2, 0, 0});
         CHECK(f({2, 0, 0}) == Vector3<double>(2, 1, 0));
 
         // atom at {3,0,0}: Rz(1)*(3-2)+2+t = {c,s,0}+{2,1,0} = {2+c,1+s,0}
@@ -160,8 +160,8 @@ TEST_CASE("PointSymmetry::get_transform") {
         // rotation = Euler angles: {0,0,1} → Rz(1 rad), {0,0,2} → Rz(2 rad)
         PointSymmetry s1({0, 0, 0}, {0, 0, 1});
         PointSymmetry s2({0, 0, 0}, {0, 0, 2});
-        auto f1 = s1.get_transform({0, 0, 0});
-        auto f2 = s2.get_transform({0, 0, 0});
+        auto f1 = s1._get_transform({0, 0, 0});
+        auto f2 = s2._get_transform({0, 0, 0});
 
         auto r1 = f1({1, 0, 0});
         auto r2 = f2({1, 0, 0});
@@ -172,8 +172,8 @@ TEST_CASE("PointSymmetry::get_transform") {
     SECTION("rep defaults to 1") {
         PointSymmetry sym({1, 0, 0}, {0, 0, 1});
         // rep=1 is the only valid value; non-default call must produce the same result
-        auto f1 = sym.get_transform({0, 0, 0});
-        auto f2 = sym.get_transform({0, 0, 0}, 1);
+        auto f1 = sym._get_transform({0, 0, 0});
+        auto f2 = sym._get_transform({0, 0, 0}, 1);
         auto r1 = f1({1, 2, 3});
         auto r2 = f2({1, 2, 3});
         CHECK(r1 == r2);

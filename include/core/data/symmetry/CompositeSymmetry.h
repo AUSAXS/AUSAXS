@@ -23,7 +23,6 @@ namespace ausaxs::symmetry {
         CompositeSymmetry(std::unique_ptr<ISymmetry> inner, std::unique_ptr<ISymmetry> outer);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
-        std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
@@ -37,6 +36,9 @@ namespace ausaxs::symmetry {
 
         std::unique_ptr<ISymmetry> inner;
         std::unique_ptr<ISymmetry> outer;
+
+    protected:
+        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
     };
 
     /**

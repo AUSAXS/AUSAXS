@@ -135,7 +135,6 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     // ConvertToSymmetryElement; the grid must be fully rebuilt too
     molecule->reset_histogram_manager();
     rigidbody->molecule.clear_grid();
-    rigidbody->refresh_grid();
     rigidbody->symmetry_targets->invalidate(); // the set of declared symmetries changed
     rigidbody->constraints->invalidate();      // the fragments are new bodies, and need entries of their own in the per-body constraint map
 }

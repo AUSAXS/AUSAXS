@@ -113,6 +113,17 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
     }
 }
 
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: named loops are scoped to one parse", "[files]") {
+    auto script = load() +
+        "loop L1 10\n"
+        "    optimize_once\n"
+        "    end\n"
+        "end\n";
+
+    CHECK_NOTHROW(parse(script));
+    CHECK_NOTHROW(parse(script));
+}
+
 TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::SymmetryElement inline forms", "[files]") {
     static const std::string two_bodies =
         "load {\n"
@@ -177,8 +188,9 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: inline argument counts ar
     }
 
     SECTION("an element taking no inline arguments rejects them") {
-        // overlap_strength had no inline check at all, so these values used to be silently discarded
-        CHECK_THROWS_AS(parse(load() + "overlap_strength 5 10\n"), sequencer::except::parse_error);
+        // optimize_once/optimize_step takes no inline arguments at all, unlike overlap_strength (which gained a
+        // 1-2 argument inline form and so no longer fits this case)
+        CHECK_THROWS_AS(parse(load() + "optimize_once 5 10\n"), sequencer::except::parse_error);
     }
 
     SECTION("the error names the expected arguments") {

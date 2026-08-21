@@ -35,7 +35,7 @@ namespace {
             std::vector<Vector3<double>> out;
             if (rep == 0) {out = body;}
             else {
-                auto t = s.get_transform(cm, rep);
+                auto t = s._get_transform(cm, rep);
                 for (const auto& v : body) {out.push_back(t(v));}
             }
             return out;
@@ -62,7 +62,7 @@ namespace {
     // |group| / |stabilizer of p|, so it collapses when p lies on a symmetry axis
     int orbit_size(const IPolyhedralSymmetry& s, Vector3<double> p) {
         std::vector<Vector3<double>> orbit = {p}; // rep 0 = the original atom
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {orbit.push_back(s.get_transform({0, 0, 0}, rep)(p));}
+        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {orbit.push_back(s._get_transform({0, 0, 0}, rep)(p));}
         return count_distinct(orbit);
     }
 
@@ -119,13 +119,13 @@ TEST_CASE("PolyhedralSymmetry: schedule representatives reproduce all inter-copy
     }
 }
 
-TEST_CASE("PolyhedralSymmetry::get_transform: copies are proper rotations about the centre") {
+TEST_CASE("PolyhedralSymmetry::_get_transform: copies are proper rotations about the centre") {
     auto make = GENERATE(make_tetra, make_octa, make_icosa);
     auto s = make();
 
     SECTION("every copy is a proper rotation about the group centre") {
         for (int rep = 1; rep <= static_cast<int>(s->repetitions()); ++rep) {
-            auto f = s->get_transform({0, 0, 0}, rep);
+            auto f = s->_get_transform({0, 0, 0}, rep);
             // with no offset the group centre is the origin, which every rotation fixes
             CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));
             // a proper rotation preserves lengths
@@ -136,7 +136,7 @@ TEST_CASE("PolyhedralSymmetry::get_transform: copies are proper rotations about 
 
     SECTION("offset moves the fixed point to c = cm + translation") {
         s->translation = {1, 2, 3};
-        auto f = s->get_transform({0, 0, 0});
+        auto f = s->_get_transform({0, 0, 0});
         CHECK(f({1, 2, 3}) == Vector3<double>(1, 2, 3));
     }
 }
@@ -182,7 +182,7 @@ TEST_CASE("PolyhedralSymmetry: a rigid line shows the rotation of each copy") {
 
     std::vector<Vector3<double>> heads = {line[0]}; // rep 0 = the original arrow
     for (int rep = 1; rep <= static_cast<int>(s->repetitions()); ++rep) {
-        auto t = s->get_transform({0, 0, 0}, rep);
+        auto t = s->_get_transform({0, 0, 0}, rep);
         Vector3<double> q0 = t(line[0]), q1 = t(line[1]), q2 = t(line[2]);
 
         // the copy is still a straight, equally-spaced line: the two steps stay identical

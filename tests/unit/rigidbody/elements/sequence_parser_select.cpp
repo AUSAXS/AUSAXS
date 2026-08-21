@@ -226,6 +226,35 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         REQUIRE(rb != nullptr);
         REQUIRE(rb->body_selector != nullptr);
     }
+
+    SECTION("random_symmetry and sequential_symmetry restrict selection to symmetry-owning bodies") {
+        // shorthand for `select { body random_body|sequential_body, parameters symmetry }` - the matching body
+        // strategy restricted to draws that only ever hit a drivable symmetry, so a parameter_generator with only
+        // sym_translate/sym_rotate set never wastes a step on a body that has no symmetry of its own to move
+        auto token = GENERATE(as<std::string>{}, "random_symmetry", "sequential_symmetry");
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "symmetry c2\n"
+            "select " + token + "\n"
+        );
+        REQUIRE(seq != nullptr);
+        seq->execute();
+        auto rb = seq->_get_rigidbody();
+        REQUIRE(rb != nullptr);
+        REQUIRE(rb->body_selector != nullptr);
+        CHECK(dynamic_cast<selection::ManualSelect*>(rb->body_selector.get()) == nullptr);
+
+        auto selection = rb->body_selector->next_mask();
+        INFO("selected through token " << token);
+        CHECK_FALSE(selection.mask.real_translation);
+        CHECK_FALSE(selection.mask.real_rotation);
+        CHECK(selection.mask.sym_translation);
+        CHECK(selection.mask.sym_axis);
+        REQUIRE(selection.iconstraint == -1);
+    }
 }
 
 TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement symmetry isolation") {

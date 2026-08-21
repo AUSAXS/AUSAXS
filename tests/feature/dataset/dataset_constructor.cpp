@@ -149,7 +149,7 @@ auto vec_approx = [](const auto& v1, const auto& v2) {
 
 TEST_CASE("XVGReader::construct") {
     settings::general::verbose = false;
-    io::File test_file = "temp/tests/dataset/dat_test.dat";
+    io::File test_file = "temp/tests/dataset/xvg_test.dat";
     test_file.directory().create();
 
     SECTION("simple contents") {

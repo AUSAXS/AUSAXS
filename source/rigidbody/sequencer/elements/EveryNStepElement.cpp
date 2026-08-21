@@ -19,6 +19,10 @@ void EveryNStepElement::run() {
     }
 }
 
+unsigned int EveryNStepElement::_get_step_size() const {
+    return n;
+}
+
 std::vector<std::string> EveryNStepElement::_valid_arguments() {
     return {};
 }

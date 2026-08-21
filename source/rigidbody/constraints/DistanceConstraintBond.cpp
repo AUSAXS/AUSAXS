@@ -121,6 +121,7 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
     }
     iatom1 = result.iatom1;
     iatom2 = result.iatom2;
+    cache_cm_offsets();
     d_target = result.distance;
 }
 

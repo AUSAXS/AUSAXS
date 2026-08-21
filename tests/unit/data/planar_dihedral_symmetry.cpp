@@ -26,7 +26,7 @@ namespace {
     // positions of a single body point p under {original + all copies}, for a body centred at cm
     std::vector<Vector3<double>> copy_positions(const IPolyhedralSymmetry& s, Vector3<double> cm, Vector3<double> p) {
         std::vector<Vector3<double>> out = {p};
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {out.push_back(s.get_transform(cm, rep)(p));}
+        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {out.push_back(s._get_transform(cm, rep)(p));}
         return out;
     }
 

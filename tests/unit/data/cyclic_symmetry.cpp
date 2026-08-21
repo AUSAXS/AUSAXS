@@ -132,25 +132,25 @@ TEST_CASE("Symmetry::is_closed") {
     }
 }
 
-TEST_CASE("Symmetry::get_transform") {
+TEST_CASE("Symmetry::_get_transform") {
     SECTION("translation only, no rotation (degenerate)") {
         // Per-step translation shifts copies along y
         CyclicSymmetry s({1, 2, 3}, {0, 0, 0}, {0, 0, 0}, 0, 4);
         s = CyclicSymmetry({{1, 0, 0}}, {{0, 1, 0}, {0, 0, 1}, 0}, 4);
-        auto f = s.get_transform({0, 0, 0});
+        auto f = s._get_transform({0, 0, 0});
         CHECK(f({1, 2, 3}) == Vector3<double>(1, 3, 3));
 
-        f = s.get_transform({0, 0, 0}, 2);
+        f = s._get_transform({0, 0, 0}, 2);
         CHECK(f({1, 2, 3}) == Vector3<double>(1, 4, 3));
 
-        f = s.get_transform({0, 0, 0}, 3);
+        f = s._get_transform({0, 0, 0}, 3);
         CHECK(f({1, 2, 3}) == Vector3<double>(1, 5, 3));
     }
 
     SECTION("rotation about X by +90 deg") {
         // R_x(+pi/2): (x,y,z) -> (x,-z,y)
         CyclicSymmetry s({{0,0,0}}, {{1,0,0}, std::numbers::pi/2}, 1);
-        auto f = s.get_transform({0, 0, 0});
+        auto f = s._get_transform({0, 0, 0});
 
         CHECK(f({1, 0, 0}) == Vector3<double>(1,  0, 0));
         CHECK(f({0, 1, 0}) == Vector3<double>(0,  0, 1));
@@ -160,7 +160,7 @@ TEST_CASE("Symmetry::get_transform") {
     SECTION("rotation about Y by +90 deg") {
         // R_y(+pi/2): (x,y,z) -> (z,y,-x)
         CyclicSymmetry s({{0,0,0}}, {{0,1,0}, std::numbers::pi/2}, 1);
-        auto f = s.get_transform({0, 0, 0});
+        auto f = s._get_transform({0, 0, 0});
 
         CHECK(f({1, 0, 0}) == Vector3<double>(0, 0, -1));
         CHECK(f({0, 1, 0}) == Vector3<double>(0, 1,  0));
@@ -173,7 +173,7 @@ TEST_CASE("Symmetry::get_transform") {
         CyclicSymmetry s({{1, 2, 3}}, {{1, 0, 0}, -std::numbers::pi/2}, 1);
 
         {   // first copy (k=1)
-            auto f = s.get_transform({0, 0, 0});
+            auto f = s._get_transform({0, 0, 0});
             CHECK(f({1, 0, 0}) == Vector3<double>(1, 1, -5));
             CHECK(f({0, 1, 0}) == Vector3<double>(0, 1, -6));
             CHECK(f({0, 0, 1}) == Vector3<double>(0, 2, -5));
@@ -181,7 +181,7 @@ TEST_CASE("Symmetry::get_transform") {
 
         {   // second copy (k=2): R_r^2 = R_x(-pi) -> (x,y,z)->(x,-y,-z)
             // T_2 = R_r*T_1 + T_1 = (0,-5,-1) + (0,1,-5) = (0,-4,-6)
-            auto f = s.get_transform({0, 0, 0}, 2);
+            auto f = s._get_transform({0, 0, 0}, 2);
             CHECK(f({1, 0, 0}) == Vector3<double>(1, -4, -6));
             CHECK(f({0, 1, 0}) == Vector3<double>(0, -5, -6));
             CHECK(f({0, 0, 1}) == Vector3<double>(0, -4, -7));
@@ -194,14 +194,14 @@ TEST_CASE("Symmetry::get_transform") {
         CyclicSymmetry s({{1, 1, 0}}, {{0, 0, 1}, {0, 0, 1}, -std::numbers::pi}, 1);
 
         {   // first copy (k=1)
-            auto f = s.get_transform({0, 0, 0});
+            auto f = s._get_transform({0, 0, 0});
             CHECK(f({1,0,0}) == Vector3<double>(-3,-2,1));
             CHECK(f({0,1,0}) == Vector3<double>(-2,-3,1));
             CHECK(f({0,0,1}) == Vector3<double>(-2,-2,2));
         }
 
         {   // second copy (k=2): R_r^2=I, T_2=R_r*T_1+T_base=(2,2,1)+(-2,-2,1)=(0,0,2)
-            auto f = s.get_transform({0, 0, 0}, 2);
+            auto f = s._get_transform({0, 0, 0}, 2);
             CHECK(f({1,0,0}) == Vector3<double>(1,0,2));
             CHECK(f({0,1,0}) == Vector3<double>(0,1,2));
             CHECK(f({0,0,1}) == Vector3<double>(0,0,3));
@@ -216,7 +216,7 @@ TEST_CASE("Symmetry::get_transform") {
         Vector3<double> center = cm - s._initial_relation.translation;  // (5,20,0)
 
         auto check_copy = [&](int rep, Vector3<double> expected) {
-            auto f = s.get_transform(cm, rep);
+            auto f = s._get_transform(cm, rep);
             auto copy_cm = f(cm);
             CHECK(copy_cm == expected);
             CHECK_THAT((copy_cm - center).magnitude(), Catch::Matchers::WithinAbs(5, 1e-6));
@@ -233,21 +233,21 @@ TEST_CASE("Symmetry::get_transform") {
 
         // p2 around X: (x,y,z) -> (x,-y,-z)
         CyclicSymmetry s_x({{0,0,0}}, {{1,0,0}, std::numbers::pi}, 1);
-        auto p = s_x.get_transform(cm)({3, 4, 5});
+        auto p = s_x._get_transform(cm)({3, 4, 5});
         CHECK_THAT(p.x(), Catch::Matchers::WithinAbs( 3, 1e-9));
         CHECK_THAT(p.y(), Catch::Matchers::WithinAbs(-4, 1e-9));
         CHECK_THAT(p.z(), Catch::Matchers::WithinAbs(-5, 1e-9));
 
         // p2 around Y: (x,y,z) -> (-x,y,-z)
         CyclicSymmetry s_y({{0,0,0}}, {{0,1,0}, std::numbers::pi}, 1);
-        auto q = s_y.get_transform(cm)({3, 4, 5});
+        auto q = s_y._get_transform(cm)({3, 4, 5});
         CHECK_THAT(q.x(), Catch::Matchers::WithinAbs(-3, 1e-9));
         CHECK_THAT(q.y(), Catch::Matchers::WithinAbs( 4, 1e-9));
         CHECK_THAT(q.z(), Catch::Matchers::WithinAbs(-5, 1e-9));
 
         // Axis magnitude should not matter: {7,0,0} same as {1,0,0}
         CyclicSymmetry s_x2({{0,0,0}}, {{7,0,0}, std::numbers::pi}, 1);
-        auto r = s_x2.get_transform(cm)({3, 4, 5});
+        auto r = s_x2._get_transform(cm)({3, 4, 5});
         CHECK_THAT(r.x(), Catch::Matchers::WithinAbs(p.x(), 1e-9));
         CHECK_THAT(r.y(), Catch::Matchers::WithinAbs(p.y(), 1e-9));
         CHECK_THAT(r.z(), Catch::Matchers::WithinAbs(p.z(), 1e-9));
@@ -274,7 +274,7 @@ TEST_CASE("CyclicSymmetry::rotation_from_angle") {
     }
 
     SECTION("the delta leaves the axis at unit length, whatever length it started at") {
-        // an axis that has already drifted: only its direction has ever mattered, since get_transform normalises it
+        // an axis that has already drifted: only its direction has ever mattered, since _get_transform normalises it
         CyclicSymmetry s({{0, 0, 0}}, {{0, 0, 7.5}, std::numbers::pi}, 1);
         auto before = s._repeat_relation.axis;
 

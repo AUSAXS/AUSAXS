@@ -18,6 +18,8 @@ namespace ausaxs::rigidbody::sequencer {
 
             void run() override;
 
+            observer_ptr<LoopElement> _get_target() const;
+
         private:
             observer_ptr<LoopElement> owner;
             observer_ptr<LoopElement> target;

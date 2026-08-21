@@ -35,6 +35,7 @@ namespace ausaxs::rigidbody::constraints {
             bool operator==(const OverlapConstraint& other) const;
 
             static void set_overlap_function(std::function<double(double)> func);
+            static void reset_statics();
 
         protected:
             static double weight(double r);

@@ -16,6 +16,7 @@ using namespace ausaxs::data::detail;
 template<typename BODY, bool NONCONST>
 void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(std::unique_ptr<symmetry::ISymmetry> symmetry) requires (NONCONST) {
     assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
+    assert(!body->symmetries->orientation.has_value() && "BodySymmetryFacade::add: cannot add a symmetry to an already-reoriented body.");
     body->symmetries->symmetries.emplace_back(std::move(symmetry));
     body->get_signaller()->set_symmetry_size(body->size_symmetry());
 }
@@ -23,6 +24,7 @@ void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(std::unique_ptr<s
 template<typename BODY, bool NONCONST>
 void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::type symmetry) requires (NONCONST) {
     assert(body->get_signaller() && "BodySymmetryFacade::add: Body signaller object not initialized.");
+    assert(!body->symmetries->orientation.has_value() && "BodySymmetryFacade::add: cannot add a symmetry to an already-reoriented body.");
     body->symmetries->add(symmetry);
     body->get_signaller()->set_symmetry_size(body->size_symmetry());
 }
@@ -78,6 +80,21 @@ symmetry::ISymmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front
 }
 
 template<typename BODY, bool NONCONST>
+ausaxs::symmetry::AffineTransform symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get_transform(
+    unsigned int index, const Vector3<double>& cm, int rep
+) const {
+    const auto& storage = *body->symmetries;
+    assert(index < storage.get().size() && "BodySymmetryFacade::get_transform: symmetry index out of range.");
+    return storage.get(index)->_get_transform(cm, storage.orientation, rep);
+}
+
+template<typename BODY, bool NONCONST>
+void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::set_orientation(const Matrix<double>& orientation) requires (NONCONST) {
+    for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
+    body->symmetries->orientation = orientation;
+}
+
+template<typename BODY, bool NONCONST>
 observer_ptr<symmetry::SymmetryStorage> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get_obj() requires (NONCONST) {
     for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
     return body->symmetries.get();
@@ -121,11 +138,11 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
     // static spans for iteration
     std::span<AtomFF> atom_span(atoms);
     std::span<Water> water_span(waters);
-    for (const auto& sym_ptr : get()) {
+    for (unsigned int isym = 0; isym < body->size_symmetry(); ++isym) {
         assert(atom_span.data() == atoms.data() && "atoms span has been reallocated and invalidated atom_span");
         assert(water_span.data() == waters.data() && "waters span has been reallocated and invalidated water_span");
-        for (int i = 0; i < static_cast<int>(sym_ptr->repetitions()); ++i) {
-            auto t = sym_ptr->get_transform(cm, i+1);
+        for (int i = 0; i < static_cast<int>(get(isym)->repetitions()); ++i) {
+            auto t = get_transform(isym, cm, i+1);
             for (const auto& a : atom_span) {
                 atoms.emplace_back(t(a.coordinates()), a.form_factor_type());
             }

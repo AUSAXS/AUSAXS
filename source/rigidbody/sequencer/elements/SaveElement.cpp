@@ -16,8 +16,24 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
+namespace {
+    int pdb_counter = 0;
+    int fit_counter = 0;
+    int png_counter = 0;
+    std::unordered_map<std::string, ausaxs::io::detail::xyz::XYZWriter> writers;
+}
+
 SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, const io::File& path) : LoopElementCallback(owner), path(path) {}
-SaveElement::~SaveElement() = default;
+SaveElement::~SaveElement() {
+    reset_statics();
+}
+
+void SaveElement::reset_statics() {
+    pdb_counter = 0;
+    fit_counter = 0;
+    png_counter = 0;
+    writers.clear();
+}
 
 void SaveElement::run() {
     // find and replace '%' with the current counter value
@@ -30,23 +46,20 @@ void SaveElement::run() {
 
     // PDB
     if (const auto& ext = path.extension(); ext == ".pdb") {
-        static int counter = 0;
-        owner->_get_molecule()->save(insert_counter(path, counter));
+        owner->_get_molecule()->save(insert_counter(path, pdb_counter));
     }
 
     // FIT
     else if (ext == ".fit") {
-        static int counter = 0;
         auto result = owner->_get_rigidbody()->controller->get_fitter()->fit();
         result->curves.select_columns({0, 1, 2, 3}).save(
-            insert_counter(path, ++counter),
+            insert_counter(path, ++fit_counter),
             "chi2=" + std::to_string(result->fval) + ", dof=" + std::to_string(result->dof)
         );
     }
 
     // PNG
     else if (ext == ".png") {
-        static int counter = 0;
         auto result = owner->_get_rigidbody()->controller->get_fitter()->fit();
         plots::PlotDataset plot;
         plot.plot_residuals(
@@ -59,12 +72,11 @@ void SaveElement::run() {
                 }
             )
         );
-        plot.save(insert_counter(path, counter));
+        plot.save(insert_counter(path, png_counter));
     }
 
     // XYZ
     else if (ext == ".xyz") {
-        static std::unordered_map<std::string, io::detail::xyz::XYZWriter> writers;
         auto p = path.path(); 
         if (!writers.contains(p)) {
             writers.emplace(p, path);

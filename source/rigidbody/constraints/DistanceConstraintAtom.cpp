@@ -15,13 +15,11 @@ double DistanceConstraintAtom::evaluate_distance(int iatom1, int iatom2) const {
     auto atom1 = molecule->get_body(ibody1).get_atom(iatom1).coordinates();
     auto atom2 = molecule->get_body(ibody2).get_atom(iatom2).coordinates();
     if (isym1.first != -1) {
-        auto sym = molecule->get_body(ibody1).symmetry().get(isym1.first);
-        auto transform = sym->get_transform(atom1, isym1.second);
+        auto transform = molecule->get_body(ibody1).symmetry().get_transform(isym1.first, cm1(), isym1.second);
         atom1 = transform(atom1);
     }
     if (isym2.first != -1) {
-        auto sym = molecule->get_body(ibody2).symmetry().get(isym2.first);
-        auto transform = sym->get_transform(atom2, isym2.second);
+        auto transform = molecule->get_body(ibody2).symmetry().get_transform(isym2.first, cm2(), isym2.second);
         atom2 = transform(atom2);
     }
     return atom1.distance(atom2);
@@ -54,6 +52,7 @@ DistanceConstraintAtom::DistanceConstraintAtom(
         throw except::invalid_argument("DistanceConstraintAtom::DistanceConstraintAtom: Cannot create a constraint between atoms in the same body!");
     }
 
+    cache_cm_offsets();
     d_target = evaluate_distance(iatom1, iatom2);
 }
 
@@ -106,6 +105,7 @@ DistanceConstraintAtom::DistanceConstraintAtom(
     iatom1 = found_iatom1;
     iatom2 = found_iatom2;
 
+    cache_cm_offsets();
     d_target = evaluate_distance(iatom1, iatom2);
 }
 

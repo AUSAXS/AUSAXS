@@ -13,6 +13,7 @@
 #include <data/DataFwd.h>
 #include <io/IOFwd.h>
 
+#include <atomic>
 #include <memory>
 #include <vector>
 
@@ -90,10 +91,29 @@ namespace ausaxs::rigidbody::sequencer {
 
             observer_ptr<LoopElement> _get_owner() const;
 
+            /**
+             * @brief Request that the currently running sequence stops as soon as possible.
+             *
+             * Thread-safe, and intended to be called from outside the running thread. The flag is checked at the
+             * start of every loop iteration, so the iteration in progress is always allowed to finish. The stopped
+             * run still completes normally, i.e. the best conformation found so far is restored and fitted.
+             * The flag is cleared by Sequencer::execute, so a request made while nothing is running is discarded.
+             */
+            static void _request_stop();
+            static bool _stop_requested();
+            static void _clear_stop_request();
+
             static unsigned int _get_current_iteration();
             static unsigned int _get_total_iterations();
-            static void _add_total_iterations(unsigned int n);
+            /**
+             * @brief Recalculate the total number of optimization steps the given element tree will perform.
+             *
+             * This must be done after the tree is fully built, since a loop does not know its own contents
+             * while it is being constructed.
+             */
+            static void _recount_total_iterations(observer_ptr<LoopElement> root);
             static void _reset_counters();
+            static void _reset_named_loops();
 
             static std::vector<std::string> _valid_arguments();
             static InlineSignature _valid_inline_arguments();
@@ -107,5 +127,6 @@ namespace ausaxs::rigidbody::sequencer {
             observer_ptr<LoopElement> owner;
             inline static unsigned int total_loop_count = 0;
             inline static unsigned int global_counter = 0;
+            inline static std::atomic<bool> stop_flag = false;
     };
 }

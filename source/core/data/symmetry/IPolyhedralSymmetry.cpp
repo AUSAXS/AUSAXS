@@ -62,18 +62,16 @@ unsigned int IPolyhedralSymmetry::repetitions() const {
 
 bool IPolyhedralSymmetry::is_closed() const {return false;}
 
-std::function<Vector3<double>(Vector3<double>)> IPolyhedralSymmetry::get_transform(const Vector3<double>& cm, int rep) const {
+AffineTransform IPolyhedralSymmetry::_make_transform(const Vector3<double>& cm, int rep) const {
     const auto& G = group().elements;
-    assert(0 < rep && rep < static_cast<int>(G.size()) && "PolyhedralSymmetry::get_transform: repetition index out of range.");
+    assert(0 < rep && rep < static_cast<int>(G.size()) && "PolyhedralSymmetry::_make_transform: repetition index out of range.");
 
     // copy `rep` is  v -> c + F G_rep F^T (v - c),  with c = cm + offset and F the frame orientation
     Matrix<double> F = matrix::rotation_matrix<double>(rotation);
     Matrix<double> R = F*G[rep]*F.transpose();
     Vector3<double> c = group_centre(cm, F);
     Vector3<double> T = c - R*c;
-    return [R = std::move(R), T = std::move(T)](Vector3<double> v) {
-        return R*v + T;
-    };
+    return {std::move(R), std::move(T)};
 }
 
 Vector3<double> IPolyhedralSymmetry::group_centre(const Vector3<double>& cm, const Matrix<double>&) const {

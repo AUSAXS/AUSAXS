@@ -11,6 +11,15 @@
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
+namespace {
+    // The orientation every participant of a shared symmetry generates its copies in. It must be one common rotation rather than each body's own: the copies
+    // are placed by a single operator acting on the whole asymmetric unit, so per-body operators would scatter the participants of a copy relative to each
+    // other and the assembly would no longer be symmetric. The primary body owns the symmetry, so its orientation is the natural choice.
+    std::optional<Matrix<double>> shared_orientation(observer_ptr<const data::Molecule> molecule, int primary_body) {
+        return molecule->get_body(primary_body).symmetry().get_obj()->orientation;
+    }
+}
+
 ReferenceSymmetry::ReferenceSymmetry(std::unique_ptr<ISymmetry> base, std::vector<int> bodies, std::vector<int> slots, observer_ptr<const data::Molecule> molecule)
     : base(std::move(base)), bodies(std::move(bodies)), slots(std::move(slots)), molecule(molecule)
 {
@@ -34,9 +43,18 @@ Vector3<double> ReferenceSymmetry::combined_cm() const {
     return sum/total;
 }
 
-std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetry::get_transform(const Vector3<double>&, int rep) const {
-    // the per-body cm is ignored: every participating body must rotate about the shared combined centre so the whole assembly is replicated as one rigid unit
-    return base->get_transform(combined_cm(), rep);
+AffineTransform ReferenceSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
+    return base->_get_transform(anchor, rep);
+}
+
+// The per-body cm is ignored: every participating body must rotate about the shared combined centre so the whole assembly is replicated as one rigid unit.
+// Note that the centre is read off the participants' current positions, so it drifts whenever they move relative to one another rather than as a rigid group.
+// That is deliberate: pinning it to the conformation the symmetry was defined in would couple the shared parameters to every real-space move of a participant,
+// which is exactly what stops the two sets of parameters from being optimised at the same time. The copies remain mutually congruent through the drift.
+Vector3<double> ReferenceSymmetry::_transform_anchor(const Vector3<double>&) const {return combined_cm();}
+
+std::optional<Matrix<double>> ReferenceSymmetry::_transform_orientation(const std::optional<Matrix<double>>&) const {
+    return shared_orientation(molecule, bodies.front());
 }
 
 unsigned int ReferenceSymmetry::repetitions() const {return base->repetitions();}
@@ -72,8 +90,15 @@ observer_ptr<const ReferenceSymmetry> ReferenceSymmetryView::target() const {
     return ref;
 }
 
-std::function<Vector3<double>(Vector3<double>)> ReferenceSymmetryView::get_transform(const Vector3<double>& cm, int rep) const {
-    return target()->get_transform(cm, rep);
+// the view must place its copies with exactly the operator the target does, so it borrows the target's anchor rather than deriving one of its own
+AffineTransform ReferenceSymmetryView::_make_transform(const Vector3<double>& anchor, int rep) const {
+    return target()->_make_transform(anchor, rep);
+}
+
+Vector3<double> ReferenceSymmetryView::_transform_anchor(const Vector3<double>&) const {return target()->combined_cm();}
+
+std::optional<Matrix<double>> ReferenceSymmetryView::_transform_orientation(const std::optional<Matrix<double>>&) const {
+    return shared_orientation(molecule, primary_body);
 }
 
 unsigned int ReferenceSymmetryView::repetitions() const {return target()->repetitions();}

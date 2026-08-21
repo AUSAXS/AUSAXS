@@ -204,3 +204,51 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::TransformElement 
         );
     }
 }
+
+namespace {
+    // requests a stop the first time it is run, so the surrounding loop should not start another iteration
+    struct StopRequestElement : GenericElement {
+        void run() override {LoopElement::_request_stop();}
+    };
+}
+
+TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement stop request") {
+    SECTION("Stop request ends the loop after the current iteration") {
+        Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+        auto& loop = seq
+            .setup()
+                .load("tests/files/SASDJG5.pdb")
+            .end()
+            .loop(10);
+        loop.optimize();
+        loop._get_elements().push_back(std::make_unique<StopRequestElement>());
+
+        auto result = loop.end().execute();
+
+        // the requesting iteration always finishes, so exactly one of the ten should have run
+        CHECK(LoopElement::_get_current_iteration() == 1);
+        CHECK(LoopElement::_stop_requested());
+
+        // a stopped run is still a complete run: the best conformation so far is restored and fitted
+        REQUIRE(result != nullptr);
+        CHECK(result->fval > 0);
+    }
+
+    SECTION("A stop requested while nothing is running does not affect the next run") {
+        LoopElement::_request_stop();
+
+        Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
+        auto result = seq
+            .setup()
+                .load("tests/files/SASDJG5.pdb")
+            .end()
+            .loop(3)
+                .optimize()
+            .end()
+        .execute();
+
+        CHECK(LoopElement::_get_current_iteration() == 3);
+        CHECK_FALSE(LoopElement::_stop_requested());
+        REQUIRE(result != nullptr);
+    }
+}

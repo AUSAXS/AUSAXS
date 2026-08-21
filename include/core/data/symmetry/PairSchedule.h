@@ -11,14 +11,6 @@
 
 namespace ausaxs::symmetry {
     /**
-     * @brief A rigid affine map  v -> rotation*v + translation.
-     */
-    struct AffineTransform {
-        Matrix<double> rotation = Matrix<double>::identity(3);
-        Vector3<double> translation{0, 0, 0};
-    };
-
-    /**
      * @brief Group the C(n,2) unordered pairs among n placements into classes with
      *        geometrically identical inter-placement distances.
      *

@@ -38,7 +38,7 @@ TEST_CASE("Dataset::save") {
         std::vector<double>{1,    2,    3,    4,    5,    6,    7,    8,    9,    10}
     });
 
-    std::string path = "temp/tests/dataset/save.dat";
+    std::string path = "temp/tests/dataset/dataset_save.dat";
     dataset.save(path);
     Dataset loaded_dataset(path);
     CHECK(dataset == loaded_dataset);

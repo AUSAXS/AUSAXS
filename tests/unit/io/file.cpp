@@ -64,7 +64,7 @@ TEST_CASE("File::split") {
 
 TEST_CASE("File::create") {
     SECTION("empty") {
-        std::string path = "temp/dummy.txt";
+        std::string path = "temp/dummy_create_empty.txt";
         io::File file(path);
         file.create();
         CHECK(file.exists());
@@ -72,7 +72,7 @@ TEST_CASE("File::create") {
     }
 
     SECTION("with contents") {
-        std::string path = "temp/dummy.txt";
+        std::string path = "temp/dummy_create_contents.txt";
         io::File file(path);
         file.create("test");
         CHECK(file.exists());
@@ -85,7 +85,7 @@ TEST_CASE("File::create") {
 }
 
 TEST_CASE("File::remove") {
-    std::string path = "temp/dummy.txt";
+    std::string path = "temp/dummy_remove.txt";
     io::File file(path);
     file.create();
     CHECK(file.exists() == true);

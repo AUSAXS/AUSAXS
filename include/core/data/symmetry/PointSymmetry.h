@@ -20,7 +20,6 @@ namespace ausaxs::symmetry {
         PointSymmetry(const Vector3<double>& translation, const Vector3<double>& rotation);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
-        std::function<Vector3<double>(Vector3<double>)> get_transform(const Vector3<double>& cm, int rep = 1) const override;
         std::unique_ptr<ISymmetry> clone() const override;
         unsigned int repetitions() const override;
         bool is_closed() const override;
@@ -30,5 +29,8 @@ namespace ausaxs::symmetry {
         Vector3<double> rotation;    // Rotation of the copy, given as Euler angles.
         std::span<double> span_translation() override;
         std::span<double> span_rotation() override;
+
+    protected:
+        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
     };
 }

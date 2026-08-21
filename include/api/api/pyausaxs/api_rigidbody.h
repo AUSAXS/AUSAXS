@@ -47,6 +47,13 @@ extern "C" API int rigidbody_run(
     int* status
 );
 
+// Ask a running refinement to stop. The request is picked up at the start of the next loop iteration, after which
+// rigidbody_run returns normally with the best conformation found so far. Safe to call from another thread than the
+// one running the refinement, and a no-op if nothing is running.
+extern "C" API void rigidbody_stop_run(
+    int* status
+);
+
 extern "C" API void rigidbody_get_valid_elements(
     const char*** elements,
     int* size,
