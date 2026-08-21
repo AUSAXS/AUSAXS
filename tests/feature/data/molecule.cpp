@@ -91,7 +91,7 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
 
     SECTION("ExistingFile&") {
         SECTION("fake data") {
-            io::File path("temp/io/temp.pdb");
+            io::File path("temp/io/molecule_fake_data.pdb");
             path.create();
 
             std::ofstream pdb_file(path);

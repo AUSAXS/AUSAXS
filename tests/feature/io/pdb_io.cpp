@@ -22,7 +22,7 @@ TEST_CASE("PDBReader::read") {
     settings::molecule::center = false;
     settings::general::verbose = false;
 
-    io::File path("temp/io/temp.pdb");
+    io::File path("temp/io/pdb_reader_read.pdb");
     path.create();
 
     std::ofstream pdb_file(path);
@@ -209,8 +209,8 @@ TEST_CASE("PDBStructure: save") {
     settings::general::verbose = false;
 
     auto protein = io::detail::pdb::read("tests/files/2epe.pdb");
-    io::detail::pdb::write(protein, "temp/io/temp.pdb");
-    auto protein2 = io::detail::pdb::read("temp/io/temp.pdb");
+    io::detail::pdb::write(protein, "temp/io/pdb_structure_save.pdb");
+    auto protein2 = io::detail::pdb::read("temp/io/pdb_structure_save.pdb");
     auto atoms1 = protein.atoms;
     auto atoms2 = protein2.atoms;
 
