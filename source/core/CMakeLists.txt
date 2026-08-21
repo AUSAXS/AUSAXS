@@ -29,6 +29,13 @@ set_target_properties(libausaxs PROPERTIES
 target_link_libraries(libausaxs ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
 target_link_libraries(libausaxs_static ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
 
+include(GNUInstallDirs)
+install(TARGETS libausaxs
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
 add_subdirectory(constants)
 add_subdirectory(data)
 add_subdirectory(dataset)
