@@ -13,7 +13,7 @@ namespace ausaxs::settings {
         static bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
         static bool use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
 
-        static bool store_calpha;           // Decides whether C-alpha backbone metadata is retained per atom.
+        static bool store_calpha;           // Decides whether per-atom backbone classification (N/C-alpha/C/O) is retained as metadata.
         static bool store_occupancy;        // Decides whether per-atom occupancy is retained as metadata.
         static bool store_residue_seq;      // Decides whether per-atom residue sequence is retained as metadata.
     };

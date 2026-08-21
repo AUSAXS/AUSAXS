@@ -29,11 +29,32 @@ auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& w
     auto b = body.symmetry().explicit_structure();
     auto asize = body.size_atom();
     auto batoms = b.atoms;
+
+    // when present, per-atom backbone role and residue sequence let the writer emit a structure PyMOL (and similar
+    // tools) can trace as a cartoon; symmetry copies repeat the base body's classification via i % asize.
+    const auto& metadata = body.get_metadata();
+    const std::vector<data::backbone_t>* backbone = (metadata && metadata->backbone)    ? &metadata->backbone.value()    : nullptr;
+    const std::vector<int>*              resseq   = (metadata && metadata->residue_seq) ? &metadata->residue_seq.value() : nullptr;
+
     for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
         if (i % asize == 0) {++chain;}
         const auto& a = batoms[i];
+        int midx = i % static_cast<int>(asize);
+
+        std::string name = form_factor::to_string(a.form_factor_type());
+        if (backbone) {
+            switch ((*backbone)[midx]) {
+                case data::backbone_t::n:       name = "N";  break;
+                case data::backbone_t::c_alpha: name = "CA"; break;
+                case data::backbone_t::c:       name = "C";  break;
+                case data::backbone_t::o:       name = "O";  break;
+                case data::backbone_t::none:    break;
+            }
+        }
+        int resSeq = resseq ? (*resseq)[midx] : 0;
+
         atoms.emplace_back(
-            ++serial, form_factor::to_string(a.form_factor_type()), "", "UNK", chain, 0, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
+            ++serial, name, "", "UNK", chain, resSeq, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
         );
     }
 
@@ -187,7 +208,14 @@ PDBStructure::_res PDBStructure::reduced_representation() {
 
     for (auto& a : atoms) {
         res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);
-        if (md.backbone)    {md.backbone->emplace_back(a.name == "CA" && a.element == constants::atom_t::C ? data::backbone_t::c_alpha : data::backbone_t::none);}
+        if (md.backbone)    {
+            data::backbone_t bt = data::backbone_t::none;
+            if      (a.element == constants::atom_t::C && a.name == "CA") {bt = data::backbone_t::c_alpha;}
+            else if (a.element == constants::atom_t::N && a.name == "N")  {bt = data::backbone_t::n;}
+            else if (a.element == constants::atom_t::C && a.name == "C")  {bt = data::backbone_t::c;}
+            else if (a.element == constants::atom_t::O && a.name == "O")  {bt = data::backbone_t::o;}
+            md.backbone->emplace_back(bt);
+        }
         if (md.residue_seq) {md.residue_seq->emplace_back(a.resSeq);}
         if (md.occupancy)   {md.occupancy->emplace_back(static_cast<float>(a.occupancy));}
     }
