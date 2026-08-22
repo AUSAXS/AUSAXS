@@ -39,9 +39,19 @@ jobs:
       - name: Check headers
         run: python .github/check_headers.py
 
-  build-win: 
+  check-exceptions:
+    name: "Check that no files bypass the ausaxs::except:: hierarchy"
+    needs: check-draft
+    if: needs.check-draft.outputs.is-draft == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check exceptions
+        run: python .github/check_exceptions.py
+
+  build-win:
     name: "Windows MSVC"
-    needs: check-headers
+    needs: [check-headers, check-exceptions]
     runs-on: windows-latest
     env:
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,${{ inputs.package_permission && 'readwrite' || 'read' }}"
@@ -101,7 +111,7 @@ jobs:
 
   build-mac:
     name: "MacOS universal"
-    needs: check-headers
+    needs: [check-headers, check-exceptions]
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
@@ -149,7 +159,7 @@ jobs:
 
   build-mac-gui:
     name: "${{ matrix.name }}"
-    needs: check-headers
+    needs: [check-headers, check-exceptions]
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -241,7 +251,7 @@ jobs:
 
   build-ubuntu:
     name: ${{ matrix.name }}
-    needs: check-headers
+    needs: [check-headers, check-exceptions]
     runs-on: ${{ matrix.os }}
     strategy: 
       fail-fast: false
