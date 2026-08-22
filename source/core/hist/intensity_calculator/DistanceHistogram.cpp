@@ -97,16 +97,22 @@ const std::vector<double>& DistanceHistogram::get_q_axis() {
 const std::vector<double>& DistanceHistogram::get_weighted_counts() const {return get_counts();}
 
 bool DistanceHistogram::is_highly_ordered() const {
-    // count the number of 'spikes', defined as points that are at least 50% larger than their neighbours
-    // also count the number of bins with non-zero counts
+    return is_highly_ordered(p);
+}
+
+bool DistanceHistogram::is_highly_ordered(const std::vector<double>& counts) {
+    // Count spikes relative to the neighbouring bins. The atom-atom component
+    // is intentionally accepted here because hydration can hide ordering in
+    // the total p(r) histogram.
+    if (counts.size() < 3) {return false;}
+
     unsigned int peaks = 0;
     unsigned int non_zero = 0;
-    for (unsigned int i = 1; i < p.size()-1; ++i) {
-        if (p[i] == 0) {continue;}
-        if (p[i] > 1.5*p[i-1] && p[i] > 1.5*p[i+1]) {++peaks;}
+    for (std::size_t i = 1; i + 1 < counts.size(); ++i) {
+        if (counts[i] == 0) {continue;}
+        if (counts[i] > 1.5*counts[i-1] && counts[i] > 1.5*counts[i+1]) {++peaks;}
         ++non_zero;
     }
 
-    // if the number of peaks is at least 25% of the number of non-zero bins, we consider the structure to be highly ordered
-    return peaks > non_zero*0.25;
+    return non_zero != 0 && peaks > non_zero*0.25;
 }

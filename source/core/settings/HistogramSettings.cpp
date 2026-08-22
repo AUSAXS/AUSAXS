@@ -16,7 +16,7 @@
 using namespace ausaxs;
 
 unsigned int settings::axes::skip = 0;
-bool settings::hist::weighted_bins = true;
+settings::hist::WeightedBins settings::hist::weighted_bins(settings::hist::WeightedBins::Value::Auto);
 
 // qmin
 settings::detail::Setting<double> settings::axes::qmin = {
