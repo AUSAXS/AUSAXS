@@ -17,6 +17,7 @@
 #include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
 #include <rigidbody/sequencer/elements/setup/CopyBodyElement.h>
 #include <rigidbody/sequencer/elements/setup/SplitElement.h>
+#include <rigidbody/sequencer/elements/setup/SettingsElement.h>
 
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
 #include <rigidbody/sequencer/elements/ConstraintIteratorElement.h>

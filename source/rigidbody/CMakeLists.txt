@@ -83,6 +83,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/elements/setup/ConvertToSymmetryElement.cpp"
 	"sequencer/elements/setup/OutputFolderElement.cpp"
 	"sequencer/elements/setup/SplitElement.cpp"
+	"sequencer/elements/setup/SettingsElement.cpp"
 	
 	"transform/RigidTransform.cpp"
 	"transform/SingleTransform.cpp"

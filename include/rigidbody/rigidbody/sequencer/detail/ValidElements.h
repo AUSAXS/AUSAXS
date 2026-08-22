@@ -33,6 +33,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         RelativeHydration,
         Rename,
         Save,
+        Settings,
         Seed,
         Split,
         SymmetryElement,

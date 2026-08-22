@@ -160,6 +160,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             {ElementType::RelativeHydration,   RelativeHydrationElement::_parse},
             {ElementType::Rename,              RenameElement::_parse},
             {ElementType::Save,                SaveElement::_parse},
+            {ElementType::Settings,            SettingsElement::_parse},
             {ElementType::Split,               SplitElement::_parse},
             {ElementType::SymmetryElement,     SymmetryElement::_parse},
             {ElementType::Transform,           TransformElement::_parse},
