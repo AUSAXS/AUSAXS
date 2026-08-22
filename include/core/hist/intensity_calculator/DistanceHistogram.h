@@ -83,6 +83,14 @@ namespace ausaxs::hist {
              */
             bool is_highly_ordered() const;
 
+            /**
+             * @brief Determine whether a distance-count sequence is highly ordered.
+             *
+             * This overload is used for partial histograms, where the atom-atom
+             * component must be inspected instead of the total histogram.
+             */
+            static bool is_highly_ordered(const std::vector<double>& counts);
+
         protected:
             std::vector<double> d_axis;                     // The distance axis.
             mutable table::DebyeTableManager sinc_table;    // The sinc(x) lookup table manager for the Debye transform.

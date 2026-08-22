@@ -5,6 +5,8 @@
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/distribution/Distribution1D.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/state/BoundSignaller.h>
@@ -19,6 +21,7 @@
 #include <hydrate/generation/GridBasedHydration.h>
 #include <io/Writer.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 #include <settings/All.h>
 
 #include <numeric>
@@ -54,7 +57,6 @@ Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
     initialize();
 }
 
-#include <utility/Logging.h>
 Molecule& Molecule::operator=(Molecule&& other) {
     logging::log("Molecule move-assign");
     if (this == &other) {return *this;}
@@ -65,7 +67,34 @@ Molecule& Molecule::operator=(Molecule&& other) {
 }
 
 void Molecule::reset_histogram_manager() {
-    set_histogram_manager(hist::factory::construct_histogram_manager(this));
+    if (!settings::hist::weighted_bins.is_auto()) {
+        set_histogram_manager(hist::factory::construct_histogram_manager(this));
+        return;
+    }
+
+    // First build the cheap representation. Ordering must be measured from the
+    // atom-atom component: hydration can hide sharp peaks in the total p(r).
+    const auto choice = settings::hist::get_histogram_manager();
+    settings::hist::weighted_bins = false;
+    set_histogram_manager(hist::factory::construct_histogram_manager(this, false));
+    const auto histogram = get_histogram();
+    const bool ordered = hist::DistanceHistogram::is_highly_ordered(
+        histogram->get_aa_counts().get_content()
+    );
+
+    const bool grid = choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid
+        || choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface
+        || choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;
+    settings::hist::weighted_bins = ordered || grid;
+
+    if (settings::hist::weighted_bins.is_true()) {
+        set_histogram_manager(hist::factory::construct_histogram_manager(this, true));
+        console::print_text(grid
+            ? "Molecule: weighted bins enabled (required by grid excluded volume)."
+            : "Molecule: weighted bins enabled automatically (ordered atom-atom structure).");
+    } else {
+        console::print_text("Molecule: weighted bins disabled automatically (disordered atom-atom structure).");
+    }
 }
 
 void Molecule::initialize() {

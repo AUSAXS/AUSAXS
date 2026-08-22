@@ -78,6 +78,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
         "The unit of the q values in the measurement file. Options: A, nm.");
     sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
     sub_data->add_flag("--rebin", settings::flags::data_rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::flags::data_rebin);
+    sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins);
 
     // molecule subcommands
     auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
@@ -95,11 +96,6 @@ int cli_rigidbody(int argc, char const *argv[]) {
     sub_grid->add_option("--width,-w", settings::grid::cell_width, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);
-
-    // hidden options group
-    app.add_flag("--weighted-bins", settings::hist::weighted_bins, 
-        "Decides whether the weighted bins will be used."
-    )->default_val(settings::hist::weighted_bins)->group("");
 
     app.final_callback([&] () {if (save_settings) {
         settings::write("settings.txt");
