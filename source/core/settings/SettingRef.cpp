@@ -69,9 +69,9 @@ template<> void settings::io::detail::SettingRef<bool>::set(const std::vector<st
     settingref = utility::parse_bool(str[0]);
 }
 template<> void settings::io::detail::SettingRef<settings::hist::WeightedBins>::set(const std::vector<std::string>& str) {
-    if (auto lc = utility::to_lowercase(str[0]); lc == "auto") {settingref = settings::hist::WeightedBins::Value::Auto;}
-    else (settingref = utility::parse_bool(str[0]));
+    settingref = hist::WeightedBins(str[0]);
 }
+
 template<> void settings::io::detail::SettingRef<double>::set(const std::vector<std::string>& str) {
     if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option \"" + get() + "\" received too many settings.");}
     settingref = std::stod(str[0]);

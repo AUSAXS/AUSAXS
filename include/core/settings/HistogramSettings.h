@@ -20,7 +20,7 @@ namespace ausaxs::settings {
     };
 
     /// @brief Settings selecting how distance histograms are computed.
-    struct hist {
+    struct EXPORT hist {
         /// @brief The available histogram-manager implementations; see get_histogram_manager().
         enum class HistogramManagerChoice {
             HistogramManager,                    // A simple manager that recalculates the entire histogram every time.
