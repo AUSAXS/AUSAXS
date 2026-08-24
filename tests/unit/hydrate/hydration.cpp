@@ -83,13 +83,13 @@ TEST_CASE("ImplicitHydration::ImplicitHydration") {
 TEST_CASE("ImplicitHydration::clear") {
     ImplicitHydration hydration;
     // clear() should throw for ImplicitHydration
-    CHECK_THROWS_AS(hydration.clear(), std::runtime_error);
+    CHECK_THROWS_AS(hydration.clear(), except::runtime_error);
 }
 
 TEST_CASE("ImplicitHydration::clone") {
     ImplicitHydration hydration;
     // clone() should throw for ImplicitHydration
-    CHECK_THROWS_AS(hydration.clone(), std::runtime_error);
+    CHECK_THROWS_AS(hydration.clone(), except::runtime_error);
 }
 
 TEST_CASE("EmptyHydration::EmptyHydration") {
